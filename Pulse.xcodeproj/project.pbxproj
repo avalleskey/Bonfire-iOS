@@ -1180,7 +1180,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = CC79AF492F4B77C3F26E47B7 /* Pods-Pulse.debug.xcconfig */;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon-5";
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 4WLQG965T9;
@@ -1208,7 +1208,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 0DF685DAACDD9E5D6BDDF5BA /* Pods-Pulse.release.xcconfig */;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon-5";
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 4WLQG965T9;

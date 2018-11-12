@@ -26,7 +26,7 @@
                                 </constraints>
                             </imageView>
                         </subviews>
-                        <color key="backgroundColor" red="0.9882352941176471" green="0.41568627450980389" blue="0.11764705882352941" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
                             <constraint firstItem="H2U-09-bPB" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="9PO-xS-BHV"/>
                             <constraint firstItem="H2U-09-bPB" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="PRp-7J-P3e"/>
@@ -42,6 +42,6 @@
         </scene>
     </scenes>
     <resources>
-        <image name="launch_logo" width="96" height="123"/>
+        <image name="launch_logo" width="1731" height="2238"/>
     </resources>
 </document>

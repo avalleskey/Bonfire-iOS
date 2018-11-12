@@ -70,14 +70,40 @@ static NSString * const reuseIdentifier = @"Result";
         
         [self loadRoom];
     }
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(roomUpdated:) name:@"RoomUpdated" object:nil];
 }
 
+- (void)roomUpdated:(NSNotification *)notification {
+    Room *room = notification.object;
+    
+    if (room != nil &&
+        [room.identifier isEqualToString:self.room.identifier]) {
+        BOOL canViewPosts_Before = [self canViewPosts];
+        
+        // new post appears valid and same room
+        self.room = room;
+        self.tableView.parentObject = room;
+        
+        // update table view state based on new Room object
+        // if and only if [self canViewPosts] changes values after setting the new room, should we update the table view
+        BOOL canViewPosts_After = [self canViewPosts];
+        if (canViewPosts_Before != canViewPosts_After) {
+            [self loadRoomContent];
+        }
+    }
+}
 - (void)loadRoom {
     NSError *roomError;
     self.room = [[Room alloc] initWithDictionary:[self.room toDictionary] error:&roomError];
-    [self mock];
+    // [self mock];
     
-    if (roomError) {
+    NSLog(@"loadRoom:");
+    NSLog(@"self.room: %@", self.room);
+    
+    if (roomError || self.room.attributes.context == nil) {
+        // Room requires context, even though it's Optional on the object
+        
         // Room object is fragmented – get Room to fill in the pieces
         NSLog(@"room error::::");
         NSLog(@"%@", roomError);
@@ -591,7 +617,7 @@ static NSString * const reuseIdentifier = @"Result";
 }
 
 - (void)tableView:(id)tableView didRequestNextPageWithSinceId:(NSInteger)sinceId {
-    NSLog(@"RoomViewController:: didRequestNextPageWithSinceID: %ld", (long)sinceId);
+    // NSLog(@"RoomViewController:: didRequestNextPageWithSinceID: %ld", (long)sinceId);
     [self getPostsWithSinceId:sinceId];
 }
 

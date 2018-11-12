@@ -130,6 +130,8 @@
                 [self.followButton.status isEqualToString:STATUS_REQUESTED]) {
                 // leave the room
                 [self.followButton updateStatus:STATUS_LEFT];
+                [self updateRoomStatus];
+                [self decrementMembersCount];
                 
                 [[Session sharedInstance] unfollowRoom:self.room.identifier completion:^(BOOL success, id responseObject) {
                     if (success) {
@@ -149,13 +151,9 @@
                 else {
                     // since they've been invited already, jump straight to being a member
                     [self.followButton updateStatus:STATUS_MEMBER];
-                    
-                    /* TODO: Reload table view and remvoe locked error view
-                    if ([UIViewParentController(self) isKindOfClass:[RoomViewController class]]) {
-                        RoomViewController *parentRoomVC = (RoomViewController *)UIViewParentController(self);
-                        [parentRoomVC.tableView reloadData];
-                    }*/
+                    [self incrementMembersCount];
                 }
+                [self updateRoomStatus];
                 
                 [HapticHelper generateFeedback:FeedbackType_Notification_Success];
                 
@@ -196,6 +194,46 @@
         [self.contentView addSubview:self.lineSeparator];
     }
     return self;
+}
+
+- (void)updateRoomStatus {
+    RoomContext *context = [[RoomContext alloc] initWithDictionary:[self.room.attributes.context toDictionary] error:nil];
+    context.status = self.followButton.status;
+    self.room.attributes.context = context;
+    
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"RoomUpdated" object:self.room];
+}
+- (void)incrementMembersCount {
+    RoomCounts *counts = [[RoomCounts alloc] initWithDictionary:[self.room.attributes.summaries.counts toDictionary] error:nil];
+    counts.members = counts.members + 1;
+    self.room.attributes.summaries.counts = counts;
+    
+    [self updateMembersLabel];
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"RoomUpdated" object:self.room];
+}
+- (void)decrementMembersCount {
+    RoomCounts *counts = [[RoomCounts alloc] initWithDictionary:[self.room.attributes.summaries.counts toDictionary] error:nil];
+    counts.members = counts.members > 0 ? counts.members - 1 : 0;
+    self.room.attributes.summaries.counts = counts;
+    
+    [self updateMembersLabel];
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"RoomUpdated" object:self.room];
+}
+- (void)updateMembersLabel {
+    DefaultsRoomMembersTitle *membersTitle = [Session sharedInstance].defaults.room.membersTitle;
+    if (self.room.attributes.summaries.counts.members) {
+        NSInteger members = self.room.attributes.summaries.counts.members;
+        [UIView performWithoutAnimation:^{
+            [self.membersLabel setTitle:[NSString stringWithFormat:@"%ld %@", members, members == 1 ? [membersTitle.singular lowercaseString] : [membersTitle.plural lowercaseString]] forState:UIControlStateNormal];
+            self.membersLabel.alpha = 1;
+        }];
+    }
+    else {
+        [UIView performWithoutAnimation:^{
+            [self.membersLabel setTitle:[NSString stringWithFormat:@"0 %@", [membersTitle.plural lowercaseString]] forState:UIControlStateNormal];
+            self.membersLabel.alpha = 0.5;
+        }];
+    }
 }
 
 - (void)awakeFromNib {

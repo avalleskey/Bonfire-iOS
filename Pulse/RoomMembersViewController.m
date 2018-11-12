@@ -43,6 +43,8 @@ static BOOL isAdmin = true;
     
     self.launchNavVC = (LauncherNavigationViewController *)self.navigationController;
     
+    self.manager = [HAWebService manager];
+    
     self.members = [[NSMutableArray alloc] initWithArray:@[@{}]];
     self.requests = [[NSMutableArray alloc] initWithArray:@[@{}]];
     
@@ -88,13 +90,38 @@ static BOOL isAdmin = true;
     });
 }
 - (void)getMembers {
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        self.loadingMembers = false;
-        
-        [self.tableView beginUpdates];
-        [self.tableView reloadSections:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(1, 1)] withRowAnimation:UITableViewRowAnimationNone];
-        [self.tableView endUpdates];
-    });
+    NSString *url = [NSString stringWithFormat:@"%@/%@/rooms/%@/members", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], self.room.identifier];
+    
+    [self.manager.requestSerializer setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+    self.manager.responseSerializer = [AFJSONResponseSerializer serializer];
+    [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
+        if (success) {
+            NSLog(@"authenticated now lets go");
+            
+            [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
+            
+            NSDictionary *params = @{};
+            
+            NSLog(@"url: %@", url);
+            
+            [self.manager GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+                NSArray *responseData = (NSArray *)responseObject[@"data"];
+                
+                NSLog(@"response dataaaaa: %@", responseData);
+                
+                self.members = [[NSMutableArray alloc] initWithArray:responseData];
+                
+                self.loadingMembers = false;
+                
+                [self.tableView beginUpdates];
+                [self.tableView reloadSections:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(1, 1)] withRowAnimation:UITableViewRowAnimationNone];
+                [self.tableView endUpdates];
+            } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+                NSLog(@"RoomViewController / getMembers() - error: %@", error);
+                //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+            }];
+        }
+    }];
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
@@ -189,11 +216,14 @@ static BOOL isAdmin = true;
             }
             else {
                 // member cell
+                User *user = [[User alloc] initWithDictionary:self.members[indexPath.row] error:nil];
+                
                 cell.imageView.backgroundColor = [UIColor whiteColor];
                 cell.imageView.image = [[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-                cell.textLabel.text = @"Person Name";
+                cell.imageView.tintColor = [self colorFromHexString:user.attributes.details.color];
+                cell.textLabel.text = user.attributes.details.displayName != nil ? user.attributes.details.displayName : @"Unkown User";
                 cell.textLabel.textColor = [UIColor colorWithWhite:0.2f alpha:1];
-                cell.detailTextLabel.text = @"@PERSON";
+                cell.detailTextLabel.text = [NSString stringWithFormat:@"@%@", [user.attributes.details.identifier uppercaseString]];
             }
         }
         

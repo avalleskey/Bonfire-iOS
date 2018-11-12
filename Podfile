@@ -24,7 +24,6 @@ target 'Pulse' do
   pod 'JSONModel'
   pod 'RSKImageCropper'
   pod 'JGProgressHUD'
-  pod 'SloppySwiper'
 
   target 'PulseTests' do
     inherit! :search_paths

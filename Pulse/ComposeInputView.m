@@ -187,7 +187,12 @@
             defaultPlaceholder = publicPostPlaceholder;
         }
         else {
-            defaultPlaceholder = [[Session sharedInstance].defaults.post.composePrompt stringByReplacingOccurrencesOfString:@"{group_name}" withString:parentRoom.room.attributes.details.title];
+            if (parentRoom.room.attributes.details.title == nil) {
+                defaultPlaceholder = @"Share something...";
+            }
+            else {
+                defaultPlaceholder = [[Session sharedInstance].defaults.post.composePrompt stringByReplacingOccurrencesOfString:@"{group_name}" withString:parentRoom.room.attributes.details.title];
+            }
         }
     }
     else if ([parentController isKindOfClass:[PostViewController class]]) {

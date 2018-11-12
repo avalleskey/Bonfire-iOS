@@ -1,5 +1,4 @@
 # Bonfire-iOS
-The Bonfire iOS App
 
 This repo hosts the Bonfire iOS app source code.
 

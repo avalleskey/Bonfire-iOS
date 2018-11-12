@@ -3,3 +3,4 @@
 /Pulse.xcworkspace
 *.xcscheme
 xcuserdata/
+*.DS_Store

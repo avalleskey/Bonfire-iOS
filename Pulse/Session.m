@@ -297,8 +297,8 @@ static Session *session;
     NSDictionary *accessToken = [session getAccessTokenWithVerification:false];
     NSDictionary *verifiedAccessToken = [session getAccessTokenWithVerification:true];
 
-    NSLog(@"attempt authenticate");
-    NSLog(@"accessToken: %@", (accessToken == nil ? @"FALSE" : @"TRUE"));
+    // NSLog(@"attempt authenticate");
+    // NSLog(@"accessToken: %@", (accessToken == nil ? @"FALSE" : @"TRUE"));
     
     // load cache of user
     if (verifiedAccessToken != nil) {
@@ -351,8 +351,6 @@ static Session *session;
     if ([Session sharedInstance].refreshToken != nil) {
         NSString *url = [NSString stringWithFormat:@"%@/%@/oauth", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"]];
         NSDictionary *params = @{@"grant_type": @"refresh_token", @"refresh_token": [Session sharedInstance].refreshToken};
-        
-        NSLog(@"params: %@", params);
         
         // set defaults
         [session.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", envConfig[@"API_KEY"]] forHTTPHeaderField:@"Authorization"];

@@ -32,7 +32,9 @@ _Commit:_
 * Select files in left sidebar to commit
 * Add commit message on bottom
 * Commit x Files
+
 _Push:_
 * Navigate in your Menu Bar to *Xcode* -> *Source Control* -> *Push...*
+
 _Pull / Fetch & Refresh Status:_
 * Navigate in your Menu Bar to *Xcode* -> *Source Control* -> *Fetch & Refresh Status...*

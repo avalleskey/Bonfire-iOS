@@ -11,7 +11,7 @@ You MUST have the following things properly installed and setup on your developm
 
 ## Setup
 
-# 1) Xcode
+### 1) Xcode
 * Launch Xcode
 * Navigate in your Menu Bar to *Xcode* -> *Preferences* -> *Accounts*
 * Click + in the bottom left corner to add your eligible Github account
@@ -20,13 +20,13 @@ You MUST have the following things properly installed and setup on your developm
 * Choose Bonfire-iOS from the list and proceed to select a location to save the repo
 * Great! Now close out of Xcode. Do not touch the .xcproject file that just opened!
 
-# 2) CocoaPods
+### 2) CocoaPods
 CocoaPods are essentially Rub gems for iOS. CocoaPods allow us to easily add and remove external libraries from our project. As such, be sure to *always* open the .xcworkspace file, _not_ the .xcproject file.
 * Open Terminal
 * `cd PROJECT_FOLDER` with PROJECT_FOLDER representing the Bonfire-iOS location from above
 * `pod install`
 
-# 3) Using GitHub in Xcode
+### 3) Using GitHub in Xcode
 _Commit:_
 * Navigate in your Menu Bar to *Xcode* -> *Source Control* -> *Commit...*
 * Select files in left sidebar to commit

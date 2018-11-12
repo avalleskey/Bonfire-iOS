@@ -131,7 +131,7 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
     self.instructionLabel.textAlignment = NSTextAlignmentCenter;
     self.instructionLabel.text = @"Last step, and it’s a fun one! What’s your favorite color?";
     self.instructionLabel.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightMedium];
-    self.instructionLabel.textColor = [UIColor colorWithWhite:0.07f alpha:1];
+    self.instructionLabel.textColor = [UIColor colorWithWhite:0.2f alpha:1];
     self.instructionLabel.numberOfLines = 0;
     self.instructionLabel.lineBreakMode = NSLineBreakByWordWrapping;
     [self.view addSubview:self.instructionLabel];

@@ -44,6 +44,9 @@
 		D924BE332154781000EB7385 /* HeaderView.m in Sources */ = {isa = PBXBuildFile; fileRef = D924BE322154780F00EB7385 /* HeaderView.m */; };
 		D924BE36215479BD00EB7385 /* FollowButton.m in Sources */ = {isa = PBXBuildFile; fileRef = D924BE35215479BD00EB7385 /* FollowButton.m */; };
 		D9319A8D215827E1008131CC /* Contacts.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9319A8C215827E1008131CC /* Contacts.framework */; };
+		D94DE3322199203C00CA3E1F /* SSWDirectionalPanGestureRecognizer.m in Sources */ = {isa = PBXBuildFile; fileRef = D94DE32D2199203B00CA3E1F /* SSWDirectionalPanGestureRecognizer.m */; };
+		D94DE3332199203C00CA3E1F /* SloppySwiper.m in Sources */ = {isa = PBXBuildFile; fileRef = D94DE3302199203C00CA3E1F /* SloppySwiper.m */; };
+		D94DE3342199203C00CA3E1F /* SSWAnimator.m in Sources */ = {isa = PBXBuildFile; fileRef = D94DE3312199203C00CA3E1F /* SSWAnimator.m */; };
 		D94FD19821685D6000B84E45 /* CreateRoomViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D94FD19721685D6000B84E45 /* CreateRoomViewController.m */; };
 		D94FD19E2168644200B84E45 /* EmptyChannelCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D94FD19D2168644200B84E45 /* EmptyChannelCell.m */; };
 		D94FD1A4216C5B4400B84E45 /* OnboardingViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D94FD1A2216C5B4300B84E45 /* OnboardingViewController.m */; };
@@ -192,6 +195,12 @@
 		D924BE34215479BD00EB7385 /* FollowButton.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FollowButton.h; sourceTree = "<group>"; };
 		D924BE35215479BD00EB7385 /* FollowButton.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FollowButton.m; sourceTree = "<group>"; };
 		D9319A8C215827E1008131CC /* Contacts.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Contacts.framework; path = System/Library/Frameworks/Contacts.framework; sourceTree = SDKROOT; };
+		D94DE32C2199203B00CA3E1F /* SSWDirectionalPanGestureRecognizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SSWDirectionalPanGestureRecognizer.h; sourceTree = "<group>"; };
+		D94DE32D2199203B00CA3E1F /* SSWDirectionalPanGestureRecognizer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SSWDirectionalPanGestureRecognizer.m; sourceTree = "<group>"; };
+		D94DE32E2199203C00CA3E1F /* SloppySwiper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SloppySwiper.h; sourceTree = "<group>"; };
+		D94DE32F2199203C00CA3E1F /* SSWAnimator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SSWAnimator.h; sourceTree = "<group>"; };
+		D94DE3302199203C00CA3E1F /* SloppySwiper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SloppySwiper.m; sourceTree = "<group>"; };
+		D94DE3312199203C00CA3E1F /* SSWAnimator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SSWAnimator.m; sourceTree = "<group>"; };
 		D94FD19621685D6000B84E45 /* CreateRoomViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CreateRoomViewController.h; sourceTree = "<group>"; };
 		D94FD19721685D6000B84E45 /* CreateRoomViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CreateRoomViewController.m; sourceTree = "<group>"; };
 		D94FD19C2168644200B84E45 /* EmptyChannelCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EmptyChannelCell.h; sourceTree = "<group>"; };
@@ -468,6 +477,19 @@
 			path = Profile;
 			sourceTree = "<group>";
 		};
+		D94DE3352199204100CA3E1F /* SloppySwiper */ = {
+			isa = PBXGroup;
+			children = (
+				D94DE32E2199203C00CA3E1F /* SloppySwiper.h */,
+				D94DE3302199203C00CA3E1F /* SloppySwiper.m */,
+				D94DE32F2199203C00CA3E1F /* SSWAnimator.h */,
+				D94DE3312199203C00CA3E1F /* SSWAnimator.m */,
+				D94DE32C2199203B00CA3E1F /* SSWDirectionalPanGestureRecognizer.h */,
+				D94DE32D2199203B00CA3E1F /* SSWDirectionalPanGestureRecognizer.m */,
+			);
+			path = SloppySwiper;
+			sourceTree = "<group>";
+		};
 		D94FD1C8216D730300B84E45 /* Post */ = {
 			isa = PBXGroup;
 			children = (
@@ -656,6 +678,7 @@
 		D9BD770F2172784F00DAB9BE /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				D94DE3352199204100CA3E1F /* SloppySwiper */,
 				D907B1032150697400A59712 /* NSArray+Clean.h */,
 				D907B1012150697300A59712 /* NSArray+Clean.m */,
 				D907B1002150697300A59712 /* NSDictionary+Clean.h */,
@@ -925,6 +948,7 @@
 				D96AD79C218102AF00849F6B /* InputCell.m in Sources */,
 				D9BD771221727FB000DAB9BE /* RoomSearchTableView.m in Sources */,
 				D916431E2165CC0400523770 /* NSDate+NVTimeAgo.m in Sources */,
+				D94DE3322199203C00CA3E1F /* SSWDirectionalPanGestureRecognizer.m in Sources */,
 				D924BE2D21542EE400EB7385 /* PostTextView.m in Sources */,
 				D94FD1F4216D730300B84E45 /* RoomSummaries.m in Sources */,
 				D907B1042150697400A59712 /* NSArray+Clean.m in Sources */,
@@ -963,6 +987,7 @@
 				D998462C2193B00C000B901F /* PostContext.m in Sources */,
 				D907B082214EEC5000A59712 /* AppDelegate.m in Sources */,
 				D96AD799218102A200849F6B /* ThemeSelectorCell.m in Sources */,
+				D94DE3332199203C00CA3E1F /* SloppySwiper.m in Sources */,
 				D9C0393D215A9D8600B30A41 /* SOLOptionsTransitionAnimator.m in Sources */,
 				D96AD78F2180CBD100849F6B /* ErrorChannelCell.m in Sources */,
 				D983D730216D911C00F9D201 /* PostAttributes.m in Sources */,
@@ -971,6 +996,7 @@
 				D9CB78E82166BAD700EEDBC9 /* ExpandedPostCell.m in Sources */,
 				D94FD1EB216D730300B84E45 /* RoomCounts.m in Sources */,
 				D9CB78F12166E1B400EEDBC9 /* VLDContextSheet.m in Sources */,
+				D94DE3342199203C00CA3E1F /* SSWAnimator.m in Sources */,
 				D9CB78F02166E1B400EEDBC9 /* VLDContextSheetItemView.m in Sources */,
 				D94FD1FC216D730300B84E45 /* PostDetails.m in Sources */,
 				D94FD1F6216D730300B84E45 /* RoomDiscoverability.m in Sources */,

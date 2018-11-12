@@ -1,0 +1,43 @@
+{
+    "home": {
+        "page_titles": {
+            "feed": "My Feed",
+            "my_rooms": "Rooms",
+            "discover": "Trending"
+        }
+    },
+    "profile": {
+        "follow_verb": "Follow",
+        "following_verb": "Following"
+    },
+    "post": {
+        "display_vote": {
+            "text": "Spark",
+            "icon": "lightning"
+        },
+        "img_height": 140,
+        "max_length": 300,
+        "compose_prompt": "Share in {group_name}..."
+    },
+    "sharing": {
+        "share_post": "",
+        "share_room": ""
+    },
+    "room": {
+        "create_verb": "Create",
+        "follow_verb": "Join",
+        "following_verb": "Joined",
+        "members_title": {
+            "singular": "member",
+            "plural": "members"
+        },
+        "live_threshold": 60,
+        "active_threshold": 3
+    },
+    "onboarding": {
+        "my_rooms": {
+            "title": "My Rooms",
+            "description": "Everything you care about, in one place. Discover new Rooms to follow by swiping right or searching above."
+        }
+    }
+}

@@ -43,7 +43,6 @@ PODS:
     - SDWebImage/Core (= 4.4.2)
   - SDWebImage/Core (4.4.2)
   - Shimmer (1.0.2)
-  - SloppySwiper (0.6)
   - "UIColor+Hex (1.0.1)":
     - "UIColor+Hex/NSColor (= 1.0.1)"
     - "UIColor+Hex/UIColor (= 1.0.1)"
@@ -67,7 +66,6 @@ DEPENDENCIES:
   - RSKImageCropper
   - SDWebImage (~> 4.0)
   - Shimmer
-  - SloppySwiper
   - "UIColor+Hex"
   - "UINavigationItem+Margin"
   - "UITextView+Placeholder (~> 1.2)"
@@ -89,7 +87,6 @@ SPEC REPOS:
     - RSKImageCropper
     - SDWebImage
     - Shimmer
-    - SloppySwiper
     - "UIColor+Hex"
     - "UINavigationItem+Margin"
     - "UITextView+Placeholder"
@@ -110,12 +107,11 @@ SPEC CHECKSUMS:
   RSKImageCropper: 0d0c6d8525a2381f03fde32a47c6703817a2feed
   SDWebImage: 624d6e296c69b244bcede364c72ae0430ac14681
   Shimmer: c5374be1c2b0c9e292fb05b339a513cf291cac86
-  SloppySwiper: 37e38f6da8df5c805914c6f32ec6ec8da63abe7c
   "UIColor+Hex": 9fee91bb8e19f17dd40a79ae1e98949a6a84489d
   "UINavigationItem+Margin": 7368d506fb2f7daa0c0489846cc8c2384ab1ab6d
   "UITextView+Placeholder": 0c3efd97f37ea64bde7f34cc6e90fe02e87b3909
   ZFDragableModalTransition: 0d294eaaba6edfcb9839595de765f9ca06a4b524
 
-PODFILE CHECKSUM: 5d298b98b7918f459671413b9e10383ca3a9c914
+PODFILE CHECKSUM: a3e1abe309a5cc0fc87e4cef38ae1bdc3888dd84
 
 COCOAPODS: 1.5.3

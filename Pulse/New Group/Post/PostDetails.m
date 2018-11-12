@@ -17,9 +17,7 @@
     
     // trim leading and trailing spaces
     if (self.message != nil) {
-        NSString *trimmedString = [self trimString:self.message];
-        NSLog(@"trimmed string: %@", trimmedString);
-        
+        NSString *trimmedString = [self trimString:self.message];        
         // break apart the message
         // Only TRUE if:
         // • begins or ends with valid URL
@@ -47,8 +45,6 @@
 }
 
 - (NSString *)trimString:(NSString *)string {
-    NSLog(@"string to trim:: %@", string);
-    
     if (string != nil) {
         return [string stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
     }

@@ -321,10 +321,7 @@ static NSString * const errorRoomCellReuseIdentifier = @"ErrorRoomCell";
         Room *room = [[Room alloc] initWithDictionary:self.rooms[indexPath.row] error:nil];
         
         RoomContext *context = [[RoomContext alloc] initWithDictionary:@{@"status": STATUS_MEMBER} error:nil];
-        NSLog(@"context: %@", context);
         room.attributes.context = context;
-        
-        NSLog(@"room: %@", room);
         
         [(LauncherNavigationViewController *)self.navigationController openRoom:room];
     }

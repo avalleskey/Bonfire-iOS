@@ -63,7 +63,7 @@
     self.imageView.frame = CGRectMake(16, self.frame.size.height / 2 - 16, 32, 32);
     
     // text label
-    CGRect textLabelRect = [self.textLabel.text boundingRectWithSize:CGSizeMake(self.frame.size.width - 62 - 116, self.frame.size.height) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:self.textLabel.font} context:nil];
+    CGRect textLabelRect = [self.textLabel.text boundingRectWithSize:CGSizeMake(self.frame.size.width - 62 - 62, self.frame.size.height) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:self.textLabel.font} context:nil];
     self.textLabel.frame = CGRectMake(62, 0, textLabelRect.size.width, self.frame.size.height);
     
     // detail text label

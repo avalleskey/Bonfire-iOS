@@ -172,7 +172,7 @@ static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
 }
 
 - (void)tableView:(id)tableView didRequestNextPageWithSinceId:(NSInteger)sinceId {
-    NSLog(@"RoomViewController:: didRequestNextPageWithSinceID: %ld", (long)sinceId);
+    // NSLog(@"FeedViewController:: didRequestNextPageWithSinceID: %ld", (long)sinceId);
     [self getPostsWithSinceId:sinceId];
 }
 

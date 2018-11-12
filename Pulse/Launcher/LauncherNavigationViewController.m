@@ -84,8 +84,6 @@ static NSString * const reuseIdentifier = @"Result";
 }
 
 - (void)didFinishSwiping {
-    NSLog(@"did finish swiping");
-    
     if ([[self.viewControllers lastObject] isKindOfClass:[RoomViewController class]]) {
         RoomViewController *previousRoom = [self.viewControllers lastObject];
         [self updateBarColor:previousRoom.theme withAnimation:3 statusBarUpdateDelay:NO];
@@ -319,12 +317,10 @@ static NSString * const reuseIdentifier = @"Result";
     [self.textField bk_addEventHandler:^(id sender) {
         if (!self.isCreatingPost) {
             if (self.textField.text.length == 0) {
-                NSLog(@"empty search results");
                 [self emptySearchResults];
                 [self.searchResultsTableView reloadData];
             }
             else {
-                NSLog(@"getSearchResults");
                 [self getSearchResults];
             }
         }
@@ -506,11 +502,8 @@ static NSString * const reuseIdentifier = @"Result";
 - (void)positionTextFieldSearchIcon {
     NSString *textFieldText = self.textField.text.length > 0 ? self.textField.text : self.textField.placeholder;
     
-    NSLog(@"textFieldText: %@", textFieldText);
-    
-    CGRect rect = [textFieldText boundingRectWithSize:CGSizeMake(self.textField.frame.size.width - 16 - 16 - 26, 72) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:self.textField.font} context:nil];
+    CGRect rect = [textFieldText boundingRectWithSize:CGSizeMake(CGFLOAT_MAX, self.textField.frame.size.height) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:self.textField.font} context:nil];
     CGFloat textWidth = roundf(rect.size.width);
-    NSLog(@"textWidth: %f", textWidth);
     
     CGFloat xFinal = 16;
     CGFloat xCentered = self.textField.frame.size.width / 2 - (textWidth / 2) - 10;
@@ -671,67 +664,102 @@ static NSString * const reuseIdentifier = @"Result";
 - (NSString *)convertToString:(id)object {
     return [NSString stringWithFormat:@"%@", object];
 }
-- (void)addToRecents:(NSDictionary *)json {
-    NSMutableArray *searchRecents = [[NSMutableArray alloc] initWithArray:[[NSUserDefaults standardUserDefaults] arrayForKey:@"recents_search"]];
-    
-    // add object or push to front if in recents
-    BOOL existingMatch = false;
-    for (NSInteger i = 0; i < [searchRecents count]; i++) {
-        NSDictionary *result = searchRecents[i];
-        if (json[@"type"] && json[@"id"] &&
-            result[@"type"] && result[@"id"]) {
-            if ([json[@"type"] isEqualToString:result[@"type"]] && [[self convertToString:json[@"id"]] isEqualToString:[self convertToString:result[@"id"]]]) {
-                existingMatch = true;
-                
-                [searchRecents removeObjectAtIndex:i];
-                [searchRecents insertObject:result atIndex:0];
-                break;
-            }
-        }
-    }
-    if (!existingMatch) {
-        [searchRecents insertObject:json atIndex:0];
-
-        if (searchRecents.count > 8) {
-            searchRecents = [[NSMutableArray alloc] initWithArray:[searchRecents subarrayWithRange:NSMakeRange(0, 8)]];
-        }
-    }
-    
-    // update NSUserDefaults
-    [[NSUserDefaults standardUserDefaults] setObject:[searchRecents clean] forKey:@"recents_search"];
-    [self initRecentSearchResults];
-    [self.searchResultsTableView reloadData];
-}
-- (void)addToRecentlyOpened:(NSDictionary *)json {
-    NSMutableArray *openedRecents = [[NSMutableArray alloc] initWithArray:[[NSUserDefaults standardUserDefaults] arrayForKey:@"recents_opened"]];
-    
-    // add object or push to front if in recents
-    BOOL existingMatch = false;
-    for (NSInteger i = 0; i < [openedRecents count]; i++) {
-        NSDictionary *result = openedRecents[i];
-        if (json[@"type"] && json[@"id"] &&
-            result[@"type"] && result[@"id"]) {
-            if ([json[@"type"] isEqualToString:result[@"type"]] && [[self convertToString:json[@"id"]] isEqualToString:[self convertToString:result[@"id"]]]) {
-                existingMatch = true;
-                
-                [openedRecents removeObjectAtIndex:i];
-                [openedRecents insertObject:result atIndex:0];
-                break;
-            }
-        }
-    }
-    if (!existingMatch) {
-        [openedRecents insertObject:json atIndex:0];
+- (void)addToRecents:(id)object {
+    if ([object isKindOfClass:[Room class]] ||
+        [object isKindOfClass:[User class]]) {
+        NSMutableArray *searchRecents = [[NSMutableArray alloc] initWithArray:[[NSUserDefaults standardUserDefaults] arrayForKey:@"recents_search"]];
         
-        if (openedRecents.count > 8) {
-            openedRecents = [[NSMutableArray alloc] initWithArray:[openedRecents subarrayWithRange:NSMakeRange(0, 8)]];
+        NSDictionary *objJSON = [object toDictionary];
+        
+        // add object or push to front if in recents
+        BOOL existingMatch = false;
+        for (NSInteger i = 0; i < [searchRecents count]; i++) {
+            NSDictionary *result = searchRecents[i];
+            if (objJSON[@"type"] && objJSON[@"id"] &&
+                result[@"type"] && result[@"id"]) {
+                if ([objJSON[@"type"] isEqualToString:result[@"type"]] && [[self convertToString:objJSON[@"id"]] isEqualToString:[self convertToString:result[@"id"]]]) {
+                    existingMatch = true;
+                    
+                    [searchRecents removeObjectAtIndex:i];
+                    [searchRecents insertObject:result atIndex:0];
+                    break;
+                }
+            }
         }
+        if (!existingMatch) {
+            // remove context first
+            if ([object isKindOfClass:[Room class]]) {
+                Room *room = (Room *)object;
+                room.attributes.context = nil;
+                
+                [searchRecents insertObject:[room toDictionary] atIndex:0];
+            }
+            else if ([object isKindOfClass:[User class]]) {
+                User *user = (User *)object;
+                //user.attributes.context = nil;
+                
+                [searchRecents insertObject:[user toDictionary] atIndex:0];
+            }
+            
+            
+            if (searchRecents.count > 8) {
+                searchRecents = [[NSMutableArray alloc] initWithArray:[searchRecents subarrayWithRange:NSMakeRange(0, 8)]];
+            }
+        }
+        
+        // update NSUserDefaults
+        [[NSUserDefaults standardUserDefaults] setObject:[searchRecents clean] forKey:@"recents_search"];
+        [self initRecentSearchResults];
+        [self.searchResultsTableView reloadData];
     }
-    
-    // update NSUserDefaults
-    [[NSUserDefaults standardUserDefaults] setObject:[openedRecents clean] forKey:@"recents_opened"];
-    [self initRecentSearchResults];
-    [self.searchResultsTableView reloadData];
+}
+- (void)addToRecentlyOpened:(id)object {
+    if ([object isKindOfClass:[Room class]] ||
+        [object isKindOfClass:[User class]]) {
+        NSMutableArray *openedRecents = [[NSMutableArray alloc] initWithArray:[[NSUserDefaults standardUserDefaults] arrayForKey:@"recents_opened"]];
+        
+        NSDictionary *objJSON = [object toDictionary];
+        
+        // add object or push to front if in recents
+        BOOL existingMatch = false;
+        for (NSInteger i = 0; i < [openedRecents count]; i++) {
+            NSDictionary *result = openedRecents[i];
+            if (objJSON[@"type"] && objJSON[@"id"] &&
+                result[@"type"] && result[@"id"]) {
+                if ([objJSON[@"type"] isEqualToString:result[@"type"]] && [[self convertToString:objJSON[@"id"]] isEqualToString:[self convertToString:result[@"id"]]]) {
+                    existingMatch = true;
+                    
+                    [openedRecents removeObjectAtIndex:i];
+                    [openedRecents insertObject:result atIndex:0];
+                    break;
+                }
+            }
+        }
+        if (!existingMatch) {
+            // remove context first
+            if ([object isKindOfClass:[Room class]]) {
+                Room *room = (Room *)object;
+                room.attributes.context = nil;
+                
+                [openedRecents insertObject:[room toDictionary] atIndex:0];
+            }
+            else if ([object isKindOfClass:[User class]]) {
+                User *user = (User *)object;
+                //user.attributes.context = nil;
+                
+                [openedRecents insertObject:[user toDictionary] atIndex:0];
+            }
+            
+            if (openedRecents.count > 8) {
+                openedRecents = [[NSMutableArray alloc] initWithArray:[openedRecents subarrayWithRange:NSMakeRange(0, 8)]];
+            }
+        }
+        
+        // update NSUserDefaults
+        [[NSUserDefaults standardUserDefaults] setObject:[openedRecents clean] forKey:@"recents_opened"];
+        [self initRecentSearchResults];
+        [self.searchResultsTableView reloadData];
+    }
 }
 
 - (void)getSearchResults {
@@ -932,8 +960,6 @@ static NSString * const reuseIdentifier = @"Result";
             NSError *error;
             User *user = [[User alloc] initWithDictionary:json error:&error];
             
-            NSLog(@"user:::::: %@", user);
-            
             // 2 = User
             cell.textLabel.text = user.attributes.details.displayName;
             cell.detailTextLabel.text = [NSString stringWithFormat:@"@%@", [user.attributes.details.identifier uppercaseString]];
@@ -991,7 +1017,7 @@ static NSString * const reuseIdentifier = @"Result";
         NSDictionary *roomJSON = self.searchResults[@"results"][@"rooms"][indexPath.row];
         Room *room = [[Room alloc] initWithDictionary:roomJSON error:nil];
         
-        [self addToRecents:roomJSON];
+        [self addToRecents:room];
         
         [self openRoom:room];
     }
@@ -999,7 +1025,7 @@ static NSString * const reuseIdentifier = @"Result";
         NSDictionary *userJSON = self.searchResults[@"results"][@"users"][indexPath.row];
         User *user = [[User alloc] initWithDictionary:userJSON error:nil];
         
-        [self addToRecents:userJSON];
+        [self addToRecents:user];
         
         [self openProfile:user];
     }
@@ -1009,14 +1035,14 @@ static NSString * const reuseIdentifier = @"Result";
             if ([json[@"type"] isEqualToString:@"user"]) {
                 User *user = [[User alloc] initWithDictionary:json error:nil];
                 
-                [self addToRecents:json];
+                [self addToRecents:user];
                 
                 [self openProfile:user];
             }
             else if ([json[@"type"] isEqualToString:@"room"]) {
                 Room *room = [[Room alloc] initWithDictionary:json error:nil];
                 
-                [self addToRecents:json];
+                [self addToRecents:room];
                 
                 [self openRoom:room];
             }
@@ -1039,7 +1065,6 @@ static NSString * const reuseIdentifier = @"Result";
     }
     else {
         if ([self showRecents]) {
-            NSLog(@"show recentsssss");
             if (self.recentSearchResults && section == 3) {
                 return [self.recentSearchResults count];
             }
@@ -1048,7 +1073,6 @@ static NSString * const reuseIdentifier = @"Result";
             if (section == 1) {
                 // rooms
                 if (self.searchResults && self.searchResults[@"results"] && self.searchResults[@"results"][@"rooms"]) {
-                    NSLog(@"how many rooms we got?? %lu", [self.searchResults[@"results"][@"rooms"] count]);
                     return [self.searchResults[@"results"][@"rooms"] count];
                 }
             }

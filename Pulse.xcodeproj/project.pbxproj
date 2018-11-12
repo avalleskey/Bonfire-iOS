@@ -10,6 +10,7 @@
 		862C3EE06E7A1E9CCB5C7503 /* libPods-PulseTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E22EA556FFF666968AA9D98 /* libPods-PulseTests.a */; };
 		878DA0E3ACC2B7101A2CBA95 /* libPods-Pulse.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F81B5CD30EB3F68F148550E7 /* libPods-Pulse.a */; };
 		C3AF8E5D0DAE8D383FF1AC61 /* libPods-PulseUITests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F41F73E6D23504AE2C61294E /* libPods-PulseUITests.a */; };
+		D902CD4F21993D390088F479 /* RoomViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D902CD4E21993D390088F479 /* RoomViewController.m */; };
 		D907B082214EEC5000A59712 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = D907B081214EEC5000A59712 /* AppDelegate.m */; };
 		D907B088214EEC5000A59712 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D907B086214EEC5000A59712 /* Main.storyboard */; };
 		D907B08A214EEC5300A59712 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D907B089214EEC5300A59712 /* Assets.xcassets */; };
@@ -81,7 +82,6 @@
 		D974B741216009F200C03269 /* MyRoomsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D974B740216009F200C03269 /* MyRoomsViewController.m */; };
 		D983D730216D911C00F9D201 /* PostAttributes.m in Sources */ = {isa = PBXBuildFile; fileRef = D983D72F216D911C00F9D201 /* PostAttributes.m */; };
 		D983D733216E5A5900F9D201 /* LoadingCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D983D732216E5A5900F9D201 /* LoadingCell.m */; };
-		D995AA6C2152979A0019B929 /* RoomViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D995AA6B2152979A0019B929 /* RoomViewController.m */; };
 		D998462921934309000B901F /* RoomMembersViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D998462821934309000B901F /* RoomMembersViewController.m */; };
 		D998462C2193B00C000B901F /* PostContext.m in Sources */ = {isa = PBXBuildFile; fileRef = D998462B2193B00C000B901F /* PostContext.m */; };
 		D9AECE3A21571DBE00F01CAD /* TabBarView.m in Sources */ = {isa = PBXBuildFile; fileRef = D9AECE3921571DBE00F01CAD /* TabBarView.m */; };
@@ -130,6 +130,8 @@
 		6E22EA556FFF666968AA9D98 /* libPods-PulseTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-PulseTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		7BF70A6B4120899603056326 /* Pods-PulseUITests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PulseUITests.release.xcconfig"; path = "Pods/Target Support Files/Pods-PulseUITests/Pods-PulseUITests.release.xcconfig"; sourceTree = "<group>"; };
 		CC79AF492F4B77C3F26E47B7 /* Pods-Pulse.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Pulse.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Pulse/Pods-Pulse.debug.xcconfig"; sourceTree = "<group>"; };
+		D902CD4D21993D390088F479 /* RoomViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RoomViewController.h; sourceTree = "<group>"; };
+		D902CD4E21993D390088F479 /* RoomViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RoomViewController.m; sourceTree = "<group>"; };
 		D907B07D214EEC5000A59712 /* Pulse.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Pulse.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D907B080214EEC5000A59712 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		D907B081214EEC5000A59712 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -154,7 +156,6 @@
 		D907B1012150697300A59712 /* NSArray+Clean.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSArray+Clean.m"; sourceTree = "<group>"; };
 		D907B1022150697300A59712 /* NSDictionary+Clean.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSDictionary+Clean.m"; sourceTree = "<group>"; };
 		D907B1032150697400A59712 /* NSArray+Clean.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSArray+Clean.h"; sourceTree = "<group>"; };
-		D907B11B2150917700A59712 /* HomeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HomeViewController.h; sourceTree = "<group>"; };
 		D907B11C2150917700A59712 /* HomeViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = HomeViewController.m; sourceTree = "<group>"; };
 		D907B11E2150960300A59712 /* MiniChannelCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MiniChannelCell.h; sourceTree = "<group>"; };
 		D907B11F2150960300A59712 /* MiniChannelCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MiniChannelCell.m; sourceTree = "<group>"; };
@@ -268,12 +269,11 @@
 		D983D72F216D911C00F9D201 /* PostAttributes.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PostAttributes.m; sourceTree = "<group>"; };
 		D983D731216E5A5900F9D201 /* LoadingCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LoadingCell.h; sourceTree = "<group>"; };
 		D983D732216E5A5900F9D201 /* LoadingCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LoadingCell.m; sourceTree = "<group>"; };
-		D995AA6A2152979A0019B929 /* RoomViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RoomViewController.h; path = /Users/austin/Documents/Projects/Pulse/Pulse/RoomViewController.h; sourceTree = "<absolute>"; };
-		D995AA6B2152979A0019B929 /* RoomViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = RoomViewController.m; path = /Users/austin/Documents/Projects/Pulse/Pulse/RoomViewController.m; sourceTree = "<absolute>"; };
 		D998462721934309000B901F /* RoomMembersViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RoomMembersViewController.h; sourceTree = "<group>"; };
 		D998462821934309000B901F /* RoomMembersViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RoomMembersViewController.m; sourceTree = "<group>"; };
 		D998462A2193B00C000B901F /* PostContext.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PostContext.h; sourceTree = "<group>"; };
 		D998462B2193B00C000B901F /* PostContext.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PostContext.m; sourceTree = "<group>"; };
+		D9AE1CDA21993FC400B78189 /* HomeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HomeViewController.h; sourceTree = "<group>"; };
 		D9AECE3821571DBE00F01CAD /* TabBarView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TabBarView.h; sourceTree = "<group>"; };
 		D9AECE3921571DBE00F01CAD /* TabBarView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TabBarView.m; sourceTree = "<group>"; };
 		D9BD771021727FB000DAB9BE /* RoomSearchTableView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RoomSearchTableView.h; sourceTree = "<group>"; };
@@ -587,8 +587,8 @@
 		D974B74321614B8900C03269 /* Room */ = {
 			isa = PBXGroup;
 			children = (
-				D995AA6A2152979A0019B929 /* RoomViewController.h */,
-				D995AA6B2152979A0019B929 /* RoomViewController.m */,
+				D902CD4D21993D390088F479 /* RoomViewController.h */,
+				D902CD4E21993D390088F479 /* RoomViewController.m */,
 				D998462721934309000B901F /* RoomMembersViewController.h */,
 				D998462821934309000B901F /* RoomMembersViewController.m */,
 				D9114F8121954D4E0033765A /* MemberRequestCell.h */,
@@ -623,7 +623,7 @@
 		D974B74521614BCA00C03269 /* Home */ = {
 			isa = PBXGroup;
 			children = (
-				D907B11B2150917700A59712 /* HomeViewController.h */,
+				D9AE1CDA21993FC400B78189 /* HomeViewController.h */,
 				D907B11C2150917700A59712 /* HomeViewController.m */,
 				D9AECE3821571DBE00F01CAD /* TabBarView.h */,
 				D9AECE3921571DBE00F01CAD /* TabBarView.m */,
@@ -943,6 +943,7 @@
 				D94FD202216D730300B84E45 /* User.m in Sources */,
 				D94FD19E2168644200B84E45 /* EmptyChannelCell.m in Sources */,
 				D924BE2721542E5500EB7385 /* PostSurveyView.m in Sources */,
+				D902CD4F21993D390088F479 /* RoomViewController.m in Sources */,
 				D924BE2421542E4500EB7385 /* PostImagesView.m in Sources */,
 				D9AECE3A21571DBE00F01CAD /* TabBarView.m in Sources */,
 				D96AD79C218102AF00849F6B /* InputCell.m in Sources */,
@@ -991,7 +992,6 @@
 				D9C0393D215A9D8600B30A41 /* SOLOptionsTransitionAnimator.m in Sources */,
 				D96AD78F2180CBD100849F6B /* ErrorChannelCell.m in Sources */,
 				D983D730216D911C00F9D201 /* PostAttributes.m in Sources */,
-				D995AA6C2152979A0019B929 /* RoomViewController.m in Sources */,
 				D9C0393E215A9D8600B30A41 /* SOLBaseTransitionAnimator.m in Sources */,
 				D9CB78E82166BAD700EEDBC9 /* ExpandedPostCell.m in Sources */,
 				D94FD1EB216D730300B84E45 /* RoomCounts.m in Sources */,

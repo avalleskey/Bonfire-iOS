@@ -167,7 +167,13 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                 [cell.followButton updateStatus:room.attributes.context.status];
             }
             
-            cell.nameLabel.text = room.attributes.details.title > 0 ? room.attributes.details.title : @"Unkown Room";
+            NSLog(@"room header:: %@", room.attributes.details.title);
+            if (room.attributes.details.title) {
+                cell.nameLabel.text = room.attributes.details.title.length > 0 ? room.attributes.details.title : @"Unkown Room";
+            }
+            else {
+                cell.nameLabel.text = @"Loading...";
+            }
             cell.descriptionLabel.text = room.attributes.details.theDescription;
             
             // set profile pictures
@@ -216,12 +222,26 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                 }
             }
             
-            NSInteger members = room.attributes.summaries.counts.members;
             DefaultsRoomMembersTitle *membersTitle = [Session sharedInstance].defaults.room.membersTitle;
-            [cell.membersLabel setTitle:[NSString stringWithFormat:@"%ld %@", members, members == 1 ? [membersTitle.singular lowercaseString] : [membersTitle.plural lowercaseString]] forState:UIControlStateNormal];
+            if (room.attributes.summaries.counts.members) {
+                NSInteger members = room.attributes.summaries.counts.members;
+                [cell.membersLabel setTitle:[NSString stringWithFormat:@"%ld %@", members, members == 1 ? [membersTitle.singular lowercaseString] : [membersTitle.plural lowercaseString]] forState:UIControlStateNormal];
+                cell.membersLabel.alpha = 1;
+            }
+            else {
+                [cell.membersLabel setTitle:[NSString stringWithFormat:@"0 %@", [membersTitle.plural lowercaseString]] forState:UIControlStateNormal];
+                cell.membersLabel.alpha = 0.5;
+            }
             
-            NSInteger posts = (long)room.attributes.summaries.counts.posts;
-            cell.postsCountLabel.text = [NSString stringWithFormat:@"%ld %@", posts, posts == 1 ? @"post" : @"posts"];
+            if (room.attributes.summaries.counts.posts) {
+                NSInteger posts = (long)room.attributes.summaries.counts.posts;
+                cell.postsCountLabel.text = [NSString stringWithFormat:@"%ld %@", posts, posts == 1 ? @"post" : @"posts"];
+                cell.postsCountLabel.alpha = 1;
+            }
+            else {
+                cell.postsCountLabel.text = @"0 posts";
+                cell.postsCountLabel.alpha = 0.5;
+            }
             
             if (cell.membersLabel.gestureRecognizers.count == 0) {
                 [cell.membersLabel bk_whenTapped:^{

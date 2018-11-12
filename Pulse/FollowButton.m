@@ -54,6 +54,10 @@
         [self setImage:[[UIImage imageNamed:@"blockedIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
         [self setTitle:@"Unavailable" forState:UIControlStateNormal];
     }
+    else if ([status isEqualToString:STATUS_LOADING]) {
+        [self setImage:nil forState:UIControlStateNormal];
+        [self setTitle:@"Loading..." forState:UIControlStateNormal];
+    }
     else {
         // STATUS_LEFT, STATUS_NO_RELATION, STATUS_INVITED
         [self setImage:[[UIImage imageNamed:@"plusIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
@@ -84,8 +88,15 @@
     else {
         self.layer.borderWidth = 1.f;
         self.backgroundColor = [UIColor clearColor];
-        self.tintColor = themeColor;
-        [self setTitleColor:themeColor forState:UIControlStateNormal];
+        
+        if ([status isEqualToString:STATUS_LOADING]) {
+            self.tintColor = disabledColor;
+            [self setTitleColor:disabledColor forState:UIControlStateNormal];
+        }
+        else {
+            self.tintColor = themeColor;
+            [self setTitleColor:themeColor forState:UIControlStateNormal];
+        }
     }
 }
 
@@ -94,7 +105,8 @@
     
     if (![self.status isEqualToString:STATUS_REQUESTED] &&
         ![self.status isEqualToString:STATUS_BLOCKED] &&
-        ![self.status isEqualToString:STATUS_ROOM_BLOCKED]) {
+        ![self.status isEqualToString:STATUS_ROOM_BLOCKED] ||
+        ![self.status isEqualToString:STATUS_LOADING]) {
         if (highlighted) {
             [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
                 self.transform = CGAffineTransformMakeScale(0.92, 0.92);

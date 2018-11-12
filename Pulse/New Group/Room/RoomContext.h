@@ -23,6 +23,7 @@ extern NSString * const STATUS_BLOCKED;
 extern NSString * const STATUS_NO_RELATION;
 
 extern NSString * const STATUS_ROOM_BLOCKED;
+extern NSString * const STATUS_LOADING;
 
 @property (nonatomic) RoomContextInvite <Optional> *invite;
 @property (nonatomic) RoomContextMembership <Optional> *membership;

@@ -163,6 +163,9 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             if (room.attributes.status.isBlocked) {
                 [cell.followButton updateStatus:STATUS_ROOM_BLOCKED];
             }
+            else if (room.attributes.context == nil) {
+                [cell.followButton updateStatus:STATUS_LOADING];
+            }
             else {
                 [cell.followButton updateStatus:room.attributes.context.status];
             }

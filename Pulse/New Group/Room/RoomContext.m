@@ -18,6 +18,7 @@ NSString * const STATUS_BLOCKED = @"blocked";
 NSString * const STATUS_NO_RELATION = @"none";
 
 NSString * const STATUS_ROOM_BLOCKED = @"room_blocked";
+NSString * const STATUS_LOADING = @"loading";
 
 + (JSONKeyMapper *)keyMapper {
     return [JSONKeyMapper mapperForSnakeCase];

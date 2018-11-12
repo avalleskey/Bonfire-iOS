@@ -313,21 +313,9 @@ static NSString * const reuseIdentifier = @"Result";
     self.textField.rightViewMode = UITextFieldViewModeAlways;
     
     [self.textField bk_whenTapped:^{
-        if (!self.isCreatingPost && (self.searchResultsTableView.alpha != 1 || self.searchResultsTableView.isHidden)) {
-            [self.textField becomeFirstResponder];
-            
-            self.textField.selectedTextRange = [self.textField textRangeFromPosition:self.textField.beginningOfDocument toPosition:self.textField.endOfDocument];
-            [UIMenuController sharedMenuController].menuVisible = NO;
-            
-            [self updateBarColor:[UIColor whiteColor] withAnimation:0 statusBarUpdateDelay:NO];
-            [self updateNavigationBarItemsWithAnimation:TRUE];
-            
-            [self.searchResultsTableView reloadData];
-        }
-        else if (self.isCreatingPost) {
-            [self.textField becomeFirstResponder];
-        }
+        [self.textField becomeFirstResponder];
     }];
+    
     [self.textField bk_addEventHandler:^(id sender) {
         if (!self.isCreatingPost) {
             if (self.textField.text.length == 0) {
@@ -638,12 +626,6 @@ static NSString * const reuseIdentifier = @"Result";
     }];
 }
 
-- (void)removeGestureRecognizersForView:(UIView *)view {
-    for (UIGestureRecognizer *recognizer in view.gestureRecognizers) {
-        [view removeGestureRecognizer:recognizer];
-    }
-}
-
 - (void)setupSearch {
     [self emptySearchResults];
     [self initRecentSearchResults];
@@ -663,10 +645,7 @@ static NSString * const reuseIdentifier = @"Result";
     [self.view insertSubview:self.searchResultsTableView belowSubview:self.navigationBar];
 }
 
-
 - (void)emptySearchResults {
-    NSLog(@"emptySearchResults");
-    
     self.searchResults = [[NSMutableDictionary alloc] initWithDictionary:@{@"rooms": @[], @"users": @[]}];
 }
 - (void)initRecentSearchResults {
@@ -1171,6 +1150,16 @@ static NSString * const reuseIdentifier = @"Result";
 }
 
 - (void)textFieldDidBeginEditing:(UITextField *)textField {
+    if (!self.isCreatingPost && (self.searchResultsTableView.alpha != 1 || self.searchResultsTableView.isHidden)) {
+        self.textField.selectedTextRange = [self.textField textRangeFromPosition:self.textField.beginningOfDocument toPosition:self.textField.endOfDocument];
+        [UIMenuController sharedMenuController].menuVisible = NO;
+        
+        [self updateBarColor:[UIColor whiteColor] withAnimation:0 statusBarUpdateDelay:NO];
+        [self updateNavigationBarItemsWithAnimation:TRUE];
+        
+        [self.searchResultsTableView reloadData];
+    }
+    
     // left aligned search bar
     self.textField.textAlignment = NSTextAlignmentLeft;
     [self positionTextFieldSearchIcon];
@@ -1263,15 +1252,16 @@ static NSString * const reuseIdentifier = @"Result";
     RoomViewController *r = [[RoomViewController alloc] init];
 
     r.room = room;
-    r.theme = [self colorFromHexString:room.attributes.details.color.length == 6 ? room.attributes.details.color : (room.identifier ? @"0076ff" : @"707479")];
+    r.theme = [self colorFromHexString:room.attributes.details.color.length == 6 ? room.attributes.details.color : @"707479"];
     
     r.tableView.delegate = self;
+    r.title = r.room.attributes.details.title ? r.room.attributes.details.title : @"Loading...";
     
     if ([self.topViewController isKindOfClass:[HomeViewController class]]) {
         [self updateSearchText:self.topViewController.title];
         
         LauncherNavigationViewController *newLauncher = [[LauncherNavigationViewController alloc] initWithRootViewController:r];
-        [newLauncher updateSearchText:r.room.attributes.details.title];
+        [newLauncher updateSearchText:r.title];
         newLauncher.transitioningDelegate = self;
         
         [newLauncher updateBarColor:r.theme withAnimation:0 statusBarUpdateDelay:NO];
@@ -1281,11 +1271,12 @@ static NSString * const reuseIdentifier = @"Result";
         [newLauncher updateNavigationBarItemsWithAnimation:NO];
     }
     else {
-        if (r.room.identifier) {
-            [self updateSearchText:r.room.attributes.details.title];
+        if (r.room.identifier ||
+            r.room.attributes.details.identifier) {
+            [self updateSearchText:r.title];
         }
         else {
-            [self updateSearchText:@""];
+            [self updateSearchText:@"Unkown Room"];
         }
         
         [self updateBarColor:r.theme withAnimation:2 statusBarUpdateDelay:NO];

@@ -21,8 +21,6 @@
 @property (strong, nonatomic) UITableView *searchResultsTableView;
 @property (strong, nonatomic) UITextField *textField;
 
-- (void)removeGestureRecognizersForView:(UIView *)view;
-
 @property (strong, nonatomic) UIImageView *profilePicture;
 @property (strong, nonatomic) UIButton *composePostButton;
 @property (strong, nonatomic) UIButton *infoButton;
@@ -35,6 +33,7 @@
 - (void)setShadowVisibility:(BOOL)visible withAnimation:(BOOL)animation;
 - (void)updateBarColor:(id)newColor withAnimation:(int)animationType statusBarUpdateDelay:(CGFloat)statusBarUpdateDelay;
 - (void)updateNavigationBarItemsWithAnimation:(BOOL)animated;
+- (void)updateSearchText:(NSString *)newSearchText;
 
 - (void)openRoom:(Room *)room;
 - (void)openRoomMembersForRoom:(Room *)room;

@@ -22,7 +22,6 @@
     int previousTableViewYOffset;
 }
 
-@property (nonatomic) BOOL loadingInfo;
 @property (nonatomic) BOOL loading;
 
 @property CGFloat minHeaderHeight;
@@ -69,8 +68,6 @@ static NSString * const reuseIdentifier = @"Result";
         self.title = self.room.attributes.details.title;
         self.view.tintColor = self.theme;
         
-        NSLog(@"self.room:: %@", self.room);
-        
         [self loadRoom];
     }
 }
@@ -79,7 +76,6 @@ static NSString * const reuseIdentifier = @"Result";
     NSError *roomError;
     self.room = [[Room alloc] initWithDictionary:[self.room toDictionary] error:&roomError];
     [self mock];
-    NSLog(@"room:: %@", self.room);
     
     if (roomError) {
         // Room object is fragmented – get Room to fill in the pieces
@@ -87,11 +83,13 @@ static NSString * const reuseIdentifier = @"Result";
         NSLog(@"%@", roomError);
         
         // let's fetch info to fill in the gaps
-        self.loadingInfo = true;
         self.composeInputView.hidden = true;
-        [self getRoomInfo];
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [self getRoomInfo];
+        });
     }
     else {
+        self.tableView.parentObject = self.room;
         [self loadRoomContent];
     }
 }
@@ -142,6 +140,20 @@ static NSString * const reuseIdentifier = @"Result";
         [self positionErrorView];
     }
 }
+- (void)updateTheme {
+    UIColor *theme = [self colorFromHexString:self.room.attributes.details.color];
+    
+    [self.launchNavVC updateBarColor:theme withAnimation:1 statusBarUpdateDelay:0];
+    [UIView animateWithDuration:0.25f delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
+        self.composeInputView.textView.tintColor = theme;
+        self.composeInputView.addMediaButton.tintColor = theme;
+        self.composeInputView.postButton.tintColor = theme;
+    } completion:^(BOOL finished) {
+    }];
+    
+    self.theme = theme;
+    self.view.tintColor = self.theme;
+}
 
 - (void)getRoomInfo {
     NSString *url = [NSString stringWithFormat:@"%@/%@/rooms/%@", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], self.room.identifier];
@@ -161,14 +173,28 @@ static NSString * const reuseIdentifier = @"Result";
                 
                 NSLog(@"response dataaaaa: %@", responseData);
                 
+                // this must go before we set self.room to the new Room object
+                BOOL requiresColorUpdate = (self.room.attributes.details.color == nil);
+                
                 // first page
                 self.room = [[Room alloc] initWithDictionary:responseData error:nil];
                 
-                NSLog(@"self.room:: %@", self.room);
+                // update the theme color (in case we didn't know the room's color before
+                if (requiresColorUpdate) {
+                    [self updateTheme];
+                }
                 
-                self.loadingInfo = false;
+                // update the title (in case we didn't know the room's title before)
+                [self.launchNavVC updateSearchText:self.room.attributes.details.title];
+                
+                // update the compose input placeholder (in case we didn't know the room's title before)
+                [self.composeInputView updatePlaceholders];
+                
+                self.tableView.parentObject = self.room;
                 [self.tableView refresh];
                 
+                // Now that the VC's Room object is complete,
+                // Go on to load the room content
                 [self loadRoomContent];
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
                 NSLog(@"RoomViewController / getRoom() - error: %@", error);
@@ -184,7 +210,6 @@ static NSString * const reuseIdentifier = @"Result";
                 
                 self.loading = false;
                 self.tableView.loading = false;
-                self.loadingInfo = false;
                 [self.tableView refresh];
             }];
         }
@@ -207,18 +232,22 @@ static NSString * const reuseIdentifier = @"Result";
     status.isBlocked = true;
     self.room.attributes.status = status;*/
     
-    // mimic opening Room with Room hash identifier only
-     Room *room = [[Room alloc] init];
-     room.identifier = @"-OJkNgx4gZoGB";
+    /* mimic opening Room with Room hash identifier only
+    Room *room = [[Room alloc] init];
+    room.identifier = @"-OJkNgx4gZoGB";
     
-     self.room = room;
+    self.room = room;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.01 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [self.launchNavVC updateBarColor:@"707479" withAnimation:0 statusBarUpdateDelay:0];
+        [self.launchNavVC updateSearchText:@"Loading..."];
+    });
+    self.theme = [self colorFromHexString:@"707479"];*/
     
-    // mimic opening Room with Room identifier only
-    
-//    Room *room = [[Room alloc] init];
-//    room.attributes.details.identifier = @"NewRoom";
-//
-//    self.room = room;
+    /* mimic opening Room with Room identifier only
+    Room *room = [[Room alloc] init];
+    room.attributes.details.identifier = @"NewRoom";
+
+    self.room = room;*/
 }
     
 - (void)createRoomSelectorTableView {
@@ -324,6 +353,7 @@ static NSString * const reuseIdentifier = @"Result";
     self.composeInputView.postButton.tintColor = [self.theme isEqual:[UIColor whiteColor]] ? [UIColor colorWithWhite:0.2f alpha:1] : self.theme;
     self.composeInputView.addMediaButton.tintColor = self.composeInputView.postButton.tintColor;
     self.composeInputView.textView.tintColor = self.composeInputView.postButton.tintColor;
+    
     [self.composeInputView bk_whenTapped:^{
         if (![self.composeInputView isActive]) {
             [self.composeInputView setActive:true];

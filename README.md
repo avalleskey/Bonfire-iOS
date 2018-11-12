@@ -8,6 +8,7 @@ You MUST have the following things properly installed and setup on your developm
 
 * [Git](https://git-scm.com/)
 * [Xcode](https://itunes.apple.com/us/app/xcode/id497799835?mt=12)
+* [CocoaPods](https://cocoapods.org/)
 
 ## Setup
 

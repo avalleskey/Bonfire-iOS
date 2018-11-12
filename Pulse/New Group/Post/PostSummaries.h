@@ -9,7 +9,7 @@
 
 @interface PostSummaries : JSONModel
 
-@property (nonatomic) NSArray *replies;
+@property (nonatomic) NSArray <Optional> *replies;
 @property (nonatomic) PostCounts *counts;
 
 @end

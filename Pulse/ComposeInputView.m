@@ -286,6 +286,7 @@
     
 - (void)showImagePicker {
     UIAlertController *imagePickerOptions = [UIAlertController alertControllerWithTitle:nil message:nil preferredStyle:UIAlertControllerStyleActionSheet];
+    imagePickerOptions.view.tintColor = [UIColor colorWithWhite:0.2f alpha:1];
     
     UIAlertAction *takePhoto = [UIAlertAction actionWithTitle:@"Take Photo" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         [self takePhotoForProfilePicture:nil];
@@ -299,6 +300,7 @@
     
     UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
     }];
+    [cancel setValue:UIViewParentController(self).view.tintColor forKey:@"titleTextColor"];
     [imagePickerOptions addAction:cancel];
     
     [UIViewParentController(self) presentViewController:imagePickerOptions animated:YES completion:nil];

@@ -400,17 +400,12 @@
         // perform the appropriate action.
         if (CGRectContainsPoint(imageFrameInSuperview, tapPoint)) {
             // Perhaps call a method here to react to the image tap
-            NSLog(@"isscrolling?:? %@", self.scrolling ? @"YES" : @"NO");
             if (!self.scrolling) {
                 if (button.tag == 1 && self.page == button.tag) {
-                    NSLog(@"my rooms yo");
                     [self.myRoomsViewController.collectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:0 inSection:0] atScrollPosition:UICollectionViewScrollPositionCenteredHorizontally animated:YES];
                 }
 
                 [self scrollToPage:(int)button.tag];
-            }
-            else {
-                NSLog(@"scrolling sry can't do anything about that");
             }
             
             break;

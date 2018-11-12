@@ -34,6 +34,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic) int dataType;
 
 @property BOOL loading;
+@property BOOL error;
 
 // pagination
 @property BOOL loadingMore;

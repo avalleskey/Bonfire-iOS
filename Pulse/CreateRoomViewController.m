@@ -129,7 +129,7 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
     self.instructionLabel = [[UILabel alloc] initWithFrame:CGRectMake(48, 129, self.view.frame.size.width - 96, 42)];
     self.instructionLabel.center = CGPointMake(self.instructionLabel.center.x, (inputCenterY / 2) + 16);
     self.instructionLabel.textAlignment = NSTextAlignmentCenter;
-    self.instructionLabel.text = @"Last step, and it’s a fun one! What’s your favorite color?";
+    self.instructionLabel.text = @"";
     self.instructionLabel.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightMedium];
     self.instructionLabel.textColor = [UIColor colorWithWhite:0.2f alpha:1];
     self.instructionLabel.numberOfLines = 0;
@@ -141,7 +141,7 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
     [self.steps addObject:@{@"id": @"room_name", @"skip": [NSNumber numberWithBool:false], @"next": @"Next", @"instruction": @"What would you like your new Room to be called?", @"placeholder": @"Room Name", @"sensitive": [NSNumber numberWithBool:false], @"keyboard": @"title", @"answer": [NSNull null], @"textField": [NSNull null], @"block": [NSNull null]}];
     [self.steps addObject:@{@"id": @"room_description", @"skip": [NSNumber numberWithBool:false], @"next": @"Next", @"instruction": @"Briefly describe your Room (optional)", @"placeholder":@"Room Description", @"sensitive": [NSNumber numberWithBool:false], @"keyboard": @"text", @"answer": [NSNull null], @"textField": [NSNull null], @"block": [NSNull null]}];
     [self.steps addObject:@{@"id": @"room_similar", @"skip": [NSNumber numberWithBool:false], @"next": @"Continue Anyways", @"instruction": @"Would you like to join a similar Room instead?", @"sensitive": [NSNumber numberWithBool:true], @"answer": [NSNull null], @"block": [NSNull null]}];
-    [self.steps addObject:@{@"id": @"room_color", @"skip": [NSNumber numberWithBool:false], @"next": @"Create Room", @"instruction": @"Last step, and it's a fun one! Select a Room Color", @"sensitive": [NSNumber numberWithBool:true], @"answer": [NSNull null], @"block": [NSNull null]}];
+    [self.steps addObject:@{@"id": @"room_color", @"skip": [NSNumber numberWithBool:false], @"next": @"Create Room", @"instruction": @"Select Room Color\nand Privacy Setting", @"sensitive": [NSNumber numberWithBool:true], @"answer": [NSNull null], @"block": [NSNull null]}];
     [self.steps addObject:@{@"id": @"room_share", @"skip": [NSNumber numberWithBool:false], @"next": @"Enter Room", @"instruction": @"Your Room has been created! Invite others to join below", @"sensitive": [NSNumber numberWithBool:true], @"answer": [NSNull null], @"block": [NSNull null]}];
     
     for (int i = 0; i < [self.steps count]; i++) {
@@ -250,8 +250,8 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
         [mutatedStep setObject:block forKey:@"block"];
     }
     else if ([mutatedStep[@"id"] isEqualToString:@"room_color"]) {
-        UIView *colorBlock = [[UIView alloc] initWithFrame:CGRectMake(0, self.view.frame.size.width, 216, 216)];
-        colorBlock.center = CGPointMake(self.view.frame.size.width / 2, self.view.frame.size.height / 2);
+        UIView *colorBlock = [[UIView alloc] initWithFrame:CGRectMake(0, self.view.frame.size.width, 216, 286)];
+        colorBlock.center = CGPointMake(self.view.frame.size.width / 2, self.view.frame.size.height / 2 + 35);
         colorBlock.layer.cornerRadius = 10.f;
         colorBlock.alpha = 0;
         colorBlock.transform = CGAffineTransformMakeTranslation(self.view.frame.size.width, 0);
@@ -300,6 +300,24 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
                 [self setColor:colorOption];
             }];
         }
+        
+        // add public room UISwitch
+        UISwitch *publicRoomSwitch = [[UISwitch alloc] initWithFrame:CGRectZero];
+        publicRoomSwitch.on = true;
+        publicRoomSwitch.frame = CGRectMake(colorBlock.frame.size.width - publicRoomSwitch.frame.size.width, colorBlock.frame.size.height - publicRoomSwitch.frame.size.height, publicRoomSwitch.frame.size.width, publicRoomSwitch.frame.size.height);
+        publicRoomSwitch.tag = 10;
+        [colorBlock addSubview:publicRoomSwitch];
+        
+        UILabel *publicRoomLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, publicRoomSwitch.frame.origin.y, colorBlock.frame.size.width - publicRoomSwitch.frame.size.width, publicRoomSwitch.frame.size.height)];
+        publicRoomLabel.text = @"Public Room";
+        publicRoomLabel.textColor = [UIColor colorWithWhite:0.33 alpha:1];
+        publicRoomLabel.textAlignment = NSTextAlignmentLeft;
+        publicRoomLabel.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightMedium];
+        [colorBlock addSubview:publicRoomLabel];
+        
+        UIView *separatorLine = [[UIView alloc] initWithFrame:CGRectMake(0, publicRoomSwitch.frame.origin.y - 16 - 1, colorBlock.frame.size.width, 1)];
+        separatorLine.backgroundColor = [UIColor colorWithWhite:0.95 alpha:1];
+        [colorBlock addSubview:separatorLine];
         
         [mutatedStep setObject:colorBlock forKey:@"block"];
     }
@@ -775,7 +793,12 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
     
     NSString *roomColor = [colors[self.themeColor] stringByReplacingOccurrencesOfString:@"#" withString:@""];
     
-    NSLog(@"params: %@", @{@"title": roomTitle, @"description": roomDescription, @"color": roomColor});
+    int themeAndPrivacyStep = [self getIndexOfStepWithId:@"room_color"];
+    UIView *nextBlock = self.steps[themeAndPrivacyStep][@"block"];
+    UISwitch *isPrivateSwitch = [nextBlock viewWithTag:10];
+    BOOL isPrivate = !isPrivateSwitch.on;
+    
+    NSLog(@"params: %@", @{@"title": roomTitle, @"description": roomDescription, @"color": roomColor, @"private": [NSNumber numberWithBool:isPrivate]});
 
     [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
         if (success) {
@@ -1095,10 +1118,12 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
     RoomViewController *r = [[RoomViewController alloc] init];
     
     r.room = room;
-    r.theme = [self colorFromHexString:room.attributes.details.color.length == 6 ? room.attributes.details.color : @"0076ff"];;
+    r.theme = [self colorFromHexString:room.attributes.details.color.length == 6 ? room.attributes.details.color : @"707479"];
+    
+    r.title = r.room.attributes.details.title ? r.room.attributes.details.title : @"Loading...";
     
     LauncherNavigationViewController *newLauncher = [[LauncherNavigationViewController alloc] initWithRootViewController:r];
-    newLauncher.textField.text = r.room.attributes.details.title;
+    [newLauncher updateSearchText:r.title];
     newLauncher.transitioningDelegate = self;
     
     [newLauncher updateBarColor:r.theme withAnimation:0 statusBarUpdateDelay:NO];

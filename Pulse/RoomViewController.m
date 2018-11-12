@@ -236,6 +236,7 @@ static NSString * const reuseIdentifier = @"Result";
                 
                 self.loading = false;
                 self.tableView.loading = false;
+                self.tableView.error = true;
                 [self.tableView refresh];
             }];
         }

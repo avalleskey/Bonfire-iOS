@@ -163,14 +163,13 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             if (room.attributes.status.isBlocked) {
                 [cell.followButton updateStatus:STATUS_ROOM_BLOCKED];
             }
-            else if (room.attributes.context == nil) {
+            else if (self.loading && room.attributes.context == nil) {
                 [cell.followButton updateStatus:STATUS_LOADING];
             }
             else {
                 [cell.followButton updateStatus:room.attributes.context.status];
             }
             
-            NSLog(@"room header:: %@", room.attributes.details.title);
             if (room.attributes.details.title) {
                 cell.nameLabel.text = room.attributes.details.title.length > 0 ? room.attributes.details.title : @"Unkown Room";
             }
@@ -278,7 +277,6 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             cell.textLabel.text = user.attributes.details.displayName > 0 ? user.attributes.details.displayName : @"User";
             cell.detailTextLabel.text = [NSString stringWithFormat:@"@%@", user.attributes.details.identifier]; // short bio
             
-            NSLog(@"profile user.identifier: %@", user.identifier);
             if ([user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
                 [cell.followButton setTitle:@"Edit Profile" forState:UIControlStateNormal];
                 if (cell.followButton.gestureRecognizers.count == 0) {

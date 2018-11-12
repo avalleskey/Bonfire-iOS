@@ -97,6 +97,8 @@
     } else if (recognizer.state == UIGestureRecognizerStateEnded || recognizer.state == UIGestureRecognizerStateCancelled) {
         if ([recognizer velocityInView:view].x > 0) {
             [self.interactionController finishInteractiveTransition];
+            
+            [self.delegate didFinishSwiping];
         } else {
             [self.interactionController cancelInteractiveTransition];
             // When the transition is cancelled, `navigationController:didShowViewController:animated:` isn't called, so we have to maintain `duringAnimation`'s state here too.

@@ -20,7 +20,9 @@
 - (BOOL)sloppySwiperShouldAnimateTabBar:(SloppySwiper *)swiper;
 
 // 0.0 means no dimming, 1.0 means pure black. Default is 0.1
-- (CGFloat)sloppySwiperTransitionDimAmount:(SloppySwiper *)swiper;;
+- (CGFloat)sloppySwiperTransitionDimAmount:(SloppySwiper *)swiper;
+
+- (void)didFinishSwiping;
 
 @end
 

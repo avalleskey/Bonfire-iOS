@@ -1,0 +1,121 @@
+PODS:
+  - AFNetworking (3.2.1):
+    - AFNetworking/NSURLSession (= 3.2.1)
+    - AFNetworking/Reachability (= 3.2.1)
+    - AFNetworking/Security (= 3.2.1)
+    - AFNetworking/Serialization (= 3.2.1)
+    - AFNetworking/UIKit (= 3.2.1)
+  - AFNetworking/NSURLSession (3.2.1):
+    - AFNetworking/Reachability
+    - AFNetworking/Security
+    - AFNetworking/Serialization
+  - AFNetworking/Reachability (3.2.1)
+  - AFNetworking/Security (3.2.1)
+  - AFNetworking/Serialization (3.2.1)
+  - AFNetworking/UIKit (3.2.1):
+    - AFNetworking/NSURLSession
+  - BlocksKit (2.2.5):
+    - BlocksKit/All (= 2.2.5)
+  - BlocksKit/All (2.2.5):
+    - BlocksKit/Core
+    - BlocksKit/DynamicDelegate
+    - BlocksKit/MessageUI
+    - BlocksKit/UIKit
+  - BlocksKit/Core (2.2.5)
+  - BlocksKit/DynamicDelegate (2.2.5)
+  - BlocksKit/MessageUI (2.2.5):
+    - BlocksKit/Core
+    - BlocksKit/DynamicDelegate
+  - BlocksKit/UIKit (2.2.5):
+    - BlocksKit/Core
+    - BlocksKit/DynamicDelegate
+  - GoogleAnalytics (3.17.0)
+  - HapticHelper (1.0.1)
+  - JGProgressHUD (2.0.3)
+  - JSONModel (1.7.0)
+  - JTSImageViewController (1.5.1)
+  - L360Confetti (1.1.4)
+  - LGSemiModalNavController (0.2.0)
+  - Lockbox (3.0.6)
+  - NSStringEmojize (0.2.0)
+  - RSKImageCropper (2.1.0)
+  - SDWebImage (4.4.2):
+    - SDWebImage/Core (= 4.4.2)
+  - SDWebImage/Core (4.4.2)
+  - Shimmer (1.0.2)
+  - SloppySwiper (0.6)
+  - "UIColor+Hex (1.0.1)":
+    - "UIColor+Hex/NSColor (= 1.0.1)"
+    - "UIColor+Hex/UIColor (= 1.0.1)"
+  - "UIColor+Hex/UIColor (1.0.1)"
+  - "UINavigationItem+Margin (2.1.1)"
+  - "UITextView+Placeholder (1.2.1)"
+  - ZFDragableModalTransition (0.6)
+
+DEPENDENCIES:
+  - AFNetworking
+  - BlocksKit
+  - GoogleAnalytics
+  - HapticHelper
+  - JGProgressHUD
+  - JSONModel
+  - JTSImageViewController
+  - L360Confetti
+  - LGSemiModalNavController
+  - Lockbox
+  - NSStringEmojize
+  - RSKImageCropper
+  - SDWebImage (~> 4.0)
+  - Shimmer
+  - SloppySwiper
+  - "UIColor+Hex"
+  - "UINavigationItem+Margin"
+  - "UITextView+Placeholder (~> 1.2)"
+  - ZFDragableModalTransition
+
+SPEC REPOS:
+  https://github.com/cocoapods/specs.git:
+    - AFNetworking
+    - BlocksKit
+    - GoogleAnalytics
+    - HapticHelper
+    - JGProgressHUD
+    - JSONModel
+    - JTSImageViewController
+    - L360Confetti
+    - LGSemiModalNavController
+    - Lockbox
+    - NSStringEmojize
+    - RSKImageCropper
+    - SDWebImage
+    - Shimmer
+    - SloppySwiper
+    - "UIColor+Hex"
+    - "UINavigationItem+Margin"
+    - "UITextView+Placeholder"
+    - ZFDragableModalTransition
+
+SPEC CHECKSUMS:
+  AFNetworking: b6f891fdfaed196b46c7a83cf209e09697b94057
+  BlocksKit: 7f422b971407001178d181a43b99014ea2591fe6
+  GoogleAnalytics: f42cc53a87a51fe94334821868d9c8481ff47a7b
+  HapticHelper: 0cccef18b9612abbc7881a8e7d5fbc144face328
+  JGProgressHUD: 12b20a8f4ffe05258f8635c1ab92816e451f904d
+  JSONModel: 840bc0fcffb24b8454d2c026bf26fea454b8e98d
+  JTSImageViewController: 1f8ce1cc93dab0d0af8e53badeea7528560cfec9
+  L360Confetti: 9b77ea9925e758de4b6e7d1edbb7b87f3eaa0d17
+  LGSemiModalNavController: ba49f8cbc24638be981cbca8a526f66b5dd90414
+  Lockbox: 4291a0b8b1aed35474881c4e592961dec3ca695e
+  NSStringEmojize: bd60199a25d745365b393fb95a2c6471bb9a2e99
+  RSKImageCropper: 0d0c6d8525a2381f03fde32a47c6703817a2feed
+  SDWebImage: 624d6e296c69b244bcede364c72ae0430ac14681
+  Shimmer: c5374be1c2b0c9e292fb05b339a513cf291cac86
+  SloppySwiper: 37e38f6da8df5c805914c6f32ec6ec8da63abe7c
+  "UIColor+Hex": 9fee91bb8e19f17dd40a79ae1e98949a6a84489d
+  "UINavigationItem+Margin": 7368d506fb2f7daa0c0489846cc8c2384ab1ab6d
+  "UITextView+Placeholder": 0c3efd97f37ea64bde7f34cc6e90fe02e87b3909
+  ZFDragableModalTransition: 0d294eaaba6edfcb9839595de765f9ca06a4b524
+
+PODFILE CHECKSUM: 5d298b98b7918f459671413b9e10383ca3a9c914
+
+COCOAPODS: 1.5.3

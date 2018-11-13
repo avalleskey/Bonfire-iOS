@@ -115,12 +115,12 @@
 }
 
 - (void)userProfileUpdated:(NSNotificationCenter *)sender {
-    [self.tableView beginUpdates];
-    [self.tableView reloadSections:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, 1)] withRowAnimation:UITableViewRowAnimationNone];
-    [self.tableView endUpdates];
+    self.theme = [Session sharedInstance].themeColor;
+    self.view.tintColor = self.theme;
+    self.tableView.parentObject = [Session sharedInstance].currentUser;
     
-    [self.launchNavVC updateBarColor:@"888888" withAnimation:2 statusBarUpdateDelay:0];
-    
+    [self.tableView refresh];
+    [self.launchNavVC updateBarColor:[Session sharedInstance].themeColor withAnimation:2 statusBarUpdateDelay:0];
     self.composeInputView.addMediaButton.tintColor = [Session sharedInstance].themeColor;
     self.composeInputView.postButton.tintColor = [Session sharedInstance].themeColor;
 }

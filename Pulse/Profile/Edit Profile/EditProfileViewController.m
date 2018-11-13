@@ -43,6 +43,8 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     
     self.title = @"Edit Profile";
     
+    self.manager = [HAWebService manager];
+    
     self.cancelButton = [[UIBarButtonItem alloc] initWithTitle:@"Cancel" style:UIBarButtonItemStylePlain target:self action:@selector(dismiss:)];
     [self.cancelButton setTintColor:[UIColor whiteColor]];
     [self.cancelButton setTitleTextAttributes:@{
@@ -116,7 +118,12 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
         [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
             [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
             
+            NSLog(@"token:: %@", token);
+            
             NSString *url = [NSString stringWithFormat:@"%@/%@/users/me", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"]];
+            
+            NSLog(@"url: %@", url);
+            [self.manager.requestSerializer setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
             [self.manager PUT:url parameters:changes success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 // success
                 HUD.indicatorView = [[JGProgressHUDSuccessIndicatorView alloc] init];
@@ -125,7 +132,8 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
                 [HUD dismissAfterDelay:0.3f];
                 
                 // save user
-                [[Session sharedInstance] updateUser:[Session sharedInstance].currentUser]; // TODO: Swap out for new user object
+                User *user = [[User alloc] initWithDictionary:responseObject[@"data"] error:nil];
+                [[Session sharedInstance] updateUser:user]; // TODO: Swap out for new user object
                 
                 [[NSNotificationCenter defaultCenter] postNotificationName:@"userProfileUpdated" object:nil];
                 
@@ -140,6 +148,9 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
                 [HUD dismissAfterDelay:0.2f];
             }];
         }];
+    }
+    else {
+        [self dismiss:nil];
     }
 }
 - (NSDictionary *)changes {
@@ -163,7 +174,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     InputCell *usernameCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:3 inSection:0]];
     NSString *username = [usernameCell.input.text stringByReplacingOccurrencesOfString:@"@" withString:@""];
     
-    if (![username isEqualToString:[Session sharedInstance].currentUser.identifier]) {
+    if (![username isEqualToString:[Session sharedInstance].currentUser.attributes.details.identifier]) {
         if (username.length < 3) {
             [self alertWithTitle:@"Requirements Not Met" message:@"Uh oh! Your username must be at least 3 characters"];
             

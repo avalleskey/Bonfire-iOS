@@ -105,7 +105,7 @@
     
     if (![self.status isEqualToString:STATUS_REQUESTED] &&
         ![self.status isEqualToString:STATUS_BLOCKED] &&
-        ![self.status isEqualToString:STATUS_ROOM_BLOCKED] ||
+        ![self.status isEqualToString:STATUS_ROOM_BLOCKED] &&
         ![self.status isEqualToString:STATUS_LOADING]) {
         if (highlighted) {
             [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{

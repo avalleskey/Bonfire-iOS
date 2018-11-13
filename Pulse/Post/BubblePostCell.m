@@ -283,7 +283,7 @@
 - (void)handlePan:(UIPanGestureRecognizer *)recognizer {
     if (recognizer.state == UIGestureRecognizerStateBegan) {
         originalCenter = recognizer.view.center;
-        UIColor *color = sparkColor;
+        // UIColor *color = sparkColor;
         
         [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.8f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
             if (self.frame.origin.x > 0) {
@@ -354,7 +354,7 @@
     
     if (isLeftSwipeSuccessful && self.contentView.tag != 1) {
         self.contentView.tag = 1;
-        UIColor *color = sparkColor;
+        // UIColor *color = sparkColor;
         
         [HapticHelper generateFeedback:FeedbackType_Impact_Medium];
         [UIView animateWithDuration:0.15f delay:0 usingSpringWithDamping:0.8f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
@@ -425,47 +425,136 @@
 }
 
 - (void)cellLongPressed:(id)sender {
-    [self showPostActions];
+    [self openPostActions];
 }
-- (void)showPostActions {
+- (void)openPostActions {
+    // Three Categories of Post Actions
+    // 1) Any user
+    // 2) Creator
+    // 3) Admin
+    BOOL isCreator     = ([self.post.attributes.details.creator.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]);
+    BOOL isRoomAdmin   = false;
+    
+    // Page action can be shown on
+    // A) Any page
+    // B) Inside Room
+    BOOL insideRoom    = true; // compare ID of post room and active room
+    
+    // Following state
+    // *) Any Following State
+    // +) Following Room
+    // &) Following User
+    // BOOL followingRoom = true;
+    BOOL followingUser = true;
+    
     UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:nil message:nil preferredStyle:UIAlertControllerStyleActionSheet];
-    actionSheet.view.tintColor = [UIColor colorWithWhite:0.2f alpha:1];
+    actionSheet.view.tintColor = [UIColor colorWithWhite:0.2 alpha:1];
     
-    // imessage , share via...
-    
-    UIAlertAction *shareOnImessage = [UIAlertAction actionWithTitle:@"Share on iMessage" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-        NSLog(@"share on imessage");
-    }];
-    [actionSheet addAction:shareOnImessage];
-    
-    UIAlertAction *shareVia = [UIAlertAction actionWithTitle:@"Share via..." style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-        NSLog(@"share via...");
-        [self showSharePostSheet];
-    }];
-    [actionSheet addAction:shareVia];
-    
-    UIAlertAction *copyLink = [UIAlertAction actionWithTitle:@"Copy Link" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-        NSLog(@"copy link");
-    }];
-    [actionSheet addAction:copyLink];
-    
-    if ([self.post.attributes.details.creator.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
-        UIAlertAction *deletePost = [UIAlertAction actionWithTitle:@"Delete" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
-            NSLog(@"delete post");
+    // 1.A.* -- Any user, any page, any following state
+    BOOL hasiMessage = [MFMessageComposeViewController canSendText];
+    if (hasiMessage) {
+        UIAlertAction *shareOniMessage = [UIAlertAction actionWithTitle:@"Share on iMessage" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            NSLog(@"share on iMessage");
+            // confirm action
+            MFMessageComposeViewController *messageController = [[MFMessageComposeViewController alloc] init]; // Create message VC
+            messageController.messageComposeDelegate = self; // Set delegate to current instance
+            
+            messageController.body = @"Join my room! https://rooms.app/room/room-name"; // Set initial text to example message
+            
+            //NSData *dataImg = UIImagePNGRepresentation([UIImage imageNamed:@"logoApple"]);//Add the image as attachment
+            //[messageController addAttachmentData:dataImg typeIdentifier:@"public.data" filename:@"Image.png"];
+            
+            [UIViewParentController(self).navigationController presentViewController:messageController animated:YES completion:NULL];
         }];
-        [actionSheet addAction:deletePost];
+        [actionSheet addAction:shareOniMessage];
     }
-    else {
-        BOOL isPostNotificationsOn = false;
-        UIAlertAction *postNotifications = [UIAlertAction actionWithTitle:[NSString stringWithFormat:@"Turn %@ Post Notifications", isPostNotificationsOn ? @"Off" : @"On"] style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-            NSLog(@"copy link");
-        }];
-        [actionSheet addAction:postNotifications];
-        
-        UIAlertAction *reportPost = [UIAlertAction actionWithTitle:@"Report" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+    
+    // 1.A.* -- Any user, any page, any following state
+    UIAlertAction *sharePost = [UIAlertAction actionWithTitle:@"Share via..." style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        NSLog(@"share post");
+    }];
+    [actionSheet addAction:sharePost];
+    
+    // 2.A.* -- Creator, any page, any following state
+    // TODO: Hook this up to a JSON default
+    
+    // Turn off Quick Fix for now and introduce later
+    /*
+     if (isCreator) {
+     UIAlertAction *editPost = [UIAlertAction actionWithTitle:@"Quick Fix" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+     NSLog(@"quick fix");
+     // confirm action
+     }];
+     [actionSheet addAction:editPost];
+     }*/
+    
+    // !2.A.* -- Not Creator, any page, any following state
+    if (!isCreator) {
+        UIAlertAction *reportPost = [UIAlertAction actionWithTitle:@"Report Post" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
             NSLog(@"report post");
+            // confirm action
+            UIAlertController *confirmDeletePostActionSheet = [UIAlertController alertControllerWithTitle:@"Delete Post" message:@"Are you sure you want to report this post?" preferredStyle:UIAlertControllerStyleAlert];
+            
+            UIAlertAction *confirmDeletePost = [UIAlertAction actionWithTitle:@"Delete" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+                NSLog(@"confirm report post");
+                [[Session sharedInstance] reportPost:self.post.identifier completion:^(BOOL success, id responseObject) {
+                    NSLog(@"reported post!");
+                }];
+            }];
+            [confirmDeletePostActionSheet addAction:confirmDeletePost];
+            
+            UIAlertAction *cancelDeletePost = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+                NSLog(@"cancel report post");
+            }];
+            [confirmDeletePostActionSheet addAction:cancelDeletePost];
+            
+            [UIViewParentController(self) presentViewController:confirmDeletePostActionSheet animated:YES completion:nil];
         }];
         [actionSheet addAction:reportPost];
+    }
+    
+    // !2.A.* -- Not Creator, any page, any following state
+    if (!isCreator) {
+        UIAlertAction *followUser = [UIAlertAction actionWithTitle:(followingUser?@"Follow @username":@"Unfollow @username") style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            NSLog(@"follow user");
+            if (followingUser) {
+                [[Session sharedInstance] unfollowUser:self.post.attributes.details.creator.identifier completion:^(BOOL success, id responseObject) {
+                    NSLog(@"unfollowed user!");
+                }];
+            }
+            else {
+                [[Session sharedInstance] followUser:self.post.attributes.details.creator.identifier completion:^(BOOL success, id responseObject) {
+                    NSLog(@"followed user!");
+                }];
+            }
+        }];
+        [actionSheet addAction:followUser];
+    }
+    
+    // 2|3.A.* -- Creator or room admin, any page, any following state
+    if (isCreator || isRoomAdmin) {
+        UIAlertAction *deletePost = [UIAlertAction actionWithTitle:@"Delete" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            [actionSheet dismissViewControllerAnimated:YES completion:nil];
+            NSLog(@"delete post");
+            // confirm action
+            UIAlertController *confirmDeletePostActionSheet = [UIAlertController alertControllerWithTitle:@"Delete Post" message:@"Are you sure you want to delete this post?" preferredStyle:UIAlertControllerStyleAlert];
+            
+            UIAlertAction *confirmDeletePost = [UIAlertAction actionWithTitle:@"Delete" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+                NSLog(@"confirm delete post");
+                [[Session sharedInstance] deletePost:self.post.identifier completion:^(BOOL success, id responseObject) {
+                    NSLog(@"deleted post!");
+                }];
+            }];
+            [confirmDeletePostActionSheet addAction:confirmDeletePost];
+            
+            UIAlertAction *cancelDeletePost = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+                NSLog(@"cancel delete post");
+            }];
+            [confirmDeletePostActionSheet addAction:cancelDeletePost];
+            
+            [UIViewParentController(self) presentViewController:confirmDeletePostActionSheet animated:YES completion:nil];
+        }];
+        [actionSheet addAction:deletePost];
     }
     
     UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
@@ -474,7 +563,7 @@
     [cancel setValue:self.tintColor forKey:@"titleTextColor"];
     [actionSheet addAction:cancel];
     
-    [UIViewParentController(self) presentViewController:actionSheet animated:YES completion:nil];
+    [UIViewParentController(self).navigationController presentViewController:actionSheet animated:YES completion:nil];
 }
 
 - (void)showSharePostSheet {

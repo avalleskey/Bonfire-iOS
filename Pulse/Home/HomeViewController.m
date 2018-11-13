@@ -182,7 +182,6 @@
 
 - (void)updateScrollView {
     UIEdgeInsets safeAreaInsets = [UIApplication sharedApplication].keyWindow.safeAreaInsets;
-    NSLog(@"safe area insets: %f %f", safeAreaInsets.top, safeAreaInsets.bottom);
     
     self.scrollView.frame = CGRectMake(0, 0, self.scrollView.frame.size.width, self.view.frame.size.height);
     self.scrollView.contentSize = CGSizeMake(self.scrollView.contentSize.width, self.scrollView.frame.size.height);
@@ -338,23 +337,16 @@
             // load next view
             if (self.page == 0) {
                 // Feed
-                NSLog(@"Feed!");
-                // self.channels = [[NSMutableArray alloc] initWithArray:@[@"1", @"2", @"3"]];
-                // [self getChannels];
-                // launchNavVC.textField.text = @"Timeline";
                 // [self.launchNavVC setShadowVisibility:true withAnimation:true];
                 [self.launchNavVC setShadowVisibility:false withAnimation:true];
             }
             else if (self.page == 1) {
                 // My Rooms
-                NSLog(@"My Rooms!");
                // launchNavVC.textField.text = @"My Rooms";
                 [self.launchNavVC setShadowVisibility:false withAnimation:true];
             }
             else if (self.page == 2) {
                 // Trending
-                NSLog(@"Trending!");
-                // launchNavVC.textField.text = @"Trending";
                 //[self.launchNavVC setShadowVisibility:true withAnimation:true];
                 [self.launchNavVC setShadowVisibility:false withAnimation:true];
             }

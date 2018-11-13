@@ -895,7 +895,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             
             UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(62, icon.frame.origin.y, self.frame.size.width - 62 - 200, icon.frame.size.height)];
             if (self.dataType == tableCategoryRoom) {
-                title.text = @"Trending";
+                title.text = @"Posts";
                 
                 if ([self.parentObject isKindOfClass:[Room class]]) {
                     Room *room = self.parentObject;

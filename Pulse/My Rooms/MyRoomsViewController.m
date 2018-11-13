@@ -146,11 +146,11 @@ static NSString * const errorRoomCellReuseIdentifier = @"ErrorRoomCell";
             
             NSLog(@"token::: %@", token);
             [self.manager GET:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                NSLog(@"MyRoomsViewController / getRooms() success! ✅");
+                // NSLog(@"MyRoomsViewController / getRooms() success! ✅");
                 
                 NSArray *responseData = responseObject[@"data"];
                 
-                NSLog(@"responseData: %@", responseData);
+                // NSLog(@"responseData: %@", responseData);
                 
                 if (responseData.count > 0) {
                     self.rooms = [[NSMutableArray alloc] initWithArray:responseData];

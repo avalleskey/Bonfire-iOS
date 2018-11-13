@@ -16,13 +16,15 @@
 #import "PostSurveyView.h"
 #import "PostActionsView.h"
 #import "PostURLPreviewView.h"
+#import <Messages/Messages.h>
+#import <MessageUI/MessageUI.h>
 
 #define seperator_color [UIColor colorWithWhite:0 alpha:0.04]
 
 #define postContentOffset UIEdgeInsetsMake(12, 62, 12, 12)
 #define textViewFont [UIFont preferredFontForTextStyle:UIFontTextStyleBody]
 
-@interface BubblePostCell : UITableViewCell <UITextFieldDelegate>
+@interface BubblePostCell : UITableViewCell <UITextFieldDelegate, MFMessageComposeViewControllerDelegate>
 
 // Determines if the cell has been created or not
 @property BOOL created;

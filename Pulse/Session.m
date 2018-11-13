@@ -201,9 +201,6 @@ static Session *session;
                     
                     NSError *error;
                     
-                    UserDetails *userDetails = [[UserDetails alloc] initWithDictionary:responseObject[@"data"][@"attributes"][@"details"] error:&error];
-                    if (error) { NSLog(@"user details error -> : %@", error); }
-                    
                     User *user = [[User alloc] initWithDictionary:responseObject[@"data"] error:&error];
                     if (error) { NSLog(@"GET -> /users/me; User error: %@", error); }
                     

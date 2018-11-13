@@ -436,11 +436,10 @@ static NSString * const reuseIdentifier = @"Result";
                 NSLog(@"token::: %@", token);
                 [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
                 [self.manager POST:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                    NSLog(@"CommonTableViewController / getPosts() success! ✅");
+                    // NSLog(@"CommonTableViewController / getPosts() success! ✅");
                     
-                    NSArray *responseData = (NSArray *)responseObject[@"data"];
-                    
-                    NSLog(@"responsedata: %@", responseData);
+                    // NSArray *responseData = (NSArray *)responseObject[@"data"];
+                    // NSLog(@"responsedata: %@", responseData);
                     
                     // scroll to top if neccessary
                     RoomHeaderCell *headerCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
@@ -522,6 +521,8 @@ static NSString * const reuseIdentifier = @"Result";
     self.tableView.hidden = false;
     
     NSString *url = [NSString stringWithFormat:@"%@/%@/rooms/%@/stream", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], self.room.identifier];
+    
+    NSLog(@"url: %@", url);
     
     [self.manager.requestSerializer setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
     self.manager.responseSerializer = [AFJSONResponseSerializer serializer];
@@ -714,7 +715,7 @@ static NSString * const reuseIdentifier = @"Result";
         if (success) {
             [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
             [self.manager GET:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                NSLog(@"RoomViewController / getMyRooms() success! ✅");
+                // NSLog(@"RoomViewController / getMyRooms() success! ✅");
                 
                 NSLog(@"response: %@", responseObject[@"data"]);
                 
@@ -745,7 +746,7 @@ static NSString * const reuseIdentifier = @"Result";
             
             NSString *url = [NSString stringWithFormat:@"%@/%@/search/rooms", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"]];
             [self.manager GET:url parameters:@{@"q": self.launchNavVC.textField.text} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                NSLog(@"LauncherNavigationViewController / getSearchResults() success! ✅");
+                // NSLog(@"LauncherNavigationViewController / getSearchResults() success! ✅");
                 
                 NSLog(@"response: %@", responseObject[@"data"][@"results"][@"rooms"]);
 

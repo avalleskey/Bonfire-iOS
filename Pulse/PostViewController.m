@@ -11,10 +11,12 @@
 #import "ErrorView.h"
 #import <BlocksKit/BlocksKit.h>
 #import <BlocksKit/BlocksKit+UIKit.h>
+#import <Messages/Messages.h>
+#import <MessageUI/MessageUI.h>
 
 #define envConfig [[[NSUserDefaults standardUserDefaults] objectForKey:@"config"] objectForKey:[[NSUserDefaults standardUserDefaults] stringForKey:@"environment"]]
 
-@interface PostViewController () {
+@interface PostViewController () <MFMessageComposeViewControllerDelegate> {
     int previousTableViewYOffset;
     ErrorView *errorView;
 }
@@ -126,12 +128,10 @@
                 NSLog(@"token::: %@", token);
                 [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
                 [self.manager POST:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                    NSLog(@"PostViewController / postMessage() success! ✅");
+                    // NSLog(@"PostViewController / postMessage() success! ✅");
                     
-                    NSArray *responseData = (NSArray *)responseObject[@"data"];
-                    
-                    
-                    NSLog(@"responsedata: %@", responseData);
+                    // NSArray *responseData = (NSArray *)responseObject[@"data"];
+                    // NSLog(@"responsedata: %@", responseData);
                     
                     [self getReplies];
                     
@@ -187,7 +187,7 @@
                 [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
                 
                 [self.manager GET:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                    NSLog(@"CommonTableViewController / getReplies() success! ✅");
+                    // NSLog(@"CommonTableViewController / getReplies() success! ✅");
                     
                     NSArray *responseData = (NSArray *)responseObject[@"data"];
 
@@ -285,27 +285,49 @@
     // *) Any Following State
     // +) Following Room
     // &) Following User
-    BOOL followingRoom = true;
+    // BOOL followingRoom = true;
     BOOL followingUser = true;
     
     UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:nil message:nil preferredStyle:UIAlertControllerStyleActionSheet];
     actionSheet.view.tintColor = [UIColor colorWithWhite:0.2 alpha:1];
     
     // 1.A.* -- Any user, any page, any following state
-    UIAlertAction *sharePost = [UIAlertAction actionWithTitle:@"Share" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+    BOOL hasiMessage = [MFMessageComposeViewController canSendText];
+    if (hasiMessage) {        
+        UIAlertAction *shareOniMessage = [UIAlertAction actionWithTitle:@"Share on iMessage" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            NSLog(@"share on iMessage");
+            // confirm action
+            MFMessageComposeViewController *messageController = [[MFMessageComposeViewController alloc] init]; // Create message VC
+            messageController.messageComposeDelegate = self; // Set delegate to current instance
+            
+            messageController.body = @"Join my room! https://rooms.app/room/room-name"; // Set initial text to example message
+            
+            //NSData *dataImg = UIImagePNGRepresentation([UIImage imageNamed:@"logoApple"]);//Add the image as attachment
+            //[messageController addAttachmentData:dataImg typeIdentifier:@"public.data" filename:@"Image.png"];
+            
+            [self.navigationController presentViewController:messageController animated:YES completion:NULL];
+        }];
+        [actionSheet addAction:shareOniMessage];
+    }
+    
+    // 1.A.* -- Any user, any page, any following state
+    UIAlertAction *sharePost = [UIAlertAction actionWithTitle:@"Share via..." style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         NSLog(@"share post");
     }];
     [actionSheet addAction:sharePost];
     
     // 2.A.* -- Creator, any page, any following state
     // TODO: Hook this up to a JSON default
+    
+    // Turn off Quick Fix for now and introduce later
+    /*
     if (isCreator) {
         UIAlertAction *editPost = [UIAlertAction actionWithTitle:@"Quick Fix" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
             NSLog(@"quick fix");
             // confirm action
         }];
         [actionSheet addAction:editPost];
-    }
+    }*/
     
     // 1.B.* -- Any user, outside room, any following state
     if (!insideRoom) {

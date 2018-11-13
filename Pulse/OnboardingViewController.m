@@ -1158,7 +1158,6 @@
                     [formData appendPartWithFileData:imageData name:@"img" fileName:@"image.jpg" mimeType:@"image/jpeg"];
                 } progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                     NSLog(@"--------");
-                    NSLog(@"success! HOLY CRAP YEAH PUT PUT PUT PUT");
                     NSLog(@"response object:");
                     NSLog(@"%@", responseObject);
                     NSLog(@"--------");

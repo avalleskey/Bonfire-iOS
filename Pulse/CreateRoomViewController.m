@@ -726,9 +726,9 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
             
             NSString *url = [NSString stringWithFormat:@"%@/%@/search/rooms", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"]];
             [self.manager GET:url parameters:@{@"q": roomName} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                NSLog(@"CreateRoomViewController / getSimilarRooms() success! ✅");
+                // NSLog(@"CreateRoomViewController / getSimilarRooms() success! ✅");
                 
-                NSLog(@"response: %@", responseObject[@"data"][@"results"][@"rooms"]);
+                // NSLog(@"response: %@", responseObject[@"data"][@"results"][@"rooms"]);
                 
                 NSArray *responseData = (NSArray *)responseObject[@"data"][@"results"][@"rooms"];
                 

@@ -284,7 +284,7 @@
                 [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
                 
                 [self.manager GET:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                    NSLog(@"CommonTableViewController / getPosts() success! ✅");
+                    // NSLog(@"CommonTableViewController / getPosts() success! ✅");
                     
                     NSLog(@"responseObject: %@", responseObject);
                     

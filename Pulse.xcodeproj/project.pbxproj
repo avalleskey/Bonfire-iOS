@@ -80,6 +80,7 @@
 		D96AD79F218102C100849F6B /* ButtonCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D96AD79E218102C100849F6B /* ButtonCell.m */; };
 		D974B73E215F246C00C03269 /* RoomSuggestionsListCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D974B73D215F246C00C03269 /* RoomSuggestionsListCell.m */; };
 		D974B741216009F200C03269 /* MyRoomsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D974B740216009F200C03269 /* MyRoomsViewController.m */; };
+		D9824236219CAA0D003626DA /* EditRoomViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9824235219CAA0D003626DA /* EditRoomViewController.m */; };
 		D983D730216D911C00F9D201 /* PostAttributes.m in Sources */ = {isa = PBXBuildFile; fileRef = D983D72F216D911C00F9D201 /* PostAttributes.m */; };
 		D983D733216E5A5900F9D201 /* LoadingCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D983D732216E5A5900F9D201 /* LoadingCell.m */; };
 		D998462921934309000B901F /* RoomMembersViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D998462821934309000B901F /* RoomMembersViewController.m */; };
@@ -265,6 +266,8 @@
 		D974B73D215F246C00C03269 /* RoomSuggestionsListCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RoomSuggestionsListCell.m; sourceTree = "<group>"; };
 		D974B73F216009F200C03269 /* MyRoomsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MyRoomsViewController.h; sourceTree = "<group>"; };
 		D974B740216009F200C03269 /* MyRoomsViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MyRoomsViewController.m; sourceTree = "<group>"; };
+		D9824234219CAA0C003626DA /* EditRoomViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EditRoomViewController.h; path = "Profile/Edit Profile/EditRoomViewController.h"; sourceTree = "<group>"; };
+		D9824235219CAA0D003626DA /* EditRoomViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = EditRoomViewController.m; path = "Profile/Edit Profile/EditRoomViewController.m"; sourceTree = "<group>"; };
 		D983D72E216D911C00F9D201 /* PostAttributes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PostAttributes.h; sourceTree = "<group>"; };
 		D983D72F216D911C00F9D201 /* PostAttributes.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PostAttributes.m; sourceTree = "<group>"; };
 		D983D731216E5A5900F9D201 /* LoadingCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LoadingCell.h; sourceTree = "<group>"; };
@@ -589,6 +592,8 @@
 			children = (
 				D902CD4D21993D390088F479 /* RoomViewController.h */,
 				D902CD4E21993D390088F479 /* RoomViewController.m */,
+				D9824234219CAA0C003626DA /* EditRoomViewController.h */,
+				D9824235219CAA0D003626DA /* EditRoomViewController.m */,
 				D998462721934309000B901F /* RoomMembersViewController.h */,
 				D998462821934309000B901F /* RoomMembersViewController.m */,
 				D9114F8121954D4E0033765A /* MemberRequestCell.h */,
@@ -940,6 +945,7 @@
 				D9114F86219627100033765A /* BubblePostCell.m in Sources */,
 				D94FD1F7216D730300B84E45 /* PostCounts.m in Sources */,
 				D907B11D2150917700A59712 /* HomeViewController.m in Sources */,
+				D9824236219CAA0D003626DA /* EditRoomViewController.m in Sources */,
 				D94FD202216D730300B84E45 /* User.m in Sources */,
 				D94FD19E2168644200B84E45 /* EmptyChannelCell.m in Sources */,
 				D924BE2721542E5500EB7385 /* PostSurveyView.m in Sources */,

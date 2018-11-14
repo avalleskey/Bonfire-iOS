@@ -13,8 +13,10 @@
 #import "Room.h"
 #import "ComposeInputView.h"
 #import "HeaderView.h"
+#import <Messages/Messages.h>
+#import <MessageUI/MessageUI.h>
 
-@interface RoomViewController : UIViewController <UITextViewDelegate, UITableViewDataSource, UITableViewDelegate, RSTableViewPaginationDelegate>
+@interface RoomViewController : UIViewController <UITextViewDelegate, UITableViewDataSource, UITableViewDelegate, RSTableViewPaginationDelegate, MFMessageComposeViewControllerDelegate>
 
 @property (strong, nonatomic) HAWebService *manager;
 

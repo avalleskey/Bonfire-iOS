@@ -12,8 +12,10 @@
 #import "RSTableView.h"
 #import "Post.h"
 #import "ComposeInputView.h"
+#import <Messages/Messages.h>
+#import <MessageUI/MessageUI.h>
 
-@interface PostViewController : UIViewController <UITextViewDelegate>
+@interface PostViewController : UIViewController <UITextViewDelegate, MFMessageComposeViewControllerDelegate>
 
 @property (strong, nonatomic) HAWebService *manager;
 

@@ -11,12 +11,10 @@
 #import "ErrorView.h"
 #import <BlocksKit/BlocksKit.h>
 #import <BlocksKit/BlocksKit+UIKit.h>
-#import <Messages/Messages.h>
-#import <MessageUI/MessageUI.h>
 
 #define envConfig [[[NSUserDefaults standardUserDefaults] objectForKey:@"config"] objectForKey:[[NSUserDefaults standardUserDefaults] stringForKey:@"environment"]]
 
-@interface PostViewController () <MFMessageComposeViewControllerDelegate> {
+@interface PostViewController () {
     int previousTableViewYOffset;
     ErrorView *errorView;
 }
@@ -299,6 +297,7 @@
             // confirm action
             MFMessageComposeViewController *messageController = [[MFMessageComposeViewController alloc] init]; // Create message VC
             messageController.messageComposeDelegate = self; // Set delegate to current instance
+            messageController.transitioningDelegate = self.launchNavVC;
             
             messageController.body = @"Join my room! https://rooms.app/room/room-name"; // Set initial text to example message
             
@@ -418,6 +417,10 @@
     [actionSheet addAction:cancel];
     
     [UIViewParentController(self) presentViewController:actionSheet animated:YES completion:nil];
+}
+
+- (void)messageComposeViewController:(MFMessageComposeViewController *)controller didFinishWithResult:(MessageComposeResult)result {
+    [controller dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {

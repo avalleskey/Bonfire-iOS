@@ -11,6 +11,7 @@
 #import <SafariServices/SafariServices.h>
 #import <HapticHelper/HapticHelper.h>
 #import "Session.h"
+#import "LauncherNavigationViewController.h"
 
 #define UIViewParentController(__view) ({ \
     UIResponder *__responder = __view; \
@@ -458,6 +459,10 @@
             // confirm action
             MFMessageComposeViewController *messageController = [[MFMessageComposeViewController alloc] init]; // Create message VC
             messageController.messageComposeDelegate = self; // Set delegate to current instance
+            if (UIViewParentController(self).navigationController && [UIViewParentController(self).navigationController isKindOfClass:[LauncherNavigationViewController class]]) {
+                LauncherNavigationViewController *launchNavVC = (LauncherNavigationViewController *)UIViewParentController(self).navigationController;
+                messageController.transitioningDelegate = launchNavVC;
+            }
             
             messageController.body = @"Join my room! https://rooms.app/room/room-name"; // Set initial text to example message
             
@@ -564,6 +569,10 @@
     [actionSheet addAction:cancel];
     
     [UIViewParentController(self).navigationController presentViewController:actionSheet animated:YES completion:nil];
+}
+
+- (void)messageComposeViewController:(MFMessageComposeViewController *)controller didFinishWithResult:(MessageComposeResult)result {
+    [controller dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (void)showSharePostSheet {

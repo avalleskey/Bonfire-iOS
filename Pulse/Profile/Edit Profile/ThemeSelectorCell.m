@@ -12,6 +12,7 @@
 #import <BlocksKit/BlocksKit+UIKit.h>
 #import <HapticHelper/HapticHelper.h>
 #import "EditProfileViewController.h"
+#import "EditRoomViewController.h"
 
 #define UIViewParentController(__view) ({ \
     UIResponder *__responder = __view; \
@@ -25,6 +26,12 @@
 - (void)awakeFromNib {
     [super awakeFromNib];
     // Initialization code
+}
+
+- (id)initWithColor:(NSString *)color reuseIdentifier:(NSString *)reuseIdentifier {
+    self.selectedColor = color;
+    
+    return [super initWithStyle:UITableViewCellStyleDefault reuseIdentifier:reuseIdentifier];
 }
 
 - (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier {
@@ -57,6 +64,11 @@
         
         CGFloat buttonSize = 46;
         CGFloat buttonSpacing = 12;
+        
+        if (!self.selectedColor) {
+            self.selectedColor = [Session sharedInstance].currentUser.attributes.details.color;
+        }
+        
         self.colors = [[NSMutableArray alloc] init];
         for (int i = 0; i < [colorList count]; i++) {
             NSMutableDictionary *colorDict = [[NSMutableDictionary alloc] init];
@@ -71,26 +83,11 @@
             colorOption.userInteractionEnabled = true;
             [self.scrollView addSubview:colorOption];
             
-            if ([[colorList[i] lowercaseString] isEqualToString:[[Session sharedInstance].currentUser.attributes.details.color lowercaseString]]) {
-                // add check image view
-                UIImageView *checkView = [[UIImageView alloc] initWithFrame:CGRectMake(-6, -6, colorOption.frame.size.width + 12, colorOption.frame.size.height + 12)];
-                checkView.contentMode = UIViewContentModeCenter;
-                checkView.image = [UIImage imageNamed:@"selectedColorCheck"];
-                checkView.tag = 999;
-                checkView.layer.cornerRadius = checkView.frame.size.height / 2;
-                checkView.layer.borderColor = colorOption.backgroundColor.CGColor;
-                checkView.layer.borderWidth = 3.f;
-                checkView.backgroundColor = [UIColor clearColor];
-                [colorOption addSubview:checkView];
-                
-                self.selectedColor = colorList[i];
-            }
-            
             [colorDict setObject:colorOption forKey:@"view"];
             
             [colorOption bk_whenTapped:^{
-                NSLog(@"taaaaped");
-                [self setColor:colorOption];
+                [HapticHelper generateFeedback:FeedbackType_Selection];
+                [self setColor:colorOption withAnimation:true];
             }];
             
             [self.colors addObject:colorDict];
@@ -108,13 +105,21 @@
     
     self.selectorLabel.frame = CGRectMake(16, 16, self.frame.size.width - 32, 19);
     self.scrollView.frame = CGRectMake(0, 0, self.frame.size.width, self.frame.size.height);
+    
+    for (int i = 0; i < [self.colors count]; i++) {
+        NSDictionary *color = self.colors[i];
+        if ([color[@"color"] isEqualToString:self.selectedColor]) {
+            NSLog(@"self.selectedColor: %@", self.selectedColor);
+            [self setColor:color[@"view"] withAnimation:false];
+        }
+    }
 }
 
-- (void)setColor:(UIView *)sender {
+- (void)setColor:(UIView *)sender withAnimation:(BOOL)animated {
     NSDictionary *color = self.colors.count > sender.tag ? self.colors[sender.tag] : nil;
     
-    if (color && ![color[@"color"] isEqualToString:self.selectedColor]) {
-        [HapticHelper generateFeedback:FeedbackType_Selection];
+    if (color && (!animated || ![color[@"color"] isEqualToString:self.selectedColor])) {
+        NSLog(@"set the color: %@", color);
         
         // remove previously selected color
         NSDictionary *previousColor;
@@ -132,7 +137,7 @@
             for (UIImageView *imageView in previousColorView.subviews) {
                 NSLog(@"imageView unda: %@", imageView);
                 if (imageView.tag == 999) {
-                    [UIView animateWithDuration:0.25f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+                    [UIView animateWithDuration:animated?0.25f:0 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
                         imageView.transform = CGAffineTransformMakeScale(0.1, 0.1);
                         imageView.alpha = 0;
                     } completion:^(BOOL finished) {
@@ -164,7 +169,7 @@
         NSLog(@"parentVC: %@", parentVC);
         [parentVC updateBarColor:color[@"color"] withAnimation:2 statusBarUpdateDelay:0];
         
-        [UIView animateWithDuration:0.6f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+        [UIView animateWithDuration:animated?0.6f:0 delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
             
             checkView.transform = CGAffineTransformMakeScale(1, 1);
             checkView.alpha = 1;

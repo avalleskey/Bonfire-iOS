@@ -8,13 +8,12 @@
 #import "RoomViewController.h"
 #import "LauncherNavigationViewController.h"
 #import "ErrorView.h"
-#import <Messages/Messages.h>
-#import <MessageUI/MessageUI.h>
 #import "SearchResultCell.h"
 #import <BlocksKit/BlocksKit.h>
 #import <BlocksKit/BlocksKit+UIKit.h>
 #import "RoomHeaderCell.h"
 #import "ProfileViewController.h"
+#import "EditRoomViewController.h"
 
 #define envConfig [[[NSUserDefaults standardUserDefaults] objectForKey:@"config"] objectForKey:[[NSUserDefaults standardUserDefaults] stringForKey:@"environment"]]
 
@@ -77,6 +76,11 @@ static NSString * const reuseIdentifier = @"Result";
 - (void)roomUpdated:(NSNotification *)notification {
     Room *room = notification.object;
     
+    // if new Room has no context, use existing context
+    if (room.attributes.context == nil) {
+        room.attributes.context = self.room.attributes.context;
+    }
+    
     if (room != nil &&
         [room.identifier isEqualToString:self.room.identifier]) {
         BOOL canViewPosts_Before = [self canViewPosts];
@@ -84,6 +88,20 @@ static NSString * const reuseIdentifier = @"Result";
         // new post appears valid and same room
         self.room = room;
         self.tableView.parentObject = room;
+        
+        // Update Room
+        UIColor *themeColor = [self colorFromHexString:[[self.room.attributes.details.color lowercaseString] isEqualToString:@"ffffff"]?@"222222":self.room.attributes.details.color];
+        self.theme = themeColor;
+        self.view.tintColor = themeColor;
+        self.composeInputView.addMediaButton.tintColor = themeColor;
+        self.composeInputView.postButton.tintColor = themeColor;
+        [self.tableView refresh];
+        // if top view controller -> update launch nav vc
+        if ([self isEqual:self.navigationController.topViewController]) {
+            [self.launchNavVC updateSearchText:room.attributes.details.title];
+            self.title = room.attributes.details.title;
+            [self.launchNavVC updateBarColor:themeColor withAnimation:2 statusBarUpdateDelay:0];
+        }
         
         // update table view state based on new Room object
         // if and only if [self canViewPosts] changes values after setting the new room, should we update the table view
@@ -337,7 +355,6 @@ static NSString * const reuseIdentifier = @"Result";
 }
 
 - (void)viewWillAppear:(BOOL)animated {
-    NSLog(@"viewWillAppear::::::");
     [self styleOnAppear];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillChangeFrame:) name:UIKeyboardWillChangeFrameNotification object:nil];
@@ -983,7 +1000,6 @@ static NSString * const reuseIdentifier = @"Result";
     BOOL followingRoom = true;
     BOOL roomPostNotifications = false;
     BOOL hasTwitter = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"twitter://"]];
-    NSLog(@"hasTwitta? %@", hasTwitter ? @"YES" : @"NO");
     BOOL hasiMessage = [MFMessageComposeViewController canSendText];
     
     // Share to...
@@ -1000,7 +1016,19 @@ static NSString * const reuseIdentifier = @"Result";
         UIAlertAction *editRoom = [UIAlertAction actionWithTitle:@"Edit Room" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
             NSLog(@"edit room");
             
+            EditRoomViewController *epvc = [[EditRoomViewController alloc] initWithStyle:UITableViewStyleGrouped];
+            epvc.view.tintColor = [Session sharedInstance].themeColor;
+            epvc.themeColor = [self colorFromHexString:self.room.attributes.details.color];
+            epvc.room = self.room;
             
+            UINavigationController *newNavController = [[UINavigationController alloc] initWithRootViewController:epvc];
+            newNavController.transitioningDelegate = self.launchNavVC;
+            newNavController.navigationBar.barStyle = UIBarStyleBlack;
+            newNavController.navigationBar.translucent = false;
+            newNavController.navigationBar.barTintColor = [UIColor whiteColor];
+            [newNavController setNeedsStatusBarAppearanceUpdate];
+            
+            [self.launchNavVC presentViewController:newNavController animated:YES completion:nil];
         }];
         [actionSheet addAction:editRoom];
     }
@@ -1050,6 +1078,7 @@ static NSString * const reuseIdentifier = @"Result";
             // confirm action
             MFMessageComposeViewController *messageController = [[MFMessageComposeViewController alloc] init]; // Create message VC
             messageController.messageComposeDelegate = self; // Set delegate to current instance
+            messageController.transitioningDelegate = self.launchNavVC;
             
             messageController.body = @"Join my room! https://rooms.app/room/room-name"; // Set initial text to example message
             
@@ -1068,6 +1097,9 @@ static NSString * const reuseIdentifier = @"Result";
     [actionSheet addAction:cancel];
     
     [self.navigationController presentViewController:actionSheet animated:YES completion:nil];
+}
+- (void)messageComposeViewController:(MFMessageComposeViewController *)controller didFinishWithResult:(MessageComposeResult)result {
+    [controller dismissViewControllerAnimated:YES completion:nil];
 }
     
 - (void)showShareRoomSheet {

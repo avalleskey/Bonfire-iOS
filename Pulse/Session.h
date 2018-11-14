@@ -48,10 +48,11 @@
 - (void)unsparkPost:(Post *)post completion:(void (^)(BOOL success, id responseObject))handler;
 
 
-// -- Follow/Unfollow User --
+// -- User --
 - (void)followUser:(NSString *)userId completion:(void (^)(BOOL success, id responseObject))handler;
 - (void)unfollowUser:(NSString *)postId completion:(void (^)(BOOL success, id responseObject))handler;
-
+- (void)blockUser:(NSString *)userId completion:(void (^)(BOOL success, id responseObject))handler;
+- (void)unblockUser:(NSString *)userId completion:(void (^)(BOOL success, id responseObject))handler;
 
 // -- Follow/Unfollow Room --
 - (void)followRoom:(NSString *)roomId completion:(void (^)(BOOL success, id responseObject))handler;

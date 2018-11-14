@@ -148,19 +148,39 @@
     
     UIAlertAction *blockUsername = [UIAlertAction actionWithTitle:[NSString stringWithFormat:@"%@", userIsBlocked ? @"Unblock" : @"Block"] style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         // confirm action
-        UIAlertController *saveAndOpenInstaConfirm = [UIAlertController alertControllerWithTitle:[NSString stringWithFormat:@"%@ %@", userIsBlocked ? @"Unblock" : @"Block" , self.user.attributes.details.displayName] message:[NSString stringWithFormat:@"Are you sure you would like to block @%@?", self.user.attributes.details.identifier] preferredStyle:UIAlertControllerStyleAlert];
+        UIAlertController *alertConfirmController = [UIAlertController alertControllerWithTitle:[NSString stringWithFormat:@"%@ %@", userIsBlocked ? @"Unblock" : @"Block" , self.user.attributes.details.displayName] message:[NSString stringWithFormat:@"Are you sure you would like to block @%@?", self.user.attributes.details.identifier] preferredStyle:UIAlertControllerStyleAlert];
         
-        UIAlertAction *alertConfirm = [UIAlertAction actionWithTitle:@"Block" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+        UIAlertAction *alertConfirm = [UIAlertAction actionWithTitle:userIsBlocked ? @"Unblock" : @"Block" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
             NSLog(@"switch user block state");
+            if (userIsBlocked) {
+                [[Session sharedInstance] unblockUser:self.user.attributes.details.identifier completion:^(BOOL success, id responseObject) {
+                    if (success) {
+                        NSLog(@"success unblocking!");
+                    }
+                    else {
+                        NSLog(@"error unblocking ;(");
+                    }
+                }];
+            }
+            else {
+                [[Session sharedInstance] blockUser:self.user.attributes.details.identifier completion:^(BOOL success, id responseObject) {
+                    if (success) {
+                        NSLog(@"success blocking!");
+                    }
+                    else {
+                        NSLog(@"error blocking ;(");
+                    }
+                }];
+            }
         }];
-        [saveAndOpenInstaConfirm addAction:alertConfirm];
+        [alertConfirmController addAction:alertConfirm];
         
         UIAlertAction *alertCancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
             NSLog(@"cancel");
         }];
-        [saveAndOpenInstaConfirm addAction:alertCancel];
+        [alertConfirmController addAction:alertCancel];
         
-        [self.navigationController presentViewController:saveAndOpenInstaConfirm animated:YES completion:nil];
+        [self.navigationController presentViewController:alertConfirmController animated:YES completion:nil];
     }];
     [actionSheet addAction:blockUsername];
     

@@ -978,7 +978,7 @@ static NSString * const reuseIdentifier = @"Result";
 }
 
 - (void)openRoomActions {
-    BOOL isRoomAdmin   = false;
+    BOOL isRoomAdmin   = true;
     BOOL insideRoom    = false; // compare ID of post room and active room
     BOOL followingRoom = true;
     BOOL roomPostNotifications = false;
@@ -996,7 +996,15 @@ static NSString * const reuseIdentifier = @"Result";
     UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:nil message:self.room.attributes.details.title preferredStyle:UIAlertControllerStyleActionSheet];
     actionSheet.view.tintColor = [UIColor colorWithWhite:0.2 alpha:1];
     
-    // 1.A.* -- Any user, any page, any following state
+    if (isRoomAdmin) {
+        UIAlertAction *editRoom = [UIAlertAction actionWithTitle:@"Edit Room" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            NSLog(@"edit room");
+            
+            
+        }];
+        [actionSheet addAction:editRoom];
+    }
+    
     UIAlertAction *sharePost = [UIAlertAction actionWithTitle:@"Share Room..." style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         NSLog(@"share room");
         

@@ -592,7 +592,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     
     NSLog(@"darknessScore: %f", darknessScore);
     
-    if (darknessScore >= 155) {
+    if (darknessScore >= 185) {
         return false;
     }
     

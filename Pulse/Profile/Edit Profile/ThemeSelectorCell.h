@@ -12,6 +12,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface ThemeSelectorCell : UITableViewCell
 
+- (id)initWithColor:(NSString *)color reuseIdentifier:(NSString *)reuseIdentifier;
+
 @property (strong, nonatomic) UIScrollView *scrollView;
 @property (strong, nonatomic) NSMutableArray *colors;
 @property (strong, nonatomic) NSString *selectedColor;

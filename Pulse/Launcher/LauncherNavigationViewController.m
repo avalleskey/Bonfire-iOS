@@ -260,7 +260,7 @@ static NSString * const reuseIdentifier = @"Result";
         darknessScore = (((componentColors[0]*255) * 299) + ((componentColors[1]*255) * 587) + ((componentColors[2]*255) * 114)) / 1000;
     }
     
-    if (darknessScore >= 155) {
+    if (darknessScore >= 185) {
         return false;
     }
     

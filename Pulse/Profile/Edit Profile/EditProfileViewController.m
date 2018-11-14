@@ -100,6 +100,8 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
 
 - (void)saveChanges {
     // first verify requirements have been met
+    [self.view endEditing:TRUE];
+    
     NSDictionary *changes = [self changes];
     
     NSLog(@"changes: %@", changes);
@@ -107,7 +109,6 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     if (changes != nil && changes.count > 0) {
         // requirements have been met and there's more than one change to save
         
-        NSLog(@"good to go! let's save this up");
         JGProgressHUD *HUD = [JGProgressHUD progressHUDWithStyle:JGProgressHUDStyleExtraLight];
         HUD.textLabel.text = @"Saving...";
         HUD.vibrancyEnabled = false;
@@ -118,11 +119,8 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
         [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
             [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
             
-            NSLog(@"token:: %@", token);
-            
             NSString *url = [NSString stringWithFormat:@"%@/%@/users/me", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"]];
             
-            NSLog(@"url: %@", url);
             [self.manager.requestSerializer setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
             [self.manager PUT:url parameters:changes success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 // success
@@ -143,9 +141,9 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
                 NSLog(@"error saving user prefs");
                 //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
                 HUD.indicatorView = [[JGProgressHUDErrorIndicatorView alloc] init];
-                HUD.textLabel.text = @"Error";
+                HUD.textLabel.text = @"Error Saving";
                 
-                [HUD dismissAfterDelay:0.2f];
+                [HUD dismissAfterDelay:1.f];
             }];
         }];
     }

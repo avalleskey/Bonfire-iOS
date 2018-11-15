@@ -106,8 +106,6 @@
         
         // text view
         self.textView = [[PostTextView alloc] initWithFrame:CGRectMake(_postContentOffset.left, 58, self.contentView.frame.size.width - _postContentOffset.right - _postContentOffset.left, 200)]; // 58 will change based on whether or not the detail label is shown
-        self.textView.textView.editable = false;
-        self.textView.textView.selectable = false;
         self.textView.textView.userInteractionEnabled = false;
         self.textView.textView.font = _textViewFont;
         [self.contentView addSubview:self.textView];

@@ -75,20 +75,6 @@ static NSString * const errorRoomCellReuseIdentifier = @"ErrorRoomCell";
     [self.view addSubview:self.collectionView];
 }
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
-    NSLog(@"scrollview");
-    UICollectionViewCell *closestCell = self.collectionView.visibleCells[0];
-    for (UICollectionViewCell *cell in self.collectionView.visibleCells) {
-        int closestCellDelta = fabs(closestCell.center.x - self.collectionView.bounds.size.width/2.0 - self.collectionView.contentOffset.x);
-        int cellDelta = fabs(cell.center.x - self.collectionView.bounds.size.width/2.0 - self.collectionView.contentOffset.x);
-        if (cellDelta < closestCellDelta) {
-            closestCell = cell;
-        }
-    }
-    NSIndexPath *indexPath = [self.collectionView indexPathForCell:closestCell];
-    [self.collectionView scrollToItemAtIndexPath:indexPath atScrollPosition:UICollectionViewScrollPositionCenteredHorizontally animated:true];
-}
-- (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate {
-    NSLog(@"scrollview");
     UICollectionViewCell *closestCell = self.collectionView.visibleCells[0];
     for (UICollectionViewCell *cell in self.collectionView.visibleCells) {
         int closestCellDelta = fabs(closestCell.center.x - self.collectionView.bounds.size.width/2.0 - self.collectionView.contentOffset.x);

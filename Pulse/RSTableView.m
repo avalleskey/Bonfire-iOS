@@ -248,7 +248,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             if (cell.membersLabel.gestureRecognizers.count == 0) {
                 [cell.membersLabel bk_whenTapped:^{
                     if ([UIViewParentController(self).navigationController isKindOfClass:[LauncherNavigationViewController class]]) {
-                        [(LauncherNavigationViewController *)UIViewParentController(self).navigationController  openRoomMembersForRoom:room];
+                        [(LauncherNavigationViewController *)UIViewParentController(self).navigationController  openRoomMembersForRoom:self.parentObject];
                     }
                 }];
             }

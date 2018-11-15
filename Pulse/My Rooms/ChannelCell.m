@@ -29,7 +29,14 @@
 }
 
 - (void)setup {
-    [self continuityRadiusForCell:self withRadius:16.f];
+    //[self continuityRadiusForCell:self withRadius:16.f];
+    self.layer.cornerRadius = 16.f;
+    self.layer.masksToBounds = true;
+    self.layer.shadowOffset = CGSizeMake(0, 1);
+    self.layer.shadowRadius = 2.f;
+    self.layer.shadowOpacity = 0.08f;
+    self.layer.shadowColor = [UIColor blackColor].CGColor;
+    self.clipsToBounds = false;
     
     self.shimmerContainer = [[FBShimmeringView alloc] initWithFrame:self.bounds];
     self.shimmerContainer.backgroundColor = [UIColor colorWithWhite:0.95 alpha:1];
@@ -44,7 +51,7 @@
     UIView *profilepictureContainer = [[UIView alloc] initWithFrame:CGRectMake(24, 30, 72, 72)];
     profilepictureContainer.layer.cornerRadius = profilepictureContainer.frame.size.width / 2;
     profilepictureContainer.layer.shadowOffset = CGSizeMake(0, 2);
-    profilepictureContainer.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.08f].CGColor;
+    profilepictureContainer.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.12f].CGColor;
     profilepictureContainer.layer.shadowRadius = 6.f;
     self.profilePicture = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, profilepictureContainer.frame.size.width, profilepictureContainer.frame.size.height)];
     self.profilePicture.backgroundColor = [UIColor colorWithWhite:1 alpha:0.4f];

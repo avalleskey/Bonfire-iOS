@@ -68,6 +68,10 @@
         [self.launchNavVC.profilePicture setImage:[[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
     }
     self.launchNavVC.composePostButton.tintColor = [Session sharedInstance].themeColor;
+    self.launchNavVC.textField.tintColor = [Session sharedInstance].themeColor;
+    
+    UIButton *bottomBarButton = self.bottomBarButtons[self.page];
+    bottomBarButton.tintColor = [Session sharedInstance].themeColor;
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -114,7 +118,7 @@
 
 - (void)setupBottomBar {
     self.bottomBarContainer = [[TabBarView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleLight]];
-    self.bottomBarContainer.backgroundColor = [UIColor colorWithWhite:1 alpha:0.5f];
+    self.bottomBarContainer.backgroundColor = [UIColor colorWithWhite:0.92 alpha:0.5f];
     /*self.bottomBarContainer.layer.shadowOffset = CGSizeMake(0, -1);
     self.bottomBarContainer.layer.shadowColor = [UIColor blackColor].CGColor;
     self.bottomBarContainer.layer.shadowOpacity = 0.04f;
@@ -127,12 +131,20 @@
     self.bottomBarIndicator.alpha = 1;
     self.bottomBarIndicator.backgroundColor = [UIColor whiteColor];
     self.bottomBarIndicator.layer.shadowOffset = CGSizeMake(0, 1);
-    self.bottomBarIndicator.layer.shadowRadius = 1.f;
+    self.bottomBarIndicator.layer.shadowRadius = 2.f;
     self.bottomBarIndicator.layer.shadowOpacity = 0.08f;
     self.bottomBarIndicator.layer.shadowColor = [UIColor blackColor].CGColor;
     self.bottomBarIndicator.layer.cornerRadius = 20.f;
     
     [self.bottomBarContainer.contentView addSubview:self.bottomBarIndicator];
+}
+- (void)continuityRadiusForView:(UIView *)sender withRadius:(CGFloat)radius {
+    CAShapeLayer * maskLayer = [CAShapeLayer layer];
+    maskLayer.path = [UIBezierPath bezierPathWithRoundedRect:sender.bounds
+                                           byRoundingCorners:UIRectCornerBottomLeft|UIRectCornerBottomRight|UIRectCornerTopLeft|UIRectCornerTopRight
+                                                 cornerRadii:CGSizeMake(radius, radius)].CGPath;
+    
+    sender.layer.mask = maskLayer;
 }
 
 - (void)setupScrollView {
@@ -153,19 +165,35 @@
     for (int i = 0; i < self.pages.count; i++) {
         UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
         button.tag = i;
-        [button setTitle:self.pages[i] forState:UIControlStateNormal];
+        // [button setTitle:self.pages[i] forState:UIControlStateNormal];
+        switch (i) {
+            case 0:
+                [button setImage:[[UIImage imageNamed:@"myFeedPageIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+                break;
+            case 1:
+                [button setImage:[[UIImage imageNamed:@"roomsPageIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+                break;
+            case 2:
+                [button setImage:[[UIImage imageNamed:@"trendingPageIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+                break;
+                
+            default:
+                break;
+        }
         [button.titleLabel setFont:[UIFont systemFontOfSize:18.f weight:UIFontWeightBold]];
         [button setTitleColor:[UIColor colorWithRed:0.19 green:0.20 blue:0.20 alpha:1.0] forState:UIControlStateNormal];
         
         button.frame = CGRectMake(padding + (i * buttonWidth), 0, buttonWidth, 52);
         
         if ((int)self.page == i) {
-            CGRect rect = [button.currentTitle boundingRectWithSize:CGSizeMake(CGFLOAT_MAX, 72) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:button.titleLabel.font} context:nil];
+            // CGRect rect = [button.currentTitle boundingRectWithSize:CGSizeMake(CGFLOAT_MAX, 72) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:button.titleLabel.font} context:nil];
             
-            self.bottomBarIndicator.frame = CGRectMake(button.frame.origin.x + ((button.frame.size.width - rect.size.width) / 2) - 16, 6, rect.size.width + 32, 40);
+            // self.bottomBarIndicator.frame = CGRectMake(button.frame.origin.x + ((button.frame.size.width - rect.size.width) / 2) - 16, 6, rect.size.width + 32, 40);
+            self.bottomBarIndicator.frame = CGRectMake(button.frame.origin.x, 6, buttonWidth, 40);
+            button.tintColor = [Session sharedInstance].themeColor;
         }
         else {
-            button.alpha = 0.2f;
+            button.tintColor = [UIColor colorWithWhite:0 alpha:0.3f];
         }
         
         [self.bottomBarContainer.contentView addSubview:button];
@@ -186,7 +214,8 @@
     self.scrollView.frame = CGRectMake(0, 0, self.scrollView.frame.size.width, self.view.frame.size.height);
     self.scrollView.contentSize = CGSizeMake(self.scrollView.contentSize.width, self.scrollView.frame.size.height);
     
-    self.bottomBarContainer.frame = CGRectMake(0, self.scrollView.frame.origin.y + self.scrollView.frame.size.height - 52 - safeAreaInsets.bottom, self.view.frame.size.width, 52 + safeAreaInsets.bottom);
+    self.bottomBarContainer.frame = CGRectMake(0, self.scrollView.frame.origin.y + self.scrollView.frame.size.height - 52 - safeAreaInsets.bottom, self.view.frame.size.width, 52 + safeAreaInsets.bottom + 24);
+    [self continuityRadiusForView:self.bottomBarContainer withRadius:24.f];
     
     self.myRoomsViewController.collectionView.center = CGPointMake(self.myRoomsViewController.collectionView.center.x, self.scrollView.frame.size.height / 2 - self.bottomBarContainer.frame.size.height / 2 - 22);
     
@@ -250,15 +279,15 @@
                 UIButton *activeButton = self.bottomBarButtons[closestPage];
                 CGRect activeButtonRect = [activeButton.currentTitle boundingRectWithSize:CGSizeMake(CGFLOAT_MAX, 72) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:activeButton.titleLabel.font} context:nil];
                 
-                float upcomingButtonWidth = upcomingButtonRect.size.width + 36; // 18 on each side
-                float activeButtonWidth = activeButtonRect.size.width + 36; // 18 on each side
-                float currentTransitionWidth = activeButtonWidth + ((upcomingButtonWidth - activeButtonWidth) * percentageScrolled);
+                //float upcomingButtonWidth = upcomingButtonRect.size.width + 36; // 18 on each side
+                //float activeButtonWidth = activeButtonRect.size.width + 36; // 18 on each side
+                //float currentTransitionWidth = activeButtonWidth + ((upcomingButtonWidth - activeButtonWidth) * percentageScrolled);
                 
-                float upcomingButtonX = upcomingButton.frame.origin.x + ((upcomingButton.frame.size.width - upcomingButtonRect.size.width) / 2) - 18;
-                float activeButtonX = activeButton.frame.origin.x + ((activeButton.frame.size.width - activeButtonRect.size.width) / 2) - 18;
+                float upcomingButtonX = upcomingButton.frame.origin.x; // upcomingButton.frame.origin.x + ((upcomingButton.frame.size.width - upcomingButtonRect.size.width) / 2) - 18;
+                float activeButtonX = activeButton.frame.origin.x; // + ((activeButton.frame.size.width - activeButtonRect.size.width) / 2) - 18;
                 float currentTransitionX = activeButtonX + ((upcomingButtonX - activeButtonX) * percentageScrolled);
                 
-                self.bottomBarIndicator.frame = CGRectMake(currentTransitionX, self.bottomBarIndicator.frame.origin.y, currentTransitionWidth, self.bottomBarIndicator.frame.size.height);
+                self.bottomBarIndicator.frame = CGRectMake(currentTransitionX, self.bottomBarIndicator.frame.origin.y, self.bottomBarIndicator.frame.size.width, self.bottomBarIndicator.frame.size.height);
                 
                 CGFloat adjustedScrollPosition = (percentageScrolled > 0.5 ? (1 - percentageScrolled) / 0.25 : percentageScrolled / 0.25);
                 adjustedScrollPosition = adjustedScrollPosition > 1 ? 1 : adjustedScrollPosition;
@@ -330,8 +359,8 @@
             [HapticHelper generateFeedback:FeedbackType_Selection];
             
             [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.6f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-                activeButton.alpha = 1.0;
-                previousButton.alpha = 0.2f;
+                activeButton.tintColor = [Session sharedInstance].themeColor;
+                previousButton.tintColor = [UIColor colorWithWhite:0 alpha:0.3f];
             } completion:nil];
             
             // load next view

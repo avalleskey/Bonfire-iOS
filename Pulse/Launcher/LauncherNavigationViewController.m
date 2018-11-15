@@ -282,7 +282,7 @@ static NSString * const reuseIdentifier = @"Result";
 - (void)setupNavigationBarItems {
     // create smart text field
     self.textField = [[UITextField alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width - (62 * 2), 36)];
-    [self continuityRadiusForView:self.textField withRadius:11.f];
+    [self continuityRadiusForView:self.textField withRadius:11.5f];
     //self.textField.layer.cornerRadius = self.textField.frame.size.height / 2;
     self.textField.center = CGPointMake(self.navigationBar.frame.size.width / 2, self.navigationBar.frame.size.height / 2);
     self.textField.textAlignment = NSTextAlignmentCenter;
@@ -354,9 +354,16 @@ static NSString * const reuseIdentifier = @"Result";
     
     [self.navigationBar addSubview:self.textField];
     
+    UIView *profilePictureContainer = [[UIView alloc] initWithFrame:CGRectMake(16, 0, 36, 36)];
+    profilePictureContainer.center = CGPointMake(profilePictureContainer.center.x, self.navigationBar.frame.size.height / 2);
+    profilePictureContainer.layer.borderColor = [UIColor colorWithWhite:0.9 alpha:1].CGColor;
+    profilePictureContainer.layer.borderWidth = 2.f;
+    profilePictureContainer.layer.cornerRadius = profilePictureContainer.frame.size.height / 2;
+    [self.navigationBar addSubview:profilePictureContainer];
+    
     // create profile picture
-    self.profilePicture = [[UIImageView alloc] initWithFrame:CGRectMake(16, 0, 32, 32)];
-    self.profilePicture.center = CGPointMake(self.profilePicture.center.x, self.navigationBar.frame.size.height / 2);
+    self.profilePicture = [[UIImageView alloc] initWithFrame:CGRectMake(20, 0, 28, 28)];
+    self.profilePicture.center = CGPointMake(profilePictureContainer.frame.size.width / 2, profilePictureContainer.frame.size.height / 2);
     self.profilePicture.layer.borderWidth = 1 / [UIScreen mainScreen].scale;
     self.profilePicture.layer.borderColor = [UIColor colorWithWhite:0 alpha:0.06f].CGColor;
     self.profilePicture.backgroundColor = [UIColor whiteColor];
@@ -378,12 +385,12 @@ static NSString * const reuseIdentifier = @"Result";
             [self openOnboarding];
         }
     }];
-    [self.navigationBar addSubview:self.profilePicture];
+    [profilePictureContainer addSubview:self.profilePicture];
     
     // create new channel + button
     self.composePostButton = [UIButton buttonWithType:UIButtonTypeSystem];
     [self.composePostButton setImage:[[UIImage imageNamed:@"composeIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
-    self.composePostButton.imageEdgeInsets = UIEdgeInsetsMake(-2, 0, 0, -2);
+    self.composePostButton.imageEdgeInsets = UIEdgeInsetsMake(-2, 0, 0, -1);
     self.composePostButton.tintColor = [[Session sharedInstance] themeColor];
     self.composePostButton.frame = CGRectMake(self.navigationBar.frame.size.width - 10 - 44, 0, 44, 44);
     self.composePostButton.center = CGPointMake(self.composePostButton.center.x, self.navigationBar.frame.size.height / 2);
@@ -428,6 +435,7 @@ static NSString * const reuseIdentifier = @"Result";
     // create new  + button
     self.backButton = [UIButton buttonWithType:UIButtonTypeSystem];
     [self.backButton setImage:[[UIImage imageNamed:@"leftArrowIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+    [self.backButton setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 2)];
     self.backButton.tintColor = [UIColor whiteColor];
     self.backButton.frame = CGRectMake(10, 0, 44, 44);
     self.backButton.center = CGPointMake(self.backButton.center.x, self.navigationBar.frame.size.height / 2);
@@ -541,7 +549,7 @@ static NSString * const reuseIdentifier = @"Result";
         if (self.textField.isFirstResponder) {
             self.backButton.transform = CGAffineTransformMakeRotation(0);
             self.backButton.alpha = 1;
-            self.profilePicture.alpha = 0;
+            self.profilePicture.superview.alpha = 0;
             self.composePostButton.alpha = 0;
             self.moreButton.alpha = 0;
         }
@@ -550,14 +558,14 @@ static NSString * const reuseIdentifier = @"Result";
             if ([self.topViewController isKindOfClass:[HomeViewController class]]) {
                 self.backButton.transform = CGAffineTransformMakeRotation(-1 * (M_PI / 2));
                 self.backButton.alpha = 0;
-                self.profilePicture.alpha = 1;
+                self.profilePicture.superview.alpha = 1;
                 
                 self.infoButton.alpha = 0;
                 self.moreButton.alpha = 0;
                 self.composePostButton.alpha = 1;
             }
             else {
-                self.profilePicture.alpha = 0;
+                self.profilePicture.superview.alpha = 0;
                 self.backButton.alpha = 1;
 
                 if (self.viewControllers.count == 1) {

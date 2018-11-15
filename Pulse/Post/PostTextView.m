@@ -19,6 +19,8 @@
         _textView = [[UITextView alloc] initWithFrame:frame];
         _textView.editable = false;
         _textView.scrollEnabled = false;
+        _textView.selectable = false;
+        _textView.userInteractionEnabled = true;
         _textView.font = [UIFont preferredFontForTextStyle:UIFontTextStyleBody];
         _textView.textContainer.lineFragmentPadding = 0;
         _textView.contentInset = UIEdgeInsetsZero;

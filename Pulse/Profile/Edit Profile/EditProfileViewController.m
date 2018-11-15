@@ -133,7 +133,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
                 User *user = [[User alloc] initWithDictionary:responseObject[@"data"] error:nil];
                 [[Session sharedInstance] updateUser:user]; // TODO: Swap out for new user object
                 
-                [[NSNotificationCenter defaultCenter] postNotificationName:@"userProfileUpdated" object:nil];
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"UserUpdated" object:nil];
                 
                 [self.navigationController dismissViewControllerAnimated:YES completion:nil];
                 

@@ -191,8 +191,6 @@
         [self.textView resize];
         self.textView.frame = CGRectMake(self.textView.frame.origin.x, self.nameLabel.frame.origin.y + self.nameLabel.frame.size.height + 6, self.textView.frame.size.width, self.textView.frame.size.height);
         self.textView.tintColor = self.tintColor;
-        self.textView.textView.selectable = false;
-        self.textView.textView.selectable = true;
         
         self.moreButton.frame = CGRectMake(self.frame.size.width - self.moreButton.frame.size.width, self.moreButton.frame.origin.y, self.moreButton.frame.size.width, self.moreButton.frame.size.height);
         

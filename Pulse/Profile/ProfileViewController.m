@@ -45,12 +45,11 @@
     
     [self setupTableView];
     [self setupErrorView];
-    if ([self.user.identifier isKindOfClass:[NSString class]] &&
-        [self.user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier])
+    if ([self isCurrentUser])
     {
         [self setupComposeInputView];
         
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userProfileUpdated:) name:@"userProfileUpdated" object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userProfileUpdated:) name:@"UserUpdated" object:nil];
     }
     
     self.manager = [HAWebService manager];
@@ -99,6 +98,9 @@
     }
 }
 
+- (BOOL)isCurrentUser {
+    return [self.user.identifier isKindOfClass:[NSString class]] && [self.user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier];
+}
 - (BOOL)canViewPosts {
     return true;
 }
@@ -139,68 +141,70 @@
     actionSheet.view.tintColor = [UIColor colorWithWhite:0.2f alpha:1];
     
     // 1.A.* -- Any user, any page, any following state
-    UIAlertAction *shareUser = [UIAlertAction actionWithTitle:[NSString stringWithFormat:@"Share @%@ via...", self.user.attributes.details.identifier] style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+    UIAlertAction *shareUser = [UIAlertAction actionWithTitle:[NSString stringWithFormat:@"Share %@ via...", [self isCurrentUser] ? @"your profile" : [NSString stringWithFormat:@"@%@", self.user.attributes.details.identifier]] style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         NSLog(@"share user");
         
         //[self showShareUserSheet];
     }];
     [actionSheet addAction:shareUser];
     
-    UIAlertAction *blockUsername = [UIAlertAction actionWithTitle:[NSString stringWithFormat:@"%@", userIsBlocked ? @"Unblock" : @"Block"] style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-        // confirm action
-        UIAlertController *alertConfirmController = [UIAlertController alertControllerWithTitle:[NSString stringWithFormat:@"%@ %@", userIsBlocked ? @"Unblock" : @"Block" , self.user.attributes.details.displayName] message:[NSString stringWithFormat:@"Are you sure you would like to block @%@?", self.user.attributes.details.identifier] preferredStyle:UIAlertControllerStyleAlert];
-        
-        UIAlertAction *alertConfirm = [UIAlertAction actionWithTitle:userIsBlocked ? @"Unblock" : @"Block" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
-            NSLog(@"switch user block state");
-            if (userIsBlocked) {
-                [[Session sharedInstance] unblockUser:self.user.attributes.details.identifier completion:^(BOOL success, id responseObject) {
-                    if (success) {
-                        NSLog(@"success unblocking!");
-                    }
-                    else {
-                        NSLog(@"error unblocking ;(");
-                    }
-                }];
-            }
-            else {
-                [[Session sharedInstance] blockUser:self.user.attributes.details.identifier completion:^(BOOL success, id responseObject) {
-                    if (success) {
-                        NSLog(@"success blocking!");
-                    }
-                    else {
-                        NSLog(@"error blocking ;(");
-                    }
-                }];
-            }
+    if (![self isCurrentUser]) {
+        UIAlertAction *blockUsername = [UIAlertAction actionWithTitle:[NSString stringWithFormat:@"%@", userIsBlocked ? @"Unblock" : @"Block"] style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            // confirm action
+            UIAlertController *alertConfirmController = [UIAlertController alertControllerWithTitle:[NSString stringWithFormat:@"%@ %@", userIsBlocked ? @"Unblock" : @"Block" , self.user.attributes.details.displayName] message:[NSString stringWithFormat:@"Are you sure you would like to block @%@?", self.user.attributes.details.identifier] preferredStyle:UIAlertControllerStyleAlert];
+            
+            UIAlertAction *alertConfirm = [UIAlertAction actionWithTitle:userIsBlocked ? @"Unblock" : @"Block" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+                NSLog(@"switch user block state");
+                if (userIsBlocked) {
+                    [[Session sharedInstance] unblockUser:self.user.attributes.details.identifier completion:^(BOOL success, id responseObject) {
+                        if (success) {
+                            NSLog(@"success unblocking!");
+                        }
+                        else {
+                            NSLog(@"error unblocking ;(");
+                        }
+                    }];
+                }
+                else {
+                    [[Session sharedInstance] blockUser:self.user.attributes.details.identifier completion:^(BOOL success, id responseObject) {
+                        if (success) {
+                            NSLog(@"success blocking!");
+                        }
+                        else {
+                            NSLog(@"error blocking ;(");
+                        }
+                    }];
+                }
+            }];
+            [alertConfirmController addAction:alertConfirm];
+            
+            UIAlertAction *alertCancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+                NSLog(@"cancel");
+            }];
+            [alertConfirmController addAction:alertCancel];
+            
+            [self.navigationController presentViewController:alertConfirmController animated:YES completion:nil];
         }];
-        [alertConfirmController addAction:alertConfirm];
+        [actionSheet addAction:blockUsername];
         
-        UIAlertAction *alertCancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-            NSLog(@"cancel");
+        UIAlertAction *reportUsername = [UIAlertAction actionWithTitle:[NSString stringWithFormat:@"Report"] style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            // confirm action
+            UIAlertController *saveAndOpenTwitterConfirm = [UIAlertController alertControllerWithTitle:[NSString stringWithFormat:@"Report %@", self.user.attributes.details.displayName] message:[NSString stringWithFormat:@"Are you sure you would like to report @%@?", self.user.attributes.details.identifier] preferredStyle:UIAlertControllerStyleAlert];
+            
+            UIAlertAction *alertConfirm = [UIAlertAction actionWithTitle:@"Report" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+                NSLog(@"report user");
+            }];
+            [saveAndOpenTwitterConfirm addAction:alertConfirm];
+            
+            UIAlertAction *alertCancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+                NSLog(@"cancel report user");
+            }];
+            [saveAndOpenTwitterConfirm addAction:alertCancel];
+            
+            [self.navigationController presentViewController:saveAndOpenTwitterConfirm animated:YES completion:nil];
         }];
-        [alertConfirmController addAction:alertCancel];
-        
-        [self.navigationController presentViewController:alertConfirmController animated:YES completion:nil];
-    }];
-    [actionSheet addAction:blockUsername];
-    
-    UIAlertAction *reportUsername = [UIAlertAction actionWithTitle:[NSString stringWithFormat:@"Report"] style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-        // confirm action
-        UIAlertController *saveAndOpenTwitterConfirm = [UIAlertController alertControllerWithTitle:[NSString stringWithFormat:@"Report %@", self.user.attributes.details.displayName] message:[NSString stringWithFormat:@"Are you sure you would like to report @%@?", self.user.attributes.details.identifier] preferredStyle:UIAlertControllerStyleAlert];
-        
-        UIAlertAction *alertConfirm = [UIAlertAction actionWithTitle:@"Report" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
-            NSLog(@"report user");
-        }];
-        [saveAndOpenTwitterConfirm addAction:alertConfirm];
-        
-        UIAlertAction *alertCancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-            NSLog(@"cancel report user");
-        }];
-        [saveAndOpenTwitterConfirm addAction:alertCancel];
-        
-        [self.navigationController presentViewController:saveAndOpenTwitterConfirm animated:YES completion:nil];
-    }];
-    [actionSheet addAction:reportUsername];
+        [actionSheet addAction:reportUsername];
+    }
     
     UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
         NSLog(@"cancel");

@@ -128,9 +128,7 @@ static NSString * const reuseIdentifier = @"Result";
         
         // let's fetch info to fill in the gaps
         self.composeInputView.hidden = true;
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            [self getRoomInfo];
-        });
+        [self getRoomInfo];
     }
     else {
         self.tableView.parentObject = self.room;
@@ -229,7 +227,9 @@ static NSString * const reuseIdentifier = @"Result";
                 }
                 
                 // update the title (in case we didn't know the room's title before)
-                [self.launchNavVC updateSearchText:self.room.attributes.details.title];
+                if (!self.isCreatingPost) {
+                    [self.launchNavVC updateSearchText:self.room.attributes.details.title];
+                }
                 
                 // update the compose input placeholder (in case we didn't know the room's title before)
                 [self.composeInputView updatePlaceholders];
@@ -296,7 +296,7 @@ static NSString * const reuseIdentifier = @"Result";
 }
     
 - (void)createRoomSelectorTableView {
-    self.roomSelectorTableView = [[UITableView alloc] initWithFrame:self.tableView.bounds style:UITableViewStylePlain];
+    self.roomSelectorTableView = [[UITableView alloc] initWithFrame:self.tableView.bounds style:UITableViewStyleGrouped];
     self.roomSelectorTableView.delegate = self;
     self.roomSelectorTableView.dataSource = self;
     self.roomSelectorTableView.backgroundColor = [UIColor whiteColor];
@@ -514,6 +514,7 @@ static NSString * const reuseIdentifier = @"Result";
 
 - (void)styleOnAppear {
     self.tableView.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height);
+    self.roomSelectorTableView.frame = self.tableView.frame;
     
     UIWindow *window = UIApplication.sharedApplication.keyWindow;
     CGFloat bottomPadding = window.safeAreaInsets.bottom;
@@ -523,6 +524,7 @@ static NSString * const reuseIdentifier = @"Result";
     self.composeInputView.frame = CGRectMake(0, self.view.bounds.size.height - collapsed_inputViewHeight, self.view.bounds.size.width, collapsed_inputViewHeight);
     
     self.tableView.contentInset = UIEdgeInsetsMake(0, 0, self.composeInputView.frame.size.height, 0);
+    self.roomSelectorTableView.contentInset = UIEdgeInsetsMake(0, 0, self.composeInputView.frame.size.height, 0);
 }
 
 - (BOOL)canViewPosts {
@@ -700,10 +702,20 @@ static NSString * const reuseIdentifier = @"Result";
     UIWindow *window = UIApplication.sharedApplication.keyWindow;
     CGFloat bottomPadding = window.safeAreaInsets.bottom;
     
-    self.composeInputView.frame = CGRectMake(self.composeInputView.frame.origin.x, self.view.frame.size.height - self.currentKeyboardHeight - self.composeInputView.frame.size.height + bottomPadding, self.composeInputView.frame.size.width, self.composeInputView.frame.size.height);
+    NSLog(@"bottom Padding: %f", bottomPadding);
     
-    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, self.composeInputView.frame.size.height - bottomPadding, 0);
+    CGFloat newComposeInputViewY = self.view.frame.size.height - self.currentKeyboardHeight - self.composeInputView.frame.size.height + bottomPadding;
+    
+    self.composeInputView.frame = CGRectMake(self.composeInputView.frame.origin.x, newComposeInputViewY, self.composeInputView.frame.size.width, self.composeInputView.frame.size.height);
+    
+    CGFloat contentInset = (self.view.frame.size.height - self.composeInputView.frame.origin.y) - bottomPadding;
+    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, contentInset + 8, 0);
     self.tableView.scrollIndicatorInsets = self.tableView.contentInset;
+    
+    if (self.isCreatingPost) {
+        self.roomSelectorTableView.contentInset = UIEdgeInsetsMake(0, 0, contentInset + 8, 0);
+        self.roomSelectorTableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, contentInset, 0);
+    }
 }
 
 - (void)keyboardWillDismiss:(NSNotification *)notification {
@@ -855,7 +867,7 @@ static NSString * const reuseIdentifier = @"Result";
     self.theme = [self colorFromHexString:self.room.attributes.details.color.length == 6 ? self.room.attributes.details.color : @"0076ff"];
     self.view.tintColor = self.theme;
     
-    [self getPostsWithSinceId:0];
+    [self loadRoom];
     
     // fancy text field text
     NSMutableAttributedString *string = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"To: %@", self.room.attributes.details.title]];
@@ -969,7 +981,7 @@ static NSString * const reuseIdentifier = @"Result";
     return header;
 }
 - (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
-    return 0;
+    return CGFLOAT_MIN;
 }
 - (UIView*)tableView:(UITableView*)tableView viewForFooterInSection:(NSInteger)section {
     return [[UIView alloc] initWithFrame:CGRectZero];

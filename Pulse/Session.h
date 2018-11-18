@@ -24,7 +24,7 @@
 // -- User --
 @property (readwrite,copy) User *currentUser;
 - (void)updateUser:(User *)newUser;
-- (void)fetchUser;
+- (void)fetchUser:(void (^)(BOOL success))handler;
 - (UIColor *)themeColor;
 
 // Auth Tokens

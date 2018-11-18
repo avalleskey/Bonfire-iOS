@@ -16,6 +16,8 @@
 #import "LauncherNavigationViewController.h"
 #import "SOLOptionsTransitionAnimator.h"
 #import "RoomViewController.h"
+#import "Launcher.h"
+#import "UIColor+Palette.h"
 
 #define envConfig [[[NSUserDefaults standardUserDefaults] objectForKey:@"config"] objectForKey:[[NSUserDefaults standardUserDefaults] stringForKey:@"environment"]]
 
@@ -257,15 +259,15 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
         colorBlock.transform = CGAffineTransformMakeTranslation(self.view.frame.size.width, 0);
         [self.view addSubview:colorBlock];
         
-        colors = @[@"0076FF",  // 0
-                   @"9013FE",  // 1
-                   @"F21D21",  // 2
-                   @"FC6A1E",  // 3
-                   @"29C350",  // 4
-                   @"8B572A",  // 5
-                   @"F5C123",  // 6
-                   @"2A6C8B",  // 7
-                   @"333333"]; // 8
+        colors = @[[UIColor bonfireBlue],  // 0
+                   [UIColor bonfireViolet],  // 1
+                   [UIColor bonfireRed],  // 2
+                   [UIColor bonfireOrange],  // 3
+                   [UIColor bonfireGreenWithLevel:700],  // 4
+                   [UIColor brownColor],  // 5
+                   [UIColor bonfireYellow],  // 6
+                   [UIColor bonfireCyanWithLevel:800],  // 7
+                   [UIColor bonfireGrayWithLevel:900]]; // 8
         
         self.themeColor = 0 + arc4random() % (colors.count - 1);
         
@@ -279,7 +281,7 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
             
             UIView *colorOption = [[UIView alloc] initWithFrame:CGRectMake(column * 80, row * 80, 56, 56)];
             colorOption.layer.cornerRadius = colorOption.frame.size.height / 2;
-            colorOption.backgroundColor = [self colorFromHexString:colors[i]];
+            colorOption.backgroundColor = colors[i];
             colorOption.tag = i;
             [colorBlock addSubview:colorOption];
             
@@ -764,20 +766,9 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
         }
     }];
 }
-- (UIColor *)colorFromHexString:(NSString *)hexString {
-    unsigned rgbValue = 0;
-    if (hexString != nil && hexString.length == 6) {
-        NSScanner *scanner = [NSScanner scannerWithString:hexString];
-        [scanner setScanLocation:0]; // bypass '#' character
-        [scanner scanHexInt:&rgbValue];
-        return [UIColor colorWithDisplayP3Red:((rgbValue & 0xFF0000) >> 16)/255.0 green:((rgbValue & 0xFF00) >> 8)/255.0 blue:(rgbValue & 0xFF)/255.0 alpha:1.0];
-    }
-    else {
-        return [UIColor colorWithWhite:0.2f alpha:1];
-    }
-}
+
 - (UIColor *)currentColor {
-    return [self colorFromHexString:colors[self.themeColor]];
+    return colors[self.themeColor];
 }
 - (void)createRoom {
     NSString *url;// = [NSString stringWithFormat:@"%@/%@/schools/%@/channels/%@", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], @"2", @"default"];
@@ -791,7 +782,7 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
     UITextField *descriptionTextField = self.steps[descriptionStep][@"textField"];
     NSString *roomDescription = descriptionTextField.text;
     
-    NSString *roomColor = [colors[self.themeColor] stringByReplacingOccurrencesOfString:@"#" withString:@""];
+    NSString *roomColor = [UIColor toHex:colors[self.themeColor]];
     
     int themeAndPrivacyStep = [self getIndexOfStepWithId:@"room_color"];
     UIView *nextBlock = self.steps[themeAndPrivacyStep][@"block"];
@@ -844,7 +835,7 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
                     [self dismissViewControllerAnimated:YES completion:^{
                         NSLog(@"launchNavVc 2: %@", launchNavVC);
                         
-                        [launchNavVC openRoom:room];
+                        [[Launcher sharedInstance] openRoom:room];
                     }];
                 }];
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
@@ -1040,7 +1031,7 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
             cell.title.textColor = [UIColor whiteColor];
             cell.title.backgroundColor = [UIColor clearColor];
             
-            cell.backgroundColor = [self colorFromHexString:room.attributes.details.color];
+            cell.backgroundColor = [UIColor fromHex:room.attributes.details.color];
             
             if (room.attributes.summaries.counts.live >= [Session sharedInstance].defaults.room.liveThreshold) {
                 // show live ticker
@@ -1118,7 +1109,7 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
     RoomViewController *r = [[RoomViewController alloc] init];
     
     r.room = room;
-    r.theme = [self colorFromHexString:room.attributes.details.color.length == 6 ? room.attributes.details.color : @"707479"];
+    r.theme = [UIColor fromHex:room.attributes.details.color.length == 6 ? room.attributes.details.color : @"707479"];
     
     r.title = r.room.attributes.details.title ? r.room.attributes.details.title : @"Loading...";
     
@@ -1136,7 +1127,7 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
 - (NSArray *)colorsForConfettiArea:(L360ConfettiArea *)confettiArea {
     NSMutableArray *arrayOfUIColors = [[NSMutableArray alloc] init];
     for (int i = 0; i < colors.count; i++) {
-        UIColor *color = [self colorFromHexString:[colors[i] isEqualToString:@"#333333"] ? @"#AAAAAA" : colors[i]];
+        UIColor *color = colors[i];
         [arrayOfUIColors addObject:color];
     }
     

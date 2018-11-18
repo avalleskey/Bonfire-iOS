@@ -13,9 +13,9 @@
 #import <HapticHelper/HapticHelper.h>
 #import "SOLOptionsTransitionAnimator.h"
 #import "SearchResultCell.h"
-#import "HomeViewController.h"
 #import "CreateRoomViewController.h"
 #import "NSArray+Clean.h"
+#import "Launcher.h"
 
 // Views it can open
 #import "RoomViewController.h"
@@ -24,6 +24,10 @@
 #import "PostViewController.h"
 #import "OnboardingViewController.h"
 #import "EditProfileViewController.h"
+#import "MyRoomsViewController.h"
+#import "FeedViewController.h"
+#import <UIImageView+WebCache.h>
+#import "UIColor+Palette.h"
 
 #define envConfig [[[NSUserDefaults standardUserDefaults] objectForKey:@"config"] objectForKey:[[NSUserDefaults standardUserDefaults] stringForKey:@"environment"]]
 
@@ -42,8 +46,6 @@ static NSString * const reuseIdentifier = @"Result";
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
-    
-    self.transitioningDelegate = self;
     
     self.swiper = [[SloppySwiper alloc] initWithNavigationController:self];
     self.swiper.delegate = self;
@@ -89,7 +91,7 @@ static NSString * const reuseIdentifier = @"Result";
         [self updateBarColor:previousRoom.theme withAnimation:3 statusBarUpdateDelay:NO];
         [self updateSearchText:previousRoom.title];
     }
-    else if ([[self.viewControllers lastObject] isKindOfClass:[HomeViewController class]]) {
+    else if ([self.viewControllers lastObject].navigationController.tabBarController != nil) {
         [self updateBarColor:[UIColor whiteColor] withAnimation:3 statusBarUpdateDelay:NO];
         [self updateSearchText:@""];
     }
@@ -117,22 +119,28 @@ static NSString * const reuseIdentifier = @"Result";
 }
 
 - (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillChangeFrame:) name:UIKeyboardWillChangeFrameNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillDismiss:) name:UIKeyboardWillHideNotification object:nil];
 }
 - (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    
     [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillChangeFrameNotification object:nil];
     [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillHideNotification object:nil];
 }
 
 - (void)setShadowVisibility:(BOOL)visible withAnimation:(BOOL)animation {
+    NSLog(@"set shadow visibility");
+    
     [UIView animateWithDuration:animation?0.25f:0 animations:^{
         self.shadowView.alpha = visible ? 1 : 0;
     } completion:nil];
 }
 - (void)updateBarColor:(id)newColor withAnimation:(int)animationType statusBarUpdateDelay:(CGFloat)statusBarUpdateDelay {
     if ([newColor isKindOfClass:[NSString class]]) {
-        newColor = [self colorFromHexString:newColor];
+        newColor = [UIColor fromHex:newColor];
     }
     self.currentTheme = newColor;
     
@@ -192,24 +200,21 @@ static NSString * const reuseIdentifier = @"Result";
             self.textField.tintColor = [UIColor whiteColor];
             self.textField.textColor = [UIColor whiteColor];
             self.textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:self.textField.placeholder attributes:@{NSForegroundColorAttributeName: [UIColor colorWithWhite:1 alpha:0.75]}];
-            self.textField.backgroundColor = [UIColor colorWithWhite:1 alpha:0.16f];
-            
-            self.shadowView.alpha = 0;
-            
+            self.textField.backgroundColor = [UIColor bonfireTextFieldBackgroundOnDark];
+                        
             self.backButton.tintColor =
             self.infoButton.tintColor =
             self.composePostButton.tintColor =
-            self.moreButton.tintColor = [UIColor whiteColor];
+            self.moreButton.tintColor =
+            self.inviteFriendButton.tintColor = [UIColor whiteColor];
             
             searchIcon.alpha = 0.75;
         }
         else if ([newColor isEqual:[UIColor whiteColor]]) {
             self.textField.tintColor = [Session sharedInstance].themeColor;
-            self.textField.backgroundColor = [UIColor colorWithWhite:0 alpha:0.06f];
+            self.textField.backgroundColor = [UIColor bonfireTextFieldBackgroundOnWhite];
             self.textField.textColor = [UIColor colorWithWhite:0.07f alpha:1];
             self.textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:self.textField.placeholder attributes:@{NSForegroundColorAttributeName: [UIColor colorWithWhite:0 alpha:0.25]}];
-            
-            self.shadowView.alpha = 1;
             
             if (self.textField.isFirstResponder) {
                 self.backButton.tintColor = [UIColor colorWithWhite:0.2f alpha:1];
@@ -218,15 +223,15 @@ static NSString * const reuseIdentifier = @"Result";
                 self.backButton.tintColor =
                 self.infoButton.tintColor =
                 self.composePostButton.tintColor =
-                self.moreButton.tintColor = [[Session sharedInstance] themeColor];
+                self.moreButton.tintColor =
+                self.inviteFriendButton.tintColor = [[Session sharedInstance] themeColor];
             }
             
             searchIcon.alpha = 0.25f;
         }
         else {
             self.textField.tintColor = [UIColor colorWithWhite:0.07f alpha:1];
-            
-            self.textField.backgroundColor = [UIColor colorWithWhite:0 alpha:0.06f];
+            self.textField.backgroundColor = [UIColor bonfireTextFieldBackgroundOnLight];
             self.textField.textColor = [UIColor colorWithWhite:0.07f alpha:1];
             self.textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:self.textField.placeholder attributes:@{NSForegroundColorAttributeName: [UIColor colorWithWhite:0 alpha:0.25]}];
             
@@ -236,7 +241,8 @@ static NSString * const reuseIdentifier = @"Result";
             self.backButton.tintColor =
             self.infoButton.tintColor =
             self.composePostButton.tintColor =
-            self.moreButton.tintColor = [UIColor colorWithWhite:0.07f alpha:1];
+            self.moreButton.tintColor =
+            self.inviteFriendButton.tintColor = [UIColor colorWithWhite:0.07f alpha:1];
             
             searchIcon.alpha = 0.25f;
         }
@@ -266,31 +272,35 @@ static NSString * const reuseIdentifier = @"Result";
     
     return true;
 }
-- (UIColor *)colorFromHexString:(NSString *)hexString {
-    unsigned rgbValue = 0;
-    if (hexString != nil && hexString.length == 6) {
-        NSScanner *scanner = [NSScanner scannerWithString:hexString];
-        [scanner setScanLocation:0]; // bypass '#' character
-        [scanner scanHexInt:&rgbValue];
-        return [UIColor colorWithDisplayP3Red:((rgbValue & 0xFF0000) >> 16)/255.0 green:((rgbValue & 0xFF00) >> 8)/255.0 blue:(rgbValue & 0xFF)/255.0 alpha:1.0];
-    }
-    else {
-        return [UIColor colorWithWhite:0.2f alpha:1];
-    }
-}
 
 - (void)setupNavigationBarItems {
     // create smart text field
     self.textField = [[UITextField alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width - (62 * 2), 36)];
-    [self continuityRadiusForView:self.textField withRadius:11.5f];
+    //[self continuityRadiusForView:self.textField withRadius:11.5f];
     //self.textField.layer.cornerRadius = self.textField.frame.size.height / 2;
+    self.textField.layer.cornerRadius = 12.f;
+    self.textField.layer.masksToBounds = true;
     self.textField.center = CGPointMake(self.navigationBar.frame.size.width / 2, self.navigationBar.frame.size.height / 2);
     self.textField.textAlignment = NSTextAlignmentCenter;
     self.textField.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightBold];
     self.textField.returnKeyType = UIReturnKeyGo;
     self.textField.delegate = self;
     self.textField.autocorrectionType = UITextAutocorrectionTypeNo;
-    self.textField.backgroundColor = [UIColor colorWithWhite:0 alpha:0.06f];
+    
+    UIColor *textFieldBackgroundColor;
+    if ([self useWhiteForegroundForColor:self.currentTheme]) {
+        NSLog(@"back on dark");
+        textFieldBackgroundColor = [UIColor bonfireTextFieldBackgroundOnDark];
+    }
+    else if ([self.currentTheme isEqual:[UIColor whiteColor]]) {
+        NSLog(@"back on white");
+        textFieldBackgroundColor = [UIColor bonfireTextFieldBackgroundOnWhite];
+    }
+    else {
+        NSLog(@"back on light");
+        textFieldBackgroundColor = [UIColor bonfireTextFieldBackgroundOnLight];
+    }
+    
     self.textField.textColor = [UIColor colorWithWhite:0.07f alpha:1];
     self.textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:@"Search" attributes:@{NSForegroundColorAttributeName: [UIColor colorWithWhite:0 alpha:0.25]}];
     
@@ -330,8 +340,19 @@ static NSString * const reuseIdentifier = @"Result";
         if (self.textField.tag == 0) {
             self.textField.tag = 1;
             
+            UIColor *textFieldBackgroundColor;
+            if ([self useWhiteForegroundForColor:self.currentTheme]) {
+                textFieldBackgroundColor = [UIColor bonfireTextFieldBackgroundOnDark];
+            }
+            else if ([self.currentTheme isEqual:[UIColor whiteColor]]) {
+                textFieldBackgroundColor = [UIColor bonfireTextFieldBackgroundOnWhite];
+            }
+            else {
+                textFieldBackgroundColor = [UIColor bonfireTextFieldBackgroundOnLight];
+            }
+            
             CGFloat red = 0.0, green = 0.0, blue = 0.0, alpha = 0.0;
-            [self.textField.backgroundColor getRed:&red green:&green blue:&blue alpha:&alpha];
+            [textFieldBackgroundColor getRed:&red green:&green blue:&blue alpha:&alpha];
             
             [UIView animateWithDuration:0.2f animations:^{
                 self.textField.backgroundColor = [UIColor colorWithRed:red green:green blue:blue alpha:alpha*2];
@@ -343,49 +364,38 @@ static NSString * const reuseIdentifier = @"Result";
          if (self.textField.tag == 1) {
              self.textField.tag = 0;
              
-             CGFloat red = 0.0, green = 0.0, blue = 0.0, alpha = 0.0;
-             [self.textField.backgroundColor getRed:&red green:&green blue:&blue alpha:&alpha];
+             UIColor *textFieldBackgroundColor;
+             if ([self useWhiteForegroundForColor:self.currentTheme]) {
+                 textFieldBackgroundColor = [UIColor bonfireTextFieldBackgroundOnDark];
+             }
+             else if ([self.currentTheme isEqual:[UIColor whiteColor]]) {
+                 textFieldBackgroundColor = [UIColor bonfireTextFieldBackgroundOnWhite];
+             }
+             else {
+                 textFieldBackgroundColor = [UIColor bonfireTextFieldBackgroundOnLight];
+             }
              
              [UIView animateWithDuration:0.2f animations:^{
-                 self.textField.backgroundColor = [UIColor colorWithRed:red green:green blue:blue alpha:alpha/2];
+                 self.textField.backgroundColor = textFieldBackgroundColor;
              }];
          }
-    } forControlEvents:(UIControlEventTouchUpInside|UIControlEventTouchCancel|UIControlEventTouchDragExit)];
+    } forControlEvents:(UIControlEventTouchCancel|UIControlEventTouchDragExit)];
     
     [self.navigationBar addSubview:self.textField];
     
-    UIView *profilePictureContainer = [[UIView alloc] initWithFrame:CGRectMake(16, 0, 36, 36)];
-    profilePictureContainer.center = CGPointMake(profilePictureContainer.center.x, self.navigationBar.frame.size.height / 2);
-    profilePictureContainer.layer.borderColor = [UIColor colorWithWhite:0.9 alpha:1].CGColor;
-    profilePictureContainer.layer.borderWidth = 2.f;
-    profilePictureContainer.layer.cornerRadius = profilePictureContainer.frame.size.height / 2;
-    [self.navigationBar addSubview:profilePictureContainer];
-    
-    // create profile picture
-    self.profilePicture = [[UIImageView alloc] initWithFrame:CGRectMake(20, 0, 28, 28)];
-    self.profilePicture.center = CGPointMake(profilePictureContainer.frame.size.width / 2, profilePictureContainer.frame.size.height / 2);
-    self.profilePicture.layer.borderWidth = 1 / [UIScreen mainScreen].scale;
-    self.profilePicture.layer.borderColor = [UIColor colorWithWhite:0 alpha:0.06f].CGColor;
-    self.profilePicture.backgroundColor = [UIColor whiteColor];
-    self.profilePicture.tintColor = [Session sharedInstance].themeColor;
-    if ([Session sharedInstance].currentUser.attributes.details.media.profilePicture.length > 0) {
-        [self.profilePicture sd_setImageWithURL:[NSURL URLWithString:[Session sharedInstance].currentUser.attributes.details.media.profilePicture] placeholderImage:[[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
-    }
-    else {
-        [self.profilePicture setImage:[[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
-    }
-    self.profilePicture.layer.cornerRadius = self.profilePicture.frame.size.height / 2;
-    self.profilePicture.layer.masksToBounds = true;
-    self.profilePicture.userInteractionEnabled = true;
-    [self.profilePicture bk_whenTapped:^{
-        if ([Session sharedInstance].currentUser) {
-            [self openProfile:[Session sharedInstance].currentUser];
-        }
-        else {
-            [self openOnboarding];
-        }
+    // create invite friend button
+    self.inviteFriendButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    [self.inviteFriendButton setImage:[[UIImage imageNamed:@"inviteFriendIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+    [self.inviteFriendButton setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 2)];
+    self.inviteFriendButton.tintColor = [Session sharedInstance].themeColor;
+    self.inviteFriendButton.frame = CGRectMake(10, 0, 44, 44);
+    self.inviteFriendButton.center = CGPointMake(self.inviteFriendButton.center.x, self.navigationBar.frame.size.height / 2);
+    [self.inviteFriendButton bk_whenTapped:^{
+        
     }];
-    [profilePictureContainer addSubview:self.profilePicture];
+    
+    self.inviteFriendButton.alpha = 0;
+    [self.navigationBar addSubview:self.inviteFriendButton];
     
     // create new channel + button
     self.composePostButton = [UIButton buttonWithType:UIButtonTypeSystem];
@@ -394,6 +404,9 @@ static NSString * const reuseIdentifier = @"Result";
     self.composePostButton.tintColor = [[Session sharedInstance] themeColor];
     self.composePostButton.frame = CGRectMake(self.navigationBar.frame.size.width - 10 - 44, 0, 44, 44);
     self.composePostButton.center = CGPointMake(self.composePostButton.center.x, self.navigationBar.frame.size.height / 2);
+    [self.composePostButton bk_whenTapped:^{
+        [[Launcher sharedInstance] openComposePost];
+    }];
     [self.navigationBar addSubview:self.composePostButton];
     
     // create new  + button
@@ -426,8 +439,8 @@ static NSString * const reuseIdentifier = @"Result";
             [activeProfile openProfileActions];
         }
         else if ([self.viewControllers[self.viewControllers.count-1] isKindOfClass:[PostViewController class]]) {
-            PostViewController *activeProfile = self.viewControllers[self.viewControllers.count-1];
-            [activeProfile openPostActions];
+            PostViewController *activePost = self.viewControllers[self.viewControllers.count-1];
+            [activePost openPostActions];
         }
     }];
     [self.navigationBar addSubview:self.moreButton];
@@ -453,7 +466,7 @@ static NSString * const reuseIdentifier = @"Result";
                     [self updateBarColor:previousRoom.theme withAnimation:3 statusBarUpdateDelay:NO];
                     [self updateSearchText:previousRoom.title];
                 }
-                else if ([self.viewControllers[self.viewControllers.count-2] isKindOfClass:[HomeViewController class]]) {
+                else if (self.viewControllers[self.viewControllers.count-2].navigationController.tabBarController != nil) {
                     [self updateBarColor:[UIColor whiteColor] withAnimation:3 statusBarUpdateDelay:NO];
                     [self updateSearchText:@""];
                 }
@@ -549,23 +562,39 @@ static NSString * const reuseIdentifier = @"Result";
         if (self.textField.isFirstResponder) {
             self.backButton.transform = CGAffineTransformMakeRotation(0);
             self.backButton.alpha = 1;
-            self.profilePicture.superview.alpha = 0;
+            self.inviteFriendButton.alpha = 0;
             self.composePostButton.alpha = 0;
             self.moreButton.alpha = 0;
+            self.textField.frame = CGRectMake(62, self.textField.frame.origin.y, self.view.frame.size.width - (62 * 2), self.textField.frame.size.height);
         }
         else {
             // determine items based on active view controller
-            if ([self.topViewController isKindOfClass:[HomeViewController class]]) {
+            if (self.tabBarController != nil) {
+                NSLog(@"o halllo");
+                
                 self.backButton.transform = CGAffineTransformMakeRotation(-1 * (M_PI / 2));
                 self.backButton.alpha = 0;
-                self.profilePicture.superview.alpha = 1;
                 
                 self.infoButton.alpha = 0;
                 self.moreButton.alpha = 0;
-                self.composePostButton.alpha = 1;
+                
+                if ([self.topViewController isKindOfClass:[MyRoomsViewController class]]) {
+                    self.inviteFriendButton.alpha = 0;
+                    self.composePostButton.alpha = 0;
+                    
+                    self.textField.frame = CGRectMake(16, self.textField.frame.origin.y, self.view.frame.size.width - (16 * 2), self.textField.frame.size.height);
+                    
+                    [self positionTextFieldSearchIcon];
+                }
+                else {
+                    self.inviteFriendButton.alpha = 1;
+                    self.composePostButton.alpha = 1;
+                    
+                    self.textField.frame = CGRectMake(62, self.textField.frame.origin.y, self.view.frame.size.width - (62 * 2), self.textField.frame.size.height);
+                }
             }
             else {
-                self.profilePicture.superview.alpha = 0;
+                self.inviteFriendButton.alpha = 0;
                 self.backButton.alpha = 1;
 
                 if (self.viewControllers.count == 1) {
@@ -574,6 +603,8 @@ static NSString * const reuseIdentifier = @"Result";
                 else {
                     self.backButton.transform = CGAffineTransformMakeRotation(0);
                 }
+                
+                self.textField.frame = CGRectMake(62, self.textField.frame.origin.y, self.view.frame.size.width - (62 * 2), self.textField.frame.size.height);
             }
             
             if ([self.topViewController isKindOfClass:[PostViewController class]] ||
@@ -832,7 +863,7 @@ static NSString * const reuseIdentifier = @"Result";
     int type = 0;
     if (indexPath.section == 0) {
         if (indexPath.row == 0) {
-            if ([self.topViewController isKindOfClass:[HomeViewController class]]) {
+            if (self.topViewController.navigationController.tabBarController != nil) {
                 type = 0;
                 cell.textLabel.text = @"Home";
             }
@@ -863,7 +894,7 @@ static NSString * const reuseIdentifier = @"Result";
                 
                 cell.textLabel.text = room.attributes.details.title;
                 NSString *roomColor = room.attributes.details.color;
-                cell.imageView.backgroundColor = [self colorFromHexString:roomColor?roomColor:@"0076ff"];
+                cell.imageView.backgroundColor = [UIColor fromHex:roomColor?roomColor:@"0076ff"];
                 
                 BOOL useLiveCount = room.attributes.summaries.counts.live > [Session sharedInstance].defaults.room.liveThreshold;
                 if (useLiveCount) {
@@ -879,7 +910,7 @@ static NSString * const reuseIdentifier = @"Result";
                 cell.textLabel.alpha = 0.5;
                 
                 cell.textLabel.text = @"Unkown Room";
-                cell.imageView.backgroundColor = [self colorFromHexString:@"707479"];
+                cell.imageView.backgroundColor = [UIColor fromHex:@"707479"];
                 
                 cell.detailTextLabel.text = @"";
             }
@@ -903,14 +934,14 @@ static NSString * const reuseIdentifier = @"Result";
                 }
                 
                 NSString *userColor = user.attributes.details.color;
-                cell.imageView.tintColor = userColor ? [[userColor lowercaseString] isEqualToString:@"ffffff"] ? [UIColor colorWithWhite:0.2f alpha:1] : [self colorFromHexString:userColor] : [self colorFromHexString:@"707479"];
+                cell.imageView.tintColor = userColor ? [[userColor lowercaseString] isEqualToString:@"ffffff"] ? [UIColor colorWithWhite:0.2f alpha:1] : [UIColor fromHex:userColor] : [UIColor fromHex:@"707479"];
                 cell.imageView.backgroundColor = [UIColor whiteColor];
             }
             else {
                 cell.textLabel.alpha = 0.5;
                 
                 cell.textLabel.text = @"Unkown User";
-                cell.imageView.backgroundColor = [self colorFromHexString:@"707479"];
+                cell.imageView.backgroundColor = [UIColor fromHex:@"707479"];
                 
                 cell.detailTextLabel.text = @"";
             }
@@ -952,7 +983,7 @@ static NSString * const reuseIdentifier = @"Result";
             
             // 1 = Room
             cell.textLabel.text = room.attributes.details.title;
-            cell.imageView.backgroundColor = [self colorFromHexString:room.attributes.details.color];
+            cell.imageView.backgroundColor = [UIColor fromHex:room.attributes.details.color];
                         
             BOOL useLiveCount = room.attributes.summaries.counts.live > [Session sharedInstance].defaults.room.liveThreshold;
             if (useLiveCount) {
@@ -979,7 +1010,7 @@ static NSString * const reuseIdentifier = @"Result";
             }
             
             // 2 = User
-            cell.imageView.tintColor = [[user.attributes.details.color lowercaseString] isEqualToString:@"ffffff"] ? [UIColor colorWithWhite:0.2f alpha:1] : [self colorFromHexString:user.attributes.details.color];
+            cell.imageView.tintColor = [[user.attributes.details.color lowercaseString] isEqualToString:@"ffffff"] ? [UIColor colorWithWhite:0.2f alpha:1] : [UIColor fromHex:user.attributes.details.color];
             cell.imageView.backgroundColor = [UIColor whiteColor];
         }
     }
@@ -1009,7 +1040,7 @@ static NSString * const reuseIdentifier = @"Result";
 }
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.section == 0) {
-        if ([self.topViewController isKindOfClass:[HomeViewController class]]) {
+        if (self.topViewController.navigationController.tabBarController != nil) {
             [self updateSearchText:@""];
         }
         else {
@@ -1027,7 +1058,7 @@ static NSString * const reuseIdentifier = @"Result";
         
         [self addToRecents:room];
         
-        [self openRoom:room];
+        [[Launcher sharedInstance] openRoom:room];
     }
     else if (indexPath.section == 2) {
         NSDictionary *userJSON = self.searchResults[@"results"][@"users"][indexPath.row];
@@ -1035,7 +1066,7 @@ static NSString * const reuseIdentifier = @"Result";
         
         [self addToRecents:user];
         
-        [self openProfile:user];
+        [[Launcher sharedInstance] openProfile:user];
     }
     else if (indexPath.section == 3) {
         NSDictionary *json = self.recentSearchResults[indexPath.row];
@@ -1045,14 +1076,14 @@ static NSString * const reuseIdentifier = @"Result";
                 
                 [self addToRecents:user];
                 
-                [self openProfile:user];
+                [[Launcher sharedInstance] openProfile:user];
             }
             else if ([json[@"type"] isEqualToString:@"room"]) {
                 Room *room = [[Room alloc] initWithDictionary:json error:nil];
                 
                 [self addToRecents:room];
                 
-                [self openRoom:room];
+                [[Launcher sharedInstance] openRoom:room];
             }
         }
     }
@@ -1064,7 +1095,7 @@ static NSString * const reuseIdentifier = @"Result";
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     if (!self.isCreatingPost && section == 0 && ([self showRecents])) {
-        if ([self.topViewController isKindOfClass:[HomeViewController class]]) {
+        if (self.topViewController.navigationController.tabBarController != nil) {
             return 1;
         }
         else {
@@ -1187,7 +1218,7 @@ static NSString * const reuseIdentifier = @"Result";
         [UIMenuController sharedMenuController].menuVisible = NO;
         
         [self updateBarColor:[UIColor whiteColor] withAnimation:0 statusBarUpdateDelay:NO];
-        [self updateNavigationBarItemsWithAnimation:TRUE];
+        [self updateNavigationBarItemsWithAnimation:FALSE];
         
         [self.searchResultsTableView reloadData];
     }
@@ -1239,19 +1270,25 @@ static NSString * const reuseIdentifier = @"Result";
         
         if ([self.topViewController isKindOfClass:[RoomViewController class]]) {
             RoomViewController *currentRoom = (RoomViewController *)self.topViewController;
-            [self updateBarColor:currentRoom.theme withAnimation:1 statusBarUpdateDelay:NO];
+            [self updateBarColor:currentRoom.theme withAnimation:0 statusBarUpdateDelay:NO];
         }
         if ([self.topViewController isKindOfClass:[ProfileViewController class]]) {
             ProfileViewController *currentProfile = (ProfileViewController *)self.topViewController;
-            [self updateBarColor:currentProfile.theme withAnimation:1 statusBarUpdateDelay:NO];
+            [self updateBarColor:currentProfile.theme withAnimation:0 statusBarUpdateDelay:NO];
         }
-        if ([self.topViewController isKindOfClass:[HomeViewController class]]) {
-            HomeViewController *currentRoom = (HomeViewController *)self.topViewController;
+        if (self.topViewController.navigationController.tabBarController != nil) {
+            if ([self.topViewController isKindOfClass:[MyRoomsViewController class]]) {
+                MyRoomsViewController *currentRoomsVC = (MyRoomsViewController *)self.topViewController;
+                if (currentRoomsVC.tableView.contentOffset.y <= 10) {
+                    [self setShadowVisibility:false withAnimation:FALSE];
+                }
+            }
+            /*HomeViewController *currentRoom = (HomeViewController *)self.topViewController;
             if (currentRoom.page == 1) {
                 [self setShadowVisibility:false withAnimation:true];
-            }
+            }*/
         }
-        [self updateNavigationBarItemsWithAnimation:YES];
+        [self updateNavigationBarItemsWithAnimation:FALSE];
         
         [UIView animateWithDuration:0.2f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
             self.searchResultsTableView.alpha = 0;
@@ -1280,190 +1317,6 @@ static NSString * const reuseIdentifier = @"Result";
     return FALSE;
 }
 
-- (void)openRoom:(Room *)room {
-    RoomViewController *r = [[RoomViewController alloc] init];
-
-    r.room = room;
-    r.theme = [self colorFromHexString:room.attributes.details.color.length == 6 ? room.attributes.details.color : @"707479"];
-    
-    r.tableView.delegate = self;
-    r.title = r.room.attributes.details.title ? r.room.attributes.details.title : @"Loading...";
-    
-    if ([self.topViewController isKindOfClass:[HomeViewController class]]) {
-        [self updateSearchText:self.topViewController.title];
-        
-        LauncherNavigationViewController *newLauncher = [[LauncherNavigationViewController alloc] initWithRootViewController:r];
-        [newLauncher updateSearchText:r.title];
-        newLauncher.transitioningDelegate = self;
-        
-        [newLauncher updateBarColor:r.theme withAnimation:0 statusBarUpdateDelay:NO];
-        
-        [self presentViewController:newLauncher animated:YES completion:nil];
-        
-        [newLauncher updateNavigationBarItemsWithAnimation:NO];
-    }
-    else {
-        if (r.room.identifier ||
-            r.room.attributes.details.identifier) {
-            [self updateSearchText:r.title];
-        }
-        else {
-            [self updateSearchText:@"Unkown Room"];
-        }
-        
-        [self updateBarColor:r.theme withAnimation:2 statusBarUpdateDelay:NO];
-        
-        [self pushViewController:r animated:YES];
-        
-        [self updateNavigationBarItemsWithAnimation:YES];;
-    }
-    
-    [self addToRecentlyOpened:[room toDictionary]];
-}
-- (void)openRoomMembersForRoom:(Room *)room {
-    RoomMembersViewController *rm = [[RoomMembersViewController alloc] initWithStyle:UITableViewStyleGrouped];
-    
-    rm.room = room;
-    rm.theme = [self colorFromHexString:room.attributes.details.color.length == 6 ? room.attributes.details.color : @"0076ff"];
-    
-    rm.title = @"Members";
-    
-    if ([self.topViewController isKindOfClass:[HomeViewController class]]) {
-        [self updateSearchText:self.topViewController.title];
-        
-        LauncherNavigationViewController *newLauncher = [[LauncherNavigationViewController alloc] initWithRootViewController:rm];
-        newLauncher.textField.text = rm.title;
-        [newLauncher hideSearchIcon];
-        newLauncher.transitioningDelegate = self;
-        
-        [newLauncher updateBarColor:rm.theme withAnimation:0 statusBarUpdateDelay:NO];
-        
-        [self presentViewController:newLauncher animated:YES completion:nil];
-        
-        [newLauncher updateNavigationBarItemsWithAnimation:NO];
-    }
-    else {
-        self.textField.text = rm.title;
-        [self hideSearchIcon];
-        
-        [self updateBarColor:rm.theme withAnimation:2 statusBarUpdateDelay:NO];
-        
-        [self pushViewController:rm animated:YES];
-        
-        [self updateNavigationBarItemsWithAnimation:YES];;
-    }
-}
-- (void)openProfile:(User *)user {
-    ProfileViewController *p = [[ProfileViewController alloc] init];
-    
-    p.theme = [self colorFromHexString:user.attributes.details.color.length == 6 ? user.attributes.details.color : (user.identifier ? @"0076ff" : @"707479")]; //[self colorFromHexString:user.attributes.details.color];
-
-    p.user = user;
-    
-    if ([self.topViewController isKindOfClass:[HomeViewController class]]) {
-        self.textField.text = self.topViewController.title;
-        
-        LauncherNavigationViewController *newLauncher = [[LauncherNavigationViewController alloc] initWithRootViewController:p];
-        [newLauncher updateSearchText:p.user.attributes.details.displayName];
-        newLauncher.transitioningDelegate = self;
-        
-        [newLauncher updateBarColor:p.theme withAnimation:0 statusBarUpdateDelay:NO];
-        
-        [self presentViewController:newLauncher animated:YES completion:nil];
-        
-        [newLauncher updateNavigationBarItemsWithAnimation:NO];
-    }
-    else {
-        [self updateSearchText:p.user.attributes.details.displayName];
-        
-        [self updateBarColor:p.theme withAnimation:2 statusBarUpdateDelay:NO];
-        
-        [self pushViewController:p animated:YES];
-        
-        [self updateNavigationBarItemsWithAnimation:YES];
-    }
-}
-- (void)openPost:(Post *)post {
-    PostViewController *p = [[PostViewController alloc] init];
-    
-    p.post = post;
-    p.theme = [self colorFromHexString:post.attributes.status.postedIn.attributes.details.color];
-    p.title = @"Conversation";
-    
-    if ([self.topViewController isKindOfClass:[HomeViewController class]]) {
-        [self updateSearchText:self.topViewController.title];
-        
-        LauncherNavigationViewController *newLauncher = [[LauncherNavigationViewController alloc] initWithRootViewController:p];
-        newLauncher.textField.text = p.title;
-        [newLauncher hideSearchIcon];
-        newLauncher.transitioningDelegate = self;
-        
-        [newLauncher updateBarColor:p.theme withAnimation:0 statusBarUpdateDelay:NO];
-        
-        [self presentViewController:newLauncher animated:YES completion:nil];
-        
-        [newLauncher updateNavigationBarItemsWithAnimation:NO];
-    }
-    else {
-        self.textField.text = p.title;
-        [self hideSearchIcon];
-        
-        [self updateBarColor:p.theme withAnimation:2 statusBarUpdateDelay:NO];
-        
-        [self pushViewController:p animated:YES];
-        
-        [self updateNavigationBarItemsWithAnimation:YES];
-    }
-}
-- (void)openCreateRoom {
-    CreateRoomViewController *c = [[CreateRoomViewController alloc] init];
-    c.transitioningDelegate = self;
-    [self presentViewController:c animated:YES completion:nil];
-}
-- (void)openOnboarding {
-    OnboardingViewController *o = [[OnboardingViewController alloc] init];
-    o.transitioningDelegate = self;
-    [self presentViewController:o animated:YES completion:nil];
-}
-    
-- (void)openComposePost {
-    RoomViewController *r = [[RoomViewController alloc] init];
-    
-    r.room = nil;
-    r.theme = [Session sharedInstance].themeColor;
-    r.isCreatingPost = true;
-    
-    r.tableView.delegate = self;
-    
-    self.textField.text = self.topViewController.title;
-    
-    LauncherNavigationViewController *newLauncher = [[LauncherNavigationViewController alloc] initWithRootViewController:r];
-    newLauncher.textField.text = @"";
-    newLauncher.textField.placeholder = @"Search Rooms...";
-    newLauncher.isCreatingPost = true;
-    newLauncher.transitioningDelegate = self;
-    [newLauncher positionTextFieldSearchIcon];
-    
-    [newLauncher updateBarColor:[UIColor whiteColor] withAnimation:0 statusBarUpdateDelay:NO];
-    
-    [self presentViewController:newLauncher animated:YES completion:nil];
-    
-    [newLauncher updateNavigationBarItemsWithAnimation:NO];
-}
-- (void)openEditProfile {
-    EditProfileViewController *epvc = [[EditProfileViewController alloc] initWithStyle:UITableViewStyleGrouped];
-    epvc.view.tintColor = [Session sharedInstance].themeColor;
-    
-    UINavigationController *newNavController = [[UINavigationController alloc] initWithRootViewController:epvc];
-    newNavController.transitioningDelegate = self;
-    newNavController.navigationBar.barStyle = UIBarStyleBlack;
-    newNavController.navigationBar.translucent = false;
-    newNavController.navigationBar.barTintColor = [UIColor whiteColor];
-    [newNavController setNeedsStatusBarAppearanceUpdate];
-    
-    [self presentViewController:newNavController animated:YES completion:nil];
-}
-
 - (void)keyboardWillChangeFrame:(NSNotification *)notification {
     NSDictionary* keyboardInfo = [notification userInfo];
     NSValue* keyboardFrameBegin = [keyboardInfo valueForKey:UIKeyboardFrameEndUserInfoKey];
@@ -1486,116 +1339,6 @@ static NSString * const reuseIdentifier = @"Result";
         self.searchResultsTableView.scrollIndicatorInsets = self.searchResultsTableView.contentInset;
     } completion:nil];
 }
-    
-
-#pragma mark - UIViewControllerTransitioningDelegate
-
-// MODAL TRANSITION
-- (id<UIViewControllerAnimatedTransitioning>)animationControllerForPresentedController:(UIViewController *)presented
-                                                                  presentingController:(UIViewController *)presenting
-                                                                      sourceController:(UIViewController *)source
-{
-    id<UIViewControllerAnimatedTransitioning> animationController;
-    
-    SOLOptionsTransitionAnimator *animator = [[SOLOptionsTransitionAnimator alloc] init];
-    animator.appearing = YES;
-    animator.duration = 0.3;
-    animationController = animator;
-    
-    return animationController;
-}
-/*
- Called when dismissing a view controller that has a transitioningDelegate
- */
-- (id<UIViewControllerAnimatedTransitioning>)animationControllerForDismissedController:(UIViewController *)dismissed
-{
-    id<UIViewControllerAnimatedTransitioning> animationController;
-    
-    SOLOptionsTransitionAnimator *animator = [[SOLOptionsTransitionAnimator alloc] init];
-    animator.appearing = NO;
-    animator.duration = 0.3;
-    animationController = animator;
-    
-    return animationController;
-}
-
-// PUSH TRANSITION
-- (id<UIViewControllerAnimatedTransitioning>)navigationController:(UINavigationController *)navigationController
-                                  animationControllerForOperation:(UINavigationControllerOperation)operation
-                                               fromViewController:(UIViewController*)fromVC
-                                                 toViewController:(UIViewController*)toVC
-{
-    if (operation == UINavigationControllerOperationPush) {
-        if ([fromVC isKindOfClass:[HomeViewController class]]) {
-            // hide:
-            // 1) profile picture
-            // 2) plus icon
-            [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.72f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
-                self.composePostButton.transform = CGAffineTransformMakeScale(0.1, 0.1);
-                self.composePostButton.alpha = 0;
-                
-                self.profilePicture.transform = CGAffineTransformMakeScale(0.1, 0.1);
-                self.profilePicture.alpha = 0;
-            } completion:^(BOOL finished) {
-            }];
-        }
-        if ([toVC isKindOfClass:[RoomViewController class]]) {
-            self.infoButton.transform = CGAffineTransformMakeScale(0.1, 0.1);
-            self.backButton.transform = CGAffineTransformMakeScale(0.1, 0.1);
-            [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.72f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
-                self.infoButton.alpha = 1;
-                self.infoButton.transform = CGAffineTransformIdentity;
-                
-                self.backButton.alpha = 1;
-                self.backButton.transform = CGAffineTransformIdentity;
-                
-                self.textField.textColor = [UIColor whiteColor];
-                self.textField.backgroundColor = [UIColor colorWithWhite:1 alpha:0.16f];
-            } completion:^(BOOL finished) {
-            }];
-        }
-        
-        return [[PushAnimator alloc] init];
-    }
-    
-    if (operation == UINavigationControllerOperationPop) {
-        if ([fromVC isKindOfClass:[RoomViewController class]]) {
-            [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.72f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
-                self.infoButton.transform = CGAffineTransformMakeScale(0.1, 0.1);
-                self.backButton.transform = CGAffineTransformMakeScale(0.1, 0.1);
-                
-                self.infoButton.alpha = 0;
-                self.backButton.alpha = 0;
-            } completion:^(BOOL finished) {
-            }];
-        }
-        if ([toVC isKindOfClass:[HomeViewController class]]) {
-            self.navigationBar.barStyle = UIBarStyleDefault;
-            [self setNeedsStatusBarAppearanceUpdate];
-            
-            self.infoButton.transform = CGAffineTransformMakeScale(0.1, 0.1);
-            self.backButton.transform = CGAffineTransformMakeScale(0.1, 0.1);
-            [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.72f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
-                self.navigationBackgroundView.backgroundColor = [UIColor whiteColor];
-                // self.textField.text = @"Home";
-                self.textField.textColor = [UIColor colorWithWhite:0.06f alpha:1];
-                self.textField.backgroundColor = [UIColor colorWithWhite:0 alpha:0.06f];
-                
-                self.profilePicture.alpha = 1;
-                self.profilePicture.transform = CGAffineTransformIdentity;
-                
-                self.composePostButton.alpha = 1;
-                self.composePostButton.transform = CGAffineTransformIdentity;
-            } completion:^(BOOL finished) {
-            }];
-        }
-        
-        return [[PopAnimator alloc] init];
-    }
-    
-    return nil;
-}
-
 
 - (void)continuityRadiusForView:(UIView *)sender withRadius:(CGFloat)radius {
     CAShapeLayer * maskLayer = [CAShapeLayer layer];
@@ -1604,83 +1347,6 @@ static NSString * const reuseIdentifier = @"Result";
                                                  cornerRadii:CGSizeMake(radius, radius)].CGPath;
     
     sender.layer.mask = maskLayer;
-}
-
-@end
-
-
-@implementation PushAnimator
-
-- (NSTimeInterval)transitionDuration:(id <UIViewControllerContextTransitioning>)transitionContext
-{
-    return 0.5f;
-}
-
-- (void)animateTransition:(id<UIViewControllerContextTransitioning>)transitionContext
-{
-    UIViewController *fromVC = [transitionContext viewControllerForKey:UITransitionContextFromViewControllerKey];
-    UIViewController *toVC = [transitionContext viewControllerForKey:UITransitionContextToViewControllerKey];
-    UIView *fromView = fromVC.view;
-    UIView *toView = toVC.view;
-    UIView *containerView = [transitionContext containerView];
-    containerView.backgroundColor = [UIColor colorWithWhite:0.9 alpha:1];
-    NSTimeInterval duration = [self transitionDuration:transitionContext];
-    
-    // Presenting
-    [containerView addSubview:toView];
-    
-    fromView.userInteractionEnabled = NO;
-    
-    // Round the corners
-    fromView.layer.masksToBounds = YES;
-    toView.layer.masksToBounds = YES;
-    
-    CGFloat toViewEndY = toView.frame.origin.y;
-    toView.frame = CGRectMake(containerView.frame.size.width, toView.frame.origin.y, toView.frame.size.width, toView.frame.size.height);
-    toView.layer.masksToBounds = false;
-    
-    [UIView animateWithDuration:duration delay:0 usingSpringWithDamping:0.78f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        toView.frame = CGRectMake(toView.frame.origin.x, toViewEndY, toView.frame.size.width, toView.frame.size.height);
-        fromView.transform = CGAffineTransformMakeScale(0.8, 0.8);
-        fromView.layer.cornerRadius = 12.f;
-    } completion:^(BOOL finished) {
-        fromView.transform = CGAffineTransformMakeScale(1, 1);
-        [transitionContext completeTransition:![transitionContext transitionWasCancelled]];
-    }];
-}
-
-@end
-
-
-@implementation PopAnimator
-
-- (NSTimeInterval)transitionDuration:(id <UIViewControllerContextTransitioning>)transitionContext
-{
-    return 0.5f;
-}
-
-- (void)animateTransition:(id<UIViewControllerContextTransitioning>)transitionContext
-{
-    UIViewController *fromVC = [transitionContext viewControllerForKey:UITransitionContextFromViewControllerKey];
-    UIViewController *toVC = [transitionContext viewControllerForKey:UITransitionContextToViewControllerKey];
-    UIView *fromView = fromVC.view;
-    UIView *toView = toVC.view;
-    toView.transform = CGAffineTransformMakeScale(0.8, 0.8);
-    UIView *containerView = [transitionContext containerView];
-    NSTimeInterval duration = [self transitionDuration:transitionContext];
-    
-    [containerView addSubview:toView];
-    [containerView bringSubviewToFront:fromView];
-    
-    [UIView animateWithDuration:duration delay:0 usingSpringWithDamping:0.78f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        fromView.frame = CGRectMake(fromView.frame.origin.x, toVC.navigationController.view.frame.size.height, fromView.frame.size.width, fromView.frame.size.height);
-        toView.transform = CGAffineTransformMakeScale(1, 1);
-        toView.layer.cornerRadius = 0;
-    } completion:^(BOOL finished) {
-        [fromView removeFromSuperview];
-        toView.userInteractionEnabled = YES;
-        [transitionContext completeTransition:![transitionContext transitionWasCancelled]];
-    }];
 }
 
 @end

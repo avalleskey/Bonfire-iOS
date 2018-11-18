@@ -41,7 +41,10 @@ static Session *session;
         
         if ([session getAccessTokenWithVerification:true] != nil) {
             NSLog(@"has access token");
-            [session fetchUser];
+            // update user object
+            [session fetchUser:^(BOOL success) {
+                NSLog(@"hello");
+            }];
             //[session syncDeviceToken];
         }
         else {
@@ -188,31 +191,32 @@ static Session *session;
     
     session.currentUser = newUser;
 }
-- (void)fetchUser {
-    if ([session getAccessTokenWithVerification:true] != nil) {
+- (void)fetchUser:(void (^)(BOOL success))handler {
+    NSDictionary *accessToken = [session getAccessTokenWithVerification:true];
+    
+    if (accessToken != nil) {
         NSString *url = [NSString stringWithFormat:@"%@/%@/users/me", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"]];
         
-        [session authenticate:^(BOOL success, NSString *token) {
-            if (success) {
-                [session.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
-                
-                [session.manager GET:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                    NSLog(@"responseObject: %@", responseObject[@"data"][@"attributes"][@"details"]);
-                    
-                    NSError *error;
-                    
-                    User *user = [[User alloc] initWithDictionary:responseObject[@"data"] error:&error];
-                    if (error) { NSLog(@"GET -> /users/me; User error: %@", error); }
-                    
-                    [session updateUser:user];
-                    NSLog(@"🙎‍♂️ User: @%@", user.attributes.details.identifier);
-                    [[NSNotificationCenter defaultCenter] postNotificationName:@"UserUpdated" object:nil];
-                } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                    NSLog(@"❌ Failed to get User ID");
-                    NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-                    NSLog(@"%@", ErrorResponse);
-                }];
-            }
+        [session.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", accessToken[@"attributes"][@"access_token"]] forHTTPHeaderField:@"Authorization"];
+        [session.manager GET:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+            NSLog(@"responseObject: %@", responseObject[@"data"][@"attributes"][@"details"]);
+            
+            NSError *error;
+            
+            User *user = [[User alloc] initWithDictionary:responseObject[@"data"] error:&error];
+            if (error) { NSLog(@"GET -> /users/me; User error: %@", error); }
+            
+            [session updateUser:user];
+            NSLog(@"🙎‍♂️ User: @%@", user.attributes.details.identifier);
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"UserUpdated" object:user];
+            
+            handler(TRUE);
+        } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+            NSLog(@"❌ Failed to get User ID");
+            NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+            NSLog(@"%@", ErrorResponse);
+            
+            handler(FALSE);
         }];
     }
 }

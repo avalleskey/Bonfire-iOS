@@ -12,6 +12,8 @@
 #import "Session.h"
 #import "Room.h"
 #import "LauncherNavigationViewController.h"
+#import "UIColor+Palette.h"
+#import "Launcher.h"
 
 #import <RSKImageCropper/RSKImageCropper.h>
 
@@ -236,15 +238,15 @@
         colorBlock.transform = CGAffineTransformMakeTranslation(self.view.frame.size.width, 0);
         [self.view addSubview:colorBlock];
         
-        colors = @[@"#0076FF",  // 0
-                   @"#9013FE",  // 1
-                   @"#F21D21",  // 2
-                   @"#FC6A1E",  // 3
-                   @"#29C350",  // 4
-                   @"#8B572A",  // 5
-                   @"#F5C123",  // 6
-                   @"#2A6C8B",  // 7
-                   @"#333333"]; // 8
+        colors = @[[UIColor bonfireBlue],  // 0
+                   [UIColor bonfireViolet],  // 1
+                   [UIColor bonfireRed],  // 2
+                   [UIColor bonfireOrange],  // 3
+                   [UIColor bonfireGreenWithLevel:700],  // 4
+                   [UIColor brownColor],  // 5
+                   [UIColor bonfireYellow],  // 6
+                   [UIColor bonfireCyanWithLevel:800],  // 7
+                   [UIColor bonfireGrayWithLevel:900]]; // 8
         
         self.themeColor = 0 + arc4random() % (colors.count - 1);
         
@@ -258,7 +260,7 @@
             
             UIView *colorOption = [[UIView alloc] initWithFrame:CGRectMake(column * 80, row * 80, 56, 56)];
             colorOption.layer.cornerRadius = colorOption.frame.size.height / 2;
-            colorOption.backgroundColor = [self colorFromHexString:colors[i]];
+            colorOption.backgroundColor = colors[i];
             colorOption.tag = i;
             [colorBlock addSubview:colorOption];
             
@@ -666,8 +668,11 @@
         NSLog(@"all done! successfully logged in!");
         
         // TODO: Open LauncherNavigationViewController
-        [[Session sharedInstance] fetchUser];
-        [self openHome];
+        [[Session sharedInstance] fetchUser:^(BOOL success) {
+            if (success) {
+                [self openHome];
+            }
+        }];
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         // not long enough –> shake input block
         [self removeSpinnerForStep:self.currentStep];
@@ -1118,19 +1123,8 @@
     }
 }
 
-- (UIColor *)colorFromHexString:(NSString *)hexString {
-    if (hexString.length == 0) {
-        return [UIColor blackColor];
-    }
-    
-    unsigned rgbValue = 0;
-    NSScanner *scanner = [NSScanner scannerWithString:hexString];
-    [scanner setScanLocation:1]; // bypass '#' character
-    [scanner scanHexInt:&rgbValue];
-    return [UIColor colorWithDisplayP3Red:((rgbValue & 0xFF0000) >> 16)/255.0 green:((rgbValue & 0xFF00) >> 8)/255.0 blue:(rgbValue & 0xFF)/255.0 alpha:1.0];
-}
 - (UIColor *)currentColor {
-    return [self colorFromHexString:colors[self.themeColor]];
+    return colors[self.themeColor];
 }
 
 - (void)uploadProfilePicture:(UIImage *)profilePicture copmletion:(void (^)(BOOL success, NSString *img))handler {
@@ -1354,15 +1348,7 @@
 }
 
 - (void)openHome {
-    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:[NSBundle mainBundle]];
-    
-    LauncherNavigationViewController *h = [storyboard instantiateViewControllerWithIdentifier:@"rootVC"];
-    h.transitioningDelegate = self;
-    h.textField.text = @"";
-    
-    NSLog(@"h: %@", h);
-    
-    [self presentViewController:h animated:YES completion:nil];
+    [[Launcher sharedInstance] launchLoggedIn];
 }
 
 - (void)keyboardWillChangeFrame:(NSNotification *)notification {

@@ -12,12 +12,12 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface MyRoomsViewController : UIViewController <UIScrollViewDelegate, UICollectionViewDelegate, UICollectionViewDataSource>
+@interface MyRoomsViewController : UITableViewController <UIScrollViewDelegate>
 
 @property (strong, nonatomic) HAWebService *manager;
 
 @property (strong, nonatomic) UICollectionView *collectionView;
-@property (strong, nonatomic) UIButton *createRoomButton;
+//@property (strong, nonatomic) UIButton *createRoomButton;
 
 @end
 

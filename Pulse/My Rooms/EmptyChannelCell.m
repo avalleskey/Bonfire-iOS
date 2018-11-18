@@ -20,19 +20,19 @@
 }
 
 - (void)setup {
-    [self continuityRadiusForCell:self withRadius:12.f];
-    
+    self.layer.cornerRadius = 12.f;
+    self.layer.masksToBounds = true;
     self.backgroundColor = [UIColor colorWithWhite:0.97 alpha:1];
     
     self.container = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 295, 288)];
     [self.contentView addSubview:self.container];
     
-    self.circleImageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 160, 160)];
+    self.circleImageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 128, 128)];
     self.circleImageView.image = [UIImage imageNamed:@"myRoomsGraphic"];
     [self.container addSubview:self.circleImageView];
     
     self.titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, self.circleImageView.frame.origin.y + self.circleImageView.frame.size.height + 20, self.container.frame.size.width, 42)];
-    self.titleLabel.font = [UIFont systemFontOfSize:34.f weight:UIFontWeightHeavy];
+    self.titleLabel.font = [UIFont systemFontOfSize:24.f weight:UIFontWeightHeavy];
     self.titleLabel.textAlignment = NSTextAlignmentCenter;
     self.titleLabel.numberOfLines = 0;
     self.titleLabel.textColor = [UIColor colorWithWhite:0.2f alpha:1];
@@ -44,7 +44,7 @@
     self.descriptionLabel.textAlignment = NSTextAlignmentCenter;
     self.descriptionLabel.numberOfLines = 0;
     self.descriptionLabel.textColor = [UIColor colorWithWhite:0.6f alpha:1];
-    self.descriptionLabel.text = @"Everything you care about, in one place.  Discover new Rooms to follow by swiping right or searching above.";
+    self.descriptionLabel.text = @"Everything you care about, in one place. Discover new Rooms to follow by scrolling down or searching above.";
     [self.container addSubview:self.descriptionLabel];
 }
 

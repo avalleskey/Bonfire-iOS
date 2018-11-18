@@ -20,6 +20,7 @@
 #import "RoomSuggestionsListCell.h"
 #import "LoadingCell.h"
 #import "PaginationCell.h"
+#import "Launcher.h"
 
 @implementation RSTableView
 
@@ -197,12 +198,13 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                     [imageView setImage:[[UIImage imageNamed:@"anonymousGroup"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
                 }
                 else {
-                    if (room.attributes.summaries.members.count > i) {
+                    if (room.attributes.summaries.members.count > i-1) {
                         imageView.hidden = false;
                         
                         NSError *userError;
-                        User *userForImageView = [[User alloc] initWithDictionary:(NSDictionary *)room.attributes.summaries.members[i] error:&userError];
+                        User *userForImageView = [[User alloc] initWithDictionary:(NSDictionary *)room.attributes.summaries.members[i-1] error:&userError];
                         
+                        imageView.tintColor = [self colorFromHexString:userForImageView.attributes.details.color];
                         if (!userError) {
                             NSString *picURL = userForImageView.attributes.details.media.profilePicture;
                             if (picURL.length > 0) {
@@ -248,7 +250,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             if (cell.membersLabel.gestureRecognizers.count == 0) {
                 [cell.membersLabel bk_whenTapped:^{
                     if ([UIViewParentController(self).navigationController isKindOfClass:[LauncherNavigationViewController class]]) {
-                        [(LauncherNavigationViewController *)UIViewParentController(self).navigationController  openRoomMembersForRoom:self.parentObject];
+                        [[Launcher sharedInstance] openRoomMembersForRoom:self.parentObject];
                     }
                 }];
             }
@@ -283,7 +285,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                     [cell.followButton bk_whenTapped:^{
                         NSLog(@"edit profile");
                         if ([UIViewParentController(self).navigationController isKindOfClass:[LauncherNavigationViewController class]]) {
-                            [(LauncherNavigationViewController *)UIViewParentController(self).navigationController openEditProfile];
+                            [[Launcher sharedInstance] openEditProfile];
                         }
                     }];
                 }
@@ -320,7 +322,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                 [cell.profilePicture bk_whenTapped:^{
                     if ([UIViewParentController(self).navigationController isKindOfClass:[LauncherNavigationViewController class]]) {
                         NSLog(@"open profile");
-                        [(LauncherNavigationViewController *)UIViewParentController(self).navigationController  openProfile:post.attributes.details.creator];
+                        [[Launcher sharedInstance] openProfile:post.attributes.details.creator];
                     }
                 }];
             }
@@ -332,7 +334,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                         if ([self.parentObject isKindOfClass:[Room class]]) {
                             Room *room = self.parentObject;
                             
-                            [(LauncherNavigationViewController *)UIViewParentController(self).navigationController  openRoom:room];
+                            [[Launcher sharedInstance] openRoom:room];
                         }
                     }
                 }];
@@ -439,7 +441,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                         NSLog(@"self.parentcontroller: %@", UIViewParentController(self));
                         NSLog(@"nva controller: %@", UIViewParentController(self).navigationController);
                         if ([UIViewParentController(self).navigationController isKindOfClass:[LauncherNavigationViewController class]]) {
-                            [(LauncherNavigationViewController *)UIViewParentController(self).navigationController  openProfile:cell.post.attributes.details.creator];
+                            [[Launcher sharedInstance] openProfile:cell.post.attributes.details.creator];
                         }
                     }];
                     
@@ -449,7 +451,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                                 if ([self.parentObject isKindOfClass:[Room class]]) {
                                     Room *room = self.parentObject;
                                     
-                                    [(LauncherNavigationViewController *)UIViewParentController(self).navigationController  openRoom:room];
+                                    [[Launcher sharedInstance] openRoom:room];
                                 }
                             }
                         }];
@@ -817,9 +819,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             if ([self.data[indexPath.row][@"type"] isEqualToString:@"post"]) {
                 Post *postAtIndex = [[Post alloc] initWithDictionary:self.data[indexPath.row] error:nil];
                 
-                if ([UIViewParentController(self).navigationController isKindOfClass:[LauncherNavigationViewController class]]) {
-                    [(LauncherNavigationViewController *)UIViewParentController(self).navigationController  openPost:postAtIndex];
-                }
+                [[Launcher sharedInstance] openPost:postAtIndex];
             }
         }
     }

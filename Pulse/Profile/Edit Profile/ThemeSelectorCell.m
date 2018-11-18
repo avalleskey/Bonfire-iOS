@@ -13,6 +13,7 @@
 #import <HapticHelper/HapticHelper.h>
 #import "EditProfileViewController.h"
 #import "EditRoomViewController.h"
+#import "UIColor+Palette.h"
 
 #define UIViewParentController(__view) ({ \
     UIResponder *__responder = __view; \
@@ -46,15 +47,15 @@
         self.selectorLabel.textColor = [UIColor colorWithWhite:0.6f alpha:1];
         [self.contentView addSubview:self.selectorLabel];
         
-        NSArray *colorList = @[@"0076FF",  // 0
-                               @"9013FE",  // 1
-                               @"F21D21",  // 2
-                               @"FC6A1E",  // 3
-                               @"29C350",  // 4
-                               @"8B572A",  // 5
-                               @"F5C123",  // 6
-                               @"2A6C8B",  // 7
-                               @"333333"]; // 8
+        NSArray *colorList = @[[UIColor bonfireBlue],  // 0
+                               [UIColor bonfireViolet],  // 1
+                               [UIColor bonfireRed],  // 2
+                               [UIColor bonfireOrange],  // 3
+                               [UIColor bonfireGreenWithLevel:700],  // 4
+                               [UIColor brownColor],  // 5
+                               [UIColor bonfireYellow],  // 6
+                               [UIColor bonfireCyanWithLevel:800],  // 7
+                               [UIColor bonfireGrayWithLevel:900]]; // 8
         
         self.scrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, 106)];
         self.scrollView.contentInset = UIEdgeInsetsMake(0, 16, 0, 16);
@@ -78,7 +79,7 @@
             // create view
             UIView *colorOption = [[UIView alloc] initWithFrame:CGRectMake(i * (buttonSize + buttonSpacing), 44, buttonSize, buttonSize)];
             colorOption.layer.cornerRadius = colorOption.frame.size.height / 2;
-            colorOption.backgroundColor = [self colorFromHexString:colorList[i]];
+            colorOption.backgroundColor = colorList[i];
             colorOption.tag = i;
             colorOption.userInteractionEnabled = true;
             [self.scrollView addSubview:colorOption];
@@ -108,8 +109,7 @@
     
     for (int i = 0; i < [self.colors count]; i++) {
         NSDictionary *color = self.colors[i];
-        if ([color[@"color"] isEqualToString:self.selectedColor]) {
-            NSLog(@"self.selectedColor: %@", self.selectedColor);
+        if ([[UIColor toHex:(UIColor *)color[@"color"]] isEqualToString:self.selectedColor]) {
             [self setColor:color[@"view"] withAnimation:false];
         }
     }
@@ -118,13 +118,13 @@
 - (void)setColor:(UIView *)sender withAnimation:(BOOL)animated {
     NSDictionary *color = self.colors.count > sender.tag ? self.colors[sender.tag] : nil;
     
-    if (color && (!animated || ![color[@"color"] isEqualToString:self.selectedColor])) {
+    if (color && (!animated || ![[UIColor toHex:(UIColor *)color[@"color"]] isEqualToString:self.selectedColor])) {
         NSLog(@"set the color: %@", color);
         
         // remove previously selected color
         NSDictionary *previousColor;
         for (NSDictionary *colorDict in self.colors) {
-            if ([colorDict[@"color"] isEqualToString:self.selectedColor]) {
+            if ([[UIColor toHex:(UIColor *)colorDict[@"color"]] isEqualToString:self.selectedColor]) {
                 previousColor = colorDict;
                 break;
             }
@@ -148,7 +148,7 @@
             }
         }
         
-        self.selectedColor = color[@"color"];
+        self.selectedColor = [UIColor toHex:color[@"color"]];
         
         // add check image view
         UIImageView *checkView = [[UIImageView alloc] initWithFrame:CGRectMake(-6, -6, sender.frame.size.width + 12, sender.frame.size.height + 12)];
@@ -176,19 +176,6 @@
         } completion:nil];
     }
     
-}
-
-- (UIColor *)colorFromHexString:(NSString *)hexString {
-    unsigned rgbValue = 0;
-    if (hexString != nil && hexString.length == 6) {
-        NSScanner *scanner = [NSScanner scannerWithString:hexString];
-        [scanner setScanLocation:0]; // bypass '#' character
-        [scanner scanHexInt:&rgbValue];
-        return [UIColor colorWithDisplayP3Red:((rgbValue & 0xFF0000) >> 16)/255.0 green:((rgbValue & 0xFF00) >> 8)/255.0 blue:(rgbValue & 0xFF)/255.0 alpha:1.0];
-    }
-    else {
-        return [UIColor blackColor];
-    }
 }
 
 @end

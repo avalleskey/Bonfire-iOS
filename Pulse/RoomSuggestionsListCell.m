@@ -33,13 +33,12 @@ static NSString * const reuseIdentifier = @"MiniChannel";
 
 - (void)setup {
     self.selectionStyle = UITableViewCellSelectionStyleNone;
-    self.backgroundColor = [UIColor colorWithWhite:0.98 alpha:1];
     
     UICollectionViewFlowLayout *flowLayout = [[UICollectionViewFlowLayout alloc] init];
     flowLayout.minimumLineSpacing = 8.f;
     flowLayout.scrollDirection = UICollectionViewScrollDirectionHorizontal;
     
-    _collectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 12, self.frame.size.width, self.frame.size.height - 24) collectionViewLayout:flowLayout];
+    _collectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, self.frame.size.height) collectionViewLayout:flowLayout];
     _collectionView.delegate = self;
     _collectionView.dataSource = self;
     _collectionView.contentInset = UIEdgeInsetsMake(0, 16, 0, 16);

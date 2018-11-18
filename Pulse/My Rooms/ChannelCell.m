@@ -29,13 +29,12 @@
 }
 
 - (void)setup {
-    //[self continuityRadiusForCell:self withRadius:16.f];
-    self.layer.cornerRadius = 16.f;
+    self.layer.cornerRadius = 12.f;
     self.layer.masksToBounds = true;
     self.layer.shadowOffset = CGSizeMake(0, 1);
     self.layer.shadowRadius = 2.f;
-    self.layer.shadowOpacity = 0.08f;
-    self.layer.shadowColor = [UIColor blackColor].CGColor;
+    self.layer.shadowOpacity = 1;
+    self.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.08f].CGColor;
     self.clipsToBounds = false;
     
     self.shimmerContainer = [[FBShimmeringView alloc] initWithFrame:self.bounds];
@@ -61,14 +60,14 @@
     [self.contentView addSubview:profilepictureContainer];
     
     self.title = [[UILabel alloc] init];
-    self.title.font = [UIFont systemFontOfSize:40.f weight:UIFontWeightHeavy];
+    self.title.font = [UIFont systemFontOfSize:32.f weight:UIFontWeightHeavy];
     self.title.textAlignment = NSTextAlignmentLeft;
     self.title.numberOfLines = 0;
     self.title.textColor = [UIColor whiteColor];
     [self.contentView addSubview:self.title];
     
     self.bio = [[UILabel alloc] init];
-    self.bio.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightBold];
+    self.bio.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightMedium];
     self.bio.textAlignment = NSTextAlignmentLeft;
     self.bio.numberOfLines = 0;
     self.bio.textColor = [UIColor colorWithWhite:1 alpha:0.75];
@@ -241,7 +240,7 @@
                                                   attributes:@{NSFontAttributeName:self.bio.font}
                                                      context:nil];
     bioRect.origin.x = padding;
-    bioRect.origin.y = self.title.frame.origin.y + self.title.frame.size.height + 10;
+    bioRect.origin.y = self.title.frame.origin.y + self.title.frame.size.height + 6;
     self.bio.frame = bioRect;
     
     // ticker
@@ -295,15 +294,15 @@
 
 - (void)setHighlighted:(BOOL)highlighted {
     if (highlighted) {
-        [UIView animateWithDuration:0.3f delay:0 usingSpringWithDamping:0.6f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+        [UIView animateWithDuration:0.6f delay:0 usingSpringWithDamping:0.6f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
             //self.alpha = 0.75;
-            //self.transform = CGAffineTransformMakeScale(0.9, 0.9);
+            self.transform = CGAffineTransformMakeScale(0.96, 0.96);
         } completion:nil];
     }
     else {
-        [UIView animateWithDuration:0.3f delay:0 usingSpringWithDamping:0.6f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+        [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.6f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
             self.alpha = 1;
-            //self.transform = CGAffineTransformIdentity;
+            self.transform = CGAffineTransformIdentity;
         } completion:nil];
     }
 }

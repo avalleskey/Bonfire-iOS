@@ -12,11 +12,16 @@
 #import "EmptyChannelCell.h"
 #import "ErrorChannelCell.h"
 #import "LauncherNavigationViewController.h"
+#import "Launcher.h"
+#import "MyRoomsListCell.h"
+#import "RoomSuggestionsListCell.h"
+#import "TabController.h"
 
 #define envConfig [[[NSUserDefaults standardUserDefaults] objectForKey:@"config"] objectForKey:[[NSUserDefaults standardUserDefaults] stringForKey:@"environment"]]
 
 @interface MyRoomsViewController ()
 
+@property (strong, nonatomic) LauncherNavigationViewController *launchNavVC;
 @property (strong, nonatomic) NSMutableArray *rooms;
 @property (nonatomic) BOOL loading;
 @property (nonatomic) BOOL errorLoading;
@@ -30,37 +35,84 @@ static NSString * const reuseIdentifier = @"RoomCell";
 static NSString * const emptyRoomCellReuseIdentifier = @"EmptyRoomCell";
 static NSString * const errorRoomCellReuseIdentifier = @"ErrorRoomCell";
 
+static NSString * const miniRoomCellReuseIdentifier = @"MiniCell";
+static NSString * const myRoomsCellReuseIdentifier = @"MyRoomsCell";
+
+static NSString * const blankReuseIdentifier = @"BlankCell";
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
+    
+    self.launchNavVC = (LauncherNavigationViewController *)self.navigationController;
     
     self.rooms = [[NSMutableArray alloc] init];
     self.view.backgroundColor = [UIColor whiteColor];
     
     self.loading = true;
-    [self.collectionView setContentOffset:CGPointMake(-16, 0)];
-    self.collectionView.scrollEnabled = false;
     self.errorLoading = false;
     
-    [self setupCollectionView];
-    [self setupCreateRoomButton];
+    [self setupTableView];
+    // [self addPill];
+    // [self setupCreateRoomButton];
     
     self.manager = [HAWebService manager];
     [self getRooms];
+}
+
+- (void)addPill {
+    TabController *tabController = (TabController *)self.tabBarController;
+    [tabController hidePill:nil];
+    [tabController addPillWithTitle:@"Add Period" andImage:[UIImage imageNamed:@"pill_plus_icon"]];
     
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(refreshMyRooms:) name:@"refreshMyRooms" object:nil];
+    [tabController.currentPill bk_whenTapped:^{
+        
+    }];
 }
 
-- (void)refreshMyRooms:(id)sender {
-    [self getRooms];
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    
+    if (self.launchNavVC == nil) {
+        self.launchNavVC = (LauncherNavigationViewController *)self.navigationController;
+    }
+    
+    CGFloat navigationHeight = self.navigationController != nil ? self.navigationController.navigationBar.frame.origin.y + self.navigationController.navigationBar.frame.size.height : 0;
+    CGFloat tabBarHeight = self.navigationController.tabBarController != nil ? self.navigationController.tabBarController.tabBar.frame.size.height : 0;
+    self.tableView.frame = CGRectMake(0, 0, self.view.frame.size.width, [UIScreen mainScreen].bounds.size.height - navigationHeight);
+    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, tabBarHeight + 24, 0);
+    self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, tabBarHeight, 0);
 }
 
+- (void)setupTableView {
+    self.tableView.delegate = self;
+    self.tableView.dataSource = self;
+    [self.tableView setSeparatorColor:[UIColor clearColor]];
+    
+    [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:blankReuseIdentifier];
+    [self.tableView registerClass:[MyRoomsListCell class] forCellReuseIdentifier:myRoomsCellReuseIdentifier];
+    [self.tableView registerClass:[RoomSuggestionsListCell class] forCellReuseIdentifier:miniRoomCellReuseIdentifier];
+}
+
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    if (scrollView == self.tableView) {
+        NSLog(@"scroll view did scroll: %f", scrollView.contentOffset.y);
+        if (scrollView.contentOffset.y > 10 && self.launchNavVC.shadowView.alpha == 0) {
+            [self.launchNavVC setShadowVisibility:TRUE withAnimation:TRUE];
+        }
+        else {
+            [self.launchNavVC setShadowVisibility:FALSE withAnimation:TRUE];
+        }
+    }
+}
+
+/*
 - (void)setupCollectionView {
-    UICollectionViewFlowLayout *flowLayout = [[UICollectionViewFlowLayout alloc] init];
-    flowLayout.minimumLineSpacing = 8.f;
-    flowLayout.scrollDirection = UICollectionViewScrollDirectionHorizontal;
+    self.myRoomsLayout = [[UICollectionViewFlowLayout alloc] init];
+    self.myRoomsLayout.minimumLineSpacing = 10.f;
+    self.myRoomsLayout.scrollDirection = UICollectionViewScrollDirectionHorizontal;
     
-    self.collectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, self.view.frame.size.height * .2, self.view.frame.size.width, self.view.frame.size.height * .6) collectionViewLayout:flowLayout];
+    self.collectionView = [[UICollectionView alloc] initWithFrame:self.view.bounds collectionViewLayout:self.myRoomsLayout];
     self.collectionView.delegate = self;
     self.collectionView.dataSource = self;
     self.collectionView.bounces = false;
@@ -73,8 +125,8 @@ static NSString * const errorRoomCellReuseIdentifier = @"ErrorRoomCell";
     self.collectionView.backgroundColor = [UIColor whiteColor];
     
     [self.view addSubview:self.collectionView];
-}
-- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
+}*/
+/*- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
     UICollectionViewCell *closestCell = self.collectionView.visibleCells[0];
     for (UICollectionViewCell *cell in self.collectionView.visibleCells) {
         int closestCellDelta = fabs(closestCell.center.x - self.collectionView.bounds.size.width/2.0 - self.collectionView.contentOffset.x);
@@ -85,8 +137,9 @@ static NSString * const errorRoomCellReuseIdentifier = @"ErrorRoomCell";
     }
     NSIndexPath *indexPath = [self.collectionView indexPathForCell:closestCell];
     [self.collectionView scrollToItemAtIndexPath:indexPath atScrollPosition:UICollectionViewScrollPositionCenteredHorizontally animated:true];
-}
+}*/
 
+/*
 - (void)setupCreateRoomButton {
     self.createRoomButton = [UIButton buttonWithType:UIButtonTypeCustom];
     self.createRoomButton.frame = CGRectMake(0, 0, 92, 50);
@@ -115,11 +168,11 @@ static NSString * const errorRoomCellReuseIdentifier = @"ErrorRoomCell";
     } forControlEvents:(UIControlEventTouchUpInside|UIControlEventTouchCancel|UIControlEventTouchDragExit)];
     
     [self.createRoomButton bk_whenTapped:^{
-        [(LauncherNavigationViewController *)self.navigationController openCreateRoom];
+        [[Launcher sharedInstance] openCreateRoom];
     }];
     
     [self.view addSubview:self.createRoomButton];
-}
+}*/
 
 - (void)getRooms {
     NSString *url;// = [NSString stringWithFormat:@"%@/%@/schools/%@/channels", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], @"2"];
@@ -162,6 +215,139 @@ static NSString * const errorRoomCellReuseIdentifier = @"ErrorRoomCell";
     }];
 }
 
+#pragma mark - Table view data source
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+    return 4;
+}
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return 1;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (indexPath.section == 0) {
+        MyRoomsListCell *cell = [tableView dequeueReusableCellWithIdentifier:myRoomsCellReuseIdentifier forIndexPath:indexPath];
+        
+        if (cell == nil) {
+            cell = [[MyRoomsListCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:myRoomsCellReuseIdentifier];
+        }
+        
+        cell.collectionView.frame = CGRectMake(0, 0, cell.frame.size.width, cell.frame.size.height);
+        
+        return cell;
+    }
+    else {
+        RoomSuggestionsListCell *cell = [tableView dequeueReusableCellWithIdentifier:miniRoomCellReuseIdentifier forIndexPath:indexPath];
+        
+        if (cell == nil) {
+            cell = [[RoomSuggestionsListCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:miniRoomCellReuseIdentifier];
+        }
+        
+        cell.collectionView.frame = CGRectMake(0, 0, cell.frame.size.width, cell.frame.size.height);
+        cell.lineSeparator.hidden = true;
+        
+        return cell;
+    }
+    
+    /*
+    UITableViewCell *blankCell = [tableView dequeueReusableCellWithIdentifier:blankReuseIdentifier forIndexPath:indexPath];
+    
+    blankCell.backgroundColor = [UIColor colorWithWhite:0.97 alpha:1];
+    
+    return blankCell;*/
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    return indexPath.section == 0 ? 400 : 160;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
+    if (section == 0) return 96;
+    
+    return 72;
+}
+- (nullable UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
+    //if (section > 1) return nil;
+    
+    if (section == 0) {
+        UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 96)];
+        
+        UIImageView *profilePicture = [[UIImageView alloc] initWithFrame:CGRectMake(16, 32, 40, 40)];
+        [self continuityRadiusForView:profilePicture withRadius:profilePicture.frame.size.height*.25];
+        [profilePicture setImage:[[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
+        profilePicture.tintColor = [Session sharedInstance].themeColor;
+        profilePicture.layer.masksToBounds = true;
+        profilePicture.backgroundColor = [UIColor whiteColor];
+        profilePicture.userInteractionEnabled = true;
+        [header addSubview:profilePicture];
+        
+        UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(68, 34, self.view.frame.size.width - 68 - 56 - 16, 38)];
+        title.text = @"Rooms";
+        title.textAlignment = NSTextAlignmentLeft;
+        title.font = [UIFont systemFontOfSize:32 weight:UIFontWeightHeavy];
+        title.textColor = [UIColor colorWithWhite:0.2f alpha:1];
+        
+        [header addSubview:title];
+        
+        UIButton *newRoomButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        newRoomButton.frame = CGRectMake(header.frame.size.width - 40 - 16, 32, 40, 40);
+        newRoomButton.adjustsImageWhenHighlighted = false;
+        [newRoomButton setImage:[UIImage imageNamed:@"headerNewRoomIcon"] forState:UIControlStateNormal];
+        [newRoomButton bk_addEventHandler:^(id sender) {
+            [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+                newRoomButton.alpha = 0.8;
+                newRoomButton.transform = CGAffineTransformMakeScale(0.8, 0.8);
+            } completion:nil];
+        } forControlEvents:UIControlEventTouchDown];
+        
+        [newRoomButton bk_addEventHandler:^(id sender) {
+            [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+                newRoomButton.alpha = 1;
+                newRoomButton.transform = CGAffineTransformMakeScale(1, 1);
+            } completion:nil];
+        } forControlEvents:(UIControlEventTouchUpInside|UIControlEventTouchCancel|UIControlEventTouchDragExit)];
+        
+        [newRoomButton bk_whenTapped:^{
+            [[Launcher sharedInstance] openCreateRoom];
+        }];
+        [header addSubview:newRoomButton];
+        
+        return header;
+    }
+    else {
+        UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 72)];
+        
+        UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(16, 32, self.view.frame.size.width - 32, 24)];
+        if (section == 1) { title.text = @"Popular Now 🔥"; }
+        if (section == 2) { title.text = @"New Rooms We Love"; }
+        if (section == 3) { title.text = @"Share Your Best Recipes 🦃"; }
+        if (section == 4) { title.text = @"Categories"; }
+        title.textAlignment = NSTextAlignmentLeft;
+        title.font = [UIFont systemFontOfSize:22.f weight:UIFontWeightBold];
+        title.textColor = [UIColor colorWithWhite:0.07f alpha:1];
+        
+        [header addSubview:title];
+        
+        return header;
+    }
+    
+    // return nil;
+}
+- (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {    
+    return 24;
+}
+- (nullable UIView *)tableView:(UITableView *)tableView viewForFooterInSection:(NSInteger)section {
+    if (section == 0 || section == 4) return nil;
+    
+    UIView *footer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 24)];
+    UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(16, footer.frame.size.height - (1 / [UIScreen mainScreen].scale), self.view.frame.size.width - 32, 1 / [UIScreen mainScreen].scale)];
+    separator.backgroundColor = [UIColor colorWithWhite:0.92 alpha:1];
+    [footer addSubview:separator];
+    
+    return footer;
+}
+
+/*
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
     if (self.loading) {
         return 2;
@@ -255,15 +441,18 @@ static NSString * const errorRoomCellReuseIdentifier = @"ErrorRoomCell";
             for (int i = 0; i < cell.membersView.subviews.count; i++) {
                 if ([cell.membersView.subviews[i] isKindOfClass:[UIImageView class]]) {
                     UIImageView *imageView = cell.membersView.subviews[i];
+                    
                     if (cell.room.attributes.summaries.members.count > imageView.tag) {
                         imageView.hidden = false;
                         
-                        NSString *picURL = @"";// cell.room.attributes.summaries.members[imageView.tag].attributes.details.profilePicture;
+                        User *member = [[User alloc] initWithDictionary:cell.room.attributes.summaries.members[imageView.tag] error:nil];
+                        NSString *picURL = member.attributes.details.media.profilePicture;
                         if (picURL.length > 0) {
                             [imageView sd_setImageWithURL:[NSURL URLWithString:picURL]];
                         }
                         else {
                             [imageView setImage:[[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
+                            imageView.tintColor = [self colorFromHexString:member.attributes.details.color];
                         }
                     }
                     else {
@@ -280,23 +469,13 @@ static NSString * const errorRoomCellReuseIdentifier = @"ErrorRoomCell";
         }
     }
 }
+ */
 
-- (UIColor *)colorFromHexString:(NSString *)hexString {
-    unsigned rgbValue = 0;
-    if (hexString != nil && hexString.length == 6) {
-        NSScanner *scanner = [NSScanner scannerWithString:hexString];
-        [scanner setScanLocation:0]; // bypass '#' character
-        [scanner scanHexInt:&rgbValue];
-        return [UIColor colorWithDisplayP3Red:((rgbValue & 0xFF0000) >> 16)/255.0 green:((rgbValue & 0xFF00) >> 8)/255.0 blue:(rgbValue & 0xFF)/255.0 alpha:1.0];
-    }
-    else {
-        return [UIColor colorWithWhite:0.2f alpha:1];
-    }
-}
-
+/*
 - (CGSize)collectionView:(UICollectionView *)collectionView
                   layout:(UICollectionViewLayout *)collectionViewLayout
   sizeForItemAtIndexPath:(NSIndexPath *)indexPath {
+    if (collectionViewLayout == self.)
     float height = self.collectionView.frame.size.height - 32;
     return CGSizeMake(self.view.frame.size.width - 32, height);
 }
@@ -309,7 +488,7 @@ static NSString * const errorRoomCellReuseIdentifier = @"ErrorRoomCell";
         RoomContext *context = [[RoomContext alloc] initWithDictionary:@{@"status": STATUS_MEMBER} error:nil];
         room.attributes.context = context;
         
-        [(LauncherNavigationViewController *)self.navigationController openRoom:room];
+        [[Launcher sharedInstance] openRoom:room];
     }
     else if (self.errorLoading) {
         // tap to try loading again
@@ -323,6 +502,15 @@ static NSString * const errorRoomCellReuseIdentifier = @"ErrorRoomCell";
         [self getRooms];
         [self.collectionView reloadData];
     }
+}*/
+
+- (void)continuityRadiusForView:(UIView *)sender withRadius:(CGFloat)radius {
+    CAShapeLayer * maskLayer = [CAShapeLayer layer];
+    maskLayer.path = [UIBezierPath bezierPathWithRoundedRect:sender.bounds
+                                           byRoundingCorners:UIRectCornerBottomLeft|UIRectCornerBottomRight|UIRectCornerTopLeft|UIRectCornerTopRight
+                                                 cornerRadii:CGSizeMake(radius, radius)].CGPath;
+    
+    sender.layer.mask = maskLayer;
 }
 
 @end

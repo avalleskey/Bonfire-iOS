@@ -14,14 +14,14 @@
 #import "Post.h"
 #import "User.h"
 
-@interface LauncherNavigationViewController : UINavigationController <UINavigationControllerDelegate, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate, UIViewControllerTransitioningDelegate, UIGestureRecognizerDelegate, SloppySwiperDelegate>
+@interface LauncherNavigationViewController : UINavigationController <UINavigationControllerDelegate, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate, UIGestureRecognizerDelegate, SloppySwiperDelegate>
 
 @property (strong, nonatomic) SloppySwiper *swiper;
 
 @property (strong, nonatomic) UITableView *searchResultsTableView;
 @property (strong, nonatomic) UITextField *textField;
 
-@property (strong, nonatomic) UIImageView *profilePicture;
+@property (strong, nonatomic) UIButton *inviteFriendButton;
 @property (strong, nonatomic) UIButton *composePostButton;
 @property (strong, nonatomic) UIButton *infoButton;
 @property (strong, nonatomic) UIButton *moreButton;
@@ -35,26 +35,14 @@
 - (void)updateNavigationBarItemsWithAnimation:(BOOL)animated;
 - (void)updateSearchText:(NSString *)newSearchText;
 
-- (void)openRoom:(Room *)room;
-- (void)openRoomMembersForRoom:(Room *)room;
-- (void)openPost:(Post *)post;
-- (void)openProfile:(User *)user;
-- (void)openCreateRoom;
-- (void)openComposePost;
-- (void)openEditProfile;
+- (void)positionTextFieldSearchIcon;
+- (void)showSearchIcon;
+- (void)hideSearchIcon;
 
 @property (strong, nonatomic) UIColor *currentTheme;
 
 @property (nonatomic) CGFloat currentKeyboardHeight;
     
 @property (nonatomic) BOOL isCreatingPost;
-
-@end
-
-@interface PushAnimator : NSObject <UIViewControllerAnimatedTransitioning>
-
-@end
-
-@interface PopAnimator : NSObject <UIViewControllerAnimatedTransitioning>
 
 @end

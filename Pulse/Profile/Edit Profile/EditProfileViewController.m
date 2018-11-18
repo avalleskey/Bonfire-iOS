@@ -92,6 +92,8 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     [self.tableView registerClass:[ButtonCell class] forCellReuseIdentifier:buttonReuseIdentifier];
 }
 - (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    
     self.navigationBackgroundView.frame = CGRectMake(0, self.navigationController.navigationBar.frame.size.height - (self.navigationController.navigationBar.frame.size.height + 50), self.view.frame.size.width, self.navigationController.navigationBar.frame.size.height + 50);
     [self.navigationController.navigationBar insertSubview:self.navigationBackgroundView atIndex:1];
     

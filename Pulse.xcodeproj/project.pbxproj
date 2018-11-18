@@ -94,6 +94,12 @@
 		D9C03941215AD4AC00B30A41 /* ComposeInputView.m in Sources */ = {isa = PBXBuildFile; fileRef = D9C03940215AD4AC00B30A41 /* ComposeInputView.m */; };
 		D9C03944215D6F1900B30A41 /* LauncherNavigationViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9C03943215D6F1900B30A41 /* LauncherNavigationViewController.m */; };
 		D9C0394D215DF17000B30A41 /* FeedViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9C0394C215DF17000B30A41 /* FeedViewController.m */; };
+		D9C8B558219F5A3600A9A282 /* TabController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9C8B557219F5A3600A9A282 /* TabController.m */; };
+		D9C8B55B219F5BAB00A9A282 /* TabBar.m in Sources */ = {isa = PBXBuildFile; fileRef = D9C8B559219F5BAA00A9A282 /* TabBar.m */; };
+		D9C8B55E219F5D3300A9A282 /* Launcher.m in Sources */ = {isa = PBXBuildFile; fileRef = D9C8B55D219F5D3300A9A282 /* Launcher.m */; };
+		D9C8B564219F897700A9A282 /* MyRoomsListCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D9C8B562219F897700A9A282 /* MyRoomsListCell.m */; };
+		D9C8B567219F8FC700A9A282 /* UIColor+Hex.m in Sources */ = {isa = PBXBuildFile; fileRef = D9C8B566219F8FC700A9A282 /* UIColor+Hex.m */; };
+		D9C8B56B21A1E33B00A9A282 /* UIColor+Palette.m in Sources */ = {isa = PBXBuildFile; fileRef = D9C8B56A21A1E33B00A9A282 /* UIColor+Palette.m */; };
 		D9CB78E52166AF2300EEDBC9 /* PostViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9CB78E42166AF2300EEDBC9 /* PostViewController.m */; };
 		D9CB78E82166BAD700EEDBC9 /* ExpandedPostCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D9CB78E72166BAD700EEDBC9 /* ExpandedPostCell.m */; };
 		D9CB78EF2166E1B400EEDBC9 /* VLDContextSheetItem.m in Sources */ = {isa = PBXBuildFile; fileRef = D9CB78E92166E1B200EEDBC9 /* VLDContextSheetItem.m */; };
@@ -294,6 +300,18 @@
 		D9C03943215D6F1900B30A41 /* LauncherNavigationViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LauncherNavigationViewController.m; sourceTree = "<group>"; };
 		D9C0394B215DF17000B30A41 /* FeedViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FeedViewController.h; sourceTree = "<group>"; };
 		D9C0394C215DF17000B30A41 /* FeedViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FeedViewController.m; sourceTree = "<group>"; };
+		D9C8B556219F5A3600A9A282 /* TabController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TabController.h; sourceTree = "<group>"; };
+		D9C8B557219F5A3600A9A282 /* TabController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TabController.m; sourceTree = "<group>"; };
+		D9C8B559219F5BAA00A9A282 /* TabBar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TabBar.m; sourceTree = "<group>"; };
+		D9C8B55A219F5BAA00A9A282 /* TabBar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TabBar.h; sourceTree = "<group>"; };
+		D9C8B55C219F5D3300A9A282 /* Launcher.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Launcher.h; sourceTree = "<group>"; };
+		D9C8B55D219F5D3300A9A282 /* Launcher.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Launcher.m; sourceTree = "<group>"; };
+		D9C8B562219F897700A9A282 /* MyRoomsListCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MyRoomsListCell.m; sourceTree = "<group>"; };
+		D9C8B563219F897700A9A282 /* MyRoomsListCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MyRoomsListCell.h; sourceTree = "<group>"; };
+		D9C8B565219F8FC700A9A282 /* UIColor+Hex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIColor+Hex.h"; sourceTree = "<group>"; };
+		D9C8B566219F8FC700A9A282 /* UIColor+Hex.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIColor+Hex.m"; sourceTree = "<group>"; };
+		D9C8B56921A1E33B00A9A282 /* UIColor+Palette.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "UIColor+Palette.h"; sourceTree = "<group>"; };
+		D9C8B56A21A1E33B00A9A282 /* UIColor+Palette.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "UIColor+Palette.m"; sourceTree = "<group>"; };
 		D9CB78E32166AF2300EEDBC9 /* PostViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PostViewController.h; sourceTree = "<group>"; };
 		D9CB78E42166AF2300EEDBC9 /* PostViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PostViewController.m; sourceTree = "<group>"; };
 		D9CB78E62166BAD700EEDBC9 /* ExpandedPostCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ExpandedPostCell.h; sourceTree = "<group>"; };
@@ -392,6 +410,8 @@
 			children = (
 				D907B080214EEC5000A59712 /* AppDelegate.h */,
 				D907B081214EEC5000A59712 /* AppDelegate.m */,
+				D9C8B56921A1E33B00A9A282 /* UIColor+Palette.h */,
+				D9C8B56A21A1E33B00A9A282 /* UIColor+Palette.m */,
 				D907B089214EEC5300A59712 /* Assets.xcassets */,
 				D983D72D216D80A500F9D201 /* Models */,
 				D916430A2162C37B00523770 /* Launcher */,
@@ -404,6 +424,10 @@
 				D907B0FD215068BC00A59712 /* HAWebService.m */,
 				D94FD1A3216C5B4300B84E45 /* OnboardingViewController.h */,
 				D94FD1A2216C5B4300B84E45 /* OnboardingViewController.m */,
+				D9C8B556219F5A3600A9A282 /* TabController.h */,
+				D9C8B557219F5A3600A9A282 /* TabController.m */,
+				D9C8B55A219F5BAA00A9A282 /* TabBar.h */,
+				D9C8B559219F5BAA00A9A282 /* TabBar.m */,
 				D974B74521614BCA00C03269 /* Home */,
 				D974B74421614BAB00C03269 /* My Rooms */,
 				D924BE312154780F00EB7385 /* HeaderView.h */,
@@ -415,6 +439,8 @@
 				D9164311216407C700523770 /* Profile */,
 				D974B73C215F246C00C03269 /* RoomSuggestionsListCell.h */,
 				D974B73D215F246C00C03269 /* RoomSuggestionsListCell.m */,
+				D9C8B563219F897700A9A282 /* MyRoomsListCell.h */,
+				D9C8B562219F897700A9A282 /* MyRoomsListCell.m */,
 				D9C0393F215AD4AC00B30A41 /* ComposeInputView.h */,
 				D9C03940215AD4AC00B30A41 /* ComposeInputView.m */,
 				D974B74221614B6D00C03269 /* Post */,
@@ -460,6 +486,8 @@
 			children = (
 				D9C03942215D6F1900B30A41 /* LauncherNavigationViewController.h */,
 				D9C03943215D6F1900B30A41 /* LauncherNavigationViewController.m */,
+				D9C8B55C219F5D3300A9A282 /* Launcher.h */,
+				D9C8B55D219F5D3300A9A282 /* Launcher.m */,
 				D9BD771021727FB000DAB9BE /* RoomSearchTableView.h */,
 				D9BD771121727FB000DAB9BE /* RoomSearchTableView.m */,
 				D916430B2162C3A100523770 /* SearchResultCell.h */,
@@ -683,6 +711,7 @@
 		D9BD770F2172784F00DAB9BE /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				D9C8B568219F8FCB00A9A282 /* UIColor+Hex */,
 				D94DE3352199204100CA3E1F /* SloppySwiper */,
 				D907B1032150697400A59712 /* NSArray+Clean.h */,
 				D907B1012150697300A59712 /* NSArray+Clean.m */,
@@ -693,6 +722,15 @@
 				D9CB78F22166E1BA00EEDBC9 /* VLDContextSheet */,
 			);
 			path = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		D9C8B568219F8FCB00A9A282 /* UIColor+Hex */ = {
+			isa = PBXGroup;
+			children = (
+				D9C8B565219F8FC700A9A282 /* UIColor+Hex.h */,
+				D9C8B566219F8FC700A9A282 /* UIColor+Hex.m */,
+			);
+			path = "UIColor+Hex";
 			sourceTree = "<group>";
 		};
 		D9CB78F22166E1BA00EEDBC9 /* VLDContextSheet */ = {
@@ -952,7 +990,9 @@
 				D902CD4F21993D390088F479 /* RoomViewController.m in Sources */,
 				D924BE2421542E4500EB7385 /* PostImagesView.m in Sources */,
 				D9AECE3A21571DBE00F01CAD /* TabBarView.m in Sources */,
+				D9C8B567219F8FC700A9A282 /* UIColor+Hex.m in Sources */,
 				D96AD79C218102AF00849F6B /* InputCell.m in Sources */,
+				D9C8B564219F897700A9A282 /* MyRoomsListCell.m in Sources */,
 				D9BD771221727FB000DAB9BE /* RoomSearchTableView.m in Sources */,
 				D916431E2165CC0400523770 /* NSDate+NVTimeAgo.m in Sources */,
 				D94DE3322199203C00CA3E1F /* SSWDirectionalPanGestureRecognizer.m in Sources */,
@@ -974,6 +1014,7 @@
 				D924BE2A21542E8F00EB7385 /* PostActionsView.m in Sources */,
 				D95CBC3321794F65001E6D2D /* PostDisplay.m in Sources */,
 				D94FD203216D730300B84E45 /* UserStatus.m in Sources */,
+				D9C8B558219F5A3600A9A282 /* TabController.m in Sources */,
 				D94FD207216D730300B84E45 /* UserDetails.m in Sources */,
 				D9BD77172177DD1F00DAB9BE /* Defaults.m in Sources */,
 				D9C03944215D6F1900B30A41 /* LauncherNavigationViewController.m in Sources */,
@@ -985,6 +1026,7 @@
 				D94FD1FE216D730300B84E45 /* Post.m in Sources */,
 				D9164310216407C300523770 /* ProfileViewController.m in Sources */,
 				D924BE2121541B7400EB7385 /* PostCell.m in Sources */,
+				D9C8B55B219F5BAB00A9A282 /* TabBar.m in Sources */,
 				D983D733216E5A5900F9D201 /* LoadingCell.m in Sources */,
 				D907B090214EEC5300A59712 /* main.m in Sources */,
 				D923802B2183D98100E01A34 /* PaginationCell.m in Sources */,
@@ -1002,12 +1044,14 @@
 				D9CB78E82166BAD700EEDBC9 /* ExpandedPostCell.m in Sources */,
 				D94FD1EB216D730300B84E45 /* RoomCounts.m in Sources */,
 				D9CB78F12166E1B400EEDBC9 /* VLDContextSheet.m in Sources */,
+				D9C8B55E219F5D3300A9A282 /* Launcher.m in Sources */,
 				D94DE3342199203C00CA3E1F /* SSWAnimator.m in Sources */,
 				D9CB78F02166E1B400EEDBC9 /* VLDContextSheetItemView.m in Sources */,
 				D94FD1FC216D730300B84E45 /* PostDetails.m in Sources */,
 				D94FD1F6216D730300B84E45 /* RoomDiscoverability.m in Sources */,
 				D94FD1FB216D730300B84E45 /* PostSummaries.m in Sources */,
 				D94FD205216D730300B84E45 /* UserAttributes.m in Sources */,
+				D9C8B56B21A1E33B00A9A282 /* UIColor+Palette.m in Sources */,
 				D94FD20B216D730300B84E45 /* UserMedia.m in Sources */,
 				D998462921934309000B901F /* RoomMembersViewController.m in Sources */,
 				D974B73E215F246C00C03269 /* RoomSuggestionsListCell.m in Sources */,

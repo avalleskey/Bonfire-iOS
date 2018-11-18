@@ -11,6 +11,7 @@
 #import "ErrorView.h"
 #import <BlocksKit/BlocksKit.h>
 #import <BlocksKit/BlocksKit+UIKit.h>
+#import "Launcher.h"
 
 #define envConfig [[[NSUserDefaults standardUserDefaults] objectForKey:@"config"] objectForKey:[[NSUserDefaults standardUserDefaults] stringForKey:@"environment"]]
 
@@ -53,6 +54,8 @@
 }
 
 - (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    
     [self styleOnAppear];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillChangeFrame:) name:UIKeyboardWillChangeFrameNotification object:nil];
@@ -336,7 +339,7 @@
             NSError *error;
             Room *room = [[Room alloc] initWithDictionary:[self.post.attributes.status.postedIn toDictionary] error:&error];
             
-            [self.launchNavVC openRoom:room];
+            [[Launcher sharedInstance] openRoom:room];
         }];
         [actionSheet addAction:openRoom];
     }

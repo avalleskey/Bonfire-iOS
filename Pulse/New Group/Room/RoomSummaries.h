@@ -10,7 +10,7 @@
 
 @interface RoomSummaries : JSONModel
 
-@property (nonatomic) NSArray <User *> *members;
+@property (nonatomic) NSArray <NSDictionary *> *members;
 @property (nonatomic) RoomCounts *counts;
 
 @end

@@ -12,6 +12,11 @@
 #import "OnboardingViewController.h"
 #import "LauncherNavigationViewController.h"
 
+#import "MyRoomsViewController.h"
+#import "FeedViewController.h"
+#import "ProfileViewController.h"
+#import "UIColor+Hex.h"
+
 @interface AppDelegate ()
 
 @property (strong, nonatomic) Session *session;
@@ -149,16 +154,132 @@
 }
 
 - (void)launchLoggedIn {
-    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
-    
     NSInteger launches = [[NSUserDefaults standardUserDefaults] integerForKey:@"launches"];
     launches = launches + 1;
     [[NSUserDefaults standardUserDefaults] setInteger:launches forKey:@"launches"];
     
     // User is signed in.
     
-    self.window.rootViewController = [storyboard instantiateViewControllerWithIdentifier:@"rootVC"];
+    self.window.rootViewController = [self createTabBarController];
 }
+- (TabController *)createTabBarController {
+    TabController *tabBarController = [[TabController alloc] init];
+    tabBarController.delegate = self;
+    
+    // setup all the view controllers
+    NSMutableArray *vcArray = [[NSMutableArray alloc] init];
+    NSMutableDictionary *vcIndexDictionary = [[NSMutableDictionary alloc] init];
+    NSLog(@"view last opened: %@", [[NSUserDefaults standardUserDefaults] valueForKey:@"view_last_opened"]);
+    NSString *viewLastOpened = ([[NSUserDefaults standardUserDefaults] valueForKey:@"view_last_opened"] ? [[NSUserDefaults standardUserDefaults] valueForKey:@"view_last_opened"] : @"common");
+    
+    LauncherNavigationViewController *timeline = [self launcherWithRootViewController:@"timeline"];
+    [vcArray addObject:timeline];
+    [vcIndexDictionary setObject:@0 forKey:@"timeline"];
+
+    LauncherNavigationViewController *trending = [self launcherWithRootViewController:@"trending"];
+    [vcArray addObject:trending];
+    [vcIndexDictionary setObject:@1 forKey:@"trending"];
+
+    LauncherNavigationViewController *rooms = [self launcherWithRootViewController:@"rooms"];
+    [vcArray addObject:rooms];
+    [vcIndexDictionary setObject:@2 forKey:@"rooms"];
+
+    LauncherNavigationViewController *notifs = [self launcherWithRootViewController:@"notifs"];
+    [vcArray addObject:notifs];
+    [vcIndexDictionary setObject:@3 forKey:@"notifs"];
+
+    LauncherNavigationViewController *me = [self launcherWithRootViewController:@"me"];
+    [vcArray addObject:me];
+    [vcIndexDictionary setObject:@4 forKey:@"me"];
+
+    for (int i = 0; i < [vcArray count]; i++) {
+        LauncherNavigationViewController *navVC = vcArray[i];
+        navVC.tabBarItem.title = @"";
+        
+        navVC.tabBarItem.imageInsets = UIEdgeInsetsMake(6, 0, -6, 0);
+        [navVC.tabBarItem setTitleTextAttributes:@{NSForegroundColorAttributeName: [UIColor clearColor]}
+                                        forState:UIControlStateNormal];
+        [navVC.tabBarItem setTitleTextAttributes:@{NSForegroundColorAttributeName: [UIColor clearColor]}
+                                        forState:UIControlStateHighlighted];
+        
+        [vcArray replaceObjectAtIndex:i withObject:navVC];
+    }
+    
+    tabBarController.viewControllers = vcArray;
+    
+    for (int i = 0; i < [vcArray count]; i++) {
+        LauncherNavigationViewController *launchNav = vcArray[i];
+        
+        [launchNav updateNavigationBarItemsWithAnimation:NO];
+        [launchNav positionTextFieldSearchIcon];
+    }
+    
+//    NSLog(@"set last opened to %@", viewLastOpened);
+//    if ([vcIndexDictionary objectForKey:viewLastOpened]) {
+//        int selectedIndex = [vcIndexDictionary[viewLastOpened] intValue];
+//        NSLog(@"selected index %i", selectedIndex);
+//        tabBarController.selectedIndex = selectedIndex;
+//        [tabBarController setSelectedViewController:vcArray[selectedIndex]];
+//    }
+    tabBarController.selectedIndex = 2;
+    [tabBarController setSelectedViewController:vcArray[2]];
+    
+    return tabBarController;
+}
+- (LauncherNavigationViewController *)launcherWithRootViewController:(NSString *)rootID {
+    LauncherNavigationViewController *launchNav;
+    
+    if ([rootID isEqualToString:@"timeline"] || [rootID isEqualToString:@"trending"]) {
+        FeedViewController *viewController = [[FeedViewController alloc] initWithFeedId:rootID];
+        //viewController.view.frame = CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height);
+        [viewController.tableView setContentInsetAdjustmentBehavior:UIScrollViewContentInsetAdjustmentNever];
+        
+        launchNav = [[LauncherNavigationViewController alloc] initWithRootViewController:viewController];
+        [launchNav updateBarColor:[UIColor whiteColor] withAnimation:NO statusBarUpdateDelay:0];
+        [launchNav setShadowVisibility:false withAnimation:NO];
+        
+        viewController.tableView.frame = viewController.view.bounds;
+    }
+    else if ([rootID isEqualToString:@"rooms"]) {
+        MyRoomsViewController *viewController = [[MyRoomsViewController alloc] initWithStyle:UITableViewStyleGrouped];
+        viewController.view.frame = CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height);
+        [viewController.tableView setContentInsetAdjustmentBehavior:UIScrollViewContentInsetAdjustmentNever];
+        
+        launchNav = [[LauncherNavigationViewController alloc] initWithRootViewController:viewController];
+        [launchNav updateBarColor:[UIColor whiteColor] withAnimation:NO statusBarUpdateDelay:0];
+        [launchNav setShadowVisibility:false withAnimation:NO];
+    }/*
+    else if ([rootID isEqualToString:@"notifs"]) {
+        
+    }*/
+    else if ([rootID isEqualToString:@"me"]) {
+        User *user = [Session sharedInstance].currentUser;
+        
+        ProfileViewController *viewController = [[ProfileViewController alloc] init];
+        
+        NSString *themeCSS = user.attributes.details.color.length == 6 ? user.attributes.details.color : (user.identifier ? @"0076ff" : @"707479");
+        viewController.theme = [UIColor colorWithCSS:themeCSS];
+        
+        viewController.user = user;
+        
+        launchNav = [[LauncherNavigationViewController alloc] initWithRootViewController:viewController];
+        [launchNav updateBarColor:viewController.theme withAnimation:0 statusBarUpdateDelay:0];
+        [launchNav updateSearchText:user.attributes.details.displayName];
+    }
+    else {
+        UIViewController *viewController = [[UIViewController alloc] init];
+        
+        launchNav = [[LauncherNavigationViewController alloc] initWithRootViewController:viewController];
+        [launchNav setShadowVisibility:false withAnimation:NO];
+        [launchNav updateBarColor:[UIColor whiteColor] withAnimation:NO statusBarUpdateDelay:0];
+    }
+    
+    UITabBarItem *tabBarItem = [[UITabBarItem alloc] initWithTitle:@"" image:[[UIImage imageNamed:[NSString stringWithFormat:@"tabIcon-%@", rootID]] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] selectedImage:[[UIImage imageNamed:[NSString stringWithFormat:@"tabIcon-%@_selected", rootID]] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal]];
+    launchNav.tabBarItem = tabBarItem;
+    
+    return launchNav;
+}
+
 - (void)launchOnboarding {
     if (![self.window.rootViewController isKindOfClass:[OnboardingViewController class]]) {
         OnboardingViewController *onboardingVC = [[OnboardingViewController alloc] init];
@@ -210,30 +331,27 @@
     return token;
 }
 
-- (void)applicationWillResignActive:(UIApplication *)application {
-    // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
-    // Use this method to pause ongoing tasks, disable timers, and invalidate graphics rendering callbacks. Games should use this method to pause the game.
-}
-
-
-- (void)applicationDidEnterBackground:(UIApplication *)application {
-    // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
-    // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
-}
-
-
-- (void)applicationWillEnterForeground:(UIApplication *)application {
-    // Called as part of the transition from the background to the active state; here you can undo many of the changes made on entering the background.
-}
-
-
-- (void)applicationDidBecomeActive:(UIApplication *)application {
-    // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
-}
-
-
-- (void)applicationWillTerminate:(UIApplication *)application {
-    // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
+- (void)tabBarController:(UITabBarController *)tabBarController didSelectViewController:(UIViewController *)viewController {
+    static UIViewController *previousController = nil;
+    if (previousController == viewController) {
+        // the same tab was tapped a second time
+        if ([viewController isKindOfClass:[UINavigationController class]]) {
+            UINavigationController *currentNavigationController = (UINavigationController *)viewController;
+            if ([currentNavigationController.visibleViewController isKindOfClass:[UITableViewController class]]) {
+                UITableViewController *tableViewController = (UITableViewController *)currentNavigationController.visibleViewController;
+                [tableViewController.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:YES];
+            }
+            else if ([currentNavigationController.visibleViewController isKindOfClass:[UIViewController class]]) {
+                UIViewController *simpleViewController = (UIViewController *)currentNavigationController.visibleViewController;
+                if ([simpleViewController.view viewWithTag:101] && [[simpleViewController.view viewWithTag:101] isKindOfClass:[UIScrollView class]]) {
+                    // has a content scroll view
+                    UIScrollView *contentScrollView = (UIScrollView *)[simpleViewController.view viewWithTag:101];
+                    [contentScrollView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:YES];
+                }
+            }
+        }
+    }
+    previousController = viewController;
 }
 
 

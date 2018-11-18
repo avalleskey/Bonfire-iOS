@@ -7,6 +7,7 @@
 //
 
 #import "MiniChannelCell.h"
+#import "UIColor+Palette.h"
 
 #define padding 12
 
@@ -22,7 +23,13 @@
 - (void)setup {
     self.room = [[Room alloc] init];
     
-    [self continuityRadiusForCell:self withRadius:10.f];
+    // [self continuityRadiusForCell:self withRadius:10.f];
+    self.layer.cornerRadius = 12.f;
+    self.layer.masksToBounds = true;
+    self.layer.shadowRadius = 2.f;
+    self.layer.shadowOffset = CGSizeMake(0, 1);
+    self.layer.shadowColor = [UIColor colorWithWhite:1 alpha:0.08f].CGColor;
+    self.layer.shadowOpacity = 1;
     
     self.title = [[UILabel alloc] init];
     self.title.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightHeavy];
@@ -59,6 +66,8 @@
         userImage.layer.borderWidth = 2.f;
         userImage.layer.cornerRadius = userImage.frame.size.height / 2;
         userImage.layer.masksToBounds = true;
+        userImage.image = [[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+        userImage.tintColor = [UIColor bonfireGray];
         [_membersView addSubview:userImage];
     }
     
@@ -140,6 +149,21 @@
                                                  cornerRadii:CGSizeMake(radius, radius)].CGPath;
     
     sender.layer.mask = maskLayer;
+}
+
+- (void)setHighlighted:(BOOL)highlighted {
+    if (highlighted) {
+        [UIView animateWithDuration:0.6f delay:0 usingSpringWithDamping:0.6f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+            //self.alpha = 0.75;
+            self.transform = CGAffineTransformMakeScale(0.96, 0.96);
+        } completion:nil];
+    }
+    else {
+        [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.6f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+            self.alpha = 1;
+            self.transform = CGAffineTransformIdentity;
+        } completion:nil];
+    }
 }
 
 @end

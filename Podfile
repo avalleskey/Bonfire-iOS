@@ -6,7 +6,6 @@ target 'Pulse' do
   # use_frameworks!
 
   # Pods for Pulse
-  pod 'UIColor+Hex'
   pod 'BlocksKit'
   pod 'AFNetworking'
   pod 'NSStringEmojize'

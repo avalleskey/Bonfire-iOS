@@ -10,6 +10,7 @@
 #import "Session.h"
 #import <HapticHelper/HapticHelper.h>
 #import <QuartzCore/QuartzCore.h>
+#import "Launcher.h"
 
 #define IS_IPHONE        (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone)
 #define IS_IPHONE_5 ([[UIScreen mainScreen] bounds].size.height == 568.0)
@@ -53,20 +54,14 @@
     [self.launchNavVC setShadowVisibility:false withAnimation:false];
     
     [self.launchNavVC.composePostButton bk_whenTapped:^{
-        [self.launchNavVC openComposePost];
+        [[Launcher sharedInstance] openComposePost];
     }];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userUpdated:) name:@"UserUpdated" object:nil];
 }
 
 - (void)userUpdated:(NSNotification *)notification {
-    self.launchNavVC.profilePicture.tintColor = [Session sharedInstance].themeColor;
-    if ([Session sharedInstance].currentUser.attributes.details.media.profilePicture.length > 0) {
-        [self.launchNavVC.profilePicture sd_setImageWithURL:[NSURL URLWithString:[Session sharedInstance].currentUser.attributes.details.media.profilePicture] placeholderImage:[[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
-    }
-    else {
-        [self.launchNavVC.profilePicture setImage:[[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
-    }
+    self.launchNavVC.inviteFriendButton.tintColor = [Session sharedInstance].themeColor;
     self.launchNavVC.composePostButton.tintColor = [Session sharedInstance].themeColor;
     self.launchNavVC.textField.tintColor = [Session sharedInstance].themeColor;
     
@@ -75,6 +70,8 @@
 }
 
 - (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    
     [self updateScrollView];
 }
 
@@ -219,7 +216,7 @@
     
     self.myRoomsViewController.collectionView.center = CGPointMake(self.myRoomsViewController.collectionView.center.x, self.scrollView.frame.size.height / 2 - self.bottomBarContainer.frame.size.height / 2 - 22);
     
-    self.myRoomsViewController.createRoomButton.frame = CGRectMake((self.view.frame.size.width / 2 - (self.myRoomsViewController.createRoomButton.frame.size.width / 2)), self.myRoomsViewController.collectionView.frame.origin.y + self.myRoomsViewController.collectionView.frame.size.height + 12, self.myRoomsViewController.createRoomButton.frame.size.width, self.myRoomsViewController.createRoomButton.frame.size.height);
+    // self.myRoomsViewController.createRoomButton.frame = CGRectMake((self.view.frame.size.width / 2 - (self.myRoomsViewController.createRoomButton.frame.size.width / 2)), self.myRoomsViewController.collectionView.frame.origin.y + self.myRoomsViewController.collectionView.frame.size.height + 12, self.myRoomsViewController.createRoomButton.frame.size.width, self.myRoomsViewController.createRoomButton.frame.size.height);
     
     // set order of views
     self.timelineViewController.view.frame = CGRectMake(0, self.timelineViewController.view.frame.origin.y, self.view.frame.size.width, self.timelineViewController.view.frame.size.height);

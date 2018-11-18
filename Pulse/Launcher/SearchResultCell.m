@@ -8,6 +8,7 @@
 
 #import "SearchResultCell.h"
 #import <SDWebImage/UIImageView+WebCache.h>
+#import "UIColor+Palette.h"
 
 @implementation SearchResultCell
 
@@ -31,7 +32,7 @@
         self.selectionBackground = [[UIView alloc] init];
         self.selectionBackground.hidden = true;
         self.selectionBackground.layer.cornerRadius = 14.f;
-        self.selectionBackground.backgroundColor = [UIColor colorWithDisplayP3Red:0 green:0.46 blue:1 alpha:0.06f];
+        self.selectionBackground.backgroundColor = [UIColor bonfireBlueWithLevel:50];
         [self.contentView insertSubview:self.selectionBackground atIndex:0];
         
         // general cell styling

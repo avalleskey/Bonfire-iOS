@@ -14,6 +14,7 @@
 #import "LauncherNavigationViewController.h"
 #import "HAWebService.h"
 #import "Launcher.h"
+#import "UIColor+Palette.h"
 
 #define envConfig [[[NSUserDefaults standardUserDefaults] objectForKey:@"config"] objectForKey:[[NSUserDefaults standardUserDefaults] stringForKey:@"environment"]]
 
@@ -205,11 +206,11 @@ static NSString * const requestCellIdentifier = @"RequestCell";
             else {
                 // member cell
                 User *user = [[User alloc] initWithDictionary:self.requests[indexPath.row] error:nil];
-                cell.tag = self.requests[indexPath.row][@"id"];
+                cell.tag = [self.requests[indexPath.row][@"id"] integerValue];
                 
                 cell.imageView.backgroundColor = [UIColor whiteColor];
                 cell.imageView.image = [[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-                cell.imageView.tintColor = [self colorFromHexString:[[user.attributes.details.color lowercaseString] isEqualToString:@"ffffff"]?@"222222":user.attributes.details.color];
+                cell.imageView.tintColor = [UIColor fromHex:[[user.attributes.details.color lowercaseString] isEqualToString:@"ffffff"]?@"222222":user.attributes.details.color];
                 cell.textLabel.text = user.attributes.details.displayName;
                 cell.textLabel.textColor = [UIColor colorWithWhite:0.2f alpha:1];
                 cell.detailTextLabel.text = [NSString stringWithFormat:@"@%@", [user.attributes.details.identifier uppercaseString]];
@@ -268,7 +269,7 @@ static NSString * const requestCellIdentifier = @"RequestCell";
                 
                 cell.imageView.backgroundColor = [UIColor whiteColor];
                 cell.imageView.image = [[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-                cell.imageView.tintColor = [self colorFromHexString:[[user.attributes.details.color lowercaseString] isEqualToString:@"ffffff"]?@"222222":user.attributes.details.color];
+                cell.imageView.tintColor = [UIColor fromHex:[[user.attributes.details.color lowercaseString] isEqualToString:@"ffffff"]?@"222222":user.attributes.details.color];
                 cell.textLabel.text = user.attributes.details.displayName != nil ? user.attributes.details.displayName : @"Unkown User";
                 cell.textLabel.textColor = [UIColor colorWithWhite:0.2f alpha:1];
                 cell.detailTextLabel.text = [NSString stringWithFormat:@"@%@", [user.attributes.details.identifier uppercaseString]];
@@ -368,19 +369,6 @@ static NSString * const requestCellIdentifier = @"RequestCell";
                 [[Launcher sharedInstance] openProfile:user];
             }
         }
-    }
-}
-
-- (UIColor *)colorFromHexString:(NSString *)hexString {
-    unsigned rgbValue = 0;
-    if (hexString != nil && hexString.length == 6) {
-        NSScanner *scanner = [NSScanner scannerWithString:hexString];
-        [scanner setScanLocation:0]; // bypass '#' character
-        [scanner scanHexInt:&rgbValue];
-        return [UIColor colorWithDisplayP3Red:((rgbValue & 0xFF0000) >> 16)/255.0 green:((rgbValue & 0xFF00) >> 8)/255.0 blue:(rgbValue & 0xFF)/255.0 alpha:1.0];
-    }
-    else {
-        return [UIColor blackColor];
     }
 }
 

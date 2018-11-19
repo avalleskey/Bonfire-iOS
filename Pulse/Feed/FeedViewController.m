@@ -53,6 +53,23 @@ static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
     
     self.manager = [HAWebService manager];
     [self setupContent];
+    
+    NSLog(@"self.launchNavVC.currentTheme == %@", self.launchNavVC.currentTheme);
+    if (self.launchNavVC.currentTheme == NULL || self.launchNavVC.currentTheme == [UIColor whiteColor]) {
+        NSLog(@"mmmmk bye");
+        
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userUpdated:) name:@"UserUpdated" object:nil];
+    }
+}
+
+- (void)userUpdated:(NSNotification *)notification {
+    NSLog(@"user updated");
+    self.launchNavVC.textField.tintColor = [Session sharedInstance].themeColor;
+    self.launchNavVC.composePostButton.tintColor = [Session sharedInstance].themeColor;
+    self.launchNavVC.inviteFriendButton.tintColor = [Session sharedInstance].themeColor;
+    
+    self.view.tintColor = [Session sharedInstance].themeColor;
+    [self.tableView reloadData];
 }
 
 - (void)viewWillAppear:(BOOL)animated {

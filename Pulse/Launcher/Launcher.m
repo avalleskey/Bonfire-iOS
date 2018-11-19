@@ -15,7 +15,7 @@
 #import "OnboardingViewController.h"
 #import "CreateRoomViewController.h"
 #import "EditProfileViewController.h"
-#import "UIColor+Hex.h"
+#import "UIColor+Palette.h"
 #import "AppDelegate.h"
 #import "TabController.h"
 
@@ -96,7 +96,7 @@ static Launcher *launcher;
     RoomViewController *r = [[RoomViewController alloc] init];
     
     r.room = room;
-    r.theme = [self colorFromHexString:room.attributes.details.color.length == 6 ? room.attributes.details.color : @"707479"];
+    r.theme = [UIColor fromHex:room.attributes.details.color.length == 6 ? room.attributes.details.color : @"707479"];
     
     r.title = r.room.attributes.details.title ? r.room.attributes.details.title : @"Loading...";
     
@@ -140,7 +140,7 @@ static Launcher *launcher;
     RoomMembersViewController *rm = [[RoomMembersViewController alloc] initWithStyle:UITableViewStyleGrouped];
     
     rm.room = room;
-    rm.theme = [self colorFromHexString:room.attributes.details.color.length == 6 ? room.attributes.details.color : @"0076ff"];
+    rm.theme = [UIColor fromHex:room.attributes.details.color.length == 6 ? room.attributes.details.color : @"0076ff"];
     
     rm.title = @"Members";
     
@@ -178,7 +178,7 @@ static Launcher *launcher;
     ProfileViewController *p = [[ProfileViewController alloc] init];
     
     NSString *themeCSS = user.attributes.details.color.length == 6 ? user.attributes.details.color : (user.identifier ? @"0076ff" : @"707479");
-    p.theme = [self colorFromHexString:themeCSS];
+    p.theme = [UIColor fromHex:themeCSS];
     
     p.user = user;
     
@@ -215,7 +215,7 @@ static Launcher *launcher;
     
     p.post = post;
     NSString *themeCSS = [post.attributes.status.postedIn.attributes.details.color lowercaseString];
-    p.theme = [self colorFromHexString:[themeCSS isEqualToString:@"ffffff"]?@"222222":themeCSS];
+    p.theme = [UIColor fromHex:[themeCSS isEqualToString:@"ffffff"]?@"222222":themeCSS];
     p.title = @"Conversation";
     
     LauncherNavigationViewController *activeLauncherNavVC = [launcher activeLauncherNavigationController];
@@ -431,19 +431,6 @@ toViewController:(UIViewController*)toVC
     }
     
     return nil;
-}
-
-- (UIColor *)colorFromHexString:(NSString *)hexString {
-    unsigned rgbValue = 0;
-    if (hexString != nil && hexString.length == 6) {
-        NSScanner *scanner = [NSScanner scannerWithString:hexString];
-        [scanner setScanLocation:0]; // bypass '#' character
-        [scanner scanHexInt:&rgbValue];
-        return [UIColor colorWithDisplayP3Red:((rgbValue & 0xFF0000) >> 16)/255.0 green:((rgbValue & 0xFF00) >> 8)/255.0 blue:(rgbValue & 0xFF)/255.0 alpha:1.0];
-    }
-    else {
-        return [UIColor colorWithWhite:0.2f alpha:1];
-    }
 }
 
 @end

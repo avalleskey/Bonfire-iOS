@@ -35,7 +35,7 @@ static NSString * const reuseIdentifier = @"MiniChannel";
     self.selectionStyle = UITableViewCellSelectionStyleNone;
     
     UICollectionViewFlowLayout *flowLayout = [[UICollectionViewFlowLayout alloc] init];
-    flowLayout.minimumLineSpacing = 8.f;
+    flowLayout.minimumLineSpacing = 10;
     flowLayout.scrollDirection = UICollectionViewScrollDirectionHorizontal;
     
     _collectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, self.frame.size.height) collectionViewLayout:flowLayout];
@@ -105,7 +105,7 @@ static NSString * const reuseIdentifier = @"MiniChannel";
 - (CGSize)collectionView:(UICollectionView *)collectionView
                   layout:(UICollectionViewLayout *)collectionViewLayout
   sizeForItemAtIndexPath:(NSIndexPath *)indexPath {
-    return CGSizeMake(152, 156);
+    return CGSizeMake(180, 240);
 }
 
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {

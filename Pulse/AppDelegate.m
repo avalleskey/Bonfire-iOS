@@ -16,6 +16,7 @@
 #import "FeedViewController.h"
 #import "ProfileViewController.h"
 #import "UIColor+Hex.h"
+#import "MyRoomsListCell.h"
 
 @interface AppDelegate ()
 
@@ -340,6 +341,15 @@
             if ([currentNavigationController.visibleViewController isKindOfClass:[UITableViewController class]]) {
                 UITableViewController *tableViewController = (UITableViewController *)currentNavigationController.visibleViewController;
                 [tableViewController.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:YES];
+                
+                if ([currentNavigationController.visibleViewController isKindOfClass:[MyRoomsViewController class]]) {
+                    MyRoomsViewController *tableViewController = (MyRoomsViewController *)currentNavigationController.visibleViewController;
+                    
+                    if ([[tableViewController.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]] isKindOfClass:[MyRoomsListCell class]]) {
+                        MyRoomsListCell *firstCell = [tableViewController.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
+                        [firstCell.collectionView setContentOffset:CGPointMake(-16, 0) animated:YES];
+                    }
+                }
             }
             else if ([currentNavigationController.visibleViewController isKindOfClass:[UIViewController class]]) {
                 UIViewController *simpleViewController = (UIViewController *)currentNavigationController.visibleViewController;

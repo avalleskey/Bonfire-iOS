@@ -75,7 +75,7 @@ static NSString * const reuseIdentifier = @"Result";
     self.shadowView.layer.shadowRadius = 0;
     self.shadowView.layer.shadowOffset = CGSizeMake(0, 1);
     self.shadowView.layer.shadowColor = [UIColor blackColor].CGColor;
-    self.shadowView.layer.shadowOpacity = 0.04f;
+    self.shadowView.layer.shadowOpacity = 0.08f;
     self.shadowView.backgroundColor = [UIColor whiteColor];
     [self.navigationBar insertSubview:self.shadowView atIndex:0];
     

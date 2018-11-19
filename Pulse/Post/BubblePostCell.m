@@ -12,6 +12,8 @@
 #import <HapticHelper/HapticHelper.h>
 #import "Session.h"
 #import "LauncherNavigationViewController.h"
+#import "Launcher.h"
+#import "UIColor+Palette.h"
 
 #define UIViewParentController(__view) ({ \
     UIResponder *__responder = __view; \
@@ -457,10 +459,7 @@
             // confirm action
             MFMessageComposeViewController *messageController = [[MFMessageComposeViewController alloc] init]; // Create message VC
             messageController.messageComposeDelegate = self; // Set delegate to current instance
-            if (UIViewParentController(self).navigationController && [UIViewParentController(self).navigationController isKindOfClass:[LauncherNavigationViewController class]]) {
-                LauncherNavigationViewController *launchNavVC = (LauncherNavigationViewController *)UIViewParentController(self).navigationController;
-                messageController.transitioningDelegate = launchNavVC;
-            }
+            messageController.transitioningDelegate = [Launcher sharedInstance];
             
             messageController.body = @"Join my room! https://rooms.app/room/room-name"; // Set initial text to example message
             
@@ -622,19 +621,6 @@
                                                  cornerRadii:CGSizeMake(radius, radius)].CGPath;
     
     sender.layer.mask = maskLayer;
-}
-
-- (UIColor *)colorFromHexString:(NSString *)hexString {
-    unsigned rgbValue = 0;
-    if (hexString != nil && hexString.length == 6) {
-        NSScanner *scanner = [NSScanner scannerWithString:hexString];
-        [scanner setScanLocation:0]; // bypass '#' character
-        [scanner scanHexInt:&rgbValue];
-        return [UIColor colorWithRed:((rgbValue & 0xFF0000) >> 16)/255.0 green:((rgbValue & 0xFF00) >> 8)/255.0 blue:(rgbValue & 0xFF)/255.0 alpha:1.0];
-    }
-    else {
-        return [UIColor colorWithWhite:0.2f alpha:1];
-    }
 }
 
 @end

@@ -10,13 +10,14 @@
 
 @implementation ErrorView
 
-const NSInteger ErrorViewTypeGeneral     = 0;
-const NSInteger ErrorViewTypeBlocked     = 1;
-const NSInteger ErrorViewTypeNotFound    = 2;
-const NSInteger ErrorViewTypeNoInternet  = 3;
-const NSInteger ErrorViewTypeLocked      = 4;
-const NSInteger ErrorViewTypeHeart       = 5;
-const NSInteger ErrorViewTypeNoPosts     = 6;
+const NSInteger ErrorViewTypeGeneral         = 0;
+const NSInteger ErrorViewTypeBlocked         = 1;
+const NSInteger ErrorViewTypeNotFound        = 2;
+const NSInteger ErrorViewTypeNoInternet      = 3;
+const NSInteger ErrorViewTypeLocked          = 4;
+const NSInteger ErrorViewTypeHeart           = 5;
+const NSInteger ErrorViewTypeNoPosts         = 6;
+const NSInteger ErrorViewTypeNoNotifications = 7;
 
 - (id)initWithFrame:(CGRect)rect title:(NSString *)title description:(NSString *)description type:(NSInteger)type {
     self = [super initWithFrame:rect];
@@ -100,6 +101,10 @@ const NSInteger ErrorViewTypeNoPosts     = 6;
             break;
         case ErrorViewTypeNoPosts:
             self.imageView.image = [UIImage imageNamed:@"errorFlower"];
+            self.imageView.backgroundColor = [UIColor colorWithDisplayP3Red:0.6f green:0.6f blue:0.6f alpha:1.0];
+            break;
+        case ErrorViewTypeNoNotifications:
+            self.imageView.image = [UIImage imageNamed:@"errorNotifications"];
             self.imageView.backgroundColor = [UIColor colorWithDisplayP3Red:0.6f green:0.6f blue:0.6f alpha:1.0];
             break;
             

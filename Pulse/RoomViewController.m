@@ -14,6 +14,8 @@
 #import "RoomHeaderCell.h"
 #import "ProfileViewController.h"
 #import "EditRoomViewController.h"
+#import "UIColor+Palette.h"
+#import "Launcher.h"
 
 #define envConfig [[[NSUserDefaults standardUserDefaults] objectForKey:@"config"] objectForKey:[[NSUserDefaults standardUserDefaults] stringForKey:@"environment"]]
 
@@ -90,7 +92,7 @@ static NSString * const reuseIdentifier = @"Result";
         self.tableView.parentObject = room;
         
         // Update Room
-        UIColor *themeColor = [self colorFromHexString:[[self.room.attributes.details.color lowercaseString] isEqualToString:@"ffffff"]?@"222222":self.room.attributes.details.color];
+        UIColor *themeColor = [UIColor fromHex:[[self.room.attributes.details.color lowercaseString] isEqualToString:@"ffffff"]?@"222222":self.room.attributes.details.color];
         self.theme = themeColor;
         self.view.tintColor = themeColor;
         self.composeInputView.addMediaButton.tintColor = themeColor;
@@ -183,7 +185,7 @@ static NSString * const reuseIdentifier = @"Result";
     }
 }
 - (void)updateTheme {
-    UIColor *theme = [self colorFromHexString:self.room.attributes.details.color];
+    UIColor *theme = [UIColor fromHex:self.room.attributes.details.color];
     
     [self.launchNavVC updateBarColor:theme withAnimation:1 statusBarUpdateDelay:0];
     [UIView animateWithDuration:0.25f delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
@@ -286,7 +288,7 @@ static NSString * const reuseIdentifier = @"Result";
         [self.launchNavVC updateBarColor:@"707479" withAnimation:0 statusBarUpdateDelay:0];
         [self.launchNavVC updateSearchText:@"Loading..."];
     });
-    self.theme = [self colorFromHexString:@"707479"];*/
+    self.theme = [UIColor fromHex:@"707479"];*/
     
     /* mimic opening Room with Room identifier only
     Room *room = [[Room alloc] init];
@@ -497,7 +499,7 @@ static NSString * const reuseIdentifier = @"Result";
                 // p.room = [[Room alloc] initWithObject:room];
                 User *myUser = [Session sharedInstance].currentUser;
                 
-                p.theme = [self colorFromHexString:myUser.attributes.details.color.length == 6 ? myUser.attributes.details.color : @"0076ff"]; //[self colorFromHexString:user.attributes.details.color];
+                p.theme = [UIColor fromHex:myUser.attributes.details.color.length == 6 ? myUser.attributes.details.color : @"0076ff"];
                 // r.tableView.delegate = self;
                 p.user = myUser;
                 
@@ -832,7 +834,7 @@ static NSString * const reuseIdentifier = @"Result";
     Room *room = [[Room alloc] initWithDictionary:json error:nil];
     // 1 = Room
     cell.textLabel.text = room.attributes.details.title;
-    cell.imageView.backgroundColor = [self colorFromHexString:room.attributes.details.color];
+    cell.imageView.backgroundColor = [UIColor fromHex:room.attributes.details.color];
     
     BOOL useLiveCount = false;
     if (useLiveCount) {
@@ -866,7 +868,7 @@ static NSString * const reuseIdentifier = @"Result";
     [self.tableView refresh];
     
     self.title = self.room.attributes.details.title;
-    self.theme = [self colorFromHexString:self.room.attributes.details.color.length == 6 ? self.room.attributes.details.color : @"0076ff"];
+    self.theme = [UIColor fromHex:self.room.attributes.details.color.length == 6 ? self.room.attributes.details.color : @"0076ff"];
     self.view.tintColor = self.theme;
     
     [self loadRoom];
@@ -907,18 +909,6 @@ static NSString * const reuseIdentifier = @"Result";
     
     [self.launchNavVC updateBarColor:self.view.tintColor withAnimation:YES statusBarUpdateDelay:NO];
     [self.launchNavVC updateNavigationBarItemsWithAnimation:YES];
-}
-- (UIColor *)colorFromHexString:(NSString *)hexString {
-    unsigned rgbValue = 0;
-    if (hexString != nil && hexString.length == 6) {
-        NSScanner *scanner = [NSScanner scannerWithString:hexString];
-        [scanner setScanLocation:0]; // bypass '#' character
-        [scanner scanHexInt:&rgbValue];
-        return [UIColor colorWithDisplayP3Red:((rgbValue & 0xFF0000) >> 16)/255.0 green:((rgbValue & 0xFF00) >> 8)/255.0 blue:(rgbValue & 0xFF)/255.0 alpha:1.0];
-    }
-    else {
-        return [UIColor colorWithWhite:0.2f alpha:1];
-    }
 }
 
 - (void)turnOffComposeMode {
@@ -1032,11 +1022,11 @@ static NSString * const reuseIdentifier = @"Result";
             
             EditRoomViewController *epvc = [[EditRoomViewController alloc] initWithStyle:UITableViewStyleGrouped];
             epvc.view.tintColor = [Session sharedInstance].themeColor;
-            epvc.themeColor = [self colorFromHexString:self.room.attributes.details.color];
+            epvc.themeColor = [UIColor fromHex:self.room.attributes.details.color];
             epvc.room = self.room;
             
             UINavigationController *newNavController = [[UINavigationController alloc] initWithRootViewController:epvc];
-            newNavController.transitioningDelegate = self.launchNavVC;
+            newNavController.transitioningDelegate = [Launcher sharedInstance];
             newNavController.navigationBar.barStyle = UIBarStyleBlack;
             newNavController.navigationBar.translucent = false;
             newNavController.navigationBar.barTintColor = [UIColor whiteColor];
@@ -1092,7 +1082,7 @@ static NSString * const reuseIdentifier = @"Result";
             // confirm action
             MFMessageComposeViewController *messageController = [[MFMessageComposeViewController alloc] init]; // Create message VC
             messageController.messageComposeDelegate = self; // Set delegate to current instance
-            messageController.transitioningDelegate = self.launchNavVC;
+            messageController.transitioningDelegate = [Launcher sharedInstance];
             
             messageController.body = @"Join my room! https://rooms.app/room/room-name"; // Set initial text to example message
             

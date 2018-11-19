@@ -21,6 +21,7 @@
 #import "LoadingCell.h"
 #import "PaginationCell.h"
 #import "Launcher.h"
+#import "UIColor+Palette.h"
 
 @implementation RSTableView
 
@@ -204,7 +205,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                         NSError *userError;
                         User *userForImageView = [[User alloc] initWithDictionary:(NSDictionary *)room.attributes.summaries.members[i-1] error:&userError];
                         
-                        imageView.tintColor = [self colorFromHexString:userForImageView.attributes.details.color];
+                        imageView.tintColor = [UIColor fromHex:userForImageView.attributes.details.color];
                         if (!userError) {
                             NSString *picURL = userForImageView.attributes.details.media.profilePicture;
                             if (picURL.length > 0) {
@@ -267,7 +268,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             }
             
             cell.user = user;
-            cell.tintColor = [[user.attributes.details.color lowercaseString] isEqualToString:@"ffffff"] ? [UIColor colorWithWhite:0.2f alpha:1] : [self colorFromHexString:user.attributes.details.color];
+            cell.tintColor = [[user.attributes.details.color lowercaseString] isEqualToString:@"ffffff"] ? [UIColor colorWithWhite:0.2f alpha:1] : [UIColor fromHex:user.attributes.details.color];
             
             if (user.attributes.details.media.profilePicture && user.attributes.details.media.profilePicture.length > 0) {
                 [cell.profilePicture sd_setImageWithURL:[NSURL URLWithString:user.attributes.details.media.profilePicture] placeholderImage:[[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
@@ -317,7 +318,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             cell.loading = self.loading;
             cell.post = post;
             
-            cell.profilePicture.tintColor = [[cell.post.attributes.details.creator.attributes.details.color lowercaseString] isEqualToString:@"ffffff"] ? [UIColor colorWithWhite:0.2f alpha:1] : [self colorFromHexString:cell.post.attributes.details.creator.attributes.details.color];
+            cell.profilePicture.tintColor = [[cell.post.attributes.details.creator.attributes.details.color lowercaseString] isEqualToString:@"ffffff"] ? [UIColor colorWithWhite:0.2f alpha:1] : [UIColor fromHex:cell.post.attributes.details.creator.attributes.details.color];
             if (cell.profilePicture.gestureRecognizers.count == 0) {
                 [cell.profilePicture bk_whenTapped:^{
                     if ([UIViewParentController(self).navigationController isKindOfClass:[LauncherNavigationViewController class]]) {
@@ -418,7 +419,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                 }
                 else {
                     cell.profilePicture.image = [[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-                    cell.profilePicture.tintColor = [[cell.post.attributes.details.creator.attributes.details.color lowercaseString] isEqualToString:@"ffffff"] ? [UIColor colorWithWhite:0.2f alpha:1] : [self colorFromHexString:cell.post.attributes.details.creator.attributes.details.color];
+                    cell.profilePicture.tintColor = [[cell.post.attributes.details.creator.attributes.details.color lowercaseString] isEqualToString:@"ffffff"] ? [UIColor colorWithWhite:0.2f alpha:1] : [UIColor fromHex:cell.post.attributes.details.creator.attributes.details.color];
                 }
                 //[self.actionsView.commentsButton setTitle:[NSString stringWithFormat:@"%ld", (long)self.post.attributes.summaries.counts.comments] forState:UIControlStateNormal];
                 
@@ -1001,19 +1002,6 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     
     // Present the view controller.
     [imageViewer showFromViewController:UIViewParentController(self) transition:JTSImageViewControllerTransition_FromOriginalPosition];
-}
-
-- (UIColor *)colorFromHexString:(NSString *)hexString {
-    unsigned rgbValue = 0;
-    if (hexString != nil && hexString.length == 6) {
-        NSScanner *scanner = [NSScanner scannerWithString:hexString];
-        [scanner setScanLocation:0]; // bypass '#' character
-        [scanner scanHexInt:&rgbValue];
-        return [UIColor colorWithDisplayP3Red:((rgbValue & 0xFF0000) >> 16)/255.0 green:((rgbValue & 0xFF00) >> 8)/255.0 blue:(rgbValue & 0xFF)/255.0 alpha:1.0];
-    }
-    else {
-        return [UIColor colorWithWhite:0.2f alpha:1];
-    }
 }
 
 @end

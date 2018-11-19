@@ -15,6 +15,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface MiniChannelCell : UICollectionViewCell
 
 @property (strong, nonatomic) Room *room;
+@property (strong, nonatomic) UIImageView *profilePicture;
 @property (strong, nonatomic) UILabel *title;
 
 @property (strong, nonatomic) UIButton *ticker;

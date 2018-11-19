@@ -16,6 +16,7 @@
 #import "MyRoomsListCell.h"
 #import "RoomSuggestionsListCell.h"
 #import "TabController.h"
+#import "UIColor+Palette.h"
 
 #define envConfig [[[NSUserDefaults standardUserDefaults] objectForKey:@"config"] objectForKey:[[NSUserDefaults standardUserDefaults] stringForKey:@"environment"]]
 
@@ -58,6 +59,15 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
     
     self.manager = [HAWebService manager];
     [self getRooms];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userUpdated:) name:@"UserUpdated" object:nil];
+}
+
+- (void)userUpdated:(NSNotification *)notification {
+    self.launchNavVC.textField.tintColor = [Session sharedInstance].themeColor;
+    
+    // If table view uses theme color anywhere, reload it here
+    // [self.tableView reloadData];
 }
 
 - (void)addPill {
@@ -100,7 +110,7 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
         if (scrollView.contentOffset.y > 10 && self.launchNavVC.shadowView.alpha == 0) {
             [self.launchNavVC setShadowVisibility:TRUE withAnimation:TRUE];
         }
-        else {
+        else if (scrollView.contentOffset.y <= 10 && self.launchNavVC.shadowView.alpha == 1) {
             [self.launchNavVC setShadowVisibility:FALSE withAnimation:TRUE];
         }
     }
@@ -258,13 +268,13 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return indexPath.section == 0 ? 400 : 160;
+    return indexPath.section == 0 ? 400 : 240;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    if (section == 0) return 96;
+    if (section == 0) return 108;
     
-    return 72;
+    return 64;
 }
 - (nullable UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
     //if (section > 1) return nil;
@@ -272,25 +282,33 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
     if (section == 0) {
         UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 96)];
         
-        UIImageView *profilePicture = [[UIImageView alloc] initWithFrame:CGRectMake(16, 32, 40, 40)];
+        /*UIImageView *profilePicture = [[UIImageView alloc] initWithFrame:CGRectMake(16, 32, 40, 40)];
         [self continuityRadiusForView:profilePicture withRadius:profilePicture.frame.size.height*.25];
         [profilePicture setImage:[[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
         profilePicture.tintColor = [Session sharedInstance].themeColor;
         profilePicture.layer.masksToBounds = true;
         profilePicture.backgroundColor = [UIColor whiteColor];
         profilePicture.userInteractionEnabled = true;
-        [header addSubview:profilePicture];
+        [header addSubview:profilePicture];*/
         
-        UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(68, 34, self.view.frame.size.width - 68 - 56 - 16, 38)];
+        UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(16, 26, self.view.frame.size.width - 16 - 56 - 16, 32)];
         title.text = @"Rooms";
         title.textAlignment = NSTextAlignmentLeft;
-        title.font = [UIFont systemFontOfSize:32 weight:UIFontWeightHeavy];
-        title.textColor = [UIColor colorWithWhite:0.2f alpha:1];
+        title.font = [UIFont systemFontOfSize:26.f weight:UIFontWeightHeavy];
+        title.textColor = [UIColor bonfireGrayWithLevel:900];
         
         [header addSubview:title];
         
+        UILabel *subtitle = [[UILabel alloc] initWithFrame:CGRectMake(16, 59, self.view.frame.size.width - 16 - 56 - 16, 26)];
+        subtitle.text = @"My Rooms";
+        subtitle.textAlignment = NSTextAlignmentLeft;
+        subtitle.font = [UIFont systemFontOfSize:22 weight:UIFontWeightBold];
+        subtitle.textColor = [UIColor bonfireGrayWithLevel:600];
+        
+        [header addSubview:subtitle];
+        
         UIButton *newRoomButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        newRoomButton.frame = CGRectMake(header.frame.size.width - 40 - 16, 32, 40, 40);
+        newRoomButton.frame = CGRectMake(header.frame.size.width - 40 - 16, 44, 40, 40);
         newRoomButton.adjustsImageWhenHighlighted = false;
         [newRoomButton setImage:[UIImage imageNamed:@"headerNewRoomIcon"] forState:UIControlStateNormal];
         [newRoomButton bk_addEventHandler:^(id sender) {
@@ -317,14 +335,14 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
     else {
         UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 72)];
         
-        UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(16, 32, self.view.frame.size.width - 32, 24)];
+        UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(16, 20, self.view.frame.size.width - 32, 24)];
         if (section == 1) { title.text = @"Popular Now 🔥"; }
         if (section == 2) { title.text = @"New Rooms We Love"; }
         if (section == 3) { title.text = @"Share Your Best Recipes 🦃"; }
         if (section == 4) { title.text = @"Categories"; }
         title.textAlignment = NSTextAlignmentLeft;
         title.font = [UIFont systemFontOfSize:22.f weight:UIFontWeightBold];
-        title.textColor = [UIColor colorWithWhite:0.07f alpha:1];
+        title.textColor = [UIColor bonfireGrayWithLevel:900];
         
         [header addSubview:title];
         
@@ -337,7 +355,7 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
     return 24;
 }
 - (nullable UIView *)tableView:(UITableView *)tableView viewForFooterInSection:(NSInteger)section {
-    if (section == 0 || section == 4) return nil;
+    if (section == 0 || section == 3) return nil;
     
     UIView *footer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 24)];
     UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(16, footer.frame.size.height - (1 / [UIScreen mainScreen].scale), self.view.frame.size.width - 32, 1 / [UIScreen mainScreen].scale)];

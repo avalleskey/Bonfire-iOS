@@ -13,6 +13,7 @@
 #import "NSDictionary+Clean.h"
 #import "HAWebService.h"
 #import "Room.h"
+#import "UIColor+Palette.h"
 
 #define envConfig [[[NSUserDefaults standardUserDefaults] objectForKey:@"config"] objectForKey:[[NSUserDefaults standardUserDefaults] stringForKey:@"environment"]]
 
@@ -142,19 +143,7 @@ static Session *session;
 }
 
 - (UIColor *)themeColor {
-    return [[session.currentUser.attributes.details.color lowercaseString] isEqualToString:@"ffffff"] ? [UIColor colorWithWhite:0.2f alpha:1] : [self colorFromHexString:session.currentUser.attributes.details.color.length > 0 ? session.currentUser.attributes.details.color : @"0076ff"];
-}
-- (UIColor *)colorFromHexString:(NSString *)hexString {
-    unsigned rgbValue = 0;
-    if (hexString != nil && hexString.length == 6) {
-        NSScanner *scanner = [NSScanner scannerWithString:hexString];
-        [scanner setScanLocation:0]; // bypass '#' character
-        [scanner scanHexInt:&rgbValue];
-        return [UIColor colorWithDisplayP3Red:((rgbValue & 0xFF0000) >> 16)/255.0 green:((rgbValue & 0xFF00) >> 8)/255.0 blue:(rgbValue & 0xFF)/255.0 alpha:1.0];
-    }
-    else {
-        return [UIColor colorWithWhite:0.2f alpha:1];
-    }
+    return [[session.currentUser.attributes.details.color lowercaseString] isEqualToString:@"ffffff"] ? [UIColor colorWithWhite:0.2f alpha:1] : [UIColor fromHex:session.currentUser.attributes.details.color.length > 0 ? session.currentUser.attributes.details.color : @"0076ff"];
 }
 
 - (void)syncDeviceToken {

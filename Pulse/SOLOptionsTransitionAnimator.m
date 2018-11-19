@@ -9,6 +9,7 @@
 #import "SOLOptionsTransitionAnimator.h"
 #import <UIKit/UIKit.h>
 #import "Session.h"
+#import "UIColor+Palette.h"
 
 @implementation SOLOptionsTransitionAnimator
 
@@ -25,7 +26,7 @@
     
     if (self.appearing) {
         UIView *containerView = [transitionContext containerView];
-        containerView.backgroundColor = [UIColor colorWithWhite:0.2f alpha:1];
+        containerView.backgroundColor = [UIColor bonfireGrayWithLevel:900];
         
         [containerView addSubview:toView];
         
@@ -37,7 +38,7 @@
         [UIView animateWithDuration:0.6f delay:0 usingSpringWithDamping:0.85 initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
             fromView.alpha = 0.5;
             fromView.layer.cornerRadius = 24.f;
-            fromView.transform = CGAffineTransformMakeScale(0.8, 0.8);
+            fromView.transform = CGAffineTransformMakeScale(0.82, 0.82);
             
             toView.center = CGPointMake(containerView.frame.size.width / 2, containerView.frame.size.height / 2);
             toView.layer.cornerRadius = 0;
@@ -49,13 +50,13 @@
     }
     else {
         UIView *containerView = [transitionContext containerView];
-        containerView.backgroundColor = [UIColor colorWithWhite:0.2f alpha:1];
+        containerView.backgroundColor = [UIColor bonfireGrayWithLevel:900];
         
         [containerView addSubview:toView];
         [containerView bringSubviewToFront:fromView];
         
         toView.alpha = 0.5;
-        toView.transform = CGAffineTransformMakeScale(0.8, 0.8);
+        toView.transform = CGAffineTransformMakeScale(0.82, 0.82);
         toView.layer.cornerRadius = 24.f;
         fromView.alpha = 1;
         fromView.layer.cornerRadius = 12.f;

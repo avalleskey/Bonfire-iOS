@@ -29,12 +29,13 @@
 }
 
 - (void)setup {
-    self.layer.cornerRadius = 12.f;
+    [self continuityRadiusForCell:self withRadius:10.f];
+    /*self.layer.cornerRadius = 12.f;
     self.layer.masksToBounds = true;
     self.layer.shadowOffset = CGSizeMake(0, 1);
     self.layer.shadowRadius = 2.f;
     self.layer.shadowOpacity = 1;
-    self.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.08f].CGColor;
+    self.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.08f].CGColor;*/
     self.clipsToBounds = false;
     
     self.shimmerContainer = [[FBShimmeringView alloc] initWithFrame:self.bounds];

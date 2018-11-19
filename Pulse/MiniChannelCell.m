@@ -9,7 +9,7 @@
 #import "MiniChannelCell.h"
 #import "UIColor+Palette.h"
 
-#define padding 12
+#define padding 16
 
 @implementation MiniChannelCell
 
@@ -23,16 +23,28 @@
 - (void)setup {
     self.room = [[Room alloc] init];
     
-    // [self continuityRadiusForCell:self withRadius:10.f];
-    self.layer.cornerRadius = 12.f;
+    [self continuityRadiusForCell:self withRadius:10.f];
+    /*self.layer.cornerRadius = 12.f;
     self.layer.masksToBounds = true;
     self.layer.shadowRadius = 2.f;
     self.layer.shadowOffset = CGSizeMake(0, 1);
     self.layer.shadowColor = [UIColor colorWithWhite:1 alpha:0.08f].CGColor;
-    self.layer.shadowOpacity = 1;
+    self.layer.shadowOpacity = 1;*/
+    
+    UIView *profilepictureContainer = [[UIView alloc] initWithFrame:CGRectMake(16, 16, 64, 64)];
+    profilepictureContainer.layer.cornerRadius = profilepictureContainer.frame.size.width / 2;
+    profilepictureContainer.layer.shadowOffset = CGSizeMake(0, 2);
+    profilepictureContainer.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.12f].CGColor;
+    profilepictureContainer.layer.shadowRadius = 6.f;
+    self.profilePicture = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, profilepictureContainer.frame.size.width, profilepictureContainer.frame.size.height)];
+    self.profilePicture.backgroundColor = [UIColor colorWithWhite:1 alpha:0.4f];
+    self.profilePicture.layer.cornerRadius = self.profilePicture.frame.size.width / 2;
+    self.profilePicture.layer.masksToBounds = true;
+    [profilepictureContainer addSubview:self.profilePicture];
+    [self.contentView addSubview:profilepictureContainer];
     
     self.title = [[UILabel alloc] init];
-    self.title.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightHeavy];
+    self.title.font = [UIFont systemFontOfSize:22.f weight:UIFontWeightHeavy];
     self.title.textAlignment = NSTextAlignmentLeft;
     self.title.numberOfLines = 0;
     self.title.textColor = [UIColor whiteColor];
@@ -107,7 +119,7 @@
                                                     attributes:@{NSFontAttributeName:self.title.font}
                                                        context:nil];
     titleRect.origin.x = padding;
-    titleRect.origin.y = 14;
+    titleRect.origin.y = 90;
     self.title.frame = titleRect;
     
     // ticker

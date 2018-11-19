@@ -15,6 +15,7 @@ extern const NSInteger ErrorViewTypeNoInternet;
 extern const NSInteger ErrorViewTypeLocked;
 extern const NSInteger ErrorViewTypeHeart;
 extern const NSInteger ErrorViewTypeNoPosts;
+extern const NSInteger ErrorViewTypeNoNotifications;
 
 NS_ASSUME_NONNULL_BEGIN
 

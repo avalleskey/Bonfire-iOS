@@ -47,7 +47,7 @@
     [self setupErrorView];
     if ([self isCurrentUser])
     {
-        [self setupComposeInputView];
+        //[self setupComposeInputView];
         
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userProfileUpdated:) name:@"UserUpdated" object:nil];
     }
@@ -245,7 +245,7 @@
 - (void)setupComposeInputView {
     // only show compose input view if current user
     self.composeInputView = [[ComposeInputView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleLight]];
-    self.composeInputView.frame = CGRectMake(0, self.view.frame.size.height - 52, self.view.frame.size.width, 190);
+    self.composeInputView.frame = CGRectMake(0, self.view.frame.size.height - 52 - self.tabBarController.tabBar.frame.size.height, self.view.frame.size.width, 190);
     self.composeInputView.parentViewController = self;
 
     self.composeInputView.addMediaButton.tintColor = [Session sharedInstance].themeColor;
@@ -287,9 +287,9 @@
     UIWindow *window = UIApplication.sharedApplication.keyWindow;
     CGFloat bottomPadding = window.safeAreaInsets.bottom;
     
-    CGFloat collapsed_inputViewHeight = ((self.composeInputView.textView.frame.origin.y * 2) + self.composeInputView.textView.frame.size.height) + bottomPadding;
+    CGFloat collapsed_inputViewHeight = ((self.composeInputView.textView.frame.origin.y * 2) + self.composeInputView.textView.frame.size.height);
     
-    self.composeInputView.frame = CGRectMake(0, self.view.frame.size.height - collapsed_inputViewHeight, self.view.frame.size.width, collapsed_inputViewHeight);
+    self.composeInputView.frame = CGRectMake(0, self.view.frame.size.height - collapsed_inputViewHeight - self.tabBarController.tabBar.frame.size.height, self.view.frame.size.width, collapsed_inputViewHeight + bottomPadding);
     
     self.tableView.contentInset = UIEdgeInsetsMake(0, 0, self.composeInputView.frame.size.height, 0);
     

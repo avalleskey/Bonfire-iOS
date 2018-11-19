@@ -15,6 +15,7 @@
 #import "ButtonCell.h"
 #import "AppDelegate.h"
 #import "HAWebService.h"
+#import "UIColor+Palette.h"
 
 #import <RSKImageCropper/RSKImageCropper.h>
 #import <BlocksKit/BlocksKit.h>
@@ -345,7 +346,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
 
 - (void)updateBarColor:(id)newColor withAnimation:(int)animationType statusBarUpdateDelay:(CGFloat)statusBarUpdateDelay {
     if ([newColor isKindOfClass:[NSString class]]) {
-        newColor = [self colorFromHexString:newColor];
+        newColor = [UIColor fromHex:newColor];
     }
     self.themeColor = newColor;
     self.view.tintColor = self.themeColor;
@@ -606,18 +607,6 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     }
     
     return true;
-}
-- (UIColor *)colorFromHexString:(NSString *)hexString {
-    unsigned rgbValue = 0;
-    if (hexString != nil && hexString.length == 6) {
-        NSScanner *scanner = [NSScanner scannerWithString:hexString];
-        [scanner setScanLocation:0]; // bypass '#' character
-        [scanner scanHexInt:&rgbValue];
-        return [UIColor colorWithDisplayP3Red:((rgbValue & 0xFF0000) >> 16)/255.0 green:((rgbValue & 0xFF00) >> 8)/255.0 blue:(rgbValue & 0xFF)/255.0 alpha:1.0];
-    }
-    else {
-        return [UIColor blackColor];
-    }
 }
 
 @end

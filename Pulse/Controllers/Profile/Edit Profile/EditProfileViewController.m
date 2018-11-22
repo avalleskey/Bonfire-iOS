@@ -373,14 +373,14 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
         if ([self useWhiteForegroundForColor:newColor]) {
             [self.navigationController.navigationBar setTitleTextAttributes:
              @{NSForegroundColorAttributeName:[UIColor whiteColor],
-               NSFontAttributeName:[UIFont systemFontOfSize:18.f weight:UIFontWeightHeavy]}];
+               NSFontAttributeName:[UIFont systemFontOfSize:18.f weight:UIFontWeightBold]}];
             self.cancelButton.tintColor = [UIColor whiteColor];
             self.saveButton.tintColor = [UIColor whiteColor];
         }
         else {
             [self.navigationController.navigationBar setTitleTextAttributes:
              @{NSForegroundColorAttributeName:[UIColor colorWithWhite:0.07f alpha:1],
-               NSFontAttributeName:[UIFont systemFontOfSize:18.f weight:UIFontWeightHeavy]}];
+               NSFontAttributeName:[UIFont systemFontOfSize:18.f weight:UIFontWeightBold]}];
             
             self.cancelButton.tintColor = [UIColor colorWithWhite:0.07f alpha:1];
             self.saveButton.tintColor = [UIColor colorWithWhite:0.07f alpha:1];

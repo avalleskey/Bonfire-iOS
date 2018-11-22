@@ -42,7 +42,7 @@
     [self.tabBar setTintColor:[Session sharedInstance].themeColor];
     
     self.blurView = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleLight]];
-    self.blurView.frame = CGRectMake(0, 0, self.tabBar.frame.size.width, self.tabBar.frame.size.height);
+    self.blurView.frame = CGRectMake(0, 0, self.tabBar.frame.size.width, self.tabBar.frame.size.height * 2);
     self.blurView.backgroundColor = [UIColor colorWithWhite:1 alpha:0.92];
     [self.tabBar insertSubview:self.blurView atIndex:0];
     /*
@@ -77,7 +77,6 @@
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     
-    NSLog(@"view will appear");
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         [self addTabBarPressEffects];
     });
@@ -118,10 +117,19 @@
         }
     }
     
-    [UIView animateWithDuration:0.28f delay:0 usingSpringWithDamping:0.9f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+    [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.75f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
         self.tabIndicator.frame = CGRectMake(tabBarItemView.frame.origin.x + tabBarImageView.frame.origin.x, self.tabIndicator.frame.origin.y, tabBarImageView.frame.size.width, self.tabIndicator.frame.size.height);
+    } completion:nil];
+    
+    [UIView animateWithDuration:0.2f delay:0 usingSpringWithDamping:1.f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+        tabBarImageView.transform = CGAffineTransformMakeScale(0.9, 0.9);
     } completion:^(BOOL finished) {
+        [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.8f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+            tabBarImageView.transform = CGAffineTransformMakeScale(1, 1);
+        } completion:^(BOOL finished) {
+        }];
     }];
+    
 }
 
 - (UIView *)viewForTabInTabBar:(UITabBar* )tabBar withIndex:(NSUInteger)index

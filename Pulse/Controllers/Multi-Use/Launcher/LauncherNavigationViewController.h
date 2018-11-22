@@ -30,6 +30,8 @@
 @property (strong, nonatomic) UIView *shadowView;
 @property (strong, nonatomic) UIView *navigationBackgroundView;
 
+- (void)goBack;
+
 - (void)setShadowVisibility:(BOOL)visible withAnimation:(BOOL)animation;
 - (void)updateBarColor:(id)newColor withAnimation:(int)animationType statusBarUpdateDelay:(CGFloat)statusBarUpdateDelay;
 - (void)updateNavigationBarItemsWithAnimation:(BOOL)animated;

@@ -44,7 +44,7 @@ static Session *session;
             NSLog(@"has access token");
             // update user object
             [session fetchUser:^(BOOL success) {
-                NSLog(@"hello");
+                
             }];
             //[session syncDeviceToken];
         }
@@ -421,8 +421,27 @@ static Session *session;
 
 // Actions
 // -- Post --
-- (void)deletePost:(NSInteger)postId completion:(void (^)(BOOL success, id responseObject))handler {
-    handler(true, @{});
+- (void)deletePost:(Post *)post completion:(void (^)(BOOL success, id responseObject))handler {
+    NSString *url = [NSString stringWithFormat:@"%@/%@/rooms/%@/posts/%ld", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], post.attributes.status.postedIn.identifier, (long)post.identifier];
+    NSDictionary *params = @{};
+    
+    NSLog(@"url:: %@", url);
+    
+    [session.manager.requestSerializer setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
+    [session.manager DELETE:url parameters:params success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        NSLog(@"--------");
+        NSLog(@"success: delete post");
+        NSLog(@"--------");
+        
+        handler(true, responseObject);
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+        NSLog(@"%@",ErrorResponse);
+        
+        handler(false, @{@"error": ErrorResponse});
+    }];
+    
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"PostDeleted" object:post];
 }
 - (void)reportPost:(NSInteger)postId completion:(void (^)(BOOL success, id responseObject))handler {
     handler(true, @{});
@@ -456,13 +475,11 @@ static Session *session;
     PostContextVote *voteDict = [[PostContextVote alloc] initWithDictionary:@{@"created_at": dateString} error:nil];
     post.attributes.context.vote = voteDict;
     
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"postUpdated" object:post];
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"PostUpdated" object:post];
 }
 - (void)unsparkPost:(Post *)post completion:(void (^)(BOOL success, id responseObject))handler {
     NSString *url = [NSString stringWithFormat:@"%@/%@/rooms/%@/posts/%ld/votes", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], post.attributes.status.postedIn.identifier, (long)post.identifier];
     NSDictionary *params = @{};
-    
-    NSLog(@"url:: %@", url);
     
     [session.manager.requestSerializer setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
     [session.manager DELETE:url parameters:params success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
@@ -484,24 +501,18 @@ static Session *session;
     PostContext *newContext = [[PostContext alloc] initWithDictionary:contextDict error:nil];
     post.attributes.context = newContext;
     
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"postUpdated" object:post];
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"PostUpdated" object:post];
 }
 
 
 // -- Follow/Unfollow User --
-- (void)followUser:(NSString *)userId completion:(void (^)(BOOL success, id responseObject))handler {
-    handler(true, @{});
-}
-- (void)unfollowUser:(NSString *)userid completion:(void (^)(BOOL success, id responseObject))handler {
-    handler(true, @{});
-}
-- (void)blockUser:(NSString *)userId completion:(void (^)(BOOL success, id responseObject))handler {
-    NSString *url = [NSString stringWithFormat:@"%@/%@/users/%@/block", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], userId]; // sample data
+- (void)followUser:(User *)user completion:(void (^)(BOOL success, id responseObject))handler {
+    NSString *url = [NSString stringWithFormat:@"%@/%@/users/%@/follow", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], user.identifier]; // sample data
     
     [session.manager.requestSerializer setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
     [session.manager POST:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSLog(@"--------");
-        NSLog(@"success: blockUser");
+        NSLog(@"success: followUser");
         NSLog(@"--------");
         
         // refresh user object
@@ -512,7 +523,7 @@ static Session *session;
         
         //if (!error) { NSLog(@"room context reponse:"); NSLog(@"%@", roomContextResponse); };
         
-        handler(true, @{@"blocked": @true});
+        handler(true, @{@"following": @true});
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         NSLog(@"error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);
         NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
@@ -521,8 +532,34 @@ static Session *session;
         handler(false, @{@"error": ErrorResponse});
     }];
 }
-- (void)unblockUser:(NSString *)userId completion:(void (^)(BOOL success, id responseObject))handler {
-    NSString *url = [NSString stringWithFormat:@"%@/%@/users/%@/unblock", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], userId]; // sample data
+- (void)unfollowUser:(User *)user completion:(void (^)(BOOL success, id responseObject))handler {
+    NSString *url = [NSString stringWithFormat:@"%@/%@/users/%@/follow", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], user.identifier]; // sample data
+    
+    [session.manager.requestSerializer setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
+    [session.manager DELETE:url parameters:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        NSLog(@"--------");
+        NSLog(@"success: unfollowUser");
+        NSLog(@"--------");
+        
+        // refresh user object
+        // [[NSNotificationCenter defaultCenter] postNotificationName:@"refreshMyRooms" object:nil];
+        
+        //NSError *error;
+        //RoomContext *roomContextResponse = [[RoomContext alloc] initWithDictionary:responseObject[@"data"] error:&error];
+        
+        //if (!error) { NSLog(@"room context reponse:"); NSLog(@"%@", roomContextResponse); };
+        
+        handler(true, @{@"following": @false});
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        NSLog(@"error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);
+        NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+        NSLog(@"%@",ErrorResponse);
+        
+        handler(false, @{@"error": ErrorResponse});
+    }];
+}
+- (void)blockUser:(User *)user completion:(void (^)(BOOL success, id responseObject))handler {
+    NSString *url = [NSString stringWithFormat:@"%@/%@/users/%@/block", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], user.identifier]; // sample data
     
     [session.manager.requestSerializer setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
     [session.manager POST:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
@@ -539,6 +576,59 @@ static Session *session;
         //if (!error) { NSLog(@"room context reponse:"); NSLog(@"%@", roomContextResponse); };
         
         handler(true, @{@"blocked": @false});
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        NSLog(@"error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);
+        NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+        NSLog(@"%@",ErrorResponse);
+        
+        handler(false, @{@"error": ErrorResponse});
+    }];
+}
+- (void)unblockUser:(User *)user completion:(void (^)(BOOL success, id responseObject))handler {
+    NSString *url = [NSString stringWithFormat:@"%@/%@/users/%@/unblock", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], user.identifier]; // sample data
+    
+    [session.manager.requestSerializer setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
+    [session.manager POST:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        NSLog(@"--------");
+        NSLog(@"success: unblockUser");
+        NSLog(@"--------");
+        
+        // refresh user object
+        // [[NSNotificationCenter defaultCenter] postNotificationName:@"refreshMyRooms" object:nil];
+        
+        //NSError *error;
+        //RoomContext *roomContextResponse = [[RoomContext alloc] initWithDictionary:responseObject[@"data"] error:&error];
+        
+        //if (!error) { NSLog(@"room context reponse:"); NSLog(@"%@", roomContextResponse); };
+        
+        handler(true, @{@"blocked": @false});
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        NSLog(@"error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);
+        NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+        NSLog(@"%@",ErrorResponse);
+        
+        handler(false, @{@"error": ErrorResponse});
+    }];
+}
+- (void)reportUser:(User *)user completion:(void (^)(BOOL success, id responseObject))handler {
+    NSString *url = [NSString stringWithFormat:@"%@/%@/users/%@/report", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], user.identifier]; // sample data
+    
+    // -> report also blocks the user
+    
+    [session.manager.requestSerializer setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
+    [session.manager POST:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        NSLog(@"--------");
+        NSLog(@"success: reportUser");
+        NSLog(@"--------");
+        
+        // refresh user object
+        
+        //NSError *error;
+        //RoomContext *roomContextResponse = [[RoomContext alloc] initWithDictionary:responseObject[@"data"] error:&error];
+        
+        //if (!error) { NSLog(@"room context reponse:"); NSLog(@"%@", roomContextResponse); };
+        
+        handler(true, @{@"reported": @true});
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         NSLog(@"error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);
         NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];

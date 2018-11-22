@@ -101,7 +101,8 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     [self registerClass:[LoadingCell class] forCellReuseIdentifier:loadingCellIdentifier];
     [self registerClass:[PaginationCell class] forCellReuseIdentifier:paginationCellIdentifier];
     
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(postUpdated:) name:@"postUpdated" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(postUpdated:) name:@"PostUpdated" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(postDeleted:) name:@"PostDeleted" object:nil];
 }
 
 - (void)postUpdated:(NSNotification *)notification {
@@ -146,6 +147,19 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             }
         }
     }
+}
+- (void)postDeleted:(NSNotification *)notification {
+    Post *post = notification.object;
+    
+    NSMutableArray *data = [[NSMutableArray alloc] initWithArray:self.data];
+    for (NSInteger i = data.count - 1; i >= 0; i--) {
+        if ([data[i][@"id"] integerValue] == post.identifier) {
+            [data removeObjectAtIndex:i];
+        }
+    }
+    
+    self.data = data;
+    [self refresh];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -479,6 +493,8 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             }
             
             cell.selectable = self.dataType != tableCategoryPost;
+            
+            [cell.pictureView sd_setImageWithURL:[NSURL URLWithString:@"https://media.giphy.com/media/RJPQ2EF3h0bok/giphy.gif"]];
             
             return cell;
             
@@ -953,7 +969,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
-    return 0;
+    return CGFLOAT_MIN;
 }
 - (UIView*)tableView:(UITableView*)tableView viewForFooterInSection:(NSInteger)section {
     return [[UIView alloc] initWithFrame:CGRectZero];

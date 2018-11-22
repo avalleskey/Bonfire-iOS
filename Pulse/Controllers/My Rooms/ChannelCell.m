@@ -233,6 +233,8 @@
                                                        context:nil];
     titleRect.origin.x = padding;
     titleRect.origin.y = self.profilePicture.superview.frame.origin.y + self.profilePicture.superview.frame.size.height + 16;
+    titleRect.size.width = ceilf(titleRect.size.width);
+    titleRect.size.height = ceilf(titleRect.size.height);
     self.title.frame = titleRect;
     
     // bio
@@ -242,6 +244,8 @@
                                                      context:nil];
     bioRect.origin.x = padding;
     bioRect.origin.y = self.title.frame.origin.y + self.title.frame.size.height + 6;
+    bioRect.size.width = ceilf(bioRect.size.width);
+    bioRect.size.height = ceilf(bioRect.size.height);
     self.bio.frame = bioRect;
     
     // ticker

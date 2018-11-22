@@ -72,11 +72,12 @@ static NSString * const reuseIdentifier = @"Result";
     
     // add shadow to the top
     self.shadowView = [[UIView alloc] initWithFrame:CGRectMake(0, self.navigationBar.frame.size.height - 20, self.view.frame.size.width, 20)];
-    self.shadowView.layer.shadowRadius = 0;
+    self.shadowView.layer.shadowRadius = 2.f;
     self.shadowView.layer.shadowOffset = CGSizeMake(0, 1);
     self.shadowView.layer.shadowColor = [UIColor blackColor].CGColor;
     self.shadowView.layer.shadowOpacity = 0.08f;
     self.shadowView.backgroundColor = [UIColor whiteColor];
+    self.shadowView.alpha = 0;
     [self.navigationBar insertSubview:self.shadowView atIndex:0];
     
     [self setupNavigationBarItems];
@@ -86,6 +87,10 @@ static NSString * const reuseIdentifier = @"Result";
 }
 
 - (void)didFinishSwiping {
+    [self goBack];
+}
+
+- (void)goBack {
     if ([[self.viewControllers lastObject] isKindOfClass:[RoomViewController class]]) {
         RoomViewController *previousRoom = [self.viewControllers lastObject];
         [self updateBarColor:previousRoom.theme withAnimation:3 statusBarUpdateDelay:NO];
@@ -391,7 +396,7 @@ static NSString * const reuseIdentifier = @"Result";
     self.inviteFriendButton.frame = CGRectMake(10, 0, 44, 44);
     self.inviteFriendButton.center = CGPointMake(self.inviteFriendButton.center.x, self.navigationBar.frame.size.height / 2);
     [self.inviteFriendButton bk_whenTapped:^{
-        
+        [[Launcher sharedInstance] openInviteFriends];
     }];
     
     self.inviteFriendButton.alpha = 0;
@@ -460,39 +465,10 @@ static NSString * const reuseIdentifier = @"Result";
                 
                 [self dismissViewControllerAnimated:YES completion:nil];
             }
-            else{
-                if ([self.viewControllers[self.viewControllers.count-2] isKindOfClass:[RoomViewController class]]) {
-                    RoomViewController *previousRoom = self.viewControllers[self.viewControllers.count-2];
-                    [self updateBarColor:previousRoom.theme withAnimation:3 statusBarUpdateDelay:NO];
-                    [self updateSearchText:previousRoom.title];
-                }
-                else if (self.viewControllers[self.viewControllers.count-2].navigationController.tabBarController != nil) {
-                    [self updateBarColor:[UIColor whiteColor] withAnimation:3 statusBarUpdateDelay:NO];
-                    [self updateSearchText:@""];
-                }
-                else if ([self.viewControllers[self.viewControllers.count-2] isKindOfClass:[ProfileViewController class]]) {
-                    ProfileViewController *previousProfile = self.viewControllers[self.viewControllers.count-2];
-                    [self updateBarColor:previousProfile.theme withAnimation:3 statusBarUpdateDelay:NO];
-                    [self updateSearchText:previousProfile.title];
-                }
-                else if ([self.viewControllers[self.viewControllers.count-2] isKindOfClass:[PostViewController class]]) {
-                    PostViewController *previousPost = self.viewControllers[self.viewControllers.count-2];
-                    [self updateBarColor:previousPost.theme withAnimation:3 statusBarUpdateDelay:NO];
-
-                    self.textField.text = previousPost.title;
-                    [self hideSearchIcon];
-                }
-                else if ([self.viewControllers[self.viewControllers.count-2] isKindOfClass:[RoomMembersViewController class]]) {
-                    RoomMembersViewController *previousMembersView = self.viewControllers[self.viewControllers.count-2];
-                    [self updateBarColor:previousMembersView.theme withAnimation:3 statusBarUpdateDelay:NO];
-
-                    self.textField.text = previousMembersView.title;
-                    [self hideSearchIcon];
-                }
-                
+            else {
                 [self popViewControllerAnimated:YES];
                 
-                [self updateNavigationBarItemsWithAnimation:YES];
+                [self goBack];
             }
         }
         else {
@@ -570,28 +546,27 @@ static NSString * const reuseIdentifier = @"Result";
         else {
             // determine items based on active view controller
             if (self.tabBarController != nil) {
-                NSLog(@"o halllo");
-                
                 self.backButton.transform = CGAffineTransformMakeRotation(-1 * (M_PI / 2));
                 self.backButton.alpha = 0;
                 
                 self.infoButton.alpha = 0;
                 self.moreButton.alpha = 0;
                 
-                if ([self.topViewController isKindOfClass:[MyRoomsViewController class]]) {
-                    self.inviteFriendButton.alpha = 0;
-                    self.composePostButton.alpha = 0;
-                    
-                    self.textField.frame = CGRectMake(16, self.textField.frame.origin.y, self.view.frame.size.width - (16 * 2), self.textField.frame.size.height);
-                    
-                    [self positionTextFieldSearchIcon];
-                }
-                else {
-                    self.inviteFriendButton.alpha = 1;
-                    self.composePostButton.alpha = 1;
-                    
-                    self.textField.frame = CGRectMake(62, self.textField.frame.origin.y, self.view.frame.size.width - (62 * 2), self.textField.frame.size.height);
-                }
+                /* full width text field
+                 
+                 self.inviteFriendButton.alpha = 0;
+                 self.composePostButton.alpha = 0;
+                 
+                 self.textField.frame = CGRectMake(16, self.textField.frame.origin.y, self.view.frame.size.width - (16 * 2), self.textField.frame.size.height);
+                 
+                 [self positionTextFieldSearchIcon];
+                 
+                 */
+                
+                self.inviteFriendButton.alpha = 1;
+                self.composePostButton.alpha = 1;
+                
+                self.textField.frame = CGRectMake(62, self.textField.frame.origin.y, self.view.frame.size.width - (62 * 2), self.textField.frame.size.height);
             }
             else {
                 self.inviteFriendButton.alpha = 0;
@@ -1236,6 +1211,10 @@ static NSString * const reuseIdentifier = @"Result";
             self.searchResultsTableView.alpha = 1;
         } completion:^(BOOL finished) {
         }];
+        
+        [self.searchResultsTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0] atScrollPosition:UITableViewScrollPositionTop animated:NO];
+        
+        [self setShadowVisibility:false withAnimation:true];
     }
     else if (self.isCreatingPost) {
         // reset the right view
@@ -1280,7 +1259,12 @@ static NSString * const reuseIdentifier = @"Result";
             if ([self.topViewController isKindOfClass:[MyRoomsViewController class]]) {
                 MyRoomsViewController *currentRoomsVC = (MyRoomsViewController *)self.topViewController;
                 if (currentRoomsVC.tableView.contentOffset.y <= 10) {
-                    [self setShadowVisibility:false withAnimation:FALSE];
+                    [self setShadowVisibility:false withAnimation:false];
+                }
+            }
+            else {
+                if (self.currentTheme != [UIColor whiteColor]) {
+                    [self setShadowVisibility:false withAnimation:false];
                 }
             }
             /*HomeViewController *currentRoom = (HomeViewController *)self.topViewController;

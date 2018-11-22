@@ -495,9 +495,9 @@
         UIAlertAction *reportPost = [UIAlertAction actionWithTitle:@"Report Post" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
             NSLog(@"report post");
             // confirm action
-            UIAlertController *confirmDeletePostActionSheet = [UIAlertController alertControllerWithTitle:@"Delete Post" message:@"Are you sure you want to report this post?" preferredStyle:UIAlertControllerStyleAlert];
+            UIAlertController *confirmDeletePostActionSheet = [UIAlertController alertControllerWithTitle:@"Report Post" message:@"Are you sure you want to report this post?" preferredStyle:UIAlertControllerStyleAlert];
             
-            UIAlertAction *confirmDeletePost = [UIAlertAction actionWithTitle:@"Delete" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+            UIAlertAction *confirmDeletePost = [UIAlertAction actionWithTitle:@"Report" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
                 NSLog(@"confirm report post");
                 [[Session sharedInstance] reportPost:self.post.identifier completion:^(BOOL success, id responseObject) {
                     NSLog(@"reported post!");
@@ -520,12 +520,12 @@
         UIAlertAction *followUser = [UIAlertAction actionWithTitle:(followingUser?@"Follow @username":@"Unfollow @username") style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
             NSLog(@"follow user");
             if (followingUser) {
-                [[Session sharedInstance] unfollowUser:self.post.attributes.details.creator.identifier completion:^(BOOL success, id responseObject) {
+                [[Session sharedInstance] unfollowUser:self.post.attributes.details.creator completion:^(BOOL success, id responseObject) {
                     NSLog(@"unfollowed user!");
                 }];
             }
             else {
-                [[Session sharedInstance] followUser:self.post.attributes.details.creator.identifier completion:^(BOOL success, id responseObject) {
+                [[Session sharedInstance] followUser:self.post.attributes.details.creator completion:^(BOOL success, id responseObject) {
                     NSLog(@"followed user!");
                 }];
             }
@@ -542,9 +542,12 @@
             UIAlertController *confirmDeletePostActionSheet = [UIAlertController alertControllerWithTitle:@"Delete Post" message:@"Are you sure you want to delete this post?" preferredStyle:UIAlertControllerStyleAlert];
             
             UIAlertAction *confirmDeletePost = [UIAlertAction actionWithTitle:@"Delete" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
-                NSLog(@"confirm delete post");
-                [[Session sharedInstance] deletePost:self.post.identifier completion:^(BOOL success, id responseObject) {
-                    NSLog(@"deleted post!");
+                NSLog(@"delete post");
+                // confirm action
+                [[Session sharedInstance] deletePost:self.post completion:^(BOOL success, id responseObject) {
+                    if (success) {
+                        NSLog(@"deleted post!");
+                    }
                 }];
             }];
             [confirmDeletePostActionSheet addAction:confirmDeletePost];

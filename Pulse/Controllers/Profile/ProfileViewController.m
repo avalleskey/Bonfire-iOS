@@ -158,7 +158,7 @@
             UIAlertAction *alertConfirm = [UIAlertAction actionWithTitle:userIsBlocked ? @"Unblock" : @"Block" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
                 NSLog(@"switch user block state");
                 if (userIsBlocked) {
-                    [[Session sharedInstance] unblockUser:self.user.attributes.details.identifier completion:^(BOOL success, id responseObject) {
+                    [[Session sharedInstance] unblockUser:self.user completion:^(BOOL success, id responseObject) {
                         if (success) {
                             NSLog(@"success unblocking!");
                         }
@@ -168,7 +168,7 @@
                     }];
                 }
                 else {
-                    [[Session sharedInstance] blockUser:self.user.attributes.details.identifier completion:^(BOOL success, id responseObject) {
+                    [[Session sharedInstance] blockUser:self.user completion:^(BOOL success, id responseObject) {
                         if (success) {
                             NSLog(@"success blocking!");
                         }
@@ -195,6 +195,15 @@
             
             UIAlertAction *alertConfirm = [UIAlertAction actionWithTitle:@"Report" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
                 NSLog(@"report user");
+                [[Session sharedInstance] reportUser:self.user completion:^(BOOL success, id responseObject) {
+                    if (success) {
+                        // update the state to blocked
+                        
+                    }
+                    else {
+                        // error reporting user
+                    }
+                }];
             }];
             [saveAndOpenTwitterConfirm addAction:alertConfirm];
             

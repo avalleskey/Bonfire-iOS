@@ -47,6 +47,8 @@ static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
     self.view.backgroundColor = [UIColor colorWithWhite:1 alpha:1];
     // self.navigationItem.hidesBackButton = true;
     
+    self.launchNavVC = (LauncherNavigationViewController *)self.navigationController;
+    
     [self setupTableView];
     [self setupErrorView];
     [self setupNavigationBar];
@@ -63,10 +65,13 @@ static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
 }
 
 - (void)userUpdated:(NSNotification *)notification {
-    NSLog(@"user updated");
+    NSLog(@"user updated called on FeedViewController");
     self.launchNavVC.textField.tintColor = [Session sharedInstance].themeColor;
     self.launchNavVC.composePostButton.tintColor = [Session sharedInstance].themeColor;
     self.launchNavVC.inviteFriendButton.tintColor = [Session sharedInstance].themeColor;
+    
+    NSLog(@"self.launchNavVC: %@", self.launchNavVC);
+    NSLog(@"self.launchNavVC.composePostButton.tintColor: %@", self.launchNavVC.composePostButton.tintColor);
     
     self.view.tintColor = [Session sharedInstance].themeColor;
     [self.tableView reloadData];

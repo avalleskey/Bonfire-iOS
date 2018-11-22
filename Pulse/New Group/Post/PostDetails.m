@@ -13,7 +13,7 @@
     return trimmedString;
     
     
-    // TODO: Disabled for now - still need to build metadata downloader
+    /* TODO: Disabled for now - still need to build metadata downloader
     
     // trim leading and trailing spaces
     if (self.message != nil) {
@@ -41,7 +41,7 @@
         }
     }
     
-    return self.message;
+    return self.message;*/
 }
 
 - (NSString *)trimString:(NSString *)string {

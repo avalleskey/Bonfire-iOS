@@ -18,6 +18,7 @@
 #import "UIColor+Palette.h"
 #import "AppDelegate.h"
 #import "TabController.h"
+#import "InviteFriendTableViewController.h"
 
 #define UIViewParentController(__view) ({ \
     UIResponder *__responder = __view; \
@@ -295,6 +296,19 @@ static Launcher *launcher;
     [newNavController setNeedsStatusBarAppearanceUpdate];
     
     [self present:newNavController animated:YES];
+}
+
+- (void)openInviteFriends {
+    InviteFriendTableViewController *ifvc = [[InviteFriendTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
+    
+    UINavigationController *newNavController = [[UINavigationController alloc] initWithRootViewController:ifvc];
+    newNavController.transitioningDelegate = launcher;
+    newNavController.navigationBar.barStyle = UIBarStyleBlack;
+    newNavController.navigationBar.translucent = false;
+    newNavController.navigationBar.barTintColor = [UIColor bonfireBlue];
+    [newNavController setNeedsStatusBarAppearanceUpdate];
+    
+    [launcher present:newNavController animated:YES];
 }
 
 - (void)openOnboarding {

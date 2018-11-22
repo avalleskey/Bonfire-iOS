@@ -64,10 +64,13 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
 }
 
 - (void)userUpdated:(NSNotification *)notification {
+    NSLog(@"user updated called on FeedViewController");
     self.launchNavVC.textField.tintColor = [Session sharedInstance].themeColor;
+    self.launchNavVC.composePostButton.tintColor = [Session sharedInstance].themeColor;
+    self.launchNavVC.inviteFriendButton.tintColor = [Session sharedInstance].themeColor;
     
-    // If table view uses theme color anywhere, reload it here
-    // [self.tableView reloadData];
+    self.view.tintColor = [Session sharedInstance].themeColor;
+    [self.tableView reloadData];
 }
 
 - (void)addPill {
@@ -106,7 +109,6 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
     if (scrollView == self.tableView) {
-        NSLog(@"scroll view did scroll: %f", scrollView.contentOffset.y);
         if (scrollView.contentOffset.y > 10 && self.launchNavVC.shadowView.alpha == 0) {
             [self.launchNavVC setShadowVisibility:TRUE withAnimation:TRUE];
         }

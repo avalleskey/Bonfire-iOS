@@ -15,8 +15,10 @@
 #import "MyRoomsViewController.h"
 #import "FeedViewController.h"
 #import "ProfileViewController.h"
-#import "UIColor+Hex.h"
 #import "MyRoomsListCell.h"
+#import <SDWebImageCodersManager.h>
+#import <SDWebImageGIFCoder.h>
+#import "UIColor+Palette.h"
 
 @interface AppDelegate ()
 
@@ -37,6 +39,7 @@
     // Override point for customization after application launch.
     [self setupEnvironment];
     self.session = [Session sharedInstance];
+    [[SDWebImageCodersManager sharedInstance] addCoder:[SDWebImageGIFCoder sharedCoder]];
     
     //GAI *gai = [GAI sharedInstance];
     //[gai trackerWithTrackingId:@"UA-121431078-1"];
@@ -89,7 +92,6 @@
     }
 }
 - (void)statusBarTouchedAction {
-    NSLog(@"status bar touched");
     // use UIAlertController
     UIAlertController *alert= [UIAlertController
                                alertControllerWithTitle:@"Change Development URL"
@@ -100,7 +102,6 @@
                                                handler:^(UIAlertAction * action){
                                                    //Do Some action here
                                                    UITextField *textField = alert.textFields[0];
-                                                   NSLog(@"text was %@", textField.text);
                                                    
                                                    // save new development url
                                                    NSMutableDictionary *config = [[NSMutableDictionary alloc] initWithDictionary:[[NSUserDefaults standardUserDefaults] dictionaryForKey:@"config"]];
@@ -114,7 +115,6 @@
                                                handler:^(UIAlertAction * action){
                                                    //Do Some action here
                                                    UITextField *textField = alert.textFields[0];
-                                                   NSLog(@"text was %@", textField.text);
                                                    
                                                    // save new development url
                                                    NSMutableDictionary *config = [[NSMutableDictionary alloc] initWithDictionary:[[NSUserDefaults standardUserDefaults] dictionaryForKey:@"config"]];
@@ -128,11 +128,7 @@
                                                }];
     UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel
                                                    handler:^(UIAlertAction * action) {
-                                                       
-                                                       NSLog(@"cancel btn");
-                                                       
                                                        [alert dismissViewControllerAnimated:YES completion:nil];
-                                                       
                                                    }];
     
     [alert addAction:cancel];
@@ -170,7 +166,7 @@
     // setup all the view controllers
     NSMutableArray *vcArray = [[NSMutableArray alloc] init];
     NSMutableDictionary *vcIndexDictionary = [[NSMutableDictionary alloc] init];
-    NSLog(@"view last opened: %@", [[NSUserDefaults standardUserDefaults] valueForKey:@"view_last_opened"]);
+
     NSString *viewLastOpened = ([[NSUserDefaults standardUserDefaults] valueForKey:@"view_last_opened"] ? [[NSUserDefaults standardUserDefaults] valueForKey:@"view_last_opened"] : @"common");
     
     LauncherNavigationViewController *timeline = [self launcherWithRootViewController:@"timeline"];
@@ -259,7 +255,7 @@
         ProfileViewController *viewController = [[ProfileViewController alloc] init];
         
         NSString *themeCSS = user.attributes.details.color.length == 6 ? user.attributes.details.color : (user.identifier ? @"0076ff" : @"707479");
-        viewController.theme = [UIColor colorWithCSS:themeCSS];
+        viewController.theme = [UIColor fromHex:themeCSS];
         
         viewController.user = user;
         

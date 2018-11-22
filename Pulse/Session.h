@@ -42,17 +42,18 @@
 
 
 // -- Post --
-- (void)deletePost:(NSInteger)postId completion:(void (^)(BOOL success, id responseObject))handler;
+- (void)deletePost:(Post *)post completion:(void (^)(BOOL success, id responseObject))handler;
 - (void)reportPost:(NSInteger)postId completion:(void (^)(BOOL success, id responseObject))handler;
 - (void)sparkPost:(Post *)post completion:(void (^)(BOOL success, id responseObject))handler;
 - (void)unsparkPost:(Post *)post completion:(void (^)(BOOL success, id responseObject))handler;
 
 
 // -- User --
-- (void)followUser:(NSString *)userId completion:(void (^)(BOOL success, id responseObject))handler;
-- (void)unfollowUser:(NSString *)postId completion:(void (^)(BOOL success, id responseObject))handler;
-- (void)blockUser:(NSString *)userId completion:(void (^)(BOOL success, id responseObject))handler;
-- (void)unblockUser:(NSString *)userId completion:(void (^)(BOOL success, id responseObject))handler;
+- (void)followUser:(User *)user completion:(void (^)(BOOL success, id responseObject))handler;
+- (void)unfollowUser:(User *)user completion:(void (^)(BOOL success, id responseObject))handler;
+- (void)blockUser:(User *)user completion:(void (^)(BOOL success, id responseObject))handler;
+- (void)reportUser:(User *)user completion:(void (^)(BOOL success, id responseObject))handler;
+- (void)unblockUser:(User *)user completion:(void (^)(BOOL success, id responseObject))handler;
 
 // -- Follow/Unfollow Room --
 - (void)followRoom:(NSString *)roomId completion:(void (^)(BOOL success, id responseObject))handler;

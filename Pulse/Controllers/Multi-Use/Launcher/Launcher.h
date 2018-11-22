@@ -27,6 +27,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)openCreateRoom;
 - (void)openComposePost;
 - (void)openEditProfile;
+- (void)openInviteFriends;
 - (void)openOnboarding;
 
 @end

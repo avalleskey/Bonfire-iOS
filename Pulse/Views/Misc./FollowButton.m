@@ -32,9 +32,7 @@
     [super layoutSubviews];
 }
 
-- (void)updateStatus:(NSString *)status {
-    NSLog(@"status: %@", status);
-    
+- (void)updateStatus:(NSString *)status {    
     self.status = status;
     // set icon + title
     if ([status isEqualToString:STATUS_MEMBER]) {

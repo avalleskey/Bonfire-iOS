@@ -43,6 +43,7 @@ static NSString * const errorRoomCellReuseIdentifier = @"ErrorRoomCell";
 - (void)setup {
     self.rooms = [[NSMutableArray alloc] init];
     self.manager = [HAWebService manager];
+    self.loading = true;
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(refreshMyRooms:) name:@"refreshMyRooms" object:nil];
     [self getRooms];

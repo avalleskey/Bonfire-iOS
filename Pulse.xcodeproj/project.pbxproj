@@ -662,8 +662,7 @@
 				D94FD1C8216D730300B84E45 /* Post */,
 				D983D72C216D7F3E00F9D201 /* Room */,
 			);
-			name = Models;
-			path = "New Group";
+			path = Models;
 			sourceTree = "<group>";
 		};
 		D9BD770F2172784F00DAB9BE /* Supporting Files */ = {

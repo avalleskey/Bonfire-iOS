@@ -14,6 +14,9 @@ PODS:
   - AFNetworking/Serialization (3.2.1)
   - AFNetworking/UIKit (3.2.1):
     - AFNetworking/NSURLSession
+  - APAddressBook (0.3.2):
+    - APAddressBook/Core (= 0.3.2)
+  - APAddressBook/Core (0.3.2)
   - BlocksKit (2.2.5):
     - BlocksKit/All (= 2.2.5)
   - BlocksKit/All (2.2.5):
@@ -29,6 +32,7 @@ PODS:
   - BlocksKit/UIKit (2.2.5):
     - BlocksKit/Core
     - BlocksKit/DynamicDelegate
+  - FLAnimatedImage (1.0.12)
   - GoogleAnalytics (3.17.0)
   - HapticHelper (1.0.1)
   - JGProgressHUD (2.0.3)
@@ -36,23 +40,24 @@ PODS:
   - JTSImageViewController (1.5.1)
   - L360Confetti (1.1.4)
   - LGSemiModalNavController (0.2.0)
+  - libPhoneNumber-iOS (0.9.13)
   - Lockbox (3.0.6)
   - NSStringEmojize (0.2.0)
   - RSKImageCropper (2.1.0)
   - SDWebImage (4.4.2):
     - SDWebImage/Core (= 4.4.2)
   - SDWebImage/Core (4.4.2)
+  - SDWebImage/GIF (4.4.2):
+    - FLAnimatedImage (~> 1.0)
+    - SDWebImage/Core
   - Shimmer (1.0.2)
-  - "UIColor+Hex (1.0.1)":
-    - "UIColor+Hex/NSColor (= 1.0.1)"
-    - "UIColor+Hex/UIColor (= 1.0.1)"
-  - "UIColor+Hex/UIColor (1.0.1)"
   - "UINavigationItem+Margin (2.1.1)"
   - "UITextView+Placeholder (1.2.1)"
   - ZFDragableModalTransition (0.6)
 
 DEPENDENCIES:
   - AFNetworking
+  - APAddressBook
   - BlocksKit
   - GoogleAnalytics
   - HapticHelper
@@ -61,12 +66,13 @@ DEPENDENCIES:
   - JTSImageViewController
   - L360Confetti
   - LGSemiModalNavController
+  - libPhoneNumber-iOS (~> 0.8)
   - Lockbox
   - NSStringEmojize
   - RSKImageCropper
   - SDWebImage (~> 4.0)
+  - SDWebImage/GIF
   - Shimmer
-  - "UIColor+Hex"
   - "UINavigationItem+Margin"
   - "UITextView+Placeholder (~> 1.2)"
   - ZFDragableModalTransition
@@ -74,7 +80,9 @@ DEPENDENCIES:
 SPEC REPOS:
   https://github.com/cocoapods/specs.git:
     - AFNetworking
+    - APAddressBook
     - BlocksKit
+    - FLAnimatedImage
     - GoogleAnalytics
     - HapticHelper
     - JGProgressHUD
@@ -82,19 +90,21 @@ SPEC REPOS:
     - JTSImageViewController
     - L360Confetti
     - LGSemiModalNavController
+    - libPhoneNumber-iOS
     - Lockbox
     - NSStringEmojize
     - RSKImageCropper
     - SDWebImage
     - Shimmer
-    - "UIColor+Hex"
     - "UINavigationItem+Margin"
     - "UITextView+Placeholder"
     - ZFDragableModalTransition
 
 SPEC CHECKSUMS:
   AFNetworking: b6f891fdfaed196b46c7a83cf209e09697b94057
+  APAddressBook: e68ecaf95f2c323b625ae585a0d25fe505291286
   BlocksKit: 7f422b971407001178d181a43b99014ea2591fe6
+  FLAnimatedImage: 4a0b56255d9b05f18b6dd7ee06871be5d3b89e31
   GoogleAnalytics: f42cc53a87a51fe94334821868d9c8481ff47a7b
   HapticHelper: 0cccef18b9612abbc7881a8e7d5fbc144face328
   JGProgressHUD: 12b20a8f4ffe05258f8635c1ab92816e451f904d
@@ -102,16 +112,16 @@ SPEC CHECKSUMS:
   JTSImageViewController: 1f8ce1cc93dab0d0af8e53badeea7528560cfec9
   L360Confetti: 9b77ea9925e758de4b6e7d1edbb7b87f3eaa0d17
   LGSemiModalNavController: ba49f8cbc24638be981cbca8a526f66b5dd90414
+  libPhoneNumber-iOS: e444379ac18bbfbdefad571da735b2cd7e096caa
   Lockbox: 4291a0b8b1aed35474881c4e592961dec3ca695e
   NSStringEmojize: bd60199a25d745365b393fb95a2c6471bb9a2e99
   RSKImageCropper: 0d0c6d8525a2381f03fde32a47c6703817a2feed
   SDWebImage: 624d6e296c69b244bcede364c72ae0430ac14681
   Shimmer: c5374be1c2b0c9e292fb05b339a513cf291cac86
-  "UIColor+Hex": 9fee91bb8e19f17dd40a79ae1e98949a6a84489d
   "UINavigationItem+Margin": 7368d506fb2f7daa0c0489846cc8c2384ab1ab6d
   "UITextView+Placeholder": 0c3efd97f37ea64bde7f34cc6e90fe02e87b3909
   ZFDragableModalTransition: 0d294eaaba6edfcb9839595de765f9ca06a4b524
 
-PODFILE CHECKSUM: a3e1abe309a5cc0fc87e4cef38ae1bdc3888dd84
+PODFILE CHECKSUM: bf7e39a4a4c0106ba1732bd405bfddb8d18b9a5b
 
 COCOAPODS: 1.5.3

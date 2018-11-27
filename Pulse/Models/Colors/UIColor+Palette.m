@@ -62,7 +62,7 @@
         case 900:
             return [UIColor fromHex:@"#383f48"];
         default:
-            return nil;
+            return [UIColor bonfireGrayWithLevel:500];
     }
 }
 + (UIColor * _Nonnull) bonfireGray {
@@ -93,7 +93,7 @@
         case 900:
             return [UIColor fromHex:@"#003776"];
         default:
-            return nil;
+            return [UIColor bonfireBlueWithLevel:500];
     }
 }
 + (UIColor * _Nonnull) bonfireBlue {
@@ -124,7 +124,7 @@
         case 900:
             return [UIColor fromHex:@"#03007a"];
         default:
-            return nil;
+            return [UIColor bonfireIndigoWithLevel:500];
     }
 }
 + (UIColor * _Nonnull) bonfireIndigo {
@@ -155,7 +155,7 @@
         case 900:
             return [UIColor fromHex:@"#400079"];
         default:
-            return nil;
+            return [UIColor bonfireVioletWithLevel:500];;
     }
 }
 + (UIColor * _Nonnull) bonfireViolet {
@@ -186,7 +186,7 @@
         case 900:
             return [UIColor fromHex:@"#7b0077"];
         default:
-            return nil;
+            return [UIColor bonfireFuschiaWithLevel:500];
     }
 }
 + (UIColor * _Nonnull) bonfireFuschia {
@@ -217,7 +217,7 @@
         case 900:
             return [UIColor fromHex:@"#7b0039"];
         default:
-            return nil;
+            return [UIColor bonfirePinkWithLevel:500];
     }
 }
 + (UIColor * _Nonnull) bonfirePink {
@@ -248,7 +248,7 @@
         case 900:
             return [UIColor fromHex:@"#7a0400"];
         default:
-            return nil;
+            return [UIColor bonfireRedWithLevel:500];
     }
 }
 + (UIColor * _Nonnull) bonfireRed {
@@ -279,7 +279,7 @@
         case 900:
             return [UIColor fromHex:@"#784000"];
         default:
-            return nil;
+            return [UIColor bonfireOrangeWithLevel:500];
     }
 }
 + (UIColor * _Nonnull) bonfireOrange {
@@ -310,7 +310,7 @@
         case 900:
             return [UIColor fromHex:@"#756110"];
         default:
-            return nil;
+            return [UIColor bonfireYellowWithLevel:500];
     }
 }
 + (UIColor * _Nonnull) bonfireYellow {
@@ -341,7 +341,7 @@
         case 900:
             return [UIColor fromHex:@"#397b00"];
         default:
-            return nil;
+            return [UIColor bonfireLimeWithLevel:500];
     }
 }
 + (UIColor * _Nonnull) bonfireLime {
@@ -372,7 +372,7 @@
         case 900:
             return [UIColor fromHex:@"#007b04"];
         default:
-            return nil;
+            return [UIColor bonfireGreenWithLevel:500];
     }
 }
 + (UIColor * _Nonnull) bonfireGreen {
@@ -403,7 +403,7 @@
         case 900:
             return [UIColor fromHex:@"#007b41"];
         default:
-            return nil;
+            return [UIColor bonfireTealWithLevel:500];
     }
 }
 + (UIColor * _Nonnull) bonfireTeal {
@@ -434,7 +434,7 @@
         case 900:
             return [UIColor fromHex:@"#00767b"];
         default:
-            return nil;
+            return [UIColor bonfireCyanWithLevel:500];
     }
 }
 + (UIColor * _Nonnull) bonfireCyan {

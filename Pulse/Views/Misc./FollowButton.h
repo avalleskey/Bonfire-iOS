@@ -10,8 +10,4 @@
 
 @interface FollowButton : UIButton
 
-@property (nonatomic, strong) NSString *status;
-
-- (void)updateStatus:(NSString *)status;
-
 @end

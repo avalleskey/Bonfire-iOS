@@ -71,6 +71,8 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
     self.transitioningDelegate = self;
 }
 - (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    
     if (safeAreaInsets.top == 1) {
         safeAreaInsets = [UIApplication sharedApplication].keyWindow.safeAreaInsets;
         [self updateWithSafeAreaInsets];

@@ -84,24 +84,24 @@
     [self styleViewController:self.myRoomsViewController];
 }
 - (void)setupTimelineViewController {
-    self.timelineViewController = [[FeedViewController alloc] initWithFeedId:@"timeline"];
+    /*self.timelineViewController = [[FeedViewController alloc] initWithFeedId:@"timeline"];
     [self addChildViewController:self.timelineViewController];
     self.timelineViewController.view.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height);
     self.timelineViewController.tableView.frame = self.timelineViewController.view.bounds;
     [self.timelineViewController.tableView setContentInsetAdjustmentBehavior:UIScrollViewContentInsetAdjustmentNever];
     [self.timelineViewController didMoveToParentViewController:self];
     
-    [self styleViewController:self.timelineViewController];
+    [self styleViewController:self.timelineViewController];*/
 }
 - (void)setupTrendingViewController {
-    self.trendingFeedViewController = [[FeedViewController alloc] initWithFeedId:@"trending"];
+    /*self.trendingFeedViewController = [[FeedViewController alloc] initWithFeedId:@"trending"];
     [self addChildViewController:self.trendingFeedViewController];
     self.trendingFeedViewController.view.frame = CGRectMake(self.view.frame.size.width * 2, 0, self.view.frame.size.width, self.view.frame.size.height);
     self.trendingFeedViewController.tableView.frame = self.trendingFeedViewController.view.bounds;
     [self.trendingFeedViewController.tableView setContentInsetAdjustmentBehavior:UIScrollViewContentInsetAdjustmentNever];
     [self.trendingFeedViewController didMoveToParentViewController:self];
     
-    [self styleViewController:self.trendingFeedViewController];
+    [self styleViewController:self.trendingFeedViewController];*/
 }
 
 - (void)styleViewController:(UIViewController *)viewController {
@@ -242,10 +242,7 @@
         float percentageScrolled;
         
         if (self.page != indexOfPage) {
-            BOOL goingRight = false;
             if (indexOfPage > self.page) {
-                goingRight = true;
-                
                 goingToPage = ceilf(indexOfPage);
                 closestPage = (goingToPage - 1 >= 0) ? goingToPage - 1 : 0;
                 percentageScrolled = (indexOfPage - floorf(indexOfPage));
@@ -271,10 +268,10 @@
             
             if (goingToPage >= 0 && goingToPage < self.pages.count) {
                 UIButton *upcomingButton = self.bottomBarButtons[goingToPage];
-                CGRect upcomingButtonRect = [upcomingButton.currentTitle boundingRectWithSize:CGSizeMake(CGFLOAT_MAX, 72) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:upcomingButton.titleLabel.font} context:nil];
+                // CGRect upcomingButtonRect = [upcomingButton.currentTitle boundingRectWithSize:CGSizeMake(CGFLOAT_MAX, 72) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:upcomingButton.titleLabel.font} context:nil];
                 
                 UIButton *activeButton = self.bottomBarButtons[closestPage];
-                CGRect activeButtonRect = [activeButton.currentTitle boundingRectWithSize:CGSizeMake(CGFLOAT_MAX, 72) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:activeButton.titleLabel.font} context:nil];
+                // CGRect activeButtonRect = [activeButton.currentTitle boundingRectWithSize:CGSizeMake(CGFLOAT_MAX, 72) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:activeButton.titleLabel.font} context:nil];
                 
                 //float upcomingButtonWidth = upcomingButtonRect.size.width + 36; // 18 on each side
                 //float activeButtonWidth = activeButtonRect.size.width + 36; // 18 on each side
@@ -286,8 +283,8 @@
                 
                 self.bottomBarIndicator.frame = CGRectMake(currentTransitionX, self.bottomBarIndicator.frame.origin.y, self.bottomBarIndicator.frame.size.width, self.bottomBarIndicator.frame.size.height);
                 
-                CGFloat adjustedScrollPosition = (percentageScrolled > 0.5 ? (1 - percentageScrolled) / 0.25 : percentageScrolled / 0.25);
-                adjustedScrollPosition = adjustedScrollPosition > 1 ? 1 : adjustedScrollPosition;
+                // CGFloat adjustedScrollPosition = (percentageScrolled > 0.5 ? (1 - percentageScrolled) / 0.25 : percentageScrolled / 0.25);
+                // adjustedScrollPosition = adjustedScrollPosition > 1 ? 1 : adjustedScrollPosition;
                 CGFloat borderOpacity = 0.04f * (percentageScrolled > 0.5 ? (1 - percentageScrolled) / 0.25 : percentageScrolled / 0.25);
                 UIColor *borderColor = [UIColor colorWithWhite:0 alpha:borderOpacity];
                 

@@ -7,7 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "FollowButton.h"
+#import "RoomFollowButton.h"
 #import <SpriteKit/SpriteKit.h>
 #import "Room.h"
 
@@ -20,7 +20,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (strong, nonatomic) UILabel *nameLabel;
 @property (strong, nonatomic) UILabel *descriptionLabel;
 
-@property (strong, nonatomic) FollowButton *followButton;
+@property (strong, nonatomic) RoomFollowButton *followButton;
 
 @property (strong, nonatomic) UIView *statsView;
 @property (strong, nonatomic) UIView *statsViewTopSeparator;

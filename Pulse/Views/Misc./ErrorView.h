@@ -16,6 +16,7 @@ extern const NSInteger ErrorViewTypeLocked;
 extern const NSInteger ErrorViewTypeHeart;
 extern const NSInteger ErrorViewTypeNoPosts;
 extern const NSInteger ErrorViewTypeNoNotifications;
+extern const NSInteger ErrorViewTypeContactsDenied;
 
 NS_ASSUME_NONNULL_BEGIN
 

@@ -18,10 +18,9 @@
 }
 
 - (void)setup {
-    self.backgroundColor = [UIColor colorWithWhite:0.95 alpha:1];
+    self.backgroundColor = [UIColor colorWithWhite:0 alpha:0.03f];
     
-    self.layer.cornerRadius = 12.f;
-    self.layer.masksToBounds = true;
+    [self continuityRadiusForCell:self withRadius:12.f];
     
     // setup error view
     self.errorView = [[ErrorView alloc] initWithFrame:CGRectMake(8, 0, self.frame.size.width - 16, 100) title:@"Error Loading" description:@"Check your network settings and tap to try again." type:ErrorViewTypeGeneral];
@@ -32,6 +31,15 @@
     [super layoutSubviews];
     
     self.errorView.center = CGPointMake(self.frame.size.width / 2, self.frame.size.height / 2);
+}
+
+- (void)continuityRadiusForCell:(UICollectionViewCell *)sender withRadius:(CGFloat)radius {
+    CAShapeLayer * maskLayer = [CAShapeLayer layer];
+    maskLayer.path = [UIBezierPath bezierPathWithRoundedRect:sender.bounds
+                                           byRoundingCorners:UIRectCornerBottomLeft|UIRectCornerBottomRight|UIRectCornerTopLeft|UIRectCornerTopRight
+                                                 cornerRadii:CGSizeMake(radius, radius)].CGPath;
+    
+    sender.layer.mask = maskLayer;
 }
 
 @end

@@ -134,7 +134,7 @@ static NSString * const errorRoomCellReuseIdentifier = @"ErrorRoomCell";
         cell.profilePicture.image = nil;
         cell.profilePicture.layer.shadowOpacity = 0;
         
-        cell.backgroundColor = [UIColor colorWithWhite:0.95 alpha:1];
+        cell.backgroundColor = [UIColor colorWithWhite:0 alpha:0.08f];
         cell.title.layer.cornerRadius = 6.f;
         cell.title.layer.masksToBounds = true;
         cell.title.backgroundColor = [UIColor whiteColor];
@@ -252,7 +252,7 @@ static NSString * const errorRoomCellReuseIdentifier = @"ErrorRoomCell";
         // animate the cell user tapped on
         Room *room = [[Room alloc] initWithDictionary:self.rooms[indexPath.row] error:nil];
         
-        RoomContext *context = [[RoomContext alloc] initWithDictionary:@{@"status": STATUS_MEMBER} error:nil];
+        RoomContext *context = [[RoomContext alloc] initWithDictionary:@{@"status": ROOM_STATUS_MEMBER} error:nil];
         room.attributes.context = context;
         
         [[Launcher sharedInstance] openRoom:room];

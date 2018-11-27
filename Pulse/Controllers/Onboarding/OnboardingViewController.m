@@ -1348,7 +1348,7 @@
 }
 
 - (void)openHome {
-    [[Launcher sharedInstance] launchLoggedIn];
+    [[Launcher sharedInstance] launchLoggedIn:true];
 }
 
 - (void)keyboardWillChangeFrame:(NSNotification *)notification {
@@ -1374,6 +1374,7 @@
 
 - (void)showImagePicker {
     UIAlertController *imagePickerOptions = [UIAlertController alertControllerWithTitle:@"Set Profile Photo" message:nil preferredStyle:UIAlertControllerStyleActionSheet];
+    imagePickerOptions.view.tintColor = [UIColor colorWithWhite:0.2 alpha:1];
     
     UIAlertAction *takePhoto = [UIAlertAction actionWithTitle:@"Take Photo" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         [self takePhotoForProfilePicture:nil];
@@ -1387,6 +1388,7 @@
     
     UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
     }];
+    [cancel setValue:self.closeButton.tintColor forKey:@"titleTextColor"];
     [imagePickerOptions addAction:cancel];
     
     [self presentViewController:imagePickerOptions animated:YES completion:nil];

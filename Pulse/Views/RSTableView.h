@@ -15,10 +15,13 @@
         (UIViewController *)__responder; \
         })
 
-#define tableCategoryFeed 1
-#define tableCategoryRoom 2
-#define tableCategoryProfile 3
-#define tableCategoryPost 4
+typedef enum {
+    RSTableViewTypeFeed = 1,
+    RSTableViewTypeRoom = 2,
+    RSTableViewTypeProfile = 3,
+    RSTableViewTypePost = 4
+} RSTableViewType;
+
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -31,7 +34,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface RSTableView : UITableView <UITableViewDataSource, UITableViewDelegate>
 
 @property (strong, nonatomic) id parentObject;
-@property (nonatomic) int dataType;
+@property (nonatomic) RSTableViewType dataType;
 
 @property BOOL loading;
 @property BOOL error;
@@ -39,7 +42,6 @@ NS_ASSUME_NONNULL_BEGIN
 // pagination
 @property BOOL loadingMore;
 @property (nonatomic) NSInteger lastSinceId;
-- (BOOL)morePosts;
 
 - (void)refresh;
 

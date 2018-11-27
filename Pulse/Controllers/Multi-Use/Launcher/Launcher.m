@@ -70,27 +70,43 @@ static Launcher *launcher;
         viewController = viewController.presentedViewController;
     }
     
-    NSLog(@"activeViewController class: %@", [viewController class]);
-    
     return viewController;
 }
 
 - (BOOL)canPush {
-    NSLog(@"can push? %@", [launcher activeViewController]);
-    
     return [[launcher activeViewController] isKindOfClass:[UINavigationController class]]; // alias
 }
 
-- (void)launchLoggedIn {
-    NSInteger launches = [[NSUserDefaults standardUserDefaults] integerForKey:@"launches"];
-    launches = launches + 1;
-    [[NSUserDefaults standardUserDefaults] setInteger:launches forKey:@"launches"];
-    
+- (void)launchLoggedIn:(BOOL)animated {
     AppDelegate *delegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
     TabController *tbc = [delegate createTabBarController];
     tbc.transitioningDelegate = launcher;
     
-    [[launcher activeViewController] presentViewController:tbc animated:YES completion:nil];
+    [[launcher activeViewController] presentViewController:tbc animated:animated completion:^{
+        delegate.window.rootViewController = tbc;
+        [delegate.window makeKeyAndVisible];
+    }];
+}
+
+- (void)openTimeline {
+    if ([[launcher activeViewController] isKindOfClass:[UINavigationController class]]) {
+        [launcher launchLoggedIn:false];
+    }
+    NSLog(@"launcher active view controller: %@", [launcher activeViewController]);
+    if ([[launcher activeViewController] isKindOfClass:[UITabBarController class]]) {
+        UITabBarController *activeTabBarController = (UITabBarController *)[launcher activeViewController];
+        [activeTabBarController setSelectedIndex:0];
+    }
+}
+- (void)openTrending {
+    if ([[launcher activeViewController] isKindOfClass:[UINavigationController class]]) {
+        [launcher launchLoggedIn:false];
+    }
+    NSLog(@"launcher active view controller: %@", [launcher activeViewController]);
+    if ([[launcher activeViewController] isKindOfClass:[UITabBarController class]]) {
+        UITabBarController *activeTabBarController = (UITabBarController *)[launcher activeViewController];
+        [activeTabBarController setSelectedIndex:1];
+    }
 }
 
 - (void)openRoom:(Room *)room {
@@ -135,7 +151,23 @@ static Launcher *launcher;
         }
     }
     
-    // [self addToRecentlyOpened:[room toDictionary]];
+    // Register Siri intent
+    NSUserActivity *activity = [[NSUserActivity alloc] initWithActivityType:@"com.Ingenious.bonfire.open-room-activity-type"];
+    activity.title = [NSString stringWithFormat:@"Open %@", r.title];
+    activity.userInfo = @{@"room": [room toDictionary]};
+    activity.eligibleForSearch = true;
+    if (@available(iOS 12.0, *)) {
+        activity.eligibleForPrediction = true;
+    } else {
+        // Fallback on earlier versions
+    }
+    if (@available(iOS 12.0, *)) {
+        activity.persistentIdentifier = @"com.Ingenious.bonfire.open-room-activity-type";
+    } else {
+        // Fallback on earlier versions
+    }
+    r.view.userActivity = activity;
+    [activity becomeCurrent];
 }
 - (void)openRoomMembersForRoom:(Room *)room {
     RoomMembersViewController *rm = [[RoomMembersViewController alloc] initWithStyle:UITableViewStyleGrouped];

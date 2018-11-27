@@ -71,7 +71,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
 - (void)refresh {
     [self reloadData];
     
-    if (!self.loading && !self.loadingMore && self.data.count == 0 && self.dataType != tableCategoryFeed) {
+    if (!self.loading && !self.loadingMore && self.data.count == 0 && self.dataType != RSTableViewTypeFeed) {
         self.backgroundColor = [UIColor colorWithWhite:0.98 alpha:1];
     }
     else {
@@ -165,7 +165,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.section == 0 && self.parentObject) {
         // Header (used in Profiles, Rooms, Post Details)
-        if (self.dataType == tableCategoryRoom && [self.parentObject isKindOfClass:[Room class]]) {
+        if (self.dataType == RSTableViewTypeRoom && [self.parentObject isKindOfClass:[Room class]]) {
             Room *room = self.parentObject;
             
             RoomHeaderCell *cell = [tableView dequeueReusableCellWithIdentifier:roomHeaderCellIdentifier forIndexPath:indexPath];
@@ -177,10 +177,10 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             cell.tintColor = self.superview.tintColor;
             
             if (room.attributes.status.isBlocked) {
-                [cell.followButton updateStatus:STATUS_ROOM_BLOCKED];
+                [cell.followButton updateStatus:ROOM_STATUS_ROOM_BLOCKED];
             }
             else if (self.loading && room.attributes.context == nil) {
-                [cell.followButton updateStatus:STATUS_LOADING];
+                [cell.followButton updateStatus:ROOM_STATUS_LOADING];
             }
             else {
                 [cell.followButton updateStatus:room.attributes.context.status];
@@ -272,7 +272,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             
             return cell;
         }
-        else if (self.dataType == tableCategoryProfile && [self.parentObject isKindOfClass:[User class]]) {
+        else if (self.dataType == RSTableViewTypeProfile && [self.parentObject isKindOfClass:[User class]]) {
             User *user = self.parentObject;
             
             ProfileHeaderCell *cell = [tableView dequeueReusableCellWithIdentifier:profileHeaderCellIdentifier forIndexPath:indexPath];
@@ -283,6 +283,17 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             
             cell.user = user;
             cell.tintColor = [[user.attributes.details.color lowercaseString] isEqualToString:@"ffffff"] ? [UIColor colorWithWhite:0.2f alpha:1] : [UIColor fromHex:user.attributes.details.color];
+            
+            if ([user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
+                [cell.followButton updateStatus:USER_STATUS_ME];
+            }
+            else if (self.loading && user.attributes.context == nil) {
+                [cell.followButton updateStatus:USER_STATUS_LOADING];
+            }
+            else {
+                NSLog(@"user attributes context status: %@", user.attributes.context.status);
+                [cell.followButton updateStatus:user.attributes.context.status];
+            }
             
             if (user.attributes.details.media.profilePicture && user.attributes.details.media.profilePicture.length > 0) {
                 [cell.profilePicture sd_setImageWithURL:[NSURL URLWithString:user.attributes.details.media.profilePicture] placeholderImage:[[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
@@ -318,9 +329,33 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                 }
             }
             
+            //if (user.attributes.summaries.counts.members) {
+            NSInteger stat;
+            NSString *statLabel;
+            if ([cell.user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
+                stat = 10;
+                statLabel = @"Following";
+            }
+            else {
+                stat = 10;
+                statLabel = (stat == 1) ? @"Room" : @"Rooms";
+            }
+            [cell.statActionButton setTitle:[NSString stringWithFormat:@"%ld %@", (long)stat, statLabel] forState:UIControlStateNormal];
+            cell.statActionButton.alpha = (stat == 0) ? 0.5 : 1;
+            
+            //if (user.attributes.summaries.counts.posts) {
+            if (true == 1) {
+                cell.postsCountLabel.text = @"{x} posts";
+                cell.postsCountLabel.alpha = 1;
+            }
+            else {
+                cell.postsCountLabel.text = @"0 posts";
+                cell.postsCountLabel.alpha = 0.5;
+            }
+            
             return cell;
         }
-        else if (self.dataType == tableCategoryPost && [self.parentObject isKindOfClass:[Post class]]) {
+        else if (self.dataType == RSTableViewTypePost && [self.parentObject isKindOfClass:[Post class]]) {
             Post *post = self.parentObject;
             
             ExpandedPostCell *cell = [tableView dequeueReusableCellWithIdentifier:expandedPostCellIdentifier forIndexPath:indexPath];
@@ -439,7 +474,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                 
                 Room *postRoom = cell.post.attributes.status.postedIn;
                 Room *parentRoom = self.parentObject;
-                if (self.dataType == tableCategoryRoom && self.parentObject && [postRoom.identifier isEqualToString:parentRoom.identifier]) {
+                if (self.dataType == RSTableViewTypeRoom && self.parentObject && [postRoom.identifier isEqualToString:parentRoom.identifier]) {
                     // boom match
                     [cell.postDetailsButton setTitle:[NSString stringWithFormat:@"%@", ((long)cell.post.attributes.summaries.replies.count == 0 ? @"Reply" : [NSString stringWithFormat:@"%ld replies", (long)cell.post.attributes.summaries.replies.count])] forState:UIControlStateNormal];
                 }
@@ -460,7 +495,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                         }
                     }];
                     
-                    if (self.dataType != tableCategoryPost && cell.postDetailsButton.gestureRecognizers.count == 0) {
+                    if (self.dataType != RSTableViewTypePost && cell.postDetailsButton.gestureRecognizers.count == 0) {
                         [cell.postDetailsButton bk_whenTapped:^{
                             if ([UIViewParentController(self).navigationController isKindOfClass:[LauncherNavigationViewController class]]) {
                                 if ([self.parentObject isKindOfClass:[Room class]]) {
@@ -485,14 +520,14 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                 [cell setSparked:isSparked withAnimation:false];
             }
             
-            if (self.dataType == tableCategoryPost) {
+            if (self.dataType == RSTableViewTypePost) {
                 cell.postDetailsButton.hidden = true;
             }
             else {
                 cell.postDetailsButton.hidden = false;
             }
             
-            cell.selectable = self.dataType != tableCategoryPost;
+            cell.selectable = self.dataType != RSTableViewTypePost;
             
             [cell.pictureView sd_setImageWithURL:[NSURL URLWithString:@"https://media.giphy.com/media/RJPQ2EF3h0bok/giphy.gif"]];
             
@@ -539,7 +574,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                 
                 Room *postRoom = cell.post.attributes.status.postedIn;
                 Room *parentRoom = self.parentObject;
-                if (self.dataType == tableCategoryRoom && self.parentObject && [postRoom.identifier isEqualToString:parentRoom.identifier]) {
+                if (self.dataType == RSTableViewTypeRoom && self.parentObject && [postRoom.identifier isEqualToString:parentRoom.identifier]) {
                     // boom match
                     [cell.postDetailsButton setTitle:[NSString stringWithFormat:@"%@", ((long)cell.post.attributes.summaries.replies.count == 0 ? @"Reply" : [NSString stringWithFormat:@"%ld replies", (long)cell.post.attributes.summaries.replies.count])] forState:UIControlStateNormal];
                 }
@@ -560,7 +595,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                         }
                     }];
                     
-                    if (self.dataType != tableCategoryPost && cell.postDetailsButton.gestureRecognizers.count == 0) {
+                    if (self.dataType != RSTableViewTypePost && cell.postDetailsButton.gestureRecognizers.count == 0) {
                         [cell.postDetailsButton bk_whenTapped:^{
                             if ([UIViewParentController(self).navigationController isKindOfClass:[LauncherNavigationViewController class]]) {
                                 if ([self.parentObject isKindOfClass:[Room class]]) {
@@ -584,14 +619,14 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                 }
             }
             
-            if (self.dataType == tableCategoryPost) {
+            if (self.dataType == RSTableViewTypePost) {
                 cell.postDetailsButton.hidden = true;
             }
             else {
                 cell.postDetailsButton.hidden = false;
             }
             
-            cell.selectable = self.dataType != tableCategoryPost;
+            cell.selectable = self.dataType != RSTableViewTypePost;
             
             return cell;*/
         }
@@ -617,7 +652,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.section == 0) {
         // header (used in Profiles, Rooms)
-        if (self.dataType == tableCategoryRoom && [self.parentObject isKindOfClass:[Room class]]) {
+        if (self.dataType == RSTableViewTypeRoom && [self.parentObject isKindOfClass:[Room class]]) {
             Room *room = self.parentObject;
             
             CGFloat topPadding = 116;
@@ -634,22 +669,24 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             
             return topPadding + roomTitleHeight + roomDescriptionHeight + roomPrimaryActionHeight + statsViewHeight; // 8 = section separator
         }
-        else if (self.dataType == tableCategoryProfile && [self.parentObject isKindOfClass:[User class]]) {
+        else if (self.dataType == RSTableViewTypeProfile && [self.parentObject isKindOfClass:[User class]]) {
             User *user = self.parentObject;
             
-            CGFloat topPadding = 24;
-            CGFloat profilePictureHeight = 72;
-            CGRect textLabelRect = [(user.attributes.details.displayName.length > 0 ? user.attributes.details.displayName : @"User") boundingRectWithSize:CGSizeMake(self.frame.size.width - (24 * 2), CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:28.f weight:UIFontWeightHeavy]} context:nil];
+            CGFloat topPadding = 116;
+
+            CGRect textLabelRect = [(user.attributes.details.displayName.length > 0 ? user.attributes.details.displayName : @"User") boundingRectWithSize:CGSizeMake(self.frame.size.width - (24 * 2), CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:32.f weight:UIFontWeightHeavy]} context:nil];
             CGFloat userDisplayNameHeight = textLabelRect.size.height; // 18 padding underneath title+description
             
-            CGRect usernameRect = [[NSString stringWithFormat:@"@%@", user.attributes.details.identifier] boundingRectWithSize:CGSizeMake(self.frame.size.width - (24 * 2), CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:16.f weight:UIFontWeightRegular]} context:nil];
+            CGRect usernameRect = [[NSString stringWithFormat:@"@%@", user.attributes.details.identifier] boundingRectWithSize:CGSizeMake(self.frame.size.width - (24 * 2), CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:16.f weight:UIFontWeightMedium]} context:nil];
             CGFloat usernameHeight = user.identifier.length > 0 ? usernameRect.size.height + 2 : 0; // 2 = padding between title and description
             
-            CGFloat userPrimaryActionHeight = 48;
+            CGFloat userPrimaryActionHeight = 40 + 14;
             
-            return topPadding + profilePictureHeight + 12 + userDisplayNameHeight + usernameHeight + 18 + userPrimaryActionHeight + 8 + (1 / [UIScreen mainScreen].scale);
+            CGFloat statsViewHeight = 48 + (1 / [UIScreen mainScreen].scale); // 16 = height above
+            
+            return topPadding + userDisplayNameHeight + usernameHeight + userPrimaryActionHeight + statsViewHeight;
         }
-        else if (self.dataType == tableCategoryPost && [self.parentObject isKindOfClass:[Post class]]) {
+        else if (self.dataType == RSTableViewTypePost && [self.parentObject isKindOfClass:[Post class]]) {
             // prevent getting object at index beyond bounds of array
             NSError *error;
             Post *post = self.parentObject;
@@ -706,7 +743,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             CGFloat actionsHeight = expandedActionsViewHeight + 10; // 10 = padding above actions view
             
             /* deatil button
-            CGFloat detailHeight = (self.dataType != tableCategoryRoom ? 16 + 8 : 0); // 4pt padding on top*/
+            CGFloat detailHeight = (self.dataType != RSTableViewTypeRoom ? 16 + 8 : 0); // 4pt padding on top*/
 
             return expandedTextViewYPos + (textViewHeight+12) + imageHeight + actionsHeight + expandedPostContentOffset.bottom + (1 / [UIScreen mainScreen].scale); // 1 = line separator
         }
@@ -737,7 +774,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                 CGFloat actionsHeight = 0; // 4 + actionsViewHeight;
                 
                 // deatil button
-                CGFloat detailHeight = 0;// (self.dataType != tableCategoryPost ? 14 + 4 : 0); // 4pt padding on top
+                CGFloat detailHeight = 0;// (self.dataType != RSTableViewTypePost ? 14 + 4 : 0); // 4pt padding on top
                 
                 CGFloat postHeight = postContentOffset.top + nameHeight + (textViewHeight+12) + imageHeight + urlPreviewHeight + actionsHeight + detailHeight + postContentOffset.bottom;
                 
@@ -764,7 +801,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                 CGFloat actionsHeight = 0; // 4 + actionsViewHeight;
                 
                 // deatil button
-                CGFloat detailHeight = 0;// (self.dataType != tableCategoryPost ? 14 + 4 : 0); // 4pt padding on top
+                CGFloat detailHeight = 0;// (self.dataType != RSTableViewTypePost ? 14 + 4 : 0); // 4pt padding on top
 
                 CGFloat postHeight = postContentOffset.top + nameHeight + textViewHeight + imageHeight + actionsHeight + detailHeight + postContentOffset.bottom;
                 CGFloat minHeight = postContentOffset.top + 40 + postContentOffset.bottom;
@@ -805,9 +842,9 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     if (section == 0) {
         // headers
-        if (self.dataType == tableCategoryRoom ||
-            self.dataType == tableCategoryProfile ||
-            self.dataType == tableCategoryPost) {
+        if (self.dataType == RSTableViewTypeRoom ||
+            self.dataType == RSTableViewTypeProfile ||
+            self.dataType == RSTableViewTypePost) {
             return 1;
         }
     }
@@ -830,7 +867,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     if (indexPath.section == 0) {
         
     }
-    else if (indexPath.section == 1 && self.dataType != tableCategoryPost) {
+    else if (indexPath.section == 1 && self.dataType != RSTableViewTypePost) {
         if (self.data.count > indexPath.row) {
             // prevent getting object at index beyond bounds of array
             if ([self.data[indexPath.row][@"type"] isEqualToString:@"post"]) {
@@ -883,9 +920,9 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    if (self.dataType == tableCategoryProfile ||
-        self.dataType == tableCategoryPost ||
-        self.dataType == tableCategoryRoom) {
+    if (self.dataType == RSTableViewTypeProfile ||
+        self.dataType == RSTableViewTypePost ||
+        self.dataType == RSTableViewTypeRoom) {
         return section == 0 ? 0 : 64; // 8 = spacing underneath
     }
     return 0;
@@ -893,9 +930,9 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
 - (nullable UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
     if (section == 1) {
         if ((self.loading || (!self.loading && self.data.count > 0)) &&
-            (self.dataType == tableCategoryProfile ||
-            self.dataType == tableCategoryPost ||
-            self.dataType == tableCategoryRoom)) {
+            (self.dataType == RSTableViewTypeProfile ||
+            self.dataType == RSTableViewTypePost ||
+            self.dataType == RSTableViewTypeRoom)) {
             UIView *headerContainer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, 64)];
             
             UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, 64)];
@@ -911,7 +948,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             [header addSubview:icon];
             
             UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(62, icon.frame.origin.y, self.frame.size.width - 62 - 200, icon.frame.size.height)];
-            if (self.dataType == tableCategoryRoom) {
+            if (self.dataType == RSTableViewTypeRoom) {
                 title.text = @"Posts";
                 
                 if ([self.parentObject isKindOfClass:[Room class]]) {
@@ -941,10 +978,10 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                     liveCountPulse.hidden = liveCountLabel.isHidden;
                 }
             }
-            else if (self.dataType == tableCategoryProfile) {
+            else if (self.dataType == RSTableViewTypeProfile) {
                 title.text = @"Recent Posts";
             }
-            else if (self.dataType == tableCategoryPost) {
+            else if (self.dataType == RSTableViewTypePost) {
                 Post *post = self.parentObject;
                 title.text = [NSString stringWithFormat:@"%ld Replies", (long)post.attributes.summaries.counts.replies];
             }

@@ -15,15 +15,15 @@
 
 @interface RoomContext : JSONModel
 
-extern NSString * const STATUS_INVITED;
-extern NSString * const STATUS_REQUESTED;
-extern NSString * const STATUS_MEMBER;
-extern NSString * const STATUS_LEFT;
-extern NSString * const STATUS_BLOCKED;
-extern NSString * const STATUS_NO_RELATION;
+extern NSString * const ROOM_STATUS_INVITED;
+extern NSString * const ROOM_STATUS_REQUESTED;
+extern NSString * const ROOM_STATUS_MEMBER;
+extern NSString * const ROOM_STATUS_LEFT;
+extern NSString * const ROOM_STATUS_BLOCKED;
+extern NSString * const ROOM_STATUS_NO_RELATION;
 
-extern NSString * const STATUS_ROOM_BLOCKED;
-extern NSString * const STATUS_LOADING;
+extern NSString * const ROOM_STATUS_ROOM_BLOCKED;
+extern NSString * const ROOM_STATUS_LOADING;
 
 @property (nonatomic) RoomContextInvite <Optional> *invite;
 @property (nonatomic) RoomContextMembership <Optional> *membership;

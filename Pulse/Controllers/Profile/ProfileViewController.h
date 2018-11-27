@@ -6,7 +6,6 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "ComposeInputView.h"
 #import "HAWebService.h"
 #import "Session.h"
 #import "RSTableView.h"
@@ -23,7 +22,6 @@
 
 @property (strong, nonatomic) UIScrollView *scrollView;
 @property (strong, nonatomic) RSTableView *tableView;
-@property (strong, nonatomic) ComposeInputView *composeInputView;
 
 @property (nonatomic) CGFloat currentKeyboardHeight;
 

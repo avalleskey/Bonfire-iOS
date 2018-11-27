@@ -10,6 +10,7 @@
 #import "HAWebService.h"
 #import "UIColor+Palette.h"
 #import "ContactCell.h"
+#import "ErrorView.h"
 #import "InviteFriendHeaderCell.h"
 
 #import <JGProgressHUD/JGProgressHUD.h>
@@ -31,6 +32,7 @@
 
 @property (strong, nonatomic) NSMutableArray <APContact *> *selectedContacts;
 @property (nonatomic) BOOL isSearching;
+@property (strong, nonatomic) ErrorView *errorView;
 
 @end
 
@@ -48,11 +50,25 @@ static NSString * const contactCellIdentifier = @"ContactCell";
     [self setupNavigationBar];
     [self setupSearchBar];
     [self setupTableView];
+    [self setupErrorView];
     
     [self setupContacts];
 }
 - (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    
     self.searchBar.frame = CGRectMake(0, self.navigationController.navigationBar.frame.origin.y + self.navigationController.navigationBar.frame.size.height, self.view.frame.size.width, 56);
+}
+
+- (void)setupErrorView {
+    self.errorView = [[ErrorView alloc] initWithFrame:CGRectMake(16, 206 + 72, self.view.frame.size.width - 32, 100) title:@"Please allow Contacts" description:@"Open Settings, find Bonfire and allow Bonfire to view your Contacts" type:ErrorViewTypeContactsDenied];
+    self.errorView.frame = CGRectMake(self.errorView.frame.origin.x, 206 + 72, self.errorView.frame.size.width, self.errorView.frame.size.height);
+    self.errorView.hidden = true;
+    [self.tableView addSubview:self.errorView];
+    
+    [self.errorView bk_whenTapped:^{
+        [self checkAccess];
+    }];
 }
 
 - (void)setupSearchBar {
@@ -198,7 +214,12 @@ static NSString * const contactCellIdentifier = @"ContactCell";
 }
 
 - (void)showError {
-    NSLog(@"show error");
+    if (self.errorView.isHidden) {
+        self.errorView.hidden = false;
+    }
+}
+- (void)hideError {
+    self.errorView.hidden = true;
 }
 
 - (void)setupContacts {
@@ -212,6 +233,9 @@ static NSString * const contactCellIdentifier = @"ContactCell";
                                     [NSSortDescriptor sortDescriptorWithKey:@"name.compositeName" ascending:YES]
                                     ];
     
+    [self checkAccess];
+}
+- (void)checkAccess {
     switch([APAddressBook access])
     {
         case APAddressBookAccessUnknown: {
@@ -254,10 +278,13 @@ static NSString * const contactCellIdentifier = @"ContactCell";
      {
          // reload contacts
          NSLog(@"good to go now!");
-         [self loadContacts];
-     }];
-    // stop observing
-    [self.addressBook stopObserveChanges];
+         [self checkAccess];
+         
+         if ([APAddressBook access]) {
+             // stop observing
+             [self.addressBook stopObserveChanges];
+         }
+    }];
 }
 - (void)loadContacts {
     if (self.contacts == nil) {
@@ -276,6 +303,7 @@ static NSString * const contactCellIdentifier = @"ContactCell";
                  self.contacts = [[NSMutableArray alloc] initWithArray:contacts];
                  [self removeBadPhoneNumbers];
                  
+                 [self hideError];
                  [self.tableView reloadData];
                  
                  if ((self.searchField.text.length == 0 && !self.isSearching) && self.featuredProfilePictures.count == 0) {
@@ -314,6 +342,8 @@ static NSString * const contactCellIdentifier = @"ContactCell";
         else {
             self.searchResults = self.contacts;
         }
+        
+        [self hideError];
         
         [self.tableView reloadData];
     }
@@ -383,6 +413,12 @@ static NSString * const contactCellIdentifier = @"ContactCell";
 }
 - (void)sendInvites {
     if (self.selectedContacts.count > 0) {
+        NSMutableArray *arrayOfPhoneNumbers = [[NSMutableArray alloc] init];
+        for (int i = 0; i < [self.selectedContacts count]; i++) {
+            [arrayOfPhoneNumbers addObject:[self cleanPhoneNumber:self.selectedContacts[i].phones[0].number]];
+        }
+        NSLog(@"arrayOfPhoneNumbers: %@", arrayOfPhoneNumbers);
+        
         JGProgressHUD *HUD = [JGProgressHUD progressHUDWithStyle:JGProgressHUDStyleExtraLight];
         HUD.textLabel.text = @"Sending Invites..";
         HUD.vibrancyEnabled = false;
@@ -569,7 +605,7 @@ static NSString * const contactCellIdentifier = @"ContactCell";
     return 0;
 }
 - (nullable UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
-    if (section != 1) return nil;
+    if (section != 1 || !self.errorView.isHidden) return nil;
     
     UIView *headerContainer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 64)];
     

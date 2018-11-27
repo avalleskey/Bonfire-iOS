@@ -12,9 +12,10 @@
 @interface AppDelegate : UIResponder <UIApplicationDelegate, UITabBarControllerDelegate>
 
 @property (strong, nonatomic) UIWindow *window;
-- (void)launchOnboarding;
 
+- (void)launchOnboarding;
 - (void)launchLoggedIn;
+
 - (TabController *)createTabBarController;
 
 @end

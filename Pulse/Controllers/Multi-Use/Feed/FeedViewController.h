@@ -16,7 +16,12 @@
 
 @interface FeedViewController : UIViewController <RSTableViewPaginationDelegate>
 
-- (id)initWithFeedId:(NSString *)feedId;
+typedef enum {
+    FeedTypeTimeline = 0,
+    FeedTypeTrending = 1
+} FeedType;
+
+- (id)initWithFeedType:(FeedType)feedType;
 @property (strong, nonatomic) HAWebService *manager;
 
 @property (strong, nonatomic) UIScrollView *scrollView;
@@ -25,7 +30,7 @@
 @property (strong, nonatomic) RSTableView *tableView;
 @property (nonatomic, strong) ErrorView *errorView;
 
-@property (nonatomic) NSString *feedId;
+@property (nonatomic) FeedType feedType;
 @property (nonatomic) int previousScrollOffset;
 @property (nonatomic) CGFloat currentKeyboardHeight;
 

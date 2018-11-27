@@ -23,7 +23,7 @@
 		<string>bonfireapp</string>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>20</string>
+	<string>22</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>instagram</string>
@@ -51,6 +51,12 @@
 	<string>Bonfire is better with friends! We display your contacts in a list to make sharing Bonfire even easier. We will never send an invite to a friend without your permission.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Access to your Photo Library allows you to post and save images</string>
+	<key>NSUserActivityTypes</key>
+	<array>
+		<string>com.Ingenious.bonfire.open-room-activity-type</string>
+		<string>com.Ingenious.bonfire.open-feed-timeline</string>
+		<string>com.Ingenious.bonfire.open-feed-trending</string>
+	</array>
 	<key>SCSDKClientId</key>
 	<string>ab6bfe71-3708-45ec-bac6-30c6149a2a80</string>
 	<key>SCSDKRedirectUrl</key>

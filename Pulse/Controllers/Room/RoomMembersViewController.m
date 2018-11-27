@@ -78,7 +78,7 @@ static NSString * const requestCellIdentifier = @"RequestCell";
 }
 
 - (BOOL)isMember {
-    return self.room.attributes.context.status == STATUS_MEMBER;
+    return self.room.attributes.context.status == ROOM_STATUS_MEMBER;
 }
 
 - (void)getRequests {

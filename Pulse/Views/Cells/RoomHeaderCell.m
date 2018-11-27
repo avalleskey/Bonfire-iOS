@@ -35,7 +35,7 @@
         self.layer.masksToBounds = false;
         
         self.nameLabel = [[UILabel alloc] init];
-        self.nameLabel.font = [UIFont systemFontOfSize:34.f weight:UIFontWeightHeavy];
+        self.nameLabel.font = [UIFont systemFontOfSize:32.f weight:UIFontWeightHeavy];
         self.nameLabel.textColor = [UIColor colorWithWhite:0.07f alpha:1];
         self.nameLabel.textAlignment = NSTextAlignmentCenter;
         self.nameLabel.numberOfLines = 0;
@@ -122,14 +122,14 @@
         [self styleMemberProfilePictureView:self.member6];
         [self styleMemberProfilePictureView:self.member7];
         
-        self.followButton = [FollowButton buttonWithType:UIButtonTypeCustom];
+        self.followButton = [RoomFollowButton buttonWithType:UIButtonTypeCustom];
         
         [self.followButton bk_whenTapped:^{
             // update state if possible
-            if ([self.followButton.status isEqualToString:STATUS_MEMBER] ||
-                [self.followButton.status isEqualToString:STATUS_REQUESTED]) {
+            if ([self.followButton.status isEqualToString:ROOM_STATUS_MEMBER] ||
+                [self.followButton.status isEqualToString:ROOM_STATUS_REQUESTED]) {
                 // leave the room
-                [self.followButton updateStatus:STATUS_LEFT];
+                [self.followButton updateStatus:ROOM_STATUS_LEFT];
                 [self updateRoomStatus];
                 [self decrementMembersCount];
                 
@@ -139,18 +139,18 @@
                     }
                 }];
             }
-            else if ([self.followButton.status isEqualToString:STATUS_LEFT] ||
-                     [self.followButton.status isEqualToString:STATUS_NO_RELATION] ||
-                     [self.followButton.status isEqualToString:STATUS_INVITED] ||
+            else if ([self.followButton.status isEqualToString:ROOM_STATUS_LEFT] ||
+                     [self.followButton.status isEqualToString:ROOM_STATUS_NO_RELATION] ||
+                     [self.followButton.status isEqualToString:ROOM_STATUS_INVITED] ||
                      self.followButton.status.length == 0) {
                 // join the room
                 if (self.room.attributes.status.discoverability.isPrivate &&
-                    ![self.followButton.status isEqualToString:STATUS_INVITED]) {
-                    [self.followButton updateStatus:STATUS_REQUESTED];
+                    ![self.followButton.status isEqualToString:ROOM_STATUS_INVITED]) {
+                    [self.followButton updateStatus:ROOM_STATUS_REQUESTED];
                 }
                 else {
                     // since they've been invited already, jump straight to being a member
-                    [self.followButton updateStatus:STATUS_MEMBER];
+                    [self.followButton updateStatus:ROOM_STATUS_MEMBER];
                     [self incrementMembersCount];
                 }
                 [self updateRoomStatus];
@@ -183,7 +183,7 @@
                 emitter.position = CGPointMake(self.frame.size.width / 2 , self.followButton.center.y);
                 [spriteKitView.scene addChild:emitter];
             }
-            else if ([self.followButton.status isEqualToString:STATUS_BLOCKED]) {
+            else if ([self.followButton.status isEqualToString:ROOM_STATUS_BLOCKED]) {
                 // show alert maybe? --> ideally we don't even show the button.
             }
         }];

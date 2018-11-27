@@ -186,7 +186,7 @@ static NSString * const reuseIdentifier = @"Result";
             [self.errorView updateDescription:@"This Room is no longer available"];
             [self.errorView updateType:ErrorViewTypeBlocked];
         }
-        else if (self.room.attributes.context.status == STATUS_BLOCKED) { // blocked from Room
+        else if (self.room.attributes.context.status == ROOM_STATUS_BLOCKED) { // blocked from Room
             [self.errorView updateTitle:@"Blocked By Room"];
             [self.errorView updateDescription:@"Your account is blocked from creating and viewing posts in this Room"];
             [self.errorView updateType:ErrorViewTypeBlocked];
@@ -294,7 +294,7 @@ static NSString * const reuseIdentifier = @"Result";
 - (void)mock {
     /* mimic being invited
     RoomContext *context = [[RoomContext alloc] initWithDictionary:[self.room.attributes.context toDictionary] error:nil];
-    context.status = STATUS_BLOCKED;
+    context.status = ROOM_STATUS_BLOCKED;
     self.room.attributes.context = context;*/
     
     /* mimic private room
@@ -393,6 +393,8 @@ static NSString * const reuseIdentifier = @"Result";
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillDismiss:) name:UIKeyboardWillHideNotification object:nil];
 }
 - (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    
     [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillChangeFrameNotification object:nil];
     [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillHideNotification object:nil];
 }
@@ -562,9 +564,9 @@ static NSString * const reuseIdentifier = @"Result";
 - (BOOL)canViewPosts {
     return self.room.identifier != nil && // has an ID
            !self.room.attributes.status.isBlocked && // Room not blocked
-           self.room.attributes.context.status != STATUS_BLOCKED && // User blocked by Room
+           self.room.attributes.context.status != ROOM_STATUS_BLOCKED && // User blocked by Room
            (!self.room.attributes.status.discoverability.isPrivate || // (public room OR
-            self.room.attributes.context.status == STATUS_MEMBER);    //  private and member)
+            self.room.attributes.context.status == ROOM_STATUS_MEMBER);    //  private and member)
 }
 
 - (void)getPostsWithSinceId:(NSInteger)sinceId {
@@ -572,9 +574,7 @@ static NSString * const reuseIdentifier = @"Result";
     self.tableView.hidden = false;
     
     NSString *url = [NSString stringWithFormat:@"%@/%@/rooms/%@/stream", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], self.room.identifier];
-    
-    NSLog(@"url: %@", url);
-    
+        
     [self.manager.requestSerializer setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
     self.manager.responseSerializer = [AFJSONResponseSerializer serializer];
     [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
@@ -582,7 +582,7 @@ static NSString * const reuseIdentifier = @"Result";
             [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
             
             NSDictionary *params = sinceId != 0 ? @{@"since_id": [NSNumber numberWithInteger:sinceId]} : nil;
-            NSLog(@"params to getPostsWith:::: %@", params);
+            // NSLog(@"params to getPostsWith:::: %@", params);
             
             [self.manager GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 NSArray *responseData = (NSArray *)responseObject[@"data"];
@@ -655,7 +655,7 @@ static NSString * const reuseIdentifier = @"Result";
 }
 - (void)setupTableView {
     self.tableView = [[RSTableView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - self.navigationController.navigationBar.frame.origin.y - self.navigationController.navigationBar.frame.size.height) style:UITableViewStyleGrouped];
-    self.tableView.dataType = tableCategoryRoom;
+    self.tableView.dataType = RSTableViewTypeRoom;
     self.tableView.parentObject = self.room;
     self.tableView.loading = true;
     self.tableView.paginationDelegate = self;

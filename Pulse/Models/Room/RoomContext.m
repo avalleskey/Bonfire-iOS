@@ -10,15 +10,15 @@
 
 @implementation RoomContext
 
-NSString * const STATUS_INVITED = @"invited";
-NSString * const STATUS_REQUESTED = @"requested";
-NSString * const STATUS_MEMBER = @"member";
-NSString * const STATUS_LEFT = @"left";
-NSString * const STATUS_BLOCKED = @"blocked";
-NSString * const STATUS_NO_RELATION = @"none";
+NSString * const ROOM_STATUS_INVITED = @"invited";
+NSString * const ROOM_STATUS_REQUESTED = @"requested";
+NSString * const ROOM_STATUS_MEMBER = @"member";
+NSString * const ROOM_STATUS_LEFT = @"left";
+NSString * const ROOM_STATUS_BLOCKED = @"blocked";
+NSString * const ROOM_STATUS_NO_RELATION = @"none";
 
-NSString * const STATUS_ROOM_BLOCKED = @"room_blocked";
-NSString * const STATUS_LOADING = @"loading";
+NSString * const ROOM_STATUS_ROOM_BLOCKED = @"room_blocked";
+NSString * const ROOM_STATUS_LOADING = @"loading";
 
 + (JSONKeyMapper *)keyMapper {
     return [JSONKeyMapper mapperForSnakeCase];

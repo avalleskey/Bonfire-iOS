@@ -71,7 +71,7 @@ static Session *session;
         NSData *data = [NSData dataWithContentsOfFile:bundlePath];
         NSDictionary *json = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:nil];
         
-        [self updateDefaultsJSON:json];
+        [session updateDefaultsJSON:json];
     }
 
     NSError* error;
@@ -93,7 +93,7 @@ static Session *session;
             session.defaults = newDefaults;
             
             // save to local file
-            [self updateDefaultsJSON:responseObject];
+            [session updateDefaultsJSON:responseObject];
         }
         else {
             NSLog(@"error with new json: %@", error);
@@ -230,7 +230,7 @@ static Session *session;
 }
 - (NSDictionary *)getAccessTokenWithVerification:(BOOL)verify {
     NSDictionary *accessToken =  [Lockbox unarchiveObjectForKey:@"access_token"];
-    return verify ? [self verifyToken:accessToken] : accessToken;
+    return verify ? [session verifyToken:accessToken] : accessToken;
 }
 
 - (void)signOut {
@@ -385,7 +385,7 @@ static Session *session;
 // Magic Login
 // Store successful logins in the keychain
 - (void)setSuccessfulEmail:(NSString *)email {
-    NSMutableDictionary *successfulEmails = [[NSMutableDictionary alloc] initWithDictionary:[self getSuccessfulEmails]];
+    NSMutableDictionary *successfulEmails = [[NSMutableDictionary alloc] initWithDictionary:[session getSuccessfulEmails]];
     [successfulEmails setObject:@true forKey:email];
     [Lockbox archiveObject:successfulEmails forKey:@"successful_emails"];
 }
@@ -508,6 +508,8 @@ static Session *session;
 // -- Follow/Unfollow User --
 - (void)followUser:(User *)user completion:(void (^)(BOOL success, id responseObject))handler {
     NSString *url = [NSString stringWithFormat:@"%@/%@/users/%@/follow", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], user.identifier]; // sample data
+    
+    NSLog(@"url: %@", url);
     
     [session.manager.requestSerializer setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
     [session.manager POST:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {

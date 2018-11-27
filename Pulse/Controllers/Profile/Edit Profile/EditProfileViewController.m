@@ -437,6 +437,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
 
 - (void)showImagePicker {
     UIAlertController *imagePickerOptions = [UIAlertController alertControllerWithTitle:@"Set Profile Photo" message:nil preferredStyle:UIAlertControllerStyleActionSheet];
+    imagePickerOptions.view.tintColor = [UIColor colorWithWhite:0.2f alpha:1];
     
     UIAlertAction *takePhoto = [UIAlertAction actionWithTitle:@"Take Photo" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         [self takePhotoForProfilePicture:nil];
@@ -450,6 +451,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     
     UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
     }];
+    [cancel setValue:self.navigationBackgroundView.backgroundColor forKey:@"titleTextColor"];
     [imagePickerOptions addAction:cancel];
     
     [self presentViewController:imagePickerOptions animated:YES completion:nil];
@@ -593,7 +595,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
         darknessScore = (((componentColors[0]*255) * 299) + ((componentColors[1]*255) * 587) + ((componentColors[2]*255) * 114)) / 1000;
     }
     
-    NSLog(@"darknessScore: %f", darknessScore);
+    // NSLog(@"darknessScore: %f", darknessScore);
     
     if (darknessScore >= 185) {
         return false;

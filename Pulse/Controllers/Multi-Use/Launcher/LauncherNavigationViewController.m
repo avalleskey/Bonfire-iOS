@@ -72,10 +72,10 @@ static NSString * const reuseIdentifier = @"Result";
     
     // add shadow to the top
     self.shadowView = [[UIView alloc] initWithFrame:CGRectMake(0, self.navigationBar.frame.size.height - 20, self.view.frame.size.width, 20)];
-    self.shadowView.layer.shadowRadius = 2.f;
-    self.shadowView.layer.shadowOffset = CGSizeMake(0, 1);
+    self.shadowView.layer.shadowRadius = 0;
+    self.shadowView.layer.shadowOffset = CGSizeMake(0, (1 / [UIScreen mainScreen].scale));
     self.shadowView.layer.shadowColor = [UIColor blackColor].CGColor;
-    self.shadowView.layer.shadowOpacity = 0.08f;
+    self.shadowView.layer.shadowOpacity = 0.12f;
     self.shadowView.backgroundColor = [UIColor whiteColor];
     self.shadowView.alpha = 0;
     [self.navigationBar insertSubview:self.shadowView atIndex:0];
@@ -136,14 +136,17 @@ static NSString * const reuseIdentifier = @"Result";
     [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillHideNotification object:nil];
 }
 
-- (void)setShadowVisibility:(BOOL)visible withAnimation:(BOOL)animation {
-    NSLog(@"set shadow visibility");
-    
+- (void)setShadowVisibility:(BOOL)visible withAnimation:(BOOL)animation {    
     [UIView animateWithDuration:animation?0.25f:0 animations:^{
         self.shadowView.alpha = visible ? 1 : 0;
     } completion:nil];
 }
 - (void)updateBarColor:(id)newColor withAnimation:(int)animationType statusBarUpdateDelay:(CGFloat)statusBarUpdateDelay {
+    if ([self.topViewController isKindOfClass:[MyRoomsViewController class]] &&
+        ![self.textField isFirstResponder]) {
+        newColor = [UIColor colorWithRed:0.98 green:0.98 blue:0.99 alpha:1.0];
+    }
+    
     if ([newColor isKindOfClass:[NSString class]]) {
         newColor = [UIColor fromHex:newColor];
     }
@@ -215,7 +218,8 @@ static NSString * const reuseIdentifier = @"Result";
             
             searchIcon.alpha = 0.75;
         }
-        else if ([newColor isEqual:[UIColor whiteColor]]) {
+        else if ([newColor isEqual:[UIColor whiteColor]] ||
+                 [self.topViewController isKindOfClass:[MyRoomsViewController class]]) {
             self.textField.tintColor = [Session sharedInstance].themeColor;
             self.textField.backgroundColor = [UIColor bonfireTextFieldBackgroundOnWhite];
             self.textField.textColor = [UIColor colorWithWhite:0.07f alpha:1];
@@ -297,7 +301,8 @@ static NSString * const reuseIdentifier = @"Result";
         NSLog(@"back on dark");
         textFieldBackgroundColor = [UIColor bonfireTextFieldBackgroundOnDark];
     }
-    else if ([self.currentTheme isEqual:[UIColor whiteColor]]) {
+    else if ([self.currentTheme isEqual:[UIColor whiteColor]] ||
+             [self.topViewController isKindOfClass:[MyRoomsViewController class]]) {
         NSLog(@"back on white");
         textFieldBackgroundColor = [UIColor bonfireTextFieldBackgroundOnWhite];
     }
@@ -305,6 +310,7 @@ static NSString * const reuseIdentifier = @"Result";
         NSLog(@"back on light");
         textFieldBackgroundColor = [UIColor bonfireTextFieldBackgroundOnLight];
     }
+    self.textField.backgroundColor = textFieldBackgroundColor;
     
     self.textField.textColor = [UIColor colorWithWhite:0.07f alpha:1];
     self.textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:@"Search" attributes:@{NSForegroundColorAttributeName: [UIColor colorWithWhite:0 alpha:0.25]}];
@@ -349,7 +355,8 @@ static NSString * const reuseIdentifier = @"Result";
             if ([self useWhiteForegroundForColor:self.currentTheme]) {
                 textFieldBackgroundColor = [UIColor bonfireTextFieldBackgroundOnDark];
             }
-            else if ([self.currentTheme isEqual:[UIColor whiteColor]]) {
+            else if ([self.currentTheme isEqual:[UIColor whiteColor]] ||
+                     [self.topViewController isKindOfClass:[MyRoomsViewController class]]) {
                 textFieldBackgroundColor = [UIColor bonfireTextFieldBackgroundOnWhite];
             }
             else {
@@ -373,7 +380,8 @@ static NSString * const reuseIdentifier = @"Result";
              if ([self useWhiteForegroundForColor:self.currentTheme]) {
                  textFieldBackgroundColor = [UIColor bonfireTextFieldBackgroundOnDark];
              }
-             else if ([self.currentTheme isEqual:[UIColor whiteColor]]) {
+             else if ([self.currentTheme isEqual:[UIColor whiteColor]] ||
+                      [self.topViewController isKindOfClass:[MyRoomsViewController class]]) {
                  textFieldBackgroundColor = [UIColor bonfireTextFieldBackgroundOnWhite];
              }
              else {
@@ -1015,7 +1023,8 @@ static NSString * const reuseIdentifier = @"Result";
 }
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.section == 0) {
-        if (self.topViewController.navigationController.tabBarController != nil) {
+        if (self.topViewController.navigationController.tabBarController != nil &&
+            ![self.topViewController isKindOfClass:[ProfileViewController class]]) {
             [self updateSearchText:@""];
         }
         else {
@@ -1028,6 +1037,11 @@ static NSString * const reuseIdentifier = @"Result";
         }
     }
     else if (indexPath.section == 1) {
+        if (self.topViewController.navigationController.tabBarController != nil &&
+            ![self.topViewController isKindOfClass:[ProfileViewController class]]) {
+            [self updateSearchText:@""];
+        }
+        
         NSDictionary *roomJSON = self.searchResults[@"results"][@"rooms"][indexPath.row];
         Room *room = [[Room alloc] initWithDictionary:roomJSON error:nil];
         
@@ -1036,6 +1050,11 @@ static NSString * const reuseIdentifier = @"Result";
         [[Launcher sharedInstance] openRoom:room];
     }
     else if (indexPath.section == 2) {
+        if (self.topViewController.navigationController.tabBarController != nil &&
+            ![self.topViewController isKindOfClass:[ProfileViewController class]]) {
+            [self updateSearchText:@""];
+        }
+        
         NSDictionary *userJSON = self.searchResults[@"results"][@"users"][indexPath.row];
         User *user = [[User alloc] initWithDictionary:userJSON error:nil];
         
@@ -1044,6 +1063,11 @@ static NSString * const reuseIdentifier = @"Result";
         [[Launcher sharedInstance] openProfile:user];
     }
     else if (indexPath.section == 3) {
+        if (self.topViewController.navigationController.tabBarController != nil &&
+            ![self.topViewController isKindOfClass:[ProfileViewController class]]) {
+            [self updateSearchText:@""];
+        }
+        
         NSDictionary *json = self.recentSearchResults[indexPath.row];
         if ([json objectForKey:@"type"]) {
             if ([json[@"type"] isEqualToString:@"user"]) {
@@ -1258,9 +1282,7 @@ static NSString * const reuseIdentifier = @"Result";
         if (self.topViewController.navigationController.tabBarController != nil) {
             if ([self.topViewController isKindOfClass:[MyRoomsViewController class]]) {
                 MyRoomsViewController *currentRoomsVC = (MyRoomsViewController *)self.topViewController;
-                if (currentRoomsVC.tableView.contentOffset.y <= 10) {
-                    [self setShadowVisibility:false withAnimation:false];
-                }
+                [currentRoomsVC scrollViewDidScroll:currentRoomsVC.tableView];
             }
             else {
                 if (self.currentTheme != [UIColor whiteColor]) {
@@ -1309,6 +1331,9 @@ static NSString * const reuseIdentifier = @"Result";
     
     UIWindow *window = UIApplication.sharedApplication.keyWindow;
     CGFloat bottomPadding = window.safeAreaInsets.bottom;
+    
+    NSLog(@"bottom padding: %f", bottomPadding);
+    NSLog(@"current keyboard height: %f", _currentKeyboardHeight);
     
     self.searchResultsTableView.contentInset = UIEdgeInsetsMake(self.searchResultsTableView.contentInset.top, 0, _currentKeyboardHeight - bottomPadding + 24, 0);
     self.searchResultsTableView.scrollIndicatorInsets = UIEdgeInsetsMake(self.searchResultsTableView.contentInset.top, 0, _currentKeyboardHeight - bottomPadding, 0);

@@ -31,9 +31,9 @@
     self.pills = [[NSMutableDictionary alloc] init];
     
     self.tabIndicator = [[UIView alloc] initWithFrame:CGRectMake(20, 0, 22, 2)];
-    self.tabIndicator.layer.cornerRadius = 1.f;
-    self.tabIndicator.backgroundColor = [UIColor blackColor];
-    [self.tabBar addSubview:self.tabIndicator];
+    self.tabIndicator.layer.cornerRadius = self.tabIndicator.frame.size.height / 2;
+    self.tabIndicator.backgroundColor = [Session sharedInstance].themeColor;
+    //[self.tabBar addSubview:self.tabIndicator];
     
     [self.tabBar setBackgroundImage:[UIImage new]];
     [self.tabBar setShadowImage:[UIImage new]];
@@ -43,14 +43,15 @@
     
     self.blurView = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleLight]];
     self.blurView.frame = CGRectMake(0, 0, self.tabBar.frame.size.width, self.tabBar.frame.size.height * 2);
-    self.blurView.backgroundColor = [UIColor colorWithWhite:1 alpha:0.92];
+    self.blurView.backgroundColor = [UIColor colorWithWhite:1 alpha:0.85f];
+    self.blurView.layer.masksToBounds = true;
     [self.tabBar insertSubview:self.blurView atIndex:0];
-    /*
+
     self.tabBar.layer.shadowOffset = CGSizeMake(0, -1 * (1.0 / [UIScreen mainScreen].scale));
     self.tabBar.layer.shadowRadius = 0;
     self.tabBar.layer.shadowColor = [UIColor blackColor].CGColor;
     self.tabBar.layer.shadowOpacity = 0.12f;
-    self.tabBar.layer.masksToBounds = false;*/
+    self.tabBar.layer.masksToBounds = false;
     
     [self setupNotification];
 }
@@ -117,19 +118,21 @@
         }
     }
     
-    [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.75f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-        self.tabIndicator.frame = CGRectMake(tabBarItemView.frame.origin.x + tabBarImageView.frame.origin.x, self.tabIndicator.frame.origin.y, tabBarImageView.frame.size.width, self.tabIndicator.frame.size.height);
+    [UIView animateWithDuration:0.3f delay:0 usingSpringWithDamping:0.75f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+        self.tabIndicator.frame = CGRectMake(tabBarItemView.frame.origin.x + tabBarImageView.frame.origin.x + (tabBarImageView.frame.size.width / 4), self.tabIndicator.frame.origin.y, tabBarImageView.frame.size.width / 2, self.tabIndicator.frame.size.height);
     } completion:nil];
     
-    [UIView animateWithDuration:0.2f delay:0 usingSpringWithDamping:1.f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-        tabBarImageView.transform = CGAffineTransformMakeScale(0.9, 0.9);
+    [UIView animateWithDuration:0.25f delay:0 usingSpringWithDamping:1.f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+        tabBarImageView.transform = CGAffineTransformMakeScale(0.8, 0.8);
     } completion:^(BOOL finished) {
-        [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.8f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-            tabBarImageView.transform = CGAffineTransformMakeScale(1, 1);
-        } completion:^(BOOL finished) {
-        }];
+    }];
+    [UIView animateWithDuration:0.4f delay:0.25f usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+        tabBarImageView.transform = CGAffineTransformIdentity;
+        self.tabIndicator.frame = CGRectMake(tabBarItemView.frame.origin.x + tabBarImageView.frame.origin.x, self.tabIndicator.frame.origin.y, tabBarImageView.frame.size.width, self.tabIndicator.frame.size.height);
+    } completion:^(BOOL finished) {
     }];
     
+    [self setNeedsStatusBarAppearanceUpdate];
 }
 
 - (UIView *)viewForTabInTabBar:(UITabBar* )tabBar withIndex:(NSUInteger)index

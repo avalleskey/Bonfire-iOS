@@ -29,7 +29,7 @@
 }
 
 - (void)setup {
-    [self continuityRadiusForCell:self withRadius:10.f];
+    [self continuityRadiusForCell:self withRadius:12.f];
     /*self.layer.cornerRadius = 12.f;
     self.layer.masksToBounds = true;
     self.layer.shadowOffset = CGSizeMake(0, 1);

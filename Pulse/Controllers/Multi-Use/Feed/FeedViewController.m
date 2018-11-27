@@ -31,10 +31,10 @@
 static NSString * const reuseIdentifier = @"Post";
 static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
 
-- (id)initWithFeedId:(NSString *)feedId {
+- (id)initWithFeedType:(FeedType)feedType {
     self = [super init];
     if (self) {
-        self.feedId = feedId;
+        self.feedType = feedType;
     }
     
     return self;
@@ -65,13 +65,9 @@ static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
 }
 
 - (void)userUpdated:(NSNotification *)notification {
-    NSLog(@"user updated called on FeedViewController");
     self.launchNavVC.textField.tintColor = [Session sharedInstance].themeColor;
     self.launchNavVC.composePostButton.tintColor = [Session sharedInstance].themeColor;
     self.launchNavVC.inviteFriendButton.tintColor = [Session sharedInstance].themeColor;
-    
-    NSLog(@"self.launchNavVC: %@", self.launchNavVC);
-    NSLog(@"self.launchNavVC.composePostButton.tintColor: %@", self.launchNavVC.composePostButton.tintColor);
     
     self.view.tintColor = [Session sharedInstance].themeColor;
     [self.tableView reloadData];
@@ -81,6 +77,29 @@ static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
     [super viewWillAppear:animated];
     
     [self styleOnAppear];
+}
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    
+    // Register Siri intent
+    NSString *activityTypeString = [NSString stringWithFormat:@"com.Ingenious.bonfire.open-feed-%@", self.feedType == FeedTypeTrending ? @"trending" : @"timeline"];
+    NSUserActivity *activity = [[NSUserActivity alloc] initWithActivityType:activityTypeString];
+    if (self.feedType == FeedTypeTrending) {
+        activity.title = [NSString stringWithFormat:@"View recent trending posts"];
+    }
+    else if (self.feedType == FeedTypeTimeline) {
+        activity.title = [NSString stringWithFormat:@"See what's new"];
+    }
+    activity.userInfo = @{@"feed": [NSNumber numberWithInt:self.feedType]};
+    activity.eligibleForSearch = true;
+    if (@available(iOS 12.0, *)) {
+        activity.eligibleForPrediction = true;
+        activity.persistentIdentifier = activityTypeString;
+    } else {
+        // Fallback on earlier versions
+    }
+    self.view.userActivity = activity;
+    [activity becomeCurrent];
 }
 
 - (void)styleOnAppear {
@@ -129,10 +148,10 @@ static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
 
 - (void)getPostsWithSinceId:(NSInteger)sinceId {
     NSString *url;
-    if ([self.feedId isEqualToString:@"trending"]) {
+    if (self.feedType == FeedTypeTrending) {
         url = [NSString stringWithFormat:@"%@/%@/streams/trending", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"]];
     }
-    else if ([self.feedId isEqualToString:@"timeline"]) {
+    else if (self.feedType == FeedTypeTimeline) {
         url = [NSString stringWithFormat:@"%@/%@/streams/me", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"]];
     }
     
@@ -196,9 +215,12 @@ static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
     self.tableView = [[RSTableView alloc] initWithFrame:self.view.bounds style:UITableViewStyleGrouped];
     self.tableView.frame = self.view.bounds;
     self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, 60, 0);
-    self.tableView.dataType = tableCategoryFeed;
+    self.tableView.dataType = RSTableViewTypeFeed;
     self.tableView.loading = true;
     [self.view addSubview:self.tableView];
+    
+    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 16, 0);
+    self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, 0, 0);
 }
 
 - (void)tableView:(id)tableView didRequestNextPageWithSinceId:(NSInteger)sinceId {

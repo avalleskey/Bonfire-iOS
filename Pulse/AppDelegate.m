@@ -9,6 +9,7 @@
 #import "AppDelegate.h"
 #import <Lockbox/Lockbox.h>
 #import "Session.h"
+#import "Launcher.h"
 #import "OnboardingViewController.h"
 #import "LauncherNavigationViewController.h"
 
@@ -54,10 +55,10 @@
     }
     else {
         [self.session signOut];
-        NSLog(@"sign out");
         
         [self launchOnboarding];
     }
+    
     [self.window makeKeyAndVisible];
     
     // [self setupLaunchAnimation];
@@ -156,7 +157,6 @@
     [[NSUserDefaults standardUserDefaults] setInteger:launches forKey:@"launches"];
     
     // User is signed in.
-    
     self.window.rootViewController = [self createTabBarController];
 }
 - (TabController *)createTabBarController {
@@ -166,8 +166,6 @@
     // setup all the view controllers
     NSMutableArray *vcArray = [[NSMutableArray alloc] init];
     NSMutableDictionary *vcIndexDictionary = [[NSMutableDictionary alloc] init];
-
-    NSString *viewLastOpened = ([[NSUserDefaults standardUserDefaults] valueForKey:@"view_last_opened"] ? [[NSUserDefaults standardUserDefaults] valueForKey:@"view_last_opened"] : @"common");
     
     LauncherNavigationViewController *timeline = [self launcherWithRootViewController:@"timeline"];
     [vcArray addObject:timeline];
@@ -181,13 +179,13 @@
     [vcArray addObject:rooms];
     [vcIndexDictionary setObject:@2 forKey:@"rooms"];
 
-    LauncherNavigationViewController *notifs = [self launcherWithRootViewController:@"notifs"];
-    [vcArray addObject:notifs];
-    [vcIndexDictionary setObject:@3 forKey:@"notifs"];
+    //LauncherNavigationViewController *notifs = [self launcherWithRootViewController:@"notifs"];
+    //[vcArray addObject:notifs];
+    //[vcIndexDictionary setObject:@3 forKey:@"notifs"];
 
     LauncherNavigationViewController *me = [self launcherWithRootViewController:@"me"];
     [vcArray addObject:me];
-    [vcIndexDictionary setObject:@4 forKey:@"me"];
+    [vcIndexDictionary setObject:@3 forKey:@"me"];
 
     for (int i = 0; i < [vcArray count]; i++) {
         LauncherNavigationViewController *navVC = vcArray[i];
@@ -227,9 +225,8 @@
     LauncherNavigationViewController *launchNav;
     
     if ([rootID isEqualToString:@"timeline"] || [rootID isEqualToString:@"trending"]) {
-        FeedViewController *viewController = [[FeedViewController alloc] initWithFeedId:rootID];
-        //viewController.view.frame = CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height);
-        [viewController.tableView setContentInsetAdjustmentBehavior:UIScrollViewContentInsetAdjustmentNever];
+        FeedType type = [rootID isEqualToString:@"trending"] ? FeedTypeTrending : FeedTypeTimeline;
+        FeedViewController *viewController = [[FeedViewController alloc] initWithFeedType:type];
         
         launchNav = [[LauncherNavigationViewController alloc] initWithRootViewController:viewController];
         [launchNav updateBarColor:[UIColor whiteColor] withAnimation:NO statusBarUpdateDelay:0];
@@ -240,7 +237,6 @@
     else if ([rootID isEqualToString:@"rooms"]) {
         MyRoomsViewController *viewController = [[MyRoomsViewController alloc] initWithStyle:UITableViewStyleGrouped];
         viewController.view.frame = CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height);
-        [viewController.tableView setContentInsetAdjustmentBehavior:UIScrollViewContentInsetAdjustmentNever];
         
         launchNav = [[LauncherNavigationViewController alloc] initWithRootViewController:viewController];
         [launchNav updateBarColor:[UIColor whiteColor] withAnimation:NO statusBarUpdateDelay:0];
@@ -251,6 +247,8 @@
     }*/
     else if ([rootID isEqualToString:@"me"]) {
         User *user = [Session sharedInstance].currentUser;
+        
+        NSLog(@"user: %@", user);
         
         ProfileViewController *viewController = [[ProfileViewController alloc] init];
         
@@ -271,7 +269,7 @@
         [launchNav updateBarColor:[UIColor whiteColor] withAnimation:NO statusBarUpdateDelay:0];
     }
     
-    UITabBarItem *tabBarItem = [[UITabBarItem alloc] initWithTitle:@"" image:[[UIImage imageNamed:[NSString stringWithFormat:@"tabIcon-%@", rootID]] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] selectedImage:[[UIImage imageNamed:[NSString stringWithFormat:@"tabIcon-%@_selected", rootID]] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal]];
+    UITabBarItem *tabBarItem = [[UITabBarItem alloc] initWithTitle:@"" image:[[UIImage imageNamed:[NSString stringWithFormat:@"tabIcon-%@", rootID]] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] selectedImage:[[UIImage imageNamed:[NSString stringWithFormat:@"tabIcon-%@_selected", rootID]] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
     launchNav.tabBarItem = tabBarItem;
     
     return launchNav;
@@ -360,5 +358,41 @@
     previousController = viewController;
 }
 
+- (BOOL)application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray<id<UIUserActivityRestoring>> * _Nullable))restorationHandler {
+    NSLog(@"continue user activity: %@", userActivity.activityType);
+    if ([userActivity.activityType isEqualToString:@"com.Ingenious.bonfire.open-room-activity-type"])
+    {
+        if ([userActivity.userInfo objectForKey:@"room"] &&
+            [userActivity.userInfo[@"room"] isKindOfClass:[NSDictionary class]])
+        {
+            NSError *error;
+            Room *room = [[Room alloc] initWithDictionary:userActivity.userInfo[@"room"] error:&error];
+            if (!error) {
+                [[Launcher sharedInstance] openRoom:room];
+            }
+        }
+    }
+    else if ([userActivity.activityType isEqualToString:@"com.Ingenious.bonfire.open-feed-timeline"] ||
+             [userActivity.activityType isEqualToString:@"com.Ingenious.bonfire.open-feed-trending"])
+    {
+        if ([userActivity.userInfo objectForKey:@"feed"])
+        {
+            FeedType type = [userActivity.userInfo[@"feed"] intValue];
+            NSLog(@"type: %u", type);
+            if (type == FeedTypeTimeline) {
+                // timeline
+                NSLog(@"open timeline");
+                [[Launcher sharedInstance] openTimeline];
+            }
+            else {
+                // trending
+                NSLog(@"open trending");
+                [[Launcher sharedInstance] openTrending];
+            }
+        }
+    }
+    
+    return true;
+}
 
 @end

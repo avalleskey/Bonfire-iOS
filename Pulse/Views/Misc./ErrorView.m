@@ -18,6 +18,7 @@ const NSInteger ErrorViewTypeLocked          = 4;
 const NSInteger ErrorViewTypeHeart           = 5;
 const NSInteger ErrorViewTypeNoPosts         = 6;
 const NSInteger ErrorViewTypeNoNotifications = 7;
+const NSInteger ErrorViewTypeContactsDenied  = 8;
 
 - (id)initWithFrame:(CGRect)rect title:(NSString *)title description:(NSString *)description type:(NSInteger)type {
     self = [super initWithFrame:rect];
@@ -106,6 +107,10 @@ const NSInteger ErrorViewTypeNoNotifications = 7;
         case ErrorViewTypeNoNotifications:
             self.imageView.image = [UIImage imageNamed:@"errorNotifications"];
             self.imageView.backgroundColor = [UIColor colorWithDisplayP3Red:0.6f green:0.6f blue:0.6f alpha:1.0];
+            break;
+        case ErrorViewTypeContactsDenied:
+            self.imageView.image = [UIImage imageNamed:@"errorContacts"];
+            self.imageView.backgroundColor = [UIColor colorWithDisplayP3Red:0.44 green:0.45 blue:0.47 alpha:1.0];
             break;
             
         default:

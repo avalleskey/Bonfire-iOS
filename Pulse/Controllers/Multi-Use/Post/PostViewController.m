@@ -63,6 +63,8 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillDismiss:) name:UIKeyboardWillHideNotification object:nil];
 }
 - (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    
     [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillChangeFrameNotification object:nil];
     [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillHideNotification object:nil];
 }
@@ -222,7 +224,7 @@
 }
 - (void)setupTableView {
     self.tableView = [[RSTableView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - self.navigationController.navigationBar.frame.origin.y - self.navigationController.navigationBar.frame.size.height) style:UITableViewStyleGrouped];
-    self.tableView.dataType = tableCategoryPost;
+    self.tableView.dataType = RSTableViewTypePost;
     self.tableView.parentObject = self.post;
     self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, 60, 0);
     self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 60, 0);
@@ -301,7 +303,7 @@
             // confirm action
             MFMessageComposeViewController *messageController = [[MFMessageComposeViewController alloc] init]; // Create message VC
             messageController.messageComposeDelegate = self; // Set delegate to current instance
-            messageController.transitioningDelegate = self.launchNavVC;
+            messageController.transitioningDelegate = [Launcher sharedInstance];
             
             messageController.body = @"Join my room! https://rooms.app/room/room-name"; // Set initial text to example message
             
@@ -375,12 +377,12 @@
         UIAlertAction *followUser = [UIAlertAction actionWithTitle:(followingUser?@"Follow @username":@"Unfollow @username") style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
             NSLog(@"follow user");
             if (followingUser) {
-                [[Session sharedInstance] unfollowUser:self.post.attributes.details.creator.identifier completion:^(BOOL success, id responseObject) {
+                [[Session sharedInstance] unfollowUser:self.post.attributes.details.creator completion:^(BOOL success, id responseObject) {
                     NSLog(@"unfollowed user!");
                 }];
             }
             else {
-                [[Session sharedInstance] followUser:self.post.attributes.details.creator.identifier completion:^(BOOL success, id responseObject) {
+                [[Session sharedInstance] followUser:self.post.attributes.details.creator completion:^(BOOL success, id responseObject) {
                     NSLog(@"followed user!");
                 }];
             }

@@ -7,7 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "FollowButton.h"
+#import "UserFollowButton.h"
 #import "User.h"
 
 NS_ASSUME_NONNULL_BEGIN
@@ -15,7 +15,14 @@ NS_ASSUME_NONNULL_BEGIN
 @interface ProfileHeaderCell : UITableViewCell
 
 @property (strong, nonatomic) UIImageView *profilePicture;
-@property (strong, nonatomic) FollowButton *followButton;
+
+@property (strong, nonatomic) UIView *statsView;
+@property (strong, nonatomic) UIView *statsViewTopSeparator;
+@property (strong, nonatomic) UIView *statsViewMiddleSeparator;
+@property (strong, nonatomic) UIButton *statActionButton;
+@property (strong, nonatomic) UILabel *postsCountLabel;
+
+@property (strong, nonatomic) UserFollowButton *followButton;
 
 @property (strong, nonatomic) UIView *lineSeparator;
 @property (strong, nonatomic) User *user;

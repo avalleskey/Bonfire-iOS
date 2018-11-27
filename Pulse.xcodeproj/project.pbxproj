@@ -37,6 +37,10 @@
 		D91643242166824F00523770 /* RSTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = D91643232166824F00523770 /* RSTableView.m */; };
 		D921171121A6162500853F3F /* InviteFriendHeaderCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D921171021A6162500853F3F /* InviteFriendHeaderCell.m */; };
 		D921171421A6488F00853F3F /* ContactCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D921171321A6488F00853F3F /* ContactCell.m */; };
+		D921171A21ABA91B00853F3F /* UserDiscoverability.m in Sources */ = {isa = PBXBuildFile; fileRef = D921171921ABA91B00853F3F /* UserDiscoverability.m */; };
+		D921171D21ABACA400853F3F /* UserContext.m in Sources */ = {isa = PBXBuildFile; fileRef = D921171C21ABACA400853F3F /* UserContext.m */; };
+		D921172221AC5F8B00853F3F /* UserFollowButton.m in Sources */ = {isa = PBXBuildFile; fileRef = D921172121AC5F8B00853F3F /* UserFollowButton.m */; };
+		D921172521AC5F9700853F3F /* RoomFollowButton.m in Sources */ = {isa = PBXBuildFile; fileRef = D921172421AC5F9700853F3F /* RoomFollowButton.m */; };
 		D9238028218273F100E01A34 /* SparkAnimation.sks in Resources */ = {isa = PBXBuildFile; fileRef = D9238027218273F100E01A34 /* SparkAnimation.sks */; };
 		D923802B2183D98100E01A34 /* PaginationCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D923802A2183D98100E01A34 /* PaginationCell.m */; };
 		D924BE2121541B7400EB7385 /* PostCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D924BE2021541B7400EB7385 /* PostCell.m */; };
@@ -87,6 +91,7 @@
 		D998462921934309000B901F /* RoomMembersViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D998462821934309000B901F /* RoomMembersViewController.m */; };
 		D998462C2193B00C000B901F /* PostContext.m in Sources */ = {isa = PBXBuildFile; fileRef = D998462B2193B00C000B901F /* PostContext.m */; };
 		D9AECE3A21571DBE00F01CAD /* TabBarView.m in Sources */ = {isa = PBXBuildFile; fileRef = D9AECE3921571DBE00F01CAD /* TabBarView.m */; };
+		D9B2D57421ACAED5007B3C0C /* Intents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9B2D57321ACAED5007B3C0C /* Intents.framework */; };
 		D9BD771221727FB000DAB9BE /* RoomSearchTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = D9BD771121727FB000DAB9BE /* RoomSearchTableView.m */; };
 		D9BD77142177D03500DAB9BE /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9BD77132177D03500DAB9BE /* Security.framework */; };
 		D9BD77172177DD1F00DAB9BE /* Defaults.m in Sources */ = {isa = PBXBuildFile; fileRef = D9BD77162177DD1F00DAB9BE /* Defaults.m */; };
@@ -191,6 +196,14 @@
 		D921171021A6162500853F3F /* InviteFriendHeaderCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = InviteFriendHeaderCell.m; sourceTree = "<group>"; };
 		D921171221A6488F00853F3F /* ContactCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ContactCell.h; path = Pulse/Views/Search/ContactCell.h; sourceTree = SOURCE_ROOT; };
 		D921171321A6488F00853F3F /* ContactCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ContactCell.m; path = Pulse/Views/Search/ContactCell.m; sourceTree = SOURCE_ROOT; };
+		D921171821ABA91B00853F3F /* UserDiscoverability.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UserDiscoverability.h; sourceTree = "<group>"; };
+		D921171921ABA91B00853F3F /* UserDiscoverability.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UserDiscoverability.m; sourceTree = "<group>"; };
+		D921171B21ABACA400853F3F /* UserContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UserContext.h; sourceTree = "<group>"; };
+		D921171C21ABACA400853F3F /* UserContext.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UserContext.m; sourceTree = "<group>"; };
+		D921172021AC5F8B00853F3F /* UserFollowButton.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UserFollowButton.h; sourceTree = "<group>"; };
+		D921172121AC5F8B00853F3F /* UserFollowButton.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UserFollowButton.m; sourceTree = "<group>"; };
+		D921172321AC5F9700853F3F /* RoomFollowButton.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RoomFollowButton.h; sourceTree = "<group>"; };
+		D921172421AC5F9700853F3F /* RoomFollowButton.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RoomFollowButton.m; sourceTree = "<group>"; };
 		D9238027218273F100E01A34 /* SparkAnimation.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = SparkAnimation.sks; sourceTree = "<group>"; };
 		D92380292183D98000E01A34 /* PaginationCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PaginationCell.h; sourceTree = "<group>"; };
 		D923802A2183D98100E01A34 /* PaginationCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PaginationCell.m; sourceTree = "<group>"; };
@@ -289,6 +302,8 @@
 		D9AE1CDA21993FC400B78189 /* HomeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HomeViewController.h; sourceTree = "<group>"; };
 		D9AECE3821571DBE00F01CAD /* TabBarView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TabBarView.h; sourceTree = "<group>"; };
 		D9AECE3921571DBE00F01CAD /* TabBarView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TabBarView.m; sourceTree = "<group>"; };
+		D9B2D57221ACAEBE007B3C0C /* Pulse.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Pulse.entitlements; sourceTree = "<group>"; };
+		D9B2D57321ACAED5007B3C0C /* Intents.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Intents.framework; path = System/Library/Frameworks/Intents.framework; sourceTree = SDKROOT; };
 		D9BD771021727FB000DAB9BE /* RoomSearchTableView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RoomSearchTableView.h; sourceTree = "<group>"; };
 		D9BD771121727FB000DAB9BE /* RoomSearchTableView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RoomSearchTableView.m; sourceTree = "<group>"; };
 		D9BD77132177D03500DAB9BE /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
@@ -343,6 +358,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D9B2D57421ACAED5007B3C0C /* Intents.framework in Frameworks */,
 				D9BD77142177D03500DAB9BE /* Security.framework in Frameworks */,
 				D9CB78F82166E66E00EEDBC9 /* Foundation.framework in Frameworks */,
 				D9CB78F62166E66500EEDBC9 /* CoreGraphics.framework in Frameworks */,
@@ -375,6 +391,7 @@
 		77CE9C1AB8339425CADD90CD /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D9B2D57321ACAED5007B3C0C /* Intents.framework */,
 				D9BD77132177D03500DAB9BE /* Security.framework */,
 				D9CB78F72166E66E00EEDBC9 /* Foundation.framework */,
 				D9CB78F52166E66500EEDBC9 /* CoreGraphics.framework */,
@@ -413,6 +430,7 @@
 		D907B07F214EEC5000A59712 /* Pulse */ = {
 			isa = PBXGroup;
 			children = (
+				D9B2D57221ACAEBE007B3C0C /* Pulse.entitlements */,
 				D907B08F214EEC5300A59712 /* main.m */,
 				D907B080214EEC5000A59712 /* AppDelegate.h */,
 				D907B081214EEC5000A59712 /* AppDelegate.m */,
@@ -474,6 +492,24 @@
 			path = Profile;
 			sourceTree = "<group>";
 		};
+		D921171E21AC5F6400853F3F /* Room */ = {
+			isa = PBXGroup;
+			children = (
+				D921172321AC5F9700853F3F /* RoomFollowButton.h */,
+				D921172421AC5F9700853F3F /* RoomFollowButton.m */,
+			);
+			path = Room;
+			sourceTree = "<group>";
+		};
+		D921171F21AC5F6C00853F3F /* Profile */ = {
+			isa = PBXGroup;
+			children = (
+				D921172021AC5F8B00853F3F /* UserFollowButton.h */,
+				D921172121AC5F8B00853F3F /* UserFollowButton.m */,
+			);
+			path = Profile;
+			sourceTree = "<group>";
+		};
 		D94DE3352199204100CA3E1F /* SloppySwiper */ = {
 			isa = PBXGroup;
 			children = (
@@ -521,10 +557,14 @@
 				D94FD1E1216D730300B84E45 /* UserDetails.m */,
 				D94FD1E2216D730300B84E45 /* UserStatus.h */,
 				D94FD1DC216D730300B84E45 /* UserStatus.m */,
+				D921171821ABA91B00853F3F /* UserDiscoverability.h */,
+				D921171921ABA91B00853F3F /* UserDiscoverability.m */,
 				D94FD1DE216D730300B84E45 /* UserMedia.h */,
 				D94FD1E8216D730300B84E45 /* UserMedia.m */,
 				D94FD1E7216D730300B84E45 /* UserAttributes.h */,
 				D94FD1DF216D730300B84E45 /* UserAttributes.m */,
+				D921171B21ABACA400853F3F /* UserContext.h */,
+				D921171C21ABACA400853F3F /* UserContext.m */,
 			);
 			path = User;
 			sourceTree = "<group>";
@@ -696,6 +736,8 @@
 		D9C8B57221A5F16700A9A282 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				D921171F21AC5F6C00853F3F /* Profile */,
+				D921171E21AC5F6400853F3F /* Room */,
 				D9C8B57621A5F28C00A9A282 /* Cells */,
 				D91643222166824F00523770 /* RSTableView.h */,
 				D91643232166824F00523770 /* RSTableView.m */,
@@ -958,6 +1000,11 @@
 					D907B07C214EEC5000A59712 = {
 						CreatedOnToolsVersion = 10.0;
 						LastSwiftMigration = 1000;
+						SystemCapabilities = {
+							com.apple.Siri = {
+								enabled = 1;
+							};
+						};
 					};
 					D907B094214EEC5300A59712 = {
 						CreatedOnToolsVersion = 10.0;
@@ -1108,6 +1155,7 @@
 				D907B0FC215068A900A59712 /* Session.m in Sources */,
 				D94FD1ED216D730300B84E45 /* RoomDetails.m in Sources */,
 				D9114F86219627100033765A /* BubblePostCell.m in Sources */,
+				D921172521AC5F9700853F3F /* RoomFollowButton.m in Sources */,
 				D94FD1F7216D730300B84E45 /* PostCounts.m in Sources */,
 				D907B11D2150917700A59712 /* HomeViewController.m in Sources */,
 				D9824236219CAA0D003626DA /* EditRoomViewController.m in Sources */,
@@ -1129,6 +1177,7 @@
 				D9C03941215AD4AC00B30A41 /* ComposeInputView.m in Sources */,
 				D94FD1F3216D730300B84E45 /* RoomStatus.m in Sources */,
 				D9EDE5DA216FC76000A869F8 /* ErrorCodes.m in Sources */,
+				D921172221AC5F8B00853F3F /* UserFollowButton.m in Sources */,
 				D9164317216529B800523770 /* ErrorView.m in Sources */,
 				D924BE36215479BD00EB7385 /* FollowButton.m in Sources */,
 				D96AD7922180DA3D00849F6B /* EditProfileViewController.m in Sources */,
@@ -1145,6 +1194,7 @@
 				D9BD77172177DD1F00DAB9BE /* Defaults.m in Sources */,
 				D9C03944215D6F1900B30A41 /* LauncherNavigationViewController.m in Sources */,
 				D907B0B4214F161A00A59712 /* ChannelCell.m in Sources */,
+				D921171D21ABACA400853F3F /* UserContext.m in Sources */,
 				D91643142164143700523770 /* RoomHeaderCell.m in Sources */,
 				D94FD1F5216D730300B84E45 /* Room.m in Sources */,
 				D9164321216678A200523770 /* ProfileHeaderCell.m in Sources */,
@@ -1176,6 +1226,7 @@
 				D9CB78F02166E1B400EEDBC9 /* VLDContextSheetItemView.m in Sources */,
 				D94FD1FC216D730300B84E45 /* PostDetails.m in Sources */,
 				D94FD1F6216D730300B84E45 /* RoomDiscoverability.m in Sources */,
+				D921171A21ABA91B00853F3F /* UserDiscoverability.m in Sources */,
 				D94FD1FB216D730300B84E45 /* PostSummaries.m in Sources */,
 				D94FD205216D730300B84E45 /* UserAttributes.m in Sources */,
 				D9C8B56B21A1E33B00A9A282 /* UIColor+Palette.m in Sources */,
@@ -1361,6 +1412,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon-5";
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = Pulse/Pulse.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 4WLQG965T9;
 				EXCLUDED_SOURCE_FILE_NAMES = "*.value";
@@ -1389,6 +1441,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon-5";
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = Pulse/Pulse.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 4WLQG965T9;
 				EXCLUDED_SOURCE_FILE_NAMES = "*.value";

@@ -20,8 +20,7 @@
 }
 
 - (void)setup {
-    self.layer.cornerRadius = 12.f;
-    self.layer.masksToBounds = true;
+    [self continuityRadiusForCell:self withRadius:12.f];
     self.backgroundColor = [UIColor colorWithWhite:0.97 alpha:1];
     
     self.container = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 295, 288)];

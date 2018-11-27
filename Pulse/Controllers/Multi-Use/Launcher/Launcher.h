@@ -18,7 +18,10 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (Launcher *)sharedInstance;
 
-- (void)launchLoggedIn;
+- (void)launchLoggedIn:(BOOL)animated;
+
+- (void)openTimeline;
+- (void)openTrending;
 
 - (void)openRoom:(Room *)room;
 - (void)openRoomMembersForRoom:(Room *)room;

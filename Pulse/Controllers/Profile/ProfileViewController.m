@@ -9,6 +9,7 @@
 #import "LauncherNavigationViewController.h"
 #import "ErrorView.h"
 #import "ProfileHeaderCell.h"
+#import "UIColor+Palette.h"
 
 #import <BlocksKit/BlocksKit.h>
 #import <BlocksKit/BlocksKit+UIKit.h>
@@ -55,47 +56,7 @@
     self.manager = [HAWebService manager];
     self.loading = true;
     
-    if ([self canViewPosts]) {
-        [self getPosts];
-    }
-    else {
-        self.composeInputView.hidden = true;
-        
-        self.errorView.hidden = false;
-        
-        self.loading = false;
-        self.tableView.loading = false;
-        self.tableView.loadingMore = false;
-        [self.tableView refresh];
-        
-        BOOL isBlocked = false;
-        BOOL isPrivate = false;
-        
-        if (isBlocked) { // blocked by User
-            [self.errorView updateTitle:[NSString stringWithFormat:@"@%@ Blocked You", self.user.attributes.details.identifier]];
-            [self.errorView updateDescription:[NSString stringWithFormat:@"You are blocked from viewing and interacting with %@", self.user.attributes.details.displayName]];
-            [self.errorView updateType:ErrorViewTypeLocked];
-        }
-        else if (isPrivate) { // not blocked, not follower
-            // private room but not a member yet
-            [self.errorView updateTitle:@"Private User"];
-            [self.errorView updateDescription:[NSString stringWithFormat:@"Only confirmed followers have access to @%@'s posts and complete profile", self.user.attributes.details.identifier]];
-            [self.errorView updateType:ErrorViewTypeLocked];
-        }
-        else {
-            [self.errorView updateTitle:@"User Not Found"];
-            [self.errorView updateDescription:@"We couldn’t find the User\nyou were looking for"];
-            [self.errorView updateType:ErrorViewTypeNotFound];
-            
-            [UIView animateWithDuration:0.25f delay:0 usingSpringWithDamping:0.72f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
-                self.launchNavVC.infoButton.alpha = 0;
-                self.launchNavVC.moreButton.alpha = 0;
-            } completion:^(BOOL finished) {
-            }];
-        }
-        
-        [self positionErrorView];
-    }
+    [self loadUser];
 }
 
 - (BOOL)isCurrentUser {
@@ -109,13 +70,9 @@
     [super viewWillAppear:animated];
     
     [self styleOnAppear];
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillChangeFrame:) name:UIKeyboardWillChangeFrameNotification object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillDismiss:) name:UIKeyboardWillHideNotification object:nil];
 }
 - (void)viewWillDisappear:(BOOL)animated {
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillChangeFrameNotification object:nil];
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillHideNotification object:nil];
+    [super viewWillDisappear:animated];
 }
 
 - (void)userProfileUpdated:(NSNotificationCenter *)sender {
@@ -125,8 +82,6 @@
     
     [self.tableView refresh];
     [self.launchNavVC updateBarColor:[Session sharedInstance].themeColor withAnimation:2 statusBarUpdateDelay:0];
-    self.composeInputView.addMediaButton.tintColor = [Session sharedInstance].themeColor;
-    self.composeInputView.postButton.tintColor = [Session sharedInstance].themeColor;
 }
 
 - (void)openProfileActions {
@@ -229,6 +184,7 @@
 - (void)setupErrorView {
     self.errorView = [[ErrorView alloc] initWithFrame:CGRectMake(16, 0, self.view.frame.size.width - 32, 100) title:@"Profile Not Found" description:@"We couldn’t find the profile\nyou were looking for" type:ErrorViewTypeNotFound];
     self.errorView.center = self.tableView.center;
+    self.errorView.hidden = true;
     [self.view addSubview:self.errorView];
     
     [self.errorView bk_whenTapped:^{
@@ -251,58 +207,152 @@
     self.errorView.frame = CGRectMake(self.errorView.frame.origin.x, heightOfHeader + 64, self.errorView.frame.size.width, self.errorView.frame.size.height);
 }
 
-- (void)setupComposeInputView {
-    // only show compose input view if current user
-    self.composeInputView = [[ComposeInputView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleLight]];
-    self.composeInputView.frame = CGRectMake(0, self.view.frame.size.height - 52 - self.tabBarController.tabBar.frame.size.height, self.view.frame.size.width, 190);
-    self.composeInputView.parentViewController = self;
-
-    self.composeInputView.addMediaButton.tintColor = [Session sharedInstance].themeColor;
-    self.composeInputView.postButton.tintColor = [Session sharedInstance].themeColor;
-    
-    [self.composeInputView bk_whenTapped:^{
-        if (![self.composeInputView isActive]) {
-            [self.composeInputView setActive:true];
-        }
-    }];
-    
-    [self.view addSubview:self.composeInputView];
-    
-    self.composeInputView.textView.delegate = self;
-    self.composeInputView.tintColor = self.view.tintColor;
-}
-- (void)textViewDidChange:(UITextView *)textView {
-    if ([textView isEqual:self.composeInputView.textView]) {
-        NSLog(@"text view did change");
-        [self.composeInputView resize:false];
-        
-        UIWindow *window = UIApplication.sharedApplication.keyWindow;
-        CGFloat bottomPadding = window.safeAreaInsets.bottom;
-        
-        self.composeInputView.frame = CGRectMake(self.composeInputView.frame.origin.x, self.view.frame.size.height - self.currentKeyboardHeight - self.composeInputView.frame.size.height + bottomPadding, self.composeInputView.frame.size.width, self.composeInputView.frame.size.height);
-        
-        if (textView.text.length > 0) {
-            [self.composeInputView showPostButton];
-        }
-        else {
-            [self.composeInputView hidePostButton];
-        }
-    }
-}
-
 - (void)styleOnAppear {
     self.tableView.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height);
     
     UIWindow *window = UIApplication.sharedApplication.keyWindow;
     CGFloat bottomPadding = window.safeAreaInsets.bottom;
     
-    CGFloat collapsed_inputViewHeight = ((self.composeInputView.textView.frame.origin.y * 2) + self.composeInputView.textView.frame.size.height);
-    
-    self.composeInputView.frame = CGRectMake(0, self.view.frame.size.height - collapsed_inputViewHeight - self.tabBarController.tabBar.frame.size.height, self.view.frame.size.width, collapsed_inputViewHeight + bottomPadding);
-    
-    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, self.composeInputView.frame.size.height, 0);
+    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
     
     self.errorView.center = CGPointMake(self.view.frame.size.width / 2, self.tableView.center.y - bottomPadding);
+}
+
+- (void)loadUser {
+    NSError *userError;
+    self.user = [[User alloc] initWithDictionary:[self.user toDictionary] error:&userError];
+    // [self mock];
+    
+    NSLog(@"loadProfile:");
+    NSLog(@"self.user: %@", self.user);
+    
+    if (userError ||
+        (![self isCurrentUser] && self.user.attributes.context == nil)) {
+        // User requires context if not current User, even though it's Optional on the object
+        
+        // User object is fragmented – get User to fill in the pieces
+        if (userError) {
+            NSLog(@"user error::::");
+            NSLog(@"%@", userError);
+        }
+        else {
+            NSLog(@"context == nil");
+        }
+        
+        // let's fetch info to fill in the gaps
+        [self getUserInfo];
+    }
+    else {
+        self.tableView.parentObject = self.user;
+        [self loadUserContent];
+    }
+}
+
+- (void)getUserInfo {
+    NSString *url = [NSString stringWithFormat:@"%@/%@/users/%@", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], self.user.identifier];
+    
+    [self.manager.requestSerializer setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+    self.manager.responseSerializer = [AFJSONResponseSerializer serializer];
+    [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
+        if (success) {
+            [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
+            
+            NSDictionary *params = @{};
+            
+            NSLog(@"url: %@", url);
+            
+            [self.manager GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+                NSDictionary *responseData = (NSDictionary *)responseObject[@"data"];
+                
+                NSLog(@"response dataaaaa: %@", responseData);
+                
+                // this must go before we set self.room to the new Room object
+                BOOL requiresColorUpdate = (self.user.attributes.details.color == nil);
+                
+                // first page
+                self.user = [[User alloc] initWithDictionary:responseData error:nil];
+                
+                // update the theme color (in case we didn't know the room's color before
+                if (requiresColorUpdate) {
+                    [self updateTheme];
+                }
+                
+                self.tableView.parentObject = self.user;
+                [self.tableView refresh];
+                
+                // Now that the VC's Room object is complete,
+                // Go on to load the room content
+                [self loadUserContent];
+            } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+                NSLog(@"RoomViewController / getRoom() - error: %@", error);
+                //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+                
+                self.errorView.hidden = false;
+                
+                [self.errorView updateType:ErrorViewTypeGeneral];
+                [self.errorView updateTitle:@"Error Loading"];
+                [self.errorView updateDescription:@"Check your network settings and tap here to try again"];
+                
+                [self positionErrorView];
+                
+                self.loading = false;
+                self.tableView.loading = false;
+                self.tableView.error = true;
+                [self.tableView refresh];
+            }];
+        }
+    }];
+}
+
+- (void)updateTheme {
+    UIColor *theme = [UIColor fromHex:self.user.attributes.details.color];
+    
+    [self.launchNavVC updateBarColor:theme withAnimation:1 statusBarUpdateDelay:0];
+    
+    self.theme = theme;
+    self.view.tintColor = self.theme;
+}
+
+- (void)loadUserContent {
+    if ([self canViewPosts]) {
+        [self getPosts];
+    }
+    else {
+        self.errorView.hidden = false;
+        
+        self.loading = false;
+        self.tableView.loading = false;
+        self.tableView.loadingMore = false;
+        [self.tableView refresh];
+        
+        BOOL isBlocked = false;
+        BOOL isPrivate = false;
+        
+        if (isBlocked) { // blocked by User
+            [self.errorView updateTitle:[NSString stringWithFormat:@"@%@ Blocked You", self.user.attributes.details.identifier]];
+            [self.errorView updateDescription:[NSString stringWithFormat:@"You are blocked from viewing and interacting with %@", self.user.attributes.details.displayName]];
+            [self.errorView updateType:ErrorViewTypeLocked];
+        }
+        else if (isPrivate) { // not blocked, not follower
+            // private room but not a member yet
+            [self.errorView updateTitle:@"Private User"];
+            [self.errorView updateDescription:[NSString stringWithFormat:@"Only confirmed followers have access to @%@'s posts and complete profile", self.user.attributes.details.identifier]];
+            [self.errorView updateType:ErrorViewTypeLocked];
+        }
+        else {
+            [self.errorView updateTitle:@"User Not Found"];
+            [self.errorView updateDescription:@"We couldn’t find the User\nyou were looking for"];
+            [self.errorView updateType:ErrorViewTypeNotFound];
+            
+            [UIView animateWithDuration:0.25f delay:0 usingSpringWithDamping:0.72f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
+                self.launchNavVC.infoButton.alpha = 0;
+                self.launchNavVC.moreButton.alpha = 0;
+            } completion:^(BOOL finished) {
+            }];
+        }
+        
+        [self positionErrorView];
+    }
 }
 
 - (void)getPosts {
@@ -354,7 +404,7 @@
 }
 - (void)setupTableView {
     self.tableView = [[RSTableView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - self.navigationController.navigationBar.frame.origin.y - self.navigationController.navigationBar.frame.size.height) style:UITableViewStyleGrouped];
-    self.tableView.dataType = tableCategoryProfile;
+    self.tableView.dataType = RSTableViewTypeProfile;
     self.tableView.parentObject = self.user;
     self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, 60, 0);
     self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 60, 0);
@@ -364,74 +414,6 @@
     UIView *headerHack = [[UIView alloc] initWithFrame:CGRectMake(0, -1 * self.view.frame.size.height, self.view.frame.size.width, self.view.frame.size.height)];
     headerHack.backgroundColor = [UIColor colorWithWhite:0.97 alpha:1];
     [self.tableView addSubview:headerHack];
-}
-
-- (BOOL)textViewShouldBeginEditing:(UITextView *)textView {
-    return true;
-}
-- (BOOL)textViewShouldEndEditing:(UITextView *)textView {
-    return true;
-}
-
-- (void)keyboardWillChangeFrame:(NSNotification *)notification {
-    NSDictionary* keyboardInfo = [notification userInfo];
-    NSValue* keyboardFrameBegin = [keyboardInfo valueForKey:UIKeyboardFrameEndUserInfoKey];
-    CGRect keyboardFrameBeginRect = [keyboardFrameBegin CGRectValue];
-    _currentKeyboardHeight = keyboardFrameBeginRect.size.height;
-    
-    UIWindow *window = UIApplication.sharedApplication.keyWindow;
-    CGFloat bottomPadding = window.safeAreaInsets.bottom;
-    
-    self.composeInputView.frame = CGRectMake(self.composeInputView.frame.origin.x, self.view.frame.size.height - self.currentKeyboardHeight - self.composeInputView.frame.size.height + bottomPadding, self.composeInputView.frame.size.width, self.composeInputView.frame.size.height);
-}
-
-- (void)keyboardWillDismiss:(NSNotification *)notification {
-    _currentKeyboardHeight = 0;
-    
-    NSNumber *duration = [notification.userInfo objectForKey:UIKeyboardAnimationDurationUserInfoKey];
-    [UIView animateWithDuration:[duration floatValue] delay:0 options:[[notification.userInfo objectForKey:UIKeyboardAnimationCurveUserInfoKey] intValue] << 16 animations:^{
-        [self.composeInputView resize:false];
-        
-        self.composeInputView.frame = CGRectMake(self.composeInputView.frame.origin.x, self.view.frame.size.height - self.composeInputView.frame.size.height, self.composeInputView.frame.size.width, self.composeInputView.frame.size.height);
-    } completion:nil];
-}
-
-/*
- - (void)textViewDidChange:(UITextView *)textView {
- //[self sentimentAnalysisUpdate];
- 
- NSString *temp = textView.text;
- 
- //    if([[textView text] length] > self.composeInputView.currentTextViewLimit || self.composeInputView.preventTyping){
- //        textView.text = [temp substringToIndex:[temp length] - 1];
- //    }
- //    else {
- ////        [self.composeInputView updateTextView:self.composeInputView.composeTextView];
- //
- ////        // -- SEND BUTTON ON/OFF
- ////        NSCharacterSet *set = [NSCharacterSet whitespaceCharacterSet];
- ////        if (self.composeInputView.textView.text.length == 0 || [[self.composeInputView.composeTextView.text stringByTrimmingCharactersInSet: set] length] == 0) {
- ////            self.composeInputView.sendButton.enabled = false;
- ////            self.composeInputView.sendButton.userInteractionEnabled = false;
- ////        }
- ////        else {
- ////            self.composeInputView.sendButton.enabled = true;
- ////            self.composeInputView.sendButton.userInteractionEnabled = true;
- ////        }
- //    }
- }*/
-- (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
-    //    if (textView == self.composeInputView.composeTextView){
-    //        if ([text isEqualToString:@"\n"]) {
-    //            return NO;
-    //        }
-    //    }
-    //
-    //    if (self.composeInputView.preventTyping) {
-    //        NSLog(@"prevent typing");
-    //
-    //    }
-    return YES;
 }
 
 - (UIStatusBarStyle)preferredStatusBarStyle

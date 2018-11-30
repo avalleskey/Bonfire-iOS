@@ -118,7 +118,6 @@ static NSString * const reuseIdentifier = @"Result";
                     NSError *error;
                     Post *post = [[Post alloc] initWithDictionary:item error:&error];
                     post.attributes.status.postedIn = room;
-                    NSLog(@"replaced a post! ✨");
                     [self.tableView.data replaceObjectAtIndex:i withObject:[post toDictionary]];
                 }
             }
@@ -163,14 +162,14 @@ static NSString * const reuseIdentifier = @"Result";
             } completion:nil];
         }
         
-        [self getPostsWithSinceId:0];
+        [self getPostsWithMaxId:0];
     }
     else {
         if (!self.composeInputView.isHidden) {
             [UIView animateWithDuration:0.3f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
                 self.composeInputView.transform = CGAffineTransformMakeTranslation(0, self.composeInputView.frame.size.height);
             } completion:^(BOOL finished) {
-                self.composeInputView.hidden = false;
+                self.composeInputView.hidden = true;
             }];
         }
         
@@ -417,7 +416,7 @@ static NSString * const reuseIdentifier = @"Result";
             self.tableView.loadingMore = false;
             [self.tableView refresh];
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                [self getPostsWithSinceId:0];
+                [self getPostsWithMaxId:0];
             });
         }
     }];
@@ -504,7 +503,7 @@ static NSString * const reuseIdentifier = @"Result";
                     self.tableView.parentObject = self.room;
                     
                     [self.tableView refresh];
-                    [self getPostsWithSinceId:0];
+                    [self getPostsWithMaxId:0];
                     [self.view endEditing:true];
                 } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
                     NSLog(@"FeedViewController / getPosts() - error: %@", error);
@@ -569,27 +568,27 @@ static NSString * const reuseIdentifier = @"Result";
             self.room.attributes.context.status == ROOM_STATUS_MEMBER);    //  private and member)
 }
 
-- (void)getPostsWithSinceId:(NSInteger)sinceId {
+- (void)getPostsWithMaxId:(NSInteger)maxId {
     self.errorView.hidden = true;
     self.tableView.hidden = false;
     
     NSString *url = [NSString stringWithFormat:@"%@/%@/rooms/%@/stream", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], self.room.identifier];
-        
+    
     [self.manager.requestSerializer setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
     self.manager.responseSerializer = [AFJSONResponseSerializer serializer];
     [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
         if (success) {
             [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
             
-            NSDictionary *params = sinceId != 0 ? @{@"since_id": [NSNumber numberWithInteger:sinceId]} : nil;
-            // NSLog(@"params to getPostsWith:::: %@", params);
+            NSDictionary *params = maxId != 0 ? @{@"max_id": [NSNumber numberWithInteger:maxId], @"count": @(10)} : @{@"count": @(10)};
+             NSLog(@"params to getPostsWith:::: %@", params);
             
             [self.manager GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 NSArray *responseData = (NSArray *)responseObject[@"data"];
                 
                 self.tableView.scrollEnabled = true;
                 
-                if (sinceId == 0) {
+                if (maxId == 0) {
                     // first page
                     self.tableView.data = [[NSMutableArray alloc] initWithArray:responseData];
                     
@@ -616,6 +615,8 @@ static NSString * const reuseIdentifier = @"Result";
                     self.errorView.hidden = true;
                     // appended posts
                     self.tableView.data = [[NSMutableArray alloc] initWithArray:[self.tableView.data arrayByAddingObjectsFromArray:responseData]];
+                    NSLog(@"self.tableView.data:");
+                    NSLog(@"%@", self.tableView.data);
                 }
                 
                 self.loading = false;
@@ -669,9 +670,9 @@ static NSString * const reuseIdentifier = @"Result";
     [self.tableView addSubview:headerHack];
 }
 
-- (void)tableView:(id)tableView didRequestNextPageWithSinceId:(NSInteger)sinceId {
+- (void)tableView:(id)tableView didRequestNextPageWithMaxId:(NSInteger)maxId {
     // NSLog(@"RoomViewController:: didRequestNextPageWithSinceID: %ld", (long)sinceId);
-    [self getPostsWithSinceId:sinceId];
+    [self getPostsWithMaxId:maxId];
 }
 
 - (BOOL)textViewShouldBeginEditing:(UITextView *)textView {

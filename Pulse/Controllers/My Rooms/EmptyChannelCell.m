@@ -20,8 +20,15 @@
 }
 
 - (void)setup {
-    [self continuityRadiusForCell:self withRadius:12.f];
-    self.backgroundColor = [UIColor colorWithWhite:0.97 alpha:1];
+    self.layer.cornerRadius = 12.f;
+    self.layer.masksToBounds = true;
+    self.layer.shadowOffset = CGSizeMake(0, 6.f);
+    self.layer.shadowRadius = 22.f;
+    self.layer.shadowOpacity = 0.04f;
+    self.layer.shadowColor = [UIColor blackColor].CGColor;
+    self.clipsToBounds = false;
+    
+    self.backgroundColor = [UIColor whiteColor];
     
     self.container = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 295, 288)];
     [self.contentView addSubview:self.container];

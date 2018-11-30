@@ -7,6 +7,7 @@
 //
 
 #import "UIColor+Palette.h"
+#import <Tweaks/FBTweakInline.h>
 
 @implementation UIColor (Palette)
 
@@ -36,6 +37,12 @@
             lroundf(r * 255),
             lroundf(g * 255),
             lroundf(b * 255)];
+}
+
+// Header background color -- Used in [Home -> Rooms]
++ (UIColor * _Nonnull) headerBackgroundColor {
+    UIColor *color = FBTweakValue(@"Rooms", @"My Rooms", @"Header Background", [UIColor colorWithRed:0.98 green:0.98 blue:0.99 alpha:1.0]);
+    return color;
 }
 
 // Gray

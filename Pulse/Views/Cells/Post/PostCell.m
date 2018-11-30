@@ -11,6 +11,7 @@
 #import <SafariServices/SafariServices.h>
 #import <HapticHelper/HapticHelper.h>
 #import "Session.h"
+#import <Tweaks/FBTweakInline.h>
 
 #define UIViewParentController(__view) ({ \
     UIResponder *__responder = __view; \
@@ -184,7 +185,7 @@
         
         self.moreButton.frame = CGRectMake(self.frame.size.width - self.moreButton.frame.size.width, self.moreButton.frame.origin.y, self.moreButton.frame.size.width, self.moreButton.frame.size.height);
         
-        BOOL hasImage = false; //self.post.images != nil && self.post.images.count > 0;
+        BOOL hasImage = FBTweakValue(@"Post", @"General", @"Show Image", NO); //self.post.images != nil && self.post.images.count > 0;
         if (hasImage) {
             self.pictureView.hidden = false;
             self.pictureView.frame = CGRectMake(self.pictureView.frame.origin.x, self.textView.frame.origin.y + self.textView.frame.size.height + 6, self.pictureView.frame.size.width, self.pictureView.frame.size.height);

@@ -65,7 +65,7 @@ static NSString * const requestCellIdentifier = @"RequestCell";
     [self.tableView registerClass:[SearchResultCell class] forCellReuseIdentifier:memberCellIdentifier];
     
     // if admin
-    if ([self isMember]) {
+    if ([self isMember] && [self isPrivate]) {
         self.loadingRequests = true;
         [self getRequests];
     }
@@ -79,6 +79,9 @@ static NSString * const requestCellIdentifier = @"RequestCell";
 
 - (BOOL)isMember {
     return self.room.attributes.context.status == ROOM_STATUS_MEMBER;
+}
+- (BOOL)isPrivate {
+    return self.room.attributes.status.discoverability.isPrivate;
 }
 
 - (void)getRequests {
@@ -103,7 +106,7 @@ static NSString * const requestCellIdentifier = @"RequestCell";
                 [self.tableView reloadSections:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, 1)] withRowAnimation:UITableViewRowAnimationNone];
                 [self.tableView endUpdates];
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                NSLog(@"RoomViewController / getMembers() - error: %@", error);
+                NSLog(@"RoomViewController / getRequests() - error: %@", error);
                 //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
             }];
         }
@@ -148,10 +151,12 @@ static NSString * const requestCellIdentifier = @"RequestCell";
 }
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     if (section == 0) {
-        return [self isMember] ? (self.loadingRequests ? 1 : (self.requests.count > 0 ? : 1)) : 0;
+        if (![self isMember] || !self.room.attributes.status.discoverability.isPrivate) return 0;
+        
+        return self.loadingRequests ? 1 : self.requests.count;
     }
     else if (section == 1) {
-        return self.loadingMembers ? self.room.attributes.summaries.counts.members : self.members.count + 1;
+        return self.loadingMembers ? self.room.attributes.summaries.counts.members : self.members.count + ([self isMember] ? 2 : 1);
     }
     
     return 0;
@@ -272,7 +277,7 @@ static NSString * const requestCellIdentifier = @"RequestCell";
             if (indexPath.row == 0) {
                 // invite others
                 cell.textLabel.textColor = self.theme;
-                cell.textLabel.text = @"Invite Others";
+                cell.textLabel.text = [self isMember] ? @"Invite Others" : @"Share Room";
                 cell.imageView.image = [[UIImage imageNamed:@"inviteFriendPlaceholder"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
                 cell.imageView.backgroundColor = [UIColor clearColor];
                 cell.imageView.tintColor = cell.textLabel.textColor;
@@ -280,9 +285,15 @@ static NSString * const requestCellIdentifier = @"RequestCell";
             }
             else {
                 // member cell
-                NSInteger adjustedRowIndex = indexPath.row - 1;
+                NSInteger adjustedRowIndex = indexPath.row - ([self isMember] ? 2 : 1);
                 
-                User *user = [[User alloc] initWithDictionary:self.members[adjustedRowIndex] error:nil];
+                User *user;
+                if (indexPath.row == 1 && [self isMember]) {
+                    user = [Session sharedInstance].currentUser;
+                }
+                else {
+                    user = [[User alloc] initWithDictionary:self.members[adjustedRowIndex] error:nil];
+                }
                 
                 cell.imageView.backgroundColor = [UIColor whiteColor];
                 cell.imageView.image = [[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
@@ -292,7 +303,7 @@ static NSString * const requestCellIdentifier = @"RequestCell";
                 cell.detailTextLabel.text = [NSString stringWithFormat:@"@%@", [user.attributes.details.identifier uppercaseString]];
             }
             
-            if (indexPath.row == self.members.count) {
+            if (indexPath.row == self.members.count + ([self isMember] ? 1 : 0)) {
                 // last row
                 cell.lineSeparator.hidden = true;
             }
@@ -357,13 +368,13 @@ static NSString * const requestCellIdentifier = @"RequestCell";
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    if (section == 0 && [self isMember]) return 64;
+    if (section == 0 && [self isMember] && [self isPrivate]) return 64;
     if (section == 1) return 64;
     
     return 0;
 }
 - (nullable UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
-    if (section == 0 && ![self isMember]) return nil;
+    if (section == 0 && (![self isMember] || ![self isPrivate])) return nil;
     
     UIView *headerContainer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 64)];
     
@@ -413,20 +424,20 @@ static NSString * const requestCellIdentifier = @"RequestCell";
         }
     }
     else if (indexPath.section == 1) {
-        if (indexPath.row == self.members.count) {
+        if (indexPath.row == 0) {
             // invite others
             
         }
         else {
             // view user profile
-            if (indexPath.row < self.members.count) {
+            NSInteger adjustedRowIndex = indexPath.row - ([self isMember] ? 2 : 1);
+            if ([self isMember] && indexPath.row == 1) {
+                [[Launcher sharedInstance] openProfile:[Session sharedInstance].currentUser];
+            }
+            else if (adjustedRowIndex < self.members.count) {
                 NSError *error;
-                User *user = [[User alloc] initWithDictionary:self.members[indexPath.row] error:&error];
-                
-                /*
-                if (!error) {
-                    [self.launchNavVC openProfile:user];
-                }*/
+                User *user = [[User alloc] initWithDictionary:self.members[adjustedRowIndex] error:&error];
+
                 [[Launcher sharedInstance] openProfile:user];
             }
         }

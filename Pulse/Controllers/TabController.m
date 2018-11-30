@@ -9,6 +9,7 @@
 #import "TabController.h"
 #import "Session.h"
 #import <BlocksKit+UIKit.h>
+#import <Tweaks/FBTweakInline.h>
 
 #define IS_IPHONE        (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone)
 #define IS_IPHONE_5 ([[UIScreen mainScreen] bounds].size.height == 568.0)
@@ -54,6 +55,8 @@
     self.tabBar.layer.masksToBounds = false;
     
     [self setupNotification];
+    [self updateTintColor];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userUpdated:) name:@"UserUpdated" object:nil];
 }
 - (void)setupNotification {
     self.isShowingNotification = false;
@@ -74,13 +77,26 @@
     self.notificationLabel.text = @"Submitting verification request...";
     [self.notification.contentView addSubview:self.notificationLabel];
 }
+- (void)userUpdated:(NSNotification *)notification {
+    [self updateTintColor];
+}
+- (void)updateTintColor {
+    if (FBTweakValue(@"Home", @"Tab Bar", @"Uses Theme", YES)) {
+        self.tabBar.tintColor = [Session sharedInstance].themeColor;
+    }
+    else {
+        NSLog(@"does not use theme");
+        self.tabBar.tintColor = [UIColor colorWithWhite:0.07f alpha:1];
+    }
+}
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     
+    /*
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         [self addTabBarPressEffects];
-    });
+    });*/
 }
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
@@ -122,15 +138,17 @@
         self.tabIndicator.frame = CGRectMake(tabBarItemView.frame.origin.x + tabBarImageView.frame.origin.x + (tabBarImageView.frame.size.width / 4), self.tabIndicator.frame.origin.y, tabBarImageView.frame.size.width / 2, self.tabIndicator.frame.size.height);
     } completion:nil];
     
-    [UIView animateWithDuration:0.25f delay:0 usingSpringWithDamping:1.f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-        tabBarImageView.transform = CGAffineTransformMakeScale(0.8, 0.8);
-    } completion:^(BOOL finished) {
-    }];
-    [UIView animateWithDuration:0.4f delay:0.25f usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-        tabBarImageView.transform = CGAffineTransformIdentity;
-        self.tabIndicator.frame = CGRectMake(tabBarItemView.frame.origin.x + tabBarImageView.frame.origin.x, self.tabIndicator.frame.origin.y, tabBarImageView.frame.size.width, self.tabIndicator.frame.size.height);
-    } completion:^(BOOL finished) {
-    }];
+    if (FBTweakValue(@"Home", @"Tab Bar", @"Pop Effect", YES)) {
+        [UIView animateWithDuration:0.25f delay:0 usingSpringWithDamping:1.f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+            tabBarImageView.transform = CGAffineTransformMakeScale(0.8, 0.8);
+        } completion:^(BOOL finished) {
+        }];
+        [UIView animateWithDuration:0.4f delay:0.25f usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+            tabBarImageView.transform = CGAffineTransformIdentity;
+            self.tabIndicator.frame = CGRectMake(tabBarItemView.frame.origin.x + tabBarImageView.frame.origin.x, self.tabIndicator.frame.origin.y, tabBarImageView.frame.size.width, self.tabIndicator.frame.size.height);
+        } completion:^(BOOL finished) {
+        }];
+    }
     
     [self setNeedsStatusBarAppearanceUpdate];
 }
@@ -325,7 +343,6 @@
             return pill;
         }
     }
-    NSLog(@"nah no presented pill :(");
     return nil;
 }
 

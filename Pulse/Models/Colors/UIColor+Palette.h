@@ -27,6 +27,13 @@ NS_ASSUME_NONNULL_BEGIN
 + (NSString *)toHex:(UIColor *)color;
 
 /**
+ *  Header background color
+ *
+ *  @return UIColor representing the current header background color. May return user-defined Tweak value.
+ */
++ (UIColor * _Nonnull) headerBackgroundColor;
+
+/**
  *  Bonfire gray color of the specified level
  *
  *  @param level The level of color from 50,100-900 (increment of 100)

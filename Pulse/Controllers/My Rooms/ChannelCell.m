@@ -29,20 +29,20 @@
 }
 
 - (void)setup {
-    [self continuityRadiusForCell:self withRadius:12.f];
-    /*self.layer.cornerRadius = 12.f;
+    // [self continuityRadiusForCell:self withRadius:12.f];
+    self.layer.cornerRadius = 12.f;
     self.layer.masksToBounds = true;
-    self.layer.shadowOffset = CGSizeMake(0, 1);
-    self.layer.shadowRadius = 2.f;
+    self.layer.shadowOffset = CGSizeMake(0, 6.f);
+    
+    self.layer.shadowRadius = 22.f;
     self.layer.shadowOpacity = 1;
-    self.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.08f].CGColor;*/
     self.clipsToBounds = false;
     
     self.shimmerContainer = [[FBShimmeringView alloc] initWithFrame:self.bounds];
     self.shimmerContainer.backgroundColor = [UIColor colorWithWhite:0.95 alpha:1];
     self.shimmerContainer.shimmering = true;
     self.shimmerContainer.shimmeringSpeed = 400;
-    [self.contentView addSubview:self.shimmerContainer];
+    //[self.contentView addSubview:self.shimmerContainer];
     
     UIView *viewToShimmer = [[UIView alloc] initWithFrame:self.shimmerContainer.bounds];
     viewToShimmer.tag = 10;

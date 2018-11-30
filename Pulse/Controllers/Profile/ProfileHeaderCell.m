@@ -43,7 +43,7 @@
         self.statActionButton.frame = CGRectMake(0, 0, self.frame.size.width / 2, 14);
         [self.statActionButton setTitleColor: [UIColor colorWithWhite:0 alpha:0.8f] forState:UIControlStateNormal];
         [self.statActionButton.titleLabel setFont:[UIFont systemFontOfSize:14.f weight:UIFontWeightBold]];
-        [self.statActionButton setTitle:[NSString stringWithFormat:@"0 %@", [self isCurrentUser] ? @"Following" : @"Rooms"] forState:UIControlStateNormal];
+        [self.statActionButton setTitle:[NSString stringWithFormat:@"0 %@", [self isCurrentUser] ? @"following" : @"rooms"] forState:UIControlStateNormal];
         [self.statsView addSubview:self.statActionButton];
         
         self.postsCountLabel = [[UILabel alloc] initWithFrame:CGRectMake(self.frame.size.width / 2, 0, self.frame.size.width / 2, 14)];
@@ -174,9 +174,6 @@
     
     // profile picture
     self.profilePicture.frame = CGRectMake(self.frame.size.width / 2 - self.profilePicture.frame.size.width / 2, self.profilePicture.frame.origin.y, self.profilePicture.frame.size.width, self.profilePicture.frame.size.height);
-    
-    self.followButton.tintColor = self.tintColor;
-    [self.followButton setTitleColor:self.tintColor forState:UIControlStateNormal];
     
     // text label
     CGRect textLabelRect = [self.textLabel.text boundingRectWithSize:CGSizeMake(self.frame.size.width - (24 * 2), CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:self.textLabel.font} context:nil];

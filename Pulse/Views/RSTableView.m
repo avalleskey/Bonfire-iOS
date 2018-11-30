@@ -22,6 +22,7 @@
 #import "PaginationCell.h"
 #import "Launcher.h"
 #import "UIColor+Palette.h"
+#import <Tweaks/FBTweakInline.h>
 
 @implementation RSTableView
 
@@ -56,7 +57,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
 }
 
 //Setter method
-- (void)setDataType:(int)dataType {
+- (void)setDataType:(RSTableViewType)dataType {
     if (_dataType != dataType) {
         _dataType = dataType;
         [self refresh];
@@ -64,7 +65,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
 }
     
 //Getter method
-- (int)dataType {
+- (RSTableViewType)dataType {
     return _dataType;
 }
 
@@ -262,7 +263,10 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                 cell.postsCountLabel.alpha = 0.5;
             }
             
-            if (cell.membersLabel.gestureRecognizers.count == 0) {
+            if (cell.membersLabel.gestureRecognizers.count == 0 &&
+                (cell.room.attributes.context.status == ROOM_STATUS_MEMBER ||
+                !cell.room.attributes.status.discoverability.isPrivate))
+            {
                 [cell.membersLabel bk_whenTapped:^{
                     if ([UIViewParentController(self).navigationController isKindOfClass:[LauncherNavigationViewController class]]) {
                         [[Launcher sharedInstance] openRoomMembersForRoom:self.parentObject];
@@ -305,40 +309,16 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             cell.textLabel.text = user.attributes.details.displayName > 0 ? user.attributes.details.displayName : @"User";
             cell.detailTextLabel.text = [NSString stringWithFormat:@"@%@", user.attributes.details.identifier]; // short bio
             
-            if ([user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
-                [cell.followButton setTitle:@"Edit Profile" forState:UIControlStateNormal];
-                if (cell.followButton.gestureRecognizers.count == 0) {
-                    [cell.followButton bk_whenTapped:^{
-                        NSLog(@"edit profile");
-                        if ([UIViewParentController(self).navigationController isKindOfClass:[LauncherNavigationViewController class]]) {
-                            [[Launcher sharedInstance] openEditProfile];
-                        }
-                    }];
-                }
-            }
-            else {
-                [cell.followButton setImage:[[UIImage imageNamed:@"plusIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
-                [cell.followButton setTitle:[Session sharedInstance].defaults.profile.followVerb forState:UIControlStateNormal];
-                if (cell.followButton.gestureRecognizers.count == 0) {
-                    [cell.followButton bk_whenTapped:^{
-                        /*cell.followButton.active = !cell.followButton.active;
-                        
-                        [cell pushFollowState];
-                        [cell updateFollowState];*/
-                    }];
-                }
-            }
-            
             //if (user.attributes.summaries.counts.members) {
             NSInteger stat;
             NSString *statLabel;
             if ([cell.user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
                 stat = 10;
-                statLabel = @"Following";
+                statLabel = @"following";
             }
             else {
                 stat = 10;
-                statLabel = (stat == 1) ? @"Room" : @"Rooms";
+                statLabel = (stat == 1) ? @"room" : @"rooms";
             }
             [cell.statActionButton setTitle:[NSString stringWithFormat:@"%ld %@", (long)stat, statLabel] forState:UIControlStateNormal];
             cell.statActionButton.alpha = (stat == 0) ? 0.5 : 1;
@@ -698,7 +678,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             CGFloat textViewHeight = roundf(textViewRect.size.height);
             
             // image
-            BOOL hasImage = false; // postAtIndex.images != nil && postAtIndex.images.count > 0;
+            BOOL hasImage = FBTweakValue(@"Post", @"General", @"Show Image", NO); // postAtIndex.images != nil && postAtIndex.images.count > 0;
             CGFloat imageHeight = hasImage ? expandedImageHeightDefault + 10 : 0;
             
             if (hasImage) {
@@ -765,7 +745,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                 CGFloat textViewHeight = ceilf(textViewRect.size.height);
                 
                 // image
-                BOOL hasImage = false; // postAtIndex.images != nil && postAtIndex.images.count > 0;
+                BOOL hasImage = FBTweakValue(@"Post", @"General", @"Show Image", NO); // postAtIndex.images != nil && postAtIndex.images.count > 0;
                 CGFloat imageHeight = hasImage ? [Session sharedInstance].defaults.post.imgHeight + 6 : 0;
                 BOOL hasURLPreview = [postAtIndex requiresURLPreview];
                 CGFloat urlPreviewHeight = !hasImage && hasURLPreview ? [Session sharedInstance].defaults.post.imgHeight + 6 : 0;
@@ -885,7 +865,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         Post *lastPost = [[Post alloc] initWithDictionary:self.data[self.data.count-1] error:&error];
         
         if (!error) {
-            if (lastPost.identifier != self.lastSinceId) {
+            if (lastPost.identifier != self.lastMaxId) {
                 return true;
             }
         }
@@ -901,10 +881,10 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             NSError *error;
             Post *lastPost = [[Post alloc] initWithDictionary:self.data[self.data.count-1] error:&error];
             if (!error) {
-                self.lastSinceId = lastPost.identifier;
+                self.lastMaxId = lastPost.identifier;
                 self.loadingMore = true;
                 
-                NSLog(@"load more posts... with since id: %ld", (long)self.lastSinceId);
+                NSLog(@"load more posts... with since id: %ld", (long)self.lastMaxId);
                 
                 PaginationCell *paginationCell = (PaginationCell *)cell;
                 if (!paginationCell.loading) {
@@ -913,7 +893,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                     [paginationCell.spinner startAnimating];
                 }
                 
-                [self.paginationDelegate tableView:self didRequestNextPageWithSinceId:self.lastSinceId];
+                [self.paginationDelegate tableView:self didRequestNextPageWithMaxId:self.lastMaxId];
             }
         }
     }

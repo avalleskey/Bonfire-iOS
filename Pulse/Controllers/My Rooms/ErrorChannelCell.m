@@ -18,9 +18,15 @@
 }
 
 - (void)setup {
-    self.backgroundColor = [UIColor colorWithWhite:0 alpha:0.03f];
+    self.layer.cornerRadius = 12.f;
+    self.layer.masksToBounds = true;
+    self.layer.shadowOffset = CGSizeMake(0, 6.f);
+    self.layer.shadowRadius = 22.f;
+    self.layer.shadowOpacity = 0.04f;
+    self.layer.shadowColor = [UIColor blackColor].CGColor;
+    self.clipsToBounds = false;
     
-    [self continuityRadiusForCell:self withRadius:12.f];
+    self.backgroundColor = [UIColor whiteColor];
     
     // setup error view
     self.errorView = [[ErrorView alloc] initWithFrame:CGRectMake(8, 0, self.frame.size.width - 16, 100) title:@"Error Loading" description:@"Check your network settings and tap to try again." type:ErrorViewTypeGeneral];

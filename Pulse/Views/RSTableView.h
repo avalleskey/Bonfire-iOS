@@ -27,7 +27,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @protocol RSTableViewPaginationDelegate <NSObject>
 
-- (void)tableView:(id)tableView didRequestNextPageWithSinceId:(NSInteger)sinceId;
+- (void)tableView:(id)tableView didRequestNextPageWithMaxId:(NSInteger)maxId;
 
 @end
 
@@ -41,7 +41,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 // pagination
 @property BOOL loadingMore;
-@property (nonatomic) NSInteger lastSinceId;
+@property (nonatomic) NSInteger lastMaxId;
 
 - (void)refresh;
 

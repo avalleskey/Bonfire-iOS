@@ -33,6 +33,9 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)openInviteFriends;
 - (void)openOnboarding;
 
+// DEBUG ONLY!
+- (void)openTweaks;
+
 @end
 
 @interface PushAnimator : NSObject <UIViewControllerAnimatedTransitioning>

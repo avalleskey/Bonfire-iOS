@@ -31,6 +31,7 @@ target 'Pulse' do
   pod 'JGProgressHUD'
   pod 'APAddressBook'
   pod 'libPhoneNumber-iOS', '~> 0.8'
+  pod 'Tweaks'
 
   target 'PulseTests' do
     inherit! :search_paths

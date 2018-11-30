@@ -15,6 +15,10 @@
 @property (strong, nonatomic) NSArray *roomSuggestions;
 
 @property (strong, nonatomic) UICollectionView *collectionView;
+@property (strong, nonatomic) UIView *separator;
+
+@property (strong, nonatomic) UIView *header;
+@property (strong, nonatomic) UILabel *bigTitle;
 
 @property (strong, nonatomic) NSMutableArray *rooms;
 

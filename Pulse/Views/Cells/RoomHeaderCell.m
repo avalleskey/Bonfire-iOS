@@ -53,7 +53,7 @@
         self.statsView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, 48)];
         [self.contentView addSubview:self.statsView];
         
-        self.membersLabel = [UIButton buttonWithType:UIButtonTypeSystem];
+        self.membersLabel = [UIButton buttonWithType:UIButtonTypeCustom];
         self.membersLabel.frame = CGRectMake(0, 0, self.frame.size.width / 2, 14);
         [self.membersLabel setTitleColor: [UIColor colorWithWhite:0 alpha:0.8f] forState:UIControlStateNormal];
         [self.membersLabel.titleLabel setFont:[UIFont systemFontOfSize:14.f weight:UIFontWeightBold]];

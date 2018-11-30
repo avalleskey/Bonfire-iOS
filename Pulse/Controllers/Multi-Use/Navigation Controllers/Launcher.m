@@ -19,6 +19,8 @@
 #import "AppDelegate.h"
 #import "TabController.h"
 #import "InviteFriendTableViewController.h"
+#import <Tweaks/FBTweakViewController.h>
+#import <Tweaks/FBTweakStore.h>
 
 #define UIViewParentController(__view) ({ \
     UIResponder *__responder = __view; \
@@ -26,6 +28,10 @@
         __responder = [__responder nextResponder]; \
     (UIViewController *)__responder; \
 })
+
+@interface Launcher () <FBTweakViewControllerDelegate>
+
+@end
 
 @implementation Launcher
 
@@ -124,6 +130,7 @@ static Launcher *launcher;
         }
         
         LauncherNavigationViewController *newLauncher = [[LauncherNavigationViewController alloc] initWithRootViewController:r];
+        [newLauncher showSearchIcon];
         [newLauncher updateSearchText:r.title];
         newLauncher.transitioningDelegate = self;
         
@@ -135,6 +142,7 @@ static Launcher *launcher;
     }
     else {
         if (activeLauncherNavVC != nil) {
+            [activeLauncherNavVC showSearchIcon];
             if (r.room.identifier ||
                 r.room.attributes.details.identifier) {
                 [activeLauncherNavVC updateSearchText:r.title];
@@ -347,6 +355,17 @@ static Launcher *launcher;
     OnboardingViewController *o = [[OnboardingViewController alloc] init];
     o.transitioningDelegate = self;
     [launcher present:o animated:YES];
+}
+
+- (void)openTweaks {
+    FBTweakViewController *tweakVC = [[FBTweakViewController alloc] initWithStore:[FBTweakStore sharedInstance]];
+    tweakVC.tweaksDelegate = self;
+    tweakVC.transitioningDelegate = self;
+    // Assuming this is in the app delegate
+    [[UIApplication sharedApplication].keyWindow.rootViewController presentViewController:tweakVC animated:YES completion:nil];
+}
+- (void)tweakViewControllerPressedDone:(FBTweakViewController *)tweakViewController {
+    [tweakViewController dismissViewControllerAnimated:YES completion:NULL];
 }
 
 - (void)present:(UIViewController *)viewController animated:(BOOL)animated {

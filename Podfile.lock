@@ -51,6 +51,7 @@ PODS:
     - FLAnimatedImage (~> 1.0)
     - SDWebImage/Core
   - Shimmer (1.0.2)
+  - Tweaks (2.2.0)
   - "UINavigationItem+Margin (2.1.1)"
   - "UITextView+Placeholder (1.2.1)"
   - ZFDragableModalTransition (0.6)
@@ -73,6 +74,7 @@ DEPENDENCIES:
   - SDWebImage (~> 4.0)
   - SDWebImage/GIF
   - Shimmer
+  - Tweaks
   - "UINavigationItem+Margin"
   - "UITextView+Placeholder (~> 1.2)"
   - ZFDragableModalTransition
@@ -96,6 +98,7 @@ SPEC REPOS:
     - RSKImageCropper
     - SDWebImage
     - Shimmer
+    - Tweaks
     - "UINavigationItem+Margin"
     - "UITextView+Placeholder"
     - ZFDragableModalTransition
@@ -118,10 +121,11 @@ SPEC CHECKSUMS:
   RSKImageCropper: 0d0c6d8525a2381f03fde32a47c6703817a2feed
   SDWebImage: 624d6e296c69b244bcede364c72ae0430ac14681
   Shimmer: c5374be1c2b0c9e292fb05b339a513cf291cac86
+  Tweaks: 0c41be06d41b82a11f515c27711b65d343aa4af6
   "UINavigationItem+Margin": 7368d506fb2f7daa0c0489846cc8c2384ab1ab6d
   "UITextView+Placeholder": 0c3efd97f37ea64bde7f34cc6e90fe02e87b3909
   ZFDragableModalTransition: 0d294eaaba6edfcb9839595de765f9ca06a4b524
 
-PODFILE CHECKSUM: bf7e39a4a4c0106ba1732bd405bfddb8d18b9a5b
+PODFILE CHECKSUM: e68ce11fdc90a0b64a40ec835745133f858e693f
 
 COCOAPODS: 1.5.3

@@ -24,7 +24,7 @@
         "share_room": ""
     },
     "room": {
-        "create_verb": "Create",
+        "create_verb": "New",
         "follow_verb": "Join",
         "following_verb": "Joined",
         "members_title": {

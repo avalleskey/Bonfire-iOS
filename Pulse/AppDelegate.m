@@ -12,6 +12,7 @@
 #import "Launcher.h"
 #import "OnboardingViewController.h"
 #import "LauncherNavigationViewController.h"
+#import "SimpleNavigationController.h"
 
 #import "MyRoomsViewController.h"
 #import "FeedViewController.h"
@@ -88,7 +89,14 @@
         // This will cancel the singleTap action
         [NSObject cancelPreviousPerformRequestsWithTarget:self];
         if (CGRectContainsPoint(statusBarFrame, location)) {
-            [self statusBarTouchedAction];
+            if (location.x < [UIScreen mainScreen].bounds.size.width / 2) {
+                // left side
+                [[Launcher sharedInstance] openTweaks];
+            }
+            else {
+                // right side
+                [self statusBarTouchedAction];
+            }
         }
     }
 }
@@ -167,7 +175,7 @@
     NSMutableArray *vcArray = [[NSMutableArray alloc] init];
     NSMutableDictionary *vcIndexDictionary = [[NSMutableDictionary alloc] init];
     
-    LauncherNavigationViewController *timeline = [self launcherWithRootViewController:@"timeline"];
+    SimpleNavigationController *timeline = [self simpleNavWithRootViewController:@"timeline"];
     [vcArray addObject:timeline];
     [vcIndexDictionary setObject:@0 forKey:@"timeline"];
 
@@ -175,15 +183,16 @@
     [vcArray addObject:trending];
     [vcIndexDictionary setObject:@1 forKey:@"trending"];
 
-    LauncherNavigationViewController *rooms = [self launcherWithRootViewController:@"rooms"];
+    SimpleNavigationController *rooms = [self simpleNavWithRootViewController:@"rooms"];
     [vcArray addObject:rooms];
     [vcIndexDictionary setObject:@2 forKey:@"rooms"];
 
-    //LauncherNavigationViewController *notifs = [self launcherWithRootViewController:@"notifs"];
-    //[vcArray addObject:notifs];
-    //[vcIndexDictionary setObject:@3 forKey:@"notifs"];
+    SimpleNavigationController *notifs = [self simpleNavWithRootViewController:@"notifs"];
+    [vcArray addObject:notifs];
+    [vcIndexDictionary setObject:@3 forKey:@"notifs"];
 
     LauncherNavigationViewController *me = [self launcherWithRootViewController:@"me"];
+    [me updateNavigationBarItemsWithAnimation:NO];
     [vcArray addObject:me];
     [vcIndexDictionary setObject:@3 forKey:@"me"];
 
@@ -191,7 +200,7 @@
         LauncherNavigationViewController *navVC = vcArray[i];
         navVC.tabBarItem.title = @"";
         
-        navVC.tabBarItem.imageInsets = UIEdgeInsetsMake(6, 0, -6, 0);
+        navVC.tabBarItem.imageInsets = UIEdgeInsetsMake(5, 0, -5, 0);
         [navVC.tabBarItem setTitleTextAttributes:@{NSForegroundColorAttributeName: [UIColor clearColor]}
                                         forState:UIControlStateNormal];
         [navVC.tabBarItem setTitleTextAttributes:@{NSForegroundColorAttributeName: [UIColor clearColor]}
@@ -202,12 +211,13 @@
     
     tabBarController.viewControllers = vcArray;
     
+    /*
     for (int i = 0; i < [vcArray count]; i++) {
         LauncherNavigationViewController *launchNav = vcArray[i];
         
         [launchNav updateNavigationBarItemsWithAnimation:NO];
         [launchNav positionTextFieldSearchIcon];
-    }
+    }*/
     
 //    NSLog(@"set last opened to %@", viewLastOpened);
 //    if ([vcIndexDictionary objectForKey:viewLastOpened]) {
@@ -220,6 +230,48 @@
     [tabBarController setSelectedViewController:vcArray[2]];
     
     return tabBarController;
+}
+- (SimpleNavigationController *)simpleNavWithRootViewController:(NSString *)rootID {
+    SimpleNavigationController *simpleNav;
+    
+    if ([rootID isEqualToString:@"timeline"] || [rootID isEqualToString:@"trending"]) {
+        FeedType type = [rootID isEqualToString:@"trending"] ? FeedTypeTrending : FeedTypeTimeline;
+        FeedViewController *viewController = [[FeedViewController alloc] initWithFeedType:type];
+        viewController.title = [rootID isEqualToString:@"trending"] ?
+                               [Session sharedInstance].defaults.home.discoverPageTitle :
+                               [Session sharedInstance].defaults.home.feedPageTitle;
+        
+        simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:viewController];
+        [simpleNav setLeftAction:SNACtionTypeInvite];
+        [simpleNav setRightAction:SNACtionTypeCompose];
+        
+        viewController.tableView.frame = viewController.view.bounds;
+    }
+    else if ([rootID isEqualToString:@"rooms"]) {
+        MyRoomsViewController *viewController = [[MyRoomsViewController alloc] initWithStyle:UITableViewStyleGrouped];
+        // viewController.view.frame = CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height);
+        viewController.title = [Session sharedInstance].defaults.home.myRoomsPageTitle;
+        
+        simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:viewController];
+        [simpleNav setRightAction:SNACtionTypeAdd];
+    }
+    else if ([rootID isEqualToString:@"notifs"]) {
+        UIViewController *viewController = [[UIViewController alloc] init];
+        viewController.title = @"Notifications";
+        viewController.view.backgroundColor = [UIColor whiteColor];
+        
+        simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:viewController];
+    }
+    else {
+        UIViewController *viewController = [[UIViewController alloc] init];
+        
+        simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:viewController];
+    }
+    
+    UITabBarItem *tabBarItem = [[UITabBarItem alloc] initWithTitle:@"" image:[[UIImage imageNamed:[NSString stringWithFormat:@"tabIcon-%@", rootID]] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] selectedImage:[[UIImage imageNamed:[NSString stringWithFormat:@"tabIcon-%@_selected", rootID]] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
+    simpleNav.tabBarItem = tabBarItem;
+    
+    return simpleNav;
 }
 - (LauncherNavigationViewController *)launcherWithRootViewController:(NSString *)rootID {
     LauncherNavigationViewController *launchNav;

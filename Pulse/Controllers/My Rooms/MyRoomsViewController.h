@@ -16,7 +16,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (strong, nonatomic) HAWebService *manager;
 
-@property (strong, nonatomic) UICollectionView *collectionView;
 @property (strong, nonatomic) UIButton *createRoomButton;
 
 @end

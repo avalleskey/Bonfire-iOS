@@ -14,6 +14,7 @@
 #import "LauncherNavigationViewController.h"
 #import "Launcher.h"
 #import "UIColor+Palette.h"
+#import <Tweaks/FBTweakInline.h>
 
 #define UIViewParentController(__view) ({ \
     UIResponder *__responder = __view; \
@@ -196,7 +197,7 @@
         
         self.moreButton.frame = CGRectMake(self.frame.size.width - self.moreButton.frame.size.width, self.moreButton.frame.origin.y, self.moreButton.frame.size.width, self.moreButton.frame.size.height);
         
-        BOOL hasImage = false; //self.post.images != nil && self.post.images.count > 0;
+        BOOL hasImage = FBTweakValue(@"Post", @"General", @"Show Image", NO); //self.post.images != nil && self.post.images.count > 0;
         if (hasImage) {
             self.urlPreviewView.hidden = true;
             

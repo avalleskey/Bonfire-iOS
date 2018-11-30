@@ -14,8 +14,13 @@
 #import "HAWebService.h"
 #import "Room.h"
 #import "UIColor+Palette.h"
+#import <Tweaks/FBTweakInline.h>
 
 #define envConfig [[[NSUserDefaults standardUserDefaults] objectForKey:@"config"] objectForKey:[[NSUserDefaults standardUserDefaults] stringForKey:@"environment"]]
+
+@interface Session ()
+
+@end
 
 @implementation Session
 
@@ -49,10 +54,12 @@ static Session *session;
             //[session syncDeviceToken];
         }
         else {
+            /* TODO: Remove comments
             [session signOut];
             
             AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
             [appDelegate launchOnboarding];
+             */
         }
         
         [session resetTemporaryDefaults];
@@ -66,6 +73,7 @@ static Session *session;
     [[NSNotificationCenter defaultCenter] addObserver:session selector:@selector(HTTPOperationDidFinish:) name:AFNetworkingTaskDidCompleteNotification object:nil];
 }
 - (void)initDefaults {
+    NSLog(@"initDefaults");
     if([[NSUserDefaults standardUserDefaults] dictionaryForKey:@"app_defaults"] == nil) {
         NSString *bundlePath = [[NSBundle mainBundle] pathForResource:@"LocalDefaults" ofType:@"json"];
         NSData *data = [NSData dataWithContentsOfFile:bundlePath];
@@ -103,9 +111,48 @@ static Session *session;
         NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
         NSLog(@"errorResponse: %@", ErrorResponse);
     }];
+    
+    // Customize defaults via Tweaks
+    #ifdef DEBUG
+    //[self enableCustomizableDefaults];
+    #endif
 }
 - (void)updateDefaultsJSON:(NSDictionary *)json {
     [[NSUserDefaults standardUserDefaults] setObject:[json clean] forKey:@"app_defaults"];
+}
+- (void)enableCustomizableDefaults {
+    FBTweakStore *store = [FBTweakStore sharedInstance];
+    FBTweakCategory *category = [[FBTweakCategory alloc] initWithName:@"System Defaults"];
+    [store addTweakCategory:category];
+    
+    FBTweakCollection *profileCollection = [[FBTweakCollection alloc] initWithName:@"Profile"];
+    [profileCollection addTweak:[self createTweakWithIdentifier:@"follow_verb" defaultValue:session.defaults.profile.followVerb]];
+    [profileCollection addTweak:[self createTweakWithIdentifier:@"following_verb" defaultValue:session.defaults.profile.followingVerb]];
+    [category addTweakCollection:profileCollection];
+    
+    FBTweakCollection *postCollection = [[FBTweakCollection alloc] initWithName:@"Post"];
+    [postCollection addTweak:[self createTweakWithIdentifier:@"vote_text" defaultValue:session.defaults.post.displayVote.text]];
+    [postCollection addTweak:[self createTweakWithIdentifier:@"vote_icon" defaultValue:session.defaults.post.displayVote.icon]];
+    [postCollection addTweak:[self createTweakWithIdentifier:@"image_height" defaultValue:[NSNumber numberWithInteger:session.defaults.post.imgHeight]]];
+    [postCollection addTweak:[self createTweakWithIdentifier:@"max_length" defaultValue:[NSNumber numberWithInteger:session.defaults.post.maxLength]]];
+    [postCollection addTweak:[self createTweakWithIdentifier:@"compose_prompt" defaultValue:session.defaults.post.composePrompt]];
+    [category addTweakCollection:postCollection];
+    
+    FBTweakCollection *roomCollection = [[FBTweakCollection alloc] initWithName:@"Room"];
+    [roomCollection addTweak:[self createTweakWithIdentifier:@"create_verb" defaultValue:session.defaults.post.displayVote.text]];
+    [roomCollection addTweak:[self createTweakWithIdentifier:@"follow_verb" defaultValue:session.defaults.post.displayVote.icon]];
+    [roomCollection addTweak:[self createTweakWithIdentifier:@"following_verb" defaultValue:[NSNumber numberWithInteger:session.defaults.post.imgHeight]]];
+    [roomCollection addTweak:[self createTweakWithIdentifier:@"max_length" defaultValue:[NSNumber numberWithInteger:session.defaults.post.maxLength]]];
+    [roomCollection addTweak:[self createTweakWithIdentifier:@"max_length" defaultValue:[NSNumber numberWithInteger:session.defaults.post.maxLength]]];
+    [roomCollection addTweak:[self createTweakWithIdentifier:@"compose_prompt" defaultValue:session.defaults.post.composePrompt]];
+    [category addTweakCollection:roomCollection];
+}
+- (FBTweak *)createTweakWithIdentifier:(NSString *)identifier defaultValue:(id)defaultValue {
+    FBTweak *tweak = [[FBTweak alloc] initWithIdentifier:[NSString stringWithFormat:@"com.tweaks.defaults.%@", identifier]];
+    tweak.name = [[identifier stringByReplacingOccurrencesOfString:@"_" withString:@" "] localizedCapitalizedString];
+    tweak.defaultValue = defaultValue;
+    
+    return tweak;
 }
 
 // app-wide error code handling
@@ -126,7 +173,7 @@ static Session *session;
                 }
                 else {
                     NSLog(@"bad token");
-                    [session signOut];
+                    //[session signOut];
                     
                     AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
                     [appDelegate launchOnboarding];
@@ -134,7 +181,7 @@ static Session *session;
             }];
         }
         else if (statusCode == BAD_REFRESH_TOKEN || statusCode == BAD_REFRESH_LOGIN_REQ) {
-            [session signOut];
+            //[session signOut];
             
             AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
             [appDelegate launchOnboarding];

@@ -92,6 +92,9 @@
 		D998462C2193B00C000B901F /* PostContext.m in Sources */ = {isa = PBXBuildFile; fileRef = D998462B2193B00C000B901F /* PostContext.m */; };
 		D9AECE3A21571DBE00F01CAD /* TabBarView.m in Sources */ = {isa = PBXBuildFile; fileRef = D9AECE3921571DBE00F01CAD /* TabBarView.m */; };
 		D9B2D57421ACAED5007B3C0C /* Intents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9B2D57321ACAED5007B3C0C /* Intents.framework */; };
+		D9B2D57721AE3265007B3C0C /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = D9B2D57521AE3265007B3C0C /* Reachability.m */; };
+		D9B2D57C21AF2768007B3C0C /* ModifyDefaultsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9B2D57A21AF2768007B3C0C /* ModifyDefaultsViewController.m */; };
+		D9B2D57F21B0AB4B007B3C0C /* SimpleNavigationController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9B2D57E21B0AB4B007B3C0C /* SimpleNavigationController.m */; };
 		D9BD771221727FB000DAB9BE /* RoomSearchTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = D9BD771121727FB000DAB9BE /* RoomSearchTableView.m */; };
 		D9BD77142177D03500DAB9BE /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9BD77132177D03500DAB9BE /* Security.framework */; };
 		D9BD77172177DD1F00DAB9BE /* Defaults.m in Sources */ = {isa = PBXBuildFile; fileRef = D9BD77162177DD1F00DAB9BE /* Defaults.m */; };
@@ -304,6 +307,12 @@
 		D9AECE3921571DBE00F01CAD /* TabBarView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TabBarView.m; sourceTree = "<group>"; };
 		D9B2D57221ACAEBE007B3C0C /* Pulse.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Pulse.entitlements; sourceTree = "<group>"; };
 		D9B2D57321ACAED5007B3C0C /* Intents.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Intents.framework; path = System/Library/Frameworks/Intents.framework; sourceTree = SDKROOT; };
+		D9B2D57521AE3265007B3C0C /* Reachability.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Reachability.m; sourceTree = "<group>"; };
+		D9B2D57621AE3265007B3C0C /* Reachability.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Reachability.h; sourceTree = "<group>"; };
+		D9B2D57A21AF2768007B3C0C /* ModifyDefaultsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ModifyDefaultsViewController.m; sourceTree = "<group>"; };
+		D9B2D57B21AF2768007B3C0C /* ModifyDefaultsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ModifyDefaultsViewController.h; sourceTree = "<group>"; };
+		D9B2D57D21B0AB4B007B3C0C /* SimpleNavigationController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SimpleNavigationController.h; sourceTree = "<group>"; };
+		D9B2D57E21B0AB4B007B3C0C /* SimpleNavigationController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SimpleNavigationController.m; sourceTree = "<group>"; };
 		D9BD771021727FB000DAB9BE /* RoomSearchTableView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RoomSearchTableView.h; sourceTree = "<group>"; };
 		D9BD771121727FB000DAB9BE /* RoomSearchTableView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RoomSearchTableView.m; sourceTree = "<group>"; };
 		D9BD77132177D03500DAB9BE /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
@@ -469,15 +478,17 @@
 			path = PulseUITests;
 			sourceTree = "<group>";
 		};
-		D916430A2162C37B00523770 /* Launcher */ = {
+		D916430A2162C37B00523770 /* Navigation Controllers */ = {
 			isa = PBXGroup;
 			children = (
+				D9B2D57D21B0AB4B007B3C0C /* SimpleNavigationController.h */,
+				D9B2D57E21B0AB4B007B3C0C /* SimpleNavigationController.m */,
 				D9C03942215D6F1900B30A41 /* LauncherNavigationViewController.h */,
 				D9C03943215D6F1900B30A41 /* LauncherNavigationViewController.m */,
 				D9C8B55C219F5D3300A9A282 /* Launcher.h */,
 				D9C8B55D219F5D3300A9A282 /* Launcher.m */,
 			);
-			path = Launcher;
+			path = "Navigation Controllers";
 			sourceTree = "<group>";
 		};
 		D9164311216407C700523770 /* Profile */ = {
@@ -705,9 +716,28 @@
 			path = Models;
 			sourceTree = "<group>";
 		};
+		D9B2D57821AE326A007B3C0C /* Reachability */ = {
+			isa = PBXGroup;
+			children = (
+				D9B2D57621AE3265007B3C0C /* Reachability.h */,
+				D9B2D57521AE3265007B3C0C /* Reachability.m */,
+			);
+			path = Reachability;
+			sourceTree = "<group>";
+		};
+		D9B2D57921AF2760007B3C0C /* Internal Tools */ = {
+			isa = PBXGroup;
+			children = (
+				D9B2D57B21AF2768007B3C0C /* ModifyDefaultsViewController.h */,
+				D9B2D57A21AF2768007B3C0C /* ModifyDefaultsViewController.m */,
+			);
+			path = "Internal Tools";
+			sourceTree = "<group>";
+		};
 		D9BD770F2172784F00DAB9BE /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				D9B2D57821AE326A007B3C0C /* Reachability */,
 				D9C8B58021A5F47F00A9A282 /* Demo Resources */,
 				D94DE3352199204100CA3E1F /* SloppySwiper */,
 				D9C8B57E21A5F3FC00A9A282 /* Emitters */,
@@ -720,6 +750,7 @@
 		D9C8B57121A5F15E00A9A282 /* Controllers */ = {
 			isa = PBXGroup;
 			children = (
+				D9B2D57921AF2760007B3C0C /* Internal Tools */,
 				D9C8B556219F5A3600A9A282 /* TabController.h */,
 				D9C8B557219F5A3600A9A282 /* TabController.m */,
 				D9C8B57921A5F37000A9A282 /* Multi-Use */,
@@ -817,7 +848,7 @@
 		D9C8B57921A5F37000A9A282 /* Multi-Use */ = {
 			isa = PBXGroup;
 			children = (
-				D916430A2162C37B00523770 /* Launcher */,
+				D916430A2162C37B00523770 /* Navigation Controllers */,
 				D974B74621614BDA00C03269 /* Feed */,
 				D9C8B58121A5F6A600A9A282 /* Post */,
 			);
@@ -1223,9 +1254,12 @@
 				D9CB78F12166E1B400EEDBC9 /* VLDContextSheet.m in Sources */,
 				D9C8B55E219F5D3300A9A282 /* Launcher.m in Sources */,
 				D94DE3342199203C00CA3E1F /* SSWAnimator.m in Sources */,
+				D9B2D57721AE3265007B3C0C /* Reachability.m in Sources */,
+				D9B2D57C21AF2768007B3C0C /* ModifyDefaultsViewController.m in Sources */,
 				D9CB78F02166E1B400EEDBC9 /* VLDContextSheetItemView.m in Sources */,
 				D94FD1FC216D730300B84E45 /* PostDetails.m in Sources */,
 				D94FD1F6216D730300B84E45 /* RoomDiscoverability.m in Sources */,
+				D9B2D57F21B0AB4B007B3C0C /* SimpleNavigationController.m in Sources */,
 				D921171A21ABA91B00853F3F /* UserDiscoverability.m in Sources */,
 				D94FD1FB216D730300B84E45 /* PostSummaries.m in Sources */,
 				D94FD205216D730300B84E45 /* UserAttributes.m in Sources */,
@@ -1410,7 +1444,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = CC79AF492F4B77C3F26E47B7 /* Pods-Pulse.debug.xcconfig */;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon-5";
+				ASSETCATALOG_COMPILER_APPICON_NAME = mamanmallowman;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Pulse/Pulse.entitlements;
 				CODE_SIGN_STYLE = Automatic;
@@ -1439,7 +1473,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 0DF685DAACDD9E5D6BDDF5BA /* Pods-Pulse.release.xcconfig */;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon-5";
+				ASSETCATALOG_COMPILER_APPICON_NAME = mamanmallowman;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Pulse/Pulse.entitlements;
 				CODE_SIGN_STYLE = Automatic;

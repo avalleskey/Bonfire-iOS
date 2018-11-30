@@ -13,4 +13,6 @@
 
 + (instancetype)manager;
 
+- (BOOL)hasInternet;
+
 @end

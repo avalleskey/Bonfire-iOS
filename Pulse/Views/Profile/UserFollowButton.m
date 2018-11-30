@@ -14,18 +14,17 @@
 
 - (void)updateStatus:(NSString *)status {
     self.status = status;
+    
+    NSLog(@"status: %@", status);
 
     // set icon + title
     if ([status isEqualToString:USER_STATUS_FOLLOWS] ||
         [status isEqualToString:USER_STATUS_FOLLOW_BOTH]) {
+        NSLog(@"user_status_follows");
+        
         [self setImage:[[UIImage imageNamed:@"checkIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
         [self setTitle:@"Following" forState:UIControlStateNormal];
     }
-    /*
-    else if ([status isEqualToString:USER_STATUS_REQUESTED]) {
-        [self setImage:[[UIImage imageNamed:@"clockIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
-        [self setTitle:@"Requested" forState:UIControlStateNormal];
-    }*/
     else if ([status isEqualToString:USER_STATUS_BLOCKED] ||
              [status isEqualToString:USER_STATUS_BLOCKS] ||
              [status isEqualToString:USER_STATUS_BLOCKS_BOTH]) {
@@ -46,6 +45,13 @@
         [self setImage:[[UIImage imageNamed:@"plusIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
         [self setTitle:@"Follow" forState:UIControlStateNormal];
     }
+    
+    
+    /*
+     else if ([status isEqualToString:USER_STATUS_REQUESTED]) {
+     [self setImage:[[UIImage imageNamed:@"clockIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+     [self setTitle:@"Requested" forState:UIControlStateNormal];
+     }*/
     
     // set filled state + colors
     UIColor *disabledColor = [UIColor colorWithRed:0.52 green:0.53 blue:0.55 alpha:1.0];

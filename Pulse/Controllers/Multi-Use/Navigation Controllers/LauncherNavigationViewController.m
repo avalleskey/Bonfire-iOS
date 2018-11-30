@@ -28,6 +28,7 @@
 #import "FeedViewController.h"
 #import <UIImageView+WebCache.h>
 #import "UIColor+Palette.h"
+#import "UINavigationItem+Margin.h"
 
 #define envConfig [[[NSUserDefaults standardUserDefaults] objectForKey:@"config"] objectForKey:[[NSUserDefaults standardUserDefaults] stringForKey:@"environment"]]
 
@@ -84,6 +85,31 @@ static NSString * const reuseIdentifier = @"Result";
     
     self.manager = [HAWebService manager];
     [self setupSearch];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(roomUpdated:) name:@"RoomUpdated" object:nil];
+}
+
+- (void)roomUpdated:(NSNotification *)notification {
+    Room *room = notification.object;
+    
+    // if new Room has no context, use existing context
+    BOOL changes = false;
+    for (int i = 0; i < [self.recentSearchResults count]; i++) {
+        NSDictionary *result = self.recentSearchResults[i];
+        if (![result objectForKey:@"id"] || ![result[@"id"] isKindOfClass:[NSString class]]) return;
+        
+        if ([result[@"id"] isEqualToString:room.identifier]) {
+            // match!
+            changes = true;
+            [self.recentSearchResults replaceObjectAtIndex:i withObject:[room toDictionary]];
+            NSLog(@"🆕 Room updated in recent search results!");
+        }
+    }
+    
+    if (!changes) return;
+    
+    [[NSUserDefaults standardUserDefaults] setObject:[self.recentSearchResults clean] forKey:@"recents_search"];
+    [self.searchResultsTableView reloadData];
 }
 
 - (void)didFinishSwiping {
@@ -144,7 +170,7 @@ static NSString * const reuseIdentifier = @"Result";
 - (void)updateBarColor:(id)newColor withAnimation:(int)animationType statusBarUpdateDelay:(CGFloat)statusBarUpdateDelay {
     if ([self.topViewController isKindOfClass:[MyRoomsViewController class]] &&
         ![self.textField isFirstResponder]) {
-        newColor = [UIColor colorWithRed:0.98 green:0.98 blue:0.99 alpha:1.0];
+        newColor = [UIColor headerBackgroundColor];
     }
     
     if ([newColor isKindOfClass:[NSString class]]) {
@@ -284,14 +310,15 @@ static NSString * const reuseIdentifier = @"Result";
 
 - (void)setupNavigationBarItems {
     // create smart text field
-    self.textField = [[UITextField alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width - (62 * 2), 36)];
+    self.textField = [[UITextField alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width - (52 * 2), 34)];
     //[self continuityRadiusForView:self.textField withRadius:11.5f];
     //self.textField.layer.cornerRadius = self.textField.frame.size.height / 2;
     self.textField.layer.cornerRadius = 12.f;
     self.textField.layer.masksToBounds = true;
     self.textField.center = CGPointMake(self.navigationBar.frame.size.width / 2, self.navigationBar.frame.size.height / 2);
     self.textField.textAlignment = NSTextAlignmentCenter;
-    self.textField.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightBold];
+    self.textField.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
+    self.textField.font = [UIFont systemFontOfSize:17.f weight:UIFontWeightBold];
     self.textField.returnKeyType = UIReturnKeyGo;
     self.textField.delegate = self;
     self.textField.autocorrectionType = UITextAutocorrectionTypeNo;
@@ -315,8 +342,8 @@ static NSString * const reuseIdentifier = @"Result";
     self.textField.textColor = [UIColor colorWithWhite:0.07f alpha:1];
     self.textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:@"Search" attributes:@{NSForegroundColorAttributeName: [UIColor colorWithWhite:0 alpha:0.25]}];
     
-    UIImageView *searchIcon = [[UIImageView alloc] initWithFrame:CGRectMake(0, self.textField.frame.size.height / 2 - 8, 16, 16)];
-    searchIcon.image = [[UIImage imageNamed:@"searchIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+    UIImageView *searchIcon = [[UIImageView alloc] initWithFrame:CGRectMake(0, self.textField.frame.size.height / 2 - 7, 14, 14)];
+    searchIcon.image = [[UIImage imageNamed:@"miniSearchIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
     searchIcon.tag = 3;
     searchIcon.tintColor = self.textField.textColor;
     searchIcon.alpha = 0.25;
@@ -324,7 +351,7 @@ static NSString * const reuseIdentifier = @"Result";
     
     [self positionTextFieldSearchIcon];
     
-    UIView *leftPaddingView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 16 + 26, 1)];
+    UIView *leftPaddingView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 16 + 14 + 10, 1)];
     self.textField.leftView = leftPaddingView;
     self.textField.leftViewMode = UITextFieldViewModeAlways;
     UIView *rightPaddingView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 16, 1)];
@@ -401,7 +428,7 @@ static NSString * const reuseIdentifier = @"Result";
     [self.inviteFriendButton setImage:[[UIImage imageNamed:@"inviteFriendIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
     [self.inviteFriendButton setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 2)];
     self.inviteFriendButton.tintColor = [Session sharedInstance].themeColor;
-    self.inviteFriendButton.frame = CGRectMake(10, 0, 44, 44);
+    self.inviteFriendButton.frame = CGRectMake(8.5, 0, 42, 42);
     self.inviteFriendButton.center = CGPointMake(self.inviteFriendButton.center.x, self.navigationBar.frame.size.height / 2);
     [self.inviteFriendButton bk_whenTapped:^{
         [[Launcher sharedInstance] openInviteFriends];
@@ -413,9 +440,9 @@ static NSString * const reuseIdentifier = @"Result";
     // create new channel + button
     self.composePostButton = [UIButton buttonWithType:UIButtonTypeSystem];
     [self.composePostButton setImage:[[UIImage imageNamed:@"composeIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
-    self.composePostButton.imageEdgeInsets = UIEdgeInsetsMake(-2, 0, 0, -1);
+    self.composePostButton.imageEdgeInsets = UIEdgeInsetsMake(-2, -1, 0, 0);
     self.composePostButton.tintColor = [[Session sharedInstance] themeColor];
-    self.composePostButton.frame = CGRectMake(self.navigationBar.frame.size.width - 10 - 44, 0, 44, 44);
+    self.composePostButton.frame = CGRectMake(self.navigationBar.frame.size.width - 5 - 44, 0, 44, 44);
     self.composePostButton.center = CGPointMake(self.composePostButton.center.x, self.navigationBar.frame.size.height / 2);
     [self.composePostButton bk_whenTapped:^{
         [[Launcher sharedInstance] openComposePost];
@@ -426,7 +453,7 @@ static NSString * const reuseIdentifier = @"Result";
     self.infoButton = [UIButton buttonWithType:UIButtonTypeSystem];
     [self.infoButton setImage:[[UIImage imageNamed:@"navInfoIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
     self.infoButton.tintColor = [UIColor whiteColor];
-    self.infoButton.frame = CGRectMake(self.navigationBar.frame.size.width - 10 - 44, 0, 44, 44);
+    self.infoButton.frame = CGRectMake(self.navigationBar.frame.size.width - 3 - 44, 0, 44, 44);
     self.infoButton.center = CGPointMake(self.infoButton.center.x, self.navigationBar.frame.size.height / 2);
     [self.infoButton bk_whenTapped:^{
         NSLog(@"info button tapped");
@@ -439,7 +466,7 @@ static NSString * const reuseIdentifier = @"Result";
     self.moreButton = [UIButton buttonWithType:UIButtonTypeSystem];
     [self.moreButton setImage:[[UIImage imageNamed:@"navMoreIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
     self.moreButton.tintColor = [UIColor whiteColor];
-    self.moreButton.frame = CGRectMake(self.navigationBar.frame.size.width - 10 - 44, 0, 44, 44);
+    self.moreButton.frame = CGRectMake(self.navigationBar.frame.size.width - 4 - 44, 0, 44, 44);
     self.moreButton.center = CGPointMake(self.moreButton.center.x, self.navigationBar.frame.size.height / 2);
     self.moreButton.alpha = 0;
     [self.moreButton bk_whenTapped:^{
@@ -463,7 +490,7 @@ static NSString * const reuseIdentifier = @"Result";
     [self.backButton setImage:[[UIImage imageNamed:@"leftArrowIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
     [self.backButton setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 2)];
     self.backButton.tintColor = [UIColor whiteColor];
-    self.backButton.frame = CGRectMake(10, 0, 44, 44);
+    self.backButton.frame = CGRectMake(4, 0, 42, 42);
     self.backButton.center = CGPointMake(self.backButton.center.x, self.navigationBar.frame.size.height / 2);
     [self.backButton bk_whenTapped:^{
         if (self.isCreatingPost || self.searchResultsTableView.alpha != 1 || self.searchResultsTableView.isHidden) {
@@ -532,7 +559,7 @@ static NSString * const reuseIdentifier = @"Result";
     UIImageView *searchIcon = [self.textField viewWithTag:3];
     searchIcon.hidden = false;
     
-    UIView *leftPaddingView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 16 + 26, 1)];
+    UIView *leftPaddingView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 16 + 14 + 10, 1)];
     self.textField.leftView = leftPaddingView;
 }
 - (void)updateSearchText:(NSString *)newSearchText {
@@ -549,7 +576,7 @@ static NSString * const reuseIdentifier = @"Result";
             self.inviteFriendButton.alpha = 0;
             self.composePostButton.alpha = 0;
             self.moreButton.alpha = 0;
-            self.textField.frame = CGRectMake(62, self.textField.frame.origin.y, self.view.frame.size.width - (62 * 2), self.textField.frame.size.height);
+            self.textField.frame = CGRectMake(56, self.textField.frame.origin.y, self.view.frame.size.width - (52 * 2), self.textField.frame.size.height);
         }
         else {
             // determine items based on active view controller
@@ -574,7 +601,7 @@ static NSString * const reuseIdentifier = @"Result";
                 self.inviteFriendButton.alpha = 1;
                 self.composePostButton.alpha = 1;
                 
-                self.textField.frame = CGRectMake(62, self.textField.frame.origin.y, self.view.frame.size.width - (62 * 2), self.textField.frame.size.height);
+                self.textField.frame = CGRectMake(56, self.textField.frame.origin.y, self.view.frame.size.width - (56 * 2), self.textField.frame.size.height);
             }
             else {
                 self.inviteFriendButton.alpha = 0;
@@ -587,7 +614,7 @@ static NSString * const reuseIdentifier = @"Result";
                     self.backButton.transform = CGAffineTransformMakeRotation(0);
                 }
                 
-                self.textField.frame = CGRectMake(62, self.textField.frame.origin.y, self.view.frame.size.width - (62 * 2), self.textField.frame.size.height);
+                self.textField.frame = CGRectMake(56, self.textField.frame.origin.y, self.view.frame.size.width - (56 * 2), self.textField.frame.size.height);
             }
             
             if ([self.topViewController isKindOfClass:[PostViewController class]] ||
@@ -1356,6 +1383,50 @@ static NSString * const reuseIdentifier = @"Result";
                                                  cornerRadii:CGSizeMake(radius, radius)].CGPath;
     
     sender.layer.mask = maskLayer;
+}
+
+- (UIBarButtonItem *)createBarButtonItemForType:(LNActionType)actionType {
+    UIButton *button = [UIButton buttonWithType:UIButtonTypeSystem];
+    
+    if (actionType == LNActionTypeCancel) {
+        [button setTitle:@"Cancel" forState:UIControlStateNormal];
+    }
+    if (actionType == LNACtionTypeCompose) {
+        NSLog(@"create compose");
+        [button setImage:[[UIImage imageNamed:@"composeIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+        [button setImageEdgeInsets:UIEdgeInsetsMake(-2, 0, 0, -3)];
+    }
+    if (actionType == LNACtionTypeMore) {
+        [button setImage:[[UIImage imageNamed:@"moreIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+    }
+    if (actionType == LNACtionTypeInvite) {
+        [button setImage:[[UIImage imageNamed:@"inviteFriendIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+    }
+    if (actionType == LNACtionTypeAdd) {
+        [button setImage:[[UIImage imageNamed:@"navPlusIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+    }
+    if (actionType == LNActionTypeBack) {
+        [button setImage:[[UIImage imageNamed:@"leftArrowIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+    }
+    
+    if (button.currentTitle.length > 0) {
+        [button.titleLabel setFont:[UIFont systemFontOfSize:17.f weight:UIFontWeightMedium]];
+    }
+    
+    CGFloat padding = 16;
+    button.frame = CGRectMake(0, 0, button.intrinsicContentSize.width + (padding * 2), self.navigationBar.frame.size.height);
+    
+    UIBarButtonItem *item = [[UIBarButtonItem alloc] initWithCustomView:button];
+    
+    return item;
+}
+- (void)setLeftAction:(LNActionType)actionType {
+    self.visibleViewController.navigationItem.leftBarButtonItem = [self createBarButtonItemForType:actionType];
+    self.visibleViewController.navigationItem.leftMargin = 0;
+}
+- (void)setRightAction:(LNActionType)actionType {
+    self.visibleViewController.navigationItem.rightBarButtonItem = [self createBarButtonItemForType:actionType];
+    self.visibleViewController.navigationItem.rightMargin = 0;
 }
 
 @end

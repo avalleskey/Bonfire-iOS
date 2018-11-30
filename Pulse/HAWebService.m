@@ -8,6 +8,7 @@
 
 #import "HAWebService.h"
 #import "Session.h"
+#import "Reachability.h"
 
 @implementation HAWebService
 
@@ -24,6 +25,13 @@
     [manager.requestSerializer setTimeoutInterval:10];
     
     return manager;
+}
+
+- (BOOL)hasInternet {
+    Reachability *networkReachability = [Reachability reachabilityForInternetConnection];
+    NetworkStatus networkStatus = [networkReachability currentReachabilityStatus];
+    
+    return networkStatus != NotReachable;
 }
 
 @end

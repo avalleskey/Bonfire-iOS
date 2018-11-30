@@ -16,6 +16,17 @@
 
 @interface LauncherNavigationViewController : UINavigationController <UINavigationControllerDelegate, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate, UIGestureRecognizerDelegate, SloppySwiperDelegate>
 
+typedef enum {
+    LNActionTypeCancel = 0,
+    LNACtionTypeCompose = 1,
+    LNACtionTypeInvite = 2,
+    LNACtionTypeMore = 3,
+    LNACtionTypeAdd = 4,
+    LNActionTypeBack = 5
+} LNActionType;
+- (void)setLeftAction:(LNActionType)actionType;
+- (void)setRightAction:(LNActionType)actionType;
+
 @property (strong, nonatomic) SloppySwiper *swiper;
 
 @property (strong, nonatomic) UITableView *searchResultsTableView;

@@ -10,6 +10,7 @@
 #import <UIKit/UIKit.h>
 #import "Session.h"
 #import "UIColor+Palette.h"
+#import <Tweaks/FBTweakInline.h>
 
 @implementation SOLOptionsTransitionAnimator
 
@@ -30,12 +31,14 @@
         
         [containerView addSubview:toView];
         
-        fromView.layer.cornerRadius = 12.f;
+        fromView.layer.cornerRadius = 0;
         
         toView.layer.cornerRadius = 24.f;
         toView.frame = CGRectMake(0, toView.frame.size.height, toView.frame.size.width, toView.frame.size.height);
         
-        [UIView animateWithDuration:0.6f delay:0 usingSpringWithDamping:0.85 initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        CGFloat animationDuration = FBTweakValue(@"Transitions", @"View Controller - Appearing", @"Duration", 0.6);
+        CGFloat animationDamping = FBTweakValue(@"Transitions", @"View Controller - Appearing", @"Damping", 0.85);
+        [UIView animateWithDuration:animationDuration delay:0 usingSpringWithDamping:animationDamping initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
             fromView.alpha = 0.5;
             fromView.layer.cornerRadius = 24.f;
             fromView.transform = CGAffineTransformMakeScale(0.82, 0.82);
@@ -59,13 +62,16 @@
         toView.transform = CGAffineTransformMakeScale(0.82, 0.82);
         toView.layer.cornerRadius = 24.f;
         fromView.alpha = 1;
-        fromView.layer.cornerRadius = 12.f;
+        fromView.layer.cornerRadius = 0;
         
-        [UIView animateWithDuration:0.8f delay:0 usingSpringWithDamping:0.75f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        CGFloat animationDuration = FBTweakValue(@"Transitions", @"View Controller - Dismissing", @"Duration", 0.8);
+        CGFloat animationDamping = FBTweakValue(@"Transitions", @"View Controller - Dismissing", @"Damping", 0.75);
+        [UIView animateWithDuration:animationDuration delay:0 usingSpringWithDamping:animationDamping initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
             toView.alpha = 1;
             toView.transform = CGAffineTransformMakeScale(1, 1);
             toView.layer.cornerRadius = 0;
             
+            fromView.layer.cornerRadius = 24.f;
             fromView.transform = CGAffineTransformMakeScale(0.9, 0.9);
             fromView.center = CGPointMake(containerView.frame.size.width / 2, containerView.frame.size.height * 1.5);
             fromView.layer.cornerRadius = 24.f;

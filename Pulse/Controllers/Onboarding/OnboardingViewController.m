@@ -511,7 +511,7 @@
             
             // check if user exists
             NSString *url = [NSString stringWithFormat:@"%@/%@/accounts/validate/username", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"]]; // sample data
-            [self.manager GET:url parameters:@{@"username": textField.text} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, NSDictionary *responseObject) {
+            [self.manager GET:url parameters:@{@"username": [textField.text stringByReplacingOccurrencesOfString:@"@" withString:@""]} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, NSDictionary *responseObject) {
                 [self removeSpinnerForStep:self.currentStep];
                 
                 BOOL isValid = [responseObject[@"data"][@"valid"] boolValue];
@@ -782,36 +782,41 @@
     UIImageView *profilePictureImageView = self.steps[profilePictureStep][@"block"];
     UIImage *profilePicture = profilePictureImageView.image;
     
-    NSString *color = [colors[self.themeColor] stringByReplacingOccurrencesOfString:@"#" withString:@""];
+    NSString *color = [UIColor toHex:colors[self.themeColor]];
     
     NSLog(@"params: %@", @{@"username": username, @"color": color});
     
     [self uploadProfilePicture:profilePicture copmletion:^(BOOL success, NSString *img) {
         [self.manager.requestSerializer setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
-        [self.manager POST:url parameters:@{@"username": username, @"color": color} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-            NSLog(@"responseObject: %@", responseObject);
-            
-            self.nextButton.enabled = true;
-            self.nextButton.backgroundColor = [self currentColor];
-            
-            // move spinner
-            [self removeBigSpinnerForStep:self.currentStep push:true];
-            
-            NSLog(@"all done! successfully saved user!");
-            
-            // TODO: Open LauncherNavigationViewController
-            [self openHome];
-        } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-            
-            NSLog(@"error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);
-            NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-            NSLog(@"%@",ErrorResponse);
-            
-            [self removeBigSpinnerForStep:self.currentStep push:false];
-            self.nextButton.enabled = true;
-            self.nextButton.backgroundColor = [self currentColor];
-            self.nextButton.userInteractionEnabled = true;
-            [self shakeInputBlock];
+        [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
+            if (success) {
+                [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
+                [self.manager POST:url parameters:@{@"username": username, @"color": color} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+                    NSLog(@"responseObject: %@", responseObject);
+                    
+                    self.nextButton.enabled = true;
+                    self.nextButton.backgroundColor = [self currentColor];
+                    
+                    // move spinner
+                    [self removeBigSpinnerForStep:self.currentStep push:true];
+                    
+                    NSLog(@"all done! successfully saved user!");
+                    
+                    // TODO: Open LauncherNavigationViewController
+                    [self openHome];
+                } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+                    
+                    NSLog(@"error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);
+                    NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+                    NSLog(@"%@",ErrorResponse);
+                    
+                    [self removeBigSpinnerForStep:self.currentStep push:false];
+                    self.nextButton.enabled = true;
+                    self.nextButton.backgroundColor = [self currentColor];
+                    self.nextButton.userInteractionEnabled = true;
+                    [self shakeInputBlock];
+                }];
+            }
         }];
     }];
 }

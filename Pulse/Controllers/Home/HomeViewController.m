@@ -214,7 +214,7 @@
     self.bottomBarContainer.frame = CGRectMake(0, self.scrollView.frame.origin.y + self.scrollView.frame.size.height - 52 - safeAreaInsets.bottom, self.view.frame.size.width, 52 + safeAreaInsets.bottom + 24);
     [self continuityRadiusForView:self.bottomBarContainer withRadius:24.f];
     
-    self.myRoomsViewController.collectionView.center = CGPointMake(self.myRoomsViewController.collectionView.center.x, self.scrollView.frame.size.height / 2 - self.bottomBarContainer.frame.size.height / 2 - 22);
+//    self.myRoomsViewController.collectionView.center = CGPointMake(self.myRoomsViewController.collectionView.center.x, self.scrollView.frame.size.height / 2 - self.bottomBarContainer.frame.size.height / 2 - 22);
     
     // self.myRoomsViewController.createRoomButton.frame = CGRectMake((self.view.frame.size.width / 2 - (self.myRoomsViewController.createRoomButton.frame.size.width / 2)), self.myRoomsViewController.collectionView.frame.origin.y + self.myRoomsViewController.collectionView.frame.size.height + 12, self.myRoomsViewController.createRoomButton.frame.size.width, self.myRoomsViewController.createRoomButton.frame.size.height);
     
@@ -309,7 +309,7 @@
             
             if (!self.scrolling && [scrollView isEqual:self.scrollView]) {
                 self.scrolling = true;
-                self.myRoomsViewController.collectionView.scrollEnabled = false;
+//                self.myRoomsViewController.collectionView.scrollEnabled = false;
             }
         }
         else {
@@ -324,7 +324,7 @@
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
     if (self.scrolling && [scrollView isEqual:self.scrollView]) {
         self.scrolling = false;
-        self.myRoomsViewController.collectionView.scrollEnabled = true;
+//        self.myRoomsViewController.collectionView.scrollEnabled = true;
         
         int indexOfPage = scrollView.contentOffset.x / scrollView.frame.size.width;
         UIButton *previousButton = self.bottomBarButtons[self.page];
@@ -417,7 +417,7 @@
             // Perhaps call a method here to react to the image tap
             if (!self.scrolling) {
                 if (button.tag == 1 && self.page == button.tag) {
-                    [self.myRoomsViewController.collectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:0 inSection:0] atScrollPosition:UICollectionViewScrollPositionCenteredHorizontally animated:YES];
+//                    [self.myRoomsViewController.collectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:0 inSection:0] atScrollPosition:UICollectionViewScrollPositionCenteredHorizontally animated:YES];
                 }
 
                 [self scrollToPage:(int)button.tag];

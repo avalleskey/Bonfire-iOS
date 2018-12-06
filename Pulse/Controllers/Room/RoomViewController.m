@@ -46,6 +46,7 @@ static NSString * const reuseIdentifier = @"Result";
     // Do any additional setup after loading the view.
     
     self.launchNavVC = (ComplexNavigationController *)self.navigationController;
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] init];
     
     [self mock];
     

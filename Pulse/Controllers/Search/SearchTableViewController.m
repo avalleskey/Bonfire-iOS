@@ -43,6 +43,23 @@ static NSString * const reuseIdentifier = @"Result";
     self.searchController.searchFieldDelegate = self;
     [self setupSearch];
 }
+
+- (void)viewDidDisappear:(BOOL)animated {
+    [super viewDidDisappear:animated];
+        
+    if (self.navigationController.viewControllers.count > 2) {
+        NSMutableArray *navigationArray = [[NSMutableArray alloc] initWithArray: self.navigationController.viewControllers];
+        
+        for (NSInteger i = navigationArray.count-2; i >= 0; i--) {
+            if ([navigationArray[i] isKindOfClass:[SearchTableViewController class]]) {
+                [navigationArray removeObjectAtIndex:i];
+            }
+        }
+    
+        self.navigationController.viewControllers = navigationArray;
+    }
+}
+
 - (void)setupSearch {
     [self emptySearchResults];
     [self initRecentSearchResults];
@@ -294,9 +311,7 @@ static NSString * const reuseIdentifier = @"Result";
 }
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     if ([self isOverlay]) {
-        [self dismissViewControllerAnimated:YES completion:^{
-            [self handleCellTapForIndexPath:indexPath];
-        }];
+        [self handleCellTapForIndexPath:indexPath];
     }
     else {
         [self handleCellTapForIndexPath:indexPath];

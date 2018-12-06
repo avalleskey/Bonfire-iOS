@@ -330,10 +330,12 @@
     
     [UIView animateWithDuration:animated?0.25f:0 delay:0 usingSpringWithDamping:0.72f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
         if (self.leftActionButton.tag == LNActionTypeBack) {
+            NSLog(@"viewcontroller count: %lu", (unsigned long)self.viewControllers.count);
+            
             if (self.viewControllers.count == 1) {
                 self.leftActionButton.transform = CGAffineTransformMakeRotation(0);
             }
-            else if (self.viewControllers.count == 2) {
+            else if (self.viewControllers.count > 1) {
                 self.leftActionButton.transform = CGAffineTransformMakeRotation(M_PI_2);
             }
         }

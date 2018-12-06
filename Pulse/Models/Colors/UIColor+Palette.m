@@ -39,6 +39,24 @@
             lroundf(b * 255)];
 }
 
++ (BOOL)useWhiteForegroundForColor:(UIColor*)backgroundColor {
+    size_t count = CGColorGetNumberOfComponents(backgroundColor.CGColor);
+    const CGFloat *componentColors = CGColorGetComponents(backgroundColor.CGColor);
+    
+    CGFloat darknessScore = 0;
+    if (count == 2) {
+        darknessScore = (((componentColors[0]*255) * 299) + ((componentColors[0]*255) * 587) + ((componentColors[0]*255) * 114)) / 1000;
+    } else if (count == 4) {
+        darknessScore = (((componentColors[0]*255) * 299) + ((componentColors[1]*255) * 587) + ((componentColors[2]*255) * 114)) / 1000;
+    }
+    
+    if (darknessScore >= 185) {
+        return false;
+    }
+    
+    return true;
+}
+
 // Header background color -- Used in [Home -> Rooms]
 + (UIColor * _Nonnull) headerBackgroundColor {
     UIColor *color = FBTweakValue(@"Rooms", @"My Rooms", @"Header Background", [UIColor colorWithRed:0.98 green:0.98 blue:0.99 alpha:1.0]);
@@ -359,25 +377,25 @@
 + (UIColor * _Nonnull) bonfireGreenWithLevel:(int)level {
     switch(level) {
         case 50:
-            return [UIColor fromHex:@"#ebffeb"];
+            return [UIColor fromHex:@"#e6f8ea"];
         case 100:
-            return [UIColor fromHex:@"#d4ffd6"];
+            return [UIColor fromHex:@"#caf0d4"];
         case 200:
-            return [UIColor fromHex:@"#baffbd"];
+            return [UIColor fromHex:@"#ace7bb"];
         case 300:
-            return [UIColor fromHex:@"#9bff9e"];
+            return [UIColor fromHex:@"#89dd9e"];
         case 400:
-            return [UIColor fromHex:@"#70ff75"];
+            return [UIColor fromHex:@"#5fd27c"];
         case 500:
-            return [UIColor fromHex:@"#00ff09"];
+            return [UIColor fromHex:@"#29c350"];
         case 600:
-            return [UIColor fromHex:@"#00e708"];
+            return [UIColor fromHex:@"#25b048"];
         case 700:
-            return [UIColor fromHex:@"#00cb07"];
+            return [UIColor fromHex:@"#209a3f"];
         case 800:
-            return [UIColor fromHex:@"#00a905"];
+            return [UIColor fromHex:@"#1a8034"];
         case 900:
-            return [UIColor fromHex:@"#007b04"];
+            return [UIColor fromHex:@"#135c25"];
         default:
             return [UIColor bonfireGreenWithLevel:500];
     }

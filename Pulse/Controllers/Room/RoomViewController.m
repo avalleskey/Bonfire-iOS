@@ -6,7 +6,7 @@
 //
 
 #import "RoomViewController.h"
-#import "LauncherNavigationViewController.h"
+#import "ComplexNavigationController.h"
 #import "ErrorView.h"
 #import "SearchResultCell.h"
 #import <BlocksKit/BlocksKit.h>
@@ -29,7 +29,7 @@
 @property CGFloat maxHeaderHeight;
 @property BOOL isLoadingMyRooms;
 
-@property (strong, nonatomic) LauncherNavigationViewController *launchNavVC;
+@property (strong, nonatomic) ComplexNavigationController *launchNavVC;
 @property (strong, nonatomic) UITableView *roomSelectorTableView;
 @property (strong, nonatomic) NSMutableArray *roomSearchResults;
 @property (strong, nonatomic) NSMutableArray *myRoomsResults;
@@ -45,11 +45,11 @@ static NSString * const reuseIdentifier = @"Result";
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     
-    self.launchNavVC = (LauncherNavigationViewController *)self.navigationController;
+    self.launchNavVC = (ComplexNavigationController *)self.navigationController;
     
     [self mock];
     
-    self.view.backgroundColor = [UIColor colorWithWhite:0.98 alpha:1];
+    self.view.backgroundColor = [UIColor headerBackgroundColor];
     
     [self setupTableView];
     [self setupErrorView];
@@ -99,7 +99,7 @@ static NSString * const reuseIdentifier = @"Result";
         self.composeInputView.postButton.tintColor = themeColor;
         // if top view controller -> update launch nav vc
         if ([self isEqual:self.navigationController.topViewController]) {
-            [self.launchNavVC updateSearchText:room.attributes.details.title];
+            [self.launchNavVC.searchView updateSearchText:room.attributes.details.title];
             self.title = room.attributes.details.title;
             [self.launchNavVC updateBarColor:themeColor withAnimation:2 statusBarUpdateDelay:0];
         }
@@ -202,8 +202,7 @@ static NSString * const reuseIdentifier = @"Result";
             [self.errorView updateType:ErrorViewTypeNotFound];
             
             [UIView animateWithDuration:0.25f delay:0 usingSpringWithDamping:0.72f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
-                self.launchNavVC.infoButton.alpha = 0;
-                self.launchNavVC.moreButton.alpha = 0;
+                self.launchNavVC.rightActionButton.alpha = 0;
             } completion:^(BOOL finished) {
             }];
         }
@@ -257,7 +256,7 @@ static NSString * const reuseIdentifier = @"Result";
                 
                 // update the title (in case we didn't know the room's title before)
                 if (!self.isCreatingPost) {
-                    [self.launchNavVC updateSearchText:self.room.attributes.details.title];
+                    [self.launchNavVC.searchView updateSearchText:self.room.attributes.details.title];
                 }
                 
                 // update the compose input placeholder (in case we didn't know the room's title before)
@@ -337,9 +336,9 @@ static NSString * const reuseIdentifier = @"Result";
     [self.roomSelectorTableView registerClass:[SearchResultCell class] forCellReuseIdentifier:reuseIdentifier];
     [self.view insertSubview:self.roomSelectorTableView belowSubview:self.composeInputView];
     
-    [self.launchNavVC.textField bk_addEventHandler:^(id sender) {
+    [self.launchNavVC.searchView.textField bk_addEventHandler:^(id sender) {
         if (self.isCreatingPost) {
-            if (self.launchNavVC.textField.text.length == 0) {
+            if (self.launchNavVC.searchView.textField.text.length == 0) {
                 [self.roomSelectorTableView reloadData];
             }
             else {
@@ -347,7 +346,7 @@ static NSString * const reuseIdentifier = @"Result";
             }
         }
     } forControlEvents:UIControlEventEditingChanged];
-    [self.launchNavVC.textField bk_addEventHandler:^(id sender) {
+    [self.launchNavVC.searchView.textField bk_addEventHandler:^(id sender) {
         if (self.isCreatingPost && self.roomSelectorTableView.alpha == 0) {
             self.room = nil;
             self.tableView.data = [[NSMutableArray alloc] init];
@@ -361,12 +360,14 @@ static NSString * const reuseIdentifier = @"Result";
             self.tableView.loading = true;
             [self.tableView refresh];
 
-            self.launchNavVC.textField.text = @"";
-            self.launchNavVC.textField.textAlignment = NSTextAlignmentCenter;
+            self.launchNavVC.searchView.textField.text = @"";
+            self.launchNavVC.searchView.textField.textAlignment = NSTextAlignmentCenter;
             
             [self.launchNavVC updateBarColor:[UIColor whiteColor] withAnimation:1 statusBarUpdateDelay:NO];
-            self.launchNavVC.moreButton.alpha = 0;
-            self.launchNavVC.backButton.tintColor = [Session sharedInstance].themeColor;
+            self.launchNavVC.rightActionButton.alpha = 0;
+            self.launchNavVC.leftActionButton.tintColor = [Session sharedInstance].themeColor;
+            // self.launchNavVC.moreButton.alpha = 0;
+            // self.launchNavVC.backButton.tintColor = [Session sharedInstance].themeColor;
             
             [self.roomSelectorTableView reloadData];
             
@@ -532,7 +533,7 @@ static NSString * const reuseIdentifier = @"Result";
                 // r.tableView.delegate = self;
                 p.user = myUser;
                 
-                self.launchNavVC.textField.text = p.user.attributes.details.displayName;
+                self.launchNavVC.searchView.textField.text = p.user.attributes.details.displayName;
                 
                 [self.launchNavVC updateBarColor:p.theme withAnimation:2 statusBarUpdateDelay:NO];
                 
@@ -581,7 +582,7 @@ static NSString * const reuseIdentifier = @"Result";
             [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
             
             NSDictionary *params = maxId != 0 ? @{@"max_id": [NSNumber numberWithInteger:maxId], @"count": @(10)} : @{@"count": @(10)};
-             NSLog(@"params to getPostsWith:::: %@", params);
+            NSLog(@"params to getPostsWith:::: %@", params);
             
             [self.manager GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 NSArray *responseData = (NSArray *)responseObject[@"data"];
@@ -615,8 +616,6 @@ static NSString * const reuseIdentifier = @"Result";
                     self.errorView.hidden = true;
                     // appended posts
                     self.tableView.data = [[NSMutableArray alloc] initWithArray:[self.tableView.data arrayByAddingObjectsFromArray:responseData]];
-                    NSLog(@"self.tableView.data:");
-                    NSLog(@"%@", self.tableView.data);
                 }
                 
                 self.loading = false;
@@ -807,7 +806,7 @@ static NSString * const reuseIdentifier = @"Result";
             [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
             
             NSString *url = [NSString stringWithFormat:@"%@/%@/search/rooms", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"]];
-            [self.manager GET:url parameters:@{@"q": self.launchNavVC.textField.text} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+            [self.manager GET:url parameters:@{@"q": self.launchNavVC.searchView.textField.text} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 // NSLog(@"LauncherNavigationViewController / getSearchResults() success! ✅");
                 
                 NSLog(@"response: %@", responseObject[@"data"][@"results"][@"rooms"]);
@@ -834,59 +833,37 @@ static NSString * const reuseIdentifier = @"Result";
         cell = [[SearchResultCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:reuseIdentifier];
     }
     
-    BOOL highlighted = false;
-    /*
-    if ([self showRecents] && indexPath.section == 0 && indexPath.row == 0) {
-        highlighted = true;
-    }
-    else {
-        if (roomsResults && indexPath.section == 1 && indexPath.row == 0) {
-            // has at least one room
-            highlighted = true;
-        }
-        else if (!roomsResults && userResults && indexPath.section == 2 && indexPath.row == 0) {
-            highlighted = true;
-        }
-    }*/
+    // -- Type --
+    cell.type = 1;
     
-    if (highlighted) {
-        cell.selectionBackground.hidden = false;
-        cell.lineSeparator.hidden = true;
-    }
-    else {
-        cell.selectionBackground.hidden = true;
-        cell.lineSeparator.hidden = false;
-    }
+    NSDictionary *json = self.launchNavVC.searchView.textField.text.length == 0 ? self.myRoomsResults[indexPath.row] : self.roomSearchResults[indexPath.row];
     
-    NSDictionary *json = self.launchNavVC.textField.text.length == 0 ? self.myRoomsResults[indexPath.row] : self.roomSearchResults[indexPath.row];
+    NSError *error;
+    Room *room = [[Room alloc] initWithDictionary:json error:&error];
+    if (error) { NSLog(@"room error: %@", error); };
     
-    Room *room = [[Room alloc] initWithDictionary:json error:nil];
     // 1 = Room
     cell.textLabel.text = room.attributes.details.title;
-    cell.imageView.backgroundColor = [UIColor fromHex:room.attributes.details.color];
+    cell.imageView.tintColor = [UIColor fromHex:room.attributes.details.color];
+    cell.imageView.backgroundColor = [UIColor whiteColor];
     
-    BOOL useLiveCount = false;
+    NSString *detailText = [NSString stringWithFormat:@"%ld %@", (long)room.attributes.summaries.counts.members, (room.attributes.summaries.counts.members == 1 ? @"member" : @"members")];
+    BOOL useLiveCount = room.attributes.summaries.counts.live > [Session sharedInstance].defaults.room.liveThreshold;
     if (useLiveCount) {
-        cell.detailTextLabel.textColor = [UIColor colorWithDisplayP3Red:0.87 green:0.09 blue:0.09 alpha:1];
-        cell.detailTextLabel.text = [NSString stringWithFormat:@"%li LIVE", (long)room.attributes.summaries.counts.live];
+        cell.detailTextLabel.text = [NSString stringWithFormat:@"%@ · %li live", detailText, (long)room.attributes.summaries.counts.live];
     }
-    else {
-        cell.detailTextLabel.textColor = [UIColor colorWithWhite:0.6f alpha:1];
-        cell.detailTextLabel.text = [NSString stringWithFormat:@"%ld %@", (long)room.attributes.summaries.counts.members, (room.attributes.summaries.counts.members == 1 ? @"MEMBER" : @"MEMBERS")];
-    }
-    
-    cell.type = 1;
+    cell.detailTextLabel.text = detailText;
     
     return cell;
 }
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return 56;
+    return 64;
 }
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     return 1;
 }
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    NSDictionary *roomJSON = self.launchNavVC.textField.text.length == 0 ? self.myRoomsResults[indexPath.row] : self.roomSearchResults[indexPath.row];
+    NSDictionary *roomJSON = self.launchNavVC.searchView.textField.text.length == 0 ? self.myRoomsResults[indexPath.row] : self.roomSearchResults[indexPath.row];
     Room *room = [[Room alloc] initWithDictionary:roomJSON error:nil];
     self.room = room;
     
@@ -905,20 +882,20 @@ static NSString * const reuseIdentifier = @"Result";
     // fancy text field text
     NSMutableAttributedString *string = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"To: %@", self.room.attributes.details.title]];
     [string addAttribute:NSForegroundColorAttributeName value:[UIColor colorWithWhite:1 alpha:0.5] range:NSMakeRange(0,4)];
-    [string addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:self.launchNavVC.textField.font.pointSize weight:UIFontWeightRegular] range:NSMakeRange(0,4)];
+    [string addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:self.launchNavVC.searchView.textField.font.pointSize weight:UIFontWeightRegular] range:NSMakeRange(0,4)];
     [string addAttribute:NSForegroundColorAttributeName value:[UIColor whiteColor] range:NSMakeRange(4,self.room.attributes.details.title.length)];
-    self.launchNavVC.textField.attributedText = string;
+    self.launchNavVC.searchView.textField.attributedText = string;
     
-    [self.launchNavVC textFieldDidEndEditing:self.launchNavVC.textField];
+    [self.launchNavVC textFieldDidEndEditing:self.launchNavVC.searchView.textField];
     [self.composeInputView.textView becomeFirstResponder];
     
-    UIView *rightView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 40, self.launchNavVC.textField.frame.size.height)];
+    UIView *rightView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 40, self.launchNavVC.searchView.textField.frame.size.height)];
     UIImageView *clearButton = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 14, 14)];
     clearButton.center = CGPointMake(rightView.frame.size.width / 2, rightView.frame.size.height / 2);
     clearButton.image = [[UIImage imageNamed:@"navCloseIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
     clearButton.tintColor = [UIColor whiteColor];
     [rightView addSubview:clearButton];
-    self.launchNavVC.textField.rightView = rightView;
+    self.launchNavVC.searchView.textField.rightView = rightView;
     
     self.composeInputView.postButton.tintColor = self.theme;
     self.composeInputView.tintColor = self.theme;
@@ -944,10 +921,10 @@ static NSString * const reuseIdentifier = @"Result";
     self.isCreatingPost = false;
     self.launchNavVC.isCreatingPost = false;
     [self.launchNavVC updateNavigationBarItemsWithAnimation:YES];
-    self.launchNavVC.textField.textAlignment = NSTextAlignmentCenter;
-    self.launchNavVC.textField.rightView = self.launchNavVC.textField.leftView; // remove pencil icon
-    if (self.launchNavVC.textField.text.length > 4 && [[self.launchNavVC.textField.text substringWithRange:NSMakeRange(0, 4)] isEqualToString:@"To: "]) {
-        self.launchNavVC.textField.text = [self.launchNavVC.textField.text substringWithRange:NSMakeRange(4, self.launchNavVC.textField.text.length-4)];
+    self.launchNavVC.searchView.textField.textAlignment = NSTextAlignmentCenter;
+    self.launchNavVC.searchView.textField.rightView = self.launchNavVC.searchView.textField.leftView; // remove pencil icon
+    if (self.launchNavVC.searchView.textField.text.length > 4 && [[self.launchNavVC.searchView.textField.text substringWithRange:NSMakeRange(0, 4)] isEqualToString:@"To: "]) {
+        self.launchNavVC.searchView.textField.text = [self.launchNavVC.searchView.textField.text substringWithRange:NSMakeRange(4, self.launchNavVC.searchView.textField.text.length-4)];
     }
     
     UIView *tapToDismissView = [self.view viewWithTag:888];
@@ -960,20 +937,20 @@ static NSString * const reuseIdentifier = @"Result";
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return self.launchNavVC.textField.text.length == 0 ? self.myRoomsResults.count : self.roomSearchResults.count;
+    return self.launchNavVC.searchView.textField.text.length == 0 ? self.myRoomsResults.count : self.roomSearchResults.count;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    CGFloat headerHeight = 50;
+    CGFloat headerHeight = 48;
     
     return headerHeight;
 }
 
 - (nullable UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
-    UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 50)];
+    UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 48)];
     
-    UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(16, 24, self.view.frame.size.width - 32, 19)];
-    if (self.launchNavVC.textField.text.length == 0) {
+    UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(16, 21, self.view.frame.size.width - 32, 19)];
+    if (self.launchNavVC.searchView.textField.text.length == 0) {
         if (self.isLoadingMyRooms) {
             title.text = @"Loading...";
             title.textAlignment = NSTextAlignmentCenter;
@@ -994,8 +971,8 @@ static NSString * const reuseIdentifier = @"Result";
     }
     
     title.textAlignment = NSTextAlignmentLeft;
-    title.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightSemibold];
-    title.textColor = [UIColor colorWithWhite:0.6f alpha:1];
+    title.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightBold];
+    title.textColor = [UIColor colorWithWhite:0.07f alpha:1];
     
     [header addSubview:title];
     

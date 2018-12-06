@@ -57,7 +57,7 @@ static NSString * const contactCellIdentifier = @"ContactCell";
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     
-    self.searchBar.frame = CGRectMake(0, self.navigationController.navigationBar.frame.origin.y + self.navigationController.navigationBar.frame.size.height, self.view.frame.size.width, 56);
+    self.searchBar.frame = CGRectMake(0, self.navigationController.navigationBar.frame.origin.y + self.navigationController.navigationBar.frame.size.height, self.view.frame.size.width, self.searchBar.frame.size.height);
 }
 
 - (void)setupErrorView {
@@ -73,94 +73,28 @@ static NSString * const contactCellIdentifier = @"ContactCell";
 
 - (void)setupSearchBar {
     self.searchBar = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleLight]];
-    self.searchBar.frame = CGRectMake(0, self.navigationController.navigationBar.frame.origin.y + self.navigationController.navigationBar.frame.size.height, self.view.frame.size.width, 56);
+    self.searchBar.frame = CGRectMake(0, self.navigationController.navigationBar.frame.origin.y + self.navigationController.navigationBar.frame.size.height, self.view.frame.size.width, 54);
     self.searchBar.backgroundColor = [UIColor colorWithWhite:1 alpha:0.7];
     self.searchBar.layer.masksToBounds = false;
     self.searchBar.userInteractionEnabled = true;
     [self.navigationController.view addSubview:self.searchBar];
     
-    self.searchField = [[UITextField alloc] initWithFrame:CGRectMake(16, 10, self.searchBar.frame.size.width - 32, 36)];
-    self.searchField.layer.cornerRadius = 12.f;
-    self.searchField.layer.masksToBounds = true;
-    self.searchField.textAlignment = NSTextAlignmentCenter;
-    self.searchField.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightBold];
-    self.searchField.delegate = self;
-    self.searchField.autocorrectionType = UITextAutocorrectionTypeNo;
-    self.searchField.backgroundColor = [UIColor bonfireTextFieldBackgroundOnWhite];
-    self.searchField.textColor = [UIColor colorWithWhite:0.07f alpha:1];
-    self.searchField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:@"Search Contacts" attributes:@{NSForegroundColorAttributeName: [UIColor colorWithWhite:0 alpha:0.25]}];
-    UIView *leftPaddingView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 16 + 26, 1)];
-    self.searchField.leftView = leftPaddingView;
-    self.searchField.leftViewMode = UITextFieldViewModeAlways;
+    self.searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(16, 10, self.view.frame.size.width - (16 * 2), 34)];
+    self.searchView.textField.placeholder = @"Search Contacts";
+    [self.searchView updateSearchText:@""];
+    self.searchView.textField.delegate = self;
+    self.searchView.textField.tintColor = [UIColor bonfireBlue];
+    [self.searchBar.contentView addSubview:self.searchView];
     
-    UIImageView *searchIcon = [[UIImageView alloc] initWithFrame:CGRectMake(0, self.searchField.frame.size.height / 2 - 8, 16, 16)];
-    searchIcon.image = [[UIImage imageNamed:@"searchIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-    searchIcon.tag = 3;
-    searchIcon.tintColor = self.searchField.textColor;
-    searchIcon.alpha = 0.25;
-    searchIcon.userInteractionEnabled = false;
-    [self.searchField addSubview:searchIcon];
-    
-    [self positionTextFieldSearchIcon];
-    
-    [self.searchField bk_whenTapped:^{
-        [self.searchField becomeFirstResponder];
-    }];
-    
-    [self.searchField bk_addEventHandler:^(id sender) {
-        self.isSearching = self.searchField.text.length > 0;
+    [self.searchView.textField bk_addEventHandler:^(id sender) {
+        self.isSearching = self.searchView.textField.text.length > 0;
         [self loadContacts];
+        [self.tableView setContentOffset:CGPointMake(0, -1 * self.tableView.contentInset.top)];
     } forControlEvents:UIControlEventEditingChanged];
-    
-    [self.searchField bk_addEventHandler:^(id sender) {
-        if (self.searchField.tag == 0) {
-            self.searchField.tag = 1;
-            
-            UIColor *textFieldBackgroundColor = [UIColor bonfireTextFieldBackgroundOnWhite];
-            
-            CGFloat red = 0.0, green = 0.0, blue = 0.0, alpha = 0.0;
-            [textFieldBackgroundColor getRed:&red green:&green blue:&blue alpha:&alpha];
-            
-            [UIView animateWithDuration:0.2f animations:^{
-                self.searchField.backgroundColor = [UIColor colorWithRed:red green:green blue:blue alpha:alpha*2];
-            }];
-        }
-    } forControlEvents:UIControlEventTouchDown];
-    
-    [self.searchField bk_addEventHandler:^(id sender) {
-        if (self.searchField.tag == 1) {
-            self.searchField.tag = 0;
-            
-            UIColor *textFieldBackgroundColor = [UIColor bonfireTextFieldBackgroundOnWhite];
-            
-            [UIView animateWithDuration:0.2f animations:^{
-                self.searchField.backgroundColor = textFieldBackgroundColor;
-            }];
-        }
-    } forControlEvents:(UIControlEventTouchCancel|UIControlEventTouchDragExit)];
-    
-    [self.searchBar.contentView addSubview:self.searchField];
     
     UIView *lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, self.searchBar.frame.size.height - (1 / [UIScreen mainScreen].scale), self.view.frame.size.width, (1 / [UIScreen mainScreen].scale))];
     lineSeparator.backgroundColor = [UIColor colorWithWhite:0 alpha:0.08f];
     [self.searchBar.contentView addSubview:lineSeparator];
-}
-- (void)positionTextFieldSearchIcon {
-    NSString *textFieldText = self.searchField.text.length > 0 ? self.searchField.text : self.searchField.placeholder;
-    
-    CGRect rect = [textFieldText boundingRectWithSize:CGSizeMake(CGFLOAT_MAX, self.searchField.frame.size.height) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:self.searchField.font} context:nil];
-    CGFloat textWidth = roundf(rect.size.width);
-    
-    CGFloat xFinal = 16;
-    CGFloat xCentered = self.searchField.frame.size.width / 2 - (textWidth / 2) - 10;
-    if (!self.searchField.isFirstResponder && xCentered > xFinal) {
-        xFinal = xCentered;
-    }
-    
-    UIImageView *searchIcon = [self.searchField viewWithTag:3];
-    CGRect searchIconFrame = searchIcon.frame;
-    searchIconFrame.origin.x = xFinal;
-    searchIcon.frame = searchIconFrame;
 }
 
 - (void)setupNavigationBar {
@@ -196,7 +130,7 @@ static NSString * const contactCellIdentifier = @"ContactCell";
 }
 
 - (void)setupTableView {
-    self.tableView.backgroundColor = [UIColor colorWithWhite:0.98 alpha:1];
+    self.tableView.backgroundColor = [UIColor headerBackgroundColor];
     self.tableView.separatorInset = UIEdgeInsetsZero;
     self.tableView.separatorColor = [UIColor clearColor];
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
@@ -306,7 +240,7 @@ static NSString * const contactCellIdentifier = @"ContactCell";
                  [self hideError];
                  [self.tableView reloadData];
                  
-                 if ((self.searchField.text.length == 0 && !self.isSearching) && self.featuredProfilePictures.count == 0) {
+                 if ((self.searchView.textField.text.length == 0 && !self.isSearching) && self.featuredProfilePictures.count == 0) {
                      for (int i = 0; i < self.contacts.count; i++) {
                          APContact *contact = self.contacts[i];
                          if (contact.thumbnail != nil) {
@@ -329,7 +263,7 @@ static NSString * const contactCellIdentifier = @"ContactCell";
     }
     else {
         if (self.isSearching) {
-            NSString *searchText = self.searchField.text;
+            NSString *searchText = self.searchView.textField.text;
             // return results using self.contacts
             NSArray *filteredArray = [self.contacts filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(APContact *contact, NSDictionary *bindings) {
                 BOOL nameContains = [contact.name.compositeName containsString:searchText];
@@ -384,26 +318,22 @@ static NSString * const contactCellIdentifier = @"ContactCell";
 }
 
 - (void)textFieldDidBeginEditing:(UITextField *)textField {
-    // left aligned search bar
-    self.searchField.textAlignment = NSTextAlignmentLeft;
-    [self positionTextFieldSearchIcon];
-    
-    [self.tableView reloadData];
-    [self.tableView setContentOffset:CGPointMake(0, -1 * self.tableView.contentInset.top)];
+    [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.8f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+        [self.searchView setPosition:BFSearchTextPositionLeft];
+    } completion:nil];
 }
-
 - (void)textFieldDidEndEditing:(UITextField *)textField {
-    // left aligned search bar
-    if (self.searchField.text.length == 0) {
-        self.searchField.textAlignment = NSTextAlignmentCenter;
-        [self positionTextFieldSearchIcon];
-    }
+    self.searchView.textField.userInteractionEnabled = false;
     
-    [self.tableView reloadData];
+    [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.8f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+        [self.searchView setPosition:BFSearchTextPositionCenter];
+    } completion:^(BOOL finished) {
+        
+    }];
 }
 
 - (BOOL)textFieldShouldReturn:(UITextField *)textField {
-    [self.searchField resignFirstResponder];
+    [self.searchView.textField resignFirstResponder];
     
     return FALSE;
 }
@@ -612,7 +542,7 @@ static NSString * const contactCellIdentifier = @"ContactCell";
     UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 64)];
     [headerContainer addSubview:header];
     
-    header.backgroundColor = [UIColor colorWithWhite:0.98 alpha:1];
+    header.backgroundColor = [UIColor headerBackgroundColor];
     
     UIView *lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, header.frame.size.height - (1 / [UIScreen mainScreen].scale), self.view.frame.size.width, (1 / [UIScreen mainScreen].scale))];
     lineSeparator.backgroundColor = [UIColor colorWithWhite:0.9 alpha:1];
@@ -621,20 +551,17 @@ static NSString * const contactCellIdentifier = @"ContactCell";
     UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(16, 28, self.view.frame.size.width - 32, 24)];
     if (section == 1) {
         if (self.isSearching) {
-            if (self.contacts.count == 0) {
+            if (self.searchResults.count == 0) {
                 title.text = @"No Results";
-                title.textAlignment = NSTextAlignmentCenter;
                 lineSeparator.hidden = true;
             }
             else {
                 title.text = @"Results";
-                title.textAlignment = NSTextAlignmentLeft;
                 lineSeparator.hidden = false;
             }
         }
         else {
             title.text = @"Contacts";
-            title.textAlignment = NSTextAlignmentLeft;
             lineSeparator.hidden = false;
         }
     }

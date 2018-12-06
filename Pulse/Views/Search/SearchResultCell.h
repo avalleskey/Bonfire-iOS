@@ -19,7 +19,5 @@
 
 
 // ---- VIEWS ----
-@property (strong, nonatomic) UIView *selectionBackground;
-@property (strong, nonatomic) UIView *lineSeparator;
 
 @end

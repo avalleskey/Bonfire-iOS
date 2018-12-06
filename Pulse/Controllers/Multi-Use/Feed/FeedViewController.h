@@ -10,11 +10,11 @@
 #import "HAWebService.h"
 #import "Session.h"
 #import "ComposeInputView.h"
-#import "RSTableView.h"
 #import "Room.h"
 #import "ErrorView.h"
+#import "RSTableView.h"
 
-@interface FeedViewController : UIViewController <RSTableViewPaginationDelegate>
+@interface FeedViewController : UITableViewController <RSTableViewPaginationDelegate>
 
 typedef enum {
     FeedTypeTimeline = 0,
@@ -27,7 +27,6 @@ typedef enum {
 @property (strong, nonatomic) UIScrollView *scrollView;
 @property (strong, nonatomic) Room *room;
 @property (strong, nonatomic) NSMutableArray *content;
-@property (strong, nonatomic) RSTableView *tableView;
 @property (nonatomic, strong) ErrorView *errorView;
 
 @property (nonatomic) FeedType feedType;

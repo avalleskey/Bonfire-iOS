@@ -23,7 +23,6 @@
 		D907B0FF215068BD00A59712 /* HAWebService.m in Sources */ = {isa = PBXBuildFile; fileRef = D907B0FD215068BC00A59712 /* HAWebService.m */; };
 		D907B1042150697400A59712 /* NSArray+Clean.m in Sources */ = {isa = PBXBuildFile; fileRef = D907B1012150697300A59712 /* NSArray+Clean.m */; };
 		D907B1052150697400A59712 /* NSDictionary+Clean.m in Sources */ = {isa = PBXBuildFile; fileRef = D907B1022150697300A59712 /* NSDictionary+Clean.m */; };
-		D907B11D2150917700A59712 /* HomeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D907B11C2150917700A59712 /* HomeViewController.m */; };
 		D907B1202150960400A59712 /* MiniChannelCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D907B11F2150960300A59712 /* MiniChannelCell.m */; };
 		D9114F8321954D4F0033765A /* MemberRequestCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D9114F8221954D4F0033765A /* MemberRequestCell.m */; };
 		D9114F86219627100033765A /* BubblePostCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D9114F84219627100033765A /* BubblePostCell.m */; };
@@ -95,13 +94,19 @@
 		D9B2D57721AE3265007B3C0C /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = D9B2D57521AE3265007B3C0C /* Reachability.m */; };
 		D9B2D57C21AF2768007B3C0C /* ModifyDefaultsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9B2D57A21AF2768007B3C0C /* ModifyDefaultsViewController.m */; };
 		D9B2D57F21B0AB4B007B3C0C /* SimpleNavigationController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9B2D57E21B0AB4B007B3C0C /* SimpleNavigationController.m */; };
+		D9B2D58321B1DACB007B3C0C /* SearchTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9B2D58221B1DACB007B3C0C /* SearchTableViewController.m */; };
+		D9B2D58621B1F09E007B3C0C /* SearchNavigationController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9B2D58521B1F09E007B3C0C /* SearchNavigationController.m */; };
+		D9B2D58F21B1F3A4007B3C0C /* BFSearchView.m in Sources */ = {isa = PBXBuildFile; fileRef = D9B2D58E21B1F3A4007B3C0C /* BFSearchView.m */; };
+		D9B2D59221B86C6B007B3C0C /* NotificationCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D9B2D59121B86C6B007B3C0C /* NotificationCell.m */; };
+		D9B2D59621B89255007B3C0C /* NotificationsTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9B2D59521B89255007B3C0C /* NotificationsTableViewController.m */; };
+		D9B2D59C21B8BD8A007B3C0C /* NSAttributedString+NotificationConveniences.m in Sources */ = {isa = PBXBuildFile; fileRef = D9B2D59B21B8BD8A007B3C0C /* NSAttributedString+NotificationConveniences.m */; };
 		D9BD771221727FB000DAB9BE /* RoomSearchTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = D9BD771121727FB000DAB9BE /* RoomSearchTableView.m */; };
 		D9BD77142177D03500DAB9BE /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9BD77132177D03500DAB9BE /* Security.framework */; };
 		D9BD77172177DD1F00DAB9BE /* Defaults.m in Sources */ = {isa = PBXBuildFile; fileRef = D9BD77162177DD1F00DAB9BE /* Defaults.m */; };
 		D9C0393D215A9D8600B30A41 /* SOLOptionsTransitionAnimator.m in Sources */ = {isa = PBXBuildFile; fileRef = D9C0393A215A9D8500B30A41 /* SOLOptionsTransitionAnimator.m */; };
 		D9C0393E215A9D8600B30A41 /* SOLBaseTransitionAnimator.m in Sources */ = {isa = PBXBuildFile; fileRef = D9C0393C215A9D8500B30A41 /* SOLBaseTransitionAnimator.m */; };
 		D9C03941215AD4AC00B30A41 /* ComposeInputView.m in Sources */ = {isa = PBXBuildFile; fileRef = D9C03940215AD4AC00B30A41 /* ComposeInputView.m */; };
-		D9C03944215D6F1900B30A41 /* LauncherNavigationViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9C03943215D6F1900B30A41 /* LauncherNavigationViewController.m */; };
+		D9C03944215D6F1900B30A41 /* ComplexNavigationController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9C03943215D6F1900B30A41 /* ComplexNavigationController.m */; };
 		D9C0394D215DF17000B30A41 /* FeedViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9C0394C215DF17000B30A41 /* FeedViewController.m */; };
 		D9C8B558219F5A3600A9A282 /* TabController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9C8B557219F5A3600A9A282 /* TabController.m */; };
 		D9C8B55B219F5BAB00A9A282 /* TabBar.m in Sources */ = {isa = PBXBuildFile; fileRef = D9C8B559219F5BAA00A9A282 /* TabBar.m */; };
@@ -173,7 +178,6 @@
 		D907B1012150697300A59712 /* NSArray+Clean.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSArray+Clean.m"; sourceTree = "<group>"; };
 		D907B1022150697300A59712 /* NSDictionary+Clean.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSDictionary+Clean.m"; sourceTree = "<group>"; };
 		D907B1032150697400A59712 /* NSArray+Clean.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSArray+Clean.h"; sourceTree = "<group>"; };
-		D907B11C2150917700A59712 /* HomeViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = HomeViewController.m; sourceTree = "<group>"; };
 		D907B11E2150960300A59712 /* MiniChannelCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MiniChannelCell.h; sourceTree = "<group>"; };
 		D907B11F2150960300A59712 /* MiniChannelCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MiniChannelCell.m; sourceTree = "<group>"; };
 		D9114F8121954D4E0033765A /* MemberRequestCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MemberRequestCell.h; sourceTree = "<group>"; };
@@ -302,7 +306,6 @@
 		D998462821934309000B901F /* RoomMembersViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RoomMembersViewController.m; sourceTree = "<group>"; };
 		D998462A2193B00C000B901F /* PostContext.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PostContext.h; sourceTree = "<group>"; };
 		D998462B2193B00C000B901F /* PostContext.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PostContext.m; sourceTree = "<group>"; };
-		D9AE1CDA21993FC400B78189 /* HomeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HomeViewController.h; sourceTree = "<group>"; };
 		D9AECE3821571DBE00F01CAD /* TabBarView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TabBarView.h; sourceTree = "<group>"; };
 		D9AECE3921571DBE00F01CAD /* TabBarView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TabBarView.m; sourceTree = "<group>"; };
 		D9B2D57221ACAEBE007B3C0C /* Pulse.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Pulse.entitlements; sourceTree = "<group>"; };
@@ -313,6 +316,18 @@
 		D9B2D57B21AF2768007B3C0C /* ModifyDefaultsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ModifyDefaultsViewController.h; sourceTree = "<group>"; };
 		D9B2D57D21B0AB4B007B3C0C /* SimpleNavigationController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SimpleNavigationController.h; sourceTree = "<group>"; };
 		D9B2D57E21B0AB4B007B3C0C /* SimpleNavigationController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SimpleNavigationController.m; sourceTree = "<group>"; };
+		D9B2D58121B1DACB007B3C0C /* SearchTableViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SearchTableViewController.h; sourceTree = "<group>"; };
+		D9B2D58221B1DACB007B3C0C /* SearchTableViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SearchTableViewController.m; sourceTree = "<group>"; };
+		D9B2D58421B1F09E007B3C0C /* SearchNavigationController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SearchNavigationController.h; sourceTree = "<group>"; };
+		D9B2D58521B1F09E007B3C0C /* SearchNavigationController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SearchNavigationController.m; sourceTree = "<group>"; };
+		D9B2D58D21B1F3A4007B3C0C /* BFSearchView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BFSearchView.h; sourceTree = "<group>"; };
+		D9B2D58E21B1F3A4007B3C0C /* BFSearchView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BFSearchView.m; sourceTree = "<group>"; };
+		D9B2D59021B86C6B007B3C0C /* NotificationCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NotificationCell.h; sourceTree = "<group>"; };
+		D9B2D59121B86C6B007B3C0C /* NotificationCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NotificationCell.m; sourceTree = "<group>"; };
+		D9B2D59421B89255007B3C0C /* NotificationsTableViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NotificationsTableViewController.h; sourceTree = "<group>"; };
+		D9B2D59521B89255007B3C0C /* NotificationsTableViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NotificationsTableViewController.m; sourceTree = "<group>"; };
+		D9B2D59A21B8BD8A007B3C0C /* NSAttributedString+NotificationConveniences.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSAttributedString+NotificationConveniences.h"; sourceTree = "<group>"; };
+		D9B2D59B21B8BD8A007B3C0C /* NSAttributedString+NotificationConveniences.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSAttributedString+NotificationConveniences.m"; sourceTree = "<group>"; };
 		D9BD771021727FB000DAB9BE /* RoomSearchTableView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RoomSearchTableView.h; sourceTree = "<group>"; };
 		D9BD771121727FB000DAB9BE /* RoomSearchTableView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RoomSearchTableView.m; sourceTree = "<group>"; };
 		D9BD77132177D03500DAB9BE /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
@@ -324,8 +339,8 @@
 		D9C0393C215A9D8500B30A41 /* SOLBaseTransitionAnimator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SOLBaseTransitionAnimator.m; sourceTree = "<group>"; };
 		D9C0393F215AD4AC00B30A41 /* ComposeInputView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ComposeInputView.h; sourceTree = "<group>"; };
 		D9C03940215AD4AC00B30A41 /* ComposeInputView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ComposeInputView.m; sourceTree = "<group>"; };
-		D9C03942215D6F1900B30A41 /* LauncherNavigationViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LauncherNavigationViewController.h; sourceTree = "<group>"; };
-		D9C03943215D6F1900B30A41 /* LauncherNavigationViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LauncherNavigationViewController.m; sourceTree = "<group>"; };
+		D9C03942215D6F1900B30A41 /* ComplexNavigationController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ComplexNavigationController.h; sourceTree = "<group>"; };
+		D9C03943215D6F1900B30A41 /* ComplexNavigationController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ComplexNavigationController.m; sourceTree = "<group>"; };
 		D9C0394B215DF17000B30A41 /* FeedViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FeedViewController.h; sourceTree = "<group>"; };
 		D9C0394C215DF17000B30A41 /* FeedViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FeedViewController.m; sourceTree = "<group>"; };
 		D9C8B556219F5A3600A9A282 /* TabController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TabController.h; sourceTree = "<group>"; };
@@ -483,8 +498,10 @@
 			children = (
 				D9B2D57D21B0AB4B007B3C0C /* SimpleNavigationController.h */,
 				D9B2D57E21B0AB4B007B3C0C /* SimpleNavigationController.m */,
-				D9C03942215D6F1900B30A41 /* LauncherNavigationViewController.h */,
-				D9C03943215D6F1900B30A41 /* LauncherNavigationViewController.m */,
+				D9B2D58421B1F09E007B3C0C /* SearchNavigationController.h */,
+				D9B2D58521B1F09E007B3C0C /* SearchNavigationController.m */,
+				D9C03942215D6F1900B30A41 /* ComplexNavigationController.h */,
+				D9C03943215D6F1900B30A41 /* ComplexNavigationController.m */,
 				D9C8B55C219F5D3300A9A282 /* Launcher.h */,
 				D9C8B55D219F5D3300A9A282 /* Launcher.m */,
 			);
@@ -662,15 +679,6 @@
 			path = "My Rooms";
 			sourceTree = "<group>";
 		};
-		D974B74521614BCA00C03269 /* Home */ = {
-			isa = PBXGroup;
-			children = (
-				D9AE1CDA21993FC400B78189 /* HomeViewController.h */,
-				D907B11C2150917700A59712 /* HomeViewController.m */,
-			);
-			path = Home;
-			sourceTree = "<group>";
-		};
 		D974B74621614BDA00C03269 /* Feed */ = {
 			isa = PBXGroup;
 			children = (
@@ -734,6 +742,24 @@
 			path = "Internal Tools";
 			sourceTree = "<group>";
 		};
+		D9B2D58021B1DABB007B3C0C /* Search */ = {
+			isa = PBXGroup;
+			children = (
+				D9B2D58121B1DACB007B3C0C /* SearchTableViewController.h */,
+				D9B2D58221B1DACB007B3C0C /* SearchTableViewController.m */,
+			);
+			path = Search;
+			sourceTree = "<group>";
+		};
+		D9B2D59321B8923F007B3C0C /* Notifications */ = {
+			isa = PBXGroup;
+			children = (
+				D9B2D59421B89255007B3C0C /* NotificationsTableViewController.h */,
+				D9B2D59521B89255007B3C0C /* NotificationsTableViewController.m */,
+			);
+			path = Notifications;
+			sourceTree = "<group>";
+		};
 		D9BD770F2172784F00DAB9BE /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
@@ -750,13 +776,14 @@
 		D9C8B57121A5F15E00A9A282 /* Controllers */ = {
 			isa = PBXGroup;
 			children = (
+				D9B2D59321B8923F007B3C0C /* Notifications */,
+				D9B2D58021B1DABB007B3C0C /* Search */,
 				D9B2D57921AF2760007B3C0C /* Internal Tools */,
 				D9C8B556219F5A3600A9A282 /* TabController.h */,
 				D9C8B557219F5A3600A9A282 /* TabController.m */,
 				D9C8B57921A5F37000A9A282 /* Multi-Use */,
 				D9C8B57B21A5F39C00A9A282 /* Onboarding */,
 				D974B74321614B8900C03269 /* Room */,
-				D974B74521614BCA00C03269 /* Home */,
 				D974B74421614BAB00C03269 /* My Rooms */,
 				D9164311216407C700523770 /* Profile */,
 				D9C8B57821A5F32F00A9A282 /* Invite Friend */,
@@ -785,6 +812,8 @@
 				D9BD771121727FB000DAB9BE /* RoomSearchTableView.m */,
 				D916430B2162C3A100523770 /* SearchResultCell.h */,
 				D916430C2162C3A100523770 /* SearchResultCell.m */,
+				D9B2D58D21B1F3A4007B3C0C /* BFSearchView.h */,
+				D9B2D58E21B1F3A4007B3C0C /* BFSearchView.m */,
 			);
 			path = Search;
 			sourceTree = "<group>";
@@ -823,6 +852,10 @@
 				D907B11F2150960300A59712 /* MiniChannelCell.m */,
 				D92380292183D98000E01A34 /* PaginationCell.h */,
 				D923802A2183D98100E01A34 /* PaginationCell.m */,
+				D9B2D59021B86C6B007B3C0C /* NotificationCell.h */,
+				D9B2D59121B86C6B007B3C0C /* NotificationCell.m */,
+				D9B2D59A21B8BD8A007B3C0C /* NSAttributedString+NotificationConveniences.h */,
+				D9B2D59B21B8BD8A007B3C0C /* NSAttributedString+NotificationConveniences.m */,
 			);
 			path = Cells;
 			sourceTree = "<group>";
@@ -1188,7 +1221,7 @@
 				D9114F86219627100033765A /* BubblePostCell.m in Sources */,
 				D921172521AC5F9700853F3F /* RoomFollowButton.m in Sources */,
 				D94FD1F7216D730300B84E45 /* PostCounts.m in Sources */,
-				D907B11D2150917700A59712 /* HomeViewController.m in Sources */,
+				D9B2D58F21B1F3A4007B3C0C /* BFSearchView.m in Sources */,
 				D9824236219CAA0D003626DA /* EditRoomViewController.m in Sources */,
 				D94FD202216D730300B84E45 /* User.m in Sources */,
 				D94FD19E2168644200B84E45 /* EmptyChannelCell.m in Sources */,
@@ -1219,11 +1252,13 @@
 				D924BE2A21542E8F00EB7385 /* PostActionsView.m in Sources */,
 				D95CBC3321794F65001E6D2D /* PostDisplay.m in Sources */,
 				D94FD203216D730300B84E45 /* UserStatus.m in Sources */,
+				D9B2D59C21B8BD8A007B3C0C /* NSAttributedString+NotificationConveniences.m in Sources */,
+				D9B2D59621B89255007B3C0C /* NotificationsTableViewController.m in Sources */,
 				D9C8B558219F5A3600A9A282 /* TabController.m in Sources */,
 				D921171121A6162500853F3F /* InviteFriendHeaderCell.m in Sources */,
 				D94FD207216D730300B84E45 /* UserDetails.m in Sources */,
 				D9BD77172177DD1F00DAB9BE /* Defaults.m in Sources */,
-				D9C03944215D6F1900B30A41 /* LauncherNavigationViewController.m in Sources */,
+				D9C03944215D6F1900B30A41 /* ComplexNavigationController.m in Sources */,
 				D907B0B4214F161A00A59712 /* ChannelCell.m in Sources */,
 				D921171D21ABACA400853F3F /* UserContext.m in Sources */,
 				D91643142164143700523770 /* RoomHeaderCell.m in Sources */,
@@ -1232,6 +1267,7 @@
 				D9C0394D215DF17000B30A41 /* FeedViewController.m in Sources */,
 				D94FD1FE216D730300B84E45 /* Post.m in Sources */,
 				D9164310216407C300523770 /* ProfileViewController.m in Sources */,
+				D9B2D58321B1DACB007B3C0C /* SearchTableViewController.m in Sources */,
 				D924BE2121541B7400EB7385 /* PostCell.m in Sources */,
 				D9C8B55B219F5BAB00A9A282 /* TabBar.m in Sources */,
 				D983D733216E5A5900F9D201 /* LoadingCell.m in Sources */,
@@ -1264,8 +1300,10 @@
 				D94FD1FB216D730300B84E45 /* PostSummaries.m in Sources */,
 				D94FD205216D730300B84E45 /* UserAttributes.m in Sources */,
 				D9C8B56B21A1E33B00A9A282 /* UIColor+Palette.m in Sources */,
+				D9B2D59221B86C6B007B3C0C /* NotificationCell.m in Sources */,
 				D94FD20B216D730300B84E45 /* UserMedia.m in Sources */,
 				D998462921934309000B901F /* RoomMembersViewController.m in Sources */,
+				D9B2D58621B1F09E007B3C0C /* SearchNavigationController.m in Sources */,
 				D974B73E215F246C00C03269 /* RoomSuggestionsListCell.m in Sources */,
 				D96AD78C217CFA4E00849F6B /* RoomContext.m in Sources */,
 				D9C8B58421A5F6A600A9A282 /* PostViewController.m in Sources */,

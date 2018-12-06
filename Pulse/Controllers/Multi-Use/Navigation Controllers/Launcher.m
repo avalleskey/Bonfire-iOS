@@ -7,7 +7,7 @@
 //
 
 #import "Launcher.h"
-#import "LauncherNavigationViewController.h"
+#import "ComplexNavigationController.h"
 #import "RoomViewController.h"
 #import "RoomMembersViewController.h"
 #import "ProfileViewController.h"
@@ -63,8 +63,8 @@ static Launcher *launcher;
     return [launcher activeViewController].navigationController.tabBarController;
 }
 
-- (LauncherNavigationViewController *)activeLauncherNavigationController {
-    return [[launcher activeViewController] isKindOfClass:[LauncherNavigationViewController class]] ? (LauncherNavigationViewController *)[launcher activeViewController] : nil;
+- (ComplexNavigationController *)activeLauncherNavigationController {
+    return [[launcher activeViewController] isKindOfClass:[ComplexNavigationController class]] ? (ComplexNavigationController *)[launcher activeViewController] : nil;
 }
 
 - (Class)activeViewControllerClass {
@@ -123,15 +123,14 @@ static Launcher *launcher;
     
     r.title = r.room.attributes.details.title ? r.room.attributes.details.title : @"Loading...";
     
-    LauncherNavigationViewController *activeLauncherNavVC = [launcher activeLauncherNavigationController];
+    ComplexNavigationController *activeLauncherNavVC = [launcher activeLauncherNavigationController];
     if ([launcher activeTabController] != nil || activeLauncherNavVC == nil) {
         if (activeLauncherNavVC != nil) {
-            [activeLauncherNavVC updateSearchText:activeLauncherNavVC.topViewController.title];
+            [activeLauncherNavVC.searchView updateSearchText:activeLauncherNavVC.topViewController.title];
         }
         
-        LauncherNavigationViewController *newLauncher = [[LauncherNavigationViewController alloc] initWithRootViewController:r];
-        [newLauncher showSearchIcon];
-        [newLauncher updateSearchText:r.title];
+        ComplexNavigationController *newLauncher = [[ComplexNavigationController alloc] initWithRootViewController:r];
+        [newLauncher.searchView updateSearchText:r.title];
         newLauncher.transitioningDelegate = self;
         
         [newLauncher updateBarColor:r.theme withAnimation:0 statusBarUpdateDelay:NO];
@@ -142,13 +141,12 @@ static Launcher *launcher;
     }
     else {
         if (activeLauncherNavVC != nil) {
-            [activeLauncherNavVC showSearchIcon];
             if (r.room.identifier ||
                 r.room.attributes.details.identifier) {
-                [activeLauncherNavVC updateSearchText:r.title];
+                [activeLauncherNavVC.searchView updateSearchText:r.title];
             }
             else {
-                [activeLauncherNavVC updateSearchText:@"Unkown Room"];
+                [activeLauncherNavVC.searchView updateSearchText:@"Unkown Room"];
             }
             
             [activeLauncherNavVC updateBarColor:r.theme withAnimation:2 statusBarUpdateDelay:NO];
@@ -185,15 +183,15 @@ static Launcher *launcher;
     
     rm.title = @"Members";
     
-    LauncherNavigationViewController *activeLauncherNavVC = [launcher activeLauncherNavigationController];
+    ComplexNavigationController *activeLauncherNavVC = [launcher activeLauncherNavigationController];
     if ([launcher activeTabController] != nil || activeLauncherNavVC == nil) {
         if (activeLauncherNavVC != nil) {
-            [activeLauncherNavVC updateSearchText:activeLauncherNavVC.topViewController.title];
+            [activeLauncherNavVC.searchView updateSearchText:rm.title];
         }
         
-        LauncherNavigationViewController *newLauncher = [[LauncherNavigationViewController alloc] initWithRootViewController:rm];
-        newLauncher.textField.text = rm.title;
-        [newLauncher hideSearchIcon];
+        ComplexNavigationController *newLauncher = [[ComplexNavigationController alloc] initWithRootViewController:rm];
+        newLauncher.searchView.textField.text = rm.title;
+        [newLauncher.searchView hideSearchIcon:false];
         newLauncher.transitioningDelegate = self;
         
         [newLauncher updateBarColor:rm.theme withAnimation:0 statusBarUpdateDelay:NO];
@@ -204,8 +202,8 @@ static Launcher *launcher;
     }
     else {
         if (activeLauncherNavVC != nil) {
-            activeLauncherNavVC.textField.text = rm.title;
-            [activeLauncherNavVC hideSearchIcon];
+            activeLauncherNavVC.searchView.textField.text = rm.title;
+            [activeLauncherNavVC.searchView hideSearchIcon:false];
             
             [activeLauncherNavVC updateBarColor:rm.theme withAnimation:2 statusBarUpdateDelay:NO];
             
@@ -223,14 +221,14 @@ static Launcher *launcher;
     
     p.user = user;
     
-    LauncherNavigationViewController *activeLauncherNavVC = [launcher activeLauncherNavigationController];
+    ComplexNavigationController *activeLauncherNavVC = [launcher activeLauncherNavigationController];
     if ([launcher activeTabController] != nil || activeLauncherNavVC == nil) {
         if (activeLauncherNavVC != nil) {
-            activeLauncherNavVC.textField.text = activeLauncherNavVC.topViewController.title;
+            activeLauncherNavVC.searchView.textField.text = activeLauncherNavVC.topViewController.title;
         }
         
-        LauncherNavigationViewController *newLauncher = [[LauncherNavigationViewController alloc] initWithRootViewController:p];
-        [newLauncher updateSearchText:p.user.attributes.details.displayName];
+        ComplexNavigationController *newLauncher = [[ComplexNavigationController alloc] initWithRootViewController:p];
+        [newLauncher.searchView updateSearchText:p.user.attributes.details.displayName];
         newLauncher.transitioningDelegate = self;
         
         [newLauncher updateBarColor:p.theme withAnimation:0 statusBarUpdateDelay:NO];
@@ -241,7 +239,7 @@ static Launcher *launcher;
     }
     else {
         if (activeLauncherNavVC != nil) {
-            [activeLauncherNavVC updateSearchText:p.user.attributes.details.displayName];
+            [activeLauncherNavVC.searchView updateSearchText:p.user.attributes.details.displayName];
             
             [activeLauncherNavVC updateBarColor:p.theme withAnimation:2 statusBarUpdateDelay:NO];
             
@@ -259,19 +257,19 @@ static Launcher *launcher;
     p.theme = [UIColor fromHex:[themeCSS isEqualToString:@"ffffff"]?@"222222":themeCSS];
     p.title = @"Conversation";
     
-    LauncherNavigationViewController *activeLauncherNavVC = [launcher activeLauncherNavigationController];
+    ComplexNavigationController *activeLauncherNavVC = [launcher activeLauncherNavigationController];
     NSLog(@"---------");
     NSLog(@"activeLauncherNavVC: %@", activeLauncherNavVC);
     NSLog(@"activeTabcontroller: %@", [launcher activeTabController]);
     NSLog(@"---------");
     if ([launcher activeTabController] != nil || activeLauncherNavVC == nil) {
         if (activeLauncherNavVC != nil) {
-            [activeLauncherNavVC updateSearchText:activeLauncherNavVC.topViewController.title];
+            [activeLauncherNavVC.searchView updateSearchText:activeLauncherNavVC.topViewController.title];
         }
         
-        LauncherNavigationViewController *newLauncher = [[LauncherNavigationViewController alloc] initWithRootViewController:p];
-        newLauncher.textField.text = p.title;
-        [newLauncher hideSearchIcon];
+        ComplexNavigationController *newLauncher = [[ComplexNavigationController alloc] initWithRootViewController:p];
+        newLauncher.searchView.textField.text = p.title;
+        [newLauncher.searchView hideSearchIcon:false];
         newLauncher.transitioningDelegate = launcher;
         
         [newLauncher updateBarColor:p.theme withAnimation:0 statusBarUpdateDelay:NO];
@@ -282,8 +280,8 @@ static Launcher *launcher;
     }
     else {
         if (activeLauncherNavVC != nil) {
-            activeLauncherNavVC.textField.text = p.title;
-            [activeLauncherNavVC hideSearchIcon];
+            activeLauncherNavVC.searchView.textField.text = p.title;
+            [activeLauncherNavVC.searchView hideSearchIcon:false];
             
             [activeLauncherNavVC updateBarColor:p.theme withAnimation:2 statusBarUpdateDelay:NO];
             
@@ -306,17 +304,17 @@ static Launcher *launcher;
     r.theme = [Session sharedInstance].themeColor;
     r.isCreatingPost = true;
     
-    LauncherNavigationViewController *activeLauncherNavVC = [launcher activeLauncherNavigationController];
+    ComplexNavigationController *activeLauncherNavVC = [launcher activeLauncherNavigationController];
     if (activeLauncherNavVC != nil) {
-        activeLauncherNavVC.textField.text = activeLauncherNavVC.topViewController.title;
+        activeLauncherNavVC.searchView.textField.text = activeLauncherNavVC.topViewController.title;
     }
     
-    LauncherNavigationViewController *newLauncher = [[LauncherNavigationViewController alloc] initWithRootViewController:r];
-    newLauncher.textField.text = @"";
-    newLauncher.textField.placeholder = @"Search Rooms...";
+    ComplexNavigationController *newLauncher = [[ComplexNavigationController alloc] initWithRootViewController:r];
+    newLauncher.searchView.textField.placeholder = @"Search Rooms...";
+    [newLauncher.searchView updateSearchText:@""];
     newLauncher.isCreatingPost = true;
     newLauncher.transitioningDelegate = self;
-    [newLauncher positionTextFieldSearchIcon];
+    [newLauncher.searchView setPosition:BFSearchTextPositionCenter];
     
     [newLauncher updateBarColor:[UIColor whiteColor] withAnimation:0 statusBarUpdateDelay:NO];
     
@@ -373,9 +371,7 @@ static Launcher *launcher;
 }
 
 - (void)push:(UIViewController *)viewController animated:(BOOL)animated {
-    if ([launcher canPush]) {
-        NSLog(@"can push");
-        
+    if ([launcher canPush]) {        
         [(UINavigationController *)[launcher activeViewController] pushViewController:viewController animated:YES];
     }
     else {
@@ -421,33 +417,33 @@ fromViewController:(UIViewController*)fromVC
 toViewController:(UIViewController*)toVC
 {
     if (operation == UINavigationControllerOperationPush) {
-        LauncherNavigationViewController *activeLauncherNavVC = [launcher activeLauncherNavigationController];
+        ComplexNavigationController *activeLauncherNavVC = [launcher activeLauncherNavigationController];
         if (activeLauncherNavVC != nil) {
             if ([launcher activeTabController]) {
                 // hide:
                 // 1) profile picture
                 // 2) plus icon
                 [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.72f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
-                    activeLauncherNavVC.composePostButton.transform = CGAffineTransformMakeScale(0.1, 0.1);
-                    activeLauncherNavVC.composePostButton.alpha = 0;
-                    
-                    activeLauncherNavVC.inviteFriendButton.transform = CGAffineTransformMakeScale(0.1, 0.1);
-                    activeLauncherNavVC.inviteFriendButton.alpha = 0;
+//                    activeLauncherNavVC.composePostButton.transform = CGAffineTransformMakeScale(0.1, 0.1);
+//                    activeLauncherNavVC.composePostButton.alpha = 0;
+//
+//                    activeLauncherNavVC.inviteFriendButton.transform = CGAffineTransformMakeScale(0.1, 0.1);
+//                    activeLauncherNavVC.inviteFriendButton.alpha = 0;
                 } completion:^(BOOL finished) {
                 }];
             }
             if ([toVC isKindOfClass:[RoomViewController class]]) {
-                activeLauncherNavVC.infoButton.transform = CGAffineTransformMakeScale(0.1, 0.1);
-                activeLauncherNavVC.backButton.transform = CGAffineTransformMakeScale(0.1, 0.1);
+//                activeLauncherNavVC.infoButton.transform = CGAffineTransformMakeScale(0.1, 0.1);
+//                activeLauncherNavVC.backButton.transform = CGAffineTransformMakeScale(0.1, 0.1);
                 [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.72f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
-                    activeLauncherNavVC.infoButton.alpha = 1;
-                    activeLauncherNavVC.infoButton.transform = CGAffineTransformIdentity;
+//                    activeLauncherNavVC.infoButton.alpha = 1;
+//                    activeLauncherNavVC.infoButton.transform = CGAffineTransformIdentity;
+//
+//                    activeLauncherNavVC.backButton.alpha = 1;
+//                    activeLauncherNavVC.backButton.transform = CGAffineTransformIdentity;
                     
-                    activeLauncherNavVC.backButton.alpha = 1;
-                    activeLauncherNavVC.backButton.transform = CGAffineTransformIdentity;
-                    
-                    activeLauncherNavVC.textField.textColor = [UIColor whiteColor];
-                    activeLauncherNavVC.textField.backgroundColor = [UIColor colorWithWhite:1 alpha:0.16f];
+                    activeLauncherNavVC.searchView.textField.textColor = [UIColor whiteColor];
+                    activeLauncherNavVC.searchView.textField.backgroundColor = [UIColor colorWithWhite:1 alpha:0.16f];
                 } completion:^(BOOL finished) {
                 }];
             }
@@ -457,36 +453,36 @@ toViewController:(UIViewController*)toVC
     }
     
     if (operation == UINavigationControllerOperationPop) {
-        LauncherNavigationViewController *activeLauncherNavVC = [launcher activeLauncherNavigationController];
+        ComplexNavigationController *activeLauncherNavVC = [launcher activeLauncherNavigationController];
         if (activeLauncherNavVC != nil) {
             if ([launcher activeTabController]) {
                 activeLauncherNavVC.navigationBar.barStyle = UIBarStyleDefault;
                 [activeLauncherNavVC setNeedsStatusBarAppearanceUpdate];
                 
-                activeLauncherNavVC.infoButton.transform = CGAffineTransformMakeScale(0.1, 0.1);
-                activeLauncherNavVC.backButton.transform = CGAffineTransformMakeScale(0.1, 0.1);
+//                activeLauncherNavVC.infoButton.transform = CGAffineTransformMakeScale(0.1, 0.1);
+//                activeLauncherNavVC.backButton.transform = CGAffineTransformMakeScale(0.1, 0.1);
                 [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.72f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
                     activeLauncherNavVC.navigationBackgroundView.backgroundColor = [UIColor whiteColor];
-                    // self.textField.text = @"Home";
-                    activeLauncherNavVC.textField.textColor = [UIColor colorWithWhite:0.07f alpha:1];
-                    activeLauncherNavVC.textField.backgroundColor = [UIColor colorWithWhite:0 alpha:0.08f];
+                    // self.searchView.textField.text = @"Home";
+                    activeLauncherNavVC.searchView.textField.textColor = [UIColor colorWithWhite:0.07f alpha:1];
+                    activeLauncherNavVC.searchView.textField.backgroundColor = [UIColor colorWithWhite:0 alpha:0.08f];
                     
-                    activeLauncherNavVC.inviteFriendButton.alpha = 1;
-                    activeLauncherNavVC.inviteFriendButton.transform = CGAffineTransformIdentity;
-                    
-                    activeLauncherNavVC.composePostButton.alpha = 1;
-                    activeLauncherNavVC.composePostButton.transform = CGAffineTransformIdentity;
+//                    activeLauncherNavVC.inviteFriendButton.alpha = 1;
+//                    activeLauncherNavVC.inviteFriendButton.transform = CGAffineTransformIdentity;
+//
+//                    activeLauncherNavVC.composePostButton.alpha = 1;
+//                    activeLauncherNavVC.composePostButton.transform = CGAffineTransformIdentity;
                 } completion:^(BOOL finished) {
                 }];
             }
             
             if ([fromVC isKindOfClass:[RoomViewController class]]) {
                 [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.72f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
-                    activeLauncherNavVC.infoButton.transform = CGAffineTransformMakeScale(0.1, 0.1);
-                    activeLauncherNavVC.backButton.transform = CGAffineTransformMakeScale(0.1, 0.1);
-                    
-                    activeLauncherNavVC.infoButton.alpha = 0;
-                    activeLauncherNavVC.backButton.alpha = 0;
+//                    activeLauncherNavVC.infoButton.transform = CGAffineTransformMakeScale(0.1, 0.1);
+//                    activeLauncherNavVC.backButton.transform = CGAffineTransformMakeScale(0.1, 0.1);
+//                    
+//                    activeLauncherNavVC.infoButton.alpha = 0;
+//                    activeLauncherNavVC.backButton.alpha = 0;
                 } completion:^(BOOL finished) {
                 }];
             }

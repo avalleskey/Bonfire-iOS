@@ -82,7 +82,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     [self.navigationController.navigationBar setBackgroundImage:[UIImage new] forBarMetrics:UIBarMetricsDefault];
     [self.navigationController.navigationBar setShadowImage:[UIImage new]];
     
-    if ([self useWhiteForegroundForColor:self.themeColor]) {
+    if ([UIColor useWhiteForegroundForColor:self.themeColor]) {
         [self.navigationController.navigationBar setTitleTextAttributes:
          @{NSForegroundColorAttributeName:[UIColor whiteColor],
            NSFontAttributeName:[UIFont systemFontOfSize:18.f weight:UIFontWeightBold]}];
@@ -382,26 +382,6 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
         
         [self.navigationController presentViewController:areYouSure animated:YES completion:nil];
     }
-}
-
-- (BOOL)useWhiteForegroundForColor:(UIColor*)backgroundColor {
-    size_t count = CGColorGetNumberOfComponents(backgroundColor.CGColor);
-    const CGFloat *componentColors = CGColorGetComponents(backgroundColor.CGColor);
-    
-    CGFloat darknessScore = 0;
-    if (count == 2) {
-        darknessScore = (((componentColors[0]*255) * 299) + ((componentColors[0]*255) * 587) + ((componentColors[0]*255) * 114)) / 1000;
-    } else if (count == 4) {
-        darknessScore = (((componentColors[0]*255) * 299) + ((componentColors[1]*255) * 587) + ((componentColors[2]*255) * 114)) / 1000;
-    }
-    
-    // NSLog(@"darknessScore: %f", darknessScore);
-    
-    if (darknessScore >= 185) {
-        return false;
-    }
-    
-    return true;
 }
 
 @end

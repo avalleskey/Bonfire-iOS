@@ -26,6 +26,8 @@ NS_ASSUME_NONNULL_BEGIN
  */
 + (NSString *)toHex:(UIColor *)color;
 
++ (BOOL)useWhiteForegroundForColor:(UIColor*)backgroundColor;
+
 /**
  *  Header background color
  *

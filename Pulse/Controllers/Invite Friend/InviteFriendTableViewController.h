@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "BFSearchView.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -16,7 +17,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (strong, nonatomic) UIBarButtonItem *saveButton;
 
 @property (strong, nonatomic) UIVisualEffectView *searchBar;
-@property (strong, nonatomic) UITextField *searchField;
+@property (strong, nonatomic) BFSearchView *searchView;
 
 @end
 

@@ -13,7 +13,7 @@
 #import "MiniChannelCell.h"
 #import "Session.h"
 #import "Room.h"
-#import "LauncherNavigationViewController.h"
+#import "ComplexNavigationController.h"
 #import "SOLOptionsTransitionAnimator.h"
 #import "RoomViewController.h"
 #import "Launcher.h"
@@ -40,7 +40,7 @@
 @property (nonatomic) NSInteger themeColor;
 @property (nonatomic) int currentStep;
 @property (strong, nonatomic) NSMutableArray *steps;
-@property (strong, nonatomic) LauncherNavigationViewController *launchNavVC;
+@property (strong, nonatomic) ComplexNavigationController *launchNavVC;
 @property (nonatomic) CGFloat currentKeyboardHeight;
 @property (strong, nonatomic) NSMutableArray *similarRooms;
 
@@ -831,7 +831,7 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
                 [self.nextButton bk_whenTapped:^{
                     [self setEditing:false animated:YES];
                     
-                    LauncherNavigationViewController *launchNavVC = (LauncherNavigationViewController *)self.presentingViewController;
+                    ComplexNavigationController *launchNavVC = (ComplexNavigationController *)self.presentingViewController;
                     NSLog(@"launchNavVc: %@", launchNavVC);
                     
                     [self dismissViewControllerAnimated:YES completion:^{
@@ -1115,8 +1115,8 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
     
     r.title = r.room.attributes.details.title ? r.room.attributes.details.title : @"Loading...";
     
-    LauncherNavigationViewController *newLauncher = [[LauncherNavigationViewController alloc] initWithRootViewController:r];
-    [newLauncher updateSearchText:r.title];
+    ComplexNavigationController *newLauncher = [[ComplexNavigationController alloc] initWithRootViewController:r];
+    [newLauncher.searchView updateSearchText:r.title];
     newLauncher.transitioningDelegate = self;
     
     [newLauncher updateBarColor:r.theme withAnimation:0 statusBarUpdateDelay:NO];

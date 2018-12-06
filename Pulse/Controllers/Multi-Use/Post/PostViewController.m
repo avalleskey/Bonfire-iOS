@@ -7,7 +7,7 @@
 
 #import "PostViewController.h"
 #import <UINavigationItem+Margin.h>
-#import "LauncherNavigationViewController.h"
+#import "ComplexNavigationController.h"
 #import "ErrorView.h"
 #import <BlocksKit/BlocksKit.h>
 #import <BlocksKit/BlocksKit+UIKit.h>
@@ -26,7 +26,7 @@
 @property CGFloat minHeaderHeight;
 @property CGFloat maxHeaderHeight;
 @property (nonatomic, strong) NSMutableArray *posts;
-@property (strong, nonatomic) LauncherNavigationViewController *launchNavVC;
+@property (strong, nonatomic) ComplexNavigationController *launchNavVC;
 
 @end
 
@@ -36,12 +36,12 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     
-    self.launchNavVC = (LauncherNavigationViewController *)self.navigationController;
+    self.launchNavVC = (ComplexNavigationController *)self.navigationController;
     
     self.view.tintColor = self.theme;
     
     self.view.backgroundColor = [UIColor whiteColor];
-    // self.navigationItem.hidesBackButton = true;
+    self.navigationItem.hidesBackButton = true;
     
     [self setupTableView];
     [self setupErrorView];
@@ -215,11 +215,6 @@
     else {
         errorView.hidden = false;
         self.tableView.hidden = true;
-        
-        [UIView animateWithDuration:0.25f delay:0 usingSpringWithDamping:0.72f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
-            self.launchNavVC.infoButton.alpha = 0;
-        } completion:^(BOOL finished) {
-        }];
     }
 }
 - (void)setupTableView {

@@ -11,7 +11,7 @@
 #import <SafariServices/SafariServices.h>
 #import <HapticHelper/HapticHelper.h>
 #import "Session.h"
-#import "LauncherNavigationViewController.h"
+#import "ComplexNavigationController.h"
 #import "Launcher.h"
 #import "UIColor+Palette.h"
 #import <Tweaks/FBTweakInline.h>
@@ -263,7 +263,7 @@
     }
     else {
         [self.sparkIndicator setImage:[[UIImage imageNamed:@"cellSwipeBolt"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
-        self.sparkIndicator.backgroundColor = [UIColor colorWithDisplayP3Red:0.99 green:0.26 blue:0.12 alpha:1.0];
+        self.sparkIndicator.backgroundColor = [UIColor bonfireRed];
     }
     sparkColor = self.sparkIndicator.backgroundColor;
     [self addSubview:self.sparkIndicator];

@@ -69,7 +69,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     self.navigationItem.rightBarButtonItem = self.saveButton;
     
     
-    self.tableView.backgroundColor = [UIColor colorWithWhite:0.98 alpha:1];
+    self.tableView.backgroundColor = [UIColor headerBackgroundColor];
     self.tableView.separatorInset = UIEdgeInsetsZero;
     self.tableView.separatorColor = [UIColor colorWithWhite:0.92 alpha:1];
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
@@ -360,7 +360,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     }
     else {
         // bubble burst
-        newColorView.frame = CGRectMake(self.navigationBackgroundView.frame.size.width / 2, self.navigationBackgroundView.frame.size.height + 40, 10, 10);
+        newColorView.frame = CGRectMake(self.navigationBackgroundView.frame.size.width / 2 - 5, self.navigationBackgroundView.frame.size.height + 40, 10, 10);
         newColorView.layer.cornerRadius = 5.f;
     }
     newColorView.layer.masksToBounds = true;
@@ -377,7 +377,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
             newColorView.transform = CGAffineTransformMakeScale(self.navigationBackgroundView.frame.size.width / 10, self.navigationBackgroundView.frame.size.width / 10);
         }
         
-        if ([self useWhiteForegroundForColor:newColor]) {
+        if ([UIColor useWhiteForegroundForColor:newColor]) {
             [self.navigationController.navigationBar setTitleTextAttributes:
              @{NSForegroundColorAttributeName:[UIColor whiteColor],
                NSFontAttributeName:[UIFont systemFontOfSize:18.f weight:UIFontWeightBold]}];
@@ -400,7 +400,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     // status bar update
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(statusBarUpdateDelay?statusBarUpdateDelay:0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         [UIView animateWithDuration:(animationType != 0 ? 0.4f :0) delay:0 options:UIViewAnimationOptionCurveLinear animations:^{
-            if ([self useWhiteForegroundForColor:newColor]) {
+            if ([UIColor useWhiteForegroundForColor:newColor]) {
                 self.navigationController.navigationBar.barStyle = UIBarStyleBlack;
             }
             else {
@@ -593,26 +593,6 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
         
         return movementRect;
     }
-}
-
-- (BOOL)useWhiteForegroundForColor:(UIColor*)backgroundColor {
-    size_t count = CGColorGetNumberOfComponents(backgroundColor.CGColor);
-    const CGFloat *componentColors = CGColorGetComponents(backgroundColor.CGColor);
-    
-    CGFloat darknessScore = 0;
-    if (count == 2) {
-        darknessScore = (((componentColors[0]*255) * 299) + ((componentColors[0]*255) * 587) + ((componentColors[0]*255) * 114)) / 1000;
-    } else if (count == 4) {
-        darknessScore = (((componentColors[0]*255) * 299) + ((componentColors[1]*255) * 587) + ((componentColors[2]*255) * 114)) / 1000;
-    }
-    
-    // NSLog(@"darknessScore: %f", darknessScore);
-    
-    if (darknessScore >= 185) {
-        return false;
-    }
-    
-    return true;
 }
 
 @end

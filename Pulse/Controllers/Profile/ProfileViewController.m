@@ -6,7 +6,8 @@
 //
 
 #import "ProfileViewController.h"
-#import "LauncherNavigationViewController.h"
+#import "ComplexNavigationController.h"
+#import "SimpleNavigationController.h"
 #import "ErrorView.h"
 #import "ProfileHeaderCell.h"
 #import "UIColor+Palette.h"
@@ -25,7 +26,6 @@
 @property CGFloat minHeaderHeight;
 @property CGFloat maxHeaderHeight;
 
-@property (strong, nonatomic) LauncherNavigationViewController *launchNavVC;
 @property (strong, nonatomic) ErrorView *errorView;
 
 @end
@@ -35,19 +35,20 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
-    
-    self.launchNavVC = (LauncherNavigationViewController *)self.navigationController;
-    
-    self.title = self.user.attributes.details.displayName;
     self.view.tintColor = self.theme;
     
+    if ([self isCurrentUser] && [self.navigationController isKindOfClass:[SimpleNavigationController class]]) {
+        self.title = @"My Profile";
+    }
+    else {
+        self.title = self.user.attributes.details.displayName;
+    }
     self.view.backgroundColor = [UIColor whiteColor];
-    // self.navigationItem.hidesBackButton = true;
+    self.navigationItem.hidesBackButton = true;
     
     [self setupTableView];
     [self setupErrorView];
-    if ([self isCurrentUser])
-    {
+    if ([self isCurrentUser]) {
         //[self setupComposeInputView];
         
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userProfileUpdated:) name:@"UserUpdated" object:nil];
@@ -79,9 +80,10 @@
     self.theme = [Session sharedInstance].themeColor;
     self.view.tintColor = self.theme;
     self.tableView.parentObject = [Session sharedInstance].currentUser;
+    self.user = [Session sharedInstance].currentUser;
     
     [self.tableView refresh];
-    [self.launchNavVC updateBarColor:[Session sharedInstance].themeColor withAnimation:2 statusBarUpdateDelay:0];
+    [self updateTheme];
 }
 
 - (void)openProfileActions {
@@ -182,20 +184,24 @@
 }
 
 - (void)setupErrorView {
-    self.errorView = [[ErrorView alloc] initWithFrame:CGRectMake(16, 0, self.view.frame.size.width - 32, 100) title:@"Profile Not Found" description:@"We couldn’t find the profile\nyou were looking for" type:ErrorViewTypeNotFound];
+    self.errorView = [[ErrorView alloc] initWithFrame:CGRectMake(16, 0, self.view.frame.size.width - 32, 100) title:@"Room Not Found" description:@"We couldn’t find the Room you were looking for" type:ErrorViewTypeNotFound];
     self.errorView.center = self.tableView.center;
     self.errorView.hidden = true;
-    [self.view addSubview:self.errorView];
+    [self.tableView addSubview:self.errorView];
     
     [self.errorView bk_whenTapped:^{
-        if ([self canViewPosts]) {
+        NSError *userError;
+        self.user = [[User alloc] initWithDictionary:[self.user toDictionary] error:&userError];
+        
+        if (userError || // room has error OR
+            [self canViewPosts]) { // no error and can view posts
             self.errorView.hidden = true;
             
             self.tableView.loading = true;
             self.tableView.loadingMore = false;
             [self.tableView refresh];
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                [self getPosts];
+                [self getPostsWithMaxId:0];
             });
         }
     }];
@@ -212,8 +218,6 @@
     
     UIWindow *window = UIApplication.sharedApplication.keyWindow;
     CGFloat bottomPadding = window.safeAreaInsets.bottom;
-    
-    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
     
     self.errorView.center = CGPointMake(self.view.frame.size.width / 2, self.tableView.center.y - bottomPadding);
 }
@@ -307,7 +311,12 @@
 - (void)updateTheme {
     UIColor *theme = [UIColor fromHex:self.user.attributes.details.color];
     
-    [self.launchNavVC updateBarColor:theme withAnimation:1 statusBarUpdateDelay:0];
+    if ([self.navigationController isKindOfClass:[ComplexNavigationController class]]) {
+        [(ComplexNavigationController *)self.navigationController updateBarColor:theme withAnimation:1 statusBarUpdateDelay:0];
+    }
+    else if ([self.navigationController isKindOfClass:[SimpleNavigationController class]]) {
+        [(SimpleNavigationController *)self.navigationController updateBarColor:theme withAnimation:1 statusBarUpdateDelay:0];
+    }
     
     self.theme = theme;
     self.view.tintColor = self.theme;
@@ -315,7 +324,7 @@
 
 - (void)loadUserContent {
     if ([self canViewPosts]) {
-        [self getPosts];
+        [self getPostsWithMaxId:0];
     }
     else {
         self.errorView.hidden = false;
@@ -344,18 +353,23 @@
             [self.errorView updateDescription:@"We couldn’t find the User\nyou were looking for"];
             [self.errorView updateType:ErrorViewTypeNotFound];
             
-            [UIView animateWithDuration:0.25f delay:0 usingSpringWithDamping:0.72f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
-                self.launchNavVC.infoButton.alpha = 0;
-                self.launchNavVC.moreButton.alpha = 0;
-            } completion:^(BOOL finished) {
-            }];
+            [self hideMoreButton];
         }
         
         [self positionErrorView];
     }
 }
 
-- (void)getPosts {
+- (void)hideMoreButton {
+    if ([self.navigationController isKindOfClass:[ComplexNavigationController class]]) {
+        [(ComplexNavigationController *)self.navigationController setRightAction:LNActionTypeNone];
+    }
+    else if ([self.navigationController isKindOfClass:[SimpleNavigationController class]]) {
+        [(SimpleNavigationController *)self.navigationController setRightAction:SNActionTypeNone];
+    }
+}
+
+- (void)getPostsWithMaxId:(NSInteger)maxId {
     if (self.user.identifier) {
         self.errorView.hidden = true;
         self.tableView.hidden = false;
@@ -368,24 +382,70 @@
             if (success) {
                 [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
                 
-                [self.manager GET:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                    // NSLog(@"CommonTableViewController / getPosts() success! ✅");
-                    
-                    NSLog(@"responseObject: %@", responseObject);
-                    
+                NSDictionary *params = maxId != 0 ? @{@"max_id": [NSNumber numberWithInteger:maxId], @"count": @(10)} : @{@"count": @(10)};
+                NSLog(@"params to getPostsWith:::: %@", params);
+                
+                [self.manager GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                     NSArray *responseData = (NSArray *)responseObject[@"data"];
-
-                    self.tableView.data = [[NSMutableArray alloc] initWithArray:responseData];
                     
+                    NSLog(@"ProfileViewController / getPosts() responseObject: %@", responseObject);
+                    
+                    self.tableView.scrollEnabled = true;
+                    
+                    if (maxId == 0) {
+                        // first page
+                        self.tableView.data = [[NSMutableArray alloc] initWithArray:responseData];
+                        
+                        if (self.tableView.data.count == 0) {
+                            // Error: No posts yet!
+                            self.errorView.hidden = false;
+                            
+                            ProfileHeaderCell *headerCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
+                            CGFloat heightOfHeader = headerCell.frame.size.height;
+                            
+                            NSLog(@"height of height: %f", heightOfHeader);
+                            
+                            [self.errorView updateType:ErrorViewTypeNoPosts];
+                            [self.errorView updateTitle:@"No Posts Yet"];
+                            [self.errorView updateDescription:@""];
+                            
+                            self.errorView.frame = CGRectMake(self.errorView.frame.origin.x, heightOfHeader + 72, self.errorView.frame.size.width, self.errorView.frame.size.height);
+                        }
+                        else {
+                            self.errorView.hidden = true;
+                        }
+                    }
+                    else {
+                        self.errorView.hidden = true;
+                        // appended posts
+                        self.tableView.data = [[NSMutableArray alloc] initWithArray:[self.tableView.data arrayByAddingObjectsFromArray:responseData]];
+                    }
+
                     self.loading = false;
                     
                     self.tableView.loading = false;
+                    self.tableView.loadingMore = false;
+                    
                     [self.tableView refresh];
                 } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
                     NSLog(@"FeedViewController / getPosts() - error: %@", error);
                     //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
                     
+                    if (self.tableView.data.count == 0) {
+                        self.errorView.hidden = false;
+                        
+                        [self.errorView updateType:ErrorViewTypeGeneral];
+                        [self.errorView updateTitle:@"Error Loading"];
+                        [self.errorView updateDescription:@"Check your network settings and tap here to try again"];
+                        
+                        [self positionErrorView];
+                    }
+                    
                     self.loading = false;
+                    self.tableView.loading = false;
+                    self.tableView.loadingMore = false;
+                    self.tableView.userInteractionEnabled = true;
+                    self.tableView.scrollEnabled = false;
                     [self.tableView refresh];
                 }];
             }
@@ -395,24 +455,25 @@
         self.errorView.hidden = false;
         self.tableView.hidden = true;
         
-        [UIView animateWithDuration:0.25f delay:0 usingSpringWithDamping:0.72f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
-            self.launchNavVC.infoButton.alpha = 0;
-            self.launchNavVC.moreButton.alpha = 0;
-        } completion:^(BOOL finished) {
-        }];
+        [self hideMoreButton];
     }
 }
+
+- (void)tableView:(id)tableView didRequestNextPageWithMaxId:(NSInteger)maxId {
+    [self getPostsWithMaxId:maxId];
+}
+
 - (void)setupTableView {
     self.tableView = [[RSTableView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - self.navigationController.navigationBar.frame.origin.y - self.navigationController.navigationBar.frame.size.height) style:UITableViewStyleGrouped];
     self.tableView.dataType = RSTableViewTypeProfile;
     self.tableView.parentObject = self.user;
-    self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, 60, 0);
-    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 60, 0);
+    self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, 0, 0);
+    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 48, 0);
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
     [self.view addSubview:self.tableView];
     
     UIView *headerHack = [[UIView alloc] initWithFrame:CGRectMake(0, -1 * self.view.frame.size.height, self.view.frame.size.width, self.view.frame.size.height)];
-    headerHack.backgroundColor = [UIColor colorWithWhite:0.97 alpha:1];
+    headerHack.backgroundColor = [UIColor colorWithWhite:1 alpha:1];
     [self.tableView addSubview:headerHack];
 }
 

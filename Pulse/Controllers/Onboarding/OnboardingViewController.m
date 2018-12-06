@@ -11,7 +11,7 @@
 #import <HapticHelper/HapticHelper.h>
 #import "Session.h"
 #import "Room.h"
-#import "LauncherNavigationViewController.h"
+#import "ComplexNavigationController.h"
 #import "UIColor+Palette.h"
 #import "Launcher.h"
 
@@ -38,7 +38,7 @@
 @property (nonatomic) NSInteger themeColor;
 @property (nonatomic) int currentStep;
 @property (strong, nonatomic) NSMutableArray *steps;
-@property (strong, nonatomic) LauncherNavigationViewController *launchNavVC;
+@property (strong, nonatomic) ComplexNavigationController *launchNavVC;
 @property (nonatomic) CGFloat currentKeyboardHeight;
 
 @end

@@ -33,6 +33,8 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)openInviteFriends;
 - (void)openOnboarding;
 
+- (UIViewController *)activeViewController;
+
 // DEBUG ONLY!
 - (void)openTweaks;
 

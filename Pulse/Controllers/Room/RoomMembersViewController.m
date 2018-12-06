@@ -11,7 +11,7 @@
 #import "SearchResultCell.h"
 #import "MemberRequestCell.h"
 #import "ButtonCell.h"
-#import "LauncherNavigationViewController.h"
+#import "ComplexNavigationController.h"
 #import "HAWebService.h"
 #import "Launcher.h"
 #import "UIColor+Palette.h"
@@ -27,7 +27,7 @@
 @property (strong, nonatomic) NSMutableArray *members;
 
 @property (strong, nonatomic) HAWebService *manager;
-@property (strong, nonatomic) LauncherNavigationViewController *launchNavVC;
+@property (strong, nonatomic) ComplexNavigationController *launchNavVC;
 
 @end
 
@@ -42,7 +42,8 @@ static NSString * const requestCellIdentifier = @"RequestCell";
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    self.launchNavVC = (LauncherNavigationViewController *)self.navigationController;
+    self.launchNavVC = (ComplexNavigationController *)self.navigationController;
+    self.navigationItem.hidesBackButton = true;
     
     self.manager = [HAWebService manager];
     
@@ -52,9 +53,9 @@ static NSString * const requestCellIdentifier = @"RequestCell";
     self.tableView.delegate = self;
     self.tableView.dataSource = self;
     
-    self.tableView.backgroundColor = [UIColor colorWithWhite:0.98 alpha:1];
-    self.tableView.separatorInset = UIEdgeInsetsZero;
-    self.tableView.separatorColor = [UIColor clearColor];
+    self.tableView.backgroundColor = [UIColor headerBackgroundColor];
+    self.tableView.separatorColor = [UIColor colorWithWhite:0 alpha:0.08f];
+    self.tableView.separatorInset = UIEdgeInsetsMake(0, 62, 0, 0);
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
     self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 48, 0);
     
@@ -119,8 +120,6 @@ static NSString * const requestCellIdentifier = @"RequestCell";
     self.manager.responseSerializer = [AFJSONResponseSerializer serializer];
     [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
         if (success) {
-            NSLog(@"authenticated now lets go");
-            
             [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
             
             NSDictionary *params = @{};
@@ -129,8 +128,6 @@ static NSString * const requestCellIdentifier = @"RequestCell";
             
             [self.manager GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 NSArray *responseData = (NSArray *)responseObject[@"data"];
-                
-                NSLog(@"response data for members: %@", responseData);
                 
                 self.members = [[NSMutableArray alloc] initWithArray:responseData];
                 
@@ -156,7 +153,7 @@ static NSString * const requestCellIdentifier = @"RequestCell";
         return self.loadingRequests ? 1 : self.requests.count;
     }
     else if (section == 1) {
-        return self.loadingMembers ? self.room.attributes.summaries.counts.members : self.members.count + ([self isMember] ? 2 : 1);
+        return self.loadingMembers ? self.room.attributes.summaries.counts.members : self.members.count + ([self isMember] ? 1 : 0);
     }
     
     return 0;
@@ -261,52 +258,30 @@ static NSString * const requestCellIdentifier = @"RequestCell";
         // Configure the cell...
         cell.type = 2;
         
-        cell.lineSeparator.hidden = false;
         if (self.loadingMembers) {
             cell.imageView.backgroundColor = [UIColor colorWithWhite:0.9f alpha:1];
             cell.textLabel.text = @"Loading...";
             cell.textLabel.textColor = [UIColor colorWithWhite:0.8f alpha:1];
             cell.detailTextLabel.text = @"";
-            
-            if (indexPath.row == self.room.attributes.summaries.counts.members) {
-                // last row
-                cell.lineSeparator.hidden = true;
-            }
         }
         else {
-            if (indexPath.row == 0) {
-                // invite others
-                cell.textLabel.textColor = self.theme;
-                cell.textLabel.text = [self isMember] ? @"Invite Others" : @"Share Room";
-                cell.imageView.image = [[UIImage imageNamed:@"inviteFriendPlaceholder"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-                cell.imageView.backgroundColor = [UIColor clearColor];
-                cell.imageView.tintColor = cell.textLabel.textColor;
-                cell.detailTextLabel.text = @"";
+            // member cell
+            NSInteger adjustedRowIndex = indexPath.row - ([self isMember] ? 1 : 0);
+            
+            User *user;
+            if (indexPath.row == 0 && [self isMember]) {
+                user = [Session sharedInstance].currentUser;
             }
             else {
-                // member cell
-                NSInteger adjustedRowIndex = indexPath.row - ([self isMember] ? 2 : 1);
-                
-                User *user;
-                if (indexPath.row == 1 && [self isMember]) {
-                    user = [Session sharedInstance].currentUser;
-                }
-                else {
-                    user = [[User alloc] initWithDictionary:self.members[adjustedRowIndex] error:nil];
-                }
-                
-                cell.imageView.backgroundColor = [UIColor whiteColor];
-                cell.imageView.image = [[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-                cell.imageView.tintColor = [UIColor fromHex:[[user.attributes.details.color lowercaseString] isEqualToString:@"ffffff"]?@"222222":user.attributes.details.color];
-                cell.textLabel.text = user.attributes.details.displayName != nil ? user.attributes.details.displayName : @"Unkown User";
-                cell.textLabel.textColor = [UIColor colorWithWhite:0.2f alpha:1];
-                cell.detailTextLabel.text = [NSString stringWithFormat:@"@%@", [user.attributes.details.identifier uppercaseString]];
+                user = [[User alloc] initWithDictionary:self.members[adjustedRowIndex] error:nil];
             }
             
-            if (indexPath.row == self.members.count + ([self isMember] ? 1 : 0)) {
-                // last row
-                cell.lineSeparator.hidden = true;
-            }
+            cell.imageView.backgroundColor = [UIColor whiteColor];
+            cell.imageView.image = [[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+            cell.imageView.tintColor = [UIColor fromHex:[[user.attributes.details.color lowercaseString] isEqualToString:@"ffffff"]?@"222222":user.attributes.details.color];
+            cell.textLabel.text = user.attributes.details.displayName != nil ? user.attributes.details.displayName : @"Unkown User";
+            cell.textLabel.textColor = [UIColor colorWithWhite:0.2f alpha:1];
+            cell.detailTextLabel.text = [NSString stringWithFormat:@"@%@", user.attributes.details.identifier];
         }
         
         return cell;
@@ -364,51 +339,56 @@ static NSString * const requestCellIdentifier = @"RequestCell";
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return indexPath.section == 0 ? 98 : 56;
+    return indexPath.section == 0 ? 98 : 64;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    if (section == 0 && [self isMember] && [self isPrivate]) return 64;
-    if (section == 1) return 64;
+    CGFloat headerHeight = 64;
+    
+    if (section == 0 && [self isMember] && [self isPrivate]) return headerHeight;
+    if (section == 1) return headerHeight;
     
     return 0;
 }
+
 - (nullable UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
     if (section == 0 && (![self isMember] || ![self isPrivate])) return nil;
     
-    UIView *headerContainer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 64)];
+    UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 52)];
     
-    UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 64)];
-    [headerContainer addSubview:header];
-    
-    header.backgroundColor = [UIColor colorWithWhite:0.98 alpha:1];
-    
-    UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(16, 28, self.view.frame.size.width - 62 - 200, 24)];
+    UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(16, 28, self.view.frame.size.width - 32, 24)];
+    title.textAlignment = NSTextAlignmentLeft;
+    title.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightSemibold];
+    title.textColor = [UIColor colorWithWhite:0.6f alpha:1];
     if (section == 0) { title.text = @"Requests"; }
     else if (section == 1) {
         NSInteger members = self.room.attributes.summaries.counts.members;
         title.text = [NSString stringWithFormat:@"%ld %@", (long)members, (members == 1) ? [Session sharedInstance].defaults.room.membersTitle.singular : [Session sharedInstance].defaults.room.membersTitle.plural];
     }
-    title.textAlignment = NSTextAlignmentLeft;
-    title.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightSemibold];
-    title.textColor = [UIColor colorWithWhite:0.6f alpha:1];
-    
     [header addSubview:title];
     
-    UIView *lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, header.frame.size.height - (1 / [UIScreen mainScreen].scale), self.view.frame.size.width, (1 / [UIScreen mainScreen].scale))];
-    lineSeparator.backgroundColor = [UIColor colorWithWhite:0.9 alpha:1];
-    [header addSubview:lineSeparator];
+    UIView *hairline = [[UIView alloc] initWithFrame:CGRectMake(0, header.frame.size.height - (1 / [UIScreen mainScreen].scale), header.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+    hairline.backgroundColor = [UIColor colorWithWhite:0 alpha:0.08f];
+    //[header addSubview:hairline];
     
-    return headerContainer;
+    return header;
+    
+    return nil;
 }
 - (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
-    return (1 / [UIScreen mainScreen].scale);
+    return CGFLOAT_MIN;
 }
-- (nullable UIView *)tableView:(UITableView *)tableView viewForFooterInSection:(NSInteger)section {
-    UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, (1 / [UIScreen mainScreen].scale))];
-    separator.backgroundColor = [UIColor colorWithWhite:0.9 alpha:1];
-    return separator;
+- (UIView*)tableView:(UITableView*)tableView viewForFooterInSection:(NSInteger)section {
+    return nil;
 }
+
+
+
+
+
+
+
+
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.section == 0) {
@@ -416,30 +396,22 @@ static NSString * const requestCellIdentifier = @"RequestCell";
             NSError *error;
             User *user = [[User alloc] initWithDictionary:self.requests[indexPath.row] error:&error];
             
-            /*
              if (!error) {
-             [self.launchNavVC openProfile:user];
-             }*/
-            [[Launcher sharedInstance] openProfile:user];
+                 [[Launcher sharedInstance] openProfile:user];
+             }
         }
     }
     else if (indexPath.section == 1) {
-        if (indexPath.row == 0) {
-            // invite others
-            
+        // view user profile
+        NSInteger adjustedRowIndex = indexPath.row - ([self isMember] ? 1 : 0);
+        if ([self isMember] && indexPath.row == 0) {
+            [[Launcher sharedInstance] openProfile:[Session sharedInstance].currentUser];
         }
-        else {
-            // view user profile
-            NSInteger adjustedRowIndex = indexPath.row - ([self isMember] ? 2 : 1);
-            if ([self isMember] && indexPath.row == 1) {
-                [[Launcher sharedInstance] openProfile:[Session sharedInstance].currentUser];
-            }
-            else if (adjustedRowIndex < self.members.count) {
-                NSError *error;
-                User *user = [[User alloc] initWithDictionary:self.members[adjustedRowIndex] error:&error];
-
-                [[Launcher sharedInstance] openProfile:user];
-            }
+        else if (adjustedRowIndex < self.members.count) {
+            NSError *error;
+            User *user = [[User alloc] initWithDictionary:self.members[adjustedRowIndex] error:&error];
+            
+            [[Launcher sharedInstance] openProfile:user];
         }
     }
 }

@@ -181,7 +181,7 @@ static Session *session;
             }];
         }
         else if (statusCode == BAD_REFRESH_TOKEN || statusCode == BAD_REFRESH_LOGIN_REQ) {
-            //[session signOut];
+            [session signOut];
             
             AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
             [appDelegate launchOnboarding];

@@ -8,7 +8,7 @@
 
 #import "RoomSuggestionsListCell.h"
 #import "MiniChannelCell.h"
-#import "LauncherNavigationViewController.h"
+#import "ComplexNavigationController.h"
 
 #define padding 24
 

@@ -7,7 +7,7 @@
 //
 
 #import "RSTableView.h"
-#import "LauncherNavigationViewController.h"
+#import "ComplexNavigationController.h"
 //#import "Post.h"
 //#import "Room.h"
 #import <JTSImageViewController/JTSImageViewController.h>
@@ -73,7 +73,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     [self reloadData];
     
     if (!self.loading && !self.loadingMore && self.data.count == 0 && self.dataType != RSTableViewTypeFeed) {
-        self.backgroundColor = [UIColor colorWithWhite:0.98 alpha:1];
+        self.backgroundColor = [UIColor headerBackgroundColor];
     }
     else {
         self.backgroundColor = [UIColor whiteColor];
@@ -268,7 +268,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                 !cell.room.attributes.status.discoverability.isPrivate))
             {
                 [cell.membersLabel bk_whenTapped:^{
-                    if ([UIViewParentController(self).navigationController isKindOfClass:[LauncherNavigationViewController class]]) {
+                    if ([UIViewParentController(self).navigationController isKindOfClass:[ComplexNavigationController class]]) {
                         [[Launcher sharedInstance] openRoomMembersForRoom:self.parentObject];
                     }
                 }];
@@ -350,7 +350,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             cell.profilePicture.tintColor = [[cell.post.attributes.details.creator.attributes.details.color lowercaseString] isEqualToString:@"ffffff"] ? [UIColor colorWithWhite:0.2f alpha:1] : [UIColor fromHex:cell.post.attributes.details.creator.attributes.details.color];
             if (cell.profilePicture.gestureRecognizers.count == 0) {
                 [cell.profilePicture bk_whenTapped:^{
-                    if ([UIViewParentController(self).navigationController isKindOfClass:[LauncherNavigationViewController class]]) {
+                    if ([UIViewParentController(self).navigationController isKindOfClass:[ComplexNavigationController class]]) {
                         NSLog(@"open profile");
                         [[Launcher sharedInstance] openProfile:post.attributes.details.creator];
                     }
@@ -360,7 +360,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             cell.postDetailsButton.hidden = false;
             if (cell.postDetailsButton.gestureRecognizers.count == 0) {
                 [cell.postDetailsButton bk_whenTapped:^{
-                    if ([UIViewParentController(self).navigationController isKindOfClass:[LauncherNavigationViewController class]]) {
+                    if ([UIViewParentController(self).navigationController isKindOfClass:[ComplexNavigationController class]]) {
                         if ([self.parentObject isKindOfClass:[Room class]]) {
                             Room *room = self.parentObject;
                             
@@ -470,14 +470,14 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                         
                         NSLog(@"self.parentcontroller: %@", UIViewParentController(self));
                         NSLog(@"nva controller: %@", UIViewParentController(self).navigationController);
-                        if ([UIViewParentController(self).navigationController isKindOfClass:[LauncherNavigationViewController class]]) {
+                        if ([UIViewParentController(self).navigationController isKindOfClass:[ComplexNavigationController class]]) {
                             [[Launcher sharedInstance] openProfile:cell.post.attributes.details.creator];
                         }
                     }];
                     
                     if (self.dataType != RSTableViewTypePost && cell.postDetailsButton.gestureRecognizers.count == 0) {
                         [cell.postDetailsButton bk_whenTapped:^{
-                            if ([UIViewParentController(self).navigationController isKindOfClass:[LauncherNavigationViewController class]]) {
+                            if ([UIViewParentController(self).navigationController isKindOfClass:[ComplexNavigationController class]]) {
                                 if ([self.parentObject isKindOfClass:[Room class]]) {
                                     Room *room = self.parentObject;
                                     
@@ -918,7 +918,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, 64)];
             [headerContainer addSubview:header];
                 
-            header.backgroundColor = [UIColor colorWithWhite:0.98 alpha:1];
+            header.backgroundColor = [UIColor headerBackgroundColor];
             
             UIImageView *icon = [[UIImageView alloc] initWithFrame:CGRectMake(20, 28, 24, 24)];
             icon.image = [[UIImage imageNamed:@"repliesIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];

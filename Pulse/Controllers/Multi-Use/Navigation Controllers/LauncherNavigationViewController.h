@@ -14,15 +14,16 @@
 #import "Post.h"
 #import "User.h"
 
-@interface LauncherNavigationViewController : UINavigationController <UINavigationControllerDelegate, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate, UIGestureRecognizerDelegate, SloppySwiperDelegate>
+@interface ComplexNavigationController : UINavigationController <UINavigationControllerDelegate, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate, UIGestureRecognizerDelegate, SloppySwiperDelegate>
 
 typedef enum {
-    LNActionTypeCancel = 0,
-    LNACtionTypeCompose = 1,
-    LNACtionTypeInvite = 2,
-    LNACtionTypeMore = 3,
-    LNACtionTypeAdd = 4,
-    LNActionTypeBack = 5
+    LNActionTypeNone = 0,
+    LNActionTypeCancel = 1,
+    LNActionTypeCompose = 2,
+    LNActionTypeInvite = 3,
+    LNActionTypeMore = 4,
+    LNActionTypeAdd = 5,
+    LNActionTypeBack = 6
 } LNActionType;
 - (void)setLeftAction:(LNActionType)actionType;
 - (void)setRightAction:(LNActionType)actionType;

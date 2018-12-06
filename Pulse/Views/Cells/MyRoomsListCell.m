@@ -13,7 +13,7 @@
 #import "ChannelCell.h"
 #import "ErrorChannelCell.h"
 #import "EmptyChannelCell.h"
-#import "LauncherNavigationViewController.h"
+#import "ComplexNavigationController.h"
 #import "UIColor+Palette.h"
 #import <Tweaks/FBTweakInline.h>
 
@@ -21,9 +21,6 @@
 #define envConfig [[[NSUserDefaults standardUserDefaults] objectForKey:@"config"] objectForKey:[[NSUserDefaults standardUserDefaults] stringForKey:@"environment"]]
 
 @interface MyRoomsListCell ()
-
-@property (nonatomic) BOOL isMoving;
-@property (strong, nonatomic) ChannelCell *movingCell;
 
 @end
 
@@ -71,7 +68,7 @@ static NSString * const errorRoomCellReuseIdentifier = @"ErrorRoomCell";
     self.separator.backgroundColor = [UIColor colorWithWhite:0 alpha:0.08f];
     [self.contentView addSubview:self.separator];
     
-    self.header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, screenWidth, 108)];
+    self.header = [[UIView alloc] initWithFrame:CGRectMake(0, 8, screenWidth, 108)];
     
     self.bigTitle = [[UILabel alloc] initWithFrame:CGRectMake(16, 0, self.header.frame.size.width - 32, 40)];
     
@@ -97,7 +94,7 @@ static NSString * const errorRoomCellReuseIdentifier = @"ErrorRoomCell";
     [self.header addSubview:title];
     [self.contentView addSubview:self.header];
     
-    _collectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 108, screenWidth, self.frame.size.height - 40 + 108) collectionViewLayout:flowLayout];
+    _collectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, self.header.frame.origin.y + self.header.frame.size.height, screenWidth, self.frame.size.height - 40 + (self.header.frame.origin.y + self.header.frame.size.height)) collectionViewLayout:flowLayout];
     _collectionView.delegate = self;
     _collectionView.dataSource = self;
     _collectionView.contentInset = UIEdgeInsetsMake(0, 16, 0, 16);
@@ -107,9 +104,6 @@ static NSString * const errorRoomCellReuseIdentifier = @"ErrorRoomCell";
     _collectionView.showsHorizontalScrollIndicator = false;
     _collectionView.backgroundColor = [UIColor clearColor];
     _collectionView.clipsToBounds = false;
-    
-    UILongPressGestureRecognizer *longPress = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(cellLongPress:)];
-    [_collectionView addGestureRecognizer:longPress];
     
     [self.contentView addSubview:_collectionView];
 }
@@ -241,137 +235,82 @@ static NSString * const errorRoomCellReuseIdentifier = @"ErrorRoomCell";
             }
         }
         else {
-            if (self.movingCell != nil && !self.isMoving) {
-                return self.movingCell;
+            ChannelCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:reuseIdentifier forIndexPath:indexPath];
+            
+            NSError *error;
+            cell.room = [[Room alloc] initWithDictionary:self.rooms[indexPath.item] error:&error];
+            
+            cell.membersView.hidden = false;
+            
+            cell.profilePicture.image = [[UIImage imageNamed:@"anonymousGroup"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+            cell.profilePicture.tintColor = [UIColor whiteColor];
+            cell.profilePicture.backgroundColor = [UIColor clearColor];
+            cell.profilePicture.layer.shadowOpacity = 0;
+            
+            cell.title.text = cell.room.attributes.details.title;
+            cell.title.textColor = [UIColor whiteColor];
+            cell.title.backgroundColor = [UIColor clearColor];
+            
+            cell.bio.text = cell.room.attributes.details.theDescription != nil ? cell.room.attributes.details.theDescription : @"";
+            cell.bio.textColor = [UIColor colorWithWhite:1 alpha:0.75f];
+            cell.bio.backgroundColor = [UIColor clearColor];
+            
+            if (cell.room.attributes.summaries.counts.live < [Session sharedInstance].defaults.room.liveThreshold) {
+                cell.ticker.hidden = true;
+                cell.inviteButton.hidden = false;
             }
             else {
-                ChannelCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:reuseIdentifier forIndexPath:indexPath];
-                
-                NSError *error;
-                cell.room = [[Room alloc] initWithDictionary:self.rooms[indexPath.item] error:&error];
-                
-                cell.membersView.hidden = false;
-                
-                cell.profilePicture.image = [[UIImage imageNamed:@"anonymousGroup"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-                cell.profilePicture.tintColor = [UIColor whiteColor];
-                cell.profilePicture.backgroundColor = [UIColor clearColor];
-                cell.profilePicture.layer.shadowOpacity = 0;
-                
-                cell.title.text = cell.room.attributes.details.title;
-                cell.title.textColor = [UIColor whiteColor];
-                cell.title.backgroundColor = [UIColor clearColor];
-                
-                cell.bio.text = cell.room.attributes.details.theDescription != nil ? cell.room.attributes.details.theDescription : @"";
-                cell.bio.textColor = [UIColor colorWithWhite:1 alpha:0.75f];
-                cell.bio.backgroundColor = [UIColor clearColor];
-                
-                if (cell.room.attributes.summaries.counts.live < [Session sharedInstance].defaults.room.liveThreshold) {
-                    cell.ticker.hidden = true;
-                    cell.inviteButton.hidden = false;
-                }
-                else {
-                    cell.ticker.hidden = false;
-                    [cell.ticker setTitle:[NSString stringWithFormat:@"%ld live", (long)cell.room.attributes.summaries.counts.live] forState:UIControlStateNormal];
-                    cell.inviteButton.hidden = true;
-                }
-                
-                for (int i = 0; i < cell.membersView.subviews.count; i++) {
-                    if ([cell.membersView.subviews[i] isKindOfClass:[UIImageView class]]) {
-                        UIImageView *imageView = cell.membersView.subviews[i];
+                cell.ticker.hidden = false;
+                [cell.ticker setTitle:[NSString stringWithFormat:@"%ld live", (long)cell.room.attributes.summaries.counts.live] forState:UIControlStateNormal];
+                cell.inviteButton.hidden = true;
+            }
+            
+            for (int i = 0; i < cell.membersView.subviews.count; i++) {
+                if ([cell.membersView.subviews[i] isKindOfClass:[UIImageView class]]) {
+                    UIImageView *imageView = cell.membersView.subviews[i];
+                    
+                    if (cell.room.attributes.summaries.members.count > imageView.tag) {
+                        imageView.hidden = false;
                         
-                        if (cell.room.attributes.summaries.members.count > imageView.tag) {
-                            imageView.hidden = false;
-                            
-                            User *member = [[User alloc] initWithDictionary:cell.room.attributes.summaries.members[imageView.tag] error:nil];
-                            NSString *picURL = member.attributes.details.media.profilePicture;
-                            if (picURL.length > 0) {
-                                [imageView sd_setImageWithURL:[NSURL URLWithString:picURL]];
-                            }
-                            else {
-                                [imageView setImage:[[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
-                                imageView.tintColor = [UIColor fromHex:member.attributes.details.color];
-                            }
+                        User *member = [[User alloc] initWithDictionary:cell.room.attributes.summaries.members[imageView.tag] error:nil];
+                        NSString *picURL = member.attributes.details.media.profilePicture;
+                        if (picURL.length > 0) {
+                            [imageView sd_setImageWithURL:[NSURL URLWithString:picURL]];
                         }
                         else {
-                            imageView.hidden = true;
+                            [imageView setImage:[[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
+                            imageView.tintColor = [UIColor fromHex:member.attributes.details.color];
                         }
                     }
+                    else {
+                        imageView.hidden = true;
+                    }
                 }
-                
-                cell.backgroundColor = [UIColor fromHex:cell.room.attributes.details.color];
-                
-                CGFloat shadowOpacity = FBTweakValue(@"Rooms", @"My Rooms", @"Shadow Opacity", 0.15);
-                cell.layer.shadowOpacity = shadowOpacity;
-                CGFloat shadowRadius = FBTweakValue(@"Rooms", @"My Rooms", @"Shadow Radius", 22.f);
-                cell.layer.shadowRadius = shadowRadius;
-                
-                cell.layer.shadowColor = [UIColor fromHex:cell.room.attributes.details.color].CGColor;
-                
-                cell.clipsToBounds = false;
-                [cell layoutSubviews];
-                
-                return cell;
             }
+            
+            cell.backgroundColor = [UIColor fromHex:cell.room.attributes.details.color];
+            
+            CGFloat shadowOpacity = FBTweakValue(@"Rooms", @"My Rooms", @"Shadow Opacity", 0.15);
+            cell.layer.shadowOpacity = shadowOpacity;
+            CGFloat shadowRadius = FBTweakValue(@"Rooms", @"My Rooms", @"Shadow Radius", 22.f);
+            cell.layer.shadowRadius = shadowRadius;
+            
+            cell.layer.shadowColor = [UIColor fromHex:cell.room.attributes.details.color].CGColor;
+            
+            cell.clipsToBounds = false;
+            [cell layoutSubviews];
+            
+            return cell;
         }
     }
 }
-/*
- guard let selectedIndexPath = reorderCollectionView.indexPathForItem(at: gesture.location(in: reorderCollectionView)) else {
- break
- }
- reorderCollectionView.beginInteractiveMovementForItem(at: selectedIndexPath)*/
 
-- (void)cellLongPress:(UILongPressGestureRecognizer *)longPress {
-    switch(longPress.state) {
-        case UIGestureRecognizerStatePossible:
-            break;
-        case UIGestureRecognizerStateBegan: {
-            if (!self.isMoving) {
-                self.isMoving = true;
-                NSIndexPath *indexPath = [self.collectionView indexPathForItemAtPoint:[longPress locationInView:self.collectionView]];
-                self.movingCell = (ChannelCell *)[self.collectionView cellForItemAtIndexPath:indexPath];
-                self.layer.zPosition = 100;
-                
-                [self.collectionView beginInteractiveMovementForItemAtIndexPath:indexPath];
-            }
-            break;
-        }
-        case UIGestureRecognizerStateChanged:
-            [self.collectionView updateInteractiveMovementTargetPosition:[longPress locationInView:longPress.view]];
-            break;
-        case UIGestureRecognizerStateEnded: {
-            self.isMoving = false;
-            [self.collectionView performBatchUpdates:^{
-                [self.collectionView endInteractiveMovement];
-            } completion:^(BOOL finished) {
-                self.movingCell = nil;
-            }];
-            break;
-        }
-        default:
-            self.isMoving = false;
-            [self.collectionView cancelInteractiveMovement];
-            break;
-    }
-}
 - (CGSize)collectionView:(UICollectionView *)collectionView
                   layout:(UICollectionViewLayout *)collectionViewLayout
   sizeForItemAtIndexPath:(NSIndexPath *)indexPath {
     BOOL useFullWidthCell = self.errorLoading || (!self.loading && self.rooms.count == 0);
     
     return CGSizeMake(useFullWidthCell?self.frame.size.width - 32:300, self.frame.size.height - 108 - 40);
-}
-
-- (BOOL)collectionView:(UICollectionView *)collectionView canMoveItemAtIndexPath:(NSIndexPath *)indexPath {
-    return TRUE;
-}
-- (void)collectionView:(UICollectionView *)collectionView moveItemAtIndexPath:(NSIndexPath *)sourceIndexPath toIndexPath:(NSIndexPath *)destinationIndexPath {
-    printf("Starting Index: \(sourceIndexPath.item)");
-    printf("Ending Index: \(destinationIndexPath.item)");
-    NSDictionary *object = self.rooms[sourceIndexPath.item];
-    
-    [self.rooms removeObjectAtIndex:sourceIndexPath.item];
-    [self.rooms insertObject:object atIndex:destinationIndexPath.item];
 }
 
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
@@ -403,7 +342,7 @@ static NSString * const errorRoomCellReuseIdentifier = @"ErrorRoomCell";
     
     self.separator.frame = CGRectMake(self.separator.frame.origin.x, self.frame.size.height - self.separator.frame.size.height, self.frame.size.width - 32, self.separator.frame.size.height);
     
-    self.collectionView.frame = CGRectMake(0, 108, self.frame.size.width, self.frame.size.height - 108 - 40);
+    self.collectionView.frame = CGRectMake(0, self.header.frame.origin.y + self.header.frame.size.height, self.frame.size.width, self.frame.size.height - 108 - 40);
 }
 
 @end

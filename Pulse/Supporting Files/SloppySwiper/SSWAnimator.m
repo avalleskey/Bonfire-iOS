@@ -53,7 +53,12 @@ UIViewAnimationOptions const SSWNavigationTransitionCurve = 7 << 16;
     if (toViewController.navigationController != nil) {
         CGFloat yOrigin = toViewController.navigationController.navigationBar.frame.origin.y + toViewController.navigationController.navigationBar.frame.size.height;
         
-        toViewController.view.frame = CGRectMake(toViewController.view.frame.origin.x, toViewController.navigationController.navigationBar.frame.origin.y + toViewController.navigationController.navigationBar.frame.size.height, toViewController.view.frame.size.width, [transitionContext containerView].frame.size.height - yOrigin);
+        if (toViewController.navigationController.navigationBar.isTranslucent) {
+            toViewController.view.frame = CGRectMake(toViewController.view.frame.origin.x, 0, toViewController.view.frame.size.width, [transitionContext containerView].frame.size.height);
+        }
+        else {
+            toViewController.view.frame = CGRectMake(toViewController.view.frame.origin.x, yOrigin, toViewController.view.frame.size.width, [transitionContext containerView].frame.size.height - yOrigin);
+        }
     }
 
     // parallax effect; the offset matches the one used in the pop animation in iOS 7.1

@@ -60,6 +60,13 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
     
     self.manager = [HAWebService manager];
     [self getRooms];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userProfileUpdated:) name:@"UserUpdated" object:nil];
+}
+
+- (void)userProfileUpdated:(NSNotification *)notification {
+    self.navigationController.navigationBar.tintColor = [Session sharedInstance].themeColor;
+    [self.tableView reloadData];
 }
 
 - (void)addPill {
@@ -77,7 +84,9 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
     
     if (self.simpleNav == nil) {
         self.simpleNav = (SimpleNavigationController *)self.navigationController;
-        [self.simpleNav hide:false];
+        self.simpleNav.titleLabel.alpha = 0;
+        self.simpleNav.hairline.alpha = 0;
+        self.simpleNav.blurView.alpha = 0;
     }
     
     if (self.createRoomButton.alpha == 0) {
@@ -114,31 +123,46 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
     if (scrollView == self.tableView) {
-        if (scrollView.contentOffset.y > 48) {
-            /*
-            if (self.launchNavVC.shadowView.alpha == 0) {
-                [self.launchNavVC setShadowVisibility:TRUE withAnimation:TRUE];
-            }
-            if (self.launchNavVC.navigationBackgroundView.backgroundColor != [UIColor whiteColor]) {
-                [UIView animateWithDuration:0.2f animations:^{
-                    self.launchNavVC.navigationBackgroundView.backgroundColor = [UIColor whiteColor];
-                    self.launchNavVC.textField.alpha = 1;
-                    self.launchNavVC.inviteFriendButton.alpha = 1;
+        NSLog(@"scrollview.contentoffset.y: %f", scrollView.contentOffset.y);
+        CGFloat baseline = -1 * (self.navigationController.navigationBar.frame.origin.y + self.navigationController.navigationBar.frame.size.height);
+        
+        if (scrollView.contentOffset.y > baseline + 56) {
+            if (self.simpleNav.hairline.alpha == 0) {
+                [UIView animateWithDuration:0.1f animations:^{
+                    self.simpleNav.hairline.alpha = 1;
                 }];
-            }*/
+            }
         }
         else {
-            /*
-            if (self.launchNavVC.shadowView.alpha == 1) {
-                [self.launchNavVC setShadowVisibility:FALSE withAnimation:TRUE];
-            }
-            if (self.launchNavVC.navigationBackgroundView.backgroundColor != [UIColor headerBackgroundColor]) {
-                [UIView animateWithDuration:0.2f animations:^{
-                    self.launchNavVC.navigationBackgroundView.backgroundColor = [UIColor headerBackgroundColor];
-                    self.launchNavVC.textField.alpha = 0;
-                    self.launchNavVC.inviteFriendButton.alpha = 0;
+            if (self.simpleNav.hairline.alpha == 1) {
+                [UIView animateWithDuration:0.1f animations:^{
+                    self.simpleNav.hairline.alpha = 0;
                 }];
-            }*/
+            }
+        }
+        
+        if (scrollView.contentOffset.y > baseline + 20) {
+            if (self.simpleNav.titleLabel.alpha == 0) {
+                [UIView animateWithDuration:0.1f animations:^{
+                    self.simpleNav.titleLabel.alpha = 1;
+                    self.simpleNav.blurView.alpha = 1;
+                }];
+            }
+        }
+        else {
+            if (self.simpleNav.titleLabel.alpha == 1) {
+                [UIView animateWithDuration:0.1f animations:^{
+                    self.simpleNav.titleLabel.alpha = 0;
+                    self.simpleNav.blurView.alpha = 0;
+                }];
+            }
+            
+            CGFloat headerOpacity = 1 - ((scrollView.contentOffset.y - baseline) / 20);
+            NSLog(@"header opacity: %f", headerOpacity);
+            MyRoomsListCell *cell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
+            [UIView animateWithDuration:0.1f animations:^{
+                cell.bigTitle.alpha = headerOpacity;
+            }];
         }
     }
 }
@@ -356,7 +380,7 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     CGFloat roomHeaderHeight = FBTweakValue(@"Rooms", @"My Rooms", @"Room Height", 400);
     
-    return indexPath.section == 0 ? 108 + roomHeaderHeight + 40 : 240;
+    return indexPath.section == 0 ? (8 + 108) + roomHeaderHeight + 40 : 240;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {

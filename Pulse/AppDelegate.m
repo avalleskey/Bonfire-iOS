@@ -11,10 +11,13 @@
 #import "Session.h"
 #import "Launcher.h"
 #import "OnboardingViewController.h"
-#import "LauncherNavigationViewController.h"
+#import "ComplexNavigationController.h"
 #import "SimpleNavigationController.h"
+#import "SearchNavigationController.h"
 
 #import "MyRoomsViewController.h"
+#import "NotificationsTableViewController.h"
+#import "SearchTableViewController.h"
 #import "FeedViewController.h"
 #import "ProfileViewController.h"
 #import "MyRoomsListCell.h"
@@ -56,10 +59,10 @@
     }
     else {
         [self.session signOut];
-        
+    
         [self launchOnboarding];
     }
-    
+
     [self.window makeKeyAndVisible];
     
     // [self setupLaunchAnimation];
@@ -179,10 +182,15 @@
     [vcArray addObject:timeline];
     [vcIndexDictionary setObject:@0 forKey:@"timeline"];
 
+    /*
     LauncherNavigationViewController *trending = [self launcherWithRootViewController:@"trending"];
     [vcArray addObject:trending];
     [vcIndexDictionary setObject:@1 forKey:@"trending"];
-
+     */
+    SearchNavigationController *search = [self searchNavWithRootViewController:@"search"];
+    [vcArray addObject:search];
+    [vcIndexDictionary setObject:@1 forKey:@"search"];
+    
     SimpleNavigationController *rooms = [self simpleNavWithRootViewController:@"rooms"];
     [vcArray addObject:rooms];
     [vcIndexDictionary setObject:@2 forKey:@"rooms"];
@@ -191,13 +199,12 @@
     [vcArray addObject:notifs];
     [vcIndexDictionary setObject:@3 forKey:@"notifs"];
 
-    LauncherNavigationViewController *me = [self launcherWithRootViewController:@"me"];
-    [me updateNavigationBarItemsWithAnimation:NO];
+    SimpleNavigationController *me = [self simpleNavWithRootViewController:@"me"];
     [vcArray addObject:me];
     [vcIndexDictionary setObject:@3 forKey:@"me"];
 
     for (int i = 0; i < [vcArray count]; i++) {
-        LauncherNavigationViewController *navVC = vcArray[i];
+        ComplexNavigationController *navVC = vcArray[i];
         navVC.tabBarItem.title = @"";
         
         navVC.tabBarItem.imageInsets = UIEdgeInsetsMake(5, 0, -5, 0);
@@ -231,6 +238,20 @@
     
     return tabBarController;
 }
+- (SearchNavigationController *)searchNavWithRootViewController:(NSString *)rootID {
+    SearchNavigationController *searchNav;
+    
+    if ([rootID isEqualToString:@"search"]) {
+        SearchTableViewController *viewController = [[SearchTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
+        
+        searchNav = [[SearchNavigationController alloc] initWithRootViewController:viewController];
+    }
+    
+    UITabBarItem *tabBarItem = [[UITabBarItem alloc] initWithTitle:@"" image:[[UIImage imageNamed:[NSString stringWithFormat:@"tabIcon-%@", rootID]] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] selectedImage:[[UIImage imageNamed:[NSString stringWithFormat:@"tabIcon-%@_selected", rootID]] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
+    searchNav.tabBarItem = tabBarItem;
+    
+    return searchNav;
+}
 - (SimpleNavigationController *)simpleNavWithRootViewController:(NSString *)rootID {
     SimpleNavigationController *simpleNav;
     
@@ -242,8 +263,8 @@
                                [Session sharedInstance].defaults.home.feedPageTitle;
         
         simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:viewController];
-        [simpleNav setLeftAction:SNACtionTypeInvite];
-        [simpleNav setRightAction:SNACtionTypeCompose];
+        [simpleNav setLeftAction:SNActionTypeInvite];
+        [simpleNav setRightAction:SNActionTypeCompose];
         
         viewController.tableView.frame = viewController.view.bounds;
     }
@@ -253,14 +274,27 @@
         viewController.title = [Session sharedInstance].defaults.home.myRoomsPageTitle;
         
         simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:viewController];
-        [simpleNav setRightAction:SNACtionTypeAdd];
+        [simpleNav setRightAction:SNActionTypeAdd];
     }
     else if ([rootID isEqualToString:@"notifs"]) {
-        UIViewController *viewController = [[UIViewController alloc] init];
+        NotificationsTableViewController *viewController = [[NotificationsTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
         viewController.title = @"Notifications";
         viewController.view.backgroundColor = [UIColor whiteColor];
         
         simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:viewController];
+    }
+    else if ([rootID isEqualToString:@"me"]) {
+        User *user = [Session sharedInstance].currentUser;
+        
+        ProfileViewController *viewController = [[ProfileViewController alloc] init];
+        NSString *themeCSS = user.attributes.details.color.length == 6 ? user.attributes.details.color : (user.identifier ? @"0076ff" : @"707479");
+        viewController.theme = [UIColor fromHex:themeCSS];
+        viewController.user = user;
+        
+        simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:viewController];
+        [simpleNav setLeftAction:SNActionTypeInvite];
+        [simpleNav setRightAction:SNActionTypeMore];
+        simpleNav.currentTheme = viewController.theme;
     }
     else {
         UIViewController *viewController = [[UIViewController alloc] init];
@@ -273,14 +307,14 @@
     
     return simpleNav;
 }
-- (LauncherNavigationViewController *)launcherWithRootViewController:(NSString *)rootID {
-    LauncherNavigationViewController *launchNav;
+- (ComplexNavigationController *)launcherWithRootViewController:(NSString *)rootID {
+    ComplexNavigationController *launchNav;
     
     if ([rootID isEqualToString:@"timeline"] || [rootID isEqualToString:@"trending"]) {
         FeedType type = [rootID isEqualToString:@"trending"] ? FeedTypeTrending : FeedTypeTimeline;
         FeedViewController *viewController = [[FeedViewController alloc] initWithFeedType:type];
         
-        launchNav = [[LauncherNavigationViewController alloc] initWithRootViewController:viewController];
+        launchNav = [[ComplexNavigationController alloc] initWithRootViewController:viewController];
         [launchNav updateBarColor:[UIColor whiteColor] withAnimation:NO statusBarUpdateDelay:0];
         [launchNav setShadowVisibility:false withAnimation:NO];
         
@@ -290,7 +324,7 @@
         MyRoomsViewController *viewController = [[MyRoomsViewController alloc] initWithStyle:UITableViewStyleGrouped];
         viewController.view.frame = CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height);
         
-        launchNav = [[LauncherNavigationViewController alloc] initWithRootViewController:viewController];
+        launchNav = [[ComplexNavigationController alloc] initWithRootViewController:viewController];
         [launchNav updateBarColor:[UIColor whiteColor] withAnimation:NO statusBarUpdateDelay:0];
         [launchNav setShadowVisibility:false withAnimation:NO];
     }/*
@@ -309,14 +343,14 @@
         
         viewController.user = user;
         
-        launchNav = [[LauncherNavigationViewController alloc] initWithRootViewController:viewController];
+        launchNav = [[ComplexNavigationController alloc] initWithRootViewController:viewController];
         [launchNav updateBarColor:viewController.theme withAnimation:0 statusBarUpdateDelay:0];
-        [launchNav updateSearchText:user.attributes.details.displayName];
+        [launchNav.searchView updateSearchText:user.attributes.details.displayName];
     }
     else {
         UIViewController *viewController = [[UIViewController alloc] init];
         
-        launchNav = [[LauncherNavigationViewController alloc] initWithRootViewController:viewController];
+        launchNav = [[ComplexNavigationController alloc] initWithRootViewController:viewController];
         [launchNav setShadowVisibility:false withAnimation:NO];
         [launchNav updateBarColor:[UIColor whiteColor] withAnimation:NO statusBarUpdateDelay:0];
     }

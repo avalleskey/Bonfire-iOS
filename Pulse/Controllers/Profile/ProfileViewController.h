@@ -11,7 +11,7 @@
 #import "RSTableView.h"
 #import "User.h"
 
-@interface ProfileViewController : UIViewController <UITextViewDelegate>
+@interface ProfileViewController : UIViewController <UITextViewDelegate, RSTableViewPaginationDelegate>
 
 @property (strong, nonatomic) HAWebService *manager;
 

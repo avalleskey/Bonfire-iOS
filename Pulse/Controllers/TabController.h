@@ -7,16 +7,22 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "SearchNavigationController.h"
+#import "SimpleNavigationController.h"
+#import "SearchTableViewController.h"
+#import "MyRoomsViewController.h"
+#import "FeedViewController.h"
+#import "ProfileViewController.h"
+#import "NotificationsTableViewController.h"
 
 @interface TabController : UITabBarController
 
-- (void)addPillWithTitle:(NSString *)title andImage:(UIImage *)image;
-- (void)hidePill:(UIButton *)pill;
-- (void)showPill:(BOOL)withDelay;
-- (UIButton *)currentPill;
-@property (nonatomic) BOOL hasPill;
-
-@property (nonatomic, strong) NSMutableDictionary *pills;
+@property (nonatomic, strong) SimpleNavigationController *myFeedNavVC;
+@property (nonatomic, strong) SimpleNavigationController *trendingNavVC;
+@property (nonatomic, strong) SearchNavigationController *searchNavVC;
+@property (nonatomic, strong) SimpleNavigationController *myRoomsNavVC;
+@property (nonatomic, strong) SimpleNavigationController *notificationsNavVC;
+@property (nonatomic, strong) SimpleNavigationController *myProfileNavVC;
 
 @property (nonatomic, strong) UIView *notificationContainer;
 @property (nonatomic, strong) UIVisualEffectView *notification;

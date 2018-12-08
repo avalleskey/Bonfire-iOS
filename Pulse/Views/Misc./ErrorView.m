@@ -78,7 +78,7 @@ const NSInteger ErrorViewTypeContactsDenied  = 8;
     switch (newType) {
         case ErrorViewTypeGeneral:
             self.imageView.image = [UIImage imageNamed:@"errorGeneral"];
-            self.imageView.backgroundColor = [UIColor colorWithDisplayP3Red:0.96 green:0.54 blue:0.14 alpha:1.0];
+            self.imageView.backgroundColor = [UIColor colorWithDisplayP3Red:0.44 green:0.45 blue:0.47 alpha:1.0];
             break;
         case ErrorViewTypeBlocked:
             self.imageView.image = [UIImage imageNamed:@"errorBlocked"];

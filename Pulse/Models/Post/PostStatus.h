@@ -10,7 +10,7 @@
 
 @interface PostStatus : JSONModel
 
-@property (nonatomic) Room *postedIn;
+@property (nonatomic) Room <Optional> *postedIn;
 @property (nonatomic) NSString *createdAt;
 @property (nonatomic) PostStatusDisplay *display;
 

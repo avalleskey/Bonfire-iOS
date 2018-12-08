@@ -283,14 +283,11 @@
     if (recognizer.state == UIGestureRecognizerStateEnded) {
         CGRect originalFrame = CGRectMake(0, recognizer.view.frame.origin.y, recognizer.view.bounds.size.width, recognizer.view.bounds.size.height);
         if (isLeftSwipeSuccessful) {
-            NSLog(@"left swipe successful");
-            NSLog(@"self sparked? %@", self.sparked ? @"YES" : @"NO");
-            NSLog(@"self !sparked? %@", !self.sparked ? @"YES" : @"NO");
+            // NSLog(@"self sparked? %@", self.sparked ? @"YES" : @"NO");
             [self setSparked:!self.sparked withAnimation:YES];
 
         }
         if (isRightSwipeSuccessful) {
-            NSLog(@"right swipe successful");
             [self showSharePostSheet];
         }
         [self moveViewBackIntoPlace:originalFrame];
@@ -399,17 +396,18 @@
     
     UIAlertAction *shareOnImessage = [UIAlertAction actionWithTitle:@"Share on iMessage" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         NSLog(@"share on imessage");
+        // TODO: share on iMessage snippet
     }];
     [actionSheet addAction:shareOnImessage];
     
     UIAlertAction *shareVia = [UIAlertAction actionWithTitle:@"Share via..." style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-        NSLog(@"share via...");
         [self showSharePostSheet];
     }];
     [actionSheet addAction:shareVia];
     
     UIAlertAction *copyLink = [UIAlertAction actionWithTitle:@"Copy Link" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         NSLog(@"copy link");
+        // TODO: Copy link to post
     }];
     [actionSheet addAction:copyLink];
     

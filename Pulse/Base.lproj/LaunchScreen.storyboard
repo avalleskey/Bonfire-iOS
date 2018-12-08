@@ -18,20 +18,17 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="launch_logo" translatesAutoresizingMaskIntoConstraints="NO" id="H2U-09-bPB">
-                                <rect key="frame" x="67" y="260" width="241" height="147"/>
-                                <constraints>
-                                    <constraint firstAttribute="width" constant="241" id="8VT-Gz-IUo"/>
-                                    <constraint firstAttribute="height" constant="147" id="XPO-kC-gg0"/>
-                                </constraints>
-                            </imageView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Bonfire" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="dhR-Nb-iyD">
+                                <rect key="frame" x="103" y="304.5" width="169" height="58"/>
+                                <fontDescription key="fontDescription" type="system" weight="heavy" pointSize="48"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
-                            <constraint firstItem="H2U-09-bPB" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="9PO-xS-BHV"/>
-                            <constraint firstItem="H2U-09-bPB" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="PRp-7J-P3e"/>
-                            <constraint firstItem="H2U-09-bPB" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="a5Y-AV-FCJ"/>
-                            <constraint firstItem="H2U-09-bPB" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="mC9-Fz-cnF"/>
+                            <constraint firstItem="dhR-Nb-iyD" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="Vf6-qQ-56T"/>
+                            <constraint firstItem="dhR-Nb-iyD" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="xKP-Ly-NRm"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                     </view>
@@ -41,7 +38,4 @@
             <point key="canvasLocation" x="52" y="374.66266866566718"/>
         </scene>
     </scenes>
-    <resources>
-        <image name="launch_logo" width="1731" height="2238"/>
-    </resources>
 </document>

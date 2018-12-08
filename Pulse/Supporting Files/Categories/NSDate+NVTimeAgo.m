@@ -23,7 +23,7 @@
     Mysql Datetime Formatted As Time Ago
     Takes in a mysql datetime string and returns the Time Ago date format
  */
-+ (NSString *)mysqlDatetimeFormattedAsTimeAgo:(NSString *)mysqlDatetime
++ (NSString *)mysqlDatetimeFormattedAsTimeAgo:(NSString *)mysqlDatetime withForm:(TimeAgoForm)form
 {
     //http://stackoverflow.com/questions/10026714/ios-converting-a-date-received-from-a-mysql-server-into-users-local-time
     //If this is not in UTC, we don't have any knowledge about
@@ -33,7 +33,7 @@
     
     NSDate *date = [formatter dateFromString:mysqlDatetime];
     
-    return [date formattedAsTimeAgo];
+    return [date formattedAsTimeAgoWithForm:form];
     
 }
 
@@ -42,7 +42,7 @@
     Formatted As Time Ago
     Returns the date formatted as Time Ago (in the style of the mobile time ago date formatting for Facebook)
  */
-- (NSString *)formattedAsTimeAgo
+- (NSString *)formattedAsTimeAgoWithForm:(TimeAgoForm)form
 {    
     //Now
     NSDate *now = [NSDate date];
@@ -59,31 +59,31 @@
     
     // < 1 hour = "x minutes ago"
     if(secondsSince < HOUR)
-        return [self formatMinutesAgo:secondsSince];
+        return [self formatMinutesAgo:secondsSince withForm:form];
   
     
     // Today = "x hours ago"
     if([self isSameDayAs:now])
-        return [self formatAsToday:secondsSince];
+        return [self formatAsToday:secondsSince withForm:form];
  
     
     // Yesterday = "Yesterday at 1:28 PM"
     if([self isYesterday:now])
-        return [self formatAsYesterday];
+        return [self formatAsYesterdayWithForm:form];
   
     
     // < Last 7 days = "Friday at 1:48 AM"
     if([self isLastWeek:secondsSince])
-        return [self formatAsLastWeek:secondsSince];
+        return [self formatAsLastWeek:secondsSince withForm:form];
 
     
     // < Last 30 days = "March 30 at 1:14 PM"
     if([self isLastMonth:secondsSince])
-        return [self formatAsLastMonth];
+        return [self formatAsLastMonthWithForm:form];
     
     // < 1 year = "September 15"
     if([self isLastYear:secondsSince])
-        return [self formatAsLastYear];
+        return [self formatAsLastYearWithForm:form];
     
     // Anything else = "September 9, 2011"
     return [self formatAsOther];
@@ -183,48 +183,60 @@
 
 
 // < 1 hour = "x minutes ago"
-- (NSString *)formatMinutesAgo:(NSTimeInterval)secondsSince
+- (NSString *)formatMinutesAgo:(NSTimeInterval)secondsSince withForm:(TimeAgoForm)form
 {
     //Convert to minutes
     int minutesSince = (int)secondsSince / MINUTE;
     
     //Handle Plural
-    if(minutesSince == 1)
-        return @"1m";
-    else
+    if (form == TimeAgoShortForm) {
         return [NSString stringWithFormat:@"%dm", minutesSince];
+    }
+    else {
+        return [NSString stringWithFormat:@"%d minute%@ ago", minutesSince, (minutesSince == 1 ? @"" : @"s")];
+    }
 }
 
 
 // Today = "xhr"
-- (NSString *)formatAsToday:(NSTimeInterval)secondsSince
+- (NSString *)formatAsToday:(NSTimeInterval)secondsSince withForm:(TimeAgoForm)form
 {
     //Convert to hours
     int hoursSince = (int)secondsSince / HOUR;
     
-    return [NSString stringWithFormat:@"%dh", hoursSince];
+    if (form == TimeAgoShortForm) {
+        return [NSString stringWithFormat:@"%dh", hoursSince];
+    }
+    else {
+        return [NSString stringWithFormat:@"%d hour%@ ago", hoursSince, (hoursSince == 1 ? @"" : @"s")];
+    }
 }
 
 
 // Yesterday = "Yesterday"
-- (NSString *)formatAsYesterday
+- (NSString *)formatAsYesterdayWithForm:(TimeAgoForm)form
 {
-    return [NSString stringWithFormat:@"1d"];
+    return [NSString stringWithFormat:(form == TimeAgoShortForm ? @"1d" : @"Yesterday")];
 }
 
 
 // < Last 7 days = "Fri"
-- (NSString *)formatAsLastWeek:(NSTimeInterval)secondsSince
+- (NSString *)formatAsLastWeek:(NSTimeInterval)secondsSince withForm:(TimeAgoForm)form
 {
     //Convert to hours
     int daysSince = (int)secondsSince / DAY;
     
-    return [NSString stringWithFormat:@"%dd", daysSince];
+    if (form == TimeAgoShortForm) {
+        return [NSString stringWithFormat:@"%dd", daysSince];
+    }
+    else {
+        return [NSString stringWithFormat:@"%d day%@ ago", daysSince, (daysSince == 1 ? @"" : @"s")];
+    }
 }
 
 
 // < Last 30 days = "Mar 30"
-- (NSString *)formatAsLastMonth
+- (NSString *)formatAsLastMonthWithForm:(TimeAgoForm)form
 {
     //Create date formatter
     NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
@@ -237,7 +249,7 @@
 
 
 // < 1 year = "Sep 15"
-- (NSString *)formatAsLastYear
+- (NSString *)formatAsLastYearWithForm:(TimeAgoForm)form
 {
     //Create date formatter
     NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
@@ -263,45 +275,6 @@
 /*
  =======================================================================
  */
-
-
-
-
-
-/*
- ========================== Test Method ==========================
- */
-
-/*
-    Test the format
-    TODO: Implement unit tests
- */
-+ (void)runTests
-{
-    NSLog(@"1 Second in the future: %@\n", [[NSDate dateWithTimeIntervalSinceNow:1] formattedAsTimeAgo]);
-    NSLog(@"Now: %@\n", [[NSDate dateWithTimeIntervalSinceNow:0] formattedAsTimeAgo]);
-    NSLog(@"1 Second: %@\n", [[NSDate dateWithTimeIntervalSinceNow:-1] formattedAsTimeAgo]);
-    NSLog(@"10 Seconds: %@\n", [[NSDate dateWithTimeIntervalSinceNow:-10] formattedAsTimeAgo]);
-    NSLog(@"1 Minute: %@\n", [[NSDate dateWithTimeIntervalSinceNow:-60] formattedAsTimeAgo]);
-    NSLog(@"2 Minutes: %@\n", [[NSDate dateWithTimeIntervalSinceNow:-120] formattedAsTimeAgo]);
-    NSLog(@"1 Hour: %@\n", [[NSDate dateWithTimeIntervalSinceNow:-HOUR] formattedAsTimeAgo]);
-    NSLog(@"2 Hours: %@\n", [[NSDate dateWithTimeIntervalSinceNow:-2*HOUR] formattedAsTimeAgo]);
-    NSLog(@"1 Day: %@\n", [[NSDate dateWithTimeIntervalSinceNow:-1*DAY] formattedAsTimeAgo]);
-    NSLog(@"1 Day + 3 seconds: %@\n", [[NSDate dateWithTimeIntervalSinceNow:-1*DAY-3] formattedAsTimeAgo]);
-    NSLog(@"2 Days: %@\n", [[NSDate dateWithTimeIntervalSinceNow:-2*DAY] formattedAsTimeAgo]);
-    NSLog(@"3 Days: %@\n", [[NSDate dateWithTimeIntervalSinceNow:-3*DAY] formattedAsTimeAgo]);
-    NSLog(@"5 Days: %@\n", [[NSDate dateWithTimeIntervalSinceNow:-5*DAY] formattedAsTimeAgo]);
-    NSLog(@"6 Days: %@\n", [[NSDate dateWithTimeIntervalSinceNow:-6*DAY] formattedAsTimeAgo]);
-    NSLog(@"7 Days - 1 second: %@\n", [[NSDate dateWithTimeIntervalSinceNow:-7*DAY+1] formattedAsTimeAgo]);
-    NSLog(@"10 Days: %@\n", [[NSDate dateWithTimeIntervalSinceNow:-10*DAY] formattedAsTimeAgo]);
-    NSLog(@"1 Month + 1 second: %@\n", [[NSDate dateWithTimeIntervalSinceNow:-MONTH-1] formattedAsTimeAgo]);
-    NSLog(@"1 Year - 1 second: %@\n", [[NSDate dateWithTimeIntervalSinceNow:-YEAR+1] formattedAsTimeAgo]);
-    NSLog(@"1 Year + 1 second: %@\n", [[NSDate dateWithTimeIntervalSinceNow:-YEAR+1] formattedAsTimeAgo]);
-}
-/*
- =======================================================================
- */
-
 
 
 @end

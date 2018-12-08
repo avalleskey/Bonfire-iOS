@@ -18,6 +18,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (strong, nonatomic) UIVisualEffectView *searchBar;
 @property (strong, nonatomic) BFSearchView *searchView;
+@property (strong, nonatomic) id sender;
 
 @end
 

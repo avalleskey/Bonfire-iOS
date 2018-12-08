@@ -61,7 +61,7 @@
 		D94FD1F3216D730300B84E45 /* RoomStatus.m in Sources */ = {isa = PBXBuildFile; fileRef = D94FD1C2216D730300B84E45 /* RoomStatus.m */; };
 		D94FD1F4216D730300B84E45 /* RoomSummaries.m in Sources */ = {isa = PBXBuildFile; fileRef = D94FD1C3216D730300B84E45 /* RoomSummaries.m */; };
 		D94FD1F5216D730300B84E45 /* Room.m in Sources */ = {isa = PBXBuildFile; fileRef = D94FD1C4216D730300B84E45 /* Room.m */; };
-		D94FD1F6216D730300B84E45 /* RoomDiscoverability.m in Sources */ = {isa = PBXBuildFile; fileRef = D94FD1C7216D730300B84E45 /* RoomDiscoverability.m */; };
+		D94FD1F6216D730300B84E45 /* RoomVisibility.m in Sources */ = {isa = PBXBuildFile; fileRef = D94FD1C7216D730300B84E45 /* RoomVisibility.m */; };
 		D94FD1F7216D730300B84E45 /* PostCounts.m in Sources */ = {isa = PBXBuildFile; fileRef = D94FD1CB216D730300B84E45 /* PostCounts.m */; };
 		D94FD1FB216D730300B84E45 /* PostSummaries.m in Sources */ = {isa = PBXBuildFile; fileRef = D94FD1CF216D730300B84E45 /* PostSummaries.m */; };
 		D94FD1FC216D730300B84E45 /* PostDetails.m in Sources */ = {isa = PBXBuildFile; fileRef = D94FD1D0216D730300B84E45 /* PostDetails.m */; };
@@ -100,7 +100,6 @@
 		D9B2D59221B86C6B007B3C0C /* NotificationCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D9B2D59121B86C6B007B3C0C /* NotificationCell.m */; };
 		D9B2D59621B89255007B3C0C /* NotificationsTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9B2D59521B89255007B3C0C /* NotificationsTableViewController.m */; };
 		D9B2D59C21B8BD8A007B3C0C /* NSAttributedString+NotificationConveniences.m in Sources */ = {isa = PBXBuildFile; fileRef = D9B2D59B21B8BD8A007B3C0C /* NSAttributedString+NotificationConveniences.m */; };
-		D9BD771221727FB000DAB9BE /* RoomSearchTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = D9BD771121727FB000DAB9BE /* RoomSearchTableView.m */; };
 		D9BD77142177D03500DAB9BE /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9BD77132177D03500DAB9BE /* Security.framework */; };
 		D9BD77172177DD1F00DAB9BE /* Defaults.m in Sources */ = {isa = PBXBuildFile; fileRef = D9BD77162177DD1F00DAB9BE /* Defaults.m */; };
 		D9C0393D215A9D8600B30A41 /* SOLOptionsTransitionAnimator.m in Sources */ = {isa = PBXBuildFile; fileRef = D9C0393A215A9D8500B30A41 /* SOLOptionsTransitionAnimator.m */; };
@@ -124,6 +123,7 @@
 		D9CB78F62166E66500EEDBC9 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9CB78F52166E66500EEDBC9 /* CoreGraphics.framework */; };
 		D9CB78F82166E66E00EEDBC9 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9CB78F72166E66E00EEDBC9 /* Foundation.framework */; };
 		D9DB3F4F2198C63400B824A9 /* PostURLPreviewView.m in Sources */ = {isa = PBXBuildFile; fileRef = D9DB3F4E2198C63400B824A9 /* PostURLPreviewView.m */; };
+		D9DCACC821B9E0EA0038C7ED /* PostStream.m in Sources */ = {isa = PBXBuildFile; fileRef = D9DCACC721B9E0EA0038C7ED /* PostStream.m */; };
 		D9EDE5DA216FC76000A869F8 /* ErrorCodes.m in Sources */ = {isa = PBXBuildFile; fileRef = D9EDE5D9216FC76000A869F8 /* ErrorCodes.m */; };
 /* End PBXBuildFile section */
 
@@ -245,14 +245,14 @@
 		D94FD1B8216D730300B84E45 /* RoomCounts.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RoomCounts.m; sourceTree = "<group>"; };
 		D94FD1B9216D730300B84E45 /* RoomAttributes.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RoomAttributes.m; sourceTree = "<group>"; };
 		D94FD1BA216D730300B84E45 /* RoomDetails.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RoomDetails.m; sourceTree = "<group>"; };
-		D94FD1BB216D730300B84E45 /* RoomDiscoverability.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RoomDiscoverability.h; sourceTree = "<group>"; };
+		D94FD1BB216D730300B84E45 /* RoomVisibility.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RoomVisibility.h; sourceTree = "<group>"; };
 		D94FD1C1216D730300B84E45 /* RoomCounts.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RoomCounts.h; sourceTree = "<group>"; };
 		D94FD1C2216D730300B84E45 /* RoomStatus.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RoomStatus.m; sourceTree = "<group>"; };
 		D94FD1C3216D730300B84E45 /* RoomSummaries.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RoomSummaries.m; sourceTree = "<group>"; };
 		D94FD1C4216D730300B84E45 /* Room.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Room.m; sourceTree = "<group>"; };
 		D94FD1C5216D730300B84E45 /* RoomDetails.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RoomDetails.h; sourceTree = "<group>"; };
 		D94FD1C6216D730300B84E45 /* RoomAttributes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RoomAttributes.h; sourceTree = "<group>"; };
-		D94FD1C7216D730300B84E45 /* RoomDiscoverability.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RoomDiscoverability.m; sourceTree = "<group>"; };
+		D94FD1C7216D730300B84E45 /* RoomVisibility.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RoomVisibility.m; sourceTree = "<group>"; };
 		D94FD1C9216D730300B84E45 /* Post.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Post.h; sourceTree = "<group>"; };
 		D94FD1CA216D730300B84E45 /* PostStatus.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PostStatus.h; sourceTree = "<group>"; };
 		D94FD1CB216D730300B84E45 /* PostCounts.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PostCounts.m; sourceTree = "<group>"; };
@@ -328,8 +328,6 @@
 		D9B2D59521B89255007B3C0C /* NotificationsTableViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NotificationsTableViewController.m; sourceTree = "<group>"; };
 		D9B2D59A21B8BD8A007B3C0C /* NSAttributedString+NotificationConveniences.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSAttributedString+NotificationConveniences.h"; sourceTree = "<group>"; };
 		D9B2D59B21B8BD8A007B3C0C /* NSAttributedString+NotificationConveniences.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSAttributedString+NotificationConveniences.m"; sourceTree = "<group>"; };
-		D9BD771021727FB000DAB9BE /* RoomSearchTableView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RoomSearchTableView.h; sourceTree = "<group>"; };
-		D9BD771121727FB000DAB9BE /* RoomSearchTableView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RoomSearchTableView.m; sourceTree = "<group>"; };
 		D9BD77132177D03500DAB9BE /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		D9BD77152177DD1F00DAB9BE /* Defaults.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Defaults.h; sourceTree = "<group>"; };
 		D9BD77162177DD1F00DAB9BE /* Defaults.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Defaults.m; sourceTree = "<group>"; };
@@ -371,6 +369,8 @@
 		D9CB78F72166E66E00EEDBC9 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		D9DB3F4D2198C63400B824A9 /* PostURLPreviewView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PostURLPreviewView.h; sourceTree = "<group>"; };
 		D9DB3F4E2198C63400B824A9 /* PostURLPreviewView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PostURLPreviewView.m; sourceTree = "<group>"; };
+		D9DCACC621B9E0EA0038C7ED /* PostStream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PostStream.h; sourceTree = "<group>"; };
+		D9DCACC721B9E0EA0038C7ED /* PostStream.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PostStream.m; sourceTree = "<group>"; };
 		D9EDE5D8216FC76000A869F8 /* ErrorCodes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ErrorCodes.h; sourceTree = "<group>"; };
 		D9EDE5D9216FC76000A869F8 /* ErrorCodes.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ErrorCodes.m; sourceTree = "<group>"; };
 		F41F73E6D23504AE2C61294E /* libPods-PulseUITests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-PulseUITests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -699,8 +699,8 @@
 				D94FD1C3216D730300B84E45 /* RoomSummaries.m */,
 				D94FD1B6216D730300B84E45 /* RoomStatus.h */,
 				D94FD1C2216D730300B84E45 /* RoomStatus.m */,
-				D94FD1BB216D730300B84E45 /* RoomDiscoverability.h */,
-				D94FD1C7216D730300B84E45 /* RoomDiscoverability.m */,
+				D94FD1BB216D730300B84E45 /* RoomVisibility.h */,
+				D94FD1C7216D730300B84E45 /* RoomVisibility.m */,
 				D94FD1C1216D730300B84E45 /* RoomCounts.h */,
 				D94FD1B8216D730300B84E45 /* RoomCounts.m */,
 				D94FD1C5216D730300B84E45 /* RoomDetails.h */,
@@ -714,6 +714,7 @@
 		D983D72D216D80A500F9D201 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				D9DCACC521B9E0C80038C7ED /* Streams */,
 				D9C8B57A21A5F38A00A9A282 /* Colors */,
 				D9C8B57721A5F31100A9A282 /* Errors */,
 				D95CBC2E2177DF63001E6D2D /* Defaults */,
@@ -808,8 +809,6 @@
 		D9C8B57421A5F20F00A9A282 /* Search */ = {
 			isa = PBXGroup;
 			children = (
-				D9BD771021727FB000DAB9BE /* RoomSearchTableView.h */,
-				D9BD771121727FB000DAB9BE /* RoomSearchTableView.m */,
 				D916430B2162C3A100523770 /* SearchResultCell.h */,
 				D916430C2162C3A100523770 /* SearchResultCell.m */,
 				D9B2D58D21B1F3A4007B3C0C /* BFSearchView.h */,
@@ -977,6 +976,15 @@
 				D9CB78EA2166E1B300EEDBC9 /* VLDContextSheetItemView.m */,
 			);
 			path = VLDContextSheet;
+			sourceTree = "<group>";
+		};
+		D9DCACC521B9E0C80038C7ED /* Streams */ = {
+			isa = PBXGroup;
+			children = (
+				D9DCACC621B9E0EA0038C7ED /* PostStream.h */,
+				D9DCACC721B9E0EA0038C7ED /* PostStream.m */,
+			);
+			path = Streams;
 			sourceTree = "<group>";
 		};
 		F7001DC2F368C816E338C1C0 /* Pods */ = {
@@ -1231,7 +1239,6 @@
 				D9AECE3A21571DBE00F01CAD /* TabBarView.m in Sources */,
 				D96AD79C218102AF00849F6B /* InputCell.m in Sources */,
 				D9C8B564219F897700A9A282 /* MyRoomsListCell.m in Sources */,
-				D9BD771221727FB000DAB9BE /* RoomSearchTableView.m in Sources */,
 				D916431E2165CC0400523770 /* NSDate+NVTimeAgo.m in Sources */,
 				D94DE3322199203C00CA3E1F /* SSWDirectionalPanGestureRecognizer.m in Sources */,
 				D924BE2D21542EE400EB7385 /* PostTextView.m in Sources */,
@@ -1292,9 +1299,10 @@
 				D94DE3342199203C00CA3E1F /* SSWAnimator.m in Sources */,
 				D9B2D57721AE3265007B3C0C /* Reachability.m in Sources */,
 				D9B2D57C21AF2768007B3C0C /* ModifyDefaultsViewController.m in Sources */,
+				D9DCACC821B9E0EA0038C7ED /* PostStream.m in Sources */,
 				D9CB78F02166E1B400EEDBC9 /* VLDContextSheetItemView.m in Sources */,
 				D94FD1FC216D730300B84E45 /* PostDetails.m in Sources */,
-				D94FD1F6216D730300B84E45 /* RoomDiscoverability.m in Sources */,
+				D94FD1F6216D730300B84E45 /* RoomVisibility.m in Sources */,
 				D9B2D57F21B0AB4B007B3C0C /* SimpleNavigationController.m in Sources */,
 				D921171A21ABA91B00853F3F /* UserDiscoverability.m in Sources */,
 				D94FD1FB216D730300B84E45 /* PostSummaries.m in Sources */,

@@ -10,26 +10,138 @@
 #import "Session.h"
 #import <BlocksKit+UIKit.h>
 #import <Tweaks/FBTweakInline.h>
+#import "UIColor+Palette.h"
 
 #define IS_IPHONE        (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone)
 #define IS_IPHONE_5 ([[UIScreen mainScreen] bounds].size.height == 568.0)
 #define IS_IPHONE_X (IS_IPHONE && [[UIScreen mainScreen] bounds].size.height == 812.0)
 #define IS_TINY ([[UIScreen mainScreen] bounds].size.height == 480)
 
-@interface TabController () <UITabBarControllerDelegate> {
-    NSMutableArray *activeOverlays;
-}
+@interface TabController () <UITabBarControllerDelegate>
 
 @end
 
 @implementation TabController
 
+- (id)init {
+    self = [super init];
+    if (self) {        
+        // setup all the view controllers
+        NSMutableArray *vcArray = [[NSMutableArray alloc] init];
+        
+        self.myFeedNavVC = [self simpleNavWithRootViewController:@"timeline"];
+        [vcArray addObject:self.myFeedNavVC];
+        
+        self.trendingNavVC = [self simpleNavWithRootViewController:@"trending"];
+        // [vcArray addObject:self.myFeedNavVC];
+
+        self.searchNavVC = [self searchNavWithRootViewController:@"search"];
+        [vcArray addObject:self.searchNavVC];
+        
+        self.myRoomsNavVC = [self simpleNavWithRootViewController:@"rooms"];
+        [vcArray addObject:self.myRoomsNavVC];
+        
+        self.notificationsNavVC = [self simpleNavWithRootViewController:@"notifs"];
+        [vcArray addObject:self.notificationsNavVC];
+        
+        self.myProfileNavVC = [self simpleNavWithRootViewController:@"me"];
+        [vcArray addObject:self.myProfileNavVC];
+        
+        for (int i = 0; i < [vcArray count]; i++) {
+            UINavigationController *navVC = vcArray[i];
+            navVC.tabBarItem.title = @"";
+            
+            navVC.tabBarItem.imageInsets = UIEdgeInsetsMake(5, 0, -5, 0);
+            [navVC.tabBarItem setTitleTextAttributes:@{NSForegroundColorAttributeName: [UIColor clearColor]}
+                                            forState:UIControlStateNormal];
+            [navVC.tabBarItem setTitleTextAttributes:@{NSForegroundColorAttributeName: [UIColor clearColor]}
+                                            forState:UIControlStateHighlighted];
+            
+            [vcArray replaceObjectAtIndex:i withObject:navVC];
+        }
+                
+        self.viewControllers = vcArray;
+        
+        NSInteger defaultIndex = 2;
+        self.selectedIndex = defaultIndex;
+        [self setSelectedViewController:vcArray[defaultIndex]];
+    }
+    return self;
+}
+- (SearchNavigationController *)searchNavWithRootViewController:(NSString *)rootID {
+    SearchNavigationController *searchNav;
+    
+    if ([rootID isEqualToString:@"search"]) {
+        SearchTableViewController *viewController = [[SearchTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
+        
+        searchNav = [[SearchNavigationController alloc] initWithRootViewController:viewController];
+    }
+    
+    UITabBarItem *tabBarItem = [[UITabBarItem alloc] initWithTitle:@"" image:[[UIImage imageNamed:[NSString stringWithFormat:@"tabIcon-%@", rootID]] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] selectedImage:[[UIImage imageNamed:[NSString stringWithFormat:@"tabIcon-%@_selected", rootID]] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
+    searchNav.tabBarItem = tabBarItem;
+    
+    return searchNav;
+}
+- (SimpleNavigationController *)simpleNavWithRootViewController:(NSString *)rootID {
+    SimpleNavigationController *simpleNav;
+    
+    if ([rootID isEqualToString:@"timeline"] || [rootID isEqualToString:@"trending"]) {
+        FeedType type = [rootID isEqualToString:@"trending"] ? FeedTypeTrending : FeedTypeTimeline;
+        FeedViewController *viewController = [[FeedViewController alloc] initWithFeedType:type];
+        viewController.title = [rootID isEqualToString:@"trending"] ?
+        [Session sharedInstance].defaults.home.discoverPageTitle :
+        [Session sharedInstance].defaults.home.feedPageTitle;
+        
+        simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:viewController];
+        [simpleNav setLeftAction:SNActionTypeInvite];
+        [simpleNav setRightAction:SNActionTypeCompose];
+        
+        viewController.tableView.frame = viewController.view.bounds;
+    }
+    else if ([rootID isEqualToString:@"rooms"]) {
+        MyRoomsViewController *viewController = [[MyRoomsViewController alloc] initWithStyle:UITableViewStyleGrouped];
+        // viewController.view.frame = CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height);
+        viewController.title = [Session sharedInstance].defaults.home.myRoomsPageTitle;
+        
+        simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:viewController];
+        [simpleNav setRightAction:SNActionTypeAdd];
+    }
+    else if ([rootID isEqualToString:@"notifs"]) {
+        NotificationsTableViewController *viewController = [[NotificationsTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
+        viewController.title = @"Notifications";
+        viewController.view.backgroundColor = [UIColor whiteColor];
+        
+        simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:viewController];
+    }
+    else if ([rootID isEqualToString:@"me"]) {
+        User *user = [Session sharedInstance].currentUser;
+        
+        ProfileViewController *viewController = [[ProfileViewController alloc] init];
+        viewController.title = @"My Profile";
+        NSString *themeCSS = user.attributes.details.color.length == 6 ? user.attributes.details.color : (user.identifier ? @"0076ff" : @"707479");
+        viewController.theme = [UIColor fromHex:themeCSS];
+        viewController.user = user;
+        
+        simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:viewController];
+        [simpleNav setLeftAction:SNActionTypeInvite];
+        [simpleNav setRightAction:SNActionTypeMore];
+        simpleNav.currentTheme = viewController.theme;
+    }
+    else {
+        UIViewController *viewController = [[UIViewController alloc] init];
+        
+        simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:viewController];
+    }
+    
+    UITabBarItem *tabBarItem = [[UITabBarItem alloc] initWithTitle:@"" image:[[UIImage imageNamed:[NSString stringWithFormat:@"tabIcon-%@", rootID]] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] selectedImage:[[UIImage imageNamed:[NSString stringWithFormat:@"tabIcon-%@_selected", rootID]] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
+    simpleNav.tabBarItem = tabBarItem;
+    
+    return simpleNav;
+}
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
-    
-    activeOverlays = [[NSMutableArray alloc] init];
-    self.pills = [[NSMutableDictionary alloc] init];
     
     self.tabIndicator = [[UIView alloc] initWithFrame:CGRectMake(20, 0, 22, 2)];
     self.tabIndicator.layer.cornerRadius = self.tabIndicator.frame.size.height / 2;
@@ -93,10 +205,7 @@
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     
-    /*
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        [self addTabBarPressEffects];
-    });*/
+    [self addTabBarPressEffects];
 }
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
@@ -105,22 +214,42 @@
 }
 
 - (void)addTabBarPressEffects {
-    UIView *tabBarItemView = [self viewForTabInTabBar:self.tabBar withIndex:self.selectedIndex];
-    UIImageView *tabBarImageView = nil;
-    for (UIImageView *subview in [tabBarItemView subviews]) {
-        if ([subview isKindOfClass:[UIImageView class]]) {
-            tabBarImageView = subview;
-            break;
-        }
+    for (int i = 0; i < self.viewControllers.count; i++) {
+        UIView *tabBarItemView = [self viewForTabInTabBar:self.tabBar withIndex:i];
+        tabBarItemView.userInteractionEnabled = true;
+        
+        UILongPressGestureRecognizer *pressRecognizer = [[UILongPressGestureRecognizer alloc] bk_initWithHandler:^(UIGestureRecognizer *sender, UIGestureRecognizerState state, CGPoint location) {
+            if (FBTweakValue(@"Home", @"Tab Bar", @"Pop Effect", YES)) {
+                if (state == UIGestureRecognizerStateBegan) {
+                    [UIView animateWithDuration:0.25f delay:0 usingSpringWithDamping:1.f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+                        sender.view.transform = CGAffineTransformMakeScale(0.8, 0.8);
+                    } completion:^(BOOL finished) {
+                    }];
+                }
+                if (state == UIGestureRecognizerStateEnded || state == UIGestureRecognizerStateCancelled) {
+                    [UIView animateWithDuration:0.25f delay:0 usingSpringWithDamping:1.f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+                        sender.view.transform = CGAffineTransformIdentity;
+                    } completion:^(BOOL finished) {
+                    }];
+                }
+                
+                if (state == UIGestureRecognizerStateEnded) {
+                    if (self.selectedIndex != i) {
+                        self.selectedIndex = i;
+                        [self setSelectedViewController:self.viewControllers[i]];
+                    }
+                    [self.delegate tabBarController:self didSelectViewController:self.selectedViewController];
+                }
+            }
+        }];
+        pressRecognizer.minimumPressDuration = CGFLOAT_MIN;
+        
+        [tabBarItemView addGestureRecognizer:pressRecognizer];
     }
-    self.tabIndicator.frame = CGRectMake(tabBarItemView.frame.origin.x + tabBarImageView.frame.origin.x, self.tabIndicator.frame.origin.y, tabBarImageView.frame.size.width, self.tabIndicator.frame.size.height);
-    self.tabIndicator.center = CGPointMake(tabBarItemView.center.x, self.tabIndicator.center.y);
+    
+//    self.tabIndicator.frame = CGRectMake(tabBarItemView.frame.origin.x + tabBarImageView.frame.origin.x, self.tabIndicator.frame.origin.y, tabBarImageView.frame.size.width, self.tabIndicator.frame.size.height);
+//    self.tabIndicator.center = CGPointMake(tabBarItemView.center.x, self.tabIndicator.center.y);
 }
-
-/*
-- (UILabel *)createBubbleWithTitle:(NSString *)title {
-    UILabel *bubble = [[UIView alloc] initwith]
-}*/
 
 - (void)tabBar:(UITabBar *)tabBar didSelectItem:(UITabBarItem *)item {
     NSInteger index = [tabBar.items indexOfObject:item];
@@ -138,6 +267,7 @@
         self.tabIndicator.frame = CGRectMake(tabBarItemView.frame.origin.x + tabBarImageView.frame.origin.x + (tabBarImageView.frame.size.width / 4), self.tabIndicator.frame.origin.y, tabBarImageView.frame.size.width / 2, self.tabIndicator.frame.size.height);
     } completion:nil];
     
+    /*
     if (FBTweakValue(@"Home", @"Tab Bar", @"Pop Effect", YES)) {
         [UIView animateWithDuration:0.25f delay:0 usingSpringWithDamping:1.f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
             tabBarImageView.transform = CGAffineTransformMakeScale(0.8, 0.8);
@@ -148,7 +278,7 @@
             self.tabIndicator.frame = CGRectMake(tabBarItemView.frame.origin.x + tabBarImageView.frame.origin.x, self.tabIndicator.frame.origin.y, tabBarImageView.frame.size.width, self.tabIndicator.frame.size.height);
         } completion:^(BOOL finished) {
         }];
-    }
+    }*/
     
     [self setNeedsStatusBarAppearanceUpdate];
 }
@@ -231,119 +361,6 @@
             self.notificationContainer.frame = CGRectMake(self.notificationContainer.frame.origin.x, 0, self.notificationContainer.frame.size.width, 0);
         } completion:nil];
     }
-}
-
-- (void)addPillWithTitle:(NSString *)title andImage:(UIImage *)image {
-    
-    UIButton *pill = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width  / 2 - 78, -46 - 20, 156, 46)];
-    [pill setTitle:title forState:UIControlStateNormal];
-    [pill setTitleColor:[UIColor colorWithWhite:0 alpha:1] forState:UIControlStateNormal];
-    [pill.titleLabel setFont:[UIFont systemFontOfSize:16.f weight:UIFontWeightBold]];
-    pill.adjustsImageWhenHighlighted = false;
-    [pill setImage:image forState:UIControlStateNormal];
-    [pill setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 10)];
-    [pill setTitleEdgeInsets:UIEdgeInsetsMake(0, 10, 0, 0)];
-    pill.backgroundColor = [UIColor whiteColor];
-    pill.layer.cornerRadius = pill.frame.size.height / 2;
-    pill.layer.shadowOffset = CGSizeMake(0, 1);
-    pill.layer.shadowRadius = 1.f;
-    pill.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.06f].CGColor;
-    pill.layer.shadowOpacity = 1.f;
-    pill.layer.shouldRasterize = true;
-    pill.layer.rasterizationScale = [[UIScreen mainScreen] scale];
-    pill.layer.borderWidth = 1.f;
-    pill.layer.masksToBounds = false;
-    pill.layer.borderColor = [UIColor colorWithWhite:0 alpha:0.08f].CGColor;
-    pill.userInteractionEnabled = true;
-    CGFloat intrinsticWidth = pill.intrinsicContentSize.width + (24*2);
-    pill.frame = CGRectMake(self.view.frame.size.width / 2 - intrinsticWidth / 2, pill.frame.origin.y, intrinsticWidth, pill.frame.size.height);
-    [self.tabBar insertSubview:pill atIndex:0];
-    
-    [pill bk_addEventHandler:^(id sender) {
-        [UIView animateWithDuration:0.25f delay:0 usingSpringWithDamping:0.8f initialSpringVelocity:0.4f options:UIViewAnimationOptionCurveEaseOut animations:^{
-            pill.transform = CGAffineTransformMakeScale(0.9, 0.9);
-        } completion:^(BOOL finished) {
-            
-        }];
-    } forControlEvents:UIControlEventTouchDown];
-    [pill bk_addEventHandler:^(id sender) {
-        [UIView animateWithDuration:0.25f delay:0 usingSpringWithDamping:0.9f initialSpringVelocity:0.4f options:UIViewAnimationOptionCurveEaseOut animations:^{
-            pill.transform = CGAffineTransformMakeScale(1, 1);
-        } completion:^(BOOL finished) {
-            
-        }];
-    } forControlEvents:UIControlEventTouchCancel|UIControlEventTouchDragExit];
-    
-    pill.center = CGPointMake(pill.center.x, self.tabBarController.tabBar.frame.size.height / 2);;
-    pill.transform = CGAffineTransformMakeScale(0.6, 0.6);
-    pill.alpha = 0;
-    
-    NSInteger index = [self.tabBar.items indexOfObject:self.tabBar.selectedItem];
-    [self.pills setObject:pill forKey:[NSString stringWithFormat:@"%ld", (long)index]];
-    
-    [self showPillIfNeeded];
-}
-- (void)hidePill:(UIButton *)pill {
-    if (pill == nil) {
-        pill = [self presentedPill];
-    }
-    [UIView animateWithDuration:0.7f delay:0 usingSpringWithDamping:0.8f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseIn animations:^{
-        pill.center = CGPointMake(pill.center.x, self.tabBar.frame.size.height / 2);
-        pill.transform = CGAffineTransformMakeScale(0.6, 0.6);
-        pill.alpha = 0;
-    } completion:^(BOOL finished) {
-        //        self.addPeriodButton.userInteractionEnabled = false;
-    }];
-}
-- (void)showPill:(BOOL)withDelay {
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(withDelay ? 0.4f : 0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        [self showPillIfNeeded];
-    });
-}
-- (void)showPillIfNeeded {
-    NSInteger index = [self.tabBar.items indexOfObject:self.tabBar.selectedItem];
-    if ([self.pills objectForKey:[NSString stringWithFormat:@"%ld", (long)index]]) {
-        UIButton *pill = [self currentPill];
-        
-        self.hasPill = true;
-        
-        // hdie other pills
-        BOOL previousPill = [self presentedPill] != nil;
-        [self hidePill:[self presentedPill]];
-        
-        [UIView animateWithDuration:0.6f delay:(previousPill ? 0.3f : 0) usingSpringWithDamping:0.75f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseIn animations:^{
-            pill.alpha = 1;
-            pill.transform = CGAffineTransformIdentity;
-            pill.center = CGPointMake(pill.center.x, -68 + pill.frame.size.height / 2);
-        } completion:nil];
-    }
-    else if (self.hasPill) {
-        self.hasPill = false;
-        [self hidePill:[self presentedPill]];
-    }
-}
-- (UIButton *)currentPill {
-    NSInteger index = [self.tabBar.items indexOfObject:self.tabBar.selectedItem];
-    
-    if ([self.pills objectForKey:[NSString stringWithFormat:@"%ld", (long)index]]) {
-        NSLog(@"current pill!");
-        return [self.pills objectForKey:[NSString stringWithFormat:@"%ld", (long)index]];
-    }
-    else {
-        NSLog(@"no current pill ;(");
-        return nil;
-    }
-}
-- (UIButton *)presentedPill {
-    NSArray *pillsKeys = [self.pills allKeys];
-    for (int i = 0; i < [pillsKeys count]; i++) {
-        UIButton *pill = self.pills[pillsKeys[i]];
-        if (pill.alpha == 1) {
-            NSLog(@"presented pill!");
-            return pill;
-        }
-    }
-    return nil;
 }
 
 @end

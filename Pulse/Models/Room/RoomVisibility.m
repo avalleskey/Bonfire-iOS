@@ -1,6 +1,6 @@
-#import "RoomDiscoverability.h"
+#import "RoomVisibility.h"
 
-@implementation RoomDiscoverability
+@implementation RoomVisibility
 
 + (JSONKeyMapper *)keyMapper {
     return [JSONKeyMapper mapperForSnakeCase];

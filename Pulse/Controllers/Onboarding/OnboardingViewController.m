@@ -14,6 +14,7 @@
 #import "ComplexNavigationController.h"
 #import "UIColor+Palette.h"
 #import "Launcher.h"
+#import <Tweaks/FBTweakInline.h>
 
 #import <RSKImageCropper/RSKImageCropper.h>
 
@@ -1500,7 +1501,15 @@
     return maskRect;
 }
 - (UIBezierPath *)imageCropViewControllerCustomMaskPath:(RSKImageCropViewController *)controller {
-    CGFloat circleRadius = controller.maskRect.size.width * .25;
+    CGFloat circleRadius;
+    BOOL circleProfilePictures = FBTweakValue(@"Post", @"General", @"Circle Profile Pictures", NO);
+    if (circleProfilePictures) {
+        circleRadius = controller.maskRect.size.width * .5;
+    }
+    else {
+        circleRadius = controller.maskRect.size.width * .25;
+    }
+    
     UIBezierPath *path = [UIBezierPath bezierPathWithRoundedRect:controller.maskRect
                                                byRoundingCorners:UIRectCornerBottomLeft|UIRectCornerBottomRight|UIRectCornerTopLeft|UIRectCornerTopRight
                                                      cornerRadii:CGSizeMake(circleRadius, circleRadius)];

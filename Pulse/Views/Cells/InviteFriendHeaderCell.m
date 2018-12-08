@@ -15,6 +15,7 @@
 #import "Defaults.h"
 #import "RoomViewController.h"
 #import "UIColor+Palette.h"
+#import <Tweaks/FBTweakInline.h>
 
 #define UIViewParentController(__view) ({ \
         UIResponder *__responder = __view; \
@@ -105,6 +106,8 @@
     // line separator
     self.lineSeparator.frame = CGRectMake(0, self.frame.size.height - 1 / [UIScreen mainScreen].scale, self.frame.size.width, 1 / [UIScreen mainScreen].scale);
     
+    self.member1.tintColor = self.tintColor;
+    
     self.contentView.frame = self.bounds;
     
     // profile pic collage
@@ -128,7 +131,14 @@
 }
 
 - (void)styleMemberProfilePictureView:(UIImageView *)imageView  {
-    [self continuityRadiusForView:imageView withRadius:imageView.frame.size.height * .25];
+    BOOL circleProfilePictures = FBTweakValue(@"Post", @"General", @"Circle Profile Pictures", NO);
+    if (circleProfilePictures) {
+        [self continuityRadiusForView:imageView withRadius:imageView.frame.size.height * .5];
+    }
+    else {
+        [self continuityRadiusForView:imageView withRadius:imageView.frame.size.height * .25];
+    }
+    
     imageView.image = [[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
     imageView.tintColor = [UIColor bonfireGray];
 }

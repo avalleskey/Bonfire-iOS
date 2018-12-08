@@ -19,8 +19,11 @@
 #import "AppDelegate.h"
 #import "TabController.h"
 #import "InviteFriendTableViewController.h"
+
 #import <Tweaks/FBTweakViewController.h>
 #import <Tweaks/FBTweakStore.h>
+#import <Messages/Messages.h>
+#import <MessageUI/MessageUI.h>
 
 #define UIViewParentController(__view) ({ \
     UIResponder *__responder = __view; \
@@ -29,7 +32,7 @@
     (UIViewController *)__responder; \
 })
 
-@interface Launcher () <FBTweakViewControllerDelegate>
+@interface Launcher () <FBTweakViewControllerDelegate, MFMessageComposeViewControllerDelegate>
 
 @end
 
@@ -84,13 +87,14 @@ static Launcher *launcher;
 }
 
 - (void)launchLoggedIn:(BOOL)animated {
-    AppDelegate *delegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
-    TabController *tbc = [delegate createTabBarController];
+    AppDelegate *ad = (AppDelegate *)[UIApplication sharedApplication].delegate;
+    TabController *tbc = [[TabController alloc] init];
+    tbc.delegate = ad;
     tbc.transitioningDelegate = launcher;
     
     [[launcher activeViewController] presentViewController:tbc animated:animated completion:^{
-        delegate.window.rootViewController = tbc;
-        [delegate.window makeKeyAndVisible];
+        ad.window.rootViewController = tbc;
+        [ad.window makeKeyAndVisible];
     }];
 }
 
@@ -221,6 +225,11 @@ static Launcher *launcher;
     
     p.user = user;
     
+    NSString *searchText = @"Unkown User";
+    
+    if (p.user.attributes.details.displayName != nil) searchText = p.user.attributes.details.displayName;
+    if (p.user.attributes.details.identifier != nil) searchText = [NSString stringWithFormat:@"@%@", p.user.attributes.details.identifier];
+    
     ComplexNavigationController *activeLauncherNavVC = [launcher activeLauncherNavigationController];
     if ([launcher activeTabController] != nil || activeLauncherNavVC == nil) {
         if (activeLauncherNavVC != nil) {
@@ -228,7 +237,7 @@ static Launcher *launcher;
         }
         
         ComplexNavigationController *newLauncher = [[ComplexNavigationController alloc] initWithRootViewController:p];
-        [newLauncher.searchView updateSearchText:p.user.attributes.details.displayName];
+        [newLauncher.searchView updateSearchText:searchText];
         newLauncher.transitioningDelegate = self;
         
         [newLauncher updateBarColor:p.theme withAnimation:0 statusBarUpdateDelay:NO];
@@ -239,7 +248,7 @@ static Launcher *launcher;
     }
     else {
         if (activeLauncherNavVC != nil) {
-            [activeLauncherNavVC.searchView updateSearchText:p.user.attributes.details.displayName];
+            [activeLauncherNavVC.searchView updateSearchText:searchText];
             
             [activeLauncherNavVC updateBarColor:p.theme withAnimation:2 statusBarUpdateDelay:NO];
             
@@ -253,7 +262,13 @@ static Launcher *launcher;
     PostViewController *p = [[PostViewController alloc] init];
     
     p.post = post;
-    NSString *themeCSS = [post.attributes.status.postedIn.attributes.details.color lowercaseString];
+    NSString *themeCSS;
+    if (post.attributes.status.postedIn != nil) {
+        themeCSS = [post.attributes.status.postedIn.attributes.details.color lowercaseString];
+    }
+    else {
+        themeCSS = [post.attributes.details.creator.attributes.details.color lowercaseString];
+    }
     p.theme = [UIColor fromHex:[themeCSS isEqualToString:@"ffffff"]?@"222222":themeCSS];
     p.title = @"Conversation";
     
@@ -336,14 +351,17 @@ static Launcher *launcher;
     [self present:newNavController animated:YES];
 }
 
-- (void)openInviteFriends {
+- (void)openInviteFriends:(id)sender {
     InviteFriendTableViewController *ifvc = [[InviteFriendTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
+    if ([sender isKindOfClass:[Room class]]) {
+        // attach room as object -> add context to message
+        ifvc.sender = sender;
+    }
     
     UINavigationController *newNavController = [[UINavigationController alloc] initWithRootViewController:ifvc];
     newNavController.transitioningDelegate = launcher;
     newNavController.navigationBar.barStyle = UIBarStyleBlack;
     newNavController.navigationBar.translucent = false;
-    newNavController.navigationBar.barTintColor = [UIColor bonfireBlue];
     [newNavController setNeedsStatusBarAppearanceUpdate];
     
     [launcher present:newNavController animated:YES];
@@ -353,6 +371,28 @@ static Launcher *launcher;
     OnboardingViewController *o = [[OnboardingViewController alloc] init];
     o.transitioningDelegate = self;
     [launcher present:o animated:YES];
+}
+
+- (void)shareOniMessage:(NSString *)message image:(UIImage * _Nullable)image {
+    // confirm action
+    MFMessageComposeViewController *messageController = [[MFMessageComposeViewController alloc] init]; // Create message VC
+    messageController.messageComposeDelegate = self; // Set delegate to current instance
+    messageController.transitioningDelegate = [Launcher sharedInstance];
+    
+    messageController.body = message; // Set initial text to example message
+    
+    if (image != nil) {
+        NSData *dataImg = UIImagePNGRepresentation(image);//Add the image as attachment
+        [messageController addAttachmentData:dataImg typeIdentifier:@"public.data" filename:@"Image.png"];
+    }
+    
+    //NSData *dataImg = UIImagePNGRepresentation([UIImage imageNamed:@"logoApple"]);//Add the image as attachment
+    //[messageController addAttachmentData:dataImg typeIdentifier:@"public.data" filename:@"Image.png"];
+    messageController.transitioningDelegate = self;
+    [launcher present:messageController animated:YES];
+}
+- (void)messageComposeViewController:(MFMessageComposeViewController *)controller didFinishWithResult:(MessageComposeResult)result {
+    [controller dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (void)openTweaks {

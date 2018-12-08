@@ -24,10 +24,9 @@
 
 #define expandedImageHeightDefault 180
 
-#define expandedPostContentOffset UIEdgeInsetsMake(20, 12, 0, 12)
+#define expandedPostContentOffset UIEdgeInsetsMake(17, 12, 0, 12)
 #define expandedTextViewFont [UIFont systemFontOfSize:20.f weight:UIFontWeightRegular]
 #define expandedActionsViewHeight 44
-#define expandedTextViewYPos 68
 
 @interface ExpandedPostCell : UITableViewCell <UITextFieldDelegate>
 
@@ -45,7 +44,6 @@
 @property (strong, nonatomic) UILabel *dateLabel;
 @property (strong, nonatomic) UIImageView *pictureView;
 @property (strong, nonatomic) UILabel *nameLabel;
-@property (strong, nonatomic) UIButton *postDetailsButton;
 @property (strong, nonatomic) PostActionsView *actionsView;
 
 @property (strong, nonatomic) UIView *lineSeparator;

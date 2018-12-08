@@ -22,8 +22,8 @@
         _textView.selectable = false;
         _textView.userInteractionEnabled = true;
         _textView.font = [UIFont preferredFontForTextStyle:UIFontTextStyleBody];
-        _textView.textContainer.lineFragmentPadding = 0;
         _textView.contentInset = UIEdgeInsetsZero;
+        _textView.textContainer.lineFragmentPadding = 0;
         _textView.scrollEnabled = false;
         _textView.textContainerInset = UIEdgeInsetsMake(6, 12, 6, 12);
         _textView.textColor = [UIColor colorWithWhite:0.07f alpha:1];
@@ -46,16 +46,13 @@
 }
 
 - (void)textViewDidChange:(UITextView *)textView {
-    NSLog(@"textview text: %@", textView.text);
     [self resize];
 }
 
 - (CGSize)size {
-    CGSize size = [self.textView sizeThatFits:CGSizeMake((self.superview.frame.size.width - self.frame.origin.x - 16) - (_textView.contentInset.left + _textView.contentInset.right), CGFLOAT_MAX)];
-    CGFloat height = _textView.contentInset.top + size.height + _textView.contentInset.bottom;
-    
-    CGSize resized = CGSizeMake(ceilf(size.width) + (_textView.contentInset.left + _textView.contentInset.right), ceilf(height));
-    return resized;
+    CGSize size = [self.textView sizeThatFits:CGSizeMake((self.superview.frame.size.width - self.frame.origin.x - 24), CGFLOAT_MAX)];
+
+    return CGSizeMake(ceilf(size.width), ceilf(size.height));
 }
 
 - (void)resize {

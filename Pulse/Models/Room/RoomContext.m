@@ -25,10 +25,9 @@ NSString * const ROOM_STATUS_LOADING = @"loading";
 }
 
 - (void)setStatusWithString:(NSString *)string {
-    NSLog(@"self::::::::: %@", self);
-    NSLog(@"self.status:::PPP: %@", self.status);
-    
-    self.status = string;
+    if (string != _status) {
+        _status = string;
+    }
 }
 
 @end

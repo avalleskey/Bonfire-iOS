@@ -15,6 +15,8 @@
 #import "Room.h"
 #import "UIColor+Palette.h"
 #import <Tweaks/FBTweakInline.h>
+#import "NSDictionary+Clean.h"
+#import "NSArray+Clean.h"
 
 #define envConfig [[[NSUserDefaults standardUserDefaults] objectForKey:@"config"] objectForKey:[[NSUserDefaults standardUserDefaults] stringForKey:@"environment"]]
 
@@ -42,11 +44,10 @@ static Session *session;
         
         if ([[NSUserDefaults standardUserDefaults] objectForKey:@"user"]) {
             session.currentUser = [[User alloc] initWithData:[[NSUserDefaults standardUserDefaults] objectForKey:@"user"] error:nil];
-            NSLog(@"session user: %@", session.currentUser);
+            NSLog(@"🙎‍♂️ User: @%@", session.currentUser.attributes.details.identifier);
         }
         
         if ([session getAccessTokenWithVerification:true] != nil) {
-            NSLog(@"has access token");
             // update user object
             [session fetchUser:^(BOOL success) {
                 
@@ -73,7 +74,6 @@ static Session *session;
     [[NSNotificationCenter defaultCenter] addObserver:session selector:@selector(HTTPOperationDidFinish:) name:AFNetworkingTaskDidCompleteNotification object:nil];
 }
 - (void)initDefaults {
-    NSLog(@"initDefaults");
     if([[NSUserDefaults standardUserDefaults] dictionaryForKey:@"app_defaults"] == nil) {
         NSString *bundlePath = [[NSBundle mainBundle] pathForResource:@"LocalDefaults" ofType:@"json"];
         NSData *data = [NSData dataWithContentsOfFile:bundlePath];
@@ -162,14 +162,14 @@ static Session *session;
     NSInteger statusCode = httpResponse.statusCode;
     
     if (statusCode != 0) {        
-        NSLog(@"status code:: %ld", (long)statusCode);
+        // NSLog(@"status code:: %ld", (long)statusCode);
         
         if (statusCode == BAD_AUTHENTICATION) {
             NSLog(@"40: BAD AUTHENTICATION");
             // try getting new auth token
             [session getNewAcessToken:^(BOOL success, NSString *newToken) {
                 if (success) {
-                    NSLog(@"successfully got new access token: %@", newToken);
+                    //NSLog(@"successfully got new access token: %@", newToken);
                 }
                 else {
                     NSLog(@"bad token");
@@ -235,15 +235,12 @@ static Session *session;
         
         [session.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", accessToken[@"attributes"][@"access_token"]] forHTTPHeaderField:@"Authorization"];
         [session.manager GET:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-            NSLog(@"responseObject: %@", responseObject[@"data"][@"attributes"][@"details"]);
-            
             NSError *error;
             
             User *user = [[User alloc] initWithDictionary:responseObject[@"data"] error:&error];
             if (error) { NSLog(@"GET -> /users/me; User error: %@", error); }
             
             [session updateUser:user];
-            NSLog(@"🙎‍♂️ User: @%@", user.attributes.details.identifier);
             [[NSNotificationCenter defaultCenter] postNotificationName:@"UserUpdated" object:user];
             
             handler(TRUE);
@@ -255,6 +252,58 @@ static Session *session;
             handler(FALSE);
         }];
     }
+}
+
+- (void)addToRecents:(id)object {
+    if ([object isKindOfClass:[Room class]] ||
+        [object isKindOfClass:[User class]]) {
+        NSMutableArray *searchRecents = [[NSMutableArray alloc] initWithArray:[[NSUserDefaults standardUserDefaults] arrayForKey:@"recents_search"]];
+        
+        NSDictionary *objJSON = [object toDictionary];
+        
+        // add object or push to front if in recents
+        BOOL existingMatch = false;
+        for (NSInteger i = 0; i < [searchRecents count]; i++) {
+            NSDictionary *result = searchRecents[i];
+            if (objJSON[@"type"] && objJSON[@"id"] &&
+                result[@"type"] && result[@"id"]) {
+                if ([objJSON[@"type"] isEqualToString:result[@"type"]] && [[self convertToString:objJSON[@"id"]] isEqualToString:[self convertToString:result[@"id"]]]) {
+                    existingMatch = true;
+                    
+                    [searchRecents removeObjectAtIndex:i];
+                    [searchRecents insertObject:objJSON atIndex:0];
+                    break;
+                }
+            }
+        }
+        if (!existingMatch) {
+            // remove context first
+            if ([object isKindOfClass:[Room class]]) {
+                Room *room = (Room *)object;
+                room.attributes.context = nil;
+                
+                [searchRecents insertObject:[room toDictionary] atIndex:0];
+            }
+            else if ([object isKindOfClass:[User class]]) {
+                User *user = (User *)object;
+                //user.attributes.context = nil;
+                
+                [searchRecents insertObject:[user toDictionary] atIndex:0];
+            }
+            
+            
+            if (searchRecents.count > 8) {
+                searchRecents = [[NSMutableArray alloc] initWithArray:[searchRecents subarrayWithRange:NSMakeRange(0, 8)]];
+            }
+        }
+        
+        // update NSUserDefaults
+        NSLog(@"set new : %@", [searchRecents clean]);
+        [[NSUserDefaults standardUserDefaults] setObject:[searchRecents clean] forKey:@"recents_search"];
+    }
+}
+- (NSString *)convertToString:(id)object {
+    return [NSString stringWithFormat:@"%@", object];
 }
 
 // Auth Tokens
@@ -703,6 +752,7 @@ static Session *session;
         [[NSNotificationCenter defaultCenter] postNotificationName:@"refreshMyRooms" object:nil];
         
         NSError *error;
+        NSLog(@"responseObject: %@", responseObject);
         RoomContext *roomContextResponse = [[RoomContext alloc] initWithDictionary:responseObject[@"data"] error:&error];
         
         if (!error) { NSLog(@"room context reponse:"); NSLog(@"%@", roomContextResponse); };
@@ -723,7 +773,7 @@ static Session *session;
     [session.manager.requestSerializer setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
     [session.manager DELETE:url parameters:params success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSLog(@"--------");
-        NSLog(@"success: followRoom");
+        NSLog(@"success: unfollowRoom");
         NSLog(@"--------");
         
         // refresh my rooms

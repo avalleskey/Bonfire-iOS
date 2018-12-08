@@ -14,6 +14,7 @@
 #import <SpriteKit/SpriteKit.h>
 #import "Session.h"
 #import "Launcher.h"
+#import <Tweaks/FBTweakInline.h>
 
 @implementation ProfileHeaderCell
 
@@ -87,7 +88,7 @@
                 
                 [[Session sharedInstance] unfollowUser:self.user completion:^(BOOL success, id responseObject) {
                     if (success) {
-                        NSLog(@"success unfollowing user");
+                        // NSLog(@"success unfollowing user");
                     }
                 }];
             }
@@ -97,14 +98,13 @@
                 // follow the user
                 
                 // TODO: Add private user check -> "Requested"
-                // (self.user.attributes.status.discoverability.isPrivate) &&
+                // (self.user.attributes.status.visibility.isPrivate) &&
                 // ![self.followButton.status isEqualToString:USER_STATUS_FOLLOWED]
                 
                 if ([self.followButton.status isEqualToString:USER_STATUS_FOLLOWED]) {
                     [self.followButton updateStatus:USER_STATUS_FOLLOW_BOTH];
                 }
                 else {
-                    NSLog(@"set user status to follows");
                     [self.followButton updateStatus:USER_STATUS_FOLLOWS];
                 }
                 [self updateUserStatus];
@@ -113,7 +113,7 @@
                 
                 [[Session sharedInstance] followUser:self.user completion:^(BOOL success, id responseObject) {
                     if (success) {
-                        NSLog(@"success following user");
+                        // NSLog(@"success following user");
                     }
                 }];
                 
@@ -143,7 +143,13 @@
         }];
         [self.contentView addSubview:self.followButton];
         
-        [self continuityRadiusForView:self.profilePicture withRadius:self.profilePicture.frame.size.height * .25];
+        BOOL circleProfilePictures = FBTweakValue(@"Post", @"General", @"Circle Profile Pictures", NO);
+        if (circleProfilePictures) {
+            [self continuityRadiusForView:self.profilePicture withRadius:self.profilePicture.frame.size.height * .5];
+        }
+        else {
+            [self continuityRadiusForView:self.profilePicture withRadius:self.profilePicture.frame.size.height * .25];
+        }
         
         self.lineSeparator = [[UIView alloc] init];
         self.lineSeparator.backgroundColor = [UIColor colorWithWhite:0.9 alpha:1];
@@ -190,6 +196,9 @@
     
     self.statActionButton.frame = CGRectMake(12, 0, self.statsView.frame.size.width / 2 - 12, self.statsView.frame.size.height);
     self.postsCountLabel.frame = CGRectMake(self.statsView.frame.size.width / 2, 0, self.statsView.frame.size.width / 2 - 12, self.statsView.frame.size.height);
+    
+    self.followButton.hidden = (self.user.identifier.length == 0);
+    self.statsView.hidden = (self.user.identifier.length == 0);
 }
 
 - (void)styleMemberProfilePictureView:(UIImageView *)imageView  {

@@ -192,10 +192,8 @@
                 
                 [self.manager GET:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                     // NSLog(@"CommonTableViewController / getReplies() success! ✅");
-                    
-                    NSArray *responseData = (NSArray *)responseObject[@"data"];
-
-                    self.tableView.data = [[NSMutableArray alloc] initWithArray:responseData];
+                    PostStreamPage *page = [[PostStreamPage alloc] initWithDictionary:responseObject error:nil];
+                    [self.tableView.stream appendPage:page];
                     
                     self.loading = false;
                     

@@ -72,8 +72,8 @@
         } forControlEvents:(UIControlEventTouchUpInside|UIControlEventTouchCancel|UIControlEventTouchDragExit)];
         [self addSubview:_shareButton];
         
-        self.lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(self.frame.size.width / 2 - .5, 0, 1, self.frame.size.height)];
-        self.lineSeparator.backgroundColor = [UIColor colorWithWhite:0.95f alpha:1];
+        _lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(self.frame.size.width / 2 - .5, 0, 1, self.frame.size.height)];
+        _lineSeparator.backgroundColor = [UIColor colorWithWhite:0.95f alpha:1];
         [self addSubview:self.lineSeparator];
     }
     return self;

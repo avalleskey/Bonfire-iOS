@@ -24,6 +24,7 @@
 #import <SDWebImageCodersManager.h>
 #import <SDWebImageGIFCoder.h>
 #import "UIColor+Palette.h"
+#import <Tweaks/FBTweakInline.h>
 
 @interface AppDelegate ()
 
@@ -168,197 +169,9 @@
     [[NSUserDefaults standardUserDefaults] setInteger:launches forKey:@"launches"];
     
     // User is signed in.
-    self.window.rootViewController = [self createTabBarController];
-}
-- (TabController *)createTabBarController {
-    TabController *tabBarController = [[TabController alloc] init];
-    tabBarController.delegate = self;
-    
-    // setup all the view controllers
-    NSMutableArray *vcArray = [[NSMutableArray alloc] init];
-    NSMutableDictionary *vcIndexDictionary = [[NSMutableDictionary alloc] init];
-    
-    SimpleNavigationController *timeline = [self simpleNavWithRootViewController:@"timeline"];
-    [vcArray addObject:timeline];
-    [vcIndexDictionary setObject:@0 forKey:@"timeline"];
-
-    /*
-    LauncherNavigationViewController *trending = [self launcherWithRootViewController:@"trending"];
-    [vcArray addObject:trending];
-    [vcIndexDictionary setObject:@1 forKey:@"trending"];
-     */
-    SearchNavigationController *search = [self searchNavWithRootViewController:@"search"];
-    [vcArray addObject:search];
-    [vcIndexDictionary setObject:@1 forKey:@"search"];
-    
-    SimpleNavigationController *rooms = [self simpleNavWithRootViewController:@"rooms"];
-    [vcArray addObject:rooms];
-    [vcIndexDictionary setObject:@2 forKey:@"rooms"];
-
-    SimpleNavigationController *notifs = [self simpleNavWithRootViewController:@"notifs"];
-    [vcArray addObject:notifs];
-    [vcIndexDictionary setObject:@3 forKey:@"notifs"];
-
-    SimpleNavigationController *me = [self simpleNavWithRootViewController:@"me"];
-    [vcArray addObject:me];
-    [vcIndexDictionary setObject:@3 forKey:@"me"];
-
-    for (int i = 0; i < [vcArray count]; i++) {
-        ComplexNavigationController *navVC = vcArray[i];
-        navVC.tabBarItem.title = @"";
-        
-        navVC.tabBarItem.imageInsets = UIEdgeInsetsMake(5, 0, -5, 0);
-        [navVC.tabBarItem setTitleTextAttributes:@{NSForegroundColorAttributeName: [UIColor clearColor]}
-                                        forState:UIControlStateNormal];
-        [navVC.tabBarItem setTitleTextAttributes:@{NSForegroundColorAttributeName: [UIColor clearColor]}
-                                        forState:UIControlStateHighlighted];
-        
-        [vcArray replaceObjectAtIndex:i withObject:navVC];
-    }
-    
-    tabBarController.viewControllers = vcArray;
-    
-    /*
-    for (int i = 0; i < [vcArray count]; i++) {
-        LauncherNavigationViewController *launchNav = vcArray[i];
-        
-        [launchNav updateNavigationBarItemsWithAnimation:NO];
-        [launchNav positionTextFieldSearchIcon];
-    }*/
-    
-//    NSLog(@"set last opened to %@", viewLastOpened);
-//    if ([vcIndexDictionary objectForKey:viewLastOpened]) {
-//        int selectedIndex = [vcIndexDictionary[viewLastOpened] intValue];
-//        NSLog(@"selected index %i", selectedIndex);
-//        tabBarController.selectedIndex = selectedIndex;
-//        [tabBarController setSelectedViewController:vcArray[selectedIndex]];
-//    }
-    tabBarController.selectedIndex = 2;
-    [tabBarController setSelectedViewController:vcArray[2]];
-    
-    return tabBarController;
-}
-- (SearchNavigationController *)searchNavWithRootViewController:(NSString *)rootID {
-    SearchNavigationController *searchNav;
-    
-    if ([rootID isEqualToString:@"search"]) {
-        SearchTableViewController *viewController = [[SearchTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
-        
-        searchNav = [[SearchNavigationController alloc] initWithRootViewController:viewController];
-    }
-    
-    UITabBarItem *tabBarItem = [[UITabBarItem alloc] initWithTitle:@"" image:[[UIImage imageNamed:[NSString stringWithFormat:@"tabIcon-%@", rootID]] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] selectedImage:[[UIImage imageNamed:[NSString stringWithFormat:@"tabIcon-%@_selected", rootID]] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
-    searchNav.tabBarItem = tabBarItem;
-    
-    return searchNav;
-}
-- (SimpleNavigationController *)simpleNavWithRootViewController:(NSString *)rootID {
-    SimpleNavigationController *simpleNav;
-    
-    if ([rootID isEqualToString:@"timeline"] || [rootID isEqualToString:@"trending"]) {
-        FeedType type = [rootID isEqualToString:@"trending"] ? FeedTypeTrending : FeedTypeTimeline;
-        FeedViewController *viewController = [[FeedViewController alloc] initWithFeedType:type];
-        viewController.title = [rootID isEqualToString:@"trending"] ?
-                               [Session sharedInstance].defaults.home.discoverPageTitle :
-                               [Session sharedInstance].defaults.home.feedPageTitle;
-        
-        simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:viewController];
-        [simpleNav setLeftAction:SNActionTypeInvite];
-        [simpleNav setRightAction:SNActionTypeCompose];
-        
-        viewController.tableView.frame = viewController.view.bounds;
-    }
-    else if ([rootID isEqualToString:@"rooms"]) {
-        MyRoomsViewController *viewController = [[MyRoomsViewController alloc] initWithStyle:UITableViewStyleGrouped];
-        // viewController.view.frame = CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height);
-        viewController.title = [Session sharedInstance].defaults.home.myRoomsPageTitle;
-        
-        simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:viewController];
-        [simpleNav setRightAction:SNActionTypeAdd];
-    }
-    else if ([rootID isEqualToString:@"notifs"]) {
-        NotificationsTableViewController *viewController = [[NotificationsTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
-        viewController.title = @"Notifications";
-        viewController.view.backgroundColor = [UIColor whiteColor];
-        
-        simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:viewController];
-    }
-    else if ([rootID isEqualToString:@"me"]) {
-        User *user = [Session sharedInstance].currentUser;
-        
-        ProfileViewController *viewController = [[ProfileViewController alloc] init];
-        NSString *themeCSS = user.attributes.details.color.length == 6 ? user.attributes.details.color : (user.identifier ? @"0076ff" : @"707479");
-        viewController.theme = [UIColor fromHex:themeCSS];
-        viewController.user = user;
-        
-        simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:viewController];
-        [simpleNav setLeftAction:SNActionTypeInvite];
-        [simpleNav setRightAction:SNActionTypeMore];
-        simpleNav.currentTheme = viewController.theme;
-    }
-    else {
-        UIViewController *viewController = [[UIViewController alloc] init];
-        
-        simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:viewController];
-    }
-    
-    UITabBarItem *tabBarItem = [[UITabBarItem alloc] initWithTitle:@"" image:[[UIImage imageNamed:[NSString stringWithFormat:@"tabIcon-%@", rootID]] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] selectedImage:[[UIImage imageNamed:[NSString stringWithFormat:@"tabIcon-%@_selected", rootID]] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
-    simpleNav.tabBarItem = tabBarItem;
-    
-    return simpleNav;
-}
-- (ComplexNavigationController *)launcherWithRootViewController:(NSString *)rootID {
-    ComplexNavigationController *launchNav;
-    
-    if ([rootID isEqualToString:@"timeline"] || [rootID isEqualToString:@"trending"]) {
-        FeedType type = [rootID isEqualToString:@"trending"] ? FeedTypeTrending : FeedTypeTimeline;
-        FeedViewController *viewController = [[FeedViewController alloc] initWithFeedType:type];
-        
-        launchNav = [[ComplexNavigationController alloc] initWithRootViewController:viewController];
-        [launchNav updateBarColor:[UIColor whiteColor] withAnimation:NO statusBarUpdateDelay:0];
-        [launchNav setShadowVisibility:false withAnimation:NO];
-        
-        viewController.tableView.frame = viewController.view.bounds;
-    }
-    else if ([rootID isEqualToString:@"rooms"]) {
-        MyRoomsViewController *viewController = [[MyRoomsViewController alloc] initWithStyle:UITableViewStyleGrouped];
-        viewController.view.frame = CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height);
-        
-        launchNav = [[ComplexNavigationController alloc] initWithRootViewController:viewController];
-        [launchNav updateBarColor:[UIColor whiteColor] withAnimation:NO statusBarUpdateDelay:0];
-        [launchNav setShadowVisibility:false withAnimation:NO];
-    }/*
-    else if ([rootID isEqualToString:@"notifs"]) {
-        
-    }*/
-    else if ([rootID isEqualToString:@"me"]) {
-        User *user = [Session sharedInstance].currentUser;
-        
-        NSLog(@"user: %@", user);
-        
-        ProfileViewController *viewController = [[ProfileViewController alloc] init];
-        
-        NSString *themeCSS = user.attributes.details.color.length == 6 ? user.attributes.details.color : (user.identifier ? @"0076ff" : @"707479");
-        viewController.theme = [UIColor fromHex:themeCSS];
-        
-        viewController.user = user;
-        
-        launchNav = [[ComplexNavigationController alloc] initWithRootViewController:viewController];
-        [launchNav updateBarColor:viewController.theme withAnimation:0 statusBarUpdateDelay:0];
-        [launchNav.searchView updateSearchText:user.attributes.details.displayName];
-    }
-    else {
-        UIViewController *viewController = [[UIViewController alloc] init];
-        
-        launchNav = [[ComplexNavigationController alloc] initWithRootViewController:viewController];
-        [launchNav setShadowVisibility:false withAnimation:NO];
-        [launchNav updateBarColor:[UIColor whiteColor] withAnimation:NO statusBarUpdateDelay:0];
-    }
-    
-    UITabBarItem *tabBarItem = [[UITabBarItem alloc] initWithTitle:@"" image:[[UIImage imageNamed:[NSString stringWithFormat:@"tabIcon-%@", rootID]] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] selectedImage:[[UIImage imageNamed:[NSString stringWithFormat:@"tabIcon-%@_selected", rootID]] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
-    launchNav.tabBarItem = tabBarItem;
-    
-    return launchNav;
+    TabController *tabController = [[TabController alloc] init];
+    tabController.delegate = self;
+    self.window.rootViewController = tabController;
 }
 
 - (void)launchOnboarding {
@@ -445,7 +258,6 @@
 }
 
 - (BOOL)application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray<id<UIUserActivityRestoring>> * _Nullable))restorationHandler {
-    NSLog(@"continue user activity: %@", userActivity.activityType);
     if ([userActivity.activityType isEqualToString:@"com.Ingenious.bonfire.open-room-activity-type"])
     {
         if ([userActivity.userInfo objectForKey:@"room"] &&
@@ -464,7 +276,6 @@
         if ([userActivity.userInfo objectForKey:@"feed"])
         {
             FeedType type = [userActivity.userInfo[@"feed"] intValue];
-            NSLog(@"type: %u", type);
             if (type == FeedTypeTimeline) {
                 // timeline
                 NSLog(@"open timeline");

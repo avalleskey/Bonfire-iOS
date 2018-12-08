@@ -9,6 +9,7 @@
 #import "ContactCell.h"
 #import <SDWebImage/UIImageView+WebCache.h>
 #import "UIColor+Palette.h"
+#import <Tweaks/FBTweakInline.h>
 
 @implementation ContactCell
 
@@ -77,8 +78,13 @@
         self.detailTextLabel.hidden = true;
     }
     
-    // type-specific settings
-    self.imageView.layer.cornerRadius = self.imageView.frame.size.height * .25;
+    BOOL circleProfilePictures = FBTweakValue(@"Post", @"General", @"Circle Profile Pictures", NO);
+    if (circleProfilePictures) {
+        self.imageView.layer.cornerRadius = self.imageView.frame.size.height * .5;
+    }
+    else {
+        self.imageView.layer.cornerRadius = self.imageView.frame.size.height * .25;
+    }
 }
 
 - (void)setHighlighted:(BOOL)highlighted animated:(BOOL)animated {

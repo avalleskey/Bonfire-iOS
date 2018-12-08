@@ -7,6 +7,7 @@
 //
 
 #import "ProfilePictureCell.h"
+#import <Tweaks/FBTweakInline.h>
 
 @implementation ProfilePictureCell
 
@@ -22,7 +23,15 @@
         self.selectionStyle = UITableViewCellSelectionStyleNone;
         
         self.profilePicture = [[UIImageView alloc] initWithFrame:CGRectMake(0, 24, 72, 72)];
-        [self continuityRadiusForView:self.profilePicture withRadius:self.profilePicture.frame.size.height * .25];
+        
+        BOOL circleProfilePictures = FBTweakValue(@"Post", @"General", @"Circle Profile Pictures", NO);
+        if (circleProfilePictures) {
+            [self continuityRadiusForView:self.profilePicture withRadius:self.profilePicture.frame.size.height * .5];
+        }
+        else {
+            [self continuityRadiusForView:self.profilePicture withRadius:self.profilePicture.frame.size.height * .25];
+        }
+        
         self.profilePicture.image = [[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
         self.profilePicture.contentMode = UIViewContentModeScaleAspectFill;
         [self.contentView addSubview:self.profilePicture];

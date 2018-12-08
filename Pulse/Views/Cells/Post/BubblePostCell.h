@@ -21,10 +21,11 @@
 
 #define seperator_color [UIColor colorWithWhite:0 alpha:0.04]
 
-#define postContentOffset UIEdgeInsetsMake(12, 62, 12, 12)
+#define postContentOffset UIEdgeInsetsMake(10, 62, 10, 12)
+#define postTextViewInset UIEdgeInsetsMake(6, 12, 6, 12)
 #define textViewFont [UIFont preferredFontForTextStyle:UIFontTextStyleBody]
 
-@interface BubblePostCell : UITableViewCell <UITextFieldDelegate, MFMessageComposeViewControllerDelegate>
+@interface BubblePostCell : UITableViewCell <UITextFieldDelegate>
 
 // Determines if the cell has been created or not
 @property BOOL created;
@@ -44,9 +45,11 @@
 @property (strong, nonatomic) UIButton *moreButton;
 @property (strong, nonatomic) UIImageView *pictureView;
 @property (strong, nonatomic) UILabel *nameLabel;
-@property (strong, nonatomic) UILabel *dateLabel;
+@property (strong, nonatomic) UILabel *usernameLabel;
+
+@property (strong, nonatomic) UILabel *detailsLabel;
+
 @property (strong, nonatomic) UIImageView *sparkedIcon;
-@property (strong, nonatomic) UIButton *postDetailsButton;
 @property (strong, nonatomic) PostActionsView *actionsView;
 @property (strong, nonatomic) PostURLPreviewView *urlPreviewView;
 

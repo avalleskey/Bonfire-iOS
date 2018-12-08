@@ -119,8 +119,6 @@
     NSDictionary *color = self.colors.count > sender.tag ? self.colors[sender.tag] : nil;
     
     if (color && (!animated || ![[UIColor toHex:(UIColor *)color[@"color"]] isEqualToString:self.selectedColor])) {
-        NSLog(@"set the color: %@", color);
-        
         // remove previously selected color
         NSDictionary *previousColor;
         for (NSDictionary *colorDict in self.colors) {
@@ -129,13 +127,11 @@
                 break;
             }
         }
-        NSLog(@"previousColor: %@", previousColor);
         
         if (previousColor) {
             UIView *previousColorView = previousColor[@"view"];
             
             for (UIImageView *imageView in previousColorView.subviews) {
-                NSLog(@"imageView unda: %@", imageView);
                 if (imageView.tag == 999) {
                     [UIView animateWithDuration:animated?0.25f:0 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
                         imageView.transform = CGAffineTransformMakeScale(0.1, 0.1);
@@ -166,7 +162,6 @@
         
         // call delegate method
         EditProfileViewController *parentVC = (EditProfileViewController *)UIViewParentController(self);
-        NSLog(@"parentVC: %@", parentVC);
         [parentVC updateBarColor:color[@"color"] withAnimation:2 statusBarUpdateDelay:0];
         
         [UIView animateWithDuration:animated?0.6f:0 delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{

@@ -266,8 +266,14 @@
 
 - (void)setupNavigationBarItems {
     // create smart text field
-    self.searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width - (56 * 2), 34)];
+    self.searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width - (54 * 2), 34)];
     self.searchView.textField.delegate = self;
+    [self.searchView.textField bk_addEventHandler:^(id sender) {
+        if ([self.topViewController isKindOfClass:[SearchTableViewController class]]) {
+            SearchTableViewController *topSearchController = (SearchTableViewController *)self.topViewController;
+            [topSearchController searchFieldDidChange];
+        }
+    } forControlEvents:UIControlEventEditingChanged];
     self.searchView.openSearchControllerOntap = true;
     self.searchView.center = CGPointMake(self.navigationBar.frame.size.width / 2, self.navigationBar.frame.size.height / 2);
     
@@ -345,7 +351,7 @@
             [self.searchView setPosition:BFSearchTextPositionLeft];
         }
         else {
-            self.searchView.frame = CGRectMake(56, self.searchView.frame.origin.y, self.view.frame.size.width - (56 * 2), self.searchView.frame.size.height);
+            self.searchView.frame = CGRectMake(56, self.searchView.frame.origin.y, self.view.frame.size.width - (54 * 2), self.searchView.frame.size.height);
             [self.searchView setPosition:BFSearchTextPositionCenter];
         }
         
@@ -442,7 +448,7 @@
                 break;
             }
             case LNActionTypeInvite:
-                [[Launcher sharedInstance] openInviteFriends];
+                [[Launcher sharedInstance] openInviteFriends:self];
                 break;
             case LNActionTypeAdd:
                 break;

@@ -5,13 +5,13 @@
 
 #import <Foundation/Foundation.h>
 #import <JSONModel/JSONModel.h>
-#import "RoomDiscoverability.h"
+#import "RoomVisibility.h"
 
 @interface RoomStatus : JSONModel
 
 @property (nonatomic) BOOL isActive;
 @property (nonatomic) BOOL isBlocked;
-@property (nonatomic) RoomDiscoverability *discoverability;
+@property (nonatomic) RoomVisibility *visibility;
 
 @end
 

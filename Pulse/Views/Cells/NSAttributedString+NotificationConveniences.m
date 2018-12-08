@@ -63,8 +63,8 @@
     NSString *baseString = [NSString stringWithFormat:@"%@ %@. %@", displayName, message, timeStamp];
     
     NSMutableAttributedString *combinedString = [[NSMutableAttributedString alloc] initWithString:baseString];
-    [combinedString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:14.f weight:UIFontWeightBold] range:NSMakeRange(0, displayName.length)];
-    [combinedString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:14.f weight:UIFontWeightRegular] range:NSMakeRange(displayName.length, combinedString.length - displayName.length)];
+    [combinedString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:15.f weight:UIFontWeightBold] range:NSMakeRange(0, displayName.length)];
+    [combinedString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:15.f weight:UIFontWeightRegular] range:NSMakeRange(displayName.length, combinedString.length - displayName.length)];
     
     [combinedString addAttribute:NSForegroundColorAttributeName value:[UIColor colorWithWhite:0.2f alpha:1] range:NSMakeRange(0, combinedString.length - timeStamp.length)];
     [combinedString addAttribute:NSForegroundColorAttributeName value:[UIColor colorWithWhite:0.6f alpha:1] range:NSMakeRange(combinedString.length - timeStamp.length, timeStamp.length)];

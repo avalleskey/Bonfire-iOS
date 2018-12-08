@@ -24,7 +24,6 @@
         [self setTitle:@"Requested" forState:UIControlStateNormal];
     }
     else if ([status isEqualToString:ROOM_STATUS_BLOCKED]) {
-        NSLog(@"blocked!!!! wee ooo wee wooo");
         [self setImage:[[UIImage imageNamed:@"blockedIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
         [self setTitle:@"Blocked" forState:UIControlStateNormal];
     }

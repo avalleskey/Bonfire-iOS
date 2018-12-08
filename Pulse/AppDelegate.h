@@ -9,14 +9,14 @@
 @import UIKit;
 #import "TabController.h"
 
+#define FB_TWEAK_ENABLED 1
+
 @interface AppDelegate : UIResponder <UIApplicationDelegate, UITabBarControllerDelegate>
 
 @property (strong, nonatomic) UIWindow *window;
 
 - (void)launchOnboarding;
 - (void)launchLoggedIn;
-
-- (TabController *)createTabBarController;
 
 @end
 

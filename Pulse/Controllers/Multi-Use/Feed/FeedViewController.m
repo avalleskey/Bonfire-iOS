@@ -153,27 +153,19 @@ static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
             [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
             
             [self.manager GET:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                NSArray *responseData = (NSArray *)responseObject[@"data"];
+                PostStreamPage *page = [[PostStreamPage alloc] initWithDictionary:responseObject error:nil];
+                [((RSTableView *)self.tableView).stream appendPage:page];
                 
-                if (sinceId == 0) {
-                    // first page
-                    ((RSTableView *)self.tableView).data = [[NSMutableArray alloc] initWithArray:responseData];
+                if (((RSTableView *)self.tableView).stream.posts.count == 0) {
+                    // Error: No posts yet!
+                    self.errorView.hidden = false;
                     
-                    if (((RSTableView *)self.tableView).data.count == 0) {
-                        // Error: No posts yet!
-                        self.errorView.hidden = false;
-                        
-                        [self.errorView updateType:ErrorViewTypeHeart];
-                        [self.errorView updateTitle:@"For You"];
-                        [self.errorView updateDescription:@"The posts you care about from the Rooms and people you care about."];
-                    }
-                    else {
-                        self.errorView.hidden = true;
-                    }
+                    [self.errorView updateType:ErrorViewTypeHeart];
+                    [self.errorView updateTitle:@"For You"];
+                    [self.errorView updateDescription:@"The posts you care about from the Rooms and people you care about."];
                 }
                 else {
-                    // appended posts
-                    ((RSTableView *)self.tableView).data = [[NSMutableArray alloc] initWithArray:[((RSTableView *)self.tableView).data arrayByAddingObjectsFromArray:responseData]];
+                    self.errorView.hidden = true;
                 }
                 
                 self.loading = false;
@@ -186,7 +178,7 @@ static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
                 NSLog(@"FeedViewController / getPosts() - error: %@", error);
                 //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
                 
-                if (((RSTableView *)self.tableView).data.count == 0) {
+                if (((RSTableView *)self.tableView).stream.posts.count == 0) {
                     self.errorView.hidden = false;
                     [self.errorView updateType:ErrorViewTypeGeneral];
                     [self.errorView updateTitle:@"Error Loading"];

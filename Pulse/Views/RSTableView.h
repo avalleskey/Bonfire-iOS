@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "PostStream.h"
 
 #define UIViewParentController(__view) ({ \
         UIResponder *__responder = __view; \
@@ -45,7 +46,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)refresh;
 
-@property (strong, nonatomic) NSMutableArray *data;
+@property (strong, nonatomic) PostStream *stream;
 
 @property (nonatomic, weak) id <RSTableViewPaginationDelegate> paginationDelegate;
 

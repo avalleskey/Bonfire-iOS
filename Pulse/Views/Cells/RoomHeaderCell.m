@@ -15,6 +15,8 @@
 #import "Defaults.h"
 #import <SpriteKit/SpriteKit.h>
 #import "RoomViewController.h"
+#import <Tweaks/FBTweakInline.h>
+#import "Launcher.h"
 
 #define UIViewParentController(__view) ({ \
         UIResponder *__responder = __view; \
@@ -77,12 +79,6 @@
         self.separatorInset = UIEdgeInsetsMake(0, 62, 0, 0);
         self.selectionStyle = UITableViewCellSelectionStyleNone;
         
-        self.actionsBarView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 0, 32)];
-        [self.contentView addSubview:self.actionsBarView];
-        
-        self.membersContainer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.actionsBarView.frame.size.width, self.actionsBarView.frame.size.height)];
-        [self.actionsBarView addSubview:self.membersContainer];
-        
         self.member1 = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 80, 80)];
         self.member1.layer.cornerRadius = self.member1.frame.size.height / 2;
         self.member1.layer.masksToBounds = true;
@@ -98,21 +94,27 @@
         [self.contentView addSubview:self.infoButton];
         
         self.member2 = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 44, 44)];
+        self.member2.tag = 0;
         self.member3 = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 44, 44)];
+        self.member3.tag = 1;
         
         self.member4 = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 32, 32)];
+        self.member4.tag = 2;
         self.member5 = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 32, 32)];
+        self.member5.tag = 3;
         
         self.member6 = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 24, 24)];
+        self.member6.tag = 4;
         self.member7 = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 24, 24)];
+        self.member7.tag = 5;
         
-        [self.membersContainer addSubview:self.member1];
-        [self.membersContainer addSubview:self.member2];
-        [self.membersContainer addSubview:self.member3];
-        [self.membersContainer addSubview:self.member4];
-        [self.membersContainer addSubview:self.member5];
-        [self.membersContainer addSubview:self.member6];
-        [self.membersContainer addSubview:self.member7];
+        [self.contentView addSubview:self.member1];
+        [self.contentView addSubview:self.member2];
+        [self.contentView addSubview:self.member3];
+        [self.contentView addSubview:self.member4];
+        [self.contentView addSubview:self.member5];
+        [self.contentView addSubview:self.member6];
+        [self.contentView addSubview:self.member7];
         
         [self styleMemberProfilePictureView:self.member1];
         [self styleMemberProfilePictureView:self.member2];
@@ -121,6 +123,7 @@
         [self styleMemberProfilePictureView:self.member5];
         [self styleMemberProfilePictureView:self.member6];
         [self styleMemberProfilePictureView:self.member7];
+        [self addTapHandlers:@[self.member2, self.member2, self.member3, self.member4, self.member5, self.member6, self.member7]];
         
         self.followButton = [RoomFollowButton buttonWithType:UIButtonTypeCustom];
         
@@ -129,9 +132,35 @@
             if ([self.followButton.status isEqualToString:ROOM_STATUS_MEMBER] ||
                 [self.followButton.status isEqualToString:ROOM_STATUS_REQUESTED]) {
                 // leave the room
-                [self.followButton updateStatus:ROOM_STATUS_LEFT];
+                
+                if ([self.followButton.status isEqualToString:ROOM_STATUS_MEMBER]) {
+                    // confirm action
+                    BOOL requiresConfirm = self.room.attributes.status.visibility.isPrivate;
+                    
+                    if (requiresConfirm) {
+                        UIAlertController *confirmDeletePostActionSheet = [UIAlertController alertControllerWithTitle:@"Are you sure you want to leave this room?" message:@"You will no longer have access to the posts" preferredStyle:UIAlertControllerStyleAlert];
+                        
+                        UIAlertAction *confirmLeaveRoom = [UIAlertAction actionWithTitle:@"Leave" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+                            [self.followButton updateStatus:ROOM_STATUS_LEFT];
+                            [self decrementMembersCount];
+                        }];
+                        [confirmDeletePostActionSheet addAction:confirmLeaveRoom];
+                        
+                        UIAlertAction *cancelLeaveRoom = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
+                        [confirmDeletePostActionSheet addAction:cancelLeaveRoom];
+                        
+                        [UIViewParentController(self) presentViewController:confirmDeletePostActionSheet animated:YES completion:nil];
+                    }
+                    else {
+                        [self.followButton updateStatus:ROOM_STATUS_LEFT];
+                        [self decrementMembersCount];
+                    }
+                    
+                }
+                else {
+                    [self.followButton updateStatus:ROOM_STATUS_NO_RELATION];
+                }
                 [self updateRoomStatus];
-                [self decrementMembersCount];
                 
                 [[Session sharedInstance] unfollowRoom:self.room.identifier completion:^(BOOL success, id responseObject) {
                     if (success) {
@@ -144,7 +173,7 @@
                      [self.followButton.status isEqualToString:ROOM_STATUS_INVITED] ||
                      self.followButton.status.length == 0) {
                 // join the room
-                if (self.room.attributes.status.discoverability.isPrivate &&
+                if (self.room.attributes.status.visibility.isPrivate &&
                     ![self.followButton.status isEqualToString:ROOM_STATUS_INVITED]) {
                     [self.followButton updateStatus:ROOM_STATUS_REQUESTED];
                 }
@@ -194,6 +223,23 @@
         [self.contentView addSubview:self.lineSeparator];
     }
     return self;
+}
+
+- (void)addTapHandlers:(NSArray *)views {
+    for (UIImageView *view in views) {
+        view.userInteractionEnabled = true;
+        [view bk_whenTapped:^{
+            if (self.room.attributes.summaries.members.count > view.tag) {
+                // open member
+                User *userForImageView = [[User alloc] initWithDictionary:(NSDictionary *)self.room.attributes.summaries.members[view.tag] error:nil];
+                [[Launcher sharedInstance] openProfile:userForImageView];
+            }
+            else {
+                // open invite friends
+                [[Launcher sharedInstance] openInviteFriends:self.room];
+            }
+        }];
+    }
 }
 
 - (void)updateRoomStatus {
@@ -264,7 +310,8 @@
     self.member7.frame = CGRectMake(self.frame.size.width - self.member6.frame.origin.x - self.member7.frame.size.width, 27, self.member7.frame.size.width, self.member7.frame.size.height);
     
     // text label
-    self.nameLabel.frame = CGRectMake(24, 116, self.frame.size.width - (24 * 2), 42);
+    CGRect nameLabelRect = [self.nameLabel.text boundingRectWithSize:CGSizeMake(self.frame.size.width - (24 * 2), CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:self.nameLabel.font} context:nil];
+    self.nameLabel.frame = CGRectMake(24, 116, self.frame.size.width - (24 * 2), ceilf(nameLabelRect.size.height));
     
     // detail text label
     CGRect detailLabelRect = [self.descriptionLabel.text boundingRectWithSize:CGSizeMake(self.frame.size.width - (12 * 2), CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:self.descriptionLabel.font} context:nil];
@@ -280,7 +327,14 @@
 }
 
 - (void)styleMemberProfilePictureView:(UIImageView *)imageView  {
-    [self continuityRadiusForView:imageView withRadius:imageView.frame.size.height * .25];
+    BOOL circleProfilePictures = FBTweakValue(@"Post", @"General", @"Circle Profile Pictures", NO);
+    if (circleProfilePictures) {
+        [self continuityRadiusForView:imageView withRadius:imageView.frame.size.height * .5];
+    }
+    else {
+        [self continuityRadiusForView:imageView withRadius:imageView.frame.size.height * .25];
+    }
+    
     imageView.backgroundColor = [UIColor whiteColor];
 //    imageView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.2f];
 }

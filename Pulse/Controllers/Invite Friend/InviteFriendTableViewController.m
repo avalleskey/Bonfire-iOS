@@ -46,6 +46,13 @@ static NSString * const contactCellIdentifier = @"ContactCell";
     
     self.title = @"Invite Friends";
     
+    if ([self.sender isKindOfClass:[Room class]] && ((Room *)self.sender).attributes.details.color != nil) {
+        self.view.tintColor = [UIColor fromHex:((Room *)self.sender).attributes.details.color];
+    }
+    else {
+        self.view.tintColor = [UIColor bonfireBlue];
+    }
+    
     self.manager = [HAWebService manager];
     [self setupNavigationBar];
     [self setupSearchBar];
@@ -83,7 +90,7 @@ static NSString * const contactCellIdentifier = @"ContactCell";
     self.searchView.textField.placeholder = @"Search Contacts";
     [self.searchView updateSearchText:@""];
     self.searchView.textField.delegate = self;
-    self.searchView.textField.tintColor = [UIColor bonfireBlue];
+    self.searchView.textField.tintColor = self.view.tintColor;
     [self.searchBar.contentView addSubview:self.searchView];
     
     [self.searchView.textField bk_addEventHandler:^(id sender) {
@@ -101,6 +108,7 @@ static NSString * const contactCellIdentifier = @"ContactCell";
     // remove hairline
     [self.navigationController.navigationBar setBackgroundImage:[UIImage new] forBarMetrics:UIBarMetricsDefault];
     [self.navigationController.navigationBar setShadowImage:[UIImage new]];
+    self.navigationController.navigationBar.barTintColor = self.view.tintColor;
     
     [self.navigationController.navigationBar setTitleTextAttributes:
      @{NSForegroundColorAttributeName:[UIColor whiteColor],
@@ -210,8 +218,7 @@ static NSString * const contactCellIdentifier = @"ContactCell";
 - (void)addAddressBookObserver {
     [self.addressBook startObserveChangesWithCallback:^
      {
-         // reload contacts
-         NSLog(@"good to go now!");
+         // good to go now - reload contacts
          [self checkAccess];
          
          if ([APAddressBook access]) {
@@ -306,11 +313,10 @@ static NSString * const contactCellIdentifier = @"ContactCell";
                                                             error:&anError];
             }
             else {
-                NSLog(@"isValidPhoneNumber ? [%@]", [self.phoneUtil isValidNumber:myNumber] ? @"YES":@"NO");
+                // NSLog(@"isValidPhoneNumber ? [%@]", [self.phoneUtil isValidNumber:myNumber] ? @"YES":@"NO");
                 [discardeditems addObject:contact];
             }
         } else {
-            NSLog(@"Error : %@", [anError localizedDescription]);
             [discardeditems addObject:contact];
         }
     }
@@ -347,7 +353,6 @@ static NSString * const contactCellIdentifier = @"ContactCell";
         for (int i = 0; i < [self.selectedContacts count]; i++) {
             [arrayOfPhoneNumbers addObject:[self cleanPhoneNumber:self.selectedContacts[i].phones[0].number]];
         }
-        NSLog(@"arrayOfPhoneNumbers: %@", arrayOfPhoneNumbers);
         
         JGProgressHUD *HUD = [JGProgressHUD progressHUDWithStyle:JGProgressHUDStyleExtraLight];
         HUD.textLabel.text = @"Sending Invites..";
@@ -399,6 +404,8 @@ static NSString * const contactCellIdentifier = @"ContactCell";
             cell = [[InviteFriendHeaderCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:headerCellIdentifier];
         }
         
+        cell.tintColor = self.view.tintColor;
+        
         UIImage *anonymousProfilePic;
         anonymousProfilePic = [[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
         for (int i = 0; i < 7; i++) {
@@ -417,6 +424,13 @@ static NSString * const contactCellIdentifier = @"ContactCell";
             else {
                 imageView.image = anonymousProfilePic;
             }
+        }
+        
+        if ([self.sender isKindOfClass:[Room class]] && ((Room *)self.sender).attributes.details.title != nil) {
+            cell.descriptionLabel.text = [NSString stringWithFormat:@"To join %@", ((Room *)self.sender).attributes.details.title];
+        }
+        else {
+            cell.descriptionLabel.text = @"Bonfire is more fun with friends!";
         }
         
         return cell;
@@ -452,13 +466,14 @@ static NSString * const contactCellIdentifier = @"ContactCell";
         }
         
         if ([self isSelectedContact:contact.recordID]) {
-            cell.textLabel.textColor = [UIColor bonfireBlue];
+            cell.textLabel.textColor = self.view.tintColor;
             cell.checkIcon.hidden = false;
         }
         else {
             cell.textLabel.textColor = [UIColor colorWithWhite:0.2f alpha:1];
             cell.checkIcon.hidden = true;
         }
+        cell.checkIcon.tintColor = self.view.tintColor;
         
         if (indexPath.row == self.contacts.count) {
             // last row
@@ -481,7 +496,6 @@ static NSString * const contactCellIdentifier = @"ContactCell";
         ContactCell *cell = [self.tableView cellForRowAtIndexPath:indexPath];
         
         if ([self isSelectedContact:selectedContact.recordID]) {
-            NSLog(@"is selected contact");
             // remove it
             [self removeSelectedContactWithRecordID:selectedContact.recordID];
             
@@ -492,7 +506,7 @@ static NSString * const contactCellIdentifier = @"ContactCell";
             // add it
             [self.selectedContacts addObject:selectedContact];
             
-            cell.textLabel.textColor = [UIColor bonfireBlue];
+            cell.textLabel.textColor = self.view.tintColor;
             cell.checkIcon.hidden = false;
         }
         
@@ -507,17 +521,13 @@ static NSString * const contactCellIdentifier = @"ContactCell";
     return false;
 }
 - (void)removeSelectedContactWithRecordID:(NSNumber *)recordID {
-    NSLog(@"self.selectedContacts: %@", self.selectedContacts);
     for (int i = 0; i < [self.selectedContacts count]; i++) {
         APContact *contact = self.selectedContacts[i];
-        NSLog(@"record id: %@", contact.recordID);
-        NSLog(@"record id: %@", recordID);
         
         if ([contact.recordID isEqual:recordID]) {
             [self.selectedContacts removeObjectAtIndex:i];
         }
     }
-    NSLog(@"self.selectedContacts: %@", self.selectedContacts);
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {

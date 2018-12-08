@@ -71,8 +71,7 @@ static NSString * const errorRoomCellReuseIdentifier = @"ErrorRoomCell";
     self.header = [[UIView alloc] initWithFrame:CGRectMake(0, 8, screenWidth, 108)];
     
     self.bigTitle = [[UILabel alloc] initWithFrame:CGRectMake(16, 0, self.header.frame.size.width - 32, 40)];
-    
-    FBTweakBind(self.bigTitle, text, @"Rooms", @"My Rooms", @"Big Title", @"Rooms");
+    self.bigTitle.text = [Session sharedInstance].defaults.home.myRoomsPageTitle;
 
     self.bigTitle.textAlignment = NSTextAlignmentLeft;
     self.bigTitle.font = [UIFont systemFontOfSize:34.f weight:UIFontWeightHeavy];
@@ -121,13 +120,11 @@ static NSString * const errorRoomCellReuseIdentifier = @"ErrorRoomCell";
         if (success) {
             [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
             
-            NSLog(@"token::: %@", token);
             [self.manager GET:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 // NSLog(@"MyRoomsViewController / getRooms() success! ✅");
+                NSLog(@"token::: %@", token);
                 
                 NSArray *responseData = responseObject[@"data"];
-                
-                // NSLog(@"responseData: %@", responseData);
                 
                 if (responseData.count > 0) {
                     self.rooms = [[NSMutableArray alloc] initWithArray:responseData];

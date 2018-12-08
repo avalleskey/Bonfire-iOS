@@ -9,6 +9,7 @@
 #import "SearchResultCell.h"
 #import <SDWebImage/UIImageView+WebCache.h>
 #import "UIColor+Palette.h"
+#import <Tweaks/FBTweakInline.h>
 
 @implementation SearchResultCell
 
@@ -21,8 +22,8 @@
         self.imageView.layer.borderWidth = 1 / [UIScreen mainScreen].scale;
         self.imageView.backgroundColor = [UIColor whiteColor];
         
-        self.textLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightBold];
-        self.textLabel.textColor = [UIColor colorWithWhite:0.07 alpha:1];
+        self.textLabel.font = [UIFont systemFontOfSize:15.f weight:UIFontWeightBold];
+        self.textLabel.textColor = [UIColor colorWithWhite:0.2f alpha:1];
         
         self.detailTextLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightRegular];
         self.detailTextLabel.textAlignment = NSTextAlignmentLeft;
@@ -30,7 +31,7 @@
         self.detailTextLabel.lineBreakMode = NSLineBreakByTruncatingMiddle;
         
         // general cell styling
-        self.separatorInset = UIEdgeInsetsMake(0, 62, 0, 0);
+        self.separatorInset = UIEdgeInsetsMake(0, 70, 0, 0);
         self.selectionStyle = UITableViewCellSelectionStyleNone;
     }
     return self;
@@ -45,10 +46,10 @@
     [super layoutSubviews];
     
     // image view
-    self.imageView.frame = CGRectMake(16, self.frame.size.height / 2 - 20, 40, 40);
+    self.imageView.frame = CGRectMake(16, self.frame.size.height / 2 - 21, 42, 42);
     
     // text label
-    self.textLabel.frame = CGRectMake(68, 16, self.frame.size.width - 68 - 16, 16);
+    self.textLabel.frame = CGRectMake(70, 13, self.frame.size.width - 70 - 16, 18);
     
     // detail text label
     self.detailTextLabel.frame = CGRectMake(self.textLabel.frame.origin.x, self.textLabel.frame.origin.y + self.textLabel.frame.size.height + 1, self.textLabel.frame.size.width, 16);
@@ -62,7 +63,13 @@
         self.imageView.layer.cornerRadius = self.imageView.frame.size.height / 2;
     }
     else {
-        self.imageView.layer.cornerRadius = self.imageView.frame.size.height * .25;
+        BOOL circleProfilePictures = FBTweakValue(@"Post", @"General", @"Circle Profile Pictures", NO);
+        if (circleProfilePictures) {
+            self.imageView.layer.cornerRadius = self.imageView.frame.size.height * .5;
+        }
+        else {
+            self.imageView.layer.cornerRadius = self.imageView.frame.size.height * .25;
+        }
     }
     if (self.type == 2) {
         self.imageView.layer.borderColor = [UIColor colorWithWhite:0 alpha:0.06f].CGColor;

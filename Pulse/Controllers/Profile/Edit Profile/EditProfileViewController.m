@@ -21,6 +21,7 @@
 #import <BlocksKit/BlocksKit.h>
 #import <BlocksKit/BlocksKit+UIKit.h>
 #import <JGProgressHUD/JGProgressHUD.h>
+#import <Tweaks/FBTweakInline.h>
 
 #define envConfig [[[NSUserDefaults standardUserDefaults] objectForKey:@"config"] objectForKey:[[NSUserDefaults standardUserDefaults] stringForKey:@"environment"]]
 
@@ -106,8 +107,6 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     [self.view endEditing:TRUE];
     
     NSDictionary *changes = [self changes];
-    
-    NSLog(@"changes: %@", changes);
     
     if (changes != nil && changes.count > 0) {
         // requirements have been met and there's more than one change to save
@@ -289,7 +288,6 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
 - (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string {
     NSString *newStr = [textField.text stringByReplacingCharactersInRange:range withString:string];
     
-    NSLog(@"%@",newStr);
     if (textField.tag == 1) {
         return newStr.length <= 40 ? YES : NO;
     }
@@ -543,8 +541,6 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     
     CGSize maskSize = CGSizeMake(maskWidth * .75f, maskHeight * .75);
     
-    NSLog(@"maskSize(%f, %f)", maskSize.width, maskSize.height);
-    
     CGRect maskRect = CGRectMake((viewWidth - maskSize.width) * 0.5f,
                                  (viewHeight - maskSize.height) * 0.5f,
                                  maskSize.width,
@@ -553,7 +549,16 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     return maskRect;
 }
 - (UIBezierPath *)imageCropViewControllerCustomMaskPath:(RSKImageCropViewController *)controller {
-    CGFloat circleRadius = controller.maskRect.size.width * .25;
+    CGFloat circleRadius;
+//    BOOL circleProfilePictures = FBTweakValue(@"Post", @"General", @"Circle Profile Pictures", NO);
+//    if (circleProfilePictures) {
+//        circleRadius = controller.maskRect.size.width * .5;
+//    }
+//    else {
+//        circleRadius = controller.maskRect.size.width * .25;
+//    }
+    circleRadius = controller.maskRect.size.width * .5;
+    
     UIBezierPath *path = [UIBezierPath bezierPathWithRoundedRect:controller.maskRect
                                                byRoundingCorners:UIRectCornerBottomLeft|UIRectCornerBottomRight|UIRectCornerTopLeft|UIRectCornerTopRight
                                                      cornerRadii:CGSizeMake(circleRadius, circleRadius)];

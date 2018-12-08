@@ -10,6 +10,7 @@
 #import "UIColor+Palette.h"
 #import "Session.h"
 #import "NSDate+NVTimeAgo.h"
+#import <Tweaks/FBTweakInline.h>
 
 @implementation NotificationCell
 
@@ -32,8 +33,16 @@
         self.accessoryType = UITableViewCellAccessoryNone;
         self.separatorInset = UIEdgeInsetsMake(0, screenWidth, 0, 0);
         
-        self.profilePicture = [[UIImageView alloc] initWithFrame:CGRectMake(16, 12, 40, 40)];
-        self.profilePicture.layer.cornerRadius = self.profilePicture.frame.size.height * .25;
+        self.profilePicture = [[UIImageView alloc] initWithFrame:CGRectMake(16, 10, 42, 42)];
+
+        BOOL circleProfilePictures = FBTweakValue(@"Post", @"General", @"Circle Profile Pictures", NO);
+        if (circleProfilePictures) {
+            self.profilePicture.layer.cornerRadius = self.profilePicture.frame.size.height * .5;
+        }
+        else {
+            self.profilePicture.layer.cornerRadius = self.profilePicture.frame.size.height * .25;
+        }
+        
         self.profilePicture.layer.borderColor = [UIColor colorWithWhite:0 alpha:0.06f].CGColor;
         self.profilePicture.layer.borderWidth = 1.f;
         self.profilePicture.layer.masksToBounds = true;
@@ -55,6 +64,7 @@
         [self.contentView addSubview:self.typeIndicator];
         
         self.actionButton = [[UIButton alloc] initWithFrame:CGRectMake(self.frame.size.width - 96 - 16, 16, 96, 32)];
+        self.actionButton.center = CGPointMake(self.actionButton.center.x, self.profilePicture.center.y);
         self.actionButton.layer.cornerRadius = 6.f;
         self.actionButton.layer.masksToBounds = true;
         self.actionButton.layer.borderColor = [UIColor colorWithRed:0.92 green:0.93 blue:0.94 alpha:1.0].CGColor;
@@ -62,9 +72,9 @@
         self.actionButton.titleLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightBold];
         [self.contentView addSubview:self.actionButton];
         
-        self.textLabel.frame = CGRectMake(68, 16, self.frame.size.width - 68 - self.actionButton.frame.size.width - 10, 32);
-        self.textLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightRegular];
-        self.textLabel.textColor = [UIColor colorWithWhite:0.07 alpha:1];
+        self.textLabel.frame = CGRectMake(70, 12, self.frame.size.width - 70 - self.actionButton.frame.size.width - 10, 32);
+        self.textLabel.font = [UIFont systemFontOfSize:15.f weight:UIFontWeightRegular];
+        self.textLabel.textColor = [UIColor colorWithWhite:0.2f alpha:1];
     }
     else {
         
@@ -78,7 +88,7 @@
     
     self.actionButton.frame = CGRectMake(self.frame.size.width - self.actionButton.frame.size.width - 16, self.actionButton.frame.origin.y, self.actionButton.frame.size.width, self.actionButton.frame.size.height);
     
-    CGFloat textLabelWidth = self.frame.size.width - 68 - self.actionButton.frame.size.width - 16  - 10;
+    CGFloat textLabelWidth = self.frame.size.width - 70 - self.actionButton.frame.size.width - 16  - 10;
     CGRect textLabelRect = [self.textLabel.attributedText boundingRectWithSize:CGSizeMake(textLabelWidth, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) context:nil];
     CGFloat textLabelHeight = textLabelRect.size.height;
     
@@ -87,11 +97,11 @@
     int lineCount = roundf(rHeight/charSize);
     
     if (lineCount == 1) {
-        self.textLabel.frame = CGRectMake(68, 16, textLabelWidth, textLabelRect.size.height);
+        self.textLabel.frame = CGRectMake(70, 12, textLabelWidth, textLabelRect.size.height);
         self.textLabel.center = CGPointMake(self.textLabel.center.x, self.profilePicture.center.y);
     }
     else {
-        self.textLabel.frame = CGRectMake(68, 16, textLabelWidth, textLabelRect.size.height);
+        self.textLabel.frame = CGRectMake(70, 12, textLabelWidth, textLabelRect.size.height);
     }
 }
 

@@ -166,16 +166,11 @@
 }
 
 - (void)setPosition:(BFSearchTextPosition)position {
-    NSLog(@"set position: %u", position);
     if (position != _position) {
         _position = position;
         
         if (position == BFSearchTextPositionCenter) {
             // center align
-            NSLog(@"center align");
-            NSLog(@"leftVeiw: %@", self.textField.leftView);
-            NSLog(@"font: %@", self.textField.font);
-            NSLog(@"text: %@", self.textField.text);
             CGRect textLabelRect = [self textFieldRect];
             
             self.textField.frame = CGRectMake((self.originalFrame.size.width / 2) - ((textLabelRect.size.width + self.textField.leftView.frame.size.width) / 2), self.textField.frame.origin.y, textLabelRect.size.width + self.textField.leftView.frame.size.width, self.textField.frame.size.height);
@@ -188,8 +183,6 @@
 }
 - (CGRect)textFieldRect {
     NSString *text = self.textField.text.length > 0 ? self.textField.text : self.textField.placeholder;
-
-    NSLog(@"self.originalFrame.width: %f", self.originalFrame.size.width);
     
     CGRect rect = [text boundingRectWithSize:CGSizeMake(self.originalFrame.size.width - self.textField.leftView.frame.size.width - self.textField.rightView.frame.size.width, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:self.textField.font} context:nil];
     return CGRectMake(self.originalFrame.size.width / 2 - rect.size.width / 2, self.textField.frame.origin.y, ceilf(rect.size.width), self.textField.frame.size.height);

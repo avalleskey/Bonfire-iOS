@@ -79,10 +79,10 @@ static NSString * const requestCellIdentifier = @"RequestCell";
 }
 
 - (BOOL)isMember {
-    return self.room.attributes.context.status == ROOM_STATUS_MEMBER;
+    return [self.room.attributes.context.status isEqualToString:ROOM_STATUS_MEMBER];
 }
 - (BOOL)isPrivate {
-    return self.room.attributes.status.discoverability.isPrivate;
+    return self.room.attributes.status.visibility.isPrivate;
 }
 
 - (void)getRequests {
@@ -148,7 +148,7 @@ static NSString * const requestCellIdentifier = @"RequestCell";
 }
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     if (section == 0) {
-        if (![self isMember] || !self.room.attributes.status.discoverability.isPrivate) return 0;
+        if (![self isMember] || !self.room.attributes.status.visibility.isPrivate) return 0;
         
         return self.loadingRequests ? 1 : self.requests.count;
     }
@@ -339,7 +339,7 @@ static NSString * const requestCellIdentifier = @"RequestCell";
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return indexPath.section == 0 ? 98 : 64;
+    return indexPath.section == 0 ? 98 : 62;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {

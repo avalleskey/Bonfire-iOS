@@ -44,19 +44,12 @@
     if (currentTheme != _currentTheme) {
         _currentTheme = currentTheme;
         
-        if ([self.visibleViewController isKindOfClass:[ProfileViewController class]]) {
-            NSLog(@"set profiel vc theme: %@", currentTheme);
-        }
-        else {
-            NSLog(@"set other vc theme: %@", currentTheme);
-        }
-        
         [self updateBarColor:currentTheme withAnimation:0 statusBarUpdateDelay:0];
     }
 }
 
 - (void)setupTitleLabel {
-    self.titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.navigationBar.frame.size.width - (56 * 2), self.navigationBar.frame.size.height)];
+    self.titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.navigationBar.frame.size.width - (54 * 2), self.navigationBar.frame.size.height)];
     self.titleLabel.textAlignment = NSTextAlignmentCenter;
     self.titleLabel.center = CGPointMake(self.navigationBar.frame.size.width / 2, self.navigationBar.frame.size.height / 2);
     self.titleLabel.font = [UIFont systemFontOfSize:17.f weight:UIFontWeightBold];
@@ -161,7 +154,7 @@
                 break;
             }
             case SNActionTypeInvite:
-                [[Launcher sharedInstance] openInviteFriends];
+                [[Launcher sharedInstance] openInviteFriends:self];
                 break;
             case SNActionTypeAdd:
                 [[Launcher sharedInstance] openCreateRoom];
@@ -215,17 +208,15 @@
     if ([background isKindOfClass:[NSString class]]) {
         background = [UIColor fromHex:background];
     }
-    NSLog(@"updateBarColor");
+
     // generate foreground based on background
     UIColor *foreground;
     UIColor *originalBackground = background;
     if (background == nil || background == [UIColor whiteColor] || background == [UIColor clearColor]) {
-        NSLog(@"ok ya change it");
         background = [[UIColor headerBackgroundColor] colorWithAlphaComponent:0.9];
         foreground = [Session sharedInstance].themeColor;
     }
     else if ([UIColor useWhiteForegroundForColor:background]) {
-        NSLog(@"use white foreground!");
         foreground = [UIColor whiteColor];
     }
     else {

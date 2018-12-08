@@ -10,6 +10,7 @@
 #import <SDWebImage/UIImageView+WebCache.h>
 #import <BlocksKit/BlocksKit.h>
 #import <BlocksKit/BlocksKit+UIKit.h>
+#import <Tweaks/FBTweakInline.h>
 
 @implementation MemberRequestCell
 
@@ -108,7 +109,14 @@
     
     // type-specific settings
     self.imageView.layer.borderColor = [UIColor colorWithWhite:0 alpha:0.06f].CGColor;
-    self.imageView.layer.cornerRadius = self.imageView.frame.size.height * .25;
+    
+    BOOL circleProfilePictures = FBTweakValue(@"Post", @"General", @"Circle Profile Pictures", NO);
+    if (circleProfilePictures) {
+        self.imageView.layer.cornerRadius = self.imageView.frame.size.height * .5;
+    }
+    else {
+        self.imageView.layer.cornerRadius = self.imageView.frame.size.height * .25;
+    }
     
     CGFloat buttonContainerWidth = self.frame.size.width - 62 - 16;
     self.approveButton.frame = CGRectMake(62, 52, buttonContainerWidth / 2 - 6, 34);

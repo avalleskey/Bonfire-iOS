@@ -30,8 +30,10 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)openCreateRoom;
 - (void)openComposePost;
 - (void)openEditProfile;
-- (void)openInviteFriends;
+- (void)openInviteFriends:(id)sender;
 - (void)openOnboarding;
+
+- (void)shareOniMessage:(NSString *)message image:(UIImage * _Nullable)image;
 
 - (UIViewController *)activeViewController;
 

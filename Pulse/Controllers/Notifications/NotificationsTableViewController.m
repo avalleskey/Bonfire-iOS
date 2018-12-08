@@ -105,9 +105,9 @@ static NSString * const notificationCellReuseIdentifier = @"NotificationCell";
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    CGFloat minHeight = 64;
+    CGFloat minHeight = 62;
     
-    CGFloat topPadding = 16;
+    CGFloat topPadding = 14;
     CGFloat bottomPadding = topPadding;
     
     NotificationType type;
@@ -137,7 +137,7 @@ static NSString * const notificationCellReuseIdentifier = @"NotificationCell";
     }
     
     CGFloat actionButtonWidth = 96;
-    CGFloat textLabelWidth = self.view.frame.size.width - 68 - actionButtonWidth - 16  - 10;
+    CGFloat textLabelWidth = self.view.frame.size.width - 70 - actionButtonWidth - 16  - 10;
     CGRect textLabelRect = [[NSAttributedString attributedStringForType:type] boundingRectWithSize:CGSizeMake(textLabelWidth, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) context:nil];
     
     CGFloat calculatedHeight = topPadding + textLabelRect.size.height + bottomPadding;

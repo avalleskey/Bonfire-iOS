@@ -198,6 +198,9 @@
     else if ([parentController isKindOfClass:[PostViewController class]]) {
         defaultPlaceholder = @"Add a reply...";
     }
+    defaultPlaceholder = [self stringByDeletingWordsFromString:defaultPlaceholder toFit:CGRectMake(0, 0, self.textView.frame.size.width - self.textView.textContainerInset.left - self.textView.textContainerInset.right - 8, self.textView.frame.size.height - self.textView.contentInset.top - self.textView.contentInset.bottom) withInset:0 usingFont:self.textView.font];
+    NSLog(@"default placeholder: %@", defaultPlaceholder);
+    
     mediaPlaceholder = @"Add caption or Post";
     
     if (self.media.count == 0) {
@@ -208,11 +211,48 @@
     }
 }
 
+- (NSString *)stringByDeletingWordsFromString:(NSString *)string
+                                        toFit:(CGRect)rect
+                                    withInset:(CGFloat)inset
+                                    usingFont:(UIFont *)font
+{
+    NSString *result = [string copy];
+    CGSize maxSize = CGSizeMake(rect.size.width  - (inset * 2), FLT_MAX);
+    if (!font) font = [UIFont systemFontOfSize:[UIFont systemFontSize]];
+    CGRect boundingRect = [result boundingRectWithSize:maxSize options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName: font, } context:nil];
+    CGSize size = boundingRect.size;
+    NSRange range;
+    
+    if (rect.size.height < size.height) {
+        while (rect.size.height < size.height) {
+            
+            range = [result rangeOfString:@" "
+                                  options:NSBackwardsSearch];
+            
+            if (range.location != NSNotFound && range.location > 0 ) {
+                result = [result substringToIndex:range.location];
+            } else {
+                result = [result substringToIndex:result.length - 1];
+            }
+            
+            if (!font) font = [UIFont systemFontOfSize:[UIFont systemFontSize]];
+            CGRect boundingRect = [result boundingRectWithSize:maxSize options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName: font, } context:nil];
+            size = boundingRect.size;
+        }
+    }
+    NSLog(@"result: %@", result);
+    if (result.length < string.length) {
+        result = [result stringByAppendingString:@"..."];
+    }
+    
+    return result;
+}
+
 - (void)setActive:(BOOL)isActive {
     //CGRect screenRect = [[UIScreen mainScreen] bounds];
     //CGFloat screenWidth = screenRect.size.width;
     _active = isActive;
-    NSLog(@"active has been set to %@", (isActive ? @"TRUE" : @"FALSE"));
+    // NSLog(@"active has been set to %@", (isActive ? @"TRUE" : @"FALSE"));
     if (isActive) {
         [self.textView becomeFirstResponder];
     }
@@ -370,7 +410,6 @@
     [removeImageButton.heightAnchor constraintEqualToConstant:30].active = true;
     
     [removeImageButton bk_whenTapped:^{
-        NSLog(@"tapped %lu", (unsigned long)[self.mediaContainerView.subviews indexOfObject:view]);
         [self removeImageAtIndex:[self.mediaContainerView.subviews indexOfObject:view]];
     }];
     [removeImageButton bk_addEventHandler:^(id sender) {

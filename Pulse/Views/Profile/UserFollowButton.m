@@ -15,20 +15,15 @@
 - (void)updateStatus:(NSString *)status {
     self.status = status;
     
-    NSLog(@"status: %@", status);
-
     // set icon + title
     if ([status isEqualToString:USER_STATUS_FOLLOWS] ||
         [status isEqualToString:USER_STATUS_FOLLOW_BOTH]) {
-        NSLog(@"user_status_follows");
-        
         [self setImage:[[UIImage imageNamed:@"checkIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
         [self setTitle:@"Following" forState:UIControlStateNormal];
     }
     else if ([status isEqualToString:USER_STATUS_BLOCKED] ||
              [status isEqualToString:USER_STATUS_BLOCKS] ||
              [status isEqualToString:USER_STATUS_BLOCKS_BOTH]) {
-        NSLog(@"blocked!!!! wee ooo wee wooo");
         [self setImage:[[UIImage imageNamed:@"blockedIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
         [self setTitle:@"Blocked" forState:UIControlStateNormal];
     }

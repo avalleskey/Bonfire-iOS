@@ -791,21 +791,16 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
     UISwitch *isPrivateSwitch = [nextBlock viewWithTag:10];
     BOOL isPrivate = !isPrivateSwitch.on;
     
-    NSLog(@"params: %@", @{@"title": roomTitle, @"description": roomDescription, @"color": roomColor, @"private": [NSNumber numberWithBool:isPrivate]});
+    NSLog(@"params: %@", @{@"title": roomTitle, @"description": roomDescription, @"color": roomColor, @"visibility": [NSNumber numberWithBool:isPrivate]});
 
     [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
         if (success) {
-            NSLog(@"token::: %@", token);
             [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
             
             [self.manager.requestSerializer setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
-            [self.manager POST:url parameters:@{@"title": roomTitle, @"description": roomDescription, @"color": roomColor} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                NSLog(@"responseObject: %@", responseObject);
-                
+            [self.manager POST:url parameters:@{@"title": roomTitle, @"description": roomDescription, @"color": roomColor, @"visibility": [NSNumber numberWithBool:isPrivate]} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 NSError *error;
                 Room *room = [[Room alloc] initWithDictionary:responseObject[@"data"] error:&error];
-                NSLog(@"error: %@", error.userInfo);
-                NSLog(@"room: %@", room);
                 
                 int shareStep = [self getIndexOfStepWithId:@"room_share"];
                 UIView *shareBlock = self.steps[shareStep][@"block"];

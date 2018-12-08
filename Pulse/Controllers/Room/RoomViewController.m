@@ -34,6 +34,7 @@
 @property (strong, nonatomic) NSMutableArray *roomSearchResults;
 @property (strong, nonatomic) NSMutableArray *myRoomsResults;
 @property (strong, nonatomic) ErrorView *errorView;
+@property (nonatomic) BOOL userDidRefresh;
 
 @end
 
@@ -79,18 +80,25 @@ static NSString * const reuseIdentifier = @"Result";
 - (void)roomUpdated:(NSNotification *)notification {
     Room *room = notification.object;
     
-    // if new Room has no context, use existing context
-    if (room.attributes.context == nil) {
-        room.attributes.context = self.room.attributes.context;
-    }
-    
     if (room != nil &&
         [room.identifier isEqualToString:self.room.identifier]) {
+        // if new Room has no context, use existing context
+        if (room.attributes.context == nil) {
+            room.attributes.context = self.room.attributes.context;
+        }
+        
         BOOL canViewPosts_Before = [self canViewPosts];
         
         // new post appears valid and same room
         self.room = room;
         self.tableView.parentObject = room;
+        
+        if (canViewPosts_Before && [self.room.attributes.context.status isEqualToString:ROOM_STATUS_LEFT]) {
+            self.tableView.stream.pages = [[NSMutableArray alloc] init];
+            self.tableView.stream.posts = @[];
+            
+            [self loadRoomContent];
+        }
         
         // Update Room
         UIColor *themeColor = [UIColor fromHex:[[self.room.attributes.details.color lowercaseString] isEqualToString:@"ffffff"]?@"222222":self.room.attributes.details.color];
@@ -113,15 +121,7 @@ static NSString * const reuseIdentifier = @"Result";
         }
         else {
             // loop through content and replace any occurences of this Room with the new object
-            for (int i = 0; i < self.tableView.data.count; i++) {
-                NSDictionary *item = self.tableView.data[i];
-                if ([[NSString stringWithFormat:@"%@", item[@"type"]] isEqualToString:@"post"]) {
-                    NSError *error;
-                    Post *post = [[Post alloc] initWithDictionary:item error:&error];
-                    post.attributes.status.postedIn = room;
-                    [self.tableView.data replaceObjectAtIndex:i withObject:[post toDictionary]];
-                }
-            }
+            [self.tableView.stream updateRoomObjects:room];
         }
         
         [self.tableView refresh];
@@ -133,27 +133,27 @@ static NSString * const reuseIdentifier = @"Result";
     self.room = [[Room alloc] initWithDictionary:[self.room toDictionary] error:&roomError];
     // [self mock];
     
-    NSLog(@"loadRoom:");
-    NSLog(@"self.room: %@", self.room);
-    
+    self.tableView.parentObject = self.room;
+    self.tableView.lastMaxId = 0;
+    [self.tableView refresh];
     if (roomError || self.room.attributes.context == nil) {
         // Room requires context, even though it's Optional on the object
         
         // Room object is fragmented – get Room to fill in the pieces
-        NSLog(@"room error::::");
-        NSLog(@"%@", roomError);
+        if (roomError) {
+            NSLog(@"room error::::");
+            NSLog(@"%@", roomError);
+        }
         
         // let's fetch info to fill in the gaps
         self.composeInputView.hidden = true;
-        [self getRoomInfo];
     }
-    else {
-        self.tableView.parentObject = self.room;
-        [self loadRoomContent];
-    }
+    
+    [self getRoomInfo];
 }
 - (void)loadRoomContent {
     if ([self canViewPosts]) {
+        NSLog(@"can't view posts m8 soz");
         if (self.composeInputView.isHidden) {
             self.composeInputView.transform = CGAffineTransformMakeTranslation(0, self.composeInputView.frame.size.height);
             self.composeInputView.hidden = false;
@@ -166,6 +166,7 @@ static NSString * const reuseIdentifier = @"Result";
         [self getPostsWithMaxId:0];
     }
     else {
+        NSLog(@"can't view posts m8 soz");
         if (!self.composeInputView.isHidden) {
             [UIView animateWithDuration:0.3f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
                 self.composeInputView.transform = CGAffineTransformMakeTranslation(0, self.composeInputView.frame.size.height);
@@ -186,12 +187,12 @@ static NSString * const reuseIdentifier = @"Result";
             [self.errorView updateDescription:@"This Room is no longer available"];
             [self.errorView updateType:ErrorViewTypeBlocked];
         }
-        else if (self.room.attributes.context.status == ROOM_STATUS_BLOCKED) { // blocked from Room
+        else if ([self.room.attributes.context.status isEqualToString:ROOM_STATUS_BLOCKED]) { // blocked from Room
             [self.errorView updateTitle:@"Blocked By Room"];
             [self.errorView updateDescription:@"Your account is blocked from creating and viewing posts in this Room"];
             [self.errorView updateType:ErrorViewTypeBlocked];
         }
-        else if (self.room.attributes.status.discoverability.isPrivate) { // not blocked, not member
+        else if (self.room.attributes.status.visibility.isPrivate) { // not blocked, not member
             // private room but not a member yet
             [self.errorView updateTitle:@"Private Room"];
             [self.errorView updateDescription:@"Request access above to get access to this Room’s posts"];
@@ -242,13 +243,17 @@ static NSString * const reuseIdentifier = @"Result";
             [self.manager GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 NSDictionary *responseData = (NSDictionary *)responseObject[@"data"];
                 
-                NSLog(@"response dataaaaa: %@", responseData);
+                // NSLog(@"response dataaaaa: %@", responseData);
                 
                 // this must go before we set self.room to the new Room object
                 BOOL requiresColorUpdate = (self.room.attributes.details.color == nil);
                 
                 // first page
                 self.room = [[Room alloc] initWithDictionary:responseData error:nil];
+                [[Session sharedInstance] addToRecents:self.room];
+                
+                NSLog(@"self.room: %@", self.room);
+                NSLog(@"user member status: %@", self.room.attributes.context.status);
                 
                 // update the theme color (in case we didn't know the room's color before
                 if (requiresColorUpdate) {
@@ -297,9 +302,9 @@ static NSString * const reuseIdentifier = @"Result";
     self.room.attributes.context = context;*/
     
     /* mimic private room
-    RoomDiscoverability *discoverability = [[RoomDiscoverability alloc] initWithDictionary:[self.room.attributes.status.discoverability toDictionary] error:nil];
-    discoverability.isPrivate = true;
-    self.room.attributes.status.discoverability = discoverability;*/
+    RoomVisibility *visibility = [[RoomVisibility alloc] initWithDictionary:[self.room.attributes.status.discoverability toDictionary] error:nil];
+    visibility = true;
+    self.room.attributes.status.visibility = visibility;*/
     
     // mimic Room being blocked
     /*RoomStatus *status = [[RoomStatus alloc] initWithDictionary:[self.room.attributes.status toDictionary] error:nil];
@@ -350,7 +355,7 @@ static NSString * const reuseIdentifier = @"Result";
     [self.launchNavVC.searchView.textField bk_addEventHandler:^(id sender) {
         if (self.isCreatingPost && self.roomSelectorTableView.alpha == 0) {
             self.room = nil;
-            self.tableView.data = [[NSMutableArray alloc] init];
+            self.tableView.stream = [[PostStream alloc] init];
             self.loading = true;
             
             self.composeInputView.addMediaButton.tintColor = [Session sharedInstance].themeColor;
@@ -558,16 +563,22 @@ static NSString * const reuseIdentifier = @"Result";
     
     self.composeInputView.frame = CGRectMake(0, self.view.bounds.size.height - collapsed_inputViewHeight, self.view.bounds.size.width, collapsed_inputViewHeight);
     
-    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, self.composeInputView.frame.size.height, 0);
-    self.roomSelectorTableView.contentInset = UIEdgeInsetsMake(0, 0, self.composeInputView.frame.size.height, 0);
+    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, self.composeInputView.frame.size.height - bottomPadding, 0);
+    self.roomSelectorTableView.contentInset = UIEdgeInsetsMake(0, 0, self.composeInputView.frame.size.height - bottomPadding, 0);
 }
 
 - (BOOL)canViewPosts {
-    return self.room.identifier != nil && // has an ID
-           !self.room.attributes.status.isBlocked && // Room not blocked
-           self.room.attributes.context.status != ROOM_STATUS_BLOCKED && // User blocked by Room
-           (!self.room.attributes.status.discoverability.isPrivate || // (public room OR
-            self.room.attributes.context.status == ROOM_STATUS_MEMBER);    //  private and member)
+    NSLog(@"context status: %@", self.room.attributes.context.status);
+    NSLog(@"room_status_member: %@", ROOM_STATUS_MEMBER);
+    NSLog(@"is member? %@", ([self.room.attributes.context.status isEqualToString:ROOM_STATUS_MEMBER] ? @"TRUE" : @"FALSE"));
+    BOOL canViewPosts = self.room.identifier != nil && // has an ID
+                        !self.room.attributes.status.isBlocked && // Room not blocked
+                        ![self.room.attributes.context.status isEqualToString:ROOM_STATUS_BLOCKED] && // User blocked by Room
+                        (!self.room.attributes.status.visibility.isPrivate || // (public room OR
+                         [self.room.attributes.context.status isEqualToString:ROOM_STATUS_MEMBER]);
+    NSLog(@"can view posts? %@", (canViewPosts ? @"TRUE" : @"FALSE"));
+    
+    return canViewPosts;    //  private and member)
 }
 
 - (void)getPostsWithMaxId:(NSInteger)maxId {
@@ -582,41 +593,36 @@ static NSString * const reuseIdentifier = @"Result";
         if (success) {
             [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
             
-            NSDictionary *params = maxId != 0 ? @{@"max_id": [NSNumber numberWithInteger:maxId], @"count": @(10)} : @{@"count": @(10)};
-            NSLog(@"params to getPostsWith:::: %@", params);
+            NSDictionary *params = maxId != 0 ? @{@"max_id": [NSNumber numberWithInteger:maxId-1], @"count": @(10)} : @{@"count": @(10)};
+//            NSLog(@"params to getPostsWith:::: %@", params);
             
             [self.manager GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                NSArray *responseData = (NSArray *)responseObject[@"data"];
-                
                 self.tableView.scrollEnabled = true;
                 
-                if (maxId == 0) {
-                    // first page
-                    self.tableView.data = [[NSMutableArray alloc] initWithArray:responseData];
+                if (self.userDidRefresh) {
+                    self.userDidRefresh = false;
+                    self.tableView.stream.posts = @[];
+                    self.tableView.stream.pages = [[NSMutableArray alloc] init];
+                }
+                
+                PostStreamPage *page = [[PostStreamPage alloc] initWithDictionary:responseObject error:nil];
+                [self.tableView.stream appendPage:page];
+                
+                if (self.tableView.stream.posts.count == 0) {
+                    // Error: No posts yet!
+                    self.errorView.hidden = false;
                     
-                    if (self.tableView.data.count == 0) {
-                        // Error: No posts yet!
-                        self.errorView.hidden = false;
-                        
-                        RoomHeaderCell *headerCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
-                        CGFloat heightOfHeader = headerCell.frame.size.height;
-                        
-                        NSLog(@"height of height: %f", heightOfHeader);
-                        
-                        [self.errorView updateType:ErrorViewTypeNoPosts];
-                        [self.errorView updateTitle:@"No Posts Yet"];
-                        [self.errorView updateDescription:@""];
-                        
-                        self.errorView.frame = CGRectMake(self.errorView.frame.origin.x, heightOfHeader + 72, self.errorView.frame.size.width, self.errorView.frame.size.height);
-                    }
-                    else {
-                        self.errorView.hidden = true;
-                    }
+                    RoomHeaderCell *headerCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
+                    CGFloat heightOfHeader = headerCell.frame.size.height;
+                    
+                    [self.errorView updateType:ErrorViewTypeNoPosts];
+                    [self.errorView updateTitle:@"No Posts Yet"];
+                    [self.errorView updateDescription:@""];
+                    
+                    self.errorView.frame = CGRectMake(self.errorView.frame.origin.x, heightOfHeader + 72, self.errorView.frame.size.width, self.errorView.frame.size.height);
                 }
                 else {
                     self.errorView.hidden = true;
-                    // appended posts
-                    self.tableView.data = [[NSMutableArray alloc] initWithArray:[self.tableView.data arrayByAddingObjectsFromArray:responseData]];
                 }
                 
                 self.loading = false;
@@ -629,7 +635,7 @@ static NSString * const reuseIdentifier = @"Result";
                 NSLog(@"FeedViewController / getPosts() - error: %@", error);
                 //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
                 
-                if (self.tableView.data.count == 0) {
+                if (self.tableView.stream.posts.count == 0) {
                     self.errorView.hidden = false;
                     
                     [self.errorView updateType:ErrorViewTypeGeneral];
@@ -663,16 +669,25 @@ static NSString * const reuseIdentifier = @"Result";
     self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, 60, 0);
     self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 60, 0);
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
+    [self.tableView.refreshControl addTarget:self action:@selector(refresh) forControlEvents:UIControlEventValueChanged];
+    
     [self.view addSubview:self.tableView];
     
     UIView *headerHack = [[UIView alloc] initWithFrame:CGRectMake(0, -1 * self.view.frame.size.height, self.view.frame.size.width, self.view.frame.size.height)];
     headerHack.backgroundColor = [UIColor colorWithWhite:1 alpha:1];
-    [self.tableView addSubview:headerHack];
+    [self.tableView insertSubview:headerHack atIndex:0];
+}
+- (void)refresh {
+    self.userDidRefresh = true;
+    [self loadRoom];
 }
 
 - (void)tableView:(id)tableView didRequestNextPageWithMaxId:(NSInteger)maxId {
-    // NSLog(@"RoomViewController:: didRequestNextPageWithSinceID: %ld", (long)sinceId);
-    [self getPostsWithMaxId:maxId];
+    if (self.tableView.stream.posts.count > 0) {
+        Post *lastPost = [self.tableView.stream.posts lastObject];
+        
+        [self getPostsWithMaxId:lastPost.identifier];
+    }
 }
 
 - (BOOL)textViewShouldBeginEditing:(UITextView *)textView {
@@ -1006,9 +1021,10 @@ static NSString * const reuseIdentifier = @"Result";
 }
 
 - (void)openRoomActions {
-    BOOL isRoomAdmin   = true;
-    BOOL insideRoom    = false; // compare ID of post room and active room
-    BOOL followingRoom = true;
+    // TODO: check that the user is actually an Admin, not just a member
+    BOOL isRoomAdmin   = [self.room.attributes.context.status isEqualToString:ROOM_STATUS_MEMBER];
+    // BOOL insideRoom    = false; // compare ID of post room and active room
+    // BOOL followingRoom = true;
     BOOL roomPostNotifications = false;
     BOOL hasTwitter = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"twitter://"]];
     BOOL hasiMessage = [MFMessageComposeViewController canSendText];

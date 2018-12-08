@@ -27,6 +27,7 @@
 @property CGFloat maxHeaderHeight;
 
 @property (strong, nonatomic) ErrorView *errorView;
+@property (nonatomic) BOOL userDidRefresh;
 
 @end
 
@@ -38,7 +39,7 @@
     self.view.tintColor = self.theme;
     
     if ([self isCurrentUser] && [self.navigationController isKindOfClass:[SimpleNavigationController class]]) {
-        self.title = @"My Profile";
+
     }
     else {
         self.title = self.user.attributes.details.displayName;
@@ -60,8 +61,22 @@
     [self loadUser];
 }
 
+- (NSString *)userIdentifier {
+    if (self.user.identifier != nil) return self.user.identifier;
+    if (self.user.attributes.details.identifier != nil) return self.user.attributes.details.identifier;
+    
+    return nil;
+}
+- (NSString *)matchingCurrentUserIdentifier {
+    // return matching identifier type for the current user
+    if (self.user.identifier != nil) return [Session sharedInstance].currentUser.identifier;
+    if (self.user.attributes.details.identifier != nil) return [Session sharedInstance].currentUser.attributes.details.identifier;
+    
+    return nil;
+}
+
 - (BOOL)isCurrentUser {
-    return [self.user.identifier isKindOfClass:[NSString class]] && [self.user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier];
+    return [self userIdentifier] != nil && [[self userIdentifier] isEqualToString:[self matchingCurrentUserIdentifier]];
 }
 - (BOOL)canViewPosts {
     return true;
@@ -103,6 +118,8 @@
     UIAlertAction *shareUser = [UIAlertAction actionWithTitle:[NSString stringWithFormat:@"Share %@ via...", [self isCurrentUser] ? @"your profile" : [NSString stringWithFormat:@"@%@", self.user.attributes.details.identifier]] style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         NSLog(@"share user");
         
+        // TODO: Create share user sheet
+        
         //[self showShareUserSheet];
     }];
     [actionSheet addAction:shareUser];
@@ -113,11 +130,10 @@
             UIAlertController *alertConfirmController = [UIAlertController alertControllerWithTitle:[NSString stringWithFormat:@"%@ %@", userIsBlocked ? @"Unblock" : @"Block" , self.user.attributes.details.displayName] message:[NSString stringWithFormat:@"Are you sure you would like to block @%@?", self.user.attributes.details.identifier] preferredStyle:UIAlertControllerStyleAlert];
             
             UIAlertAction *alertConfirm = [UIAlertAction actionWithTitle:userIsBlocked ? @"Unblock" : @"Block" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
-                NSLog(@"switch user block state");
                 if (userIsBlocked) {
                     [[Session sharedInstance] unblockUser:self.user completion:^(BOOL success, id responseObject) {
                         if (success) {
-                            NSLog(@"success unblocking!");
+                            // NSLog(@"success unblocking!");
                         }
                         else {
                             NSLog(@"error unblocking ;(");
@@ -127,7 +143,7 @@
                 else {
                     [[Session sharedInstance] blockUser:self.user completion:^(BOOL success, id responseObject) {
                         if (success) {
-                            NSLog(@"success blocking!");
+                            // NSLog(@"success blocking!");
                         }
                         else {
                             NSLog(@"error blocking ;(");
@@ -137,9 +153,7 @@
             }];
             [alertConfirmController addAction:alertConfirm];
             
-            UIAlertAction *alertCancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-                NSLog(@"cancel");
-            }];
+            UIAlertAction *alertCancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
             [alertConfirmController addAction:alertCancel];
             
             [self.navigationController presentViewController:alertConfirmController animated:YES completion:nil];
@@ -166,6 +180,8 @@
             
             UIAlertAction *alertCancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
                 NSLog(@"cancel report user");
+                
+                // TODO: Verify this closes both action sheets
             }];
             [saveAndOpenTwitterConfirm addAction:alertCancel];
             
@@ -223,37 +239,28 @@
 }
 
 - (void)loadUser {
-    NSError *userError;
-    self.user = [[User alloc] initWithDictionary:[self.user toDictionary] error:&userError];
-    // [self mock];
+    self.tableView.parentObject = self.user;
+    self.tableView.lastMaxId = 0;
+    [self.tableView refresh];
     
-    NSLog(@"loadProfile:");
-    NSLog(@"self.user: %@", self.user);
+    NSLog(@"self.userIdentifier: %@", [self userIdentifier]);
+    NSLog(@"oooo: @%@", self.user.attributes.details.identifier);
     
-    if (userError ||
-        (![self isCurrentUser] && self.user.attributes.context == nil)) {
-        // User requires context if not current User, even though it's Optional on the object
-        
-        // User object is fragmented – get User to fill in the pieces
-        if (userError) {
-            NSLog(@"user error::::");
-            NSLog(@"%@", userError);
-        }
-        else {
-            NSLog(@"context == nil");
-        }
-        
-        // let's fetch info to fill in the gaps
-        [self getUserInfo];
+    if (self.user.identifier == nil) {
+        [self hideMoreButton];
     }
     else {
-        self.tableView.parentObject = self.user;
-        [self loadUserContent];
+        [self showMoreButton];
     }
+    
+    // always fetch user info
+    [self getUserInfo];
 }
 
 - (void)getUserInfo {
-    NSString *url = [NSString stringWithFormat:@"%@/%@/users/%@", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], self.user.identifier];
+    NSString *url = [NSString stringWithFormat:@"%@/%@/users/%@", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], [self userIdentifier]];
+    
+    NSLog(@"user url: %@", url);
     
     [self.manager.requestSerializer setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
     self.manager.responseSerializer = [AFJSONResponseSerializer serializer];
@@ -263,22 +270,32 @@
             
             NSDictionary *params = @{};
             
-            NSLog(@"url: %@", url);
-            
             [self.manager GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 NSDictionary *responseData = (NSDictionary *)responseObject[@"data"];
                 
-                NSLog(@"response dataaaaa: %@", responseData);
-                
                 // this must go before we set self.room to the new Room object
-                BOOL requiresColorUpdate = (self.user.attributes.details.color == nil);
+                NSString *colorBefore = self.user.attributes.details.color;
+                BOOL requiresColorUpdate = (colorBefore == nil || colorBefore.length == 0);
+                
+                NSString *displayNameBefore = self.user.attributes.details.displayName;
                 
                 // first page
                 self.user = [[User alloc] initWithDictionary:responseData error:nil];
+                [[Session sharedInstance] addToRecents:self.user];
+                [self showMoreButton];
                 
                 // update the theme color (in case we didn't know the room's color before
+                if (![colorBefore isEqualToString:self.user.attributes.details.color]) requiresColorUpdate = true;
                 if (requiresColorUpdate) {
                     [self updateTheme];
+                }
+                if (displayNameBefore == nil || displayNameBefore.length == 0) {
+                    if ([self.navigationController isKindOfClass:[ComplexNavigationController class]]) {
+                        [((ComplexNavigationController *)self.navigationController).searchView updateSearchText:self.user.attributes.details.displayName];
+                    }
+                    else if ([self.navigationController isKindOfClass:[SimpleNavigationController class]]) {
+                        self.title = self.user.attributes.details.displayName;
+                    }
                 }
                 
                 self.tableView.parentObject = self.user;
@@ -288,7 +305,7 @@
                 // Go on to load the room content
                 [self loadUserContent];
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                NSLog(@"RoomViewController / getRoom() - error: %@", error);
+                NSLog(@"ProfileViewController / getUserInfo() - error: %@", error);
                 //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
                 
                 self.errorView.hidden = false;
@@ -368,9 +385,17 @@
         [(SimpleNavigationController *)self.navigationController setRightAction:SNActionTypeNone];
     }
 }
+- (void)showMoreButton {
+    if ([self.navigationController isKindOfClass:[ComplexNavigationController class]]) {
+        [(ComplexNavigationController *)self.navigationController setRightAction:LNActionTypeMore];
+    }
+    else if ([self.navigationController isKindOfClass:[SimpleNavigationController class]]) {
+        [(SimpleNavigationController *)self.navigationController setRightAction:SNActionTypeMore];
+    }
+}
 
 - (void)getPostsWithMaxId:(NSInteger)maxId {
-    if (self.user.identifier) {
+    if ([self userIdentifier] != nil) {
         self.errorView.hidden = true;
         self.tableView.hidden = false;
         
@@ -383,55 +408,48 @@
                 [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
                 
                 NSDictionary *params = maxId != 0 ? @{@"max_id": [NSNumber numberWithInteger:maxId], @"count": @(10)} : @{@"count": @(10)};
-                NSLog(@"params to getPostsWith:::: %@", params);
+                // NSLog(@"params to getPostsWith:::: %@", params);
                 
                 [self.manager GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                    NSArray *responseData = (NSArray *)responseObject[@"data"];
-                    
-                    NSLog(@"ProfileViewController / getPosts() responseObject: %@", responseObject);
-                    
                     self.tableView.scrollEnabled = true;
                     
-                    if (maxId == 0) {
-                        // first page
-                        self.tableView.data = [[NSMutableArray alloc] initWithArray:responseData];
+                    if (self.userDidRefresh) {
+                        self.userDidRefresh = false;
+                        self.tableView.stream.posts = @[];
+                        self.tableView.stream.pages = [[NSMutableArray alloc] init];
+                    }
+
+                    PostStreamPage *page = [[PostStreamPage alloc] initWithDictionary:responseObject error:nil];
+                    [self.tableView.stream appendPage:page];
+                    
+                    if (self.tableView.stream.posts.count == 0) {
+                        // Error: No posts yet!
+                        self.errorView.hidden = false;
                         
-                        if (self.tableView.data.count == 0) {
-                            // Error: No posts yet!
-                            self.errorView.hidden = false;
-                            
-                            ProfileHeaderCell *headerCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
-                            CGFloat heightOfHeader = headerCell.frame.size.height;
-                            
-                            NSLog(@"height of height: %f", heightOfHeader);
-                            
-                            [self.errorView updateType:ErrorViewTypeNoPosts];
-                            [self.errorView updateTitle:@"No Posts Yet"];
-                            [self.errorView updateDescription:@""];
-                            
-                            self.errorView.frame = CGRectMake(self.errorView.frame.origin.x, heightOfHeader + 72, self.errorView.frame.size.width, self.errorView.frame.size.height);
-                        }
-                        else {
-                            self.errorView.hidden = true;
-                        }
+                        ProfileHeaderCell *headerCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
+                        CGFloat heightOfHeader = headerCell.frame.size.height;
+                        
+                        [self.errorView updateType:ErrorViewTypeNoPosts];
+                        [self.errorView updateTitle:@"No Posts Yet"];
+                        [self.errorView updateDescription:@""];
+                        
+                        self.errorView.frame = CGRectMake(self.errorView.frame.origin.x, heightOfHeader + 72, self.errorView.frame.size.width, self.errorView.frame.size.height);
                     }
                     else {
                         self.errorView.hidden = true;
-                        // appended posts
-                        self.tableView.data = [[NSMutableArray alloc] initWithArray:[self.tableView.data arrayByAddingObjectsFromArray:responseData]];
                     }
 
                     self.loading = false;
                     
                     self.tableView.loading = false;
                     self.tableView.loadingMore = false;
-                    
+                                        
                     [self.tableView refresh];
                 } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                    NSLog(@"FeedViewController / getPosts() - error: %@", error);
+                    NSLog(@"ProfileViewController / getPostsWithMaxId() - error: %@", error);
                     //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
                     
-                    if (self.tableView.data.count == 0) {
+                    if (self.tableView.stream.posts.count == 0) {
                         self.errorView.hidden = false;
                         
                         [self.errorView updateType:ErrorViewTypeGeneral];
@@ -452,10 +470,12 @@
         }];
     }
     else {
-        self.errorView.hidden = false;
-        self.tableView.hidden = true;
-        
-        [self hideMoreButton];
+        self.loading = false;
+        self.tableView.loading = false;
+        self.tableView.loadingMore = false;
+        self.tableView.userInteractionEnabled = true;
+        self.tableView.scrollEnabled = false;
+        [self.tableView refresh];
     }
 }
 
@@ -467,14 +487,23 @@
     self.tableView = [[RSTableView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - self.navigationController.navigationBar.frame.origin.y - self.navigationController.navigationBar.frame.size.height) style:UITableViewStyleGrouped];
     self.tableView.dataType = RSTableViewTypeProfile;
     self.tableView.parentObject = self.user;
+    self.tableView.loading = true;
+    self.tableView.paginationDelegate = self;
     self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, 0, 0);
-    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 48, 0);
+    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
+    self.tableView.tag = 101;
+    [self.tableView.refreshControl addTarget:self action:@selector(refresh) forControlEvents:UIControlEventValueChanged];
     [self.view addSubview:self.tableView];
     
     UIView *headerHack = [[UIView alloc] initWithFrame:CGRectMake(0, -1 * self.view.frame.size.height, self.view.frame.size.width, self.view.frame.size.height)];
     headerHack.backgroundColor = [UIColor colorWithWhite:1 alpha:1];
-    [self.tableView addSubview:headerHack];
+    [self.tableView insertSubview:headerHack atIndex:0];
+}
+- (void)refresh {
+    NSLog(@"refresh profile view controller");
+    self.userDidRefresh = true;
+    [self loadUser];
 }
 
 - (UIStatusBarStyle)preferredStatusBarStyle

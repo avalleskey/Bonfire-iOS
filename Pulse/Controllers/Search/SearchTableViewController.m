@@ -10,6 +10,7 @@
 #import "Session.h"
 #import "HAWebService.h"
 #import "SearchResultCell.h"
+#import "ButtonCell.h"
 #import "NSDictionary+Clean.h"
 #import "NSArray+Clean.h"
 #import <BlocksKit/BlocksKit.h>
@@ -32,6 +33,7 @@
 @implementation SearchTableViewController
 
 static NSString * const reuseIdentifier = @"Result";
+static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -72,7 +74,9 @@ static NSString * const reuseIdentifier = @"Result";
     self.tableView.separatorInset = UIEdgeInsetsMake(0, 68, 0, 0);
     self.tableView.separatorColor = [UIColor colorWithWhite:0.92 alpha:1];
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
+    
     [self.tableView registerClass:[SearchResultCell class] forCellReuseIdentifier:reuseIdentifier];
+    [self.tableView registerClass:[ButtonCell class] forCellReuseIdentifier:buttonCellReuseIdentifier];
 }
 
 - (void)emptySearchResults {
@@ -91,138 +95,38 @@ static NSString * const reuseIdentifier = @"Result";
             return;
         }
     }
-    
-    if (self.recentSearchResults.count == 0) {
-        // use recently opened instead
-        NSArray *openedRecents = [defaults arrayForKey:@"recents_opened"];
-        self.recentSearchResults = [[NSMutableArray alloc] initWithArray:openedRecents];
-    }
-}
-- (NSString *)convertToString:(id)object {
-    return [NSString stringWithFormat:@"%@", object];
-}
-- (void)addToRecents:(id)object {
-    if ([object isKindOfClass:[Room class]] ||
-        [object isKindOfClass:[User class]]) {
-        NSMutableArray *searchRecents = [[NSMutableArray alloc] initWithArray:[[NSUserDefaults standardUserDefaults] arrayForKey:@"recents_search"]];
-        
-        NSDictionary *objJSON = [object toDictionary];
-        
-        // add object or push to front if in recents
-        BOOL existingMatch = false;
-        for (NSInteger i = 0; i < [searchRecents count]; i++) {
-            NSDictionary *result = searchRecents[i];
-            if (objJSON[@"type"] && objJSON[@"id"] &&
-                result[@"type"] && result[@"id"]) {
-                if ([objJSON[@"type"] isEqualToString:result[@"type"]] && [[self convertToString:objJSON[@"id"]] isEqualToString:[self convertToString:result[@"id"]]]) {
-                    existingMatch = true;
-                    
-                    [searchRecents removeObjectAtIndex:i];
-                    [searchRecents insertObject:result atIndex:0];
-                    break;
-                }
-            }
-        }
-        if (!existingMatch) {
-            // remove context first
-            if ([object isKindOfClass:[Room class]]) {
-                Room *room = (Room *)object;
-                room.attributes.context = nil;
-                
-                [searchRecents insertObject:[room toDictionary] atIndex:0];
-            }
-            else if ([object isKindOfClass:[User class]]) {
-                User *user = (User *)object;
-                //user.attributes.context = nil;
-                
-                [searchRecents insertObject:[user toDictionary] atIndex:0];
-            }
-            
-            
-            if (searchRecents.count > 8) {
-                searchRecents = [[NSMutableArray alloc] initWithArray:[searchRecents subarrayWithRange:NSMakeRange(0, 8)]];
-            }
-        }
-        
-        // update NSUserDefaults
-        [[NSUserDefaults standardUserDefaults] setObject:[searchRecents clean] forKey:@"recents_search"];
-        [self initRecentSearchResults];
-        [self.tableView reloadData];
-    }
-}
-- (void)addToRecentlyOpened:(id)object {
-    if ([object isKindOfClass:[Room class]] ||
-        [object isKindOfClass:[User class]]) {
-        NSMutableArray *openedRecents = [[NSMutableArray alloc] initWithArray:[[NSUserDefaults standardUserDefaults] arrayForKey:@"recents_opened"]];
-        
-        NSDictionary *objJSON = [object toDictionary];
-        
-        // add object or push to front if in recents
-        BOOL existingMatch = false;
-        for (NSInteger i = 0; i < [openedRecents count]; i++) {
-            NSDictionary *result = openedRecents[i];
-            if (objJSON[@"type"] && objJSON[@"id"] &&
-                result[@"type"] && result[@"id"]) {
-                if ([objJSON[@"type"] isEqualToString:result[@"type"]] && [[self convertToString:objJSON[@"id"]] isEqualToString:[self convertToString:result[@"id"]]]) {
-                    existingMatch = true;
-                    
-                    [openedRecents removeObjectAtIndex:i];
-                    [openedRecents insertObject:result atIndex:0];
-                    break;
-                }
-            }
-        }
-        if (!existingMatch) {
-            // remove context first
-            if ([object isKindOfClass:[Room class]]) {
-                Room *room = (Room *)object;
-                room.attributes.context = nil;
-                
-                [openedRecents insertObject:[room toDictionary] atIndex:0];
-            }
-            else if ([object isKindOfClass:[User class]]) {
-                User *user = (User *)object;
-                //user.attributes.context = nil;
-                
-                [openedRecents insertObject:[user toDictionary] atIndex:0];
-            }
-            
-            if (openedRecents.count > 8) {
-                openedRecents = [[NSMutableArray alloc] initWithArray:[openedRecents subarrayWithRange:NSMakeRange(0, 8)]];
-            }
-        }
-        
-        // update NSUserDefaults
-        [[NSUserDefaults standardUserDefaults] setObject:[openedRecents clean] forKey:@"recents_opened"];
-        [self initRecentSearchResults];
-        [self.tableView reloadData];
-    }
 }
 
 - (void)getSearchResults {
-    [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
-        if (success) {
-            NSLog(@"successfully authenticated: %@", self.searchController.searchView.textField.text);
-            [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
-            
-            NSString *url = [NSString stringWithFormat:@"%@/%@/search", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"]];
-            [self.manager GET:url parameters:@{@"q": self.searchController.searchView.textField.text} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                NSDictionary *responseData = (NSDictionary *)responseObject[@"data"];
+    if (self.searchController.searchView.textField.text.length == 0) {
+        self.searchResults = [[NSMutableArray alloc] init];
+        [self.tableView reloadData];
+    }
+    else {
+        [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
+            if (success) {
+                NSLog(@"successfully authenticated: %@", self.searchController.searchView.textField.text);
+                [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
                 
-                self.searchResults = [[NSMutableArray alloc] init];
-                [self populateSearchResults:responseData];
-                
-                NSLog(@"self.searchResults: %@", self.searchResults);
-                
-                [self.tableView reloadData];
-            } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                NSLog(@"FeedViewController / getPosts() - error: %@", error);
-                //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-                
-                [self.tableView reloadData];
-            }];
-        }
-    }];
+                NSString *url = [NSString stringWithFormat:@"%@/%@/search", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"]];
+                [self.manager GET:url parameters:@{@"q": self.searchController.searchView.textField.text} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+                    NSDictionary *responseData = (NSDictionary *)responseObject[@"data"];
+                    
+                    self.searchResults = [[NSMutableArray alloc] init];
+                    [self populateSearchResults:responseData];
+                    
+                    NSLog(@"self.searchResults: %@", self.searchResults);
+                    
+                    [self.tableView reloadData];
+                } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+                    NSLog(@"FeedViewController / getPosts() - error: %@", error);
+                    //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+                    
+                    [self.tableView reloadData];
+                }];
+            }
+        }];
+    }
 }
 - (void)populateSearchResults:(NSDictionary *)responseData {
     [self.searchResults addObjectsFromArray:responseData[@"results"][@"rooms"]];
@@ -232,79 +136,105 @@ static NSString * const reuseIdentifier = @"Result";
 #pragma mark - Table view data source
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    SearchResultCell *cell = [tableView dequeueReusableCellWithIdentifier:reuseIdentifier forIndexPath:indexPath];
-    
-    if (cell == nil) {
-        cell = [[SearchResultCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:reuseIdentifier];
-    }
-    
-    // -- Type --
-    int type = 0;
-    
-    NSDictionary *json;
-    // mix of types
-    if (indexPath.section == 0) {
-        json = self.recentSearchResults[indexPath.row];
+    if (indexPath.section == 1 &&
+        self.searchController.searchView.textField.text.length > 0 &&
+        self.searchResults.count == 0) {
+        ButtonCell *cell = [tableView dequeueReusableCellWithIdentifier:buttonCellReuseIdentifier forIndexPath:indexPath];
+        
+        if (cell == nil) {
+            cell = [[ButtonCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:buttonCellReuseIdentifier];
+        }
+        
+        // Configure the cell...
+        NSString *searchPhrase = self.searchController.searchView.textField.text;
+        cell.buttonLabel.text = [NSString stringWithFormat:@"Go to @%@", searchPhrase];
+        cell.buttonLabel.textColor = [UIColor colorWithWhite:0.2f alpha:1];
+        
+        return cell;
+        
+        return cell;
     }
     else {
-        json = self.searchResults[indexPath.row];
-    }
-    if (json[@"type"]) {
-        if ([json[@"type"] isEqualToString:@"room"]) {
-            type = 1;
-        }
-        else if ([json[@"type"] isEqualToString:@"user"]) {
-            type = 2;
-        }
-    }
-    cell.type = type;
-    
-    if (type == 0) {
-        // 0 = page inside Home (e.g. Timeline, My Rooms, Trending)
-        cell.textLabel.text = @"Page";
-        cell.imageView.image = [UIImage new];
-        cell.imageView.backgroundColor = [UIColor blueColor];
-    }
-    else if (type == 1) {
-        NSError *error;
-        Room *room = [[Room alloc] initWithDictionary:json error:&error];
-        if (error) { NSLog(@"room error: %@", error); };
+        SearchResultCell *cell = [tableView dequeueReusableCellWithIdentifier:reuseIdentifier forIndexPath:indexPath];
         
-        // 1 = Room
-        cell.textLabel.text = room.attributes.details.title;
-        cell.imageView.tintColor = [UIColor fromHex:room.attributes.details.color];
-        cell.imageView.backgroundColor = [UIColor whiteColor];
-        
-        NSString *detailText = [NSString stringWithFormat:@"%ld %@", (long)room.attributes.summaries.counts.members, (room.attributes.summaries.counts.members == 1 ? @"member" : @"members")];
-        BOOL useLiveCount = room.attributes.summaries.counts.live > [Session sharedInstance].defaults.room.liveThreshold;
-        if (useLiveCount) {
-            cell.detailTextLabel.text = [NSString stringWithFormat:@"%@ · %li live", detailText, (long)room.attributes.summaries.counts.live];
+        if (cell == nil) {
+            cell = [[SearchResultCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:reuseIdentifier];
         }
-        cell.detailTextLabel.text = detailText;
-    }
-    else {
-        NSError *error;
-        User *user = [[User alloc] initWithDictionary:json error:&error];
         
-        // 2 = User
-        cell.textLabel.text = user.attributes.details.displayName;
-        cell.detailTextLabel.text = [NSString stringWithFormat:@"@%@", user.attributes.details.identifier];
-        if (user.attributes.details.media.profilePicture != nil && user.attributes.details.media.profilePicture.length > 0) {
-            [cell.imageView sd_setImageWithURL:[NSURL URLWithString:user.attributes.details.media.profilePicture] placeholderImage:[[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] options:SDWebImageRefreshCached];
+        // -- Type --
+        int type = 0;
+        
+        NSDictionary *json;
+        // mix of types
+        if (indexPath.section == 0) {
+            json = self.recentSearchResults[indexPath.row];
         }
         else {
-            cell.imageView.image = [[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+            json = self.searchResults[indexPath.row];
+        }
+        if (json[@"type"]) {
+            if ([json[@"type"] isEqualToString:@"room"]) {
+                type = 1;
+            }
+            else if ([json[@"type"] isEqualToString:@"user"]) {
+                type = 2;
+            }
+        }
+        cell.type = type;
+        
+        if (type == 0) {
+            // 0 = page inside Home (e.g. Timeline, My Rooms, Trending)
+            cell.textLabel.text = @"Page";
+            cell.imageView.image = [UIImage new];
+            cell.imageView.backgroundColor = [UIColor blueColor];
+        }
+        else if (type == 1) {
+            NSError *error;
+            Room *room = [[Room alloc] initWithDictionary:json error:&error];
+            if (error) { NSLog(@"room error: %@", error); };
+            
+            // 1 = Room
+            cell.textLabel.text = room.attributes.details.title;
+            cell.imageView.tintColor = [UIColor fromHex:room.attributes.details.color];
+            cell.imageView.backgroundColor = [UIColor whiteColor];
+            
+            NSString *detailText = [NSString stringWithFormat:@"%ld %@", (long)room.attributes.summaries.counts.members, (room.attributes.summaries.counts.members == 1 ? @"member" : @"members")];
+            BOOL useLiveCount = room.attributes.summaries.counts.live > [Session sharedInstance].defaults.room.liveThreshold;
+            if (useLiveCount) {
+                cell.detailTextLabel.text = [NSString stringWithFormat:@"%@ · %li live", detailText, (long)room.attributes.summaries.counts.live];
+            }
+            cell.detailTextLabel.text = detailText;
+        }
+        else {
+            NSError *error;
+            User *user = [[User alloc] initWithDictionary:json error:&error];
+            
+            // 2 = User
+            cell.textLabel.text = user.attributes.details.displayName;
+            cell.detailTextLabel.text = [NSString stringWithFormat:@"@%@", user.attributes.details.identifier];
+            if (user.attributes.details.media.profilePicture != nil && user.attributes.details.media.profilePicture.length > 0) {
+                [cell.imageView sd_setImageWithURL:[NSURL URLWithString:user.attributes.details.media.profilePicture] placeholderImage:[[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] options:SDWebImageRefreshCached];
+            }
+            else {
+                cell.imageView.image = [[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+            }
+            
+            // 2 = User
+            cell.imageView.tintColor = [[user.attributes.details.color lowercaseString] isEqualToString:@"ffffff"] ? [UIColor colorWithWhite:0.2f alpha:1] : [UIColor fromHex:user.attributes.details.color];
+            cell.imageView.backgroundColor = [UIColor whiteColor];
         }
         
-        // 2 = User
-        cell.imageView.tintColor = [[user.attributes.details.color lowercaseString] isEqualToString:@"ffffff"] ? [UIColor colorWithWhite:0.2f alpha:1] : [UIColor fromHex:user.attributes.details.color];
-        cell.imageView.backgroundColor = [UIColor whiteColor];
+        return cell;
     }
-    
-    return cell;
 }
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return 64;
+    if (indexPath.section == 1 &&
+        self.searchController.searchView.textField.text.length > 0 &&
+        self.searchResults.count == 0) {
+        return 52;
+    }
+    
+    return 62;
 }
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     return 2;
@@ -318,41 +248,58 @@ static NSString * const reuseIdentifier = @"Result";
     }
 }
 - (void)handleCellTapForIndexPath:(NSIndexPath *)indexPath {
-    NSDictionary *json;
-    
     // mix of types
-    if (indexPath.section == 0) {
-        json = self.recentSearchResults[indexPath.row];
-    }
-    else {
-        json = self.searchResults[indexPath.row];
-    }
-    if (json[@"type"]) {
-        if ([json[@"type"] isEqualToString:@"room"]) {
-            Room *room = [[Room alloc] initWithDictionary:json error:nil];
-            
-            [self addToRecents:room];
-            
-            [[Launcher sharedInstance] openRoom:room];
-        }
-        else if ([json[@"type"] isEqualToString:@"user"]) {
-            User *user = [[User alloc] initWithDictionary:json error:nil];
-            
-            [self addToRecents:user];
-            
-            [[Launcher sharedInstance] openProfile:user];
-        }
-    }
-    
-    if (self.navigationController.tabBarController != nil) {
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.6f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            [self.searchController.searchView updateSearchText:@""];
-            [self emptySearchResults];
-            [self.tableView reloadData];
-        });
-    }
-    else {
+    if (indexPath.section == 1 &&
+        self.searchController.searchView.textField.text.length > 0 &&
+        self.searchResults.count == 0) {
+        // Go to @{username}
+        NSString *searchPhrase = self.searchController.searchView.textField.text;
         
+        User *user = [[User alloc] init];
+        user.type = @"user";
+        UserAttributes *attributes = [[UserAttributes alloc] init];
+        UserDetails *details = [[UserDetails alloc] init];
+        details.identifier = [searchPhrase stringByReplacingOccurrencesOfString:@"@" withString:@""];
+        attributes.details = details;
+        user.attributes = attributes;
+        
+        [[Launcher sharedInstance] openProfile:user];
+    }
+    else {
+        NSDictionary *json;
+        
+        if (indexPath.section == 0) {
+            json = self.recentSearchResults[indexPath.row];
+        }
+        else {
+            json = self.searchResults[indexPath.row];
+        }
+        if (json[@"type"]) {
+            if ([json[@"type"] isEqualToString:@"room"]) {
+                Room *room = [[Room alloc] initWithDictionary:json error:nil];
+                
+                [[Launcher sharedInstance] openRoom:room];
+            }
+            else if ([json[@"type"] isEqualToString:@"user"]) {
+                User *user = [[User alloc] initWithDictionary:json error:nil];
+                
+                [[Launcher sharedInstance] openProfile:user];
+            }
+            
+            [self initRecentSearchResults];
+            [self.tableView reloadData];
+        }
+        
+        if (self.navigationController.tabBarController != nil) {
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.6f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                [self.searchController.searchView updateSearchText:@""];
+                [self emptySearchResults];
+                [self.tableView reloadData];
+            });
+        }
+        else {
+            
+        }
     }
     
     [self.searchController.searchView resignFirstResponder];
@@ -366,8 +313,20 @@ static NSString * const reuseIdentifier = @"Result";
         return self.recentSearchResults.count;
     }
     else if (section == 1) {
-        NSLog(@"how many rows: %lu", (unsigned long)self.searchResults.count);
-        return self.searchResults.count;
+        if (self.searchController.searchView.textField.text.length > 0) {
+            if (self.searchResults.count == 0) {
+                NSString *searchPhrase = self.searchController.searchView.textField.text;
+                
+                if ([[searchPhrase componentsSeparatedByString:@" "] count] > 1) {
+                    return 0;
+                }
+                
+                return 1;
+            }
+            else {
+                return self.searchResults.count;
+            }
+        }
     }
     
     return 0;
@@ -384,6 +343,9 @@ static NSString * const reuseIdentifier = @"Result";
                          self.searchController.searchView.textField.text.length != 0)) return CGFLOAT_MIN;
     if (section == 1 && (self.searchResults.count > 0 ||
                          self.searchController.searchView.textField.text.length == 0)) return CGFLOAT_MIN;
+    if (section == 1 && self.searchController.searchView.textField.text.length > 0 &&
+        self.searchResults.count == 0 &&
+        [self.searchController.searchView.textField.text componentsSeparatedByString:@" "].count == 1) return CGFLOAT_MIN;
     
     return 48;
 }
@@ -392,6 +354,9 @@ static NSString * const reuseIdentifier = @"Result";
     if (section == 0 && (self.recentSearchResults.count == 0 ||
                          self.searchController.searchView.textField.text.length > 0)) return nil;
     if (section == 1 && self.searchResults.count > 0) return nil;
+    if (section == 1 && self.searchController.searchView.textField.text.length > 0 &&
+                        self.searchResults.count == 0 &&
+                        [self.searchController.searchView.textField.text componentsSeparatedByString:@" "].count == 1) return nil;
     
     UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 48)];
     
@@ -451,8 +416,12 @@ static NSString * const reuseIdentifier = @"Result";
         [self performSelector:@selector(getSearchResults) withObject:nil afterDelay:delay];
     }
     else {
+        self.searchResults = [[NSMutableArray alloc] init];
         [self.tableView reloadData];
     }
+}
+- (void)updateTable {
+    
 }
 - (void)searchFieldDidEndEditing {
     [self.tableView reloadData];

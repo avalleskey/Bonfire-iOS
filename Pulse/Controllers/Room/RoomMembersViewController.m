@@ -81,6 +81,9 @@ static NSString * const requestCellIdentifier = @"RequestCell";
 - (BOOL)isMember {
     return [self.room.attributes.context.status isEqualToString:ROOM_STATUS_MEMBER];
 }
+- (BOOL)isAdmin {
+    return self.room.attributes.context.membership.role.identifier == ROOM_ROLE_ADMIN;
+}
 - (BOOL)isPrivate {
     return self.room.attributes.status.visibility.isPrivate;
 }
@@ -201,8 +204,6 @@ static NSString * const requestCellIdentifier = @"RequestCell";
                 cell.approveButton.userInteractionEnabled = false;
                 cell.declineButton.userInteractionEnabled = false;
                 
-                cell.lineSeparator.hidden = true;
-                
                 cell.tag = 0;
             }
             else {
@@ -215,7 +216,7 @@ static NSString * const requestCellIdentifier = @"RequestCell";
                 cell.imageView.tintColor = [UIColor fromHex:[[user.attributes.details.color lowercaseString] isEqualToString:@"ffffff"]?@"222222":user.attributes.details.color];
                 cell.textLabel.text = user.attributes.details.displayName;
                 cell.textLabel.textColor = [UIColor colorWithWhite:0.2f alpha:1];
-                cell.detailTextLabel.text = [NSString stringWithFormat:@"@%@", [user.attributes.details.identifier uppercaseString]];
+                cell.detailTextLabel.text = [NSString stringWithFormat:@"@%@", user.attributes.details.identifier];
                 
                 [cell.approveButton setTitle:@"Approve" forState:UIControlStateNormal];
                 [cell.declineButton setTitle:@"Decline" forState:UIControlStateNormal];
@@ -225,24 +226,16 @@ static NSString * const requestCellIdentifier = @"RequestCell";
                 cell.approveButton.backgroundColor = [UIColor colorWithDisplayP3Red:0.00 green:0.80 blue:0.03 alpha:1.0];
                 cell.approveButton.tag = indexPath.row;
                 
-                UITapGestureRecognizer *approveTap = [[UITapGestureRecognizer alloc] initWithTarget:self    action:@selector(approveRequest:)];
+                UITapGestureRecognizer *approveTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(approveRequest:)];
                 [approveTap setNumberOfTapsRequired:1];
                 [cell.approveButton addGestureRecognizer:approveTap];
                 
-                UITapGestureRecognizer *declineTap = [[UITapGestureRecognizer alloc] initWithTarget:self    action:@selector(declineRequest:)];
+                UITapGestureRecognizer *declineTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(declineRequest:)];
                 [declineTap setNumberOfTapsRequired:1];
                 [cell.declineButton addGestureRecognizer:declineTap];
                 
                 cell.approveButton.userInteractionEnabled = true;
                 cell.declineButton.userInteractionEnabled = true;
-                
-                if (indexPath.row == self.requests.count - 1) {
-                    // last row
-                    cell.lineSeparator.hidden = true;
-                }
-                else {
-                    cell.lineSeparator.hidden = false;
-                }
             }
             
             return cell;
@@ -293,9 +286,12 @@ static NSString * const requestCellIdentifier = @"RequestCell";
 
 - (void)approveRequest:(id)sender {
     NSInteger row = ((UITapGestureRecognizer *)sender).view.tag;
+    NSLog(@"row: %li", (long)row);
+    NSLog(@"self.requests: %@", self.requests);
     
-    NSString *url = [NSString stringWithFormat:@"%@/%@/rooms/%@/members/requests/%@", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], self.room.identifier, @"{request_id}"];
+    NSString *url = [NSString stringWithFormat:@"%@/%@/rooms/%@/members/requests", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], self.room.identifier];
     
+    NSDictionary *request = self.requests[row];
     [self.requests removeObjectAtIndex:row];
     [self.tableView reloadData];
     
@@ -303,8 +299,9 @@ static NSString * const requestCellIdentifier = @"RequestCell";
     self.manager.responseSerializer = [AFJSONResponseSerializer serializer];
     [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
         if (success) {
+            NSLog(@"params: %@", @{@"user_id": request[@"id"]});
             [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
-            [self.manager POST:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+            [self.manager POST:url parameters:@{@"user_id": request[@"id"]} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 NSLog(@"approved request!");
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
                 NSLog(@"RoomMembersViewController / acceptRequest() - error: %@", error);
@@ -317,8 +314,9 @@ static NSString * const requestCellIdentifier = @"RequestCell";
 - (void)declineRequest:(id)sender {
     NSInteger row = ((UITapGestureRecognizer *)sender).view.tag;
     
-    NSString *url = [NSString stringWithFormat:@"%@/%@/rooms/%@/members/requests/%@", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], self.room.identifier, @"{request_id}"];
+    NSString *url = [NSString stringWithFormat:@"%@/%@/rooms/%@/members/requests", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], self.room.identifier];
     
+    NSDictionary *request = self.requests[row];
     [self.requests removeObjectAtIndex:row];
     [self.tableView reloadData];
     
@@ -326,8 +324,9 @@ static NSString * const requestCellIdentifier = @"RequestCell";
     self.manager.responseSerializer = [AFJSONResponseSerializer serializer];
     [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
         if (success) {
+            NSLog(@"params: %@", @{@"user_id": request[@"id"]});
             [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
-            [self.manager DELETE:url parameters:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+            [self.manager DELETE:url parameters:@{@"user_id": request[@"id"]} success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 NSLog(@"decline request.");
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
                 NSLog(@"RoomMembersViewController / declineRequest() - error: %@", error);
@@ -339,7 +338,7 @@ static NSString * const requestCellIdentifier = @"RequestCell";
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return indexPath.section == 0 ? 98 : 62;
+    return indexPath.section == 0 ? 106 : 62;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
@@ -354,13 +353,21 @@ static NSString * const requestCellIdentifier = @"RequestCell";
 - (nullable UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
     if (section == 0 && (![self isMember] || ![self isPrivate])) return nil;
     
-    UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 52)];
+    UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 64)];
     
     UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(16, 28, self.view.frame.size.width - 32, 24)];
     title.textAlignment = NSTextAlignmentLeft;
     title.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightSemibold];
     title.textColor = [UIColor colorWithWhite:0.6f alpha:1];
-    if (section == 0) { title.text = @"Requests"; }
+    if (section == 0) {
+        NSInteger requests = self.requests.count;
+        if (requests == 0) {
+            title.text = @"No Requests";
+        }
+        else {
+            title.text = [NSString stringWithFormat:@"%ld %@", (long)requests, (requests == 1) ? @"Request" : @"Requests"];
+        }
+    }
     else if (section == 1) {
         NSInteger members = self.room.attributes.summaries.counts.members;
         title.text = [NSString stringWithFormat:@"%ld %@", (long)members, (members == 1) ? [Session sharedInstance].defaults.room.membersTitle.singular : [Session sharedInstance].defaults.room.membersTitle.plural];
@@ -369,7 +376,8 @@ static NSString * const requestCellIdentifier = @"RequestCell";
     
     UIView *hairline = [[UIView alloc] initWithFrame:CGRectMake(0, header.frame.size.height - (1 / [UIScreen mainScreen].scale), header.frame.size.width, (1 / [UIScreen mainScreen].scale))];
     hairline.backgroundColor = [UIColor colorWithWhite:0 alpha:0.08f];
-    //[header addSubview:hairline];
+    hairline.hidden = !(section == 0 && self.requests.count == 0);
+    [header addSubview:hairline];
     
     return header;
     

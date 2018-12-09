@@ -23,22 +23,16 @@
         self.imageView.layer.borderWidth = 1 / [UIScreen mainScreen].scale;
         self.imageView.backgroundColor = [UIColor whiteColor];
         
-        self.textLabel.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightBold];
-        self.textLabel.textColor = [UIColor colorWithWhite:0.07 alpha:1];
+        self.textLabel.font = [UIFont systemFontOfSize:15.f weight:UIFontWeightBold];
+        self.textLabel.textColor = [UIColor colorWithWhite:0.2f alpha:1];
         
-        self.detailTextLabel.font = [UIFont systemFontOfSize:12.f weight:UIFontWeightBold];
-        self.detailTextLabel.textAlignment = NSTextAlignmentRight;
+        self.detailTextLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightRegular];
+        self.detailTextLabel.textAlignment = NSTextAlignmentLeft;
         self.detailTextLabel.textColor = [UIColor colorWithWhite:0.6f alpha:1];
         self.detailTextLabel.lineBreakMode = NSLineBreakByTruncatingMiddle;
         
-        self.selectionBackground = [[UIView alloc] init];
-        self.selectionBackground.hidden = true;
-        self.selectionBackground.layer.cornerRadius = 14.f;
-        self.selectionBackground.backgroundColor = [UIColor colorWithDisplayP3Red:0 green:0.46 blue:1 alpha:0.06f];
-        [self.contentView insertSubview:self.selectionBackground atIndex:0];
-        
         // general cell styling
-        self.separatorInset = UIEdgeInsetsMake(0, 62, 0, 0);
+        self.separatorInset = UIEdgeInsetsMake(0, 70, 0, 0);
         self.selectionStyle = UITableViewCellSelectionStyleNone;
         
         self.approveButton = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -62,10 +56,6 @@
         self.declineButton.layer.borderWidth = 1.f;
         [self addPressDownEffectsToButton:self.declineButton];
         [self.contentView addSubview:self.declineButton];
-        
-        self.lineSeparator = [[UIView alloc] init];
-        self.lineSeparator.backgroundColor = [UIColor colorWithWhite:0.92 alpha:1];
-        [self.contentView addSubview:self.lineSeparator];
     }
     return self;
 }
@@ -92,20 +82,14 @@
 - (void)layoutSubviews {
     [super layoutSubviews];
     
-    // line separator
-    self.lineSeparator.frame = CGRectMake(62, self.frame.size.height - (1 / [UIScreen mainScreen].scale), self.frame.size.width - 62, 1 / [UIScreen mainScreen].scale);
-    
-    // selection view
-    self.selectionBackground.frame = CGRectMake(6, 0, self.frame.size.width - 12, self.frame.size.height);
-    
     // image view
-    self.imageView.frame = CGRectMake(16, 10, 32, 32);
+    self.imageView.frame = CGRectMake(16, 10, 42, 42);
     
     // text label
-    self.textLabel.frame = CGRectMake(62, self.imageView.frame.origin.y, self.frame.size.width - 62 - 116, self.imageView.frame.size.height);
+    self.textLabel.frame = CGRectMake(70, 13, self.frame.size.width - 70 - 16, 18);
     
     // detail text label
-    self.detailTextLabel.frame = CGRectMake(self.frame.size.width - 116, self.textLabel.frame.origin.y, 100, self.textLabel.frame.size.height);
+    self.detailTextLabel.frame = CGRectMake(self.textLabel.frame.origin.x, self.textLabel.frame.origin.y + self.textLabel.frame.size.height + 1, self.textLabel.frame.size.width, 16);
     
     // type-specific settings
     self.imageView.layer.borderColor = [UIColor colorWithWhite:0 alpha:0.06f].CGColor;
@@ -118,23 +102,21 @@
         self.imageView.layer.cornerRadius = self.imageView.frame.size.height * .25;
     }
     
-    CGFloat buttonContainerWidth = self.frame.size.width - 62 - 16;
-    self.approveButton.frame = CGRectMake(62, 52, buttonContainerWidth / 2 - 6, 34);
+    CGFloat buttonContainerWidth = self.frame.size.width - 70 - 16;
+    self.approveButton.frame = CGRectMake(70, 60, buttonContainerWidth / 2 - 6, 34);
     self.declineButton.frame = CGRectMake(self.approveButton.frame.origin.x + self.approveButton.frame.size.width + 12, self.approveButton.frame.origin.y, self.approveButton.frame.size.width, self.approveButton.frame.size.height);
 }
 
 - (void)setHighlighted:(BOOL)highlighted animated:(BOOL)animated {
-    if (self.selectionBackground.isHidden) {
-        if (highlighted) {
-            [UIView animateWithDuration:0.2f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-                self.contentView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.04f];
-            } completion:nil];
-        }
-        else {
-            [UIView animateWithDuration:0.2f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-                self.contentView.backgroundColor = [UIColor clearColor];
-            } completion:nil];
-        }
+    if (highlighted) {
+        [UIView animateWithDuration:0.2f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+            self.contentView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.04f];
+        } completion:nil];
+    }
+    else {
+        [UIView animateWithDuration:0.2f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+            self.contentView.backgroundColor = [UIColor clearColor];
+        } completion:nil];
     }
 }
 

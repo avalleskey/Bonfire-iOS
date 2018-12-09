@@ -93,6 +93,8 @@ static NSString * const reuseIdentifier = @"Result";
         self.room = room;
         self.tableView.parentObject = room;
         
+        NSLog(@"room: %@", room);
+        
         if (canViewPosts_Before && [self.room.attributes.context.status isEqualToString:ROOM_STATUS_LEFT]) {
             self.tableView.stream.pages = [[NSMutableArray alloc] init];
             self.tableView.stream.posts = @[];
@@ -124,7 +126,9 @@ static NSString * const reuseIdentifier = @"Result";
             [self.tableView.stream updateRoomObjects:room];
         }
         
-        [self.tableView refresh];
+        if (self.room.attributes.status.visibility.isPrivate) {
+            [self.tableView refresh];
+        }
     }
 }
 
@@ -238,8 +242,6 @@ static NSString * const reuseIdentifier = @"Result";
             
             NSDictionary *params = @{};
             
-            NSLog(@"url: %@", url);
-            
             [self.manager GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 NSDictionary *responseData = (NSDictionary *)responseObject[@"data"];
                 
@@ -249,11 +251,9 @@ static NSString * const reuseIdentifier = @"Result";
                 BOOL requiresColorUpdate = (self.room.attributes.details.color == nil);
                 
                 // first page
-                self.room = [[Room alloc] initWithDictionary:responseData error:nil];
+                NSError *roomError;
+                self.room = [[Room alloc] initWithDictionary:responseData error:&roomError];
                 [[Session sharedInstance] addToRecents:self.room];
-                
-                NSLog(@"self.room: %@", self.room);
-                NSLog(@"user member status: %@", self.room.attributes.context.status);
                 
                 // update the theme color (in case we didn't know the room's color before
                 if (requiresColorUpdate) {
@@ -1022,7 +1022,7 @@ static NSString * const reuseIdentifier = @"Result";
 
 - (void)openRoomActions {
     // TODO: check that the user is actually an Admin, not just a member
-    BOOL isRoomAdmin   = [self.room.attributes.context.status isEqualToString:ROOM_STATUS_MEMBER];
+    BOOL isRoomAdmin   = (self.room.attributes.context.membership.role.identifier == ROOM_ROLE_ADMIN);
     // BOOL insideRoom    = false; // compare ID of post room and active room
     // BOOL followingRoom = true;
     BOOL roomPostNotifications = false;

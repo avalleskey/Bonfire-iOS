@@ -19,6 +19,8 @@
 #import "Launcher.h"
 #import "ProfileViewController.h"
 #import <SDWebImage/UIImageView+WebCache.h>
+#import "SearchNavigationController.h"
+#import "ComplexNavigationController.h"
 
 #define envConfig [[[NSUserDefaults standardUserDefaults] objectForKey:@"config"] objectForKey:[[NSUserDefaults standardUserDefaults] stringForKey:@"environment"]]
 
@@ -41,8 +43,6 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     self.manager = [HAWebService manager];
     self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] init];
     
-    self.searchController = (SearchNavigationController *)self.navigationController;
-    self.searchController.searchFieldDelegate = self;
     [self setupSearch];
 }
 
@@ -98,18 +98,27 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
 }
 
 - (void)getSearchResults {
-    if (self.searchController.searchView.textField.text.length == 0) {
+    NSLog(@"getSearchResults");
+    
+    NSString *searchText;
+    if ([self.navigationController isKindOfClass:[SearchNavigationController class]]) {
+        searchText = ((SearchNavigationController *)self.navigationController).searchView.textField.text;
+    }
+    else if ([self.navigationController isKindOfClass:[ComplexNavigationController class]]) {
+        searchText = ((ComplexNavigationController *)self.navigationController).searchView.textField.text;
+    }
+    
+    if (searchText.length == 0) {
         self.searchResults = [[NSMutableArray alloc] init];
         [self.tableView reloadData];
     }
     else {
         [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
             if (success) {
-                NSLog(@"successfully authenticated: %@", self.searchController.searchView.textField.text);
                 [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
                 
                 NSString *url = [NSString stringWithFormat:@"%@/%@/search", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"]];
-                [self.manager GET:url parameters:@{@"q": self.searchController.searchView.textField.text} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+                [self.manager GET:url parameters:@{@"q": searchText} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                     NSDictionary *responseData = (NSDictionary *)responseObject[@"data"];
                     
                     self.searchResults = [[NSMutableArray alloc] init];
@@ -136,8 +145,16 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
 #pragma mark - Table view data source
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    NSString *searchText;
+    if ([self.navigationController isKindOfClass:[SearchNavigationController class]]) {
+        searchText = ((SearchNavigationController *)self.navigationController).searchView.textField.text;
+    }
+    else if ([self.navigationController isKindOfClass:[ComplexNavigationController class]]) {
+        searchText = ((ComplexNavigationController *)self.navigationController).searchView.textField.text;
+    }
+    
     if (indexPath.section == 1 &&
-        self.searchController.searchView.textField.text.length > 0 &&
+        searchText.length > 0 &&
         self.searchResults.count == 0) {
         ButtonCell *cell = [tableView dequeueReusableCellWithIdentifier:buttonCellReuseIdentifier forIndexPath:indexPath];
         
@@ -146,11 +163,16 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
         }
         
         // Configure the cell...
-        NSString *searchPhrase = self.searchController.searchView.textField.text;
-        cell.buttonLabel.text = [NSString stringWithFormat:@"Go to @%@", searchPhrase];
-        cell.buttonLabel.textColor = [UIColor colorWithWhite:0.2f alpha:1];
+        NSString *searchText;
+        if ([self.navigationController isKindOfClass:[SearchNavigationController class]]) {
+            searchText = ((SearchNavigationController *)self.navigationController).searchView.textField.text;
+        }
+        else if ([self.navigationController isKindOfClass:[ComplexNavigationController class]]) {
+            searchText = ((ComplexNavigationController *)self.navigationController).searchView.textField.text;
+        }
         
-        return cell;
+        cell.buttonLabel.text = [NSString stringWithFormat:@"Go to @%@", searchText];
+        cell.buttonLabel.textColor = [UIColor colorWithWhite:0.2f alpha:1];
         
         return cell;
     }
@@ -228,8 +250,16 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     }
 }
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    NSString *searchText;
+    if ([self.navigationController isKindOfClass:[SearchNavigationController class]]) {
+        searchText = ((SearchNavigationController *)self.navigationController).searchView.textField.text;
+    }
+    else if ([self.navigationController isKindOfClass:[ComplexNavigationController class]]) {
+        searchText = ((ComplexNavigationController *)self.navigationController).searchView.textField.text;
+    }
+    
     if (indexPath.section == 1 &&
-        self.searchController.searchView.textField.text.length > 0 &&
+        searchText.length > 0 &&
         self.searchResults.count == 0) {
         return 52;
     }
@@ -249,17 +279,24 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
 }
 - (void)handleCellTapForIndexPath:(NSIndexPath *)indexPath {
     // mix of types
+    BFSearchView *searchView;
+    if ([self.navigationController isKindOfClass:[SearchNavigationController class]]) {
+        searchView = ((SearchNavigationController *)self.navigationController).searchView;
+    }
+    else if ([self.navigationController isKindOfClass:[ComplexNavigationController class]]) {
+        searchView = ((ComplexNavigationController *)self.navigationController).searchView;
+    }
+    NSString *searchText = searchView.textField.text;
+    
     if (indexPath.section == 1 &&
-        self.searchController.searchView.textField.text.length > 0 &&
+        searchText.length > 0 &&
         self.searchResults.count == 0) {
         // Go to @{username}
-        NSString *searchPhrase = self.searchController.searchView.textField.text;
-        
         User *user = [[User alloc] init];
         user.type = @"user";
         UserAttributes *attributes = [[UserAttributes alloc] init];
         UserDetails *details = [[UserDetails alloc] init];
-        details.identifier = [searchPhrase stringByReplacingOccurrencesOfString:@"@" withString:@""];
+        details.identifier = [searchText stringByReplacingOccurrencesOfString:@"@" withString:@""];
         attributes.details = details;
         user.attributes = attributes;
         
@@ -289,20 +326,20 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
             [self initRecentSearchResults];
             [self.tableView reloadData];
         }
-        
-        if (self.navigationController.tabBarController != nil) {
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.6f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                [self.searchController.searchView updateSearchText:@""];
-                [self emptySearchResults];
-                [self.tableView reloadData];
-            });
-        }
-        else {
-            
-        }
     }
     
-    [self.searchController.searchView resignFirstResponder];
+    if (self.navigationController.tabBarController != nil) {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.6f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [searchView updateSearchText:@""];
+            [self emptySearchResults];
+            [self.tableView reloadData];
+        });
+    }
+    else {
+        
+    }
+    
+    [searchView.textField resignFirstResponder];
 }
 - (BOOL)isOverlay {
     return self.navigationController.tabBarController == nil;
@@ -313,11 +350,17 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
         return self.recentSearchResults.count;
     }
     else if (section == 1) {
-        if (self.searchController.searchView.textField.text.length > 0) {
+        NSString *searchText;
+        if ([self.navigationController isKindOfClass:[SearchNavigationController class]]) {
+            searchText = ((SearchNavigationController *)self.navigationController).searchView.textField.text;
+        }
+        else if ([self.navigationController isKindOfClass:[ComplexNavigationController class]]) {
+            searchText = ((ComplexNavigationController *)self.navigationController).searchView.textField.text;
+        }
+        
+        if (searchText.length > 0) {
             if (self.searchResults.count == 0) {
-                NSString *searchPhrase = self.searchController.searchView.textField.text;
-                
-                if ([[searchPhrase componentsSeparatedByString:@" "] count] > 1) {
+                if ([[searchText componentsSeparatedByString:@" "] count] > 1) {
                     return 0;
                 }
                 
@@ -333,30 +376,52 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
 }
 
 - (BOOL)showRecents  {
-    BOOL showRecents = self.searchController.searchView.textField.text.length == 0;
+    NSString *searchText;
+    if ([self.navigationController isKindOfClass:[SearchNavigationController class]]) {
+        searchText = ((SearchNavigationController *)self.navigationController).searchView.textField.text;
+    }
+    else if ([self.navigationController isKindOfClass:[ComplexNavigationController class]]) {
+        searchText = ((ComplexNavigationController *)self.navigationController).searchView.textField.text;
+    }
     
-    return showRecents;
+    return (searchText.length == 0);
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
+    NSString *searchText;
+    if ([self.navigationController isKindOfClass:[SearchNavigationController class]]) {
+        searchText = ((SearchNavigationController *)self.navigationController).searchView.textField.text;
+    }
+    else if ([self.navigationController isKindOfClass:[ComplexNavigationController class]]) {
+        searchText = ((ComplexNavigationController *)self.navigationController).searchView.textField.text;
+    }
+    
     if (section == 0 && (self.recentSearchResults.count == 0 ||
-                         self.searchController.searchView.textField.text.length != 0)) return CGFLOAT_MIN;
+                         searchText.length != 0)) return CGFLOAT_MIN;
     if (section == 1 && (self.searchResults.count > 0 ||
-                         self.searchController.searchView.textField.text.length == 0)) return CGFLOAT_MIN;
-    if (section == 1 && self.searchController.searchView.textField.text.length > 0 &&
+                         searchText.length == 0)) return CGFLOAT_MIN;
+    if (section == 1 && searchText.length > 0 &&
         self.searchResults.count == 0 &&
-        [self.searchController.searchView.textField.text componentsSeparatedByString:@" "].count == 1) return CGFLOAT_MIN;
+        [searchText componentsSeparatedByString:@" "].count == 1) return CGFLOAT_MIN;
     
     return 48;
 }
 
 - (nullable UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
+    NSString *searchText;
+    if ([self.navigationController isKindOfClass:[SearchNavigationController class]]) {
+        searchText = ((SearchNavigationController *)self.navigationController).searchView.textField.text;
+    }
+    else if ([self.navigationController isKindOfClass:[ComplexNavigationController class]]) {
+        searchText = ((ComplexNavigationController *)self.navigationController).searchView.textField.text;
+    }
+    
     if (section == 0 && (self.recentSearchResults.count == 0 ||
-                         self.searchController.searchView.textField.text.length > 0)) return nil;
+                         searchText.length > 0)) return nil;
     if (section == 1 && self.searchResults.count > 0) return nil;
-    if (section == 1 && self.searchController.searchView.textField.text.length > 0 &&
+    if (section == 1 && searchText.length > 0 &&
                         self.searchResults.count == 0 &&
-                        [self.searchController.searchView.textField.text componentsSeparatedByString:@" "].count == 1) return nil;
+                        [searchText componentsSeparatedByString:@" "].count == 1) return nil;
     
     UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 48)];
     
@@ -365,7 +430,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     title.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightBold];
     title.textColor = [UIColor colorWithWhite:0.07f alpha:1];
     if (section == 1 &&
-        self.searchController.searchView.textField.text.length > 0 &&
+        searchText.length > 0 &&
         self.searchResults.count == 0)
     {
         title.text = @"No results found";
@@ -404,7 +469,13 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     [UIMenuController sharedMenuController].menuVisible = NO;*/
 }
 - (void)searchFieldDidChange {
-    NSString *searchText = self.searchController.searchView.textField.text;
+    NSString *searchText;
+    if ([self.navigationController isKindOfClass:[SearchNavigationController class]]) {
+        searchText = ((SearchNavigationController *)self.navigationController).searchView.textField.text;
+    }
+    else if ([self.navigationController isKindOfClass:[ComplexNavigationController class]]) {
+        searchText = ((ComplexNavigationController *)self.navigationController).searchView.textField.text;
+    }
     
     NSLog(@"searchText: %@", searchText);
     

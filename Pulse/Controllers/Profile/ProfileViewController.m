@@ -92,10 +92,8 @@
 }
 
 - (void)userProfileUpdated:(NSNotificationCenter *)sender {
-    self.theme = [Session sharedInstance].themeColor;
-    self.view.tintColor = self.theme;
-    self.tableView.parentObject = [Session sharedInstance].currentUser;
     self.user = [Session sharedInstance].currentUser;
+    self.tableView.parentObject = [Session sharedInstance].currentUser;
     
     [self.tableView refresh];
     [self updateTheme];
@@ -206,20 +204,20 @@
     [self.tableView addSubview:self.errorView];
     
     [self.errorView bk_whenTapped:^{
-        NSError *userError;
-        self.user = [[User alloc] initWithDictionary:[self.user toDictionary] error:&userError];
+        self.errorView.hidden = true;
         
-        if (userError || // room has error OR
-            [self canViewPosts]) { // no error and can view posts
-            self.errorView.hidden = true;
-            
-            self.tableView.loading = true;
-            self.tableView.loadingMore = false;
-            [self.tableView refresh];
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        self.tableView.loading = true;
+        self.tableView.loadingMore = false;
+        [self.tableView refresh];
+        
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            if (self.user.identifier != nil && self.user.attributes.context != nil) {
                 [self getPostsWithMaxId:0];
-            });
-        }
+            }
+            else {
+                [self loadUser];
+            }
+        });
     }];
 }
 
@@ -310,9 +308,18 @@
                 
                 self.errorView.hidden = false;
                 
-                [self.errorView updateType:ErrorViewTypeGeneral];
-                [self.errorView updateTitle:@"Error Loading"];
-                [self.errorView updateDescription:@"Check your network settings and tap here to try again"];
+                NSHTTPURLResponse *httpResponse = error.userInfo[AFNetworkingOperationFailingURLResponseErrorKey];
+                NSInteger statusCode = httpResponse.statusCode;
+                if (statusCode == 404) {
+                    [self.errorView updateTitle:@"User Not Found"];
+                    [self.errorView updateDescription:@"We couldn’t find the User\nyou were looking for"];
+                    [self.errorView updateType:ErrorViewTypeNotFound];
+                }
+                else {
+                    [self.errorView updateType:ErrorViewTypeGeneral];
+                    [self.errorView updateTitle:@"Error Loading"];
+                    [self.errorView updateDescription:@"Check your network settings and tap here to try again"];
+                }
                 
                 [self positionErrorView];
                 

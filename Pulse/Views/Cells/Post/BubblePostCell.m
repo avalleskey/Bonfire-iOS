@@ -81,6 +81,8 @@
         self.nameLabel.textAlignment = NSTextAlignmentLeft;
         self.nameLabel.text = @"Display Name";
         self.nameLabel.textColor = [UIColor colorWithWhite:0.27f alpha:1];
+        self.nameLabel.numberOfLines = 0;
+        self.nameLabel.lineBreakMode = NSLineBreakByWordWrapping;
         [self.contentView addSubview:self.nameLabel];
         
         self.usernameLabel = [[UILabel alloc] initWithFrame:CGRectMake(self.nameLabel.frame.origin.x, self.nameLabel.frame.origin.y + self.nameLabel.frame.size.height, self.nameLabel.frame.size.width, 15)];

@@ -95,11 +95,6 @@
         [self updateBarColor:self.currentTheme withAnimation:0 statusBarUpdateDelay:0];
     }
 }
-- (void)viewWillAppear:(BOOL)animated {
-    [super viewWillAppear:animated];
-    
-    NSLog(@"viewWillAppear()");
-}
 
 - (void)didFinishSwiping {
     [self goBack];
@@ -107,8 +102,6 @@
 
 - (void)goBack {
     int animationType = (self.rightActionButton.tag == LNActionTypeCancel) ? 1 : 3;
-    
-    NSLog(@"coming from search view?? %@", self.rightActionButton.tag == LNActionTypeCancel ? @"YES" : @"NO");
     
     if ([[self.viewControllers lastObject] isKindOfClass:[RoomViewController class]]) {
         RoomViewController *previousRoom = [self.viewControllers lastObject];
@@ -186,6 +179,8 @@
         }
     }
     newColorView.layer.masksToBounds = true;
+    newColorView.layer.shouldRasterize = true;
+    newColorView.layer.rasterizationScale = [UIScreen mainScreen].scale;
     [self.navigationBackgroundView addSubview:newColorView];
     
     [UIView animateWithDuration:animationDuration delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
@@ -271,7 +266,9 @@
     [self.searchView.textField bk_addEventHandler:^(id sender) {
         if ([self.topViewController isKindOfClass:[SearchTableViewController class]]) {
             SearchTableViewController *topSearchController = (SearchTableViewController *)self.topViewController;
-            [topSearchController searchFieldDidChange];
+            if ([self.topViewController isKindOfClass:[SearchTableViewController class]]) {
+                [topSearchController searchFieldDidChange];
+            }
         }
     } forControlEvents:UIControlEventEditingChanged];
     self.searchView.openSearchControllerOntap = true;

@@ -46,33 +46,26 @@
     UIColor *themeColor = self.superview.tintColor;
     
     if ([status isEqualToString:ROOM_STATUS_MEMBER] ||
-        [status isEqualToString:ROOM_STATUS_REQUESTED] ||
-        [status isEqualToString:ROOM_STATUS_BLOCKED] ||
-        [status isEqualToString:ROOM_STATUS_ROOM_BLOCKED]) {
+        [status isEqualToString:ROOM_STATUS_REQUESTED]) {
+        self.layer.borderWidth = 1.f;
+        self.backgroundColor = [UIColor clearColor];
+        
+        self.tintColor = [UIColor colorWithWhite:0.2f alpha:1];
+        [self setTitleColor:[UIColor colorWithWhite:0.2f alpha:1] forState:UIControlStateNormal];
+    }
+    else {
         self.layer.borderWidth = 0;
         self.tintColor = [UIColor whiteColor];
         [self setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
         
-        if ([status isEqualToString:ROOM_STATUS_MEMBER]) {
-            self.backgroundColor = themeColor;
-        }
-        else if ([status isEqualToString:ROOM_STATUS_REQUESTED] ||
+        if ([status isEqualToString:ROOM_STATUS_REQUESTED] ||
                  [status isEqualToString:ROOM_STATUS_BLOCKED] ||
-                 [status isEqualToString:ROOM_STATUS_ROOM_BLOCKED]) {
+                 [status isEqualToString:ROOM_STATUS_ROOM_BLOCKED] ||
+                 [status isEqualToString:ROOM_STATUS_LOADING]) {
             self.backgroundColor = disabledColor;
         }
-    }
-    else {
-        self.layer.borderWidth = 1.f;
-        self.backgroundColor = [UIColor clearColor];
-        
-        if ([status isEqualToString:ROOM_STATUS_LOADING]) {
-            self.tintColor = disabledColor;
-            [self setTitleColor:disabledColor forState:UIControlStateNormal];
-        }
         else {
-            self.tintColor = themeColor;
-            [self setTitleColor:themeColor forState:UIControlStateNormal];
+            self.backgroundColor = themeColor;
         }
     }
 }

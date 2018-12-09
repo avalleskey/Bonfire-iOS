@@ -89,10 +89,11 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
 }
 
 - (void)setupViews {
-    self.closeButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    self.closeButton = [UIButton buttonWithType:UIButtonTypeSystem];
     [self.closeButton setImage:[[UIImage imageNamed:@"navCloseIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
     self.closeButton.tintColor = self.view.tintColor;
     self.closeButton.contentMode = UIViewContentModeCenter;
+    self.closeButton.adjustsImageWhenHighlighted = false;
     [self.closeButton bk_whenTapped:^{
         [self.view endEditing:TRUE];
         [self dismissViewControllerAnimated:YES completion:nil];

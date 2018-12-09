@@ -356,7 +356,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                 }];
             }
             
-            [cell.pictureView sd_setImageWithURL:[NSURL URLWithString:@"https://images.unsplash.com/photo-1538681105587-85640961bf8b?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=03f0a1a4e6f1a7291ecb256b6a237b68&auto=format&fit=crop&w=1000&q=80"]];
+            [cell.pictureView sd_setImageWithURL:[NSURL URLWithString:@"https://images.unsplash.com/photo-1540720936278-94ab04d51f62?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2000&q=80"]];
             
             if ([cell.pictureView gestureRecognizers].count == 0) {
                 [cell.pictureView bk_whenTapped:^{
@@ -454,7 +454,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                     }];
                 }
                 
-                [cell.pictureView sd_setImageWithURL:[NSURL URLWithString:@"https://images.unsplash.com/photo-1538681105587-85640961bf8b?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=03f0a1a4e6f1a7291ecb256b6a237b68&auto=format&fit=crop&w=1000&q=80"]];
+                [cell.pictureView sd_setImageWithURL:[NSURL URLWithString:@"https://images.unsplash.com/photo-1540720936278-94ab04d51f62?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2000&q=80"]];
                 
                 if ([cell.pictureView gestureRecognizers].count == 0) {
                     [cell.pictureView bk_whenTapped:^{
@@ -468,7 +468,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             
             cell.selectable = self.dataType != RSTableViewTypePost;
             
-            [cell.pictureView sd_setImageWithURL:[NSURL URLWithString:@"https://media.giphy.com/media/RJPQ2EF3h0bok/giphy.gif"]];
+            [cell.pictureView sd_setImageWithURL:[NSURL URLWithString:@"https://images.unsplash.com/photo-1540720936278-94ab04d51f62?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2000&q=80"]];
             
             return cell;
         }
@@ -505,7 +505,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             CGRect detailTextLabelRect = [room.attributes.details.theDescription boundingRectWithSize:CGSizeMake(self.frame.size.width - (24 * 2), CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:16.f weight:UIFontWeightRegular]} context:nil];
             CGFloat roomDescriptionHeight = ceilf(room.attributes.details.theDescription.length) > 0 ? ceilf(detailTextLabelRect.size.height) + 4 : 0; // 2 = padding between title and description
             
-            CGFloat roomPrimaryActionHeight = 40 + 14; // 14 = spacing between primary action and closest label (title or desciprtion)
+            CGFloat roomPrimaryActionHeight = 36 + 14; // 14 = spacing between primary action and closest label (title or desciprtion)
             
             CGFloat statsViewHeight = 48 + (1 / [UIScreen mainScreen].scale); // 16 = height above
             
@@ -522,7 +522,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             CGRect usernameRect = [[NSString stringWithFormat:@"@%@", user.attributes.details.identifier] boundingRectWithSize:CGSizeMake(self.frame.size.width - (24 * 2), CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:16.f weight:UIFontWeightMedium]} context:nil];
             CGFloat usernameHeight = usernameRect.size.height + 2; // 2 = padding between title and description
             
-            CGFloat userPrimaryActionHeight = (user.identifier.length > 0 ? 40 : 0) + 14;
+            CGFloat userPrimaryActionHeight = (user.identifier.length > 0 ? 36 : 0) + 14;
             
             CGFloat statsViewHeight = (user.identifier.length > 0) ? 48 + (1 / [UIScreen mainScreen].scale) : 0; // 16 = height above
             
@@ -535,7 +535,8 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             // TODO: calculate height of namelabel in heightForRowAtIndexPath
             
             // name @username • 2hr
-            CGFloat nameHeight = 16 + 2; // 2pt padding underneath
+            CGRect nameRect = [[self attributedCreatorStringForPost:post] boundingRectWithSize:CGSizeMake(self.frame.size.width - 70 - postContentOffset.right, 1200) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) context:nil];
+            CGFloat nameHeight = nameRect.size.height + 2; // 2pt padding underneath
             CGFloat dateHeight = 15 + 14; //15 + 14; // 14pt padding underneath
             
             // message
@@ -547,10 +548,10 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             
             // image
             BOOL hasImage = FBTweakValue(@"Post", @"General", @"Show Image", NO); // postAtIndex.images != nil && postAtIndex.images.count > 0;
-            CGFloat imageHeight = hasImage ? expandedImageHeightDefault + 10 : 0;
+            CGFloat imageHeight = hasImage ? expandedImageHeightDefault + 4 : 0;
             
             if (hasImage) {
-                UIImage *diskImage = [[SDImageCache sharedImageCache] imageFromDiskCacheForKey:@"https://images.unsplash.com/photo-1538681105587-85640961bf8b?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=03f0a1a4e6f1a7291ecb256b6a237b68&auto=format&fit=crop&w=1000&q=80"];
+                UIImage *diskImage = [[SDImageCache sharedImageCache] imageFromDiskCacheForKey:@"https://images.unsplash.com/photo-1540720936278-94ab04d51f62?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2000&q=80"];
                 if (diskImage) {
                     // disk image!
                     CGFloat heightToWidthRatio = diskImage.size.height / diskImage.size.width;
@@ -564,10 +565,10 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                         // NSLog(@"too big muchacho");
                         imageHeight = 600;
                     }
-                    imageHeight = imageHeight + 10;
+                    imageHeight = imageHeight + 4;
                 }
                 else {
-                    UIImage *memoryImage = [[SDImageCache sharedImageCache] imageFromMemoryCacheForKey:@"https://images.unsplash.com/photo-1538681105587-85640961bf8b?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=03f0a1a4e6f1a7291ecb256b6a237b68&auto=format&fit=crop&w=1000&q=80"];
+                    UIImage *memoryImage = [[SDImageCache sharedImageCache] imageFromMemoryCacheForKey:@"https://images.unsplash.com/photo-1540720936278-94ab04d51f62?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2000&q=80"];
                     if (memoryImage) {
                         CGFloat heightToWidthRatio = diskImage.size.height / diskImage.size.width;
                         imageHeight = roundf(contentWidth * heightToWidthRatio);
@@ -580,7 +581,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                             // NSLog(@"too big muchacho");
                             imageHeight = 600;
                         }
-                        imageHeight = imageHeight + 10;
+                        imageHeight = imageHeight + 4;
                     }
                 }
             }
@@ -604,7 +605,8 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                 // TODO: calculate height of namelabel in heightForRowAtIndexPath
                 
                 // name @username • 2hr
-                CGFloat nameHeight = 16 + 4; // + 2; // 2pt padding underneath
+                CGRect nameRect = [[self attributedCreatorStringForPost:postAtIndex] boundingRectWithSize:CGSizeMake(self.frame.size.width - 70 - expandedPostContentOffset.right, 1200) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) context:nil];
+                CGFloat nameHeight = nameRect.size.height + 4; // + 2; // 2pt padding underneath
                 CGFloat usernameHeight = 0; //15 + 6; // 8pt padding underneath
                 
                 // message
@@ -618,7 +620,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                 CGFloat urlPreviewHeight = !hasImage && hasURLPreview ? [Session sharedInstance].defaults.post.imgHeight + 4 + 4 : 0; // 4 on top and 4 on bottom
                 
                 // actions
-                CGFloat actionsHeight = (hasImage ? 8 : 4) + 16; // 4 = padding between content and actions bar
+                CGFloat actionsHeight = 4 + 16; // 4 = padding between content and actions bar
                 
                 CGFloat postHeight = postContentOffset.top + nameHeight + usernameHeight + textViewHeight + imageHeight + urlPreviewHeight + actionsHeight + postContentOffset.bottom;
                 

@@ -47,3 +47,15 @@ NSString * const ROOM_STATUS_LOADING = @"loading";
 }
 
 @end
+
+@implementation RoomContextMembershipRole
+
++ (JSONKeyMapper *)keyMapper
+{
+    return [[JSONKeyMapper alloc] initWithModelToJSONDictionary:@{
+                                                                  @"identifier": @"id",
+                                                                  @"assignedAt": @"assigned_at"
+                                                                  }];
+}
+
+@end

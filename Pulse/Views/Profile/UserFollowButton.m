@@ -53,34 +53,27 @@
     UIColor *themeColor = self.superview.tintColor;
     
     if ([status isEqualToString:USER_STATUS_FOLLOWS] ||
-        //[status isEqualToString:USER_STATUS_REQUESTED] ||
-        [status isEqualToString:USER_STATUS_BLOCKS_BOTH] ||
-        [status isEqualToString:USER_STATUS_BLOCKS] ||
-        [status isEqualToString:USER_STATUS_BLOCKED]) {
+        [status isEqualToString:USER_STATUS_FOLLOW_BOTH] ||
+        [status isEqualToString:USER_STATUS_ME]) {
+        self.layer.borderWidth = 1.f;
+        self.backgroundColor = [UIColor clearColor];
+        
+        self.tintColor = [UIColor colorWithWhite:0.2f alpha:1];
+        [self setTitleColor:[UIColor colorWithWhite:0.2f alpha:1] forState:UIControlStateNormal];
+    }
+    else {
         self.layer.borderWidth = 0;
         self.tintColor = [UIColor whiteColor];
         [self setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
         
-        if ([status isEqualToString:USER_STATUS_FOLLOWS]) {
+        if ([status isEqualToString:USER_STATUS_NO_RELATION] || [status isEqualToString:USER_STATUS_FOLLOWED]) {
             self.backgroundColor = themeColor;
         }
         else if ([status isEqualToString:USER_STATUS_BLOCKS_BOTH] ||
                  [status isEqualToString:USER_STATUS_BLOCKS] ||
-                 [status isEqualToString:USER_STATUS_BLOCKED]) {
+                 [status isEqualToString:USER_STATUS_BLOCKED] ||
+                 [status isEqualToString:USER_STATUS_LOADING]) {
             self.backgroundColor = disabledColor;
-        }
-    }
-    else {
-        self.layer.borderWidth = 1.f;
-        self.backgroundColor = [UIColor clearColor];
-        
-        if ([status isEqualToString:USER_STATUS_LOADING]) {
-            self.tintColor = disabledColor;
-            [self setTitleColor:disabledColor forState:UIControlStateNormal];
-        }
-        else {
-            self.tintColor = themeColor;
-            [self setTitleColor:themeColor forState:UIControlStateNormal];
         }
     }
 }

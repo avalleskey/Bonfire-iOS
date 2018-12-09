@@ -12,6 +12,7 @@
 @class RoomContext;
 @class RoomContextInvite;
 @class RoomContextMembership;
+@class RoomContextMembershipRole;
 
 @interface RoomContext : JSONModel
 
@@ -42,7 +43,20 @@ extern NSString * const ROOM_STATUS_LOADING;
 
 @interface RoomContextMembership : JSONModel
 
-@property (nonatomic) NSString *joinedAt;
+@property (nonatomic) NSString <Optional> *joinedAt;
 @property (nonatomic) NSString <Optional> *blockedAt;
+@property (nonatomic) RoomContextMembershipRole <Optional> *role;
+
+@end
+
+@interface RoomContextMembershipRole : JSONModel
+
+typedef enum {
+    ROOM_ROLE_MEMBER = 0,
+    ROOM_ROLE_ADMIN = 1
+} ROOM_ROLE;
+
+@property (nonatomic) ROOM_ROLE identifier;
+@property (nonatomic) NSString *assignedAt;
 
 @end

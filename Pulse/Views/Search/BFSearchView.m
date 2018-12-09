@@ -53,6 +53,7 @@
                     NSLog(@"active view controller: %@", [Launcher sharedInstance].activeViewController);
                     
                     ComplexNavigationController *complexController = (ComplexNavigationController *)[Launcher sharedInstance].activeViewController;
+                    [complexController.searchView updateSearchText:@""];
                     [complexController pushViewController:viewController animated:NO];
                     [complexController updateBarColor:[UIColor whiteColor] withAnimation:1 statusBarUpdateDelay:0];
                     

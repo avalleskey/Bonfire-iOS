@@ -318,6 +318,8 @@ static NSString * const errorRoomCellReuseIdentifier = @"ErrorRoomCell";
         RoomContext *context = [[RoomContext alloc] initWithDictionary:@{@"status": ROOM_STATUS_MEMBER} error:nil];
         room.attributes.context = context;
         
+        NSLog(@"new Rooom: %@", room);
+        
         [[Launcher sharedInstance] openRoom:room];
     }
     else if (self.errorLoading) {

@@ -189,7 +189,7 @@
     CGRect detailLabelRect = [self.detailTextLabel.text boundingRectWithSize:CGSizeMake(self.frame.size.width - (24 * 2), CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:self.detailTextLabel.font} context:nil];
     self.detailTextLabel.frame = CGRectMake(self.textLabel.frame.origin.x, self.textLabel.frame.origin.y + self.textLabel.frame.size.height + 4, self.textLabel.frame.size.width, detailLabelRect.size.height);
     
-    self.followButton.frame = CGRectMake(12, self.detailTextLabel.frame.origin.y + self.detailTextLabel.frame.size.height + 14, self.frame.size.width - 24, 40);
+    self.followButton.frame = CGRectMake(20, self.detailTextLabel.frame.origin.y + self.detailTextLabel.frame.size.height + 14, self.frame.size.width - (20 * 2), 36);
     
     self.statsView.frame = CGRectMake(0, self.followButton.frame.origin.y + self.followButton.frame.size.height, self.frame.size.width, self.statsView.frame.size.height);
     self.statsViewMiddleSeparator.frame = CGRectMake(self.statsView.frame.size.width / 2, self.statsViewMiddleSeparator.frame.origin.y, self.statsViewMiddleSeparator.frame.size.width, self.statsViewMiddleSeparator.frame.size.height);

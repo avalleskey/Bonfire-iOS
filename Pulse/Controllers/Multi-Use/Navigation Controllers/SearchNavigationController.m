@@ -10,6 +10,7 @@
 #import <BlocksKit/BlocksKit.h>
 #import <BlocksKit/BlocksKit+UIKit.h>
 #import "UIColor+Palette.h"
+#import "SearchTableViewController.h"
 
 @interface SearchNavigationController ()
 
@@ -66,7 +67,10 @@
     self.searchView.textField.delegate = self;
     self.searchView.center = CGPointMake(self.navigationBar.frame.size.width / 2, self.navigationBar.frame.size.height / 2);
     [self.searchView.textField bk_addEventHandler:^(id sender) {
-        [self.searchFieldDelegate searchFieldDidChange];
+        SearchTableViewController *topSearchController = (SearchTableViewController *)self.topViewController;
+        if ([self.topViewController isKindOfClass:[SearchTableViewController class]]) {
+            [topSearchController searchFieldDidChange];
+        }
     } forControlEvents:UIControlEventEditingChanged];
     [self.navigationBar addSubview:self.searchView];
     
@@ -78,13 +82,20 @@
     [self.cancelButton bk_whenTapped:^{
         self.searchView.textField.text = @"";
         [self.searchView.textField resignFirstResponder];
-        [self.searchFieldDelegate searchFieldDidChange];
+        
+        SearchTableViewController *topSearchController = (SearchTableViewController *)self.topViewController;
+        if ([self.topViewController isKindOfClass:[SearchTableViewController class]]) {
+            [topSearchController searchFieldDidChange];
+        }
     }];
     [self.navigationBar addSubview:self.cancelButton];
 }
 
 - (void)textFieldDidBeginEditing:(UITextField *)textField {
-    [self.searchFieldDelegate searchFieldDidBeginEditing];
+    SearchTableViewController *topSearchController = (SearchTableViewController *)self.topViewController;
+    if ([self.topViewController isKindOfClass:[SearchTableViewController class]]) {
+        [topSearchController searchFieldDidBeginEditing];
+    }
     
     [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.8f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
         self.searchView.frame = CGRectMake(self.searchView.frame.origin.x, self.searchView.frame.origin.y, self.view.frame.size.width - self.searchView.frame.origin.x - 90, self.searchView.frame.size.height);
@@ -93,7 +104,10 @@
     } completion:nil];
 }
 - (void)textFieldDidEndEditing:(UITextField *)textField {
-    [self.searchFieldDelegate searchFieldDidEndEditing];
+    SearchTableViewController *topSearchController = (SearchTableViewController *)self.topViewController;
+    if ([self.topViewController isKindOfClass:[SearchTableViewController class]]) {
+        [topSearchController searchFieldDidEndEditing];
+    }
     self.searchView.textField.userInteractionEnabled = false;
     
     [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.8f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{

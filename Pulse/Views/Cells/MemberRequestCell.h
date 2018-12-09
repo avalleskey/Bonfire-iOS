@@ -10,10 +10,6 @@
 
 @interface MemberRequestCell : UITableViewCell
 
-// ---- VIEWS ----
-@property (strong, nonatomic) UIView *selectionBackground;
-@property (strong, nonatomic) UIView *lineSeparator;
-
 @property (strong, nonatomic) UIButton *approveButton;
 @property (strong, nonatomic) UIButton *declineButton;
 

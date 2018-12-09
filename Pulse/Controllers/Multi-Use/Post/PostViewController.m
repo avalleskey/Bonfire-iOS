@@ -70,7 +70,7 @@
 }
 
 - (void)setupErrorView {
-    errorView = [[ErrorView alloc] initWithFrame:CGRectMake(16, 0, self.view.frame.size.width - 32, 100) title:@"Room Not Found" description:@"We couldn’t find the Room you were looking for. Please try again." type:ErrorViewTypeNotFound];
+    errorView = [[ErrorView alloc] initWithFrame:CGRectMake(16, 0, self.view.frame.size.width - 32, 100) title:@"Post Not Found" description:@"We couldn’t find the post you were looking for. Please try again." type:ErrorViewTypeNotFound];
     errorView.center = self.tableView.center;
     [self.view addSubview:errorView];
 }
@@ -182,7 +182,15 @@
         errorView.hidden = true;
         self.tableView.hidden = false;
         
-        NSString *url = [NSString stringWithFormat:@"%@/%@/rooms/%@/posts/%ld/replies", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], self.post.attributes.status.postedIn.identifier, (long)self.post.identifier];
+        NSString *url;
+        if (self.post.attributes.status.postedIn != nil) {
+            // posted in a room
+            url = [NSString stringWithFormat:@"%@/%@/rooms/%@/posts/%ld/replies", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], self.post.attributes.status.postedIn.identifier, (long)self.post.identifier];
+        }
+        else {
+            // posted on a profile
+            url = [NSString stringWithFormat:@"%@/%@/users/%@/posts/%ld/replies", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], self.post.attributes.details.creator.identifier, (long)self.post.identifier];
+        }
         NSLog(@"url: %@", url);
         [self.manager.requestSerializer setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
         self.manager.responseSerializer = [AFJSONResponseSerializer serializer];

@@ -60,6 +60,8 @@
         self.nameLabel.textAlignment = NSTextAlignmentLeft;
         self.nameLabel.text = @"Display Name";
         self.nameLabel.textColor = [UIColor colorWithWhite:0.2f alpha:1];
+        self.nameLabel.numberOfLines = 0;
+        self.nameLabel.lineBreakMode = NSLineBreakByWordWrapping;
         [self.contentView addSubview:self.nameLabel];
         
         self.dateLabel = [[UILabel alloc] initWithFrame:CGRectMake(66, 39, self.nameLabel.frame.size.width, 16)];
@@ -171,17 +173,18 @@
     [self.textView resize];
     self.textView.frame = CGRectMake(self.textView.frame.origin.x, self.dateLabel.frame.origin.y + self.dateLabel.frame.size.height + 14, self.textView.frame.size.width, self.textView.frame.size.height);
     
-    self.nameLabel.frame = CGRectMake(self.nameLabel.frame.origin.x, self.nameLabel.frame.origin.y, self.frame.size.width - 96 - expandedPostContentOffset.right, self.nameLabel.frame.size.height);
+    CGRect nameLabelRect = [self.nameLabel.attributedText boundingRectWithSize:CGSizeMake(self.frame.size.width - self.nameLabel.frame.origin.x - expandedPostContentOffset.right, CGFLOAT_MAX) options:(NSStringDrawingUsesFontLeading|NSStringDrawingUsesLineFragmentOrigin) context:nil];
+    self.nameLabel.frame = CGRectMake(self.nameLabel.frame.origin.x, self.nameLabel.frame.origin.y, self.frame.size.width - 96 - expandedPostContentOffset.right, nameLabelRect.size.height);
     self.dateLabel.frame = CGRectMake(self.dateLabel.frame.origin.x, self.nameLabel.frame.origin.y + self.nameLabel.frame.size.height + 2, self.frame.size.width - self.dateLabel.frame.origin.x - expandedPostContentOffset.right, self.dateLabel.frame.size.height);
     
-    BOOL hasImage = false; //self.post.images != nil && self.post.images.count > 0;
+    BOOL hasImage = FBTweakValue(@"Post", @"General", @"Show Image", NO); //self.post.images != nil && self.post.images.count > 0;
     if (hasImage) {
         self.pictureView.hidden = false;
         
         CGFloat contentWidth = self.frame.size.width - expandedPostContentOffset.left - expandedPostContentOffset.right;
         CGFloat imageHeight = expandedImageHeightDefault;
         
-        UIImage *diskImage = [[SDImageCache sharedImageCache] imageFromDiskCacheForKey:@"https://images.unsplash.com/photo-1538681105587-85640961bf8b?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=03f0a1a4e6f1a7291ecb256b6a237b68&auto=format&fit=crop&w=1000&q=80"];
+        UIImage *diskImage = [[SDImageCache sharedImageCache] imageFromDiskCacheForKey:@"https://images.unsplash.com/photo-1540720936278-94ab04d51f62?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2000&q=80"];
         if (diskImage) {
             // disk image!
             CGFloat heightToWidthRatio = diskImage.size.height / diskImage.size.width;
@@ -197,7 +200,7 @@
             }
         }
         else {
-            UIImage *memoryImage = [[SDImageCache sharedImageCache] imageFromMemoryCacheForKey:@"https://images.unsplash.com/photo-1538681105587-85640961bf8b?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=03f0a1a4e6f1a7291ecb256b6a237b68&auto=format&fit=crop&w=1000&q=80"];
+            UIImage *memoryImage = [[SDImageCache sharedImageCache] imageFromMemoryCacheForKey:@"https://images.unsplash.com/photo-1540720936278-94ab04d51f62?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2000&q=80"];
             if (memoryImage) {
                 CGFloat heightToWidthRatio = diskImage.size.height / diskImage.size.width;
                 imageHeight = roundf(contentWidth * heightToWidthRatio);
@@ -213,8 +216,9 @@
             }
         }
         
-        self.pictureView.frame = CGRectMake(self.pictureView.frame.origin.x, self.textView.frame.origin.y + self.textView.frame.size.height + 10, self.pictureView.frame.size.width, imageHeight);
+        self.pictureView.frame = CGRectMake(self.pictureView.frame.origin.x, self.textView.frame.origin.y + self.textView.frame.size.height + 4, self.pictureView.frame.size.width, imageHeight);
         //[self.pictureView sd_setImageWithURL:[NSURL URLWithString:self.post.images[0]]];
+        [self continuityRadiusForView:self.pictureView withRadius:12.f];
         
         // -- details
         self.actionsView.frame = CGRectMake(self.actionsView.frame.origin.x, self.pictureView.frame.origin.y + self.pictureView.frame.size.height + 10, self.actionsView.frame.size.width, self.actionsView.frame.size.height);

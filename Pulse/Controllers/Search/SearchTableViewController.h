@@ -7,15 +7,19 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "SearchNavigationController.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface SearchTableViewController : UITableViewController <UITextFieldDelegate, SearchNavigationControllerDelegate>
+@interface SearchTableViewController : UITableViewController <UITextFieldDelegate>
 
 @property (nonatomic) CGFloat currentKeyboardHeight;
 
-@property (strong, nonatomic) SearchNavigationController *searchController;
+- (void)getSearchResults;
+
+- (void)searchFieldDidBeginEditing;
+- (void)searchFieldDidChange;
+- (void)searchFieldDidEndEditing;
+- (void)searchFieldDidReturn;
 
 @end
 

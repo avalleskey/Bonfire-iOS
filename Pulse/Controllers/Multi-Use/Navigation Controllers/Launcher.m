@@ -227,8 +227,8 @@ static Launcher *launcher;
     
     NSString *searchText = @"Unkown User";
     
-    if (p.user.attributes.details.displayName != nil) searchText = p.user.attributes.details.displayName;
     if (p.user.attributes.details.identifier != nil) searchText = [NSString stringWithFormat:@"@%@", p.user.attributes.details.identifier];
+    if (p.user.attributes.details.displayName != nil) searchText = p.user.attributes.details.displayName;
     
     ComplexNavigationController *activeLauncherNavVC = [launcher activeLauncherNavigationController];
     if ([launcher activeTabController] != nil || activeLauncherNavVC == nil) {

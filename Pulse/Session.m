@@ -639,6 +639,8 @@ static Session *session;
         NSLog(@"success: unfollowUser");
         NSLog(@"--------");
         
+        NSLog(@"responseObject: %@", responseObject);
+        
         // refresh user object
         // [[NSNotificationCenter defaultCenter] postNotificationName:@"refreshMyRooms" object:nil];
         

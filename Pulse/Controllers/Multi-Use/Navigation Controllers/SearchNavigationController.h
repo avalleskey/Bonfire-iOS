@@ -11,16 +11,6 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@protocol SearchNavigationControllerDelegate <NSObject>
-
-@optional
-- (void)searchFieldDidBeginEditing;
-- (void)searchFieldDidChange;
-- (void)searchFieldDidEndEditing;
-- (void)searchFieldDidReturn;
-
-@end
-
 @interface SearchNavigationController : UINavigationController <UITextFieldDelegate>
 
 @property (strong, nonatomic) UIView *navigationBackgroundView;
@@ -29,7 +19,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (strong, nonatomic) BFSearchView *searchView;
 @property (strong, nonatomic) UIButton *cancelButton;
-@property (nonatomic, weak) id <SearchNavigationControllerDelegate> searchFieldDelegate;
 
 @end
 

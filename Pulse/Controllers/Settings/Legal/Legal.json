@@ -1,0 +1,24 @@
+{
+    "sections": [
+        {
+            "id": "legal",
+            "rows": [
+                {
+                    "id": "terms_and_conditions",
+                    "title": "Terms & Conditions",
+                    "push": true
+                },
+                {
+                    "id": "privacy_policy",
+                    "title": "Privacy Policy",
+                    "push": true
+                },
+                {
+                    "id": "open_source_libraries",
+                    "title": "Open Source Libraries",
+                    "push": true
+                }
+            ]
+        }
+    ]
+}

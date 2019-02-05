@@ -7,6 +7,10 @@
 //
 
 #import "EmptyChannelCell.h"
+#import "UIColor+Palette.h"
+#import "Launcher.h"
+#import <BlocksKit/BlocksKit.h>
+#import <BlocksKit/BlocksKit+UIKit.h>
 
 #define padding 24
 
@@ -20,69 +24,18 @@
 }
 
 - (void)setup {
-    self.layer.cornerRadius = 12.f;
-    self.layer.masksToBounds = true;
-    self.layer.shadowOffset = CGSizeMake(0, 6.f);
-    self.layer.shadowRadius = 22.f;
-    self.layer.shadowOpacity = 0.04f;
-    self.layer.shadowColor = [UIColor blackColor].CGColor;
-    self.clipsToBounds = false;
+    self.backgroundColor = [UIColor clearColor];
     
-    self.backgroundColor = [UIColor whiteColor];
-    
-    self.container = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 295, 288)];
-    [self.contentView addSubview:self.container];
-    
-    self.circleImageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 128, 128)];
-    self.circleImageView.image = [UIImage imageNamed:@"myRoomsGraphic"];
-    [self.container addSubview:self.circleImageView];
-    
-    self.titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, self.circleImageView.frame.origin.y + self.circleImageView.frame.size.height + 20, self.container.frame.size.width, 42)];
-    self.titleLabel.font = [UIFont systemFontOfSize:24.f weight:UIFontWeightHeavy];
-    self.titleLabel.textAlignment = NSTextAlignmentCenter;
-    self.titleLabel.numberOfLines = 0;
-    self.titleLabel.textColor = [UIColor colorWithWhite:0.2f alpha:1];
-    self.titleLabel.text = @"My Rooms";
-    [self.container addSubview:self.titleLabel];
-    
-    self.descriptionLabel = [[UILabel alloc] init];
-    self.descriptionLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightMedium];
-    self.descriptionLabel.textAlignment = NSTextAlignmentCenter;
-    self.descriptionLabel.numberOfLines = 0;
-    self.descriptionLabel.textColor = [UIColor colorWithWhite:0.6f alpha:1];
-    self.descriptionLabel.text = @"Everything you care about, in one place. Discover new Rooms to follow by scrolling down or searching above.";
-    [self.container addSubview:self.descriptionLabel];
+    _errorView = [[ErrorView alloc] initWithFrame:CGRectMake(16, 0, self.frame.size.width - 32, 100) title:@"Recents" description:@"Rooms you open will appear here" type:ErrorViewTypeClock];
+    _errorView.center = CGPointMake(self.frame.size.width / 2, self.frame.size.height / 2);
+    [self.contentView addSubview:_errorView];
 }
 
 - (void)layoutSubviews {
     [super layoutSubviews];
     
-    CGSize maxSize = CGSizeMake(self.frame.size.width - (padding*2), 512);
-    
-    // title
-    CGRect titleRect = [self.titleLabel.text boundingRectWithSize:maxSize
-                                                     options:NSStringDrawingUsesLineFragmentOrigin| NSStringDrawingUsesFontLeading
-                                                  attributes:@{NSFontAttributeName:self.titleLabel.font}
-                                                     context:nil];
-    titleRect.origin.x = 0;
-    titleRect.origin.y = self.titleLabel.frame.origin.y;
-    titleRect.size.width = maxSize.width;
-    self.titleLabel.frame = titleRect;
-    
-    // bio
-    CGRect descriptionRect = [self.descriptionLabel.text boundingRectWithSize:maxSize
-                                                 options:NSStringDrawingUsesLineFragmentOrigin| NSStringDrawingUsesFontLeading
-                                              attributes:@{NSFontAttributeName:self.descriptionLabel.font}
-                                                 context:nil];
-    descriptionRect.origin.x = 0;
-    descriptionRect.origin.y = self.titleLabel.frame.origin.y + self.titleLabel.frame.size.height + 6;
-    descriptionRect.size.width = maxSize.width;
-    self.descriptionLabel.frame = descriptionRect;
-    
     // ticker
-    CGFloat newHeight = self.descriptionLabel.frame.origin.y + self.descriptionLabel.frame.size.height;
-    self.container.frame = CGRectMake(padding, (self.frame.size.height / 2) - (newHeight * .55), maxSize.width, newHeight);
-    self.circleImageView.center = CGPointMake(self.container.frame.size.width / 2, self.circleImageView.center.y);
+    self.errorView.center = CGPointMake(self.frame.size.width / 2, self.frame.size.height / 2);
 }
 
 - (void)continuityRadiusForCell:(UICollectionViewCell *)sender withRadius:(CGFloat)radius {

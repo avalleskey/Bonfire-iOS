@@ -5,13 +5,12 @@
 //  Created by Austin Valleskey on 9/16/18.
 //  Copyright © 2018 Austin Valleskey. All rights reserved.
 //
- 
-@import UIKit;
+
 #import "TabController.h"
+@import UIKit;
+@import UserNotifications;
 
-#define FB_TWEAK_ENABLED 1
-
-@interface AppDelegate : UIResponder <UIApplicationDelegate, UITabBarControllerDelegate>
+@interface AppDelegate : UIResponder <UIApplicationDelegate, UITabBarControllerDelegate, UNUserNotificationCenterDelegate>
 
 @property (strong, nonatomic) UIWindow *window;
 

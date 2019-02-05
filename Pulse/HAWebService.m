@@ -14,12 +14,12 @@
 
 + (instancetype)manager {
     HAWebService *manager = [[self alloc] initWithBaseURL:nil];
-    
-    NSDictionary *envConfig = [[[NSUserDefaults standardUserDefaults] objectForKey:@"config"] objectForKey:[[NSUserDefaults standardUserDefaults] stringForKey:@"environment"]];
+    manager.requestSerializer = [AFHTTPRequestSerializer serializer];
     
     // set defaults
     [manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", envConfig[@"API_KEY"]] forHTTPHeaderField:@"Authorization"];
-    [manager.requestSerializer setValue:[NSString stringWithFormat:@"iosClient/%@", [[NSBundle mainBundle] infoDictionary][@"CFBundleShortVersionString"]] forHTTPHeaderField:@"x-rooms-client"];
+    [manager.requestSerializer setValue:[NSString stringWithFormat:@"iosClient/bonfire"] forHTTPHeaderField:@"x-rooms-client"];
+    [manager.requestSerializer setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
 //    [manager.requestSerializer setValue:@"https://hallway.app" forHTTPHeaderField:@"origin"];
 //    [manager.requestSerializer setValue:nil forHTTPHeaderField:@"Origin"];
     [manager.requestSerializer setTimeoutInterval:10];

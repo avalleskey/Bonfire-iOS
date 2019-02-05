@@ -9,3 +9,10 @@
 
 @end
 
+@implementation UserDetailsLocation
+
+@end
+
+@implementation UserDetailsWebsite
+
+@end

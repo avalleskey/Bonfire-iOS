@@ -11,7 +11,6 @@
 #import <BlocksKit/BlocksKit.h>
 #import <BlocksKit/BlocksKit+UIKit.h>
 #import <HapticHelper/HapticHelper.h>
-#import "SOLOptionsTransitionAnimator.h"
 #import "SearchResultCell.h"
 #import "CreateRoomViewController.h"
 #import "NSArray+Clean.h"
@@ -30,8 +29,10 @@
 #import <UIImageView+WebCache.h>
 #import "UIColor+Palette.h"
 #import "UINavigationItem+Margin.h"
+#import "ProfileCampsListViewController.h"
+#import "ProfileFollowingListViewController.h"
 
-#define envConfig [[[NSUserDefaults standardUserDefaults] objectForKey:@"config"] objectForKey:[[NSUserDefaults standardUserDefaults] stringForKey:@"environment"]]
+#define barColorUpdateDuration 0.6
 
 @interface ComplexNavigationController ()
 
@@ -71,29 +72,25 @@
     [self.view insertSubview:self.navigationBackgroundView belowSubview:self.navigationBar];
     
     [self setupNavigationBarItems];
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updateTheme:) name:@"UserUpdated" object:nil];
-    
-    BOOL iPhoneX = NO;
-    if (@available(iOS 11.0, *)) {
-        UIWindow *mainWindow = [[[UIApplication sharedApplication] delegate] window];
-        if (mainWindow.safeAreaInsets.top > 24.0) {
-            iPhoneX = YES;
-        }
-    }
-    
-    NSLog(@"isiPhoneX? %@", iPhoneX ? @"YES" : @"NO");
 }
-- (void)updateTheme:(id)sender {
-    if ([self.visibleViewController isKindOfClass:[ProfileViewController class]]) {
-        ProfileViewController *profileVC = (ProfileViewController *)self.visibleViewController;
-        if ([profileVC.user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
-            [self updateBarColor:[Session sharedInstance].themeColor withAnimation:1 statusBarUpdateDelay:0];
-        }
+
+- (UIStatusBarStyle)preferredStatusBarStyle {
+    // ugly: responsibilities aren't separated well (proof of concept, only!)
+
+    if (self.presentedViewController && (!self.presentedViewController.isBeingDismissed)) {
+        return self.presentedViewController.preferredStatusBarStyle;
     }
-    else if (self.currentTheme == [UIColor whiteColor] || self.currentTheme == [UIColor clearColor]) {
-        [self updateBarColor:self.currentTheme withAnimation:0 statusBarUpdateDelay:0];
+    
+    
+    return [super preferredStatusBarStyle];
+}
+
+- (UIViewController*)childViewControllerForStatusBarStyle {
+    if (self.presentedViewController) {
+        return self.presentedViewController.childViewControllerForStatusBarStyle;
     }
+    
+    return [super childViewControllerForStatusBarStyle];
 }
 
 - (void)didFinishSwiping {
@@ -102,36 +99,58 @@
 
 - (void)goBack {
     int animationType = (self.rightActionButton.tag == LNActionTypeCancel) ? 1 : 3;
+    UIColor *nextTheme = [UIColor whiteColor];
     
-    if ([[self.viewControllers lastObject] isKindOfClass:[RoomViewController class]]) {
-        RoomViewController *previousRoom = [self.viewControllers lastObject];
-        [self updateBarColor:previousRoom.theme withAnimation:animationType statusBarUpdateDelay:NO];
-        [self.searchView updateSearchText:previousRoom.title];
-    }
-    else if ([self.viewControllers lastObject].navigationController.tabBarController != nil) {
-        [self updateBarColor:[UIColor whiteColor] withAnimation:animationType statusBarUpdateDelay:NO];
+    if ([self.viewControllers lastObject].navigationController.tabBarController != nil) {
         [self.searchView updateSearchText:@""];
+        nextTheme = [UIColor whiteColor];
     }
-    else if ([[self.viewControllers lastObject] isKindOfClass:[ProfileViewController class]]) {
-        ProfileViewController *previousProfile = [self.viewControllers lastObject];
-        [self updateBarColor:previousProfile.theme withAnimation:animationType statusBarUpdateDelay:NO];
-        [self.searchView updateSearchText:previousProfile.title];
-    }
-    else if ([[self.viewControllers lastObject] isKindOfClass:[PostViewController class]]) {
-        PostViewController *previousPost = [self.viewControllers lastObject];
-        [self updateBarColor:previousPost.theme withAnimation:animationType statusBarUpdateDelay:NO];
+    else {
+        UIViewController *previousVC = [self.viewControllers lastObject];
         
-        self.searchView.textField.text = previousPost.title;
-        [self.searchView hideSearchIcon:false];
-    }
-    else if ([[self.viewControllers lastObject] isKindOfClass:[RoomMembersViewController class]]) {
-        RoomMembersViewController *previousMembersView = [self.viewControllers lastObject];
-        [self updateBarColor:previousMembersView.theme withAnimation:animationType statusBarUpdateDelay:NO];
+        BOOL showSearchIcon = true;
+        [self.searchView updateSearchText:previousVC.title];
         
-        self.searchView.textField.text = previousMembersView.title;
-        [self.searchView hideSearchIcon:false];
+        if ([[self.viewControllers lastObject] isKindOfClass:[RoomViewController class]]) {
+            RoomViewController *previousRoom = [self.viewControllers lastObject];
+            nextTheme = previousRoom.theme;
+        }
+        else if ([[self.viewControllers lastObject] isKindOfClass:[ProfileViewController class]]) {
+            ProfileViewController *previousProfile = [self.viewControllers lastObject];
+            nextTheme = previousProfile.theme;
+        }
+        else if ([[self.viewControllers lastObject] isKindOfClass:[PostViewController class]]) {
+            PostViewController *previousPost = [self.viewControllers lastObject];
+            showSearchIcon = false;
+
+            nextTheme = previousPost.theme;
+        }
+        else if ([[self.viewControllers lastObject] isKindOfClass:[RoomMembersViewController class]]) {
+            RoomMembersViewController *previousMembersView = [self.viewControllers lastObject];
+            showSearchIcon = false;
+            nextTheme = previousMembersView.theme;
+        }
+        else if ([[self.viewControllers lastObject] isKindOfClass:[ProfileCampsListViewController class]]) {
+            ProfileCampsListViewController *previousProfileCampsListView = [self.viewControllers lastObject];
+            showSearchIcon = false;
+            nextTheme = previousProfileCampsListView.theme;
+        }
+        else if ([[self.viewControllers lastObject] isKindOfClass:[ProfileFollowingListViewController class]]) {
+            ProfileFollowingListViewController *previousProfileFollowingListView = [self.viewControllers lastObject];
+            showSearchIcon = false;
+            nextTheme = previousProfileFollowingListView.theme;
+        }
+        
+        if (showSearchIcon) {
+            [self.searchView updateSearchText:previousVC.title];
+        }
+        else {
+            self.searchView.textField.text = previousVC.title;
+            [self.searchView hideSearchIcon:false];
+        }
     }
-    
+    [self updateBarColor:nextTheme withAnimation:animationType statusBarUpdateDelay:NO];
+        
     [self updateNavigationBarItemsWithAnimation:YES];
 }
 
@@ -153,7 +172,9 @@
     }
     self.currentTheme = newColor;
     
-    CGFloat animationDuration = 0.3f;
+    CGFloat diameter = self.navigationBackgroundView.frame.size.width * 1.2;
+    CGFloat beforeDiameter = 0.02 * diameter;
+    
     UIView *newColorView = [[UIView alloc] init];
     if (animationType == 0 || animationType == 1) {
         // fade
@@ -161,20 +182,20 @@
         newColorView.layer.cornerRadius = 0;
         newColorView.alpha = animationType == 0 ? 1 : 0;
         newColorView.backgroundColor = newColor;
-        if (animationType == 0) animationDuration = 0;
-        if (animationType == 1) animationDuration = 0.2f;
     }
     else {
         // bubble burst
-        newColorView.frame = CGRectMake(self.navigationBackgroundView.frame.size.width / 2 - 5, self.navigationBackgroundView.frame.size.height + 40, 10, 10);
-        newColorView.layer.cornerRadius = 5.f;
+        newColorView.frame = CGRectMake(self.navigationBackgroundView.frame.size.width / 2 - (diameter / 2), self.navigationBackgroundView.frame.size.height + 40, diameter, diameter);
+        newColorView.center = CGPointMake(self.navigationBackgroundView.frame.size.width / 2, self.navigationBackgroundView.frame.size.height + (beforeDiameter / 2));
+        newColorView.layer.cornerRadius = newColorView.frame.size.width / 2;
         
         if (animationType == 2) {
             newColorView.backgroundColor = newColor;
+            newColorView.transform = CGAffineTransformMakeScale(0.02, 0.02);
         }
         else if (animationType == 3) {
             newColorView.backgroundColor = self.navigationBackgroundView.backgroundColor;
-            newColorView.transform = CGAffineTransformMakeScale(self.navigationBackgroundView.frame.size.width / 10, self.navigationBackgroundView.frame.size.width / 10);
+            newColorView.transform = CGAffineTransformMakeScale(1, 1);
             self.navigationBackgroundView.backgroundColor = newColor;
         }
     }
@@ -183,7 +204,7 @@
     newColorView.layer.rasterizationScale = [UIScreen mainScreen].scale;
     [self.navigationBackgroundView addSubview:newColorView];
     
-    [UIView animateWithDuration:animationDuration delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
+    [UIView animateWithDuration:(animationType == 0 ? 0 : barColorUpdateDuration) delay:0 usingSpringWithDamping:0.75f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
         // status bar
         if ([UIColor useWhiteForegroundForColor:newColor]) {
             self.navigationBar.barStyle = UIBarStyleBlack;
@@ -201,53 +222,66 @@
         }
         else if (animationType == 2) {
             // bubble burst
-            newColorView.transform = CGAffineTransformMakeScale(self.navigationBackgroundView.frame.size.width / 8, self.navigationBackgroundView.frame.size.width / 8);
+            // newColorView.center = CGPointMake(self.navigationBackgroundView.frame.size.width / 2, self.navigationBackgroundView.frame.size.height / 2);
+            newColorView.transform = CGAffineTransformMakeScale(1, 1);
         }
         else if (animationType == 3) {
             // bubble roll back da burst
-            newColorView.transform = CGAffineTransformMakeScale(1, 1);
+            // newColorView.center = CGPointMake(self.navigationBackgroundView.frame.size.width / 2, self.navigationBackgroundView.frame.size.height + (beforeDiameter / 2));
+            newColorView.transform = CGAffineTransformMakeScale(0.02, 0.02);
         }
         
         UIImageView *searchIcon = self.searchView.searchIcon;
         
         if ([UIColor useWhiteForegroundForColor:newColor]) {
-            self.searchView.theme = BFTextFieldThemeLight;
-            
             self.searchView.textField.textColor = [UIColor whiteColor];
             self.searchView.textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:self.searchView.textField.placeholder attributes:@{NSForegroundColorAttributeName: [UIColor colorWithWhite:1 alpha:0.75]}];
-            self.searchView.backgroundColor = [UIColor bonfireTextFieldBackgroundOnDark];
             
+            self.searchView.textField.tintColor =
             self.leftActionButton.tintColor =
             self.rightActionButton.tintColor = [UIColor whiteColor];
             
             searchIcon.alpha = 0.75;
         }
         else if ([newColor isEqual:[UIColor whiteColor]]) {
-            self.searchView.theme = BFTextFieldThemeDark;
-            
-            self.searchView.backgroundColor = [UIColor bonfireTextFieldBackgroundOnWhite];
+            // searchViewBackgroundColor = [UIColor bonfireTextFieldBackgroundOnWhite];
             self.searchView.textField.textColor = [UIColor colorWithWhite:0.07f alpha:1];
             self.searchView.textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:self.searchView.textField.placeholder attributes:@{NSForegroundColorAttributeName: [UIColor colorWithWhite:0 alpha:0.25]}];
             
-            UIColor *tintColor = (self.searchView.isFirstResponder ? [UIColor colorWithWhite:0.2f alpha:1] : [[Session sharedInstance] themeColor]);
+            UIColor *tintColor = [UIColor colorWithWhite:0.2f alpha:1];
+            self.searchView.textField.tintColor =
             self.leftActionButton.tintColor =
             self.rightActionButton.tintColor = tintColor;
             
             searchIcon.alpha = 0.25f;
         }
         else {
-            self.searchView.theme = BFTextFieldThemeExtraDark;
-            
-            self.searchView.backgroundColor = [UIColor bonfireTextFieldBackgroundOnLight];
             self.searchView.textField.textColor = [UIColor colorWithWhite:0.07f alpha:1];
             self.searchView.textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:self.searchView.textField.placeholder attributes:@{NSForegroundColorAttributeName: [UIColor colorWithWhite:0 alpha:0.25]}];
             
             self.shadowView.alpha = 0;
             
+            self.searchView.textField.tintColor =
             self.leftActionButton.tintColor =
             self.rightActionButton.tintColor = [UIColor colorWithWhite:0.07f alpha:1];
             
             searchIcon.alpha = 0.25f;
+        }
+        
+        if (self.searchView.searchIcon.isHidden) {
+            self.searchView.backgroundColor = [UIColor clearColor];
+        }
+        else {
+            if ([UIColor useWhiteForegroundForColor:self.currentTheme]) {
+                self.searchView.theme = BFTextFieldThemeLight;
+            }
+            else if ([self.currentTheme isEqual:[UIColor whiteColor]] ||
+                     [self.topViewController isKindOfClass:[MyRoomsViewController class]]) {
+                self.searchView.theme = BFTextFieldThemeDark;
+            }
+            else {
+                self.searchView.theme = BFTextFieldThemeExtraDark;
+            }
         }
         
         searchIcon.tintColor = self.searchView.textField.textColor;
@@ -262,6 +296,8 @@
 - (void)setupNavigationBarItems {
     // create smart text field
     self.searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width - (54 * 2), 34)];
+    // TODO: Search in groups
+    //self.searchView.resultsType = BFSearchResultsTypeTopPosts;
     self.searchView.textField.delegate = self;
     [self.searchView.textField bk_addEventHandler:^(id sender) {
         if ([self.topViewController isKindOfClass:[SearchTableViewController class]]) {
@@ -291,7 +327,7 @@
     self.searchView.backgroundColor = textFieldBackgroundColor;
     
     self.searchView.textField.textColor = [UIColor colorWithWhite:0.07f alpha:1];
-    self.searchView.textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:@"Search" attributes:@{NSForegroundColorAttributeName: [UIColor colorWithWhite:0 alpha:0.25]}];
+    self.searchView.textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:@"Search Bonfire..." attributes:@{NSForegroundColorAttributeName: [UIColor colorWithWhite:0 alpha:0.25]}];
     
     self.searchView.textField.userInteractionEnabled = false;
     
@@ -307,7 +343,6 @@
     // determine items based on active view controller
     if ([self.topViewController isKindOfClass:[SearchTableViewController class]]) {
         [self setLeftAction:LNActionTypeNone];
-        [self setRightAction:LNActionTypeCancel];
     }
     else {
         [self setLeftAction:LNActionTypeBack];
@@ -330,11 +365,15 @@
     else if ([self.topViewController isKindOfClass:[ProfileViewController class]]) {
         [self setRightAction:LNActionTypeMore];
     }
+    else if ([self.topViewController isKindOfClass:[SearchTableViewController class]]) {
+        [self setRightAction:LNActionTypeCancel];
+    }
+    else {
+        [self setRightAction:LNActionTypeNone];
+    }
     
-    [UIView animateWithDuration:animated?0.25f:0 delay:0 usingSpringWithDamping:0.72f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
+    [UIView animateWithDuration:(animated?barColorUpdateDuration:0) delay:0 usingSpringWithDamping:0.75f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
         if (self.leftActionButton.tag == LNActionTypeBack) {
-            NSLog(@"viewcontroller count: %lu", (unsigned long)self.viewControllers.count);
-            
             if (self.viewControllers.count == 1) {
                 self.leftActionButton.transform = CGAffineTransformMakeRotation(0);
             }
@@ -351,16 +390,8 @@
             self.searchView.frame = CGRectMake(56, self.searchView.frame.origin.y, self.view.frame.size.width - (54 * 2), self.searchView.frame.size.height);
             [self.searchView setPosition:BFSearchTextPositionCenter];
         }
-        
-        if ([self.topViewController isKindOfClass:[PostViewController class]] ||
-            [self.topViewController isKindOfClass:[RoomMembersViewController class]]) {
-            self.searchView.userInteractionEnabled = false;
-            self.searchView.backgroundColor = [UIColor clearColor];
-        }
-        else {
-            self.searchView.userInteractionEnabled = true;
-        }
     } completion:^(BOOL finished) {
+        
     }];
 }
 
@@ -427,7 +458,7 @@
                 }
                 break;
             case LNActionTypeCompose:
-                [[Launcher sharedInstance] openComposePost];
+                [[Launcher sharedInstance] openComposePost:nil inReplyTo:nil withMessage:nil media:nil];
                 break;
             case LNActionTypeMore: {
                 if ([self.viewControllers[self.viewControllers.count-1] isKindOfClass:[RoomViewController class]]) {
@@ -466,6 +497,7 @@
                 else {
                     [self.searchView.textField resignFirstResponder];
                     
+                    self.searchView.textField.placeholder = [NSString stringWithFormat:@"Search in %@", self.topViewController.title];
                     [self.searchView updateSearchText:self.topViewController.title];
                     
                     [self updateNavigationBarItemsWithAnimation:YES];

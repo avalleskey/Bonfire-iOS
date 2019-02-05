@@ -10,10 +10,9 @@
 #import "ComplexNavigationController.h"
 //#import "Post.h"
 //#import "Room.h"
-#import <JTSImageViewController/JTSImageViewController.h>
 
-#import "PostCell.h"
 #import "BubblePostCell.h"
+#import "ThreadedPostCell.h"
 #import "ExpandedPostCell.h"
 #import "RoomHeaderCell.h"
 #import "ProfileHeaderCell.h"
@@ -24,14 +23,17 @@
 #import "UIColor+Palette.h"
 #import <Tweaks/FBTweakInline.h>
 #import "RoomViewController.h"
+#import "ProfileCampsListViewController.h"
+#import "InsightsLogger.h"
 
 @implementation RSTableView
 
 @synthesize dataType = _dataType;  //Must do this
 
 static NSString * const expandedPostCellIdentifier = @"ExpandedPost";
-static NSString * const reuseIdentifier = @"Post";
 static NSString * const bubbleReuseIdentifier = @"BubblePost";
+static NSString * const threadedPostReuseIdentifier = @"ThreadedPost";
+static NSString * const previewReuseIdentifier = @"PreviewPost";
 static NSString * const blankCellIdentifier = @"BlankCell";
 static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
 static NSString * const roomHeaderCellIdentifier = @"RoomHeaderCell";
@@ -71,27 +73,109 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
 }
 
 - (void)refresh {
-    [self reloadData];
-    [[self refreshControl] performSelector:@selector(endRefreshing) withObject:nil afterDelay:0.0];
+    // update row heights
+    for (int i = 0; i < self.stream.posts.count; i++) {
+        id object = self.stream.posts[i];
+        if ([object isKindOfClass:[Post class]]) {
+            Post *postAtIndex = object;
+            postAtIndex.rowHeight = 0;
+        }
+    }
     
-    self.backgroundColor = [UIColor headerBackgroundColor];
+    [self reloadData];
+    
+    [self.refreshControl performSelector:@selector(endRefreshing) withObject:nil afterDelay:0.0];
 }
 
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    if ([self.paginationDelegate respondsToSelector:@selector(tableViewDidScroll:)]) {
+        [self.paginationDelegate tableViewDidScroll:self];
+    }
+}
+
+- (void)scrollToTop {
+    [self setContentOffset:CGPointMake(0, -self.adjustedContentInset.top) animated:YES];
+}
+
+- (CGFloat)rowHeightForPost:(Post *)postAtIndex isReply:(BOOL)isReply {
+    PostDisplayType type = [self typeForPost:postAtIndex];
+    
+    CGFloat height = postContentOffset.top;
+    
+    BOOL hasContext = false;
+    if (hasContext) {
+        height = height + postContextHeight + 8;
+    }
+    
+    CGFloat screenWidth = self.frame.size.width;
+    CGFloat leftOffset = (isReply ? replyContentOffset.left : postContentOffset.left);
+    
+    CGFloat nameHeight = 16 + 4; // +   2; // 1pt padding underneath
+    height = height + nameHeight;
+    
+    // posted in indicator
+    if (type != PostDisplayTypeThreaded) {
+        Room *postedInRoom = postAtIndex.attributes.status.postedIn;
+        NSString *currentRoomIdentifier = @"";
+        if ([UIViewParentController(self) isKindOfClass:[RoomViewController class]]) {
+            currentRoomIdentifier = ((Room *)self.parentObject).identifier;
+        }
+        
+        CGFloat postedInHeight = (self.dataType != RSTableViewTypePost && !isReply && postedInRoom != nil && ![postedInRoom.identifier isEqualToString:currentRoomIdentifier]) ? 14 + 6 : 0;
+        height = height + postedInHeight;
+    }
+    
+    // message
+    CGSize messageSize = [PostTextView sizeOfBubbleWithMessage:postAtIndex.attributes.details.simpleMessage withConstraints:CGSizeMake(screenWidth - leftOffset - (postTextViewInset.left + postTextViewInset.right) - 24, CGFLOAT_MAX) font:(isReply?textViewReplyFont:textViewFont)];
+    CGFloat textViewHeight = postAtIndex.attributes.details.message.length == 0 ? 0 :  ceilf(messageSize.height) + (postTextViewInset.top + postTextViewInset.bottom);
+    height = height + textViewHeight;
+
+    // image
+    BOOL hasImage = FBTweakValue(@"Post", @"General", @"Show Image", NO); // postAtIndex.images != nil && postAtIndex.images.count > 0;
+    if (hasImage) {
+        CGFloat imageHeight = hasImage ? [Session sharedInstance].defaults.post.imgHeight + 4 : 0;
+        height = height + imageHeight;
+    }
+    
+    // 4 on top and 4 on bottom
+    BOOL hasURLPreview = [postAtIndex requiresURLPreview];
+    if (hasURLPreview) {
+        CGFloat urlPreviewHeight = !hasImage && hasURLPreview ? [Session sharedInstance].defaults.post.imgHeight + 4 : 0; // 4 on bottom
+        height = height + urlPreviewHeight;
+    }
+    
+    BOOL showSnapshot = (type == PostDisplayTypeSimple &&  postAtIndex.attributes.summaries.replies.count > 0);
+    if (showSnapshot) {
+        CGFloat snapshotHeight = 6 + 20 + 4; // 6 on top, 4 on bottom
+        height = height + snapshotHeight;
+    }
+    
+    // details view
+    CGFloat detailsHeight = 16 + 4; // 6 = padding above details view
+    height = height + detailsHeight;
+    
+    height = height + postContentOffset.bottom;
+    
+    return height;
+}
 
 - (void)setup {
+    self.reachedBottom = false;
     self.stream = [[PostStream alloc] init];
     self.loading = true;
     self.loadingMore = false;
-    self.backgroundColor = [UIColor clearColor];
+    self.backgroundColor = [UIColor headerBackgroundColor];
     self.delegate = self;
     self.dataSource = self;
     self.separatorStyle = UITableViewCellSeparatorStyleNone;
-    self.separatorColor = [UIColor colorWithWhite:0.85f alpha:1];
+    self.separatorColor = [UIColor separatorColor];
+    self.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentAlways;
     
     self.refreshControl = [[UIRefreshControl alloc] init];
+    
     [self registerClass:[ExpandedPostCell class] forCellReuseIdentifier:expandedPostCellIdentifier];
-    [self registerClass:[PostCell class] forCellReuseIdentifier:reuseIdentifier];
     [self registerClass:[BubblePostCell class] forCellReuseIdentifier:bubbleReuseIdentifier];
+    [self registerClass:[ThreadedPostCell class] forCellReuseIdentifier:threadedPostReuseIdentifier];
     
     [self registerClass:[RoomHeaderCell class] forCellReuseIdentifier:roomHeaderCellIdentifier];
     [self registerClass:[ProfileHeaderCell class] forCellReuseIdentifier:profileHeaderCellIdentifier];
@@ -111,7 +195,9 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     
     if (post != nil) {
         // new post appears valid
-        BOOL changes = [self.stream updatePost:post];;
+        BOOL changes = [self.stream updatePost:post];
+        
+        NSLog(@"changes??? %@", (changes ? @"YES" : @"NO"));
         
         // if self.parentObject is a post, update that
         if ([self.parentObject isKindOfClass:[Post class]]) {
@@ -128,15 +214,110 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             
             // NSLog(@"parent controller: %@", UIViewParentController(self));
             if (![UIViewParentController(self).navigationController.topViewController isKindOfClass:[UIViewParentController(self) class]]) {
-                [self reloadData];
+                [self refresh];
             }
         }
     }
 }
 - (void)postDeleted:(NSNotification *)notification {
+    NSLog(@"postDeleted:");
+    if (![notification.object isKindOfClass:[Post class]]) return;
+    
     Post *post = notification.object;
-    [self.stream removePost:post];
-    [self refresh];
+    BOOL isReply = post.attributes.details.parent != 0;
+    BOOL postedInRoom = post.attributes.status.postedIn != nil;
+    
+    BOOL removePost = false;
+    BOOL refresh = false;
+    if ([self.parentObject isKindOfClass:[Room class]] && postedInRoom) {
+        Room *parentRoom = self.parentObject;
+        
+        // determine type of post (post or reply)
+        if ([parentRoom.identifier isEqualToString:post.attributes.status.postedIn.identifier]) {
+            removePost = true;
+            refresh = true;
+            // Room that contains post
+            if (isReply) {
+                // Decrement Post replies count
+                Post *updatedPost = [self.stream postWithId:post.attributes.details.parent];
+                if (updatedPost) {
+                    updatedPost.attributes.summaries.counts.replies = updatedPost.attributes.summaries.counts.replies - 1;
+        
+                    // update replies
+                    NSMutableArray *mutableReplies = [[NSMutableArray alloc] initWithArray:updatedPost.attributes.summaries.replies];
+                    NSMutableArray *repliesToDelete = [[NSMutableArray alloc] init];
+                    for (int i = 0; i < mutableReplies.count; i++) {
+                        Post *reply = [[Post alloc] initWithDictionary:mutableReplies[i] error:nil];
+                        if (reply.identifier == post.identifier) {
+                            [repliesToDelete addObject:reply];
+                        }
+                    }
+                    if (repliesToDelete.count > 0) {
+                        [mutableReplies removeObjectsInArray:repliesToDelete];
+                        updatedPost.attributes.summaries.replies = mutableReplies;
+                        NSLog(@":::::update replies array:::::");
+                    }
+                    
+                    [[NSNotificationCenter defaultCenter] postNotificationName:@"PostUpdated" object:updatedPost];
+                    
+                    NSLog(@"✅ Decrement Post replies count inside Room");
+                }
+            }
+            else {
+                // Decrement Room posts count
+                parentRoom.attributes.summaries.counts.posts = parentRoom.attributes.summaries.counts.posts - 1;
+                
+                NSLog(@"✅ Decrement Camp posts count");
+            }
+        }
+    }
+    else if ([self.parentObject isKindOfClass:[Post class]]) {
+        Post *parentPost = self.parentObject;
+        
+        if (isReply &&
+            (parentPost.identifier == post.attributes.details.parent)) {
+            // --> reply to the parent Post
+            // Decrement Post replies count
+            removePost = true;
+            refresh = true;
+            
+            NSLog(@"✅ Remove reply inside Post");
+        }
+    }
+    else if (self.dataType == RSTableViewTypeFeed) {
+        Post *postInStream = [self.stream postWithId:post.identifier];
+        
+        if (postInStream) {
+            removePost = true;
+            refresh = true;
+        }
+    }
+    else if (self.dataType == RSTableViewTypeProfile) {
+        Post *postInStream = [self.stream postWithId:post.identifier];
+        
+        if (postInStream) {
+            removePost = true;
+            refresh = true;
+        }
+    }
+    
+    if (removePost) [self.stream removePost:post];
+    if (refresh) [self refresh];
+    
+    
+    // TODO:
+    // 1) Decrement Room posts count
+    //       IF (parentObject isKindOfClass:Room &&
+    //           type == post &&
+    //           post.postedIn.identifier == parentObject.identifier)
+    // 2) Decrement Post replies count
+    //       IF (parentObject isKindOfClass:Room &&
+    //           type == reply &&
+    //           post.postedIn.identifier == parentObject.identifier)
+    // 2b) Decrement Post replies count
+    //       IF (parentObject isKindOfClass:Post &&
+    //           type == reply &&
+    //           post.parent == parentObject.identifier)
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -151,7 +332,9 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                 cell = [[RoomHeaderCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:roomHeaderCellIdentifier];
             }
             cell.room = room;
-            cell.tintColor = self.superview.tintColor;
+            
+            cell.followButton.hidden =
+            cell.detailsLabel.hidden = (!cell.room.identifier && !self.loading);
             
             if (room.attributes.status.isBlocked) {
                 [cell.followButton updateStatus:ROOM_STATUS_ROOM_BLOCKED];
@@ -161,99 +344,6 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             }
             else {
                 [cell.followButton updateStatus:room.attributes.context.status];
-            }
-            
-            if (room.attributes.details.title) {
-                cell.nameLabel.text = room.attributes.details.title.length > 0 ? room.attributes.details.title : @"Unkown Room";
-            }
-            else {
-                cell.nameLabel.text = @"Loading...";
-            }
-            cell.descriptionLabel.text = room.attributes.details.theDescription;
-            
-            // set profile pictures
-            UIImage *anonymousProfilePic;
-            anonymousProfilePic = [[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-            for (int i = 0; i < 7; i++) {
-                UIImageView *imageView;
-                if (i == 0) { imageView = cell.member1; }
-                else if (i == 1) { imageView = cell.member2; }
-                else if (i == 2) { imageView = cell.member3; }
-                else if (i == 3) { imageView = cell.member4; }
-                else if (i == 4) { imageView = cell.member5; }
-                else if (i == 5) { imageView = cell.member6; }
-                else { imageView = cell.member7; }
-                
-                if (i == 0) {
-                    // TODO: Check if group image exists
-                    
-                    [imageView setImage:[[UIImage imageNamed:@"anonymousGroup"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
-                }
-                else {
-                    if (room.attributes.summaries.members.count > i-1) {
-                        imageView.hidden = false;
-                        
-                        NSError *userError;
-                        User *userForImageView = [[User alloc] initWithDictionary:(NSDictionary *)room.attributes.summaries.members[i-1] error:&userError];
-                        
-                        imageView.tintColor = [UIColor fromHex:userForImageView.attributes.details.color];
-                        if (!userError) {
-                            NSString *picURL = userForImageView.attributes.details.media.profilePicture;
-                            if (picURL.length > 0) {
-                                [imageView sd_setImageWithURL:[NSURL URLWithString:picURL]];
-                            }
-                            else {
-                                [imageView setImage:anonymousProfilePic];
-                            }
-                        }
-                        else {
-                            [imageView setImage:anonymousProfilePic];
-                        }
-                    }
-                    else {
-                        imageView.hidden = false;
-                        BOOL circleProfilePictures = FBTweakValue(@"Post", @"General", @"Circle Profile Pictures", NO);
-                        if (circleProfilePictures) {
-                            imageView.image = [[UIImage imageNamed:@"inviteFriendPlaceholderCircular"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-                        }
-                        else {
-                            imageView.image = [[UIImage imageNamed:@"inviteFriendPlaceholder"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-                        }
-                        imageView.tintColor = [UIColor colorWithWhite:0.8f alpha:1];
-                    }
-                }
-            }
-            
-            DefaultsRoomMembersTitle *membersTitle = [Session sharedInstance].defaults.room.membersTitle;
-            if (room.attributes.summaries.counts.members) {
-                NSInteger members = room.attributes.summaries.counts.members;
-                [cell.membersLabel setTitle:[NSString stringWithFormat:@"%ld %@", members, members == 1 ? [membersTitle.singular lowercaseString] : [membersTitle.plural lowercaseString]] forState:UIControlStateNormal];
-                cell.membersLabel.alpha = 1;
-            }
-            else {
-                [cell.membersLabel setTitle:[NSString stringWithFormat:@"0 %@", [membersTitle.plural lowercaseString]] forState:UIControlStateNormal];
-                cell.membersLabel.alpha = 0.5;
-            }
-            
-            if (room.attributes.summaries.counts.posts) {
-                NSInteger posts = (long)room.attributes.summaries.counts.posts;
-                cell.postsCountLabel.text = [NSString stringWithFormat:@"%ld %@", posts, posts == 1 ? @"post" : @"posts"];
-                cell.postsCountLabel.alpha = 1;
-            }
-            else {
-                cell.postsCountLabel.text = @"0 posts";
-                cell.postsCountLabel.alpha = 0.5;
-            }
-            
-            if (cell.membersLabel.gestureRecognizers.count == 0 &&
-                ([cell.room.attributes.context.status isEqualToString:ROOM_STATUS_MEMBER] ||
-                !cell.room.attributes.status.visibility.isPrivate))
-            {
-                [cell.membersLabel bk_whenTapped:^{
-                    if ([UIViewParentController(self).navigationController isKindOfClass:[ComplexNavigationController class]]) {
-                        [[Launcher sharedInstance] openRoomMembersForRoom:self.parentObject];
-                    }
-                }];
             }
             
             return cell;
@@ -268,74 +358,29 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             }
             
             cell.user = user;
-            cell.tintColor = [[user.attributes.details.color lowercaseString] isEqualToString:@"ffffff"] ? [UIColor colorWithWhite:0.2f alpha:1] : [UIColor fromHex:user.attributes.details.color];
             
-            if ([user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
-                [cell.followButton updateStatus:USER_STATUS_ME];
-            }
-            else if (self.loading && user.attributes.context == nil) {
-                [cell.followButton updateStatus:USER_STATUS_LOADING];
-            }
-            else {
-                [cell.followButton updateStatus:user.attributes.context.status];
-            }
+            BOOL hasValidIdentifier = (cell.user.attributes.details.identifier.length > 0 || cell.user.identifier.length >   0);
+            cell.followingButton.hidden =
+            cell.campsButton.hidden = !hasValidIdentifier || (!self.loading && cell.user.identifier.length == 0);
             
-            if (user.attributes.details.media.profilePicture && user.attributes.details.media.profilePicture.length > 0) {
-                [cell.profilePicture sd_setImageWithURL:[NSURL URLWithString:user.attributes.details.media.profilePicture] placeholderImage:[[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
-                cell.profilePicture.backgroundColor = [UIColor clearColor];
-            }
-            else {
-                if (user.identifier.length > 0) {
-                    cell.profilePicture.image = [[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-                    cell.profilePicture.backgroundColor = [UIColor clearColor];
+            cell.followButton.hidden =
+            cell.detailsLabel.hidden = (!cell.user.identifier && !self.loading);
+            
+            if (!cell.followButton.isHidden) {
+                if ([user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
+                    [cell.followButton updateStatus:USER_STATUS_ME];
+                }
+                else if (self.loading && user.attributes.context == nil) {
+                    [cell.followButton updateStatus:USER_STATUS_LOADING];
                 }
                 else {
-                    cell.profilePicture.image = [UIImage new];
-                    cell.profilePicture.backgroundColor = [cell.tintColor colorWithAlphaComponent:0.5];
+                    [cell.followButton updateStatus:user.attributes.context.status];
                 }
-            }
-            
-            if (user.attributes.details.displayName.length > 0) {
-                cell.textLabel.text = user.attributes.details.displayName;
-            }
-            else if (user.attributes.details.identifier.length > 0) {
-                cell.textLabel.text = [NSString stringWithFormat:@"@%@", user.attributes.details.identifier];
-            }
-            else {
-                cell.textLabel.text = @"Unkown User";
-            }
-    
-            cell.detailTextLabel.text = [NSString stringWithFormat:@"@%@", user.attributes.details.identifier]; // short bio
-            
-            //if (user.attributes.summaries.counts.members) {
-            NSInteger stat;
-            NSString *statLabel;
-            if ([cell.user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
-                stat = 10;
-                statLabel = @"following";
-            }
-            else {
-                stat = 10;
-                statLabel = (stat == 1) ? @"room" : @"rooms";
-            }
-            [cell.statActionButton setTitle:[NSString stringWithFormat:@"%ld %@", (long)stat, statLabel] forState:UIControlStateNormal];
-            cell.statActionButton.alpha = (stat == 0) ? 0.5 : 1;
-            
-            //if (user.attributes.summaries.counts.posts) {
-            if (true == 1) {
-                cell.postsCountLabel.text = @"{x} posts";
-                cell.postsCountLabel.alpha = 1;
-            }
-            else {
-                cell.postsCountLabel.text = @"0 posts";
-                cell.postsCountLabel.alpha = 0.5;
             }
             
             return cell;
         }
         else if (self.dataType == RSTableViewTypePost && [self.parentObject isKindOfClass:[Post class]]) {
-            Post *post = self.parentObject;
-            
             ExpandedPostCell *cell = [tableView dequeueReusableCellWithIdentifier:expandedPostCellIdentifier forIndexPath:indexPath];
             
             if (cell == nil) {
@@ -343,24 +388,17 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             }
             
             cell.loading = self.loading;
-            cell.post = post;
             
-            cell.nameLabel.attributedText = [self attributedCreatorStringForPost:cell.post];
+            cell.post = self.parentObject;
+            cell.nameLabel.attributedText = [BubblePostCell attributedCreatorStringForPost:cell.post];
             
-            cell.profilePicture.tintColor = [[cell.post.attributes.details.creator.attributes.details.color lowercaseString] isEqualToString:@"ffffff"] ? [UIColor colorWithWhite:0.2f alpha:1] : [UIColor fromHex:cell.post.attributes.details.creator.attributes.details.color];
-            if (cell.profilePicture.gestureRecognizers.count == 0) {
-                [cell.profilePicture bk_whenTapped:^{
-                    if ([UIViewParentController(self).navigationController isKindOfClass:[ComplexNavigationController class]]) {
-                        [[Launcher sharedInstance] openProfile:post.attributes.details.creator];
-                    }
-                }];
+            if (cell.post.identifier != 0) {
+                [self didBeginDisplayingCell:cell];
             }
-            
-            [cell.pictureView sd_setImageWithURL:[NSURL URLWithString:@"https://images.unsplash.com/photo-1540720936278-94ab04d51f62?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2000&q=80"]];
             
             if ([cell.pictureView gestureRecognizers].count == 0) {
                 [cell.pictureView bk_whenTapped:^{
-                    [self expandImageView:cell.pictureView];
+                    [[Launcher sharedInstance] expandImageView:cell.pictureView];
                 }];
             }
             
@@ -370,7 +408,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     else {
         // Content
         if (self.stream.posts.count <= indexPath.row) {
-            if (self.stream.posts.count == 0) {
+            if (self.stream.posts.count == 0 && self.dataType != RSTableViewTypePost) {
                 // loading cell
                 LoadingCell *cell = [tableView dequeueReusableCellWithIdentifier:loadingCellIdentifier forIndexPath:indexPath];
                 
@@ -378,9 +416,15 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                     cell = [[LoadingCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:loadingCellIdentifier];
                 }
                 
-                NSInteger postType = (indexPath.row + 2) % 3;
+                NSInteger postType = (indexPath.row) % 3;
                 cell.type = postType;
                 cell.shimmerContainer.shimmering = true;
+                
+                cell.userInteractionEnabled = false;
+                
+                if (self.dataType == RSTableViewTypePost) {
+                    cell.lineSeparator.hidden = true;
+                }
                 
                 return cell;
             }
@@ -405,72 +449,76 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             }
         }
         else if ([self.stream.posts[indexPath.row].type isEqualToString:@"post"]) {
-            BubblePostCell *cell = [tableView dequeueReusableCellWithIdentifier:bubbleReuseIdentifier forIndexPath:indexPath];
-            
-            if (cell == nil) {
-                cell = [[BubblePostCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:bubbleReuseIdentifier];
-            }
-            
             if (self.stream.posts.count > indexPath.row) {
-                NSError *error;
-                cell.post = self.stream.posts[indexPath.row];
+                PostDisplayType displayType = [self typeForPost:self.stream.posts[indexPath.row]];
                 
-                if (error) {
-                    NSLog(@"cell.post error: %@", error);
-                }
-                
-                // --- LOAD DATA ---
-                cell.textView.textView.text = cell.post.attributes.details.simpleMessage;
-                
-                cell.nameLabel.attributedText = [self attributedCreatorStringForPost:cell.post];
-                
-                // set username
-                NSString *username = cell.post.attributes.details.creator.attributes.details.identifier;
-                cell.usernameLabel.text = [NSString stringWithFormat:@"@%@", username];
-                
-                if (cell.post.attributes.details.creator.attributes.details.media.profilePicture.length > 0) {
-                    [cell.profilePicture sd_setImageWithURL:[NSURL URLWithString:cell.post.attributes.details.creator.attributes.details.media.profilePicture]];
-                }
-                else {
-                    cell.profilePicture.image = [[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-                    cell.profilePicture.tintColor = [[cell.post.attributes.details.creator.attributes.details.color lowercaseString] isEqualToString:@"ffffff"] ? [UIColor colorWithWhite:0.2f alpha:1] : [UIColor fromHex:cell.post.attributes.details.creator.attributes.details.color];
-                }
-                
-                NSString *dateString = [NSDate mysqlDatetimeFormattedAsTimeAgo:cell.post.attributes.status.createdAt withForm:TimeAgoShortForm];
-                NSString *dateStringSpacer = @"   ";
-                NSString *repliesString = ((long)cell.post.attributes.summaries.replies.count == 0 ? @"Reply" : [NSString stringWithFormat:@"%ld replies", (long)cell.post.attributes.summaries.replies.count]);
-                
-                NSString *combinedDetailString = [NSString stringWithFormat:@"%@%@%@", dateString, dateStringSpacer, repliesString];
-                NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:combinedDetailString];
-                [attributedString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:13.f weight:UIFontWeightSemibold] range:NSMakeRange(dateString.length+dateStringSpacer.length, repliesString.length)];
-                [attributedString addAttribute:NSForegroundColorAttributeName value:[UIColor colorWithWhite:0.47 alpha:1] range:NSMakeRange(0, combinedDetailString.length)];
-                cell.detailsLabel.attributedText = attributedString;
-                
-                if (cell.profilePicture.gestureRecognizers.count == 0) {
-                    [cell.profilePicture bk_whenTapped:^{
-                        if ([UIViewParentController(self).navigationController isKindOfClass:[ComplexNavigationController class]]) {
-                            [[Launcher sharedInstance] openProfile:cell.post.attributes.details.creator];
+                if (displayType == PostDisplayTypeSimple) {
+                    BubblePostCell *cell = [tableView dequeueReusableCellWithIdentifier:bubbleReuseIdentifier forIndexPath:indexPath];
+                    
+                    if (cell == nil) {
+                        cell = [[BubblePostCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:bubbleReuseIdentifier];
+                    }
+                    
+                    NSInteger identifierBefore = cell.post.identifier;
+                    
+                    // [cell setThemed:(self.stream.posts[indexPath.row].attributes.details.parent != 0 && self.dataType == RSTableViewTypePost)];
+                    cell.post = self.stream.posts[indexPath.row];
+                    
+                    cell.selectable = ![cell isReply];
+                    
+                    if (cell.post.identifier != 0 && identifierBefore == cell.post.identifier) {
+                        [self didBeginDisplayingCell:cell];
+                    }
+                    
+                    // posted in indicator
+                    Room *postedInRoom = cell.post.attributes.status.postedIn;
+                    NSString *currentRoomIdentifier = @"";
+                    if ([UIViewParentController(self) isKindOfClass:[RoomViewController class]]) {
+                        currentRoomIdentifier = ((Room *)self.parentObject).identifier;
+                    }
+                    
+                    BOOL showPostedIn = (self.dataType != RSTableViewTypePost && ![cell isReply] && postedInRoom != nil && ![postedInRoom.identifier isEqualToString:currentRoomIdentifier]);
+                    cell.postedInButton.hidden = !showPostedIn;
+                    if (showPostedIn) {
+                        [UIView performWithoutAnimation:^{
+                            [cell.postedInButton setTitle:cell.post.attributes.status.postedIn.attributes.details.title forState:UIControlStateNormal];
+                            [cell.postedInButton layoutIfNeeded];
+                        }];
+                        cell.postedInButton.tintColor = [UIColor fromHex:cell.post.attributes.status.postedIn.attributes.details.color];
+                        [cell.postedInButton setTitleColor:cell.postedInButton.tintColor forState:UIControlStateNormal];
+                        if (cell.postedInButton.gestureRecognizers.count == 0 && cell.post.attributes.status.postedIn) {
+                            [cell.postedInButton bk_whenTapped:^{
+                                [[Launcher sharedInstance] openRoom:cell.post.attributes.status.postedIn];
+                            }];
                         }
-                    }];
+                    }
+                    
+                    cell.repliesSnapshotView.hidden = !(displayType == PostDisplayTypeSimple &&  cell.post.attributes.summaries.replies.count > 0);
+                    
+                    return cell;
                 }
-                
-                [cell.pictureView sd_setImageWithURL:[NSURL URLWithString:@"https://images.unsplash.com/photo-1540720936278-94ab04d51f62?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2000&q=80"]];
-                
-                if ([cell.pictureView gestureRecognizers].count == 0) {
-                    [cell.pictureView bk_whenTapped:^{
-                        [self expandImageView:cell.pictureView];
-                    }];
+                if (displayType == PostDisplayTypeThreaded) {
+                    ThreadedPostCell *cell = [tableView dequeueReusableCellWithIdentifier:threadedPostReuseIdentifier];
+                    
+                    if (cell == nil) {
+                        cell = [[ThreadedPostCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:threadedPostReuseIdentifier];
+                    }
+                    
+                    NSInteger identifierBefore = cell.post.identifier;
+                    
+                    cell.tintColor = self.tintColor;
+                    [cell setThemed:true];
+                    cell.post = self.stream.posts[indexPath.row];
+                    
+                    if (cell.post.identifier != 0 && identifierBefore == cell.post.identifier) {
+                        [self didBeginDisplayingCell:cell];
+                    }
+                    
+                    cell.postedInButton.hidden = true;
+                    
+                    return cell;
                 }
-                
-                BOOL isSparked = (cell.post.attributes.context.vote != nil);
-                [cell setSparked:isSparked withAnimation:false];
             }
-            
-            cell.selectable = self.dataType != RSTableViewTypePost;
-            
-            [cell.pictureView sd_setImageWithURL:[NSURL URLWithString:@"https://images.unsplash.com/photo-1540720936278-94ab04d51f62?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2000&q=80"]];
-            
-            return cell;
         }
         else if ([self.stream.posts[indexPath.row].type isEqualToString:@"room_suggestions"]) {
             RoomSuggestionsListCell *cell = [tableView dequeueReusableCellWithIdentifier:suggestionsCellIdentifier forIndexPath:indexPath];
@@ -490,109 +538,211 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     return blankCell;
 }
 
+- (CGFloat)cellHeightForRoom:(Room *)room {
+    CGFloat maxWidth = self.frame.size.width - (ROOM_HEADER_EDGE_INSETS.left + ROOM_HEADER_EDGE_INSETS.right);
+    
+    // knock out all the required bits first
+    CGFloat height = ROOM_HEADER_EDGE_INSETS.top + ROOM_HEADER_AVATAR_SIZE + ROOM_HEADER_AVATAR_BOTTOM_PADDING;
+    
+    CGRect textLabelRect = [(room.attributes.details.title.length > 0 ? room.attributes.details.title : @"Unkown Camp") boundingRectWithSize:CGSizeMake(maxWidth, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:ROOM_HEADER_NAME_FONT} context:nil];
+    CGFloat roomTitleHeight = ceilf(textLabelRect.size.height);
+    height = height + roomTitleHeight;
+    
+    CGRect roomTagRect = [[NSString stringWithFormat:@"#%@", room.attributes.details.identifier] boundingRectWithSize:CGSizeMake(maxWidth, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:ROOM_HEADER_TAG_FONT} context:nil];
+    CGFloat roomTagHeight = ceilf(roomTagRect.size.height);
+    height = height + ROOM_HEADER_NAME_BOTTOM_PADDING + roomTagHeight;
+    
+    if (room.attributes.details.theDescription.length > 0) {
+        NSMutableAttributedString *attrString = [[NSMutableAttributedString  alloc] initWithString:room.attributes.details.theDescription];
+        NSMutableParagraphStyle *style = [[NSMutableParagraphStyle alloc] init];
+        [style setLineSpacing:3.f];
+        [style setAlignment:NSTextAlignmentCenter];
+        [attrString addAttribute:NSParagraphStyleAttributeName
+                           value:style
+                           range:NSMakeRange(0, attrString.length)];
+        [attrString addAttribute:NSFontAttributeName value:ROOM_HEADER_DESCRIPTION_FONT range:NSMakeRange(0, attrString.length)];
+        
+        CGRect descriptionRect = [attrString boundingRectWithSize:CGSizeMake(maxWidth, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading)  context:nil];
+        CGFloat roomDescriptionHeight = ceilf(descriptionRect.size.height);
+        height = height + ROOM_HEADER_TAG_BOTTOM_PADDING + roomDescriptionHeight;
+    }
+    
+    if (room.identifier.length > 0) {
+        NSArray *details = @[[BFDetailsLabel BFDetailWithType:(room.attributes.status.visibility.isPrivate ? BFDetailTypePrivacyPrivate : BFDetailTypePrivacyPublic) value:@"" action:nil], [BFDetailsLabel BFDetailWithType:BFDetailTypeMembers value:[NSNumber numberWithInteger:room.attributes.summaries.counts.members] action:nil]];
+        CGFloat detailsHeight = ceilf([[BFDetailsLabel attributedStringForDetails:details linkColor:nil] boundingRectWithSize:CGSizeMake(maxWidth, CGFLOAT_MAX) options:(NSStringDrawingUsesFontLeading|NSStringDrawingUsesLineFragmentOrigin) context:nil].size.height);
+        height = height + (room.attributes.details.theDescription.length > 0 ? ROOM_HEADER_DESCRIPTION_BOTTOM_PADDING : ROOM_HEADER_TAG_BOTTOM_PADDING) +  ROOM_HEADER_DETAILS_EDGE_INSETS.top + detailsHeight;
+        
+        CGFloat userPrimaryActionHeight = ROOM_HEADER_FOLLOW_BUTTON_TOP_PADDING + 36;
+        height = height + userPrimaryActionHeight;
+    }
+    
+    // add bottom padding and line separator
+    height = height + ROOM_HEADER_EDGE_INSETS.bottom + (1 / [UIScreen mainScreen].scale);
+    
+    return height;
+}
+- (CGFloat)cellHeightForUser:(User *)user {
+    CGFloat maxWidth = self.frame.size.width - (PROFILE_HEADER_EDGE_INSETS.left + PROFILE_HEADER_EDGE_INSETS.right);
+    
+    // knock out all the required bits first
+    CGFloat height = PROFILE_HEADER_EDGE_INSETS.top + PROFILE_HEADER_AVATAR_SIZE + PROFILE_HEADER_AVATAR_BOTTOM_PADDING;
+    
+    CGRect textLabelRect = [(user.attributes.details.displayName.length > 0 ? user.attributes.details.displayName : @"User") boundingRectWithSize:CGSizeMake(maxWidth, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:PROFILE_HEADER_DISPLAY_NAME_FONT} context:nil];
+    CGFloat userDisplayNameHeight = ceilf(textLabelRect.size.height);
+    height = height + userDisplayNameHeight;
+    
+    CGRect usernameRect = [[NSString stringWithFormat:@"@%@", user.attributes.details.identifier] boundingRectWithSize:CGSizeMake(maxWidth, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:PROFILE_HEADER_USERNAME_FONT} context:nil];
+    CGFloat usernameHeight = ceilf(usernameRect.size.height);
+    height = height + PROFILE_HEADER_DISPLAY_NAME_BOTTOM_PADDING + usernameHeight;
+    
+    if (user.attributes.details.bio.length > 0) {
+        NSMutableAttributedString *attrString = [[NSMutableAttributedString  alloc] initWithString:user.attributes.details.bio];
+        NSMutableParagraphStyle *style = [[NSMutableParagraphStyle alloc] init];
+        [style setLineSpacing:3.f];
+        [style setAlignment:NSTextAlignmentCenter];
+        [attrString addAttribute:NSParagraphStyleAttributeName
+                           value:style
+                           range:NSMakeRange(0, attrString.length)];
+        [attrString addAttribute:NSFontAttributeName value:PROFILE_HEADER_BIO_FONT range:NSMakeRange(0, attrString.length)];
+        
+        CGRect bioRect = [attrString boundingRectWithSize:CGSizeMake(maxWidth, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading)  context:nil];
+        CGFloat bioHeight = ceilf(bioRect.size.height);
+        height = height + PROFILE_HEADER_USERNAME_BOTTOM_PADDING + bioHeight;
+    }
+    
+    NSMutableArray *details = [[NSMutableArray alloc] init];
+    if (user.attributes.details.location) {
+        [details addObject:[BFDetailsLabel BFDetailWithType:BFDetailTypeLocation value:user.attributes.details.location.value action:nil]];
+    }
+    if (user.attributes.details.website) {
+        [details addObject:[BFDetailsLabel BFDetailWithType:BFDetailTypeWebsite value:user.attributes.details.website.value action:nil]];
+    }
+    
+    if (details.count > 0) {
+        CGFloat detailsHeight = ceilf([[BFDetailsLabel attributedStringForDetails:details linkColor:nil] boundingRectWithSize:CGSizeMake(maxWidth, CGFLOAT_MAX) options:(NSStringDrawingUsesFontLeading|NSStringDrawingUsesLineFragmentOrigin) context:nil].size.height);
+        height = height + (user.attributes.details.bio.length > 0 ? PROFILE_HEADER_BIO_BOTTOM_PADDING : PROFILE_HEADER_USERNAME_BOTTOM_PADDING) +  PROFILE_HEADER_DETAILS_EDGE_INSETS.top + detailsHeight;
+    }
+    
+    CGFloat userPrimaryActionHeight = (user.identifier.length > 0 || self.loading ? PROFILE_HEADER_FOLLOW_BUTTON_TOP_PADDING + 36 : 0);
+    height = height + userPrimaryActionHeight;
+    
+    // add bottom padding and line separator
+    height = height + PROFILE_HEADER_EDGE_INSETS.bottom + (1 / [UIScreen mainScreen].scale);
+    
+    return height;
+}
+- (CGFloat)cellHeightForExpandedPost:(Post *)post {
+    // name @username • 2hr
+    CGFloat avatarHeight = 48; // 2pt padding underneath
+    CGFloat avatarBottomPadding = 12; //15 + 14; // 14pt padding underneath
+    
+    // message
+    CGFloat contentWidth = self.frame.size.width;
+    NSStringDrawingContext* context = [[NSStringDrawingContext alloc] init];
+    CGRect textViewRect = [post.attributes.details.message boundingRectWithSize:CGSizeMake(contentWidth - 12 - 12, 1200) options:(NSStringDrawingUsesLineFragmentOrigin) attributes:@{NSFontAttributeName:expandedTextViewFont} context:context];
+    CGFloat textViewHeight = ceilf(textViewRect.size.height) + 6 + 6 + 1;
+    
+    // image
+    BOOL hasImage = FBTweakValue(@"Post", @"General", @"Show Image", NO); // postAtIndex.images != nil && postAtIndex.images.count > 0;
+    CGFloat imageHeight = hasImage ? expandedImageHeightDefault + 8 : 0;
+    
+    if (hasImage) {
+        UIImage *diskImage = [[SDImageCache sharedImageCache] imageFromDiskCacheForKey:@"https://images.unsplash.com/photo-1490349368154-73de9c9bc37c?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2250&q=80"];
+        if (diskImage) {
+            // disk image!
+            CGFloat heightToWidthRatio = diskImage.size.height / diskImage.size.width;
+            imageHeight = roundf(contentWidth * heightToWidthRatio);
+            
+            if (imageHeight < 100) {
+                // NSLog(@"too small muchacho");
+                imageHeight = 100;
+            }
+            if (imageHeight > 600) {
+                // NSLog(@"too big muchacho");
+                imageHeight = 600;
+            }
+        }
+        else {
+            UIImage *memoryImage = [[SDImageCache sharedImageCache] imageFromMemoryCacheForKey:@"https://images.unsplash.com/photo-1490349368154-73de9c9bc37c?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2250&q=80"];
+            if (memoryImage) {
+                CGFloat heightToWidthRatio = diskImage.size.height / diskImage.size.width;
+                imageHeight = roundf(contentWidth * heightToWidthRatio);
+                
+                if (imageHeight < 100) {
+                    // NSLog(@"too small muchacho");
+                    imageHeight = 100;
+                }
+                if (imageHeight > 600) {
+                    // NSLog(@"too big muchacho");
+                    imageHeight = 600;
+                }
+            }
+        }
+        imageHeight = imageHeight + 8;
+    }
+    
+    // deatils label
+    CGFloat detailHeight = 6 + 14 + 12;
+    
+    // actions
+    CGFloat actionsHeight = expandedActionsViewHeight; // 12 = padding above actions view
+    
+    return expandedPostContentOffset.top + avatarHeight + avatarBottomPadding + textViewHeight + imageHeight + actionsHeight + detailHeight + expandedPostContentOffset.bottom; // 1 = line separator
+}
+- (CGFloat)cellHeightForPost:(Post *)post {
+    if ([post.type isEqualToString:@"post"]) {
+        if (post.rowHeight == 0) {
+            PostDisplayType type = [self typeForPost:post];
+            // TODO: temporary fix to remove top-level replies
+            if (type != PostDisplayTypeThreaded && post.attributes.details.parent != 0)
+                return 0;
+            
+            post.rowHeight = [self rowHeightForPost:post isReply:false];
+            
+            if (type != PostDisplayTypeSimple && post.attributes.summaries.replies.count > 0) {
+                for (int i = 0; i < post.attributes.summaries.replies.count; i++) {
+                    Post *reply = post.attributes.summaries.replies[i];
+                    reply.rowHeight = [self rowHeightForPost:reply isReply:true];
+                    
+                    post.rowHeight = post.rowHeight + reply.rowHeight;
+                }
+            }
+        }
+        
+        return post.rowHeight;
+    }
+    
+    return 0;
+}
+- (PostDisplayType)typeForPost:(Post *)post {
+    if (self.dataType == RSTableViewTypePost) {
+        return PostDisplayTypeThreaded;
+    }
+    else if (post.attributes.summaries.replies.count > 0) {
+        //return PostDisplayTypePreview;
+    }
+    
+    return PostDisplayTypeSimple;
+}
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.section == 0) {
-        // header (used in Profiles, Rooms)
+        // header (used in Profiles, Camps)
         if (self.dataType == RSTableViewTypeRoom && [self.parentObject isKindOfClass:[Room class]]) {
             Room *room = self.parentObject;
             
-            CGFloat topPadding = 116;
-            
-            CGRect textLabelRect = [(room.attributes.details.title.length > 0 ? room.attributes.details.title : @"Unkown Room") boundingRectWithSize:CGSizeMake(self.frame.size.width - (24 * 2), CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:32.f weight:UIFontWeightHeavy]} context:nil];
-            CGFloat roomTitleHeight = ceilf(textLabelRect.size.height);
-            
-            CGRect detailTextLabelRect = [room.attributes.details.theDescription boundingRectWithSize:CGSizeMake(self.frame.size.width - (24 * 2), CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:16.f weight:UIFontWeightRegular]} context:nil];
-            CGFloat roomDescriptionHeight = ceilf(room.attributes.details.theDescription.length) > 0 ? ceilf(detailTextLabelRect.size.height) + 4 : 0; // 2 = padding between title and description
-            
-            CGFloat roomPrimaryActionHeight = 36 + 14; // 14 = spacing between primary action and closest label (title or desciprtion)
-            
-            CGFloat statsViewHeight = 48 + (1 / [UIScreen mainScreen].scale); // 16 = height above
-            
-            return topPadding + roomTitleHeight + roomDescriptionHeight + roomPrimaryActionHeight + statsViewHeight; // 8 = section separator
+            return [self cellHeightForRoom:room];
         }
         else if (self.dataType == RSTableViewTypeProfile && [self.parentObject isKindOfClass:[User class]]) {
             User *user = self.parentObject;
             
-            CGFloat topPadding = 116;
-
-            CGRect textLabelRect = [(user.attributes.details.displayName.length > 0 ? user.attributes.details.displayName : @"User") boundingRectWithSize:CGSizeMake(self.frame.size.width - (24 * 2), CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:32.f weight:UIFontWeightHeavy]} context:nil];
-            CGFloat userDisplayNameHeight = textLabelRect.size.height; // 18 padding underneath title+description
-            
-            CGRect usernameRect = [[NSString stringWithFormat:@"@%@", user.attributes.details.identifier] boundingRectWithSize:CGSizeMake(self.frame.size.width - (24 * 2), CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:16.f weight:UIFontWeightMedium]} context:nil];
-            CGFloat usernameHeight = usernameRect.size.height + 2; // 2 = padding between title and description
-            
-            CGFloat userPrimaryActionHeight = (user.identifier.length > 0 ? 36 : 0) + 14;
-            
-            CGFloat statsViewHeight = (user.identifier.length > 0) ? 48 + (1 / [UIScreen mainScreen].scale) : 0; // 16 = height above
-            
-            return topPadding + userDisplayNameHeight + usernameHeight + userPrimaryActionHeight + statsViewHeight;
+            return [self cellHeightForUser:user];
         }
         else if (self.dataType == RSTableViewTypePost && [self.parentObject isKindOfClass:[Post class]]) {
             // prevent getting object at index beyond bounds of array
             Post *post = self.parentObject;
             
-            // TODO: calculate height of namelabel in heightForRowAtIndexPath
-            
-            // name @username • 2hr
-            CGRect nameRect = [[self attributedCreatorStringForPost:post] boundingRectWithSize:CGSizeMake(self.frame.size.width - 70 - postContentOffset.right, 1200) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) context:nil];
-            CGFloat nameHeight = nameRect.size.height + 2; // 2pt padding underneath
-            CGFloat dateHeight = 15 + 14; //15 + 14; // 14pt padding underneath
-            
-            // message
-            CGFloat contentWidth = self.frame.size.width - expandedPostContentOffset.left - 24;
-            NSStringDrawingContext* context = [[NSStringDrawingContext alloc] init];
-            CGRect textViewRect = [post.attributes.details.simpleMessage boundingRectWithSize:CGSizeMake(contentWidth - 12 - 12, 1200) options:(NSStringDrawingUsesLineFragmentOrigin) attributes:@{NSFontAttributeName:expandedTextViewFont} context:context];
-            CGFloat textViewHeight = ceilf(textViewRect.size.height) + 6 + 6;
-            NSLog(@"textViewHeight: %f", textViewHeight);
-            
-            // image
-            BOOL hasImage = FBTweakValue(@"Post", @"General", @"Show Image", NO); // postAtIndex.images != nil && postAtIndex.images.count > 0;
-            CGFloat imageHeight = hasImage ? expandedImageHeightDefault + 4 : 0;
-            
-            if (hasImage) {
-                UIImage *diskImage = [[SDImageCache sharedImageCache] imageFromDiskCacheForKey:@"https://images.unsplash.com/photo-1540720936278-94ab04d51f62?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2000&q=80"];
-                if (diskImage) {
-                    // disk image!
-                    CGFloat heightToWidthRatio = diskImage.size.height / diskImage.size.width;
-                    imageHeight = roundf(contentWidth * heightToWidthRatio);
-                    
-                    if (imageHeight < 100) {
-                        // NSLog(@"too small muchacho");
-                        imageHeight = 100;
-                    }
-                    if (imageHeight > 600) {
-                        // NSLog(@"too big muchacho");
-                        imageHeight = 600;
-                    }
-                    imageHeight = imageHeight + 4;
-                }
-                else {
-                    UIImage *memoryImage = [[SDImageCache sharedImageCache] imageFromMemoryCacheForKey:@"https://images.unsplash.com/photo-1540720936278-94ab04d51f62?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2000&q=80"];
-                    if (memoryImage) {
-                        CGFloat heightToWidthRatio = diskImage.size.height / diskImage.size.width;
-                        imageHeight = roundf(contentWidth * heightToWidthRatio);
-                        
-                        if (imageHeight < 100) {
-                            // NSLog(@"too small muchacho");
-                            imageHeight = 100;
-                        }
-                        if (imageHeight > 600) {
-                            // NSLog(@"too big muchacho");
-                            imageHeight = 600;
-                        }
-                        imageHeight = imageHeight + 4;
-                    }
-                }
-            }
-            
-            // actions
-            CGFloat actionsHeight = expandedActionsViewHeight + 10; // 10 = padding above actions view
-            
-            /* deatil button
-            CGFloat detailHeight = (self.dataType != RSTableViewTypeRoom ? 16 + 8 : 0); // 4pt padding on top*/
-
-            return expandedPostContentOffset.top + nameHeight + dateHeight + textViewHeight + imageHeight + actionsHeight + expandedPostContentOffset.bottom + (1 / [UIScreen mainScreen].scale); // 1 = line separator
+            return [self cellHeightForExpandedPost:post];
         }
     }
     else if (indexPath.section == 1) {
@@ -601,46 +751,22 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             // prevent getting object at index beyond bounds of array
             Post *postAtIndex = self.stream.posts[indexPath.row];
             
-            if ([postAtIndex.type isEqualToString:@"post"]) {
-                // TODO: calculate height of namelabel in heightForRowAtIndexPath
-                
-                // name @username • 2hr
-                CGRect nameRect = [[self attributedCreatorStringForPost:postAtIndex] boundingRectWithSize:CGSizeMake(self.frame.size.width - 70 - expandedPostContentOffset.right, 1200) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) context:nil];
-                CGFloat nameHeight = nameRect.size.height + 4; // + 2; // 2pt padding underneath
-                CGFloat usernameHeight = 0; //15 + 6; // 8pt padding underneath
-                
-                // message
-                CGRect textViewRect = [postAtIndex.attributes.details.simpleMessage boundingRectWithSize:CGSizeMake(self.frame.size.width - postContentOffset.left - postTextViewInset.left - postTextViewInset.right - 24, 1200) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:textViewFont} context:nil];
-                CGFloat textViewHeight = ceilf(textViewRect.size.height) + (postTextViewInset.top + postTextViewInset.bottom);
-                
-                // image
-                BOOL hasImage = FBTweakValue(@"Post", @"General", @"Show Image", NO); // postAtIndex.images != nil && postAtIndex.images.count > 0;
-                CGFloat imageHeight = hasImage ? [Session sharedInstance].defaults.post.imgHeight + 4 + 4 : 0; // 4 on top and 4 on bottom
-                BOOL hasURLPreview = [postAtIndex requiresURLPreview];
-                CGFloat urlPreviewHeight = !hasImage && hasURLPreview ? [Session sharedInstance].defaults.post.imgHeight + 4 + 4 : 0; // 4 on top and 4 on bottom
-                
-                // actions
-                CGFloat actionsHeight = 4 + 16; // 4 = padding between content and actions bar
-                
-                CGFloat postHeight = postContentOffset.top + nameHeight + usernameHeight + textViewHeight + imageHeight + urlPreviewHeight + actionsHeight + postContentOffset.bottom;
-                
-                return postHeight;
-            }
+            return [self cellHeightForPost:postAtIndex];
         }
         else {
-            if (self.stream.posts.count == 0) {
-                NSInteger postType = (indexPath.row + 2) % 3;
+            if (self.stream.posts.count == 0 && self.dataType != RSTableViewTypePost) {
+                NSInteger postType = (indexPath.row) % 3;
                 
                 switch (postType) {
                     case 0:
-                        return 95;
+                        return 95 + 20;
                     case 1:
-                        return 116;
+                        return 116 + 20;
                     case 2:
-                        return 283;
+                        return 283 + 20;
                         
                     default:
-                        return 95;
+                        return 95 + 20;
                         break;
                 }
             }
@@ -653,7 +779,14 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     return 0;
 }
 
-- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {    
+    if (self.loading) {
+        self.scrollEnabled = false;
+    }
+    else {
+        self.scrollEnabled = true;
+    }
+    
     return 2;
 }
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
@@ -667,14 +800,11 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     }
     else if (section == 1) {
         // content
-        if (self.loading) {
-            self.scrollEnabled = false;
-        }
-        else {
-            self.scrollEnabled = true;
+        if (self.loading && self.dataType != RSTableViewTypePost) {
+            return 10;
         }
         
-        return self.loading ? 10 : self.stream.posts.count + ([self morePosts] || self.loadingMore ? 1 : 0);
+        return self.stream.posts.count + ((!self.reachedBottom && self.loadingMore) || self.loadingMore ? 1 : 0);
     }
     
     return 0;
@@ -684,64 +814,116 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     if (indexPath.section == 0) {
         
     }
-    else if (indexPath.section == 1 && self.dataType != RSTableViewTypePost) {
+    else if (indexPath.section == 1) {
         if (self.stream.posts.count > indexPath.row) {
+            
             // prevent getting object at index beyond bounds of array
-            if ([self.stream.posts[indexPath.row].type isEqualToString:@"post"]) {
+            if ([self.stream.posts[indexPath.row].type isEqualToString:@"post"] && !self.stream.posts[indexPath.row].tempId && self.stream.posts[indexPath.row].attributes.details.parent == 0) {
                 Post *postAtIndex = self.stream.posts[indexPath.row];
                 
-                [[Launcher sharedInstance] openPost:postAtIndex];
+                [InsightsLogger.sharedInstance closePostInsight:postAtIndex.identifier action:InsightActionTypeDetailExpand];
+                
+                [[Launcher sharedInstance] openPost:postAtIndex withKeyboard:NO];
             }
         }
     }
 }
 //@property (nonatomic) NSInteger lastSinceId;
-- (BOOL)morePosts {
-    if (self.stream.posts.count > 0) {
-        Post *lastPost = self.stream.posts[self.stream.posts.count-1];
-        NSLog(@"lastPost.identifier: %ld", (long)lastPost.identifier);
-        NSLog(@"self.lastMaxId: %ld", (long)self.lastMaxId);
-        if (lastPost.identifier != self.lastMaxId) {
-            return true;
+- (void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
+    if([cell isKindOfClass:[PaginationCell class]]) {
+        Post *lastPost = [self.stream.posts lastObject];
+        self.loadingMore = true;
+        
+        PaginationCell *paginationCell = (PaginationCell *)cell;
+        if (!paginationCell.loading) {
+            paginationCell.loading = true;
+            paginationCell.spinner.hidden = false;
+            [paginationCell.spinner startAnimating];
+        }
+        
+        if (!self.reachedBottom) {
+            if ([self.paginationDelegate respondsToSelector:@selector(tableView:didRequestNextPageWithMaxId:)]) {
+                [self.paginationDelegate tableView:self didRequestNextPageWithMaxId:lastPost.identifier];
+            }
         }
     }
-    
-    return false;
+    else {
+        // NSLog(@"willDisplayCell");
+    }
 }
-- (void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
-    if(indexPath.section == 1 &&
-       indexPath.row == self.stream.posts.count &&
-       [self morePosts]) {
-        if(indexPath.section == 1 && indexPath.row == self.stream.posts.count) {
-            Post *lastPost = [self.stream.posts lastObject];
-            self.lastMaxId = (NSInteger)lastPost.identifier;
-            self.loadingMore = true;
-            
-            PaginationCell *paginationCell = (PaginationCell *)cell;
-            if (!paginationCell.loading) {
-                paginationCell.loading = true;
-                paginationCell.spinner.hidden = false;
-                [paginationCell.spinner startAnimating];
+- (void)didBeginDisplayingCell:(UITableViewCell *)cell {
+    Post *post;
+    if ([cell isKindOfClass:[BubblePostCell class]]) {
+        BubblePostCell *bubblePostCell = (BubblePostCell *)cell;
+        post = bubblePostCell.post;
+    } else if ([cell isKindOfClass:[ExpandedPostCell class]]) {
+        ExpandedPostCell *bubblePostCell = (ExpandedPostCell *)cell;
+        post = bubblePostCell.post;
+    }
+    else {
+        return;
+    }
+    
+    // skip logging if invalid post identifier (most likely due to a loading cell)
+    if (post.identifier == 0) return;
+        
+    NSString *seenIn = InsightSeenInHomeView;
+    switch (self.dataType) {
+        case RSTableViewTypeFeed:
+            if (self.dataSubType == RSTableViewSubTypeHome) {
+                seenIn = InsightSeenInHomeView;
             }
-            
-            [self.paginationDelegate tableView:self didRequestNextPageWithMaxId:self.lastMaxId];
+            if (self.dataSubType == RSTableViewSubTypeTrending) {
+                seenIn = InsightSeenInTrendingView;
+            }
+            break;
+        case RSTableViewTypePost:
+            seenIn = InsightSeenInPostView;
+            break;
+        case RSTableViewTypeRoom:
+            seenIn = InsightSeenInRoomView;
+            break;
+        case RSTableViewTypeProfile:
+            seenIn = InsightSeenInProfileView;
+            break;
+    }
+    
+    //
+    [InsightsLogger.sharedInstance openPostInsight:post.identifier seenIn:seenIn];
+}
+- (void)tableView:(UITableView *)tableView didEndDisplayingCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath*)indexPath {
+    if ([tableView.indexPathsForVisibleRows indexOfObject:indexPath] == NSNotFound) {
+        Post *post;
+        if ([cell isKindOfClass:[BubblePostCell class]]) {
+            BubblePostCell *bubblePostCell = (BubblePostCell *)cell;
+            post = bubblePostCell.post;
+        } else if ([cell isKindOfClass:[ExpandedPostCell class]]) {
+            ExpandedPostCell *bubblePostCell = (ExpandedPostCell *)cell;
+            post = bubblePostCell.post;
         }
+        else {
+            return;
+        }
+        
+        // skip logging if invalid post identifier (most likely due to a loading cell)
+        if (post.identifier == 0) return;
+        
+        [InsightsLogger.sharedInstance closePostInsight:post.identifier action:nil];
     }
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
     if (self.dataType == RSTableViewTypeProfile ||
-        self.dataType == RSTableViewTypePost ||
         self.dataType == RSTableViewTypeRoom) {
         return section == 0 ? 0 : 64; // 8 = spacing underneath
     }
+    
     return 0;
 }
 - (nullable UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
     if (section == 1) {
         if ((self.loading || (!self.loading && self.stream.posts.count > 0)) &&
             (self.dataType == RSTableViewTypeProfile ||
-            self.dataType == RSTableViewTypePost ||
             self.dataType == RSTableViewTypeRoom)) {
             UIView *headerContainer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, 64)];
             
@@ -750,22 +932,15 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                 
             header.backgroundColor = [UIColor headerBackgroundColor];
             
-            UIImageView *icon = [[UIImageView alloc] initWithFrame:CGRectMake(21, 28, 24, 24)];
-            icon.image = [[UIImage imageNamed:@"repliesIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-            icon.contentMode = UIViewContentModeScaleAspectFit;
-            icon.tintColor = [UIColor colorWithWhite:0.6f alpha:1];
-            icon.layer.cornerRadius = icon.frame.size.height / 2;
-            [header addSubview:icon];
-            
-            UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(66, icon.frame.origin.y, self.frame.size.width - 66 - 200, icon.frame.size.height)];
+            UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(12, 32, self.frame.size.width - 66 - 100, 21)];
             if (self.dataType == RSTableViewTypeRoom) {
                 title.text = @"Posts";
                 
                 if ([self.parentObject isKindOfClass:[Room class]]) {
                     Room *room = self.parentObject;
                     
-                    UILabel *liveCountLabel = [[UILabel alloc] initWithFrame:CGRectMake(self.frame.size.width - 200 - postContentOffset.right, title.frame.origin.y, 200, title.frame.size.height)];
-                    liveCountLabel.text = [NSString stringWithFormat:@"%ld live", (long)room.attributes.summaries.counts.live];
+                    UILabel *liveCountLabel = [[UILabel alloc] initWithFrame:CGRectMake(self.frame.size.width - 100 - postContentOffset.right, title.frame.origin.y, 100, title.frame.size.height)];
+                    liveCountLabel.text = [NSString stringWithFormat:@"%ld LIVE", (long)room.attributes.summaries.counts.live];
                     liveCountLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightBold];
                     liveCountLabel.textColor = [UIColor colorWithDisplayP3Red:0.87 green:0.09 blue:0.09 alpha:1];
                     liveCountLabel.textAlignment = NSTextAlignmentRight;
@@ -773,10 +948,12 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                     
                     CGRect liveCountRect = [liveCountLabel.text boundingRectWithSize:CGSizeMake(liveCountLabel.frame.size.width, liveCountLabel.frame.size.height) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:liveCountLabel.font} context:nil];
                     
-                    UIView *liveCountPulse = [[UIView alloc] initWithFrame:CGRectMake(self.frame.size.width - postContentOffset.right - liveCountRect.size.width - 10 - 6, liveCountLabel.frame.origin.y + (liveCountLabel.frame.size.height / 2) - 4.5, 9, 9)];
+                    UIView *liveCountPulse = [[UIView alloc] initWithFrame:CGRectMake(self.frame.size.width - postContentOffset.right - ceilf(liveCountRect.size.width) - 10 - 6, roundf(liveCountLabel.frame.origin.y + (liveCountLabel.frame.size.height / 2) - 4.5), 9, 9)];
                     liveCountPulse.layer.cornerRadius = liveCountPulse.frame.size.height / 2;
                     liveCountPulse.layer.masksToBounds = true;
                     liveCountPulse.backgroundColor = liveCountLabel.textColor;
+                    liveCountPulse.layer.shouldRasterize = true;
+                    liveCountPulse.layer.rasterizationScale = [UIScreen mainScreen].scale;
                     [header addSubview:liveCountPulse];
                     
                     if (room.attributes.summaries.counts.live == 0) {
@@ -793,19 +970,20 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             }
             else if (self.dataType == RSTableViewTypePost) {
                 Post *post = self.parentObject;
-                title.text = [NSString stringWithFormat:@"%ld Replies", (long)post.attributes.summaries.counts.replies];
+                NSInteger replies = (long)post.attributes.summaries.counts.replies;
+                title.text = [NSString stringWithFormat:@"%ld %@", replies, (replies == 1 ? @"Reply" : @"Replies")];
             }
             else {
-                title.text = @"Posts";
+                title.text = @"Recent Posts";
             }
             title.textAlignment = NSTextAlignmentLeft;
-            title.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightSemibold];
-            title.textColor = [UIColor colorWithWhite:0.6f alpha:1];
+            title.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightBold];
+            title.textColor = [UIColor colorWithWhite:0.47f alpha:1];
             
             [header addSubview:title];
                 
             UIView *lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, header.frame.size.height - (1 / [UIScreen mainScreen].scale), self.frame.size.width, 1 / [UIScreen mainScreen].scale)];
-            lineSeparator.backgroundColor = [UIColor colorWithWhite:0.9 alpha:1];
+            lineSeparator.backgroundColor = [UIColor separatorColor];
             [header addSubview:lineSeparator];
             
             return headerContainer;
@@ -820,92 +998,6 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
 }
 - (UIView*)tableView:(UITableView*)tableView viewForFooterInSection:(NSInteger)section {
     return [[UIView alloc] initWithFrame:CGRectZero];
-}
-
-- (void)expandImageView:(UIImageView *)imageView {
-    // Create image info
-    JTSImageInfo *imageInfo = [[JTSImageInfo alloc] init];
-    imageInfo.image = imageView.image;
-    imageInfo.referenceRect = imageView.frame;
-    imageInfo.referenceView = imageView.superview;
-    
-    // Setup view controller
-    JTSImageViewController *imageViewer = [[JTSImageViewController alloc]
-                                           initWithImageInfo:imageInfo
-                                           mode:JTSImageViewControllerMode_Image
-                                           backgroundStyle:JTSImageViewControllerBackgroundOption_None];
-    UILongPressGestureRecognizer *longPressToSave = [[UILongPressGestureRecognizer alloc] bk_initWithHandler:^(UIGestureRecognizer *sender, UIGestureRecognizerState state, CGPoint location) {
-        UIAlertController *shareOptions = [UIAlertController alertControllerWithTitle:nil message:nil preferredStyle:UIAlertControllerStyleActionSheet];
-        UIAlertAction *saveAction = [UIAlertAction actionWithTitle:@"Save" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-            UIImageWriteToSavedPhotosAlbum(imageViewer.image, nil, nil, nil);
-        }];
-        UIAlertAction *shareViaAction = [UIAlertAction actionWithTitle:@"Share via..." style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-            [shareOptions dismissViewControllerAnimated:YES completion:nil];
-            
-            //create a message
-            NSArray *items = @[imageViewer.image];
-            
-            // build an activity view controller
-            UIActivityViewController *controller = [[UIActivityViewController alloc]initWithActivityItems:items applicationActivities:nil];
-            
-            // and present it
-            controller.modalPresentationStyle = UIModalPresentationPopover;
-            [imageViewer presentViewController:controller animated:YES completion:nil];
-        }];
-        UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-        }];
-        [shareOptions addAction:saveAction];
-        [shareOptions addAction:shareViaAction];
-        [shareOptions addAction:cancelAction];
-        [imageViewer presentViewController:shareOptions animated:YES completion:nil];
-    }];
-    [imageViewer.view addGestureRecognizer:longPressToSave];
-    
-    
-    // Present the view controller.
-    [imageViewer showFromViewController:UIViewParentController(self) transition:JTSImageViewControllerTransition_FromOriginalPosition];
-}
-
-- (NSAttributedString *)attributedCreatorStringForPost:(Post *)post {
-    // set display name + room name combo
-    NSString *displayName = post.attributes.details.creator.attributes.details.displayName != nil ? post.attributes.details.creator.attributes.details.displayName : @"Anonymous";
-    
-    Room *postedInRoom = post.attributes.status.postedIn;
-    NSString *currentRoomIdentifier = @"";
-    if ([UIViewParentController(self) isKindOfClass:[RoomViewController class]]) {
-        currentRoomIdentifier = ((Room *)self.parentObject).identifier;
-    }
-    
-    UIFont *font = [UIFont systemFontOfSize:14.f weight:UIFontWeightSemibold];
-    UIColor *color = [UIColor colorWithWhite:0.27f alpha:1];
-    
-    NSMutableAttributedString *creatorString = [[NSMutableAttributedString alloc] initWithString:displayName];
-    [creatorString addAttribute:NSForegroundColorAttributeName value:color range:NSMakeRange(0, creatorString.length)];
-    [creatorString addAttribute:NSFontAttributeName value:font range:NSMakeRange(0, creatorString.length)];
-    
-    if (postedInRoom != nil && ![postedInRoom.identifier isEqualToString:currentRoomIdentifier]) {
-        NSMutableAttributedString *spacer = [[NSMutableAttributedString alloc] initWithString:@"  "];
-        [spacer addAttribute:NSForegroundColorAttributeName value:color range:NSMakeRange(0, spacer.length)];
-        [spacer addAttribute:NSFontAttributeName value:font range:NSMakeRange(0, spacer.length)];
-        [creatorString appendAttributedString:spacer];
-        
-        // right arrow ▸
-        NSTextAttachment *attachment = [[NSTextAttachment alloc] init];
-        attachment.image = [UIImage imageNamed:@"postedInTriangleIcon"];
-        NSAttributedString *attachmentString = [NSAttributedString attributedStringWithAttachment:attachment];
-        [creatorString appendAttributedString:attachmentString];
-        
-        // add another spacer
-        [creatorString appendAttributedString:spacer];
-        
-        NSString *roomTitle = post.attributes.status.postedIn.attributes.details.title;
-        NSMutableAttributedString *roomString = [[NSMutableAttributedString alloc] initWithString:roomTitle];
-        [roomString addAttribute:NSForegroundColorAttributeName value:color range:NSMakeRange(0, roomString.length)];
-        [roomString addAttribute:NSFontAttributeName value:font range:NSMakeRange(0, roomString.length)];
-        [creatorString appendAttributedString:roomString];
-    }
-    
-    return creatorString;
 }
 
 @end

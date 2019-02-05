@@ -16,11 +16,8 @@
 - (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier {
     self = [super initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:reuseIdentifier];
     if (self) {
-        self.imageView.image = [UIImage new];
-        self.imageView.layer.masksToBounds = true;
-        self.imageView.layer.borderColor = [UIColor clearColor].CGColor;
-        self.imageView.layer.borderWidth = 1 / [UIScreen mainScreen].scale;
-        self.imageView.backgroundColor = [UIColor whiteColor];
+        self.profilePicture = [[BFAvatarView alloc] initWithFrame:CGRectMake(12, self.frame.size.height / 2 - 21, 42, 42)];
+        [self.contentView addSubview:self.profilePicture];
         
         self.textLabel.font = [UIFont systemFontOfSize:15.f weight:UIFontWeightBold];
         self.textLabel.textColor = [UIColor colorWithWhite:0.2f alpha:1];
@@ -31,8 +28,14 @@
         self.detailTextLabel.lineBreakMode = NSLineBreakByTruncatingMiddle;
         
         // general cell styling
-        self.separatorInset = UIEdgeInsetsMake(0, 70, 0, 0);
+        self.separatorInset = UIEdgeInsetsMake(0, 66, 0, 0);
         self.selectionStyle = UITableViewCellSelectionStyleNone;
+        
+        self.checkIcon = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 28, 28)];
+        self.checkIcon.image = [[UIImage imageNamed:@"tableCellCheckIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+        self.checkIcon.tintColor = self.tintColor;
+        self.checkIcon.hidden = true;
+        [self.contentView addSubview:self.checkIcon];
     }
     return self;
 }
@@ -46,37 +49,17 @@
     [super layoutSubviews];
     
     // image view
-    self.imageView.frame = CGRectMake(16, self.frame.size.height / 2 - 21, 42, 42);
+    self.profilePicture.frame = CGRectMake(12, self.frame.size.height / 2 - 21, 42, 42);
     
     // text label
-    self.textLabel.frame = CGRectMake(70, 13, self.frame.size.width - 70 - 16, 18);
+    self.textLabel.frame = CGRectMake(66, 14, self.frame.size.width - 66 - 16 - (self.selected ? 32 : 0), 18);
     
     // detail text label
     self.detailTextLabel.frame = CGRectMake(self.textLabel.frame.origin.x, self.textLabel.frame.origin.y + self.textLabel.frame.size.height + 1, self.textLabel.frame.size.width, 16);
     
-    // type-specific settings
-    if (self.type == 1) {
-        // -- Room --
-        
-        // image view
-        self.imageView.image = [[UIImage imageNamed:@"anonymousGroup"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-        self.imageView.layer.cornerRadius = self.imageView.frame.size.height / 2;
-    }
-    else {
-        BOOL circleProfilePictures = FBTweakValue(@"Post", @"General", @"Circle Profile Pictures", NO);
-        if (circleProfilePictures) {
-            self.imageView.layer.cornerRadius = self.imageView.frame.size.height * .5;
-        }
-        else {
-            self.imageView.layer.cornerRadius = self.imageView.frame.size.height * .25;
-        }
-    }
-    if (self.type == 2) {
-        self.imageView.layer.borderColor = [UIColor colorWithWhite:0 alpha:0.06f].CGColor;
-    }
-    else {
-        self.imageView.layer.borderColor = [UIColor clearColor].CGColor;
-    }
+    // check icon
+    self.checkIcon.frame = CGRectMake(self.frame.size.width - self.checkIcon.frame.size.width - 16, self.frame.size.height / 2 - (self.checkIcon.frame.size.height / 2), self.checkIcon.frame.size.width, self.checkIcon.frame.size.height);
+    self.checkIcon.hidden = !self.selected;
 }
 
 - (void)setHighlighted:(BOOL)highlighted animated:(BOOL)animated {

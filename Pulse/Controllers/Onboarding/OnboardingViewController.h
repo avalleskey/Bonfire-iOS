@@ -7,13 +7,10 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "HAWebService.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface OnboardingViewController : UIViewController <UITextFieldDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, UIViewControllerTransitioningDelegate>
-
-@property (strong, nonatomic) HAWebService *manager;
+@interface OnboardingViewController : UIViewController <UITextFieldDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, UIViewControllerTransitioningDelegate, UICollectionViewDelegate, UICollectionViewDataSource>
 
 @property (strong, nonatomic) UIButton *closeButton;
 
@@ -21,9 +18,10 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (strong, nonatomic) UIButton *backButton;
 @property (strong, nonatomic) UIButton *nextButton;
+@property (strong, nonatomic) UILabel *nextBlockerInfoLabel;
 
-@property (nonatomic) BOOL loadingSimilarRooms;
-@property (strong, nonatomic) UICollectionView *similarRoomsCollectionView;
+@property (nonatomic) BOOL loadingRoomSuggestions;
+@property (strong, nonatomic) UICollectionView *roomSuggestionsCollectionView;
 
 @end
 

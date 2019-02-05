@@ -13,10 +13,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface SearchNavigationController : UINavigationController <UITextFieldDelegate>
 
-@property (strong, nonatomic) UIView *navigationBackgroundView;
-@property (strong, nonatomic) UIVisualEffectView *blurView;
-@property (strong, nonatomic) UIView *hairline;
-
 @property (strong, nonatomic) BFSearchView *searchView;
 @property (strong, nonatomic) UIButton *cancelButton;
 

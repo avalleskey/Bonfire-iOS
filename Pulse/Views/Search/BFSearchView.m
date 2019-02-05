@@ -9,11 +9,11 @@
 #import "BFSearchView.h"
 #import "UIColor+Palette.h"
 #import "Session.h"
+#import "TabController.h"
 #import "Launcher.h"
 #import <BlocksKit/BlocksKit.h>
 #import <BlocksKit/BlocksKit+UIKit.h>
 #import "SearchNavigationController.h"
-#import "SearchTableViewController.h"
 #import "ComplexNavigationController.h"
 
 @implementation BFSearchView
@@ -24,11 +24,13 @@
         self.layer.cornerRadius = 12.f;
         self.layer.masksToBounds = true;
         
+        self.resultsType = BFSearchResultsTypeTop;
+        
         self.textField = [[UITextField alloc] initWithFrame:CGRectMake(0, 0, frame.size.width, frame.size.height)];
         self.textField.placeholder = @"Search";
         self.textField.textAlignment = NSTextAlignmentLeft;
         self.textField.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
-        self.textField.font = [UIFont systemFontOfSize:17.f weight:UIFontWeightBold];
+        self.textField.font = [UIFont systemFontOfSize:17.f weight:UIFontWeightSemibold];
         self.textField.returnKeyType = UIReturnKeyGo;
         self.textField.autocorrectionType = UITextAutocorrectionTypeNo;
         self.textField.userInteractionEnabled = false;
@@ -45,10 +47,12 @@
         
         [self bk_whenTapped:^{
             if (self.openSearchControllerOntap) {
+                NSLog(@"-- hey!");
                 if ([[Launcher sharedInstance].activeViewController isKindOfClass:[ComplexNavigationController class]]) {
                     SearchTableViewController *viewController = [[SearchTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
                     viewController.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeNone;
                     viewController.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
+                    viewController.resultsType = self.resultsType;
                     
                     NSLog(@"active view controller: %@", [Launcher sharedInstance].activeViewController);
                     
@@ -60,6 +64,25 @@
                     complexController.searchView.textField.userInteractionEnabled = true;
                     [complexController.searchView.textField becomeFirstResponder];
                     [complexController updateNavigationBarItemsWithAnimation:YES];
+                }
+                if ([[Launcher sharedInstance].activeViewController isKindOfClass:[TabController class]] &&
+                    [((TabController *)[Launcher sharedInstance].activeViewController).selectedViewController isKindOfClass:[SearchNavigationController class]]) {
+                    if (self.textField.text.length == 0) {
+                        SearchTableViewController *viewController = [[SearchTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
+                        viewController.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeNone;
+                        viewController.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
+                        viewController.resultsType = self.resultsType;
+                                                
+                        SearchNavigationController *searchController = ((TabController *)[Launcher sharedInstance].activeViewController).selectedViewController;
+                        [searchController pushViewController:viewController animated:NO];
+                        
+                        searchController.searchView.textField.userInteractionEnabled = true;
+                        [searchController.searchView.textField becomeFirstResponder];
+                    }
+                    else {
+                        self.textField.userInteractionEnabled = true;
+                        [self.textField becomeFirstResponder];
+                    }
                 }
             }
             else {
@@ -136,15 +159,19 @@
 }
 - (void)hideSearchIcon:(BOOL)animated {
     self.searchIcon.hidden = true;
+    self.userInteractionEnabled = false;
     
     UIView *leftPaddingView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 0, 1)];
     self.textField.leftView = leftPaddingView;
     
     CGRect textLabelRect = [self textFieldRect];
     self.textField.frame = CGRectMake((self.originalFrame.size.width / 2) - ((textLabelRect.size.width + self.textField.leftView.frame.size.width) / 2), self.textField.frame.origin.y, textLabelRect.size.width + self.textField.leftView.frame.size.width, self.textField.frame.size.height);
+    
+    self.backgroundColor = [UIColor clearColor];
 }
 - (void)showSearchIcon:(BOOL)animated {
     self.searchIcon.hidden = false;
+    self.userInteractionEnabled = true;
     
     UIView *leftView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 14 + 8, self.frame.size.height)];
     self.searchIcon.tintColor = self.textField.textColor;
@@ -162,8 +189,6 @@
     CGRect textLabelRect = [self textFieldRect];
     
     self.textField.frame = CGRectMake((self.originalFrame.size.width / 2) - ((textLabelRect.size.width + self.textField.leftView.frame.size.width) / 2), self.textField.frame.origin.y, textLabelRect.size.width + self.textField.leftView.frame.size.width, self.textField.frame.size.height);
-    
-    NSLog(@"update serach text");
 }
 
 - (void)setPosition:(BFSearchTextPosition)position {
@@ -190,34 +215,33 @@
 }
 
 - (void)setTheme:(BFTextFieldTheme)theme {
-    if (theme != _theme) {
-        _theme = theme;
+    _theme = theme;
+    
+    if (theme == BFTextFieldThemeLight) {
+        self.backgroundColor = [UIColor bonfireTextFieldBackgroundOnDark];
         
-        if (theme == BFTextFieldThemeLight) {
-            self.backgroundColor = [UIColor bonfireTextFieldBackgroundOnDark];
-            
-            self.tintColor =
-            self.textField.textColor = [UIColor whiteColor];
-            self.searchIcon.alpha = 0.75;
-        }
-        else if (theme == BFTextFieldThemeDark) {
-            self.backgroundColor = [UIColor bonfireTextFieldBackgroundOnWhite];
-            
-            self.tintColor = [Session sharedInstance].themeColor;
-            self.textField.textColor = [UIColor colorWithWhite:0.07f alpha:1];
-            self.searchIcon.alpha = 0.25;
-        }
-        else {
-            self.backgroundColor = [UIColor bonfireTextFieldBackgroundOnLight];
-            
-            self.tintColor =
-            self.textField.textColor = [UIColor colorWithWhite:0.07f alpha:1];
-            self.searchIcon.alpha = 0.25;
-        }
-        self.searchIcon.tintColor = self.textField.textColor;
-        //self.textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:self.textField.placeholder attributes:@{NSForegroundColorAttributeName: [UIColor colorWithWhite:0 alpha:self.searchIcon.alpha],
-        //                 NSFontAttributeName: self.textField.font}];
+        self.tintColor =
+        self.textField.textColor = [UIColor whiteColor];
+        self.searchIcon.alpha = 0.75;
     }
+    else if (theme == BFTextFieldThemeDark) {
+        NSLog(@"::: dark");
+        self.backgroundColor = [UIColor bonfireTextFieldBackgroundOnWhite];
+        
+        self.tintColor = [UIColor bonfireBrand];
+        self.textField.textColor = [UIColor colorWithWhite:0.07f alpha:1];
+        self.searchIcon.alpha = 0.25;
+    }
+    else {
+        self.backgroundColor = [UIColor bonfireTextFieldBackgroundOnLight];
+        
+        self.tintColor =
+        self.textField.textColor = [UIColor colorWithWhite:0.07f alpha:1];
+        self.searchIcon.alpha = 0.25;
+    }
+    self.searchIcon.tintColor = self.textField.textColor;
+    //self.textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:self.textField.placeholder attributes:@{NSForegroundColorAttributeName: [UIColor colorWithWhite:0 alpha:self.searchIcon.alpha],
+    //                 NSFontAttributeName: self.textField.font}];
 }
 
 @end

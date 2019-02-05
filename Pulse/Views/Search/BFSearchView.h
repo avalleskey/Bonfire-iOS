@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "SearchTableViewController.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -29,6 +30,7 @@ typedef enum {
 @property (nonatomic) UITextField *textField;
 @property (nonatomic) CGRect originalFrame;
 @property (nonatomic) BOOL openSearchControllerOntap;
+@property (nonatomic) BFSearchResultsType resultsType;
 
 - (void)hideSearchIcon:(BOOL)animated;
 - (void)showSearchIcon:(BOOL)animated;

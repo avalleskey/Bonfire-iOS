@@ -242,20 +242,31 @@
     NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
     
     //Format
-    [dateFormatter setDateFormat:@"MM/dd/yyyy"];
-    //[dateFormatter setDateFormat:@"MMM d"];
+    if (form == TimeAgoShortForm) {
+        [dateFormatter setDateFormat:@"MMM d"];
+    }
+    else {
+        [dateFormatter setDateFormat:@"MMMM d"];
+    }
+    
     return [dateFormatter stringFromDate:self];
 }
 
 
-// < 1 year = "Sep 15"
+// < 1 year = "September 15"
 - (NSString *)formatAsLastYearWithForm:(TimeAgoForm)form
 {
     //Create date formatter
     NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
     
     //Format
-    [dateFormatter setDateFormat:@"MM/dd/yyyy"];
+    if (form == TimeAgoShortForm) {
+        [dateFormatter setDateFormat:@"MMM, YYYY"];
+    }
+    else {
+        [dateFormatter setDateFormat:@"MMMM d, YYYY"];
+    }
+    
     return [dateFormatter stringFromDate:self];
 }
 

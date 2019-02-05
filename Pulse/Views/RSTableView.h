@@ -23,6 +23,12 @@ typedef enum {
     RSTableViewTypePost = 4
 } RSTableViewType;
 
+typedef enum {
+    RSTableViewSubTypeNone = 0,
+    RSTableViewSubTypeHome = 1,
+    RSTableViewSubTypeTrending = 2
+} RSTableViewSubType;
+
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -30,21 +36,34 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)tableView:(id)tableView didRequestNextPageWithMaxId:(NSInteger)maxId;
 
+@optional
+- (void)tableViewDidScroll:(UITableView *)tableView;
+
+@required
+
 @end
 
-@interface RSTableView : UITableView <UITableViewDataSource, UITableViewDelegate>
+@interface RSTableView : UITableView <UITableViewDataSource, UITableViewDelegate, UIGestureRecognizerDelegate>
+
+typedef enum {
+    PostDisplayTypeSimple = 0,
+    PostDisplayTypeThreaded = 1,
+    PostDisplayTypePreview = 2
+} PostDisplayType;
 
 @property (strong, nonatomic) id parentObject;
 @property (nonatomic) RSTableViewType dataType;
+@property (nonatomic) RSTableViewSubType dataSubType;
 
 @property BOOL loading;
 @property BOOL error;
 
 // pagination
 @property BOOL loadingMore;
-@property (nonatomic) NSInteger lastMaxId;
+@property (nonatomic) BOOL reachedBottom;
 
 - (void)refresh;
+- (void)scrollToTop;
 
 @property (strong, nonatomic) PostStream *stream;
 

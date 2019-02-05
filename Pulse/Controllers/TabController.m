@@ -31,11 +31,8 @@
         
         self.myFeedNavVC = [self simpleNavWithRootViewController:@"timeline"];
         [vcArray addObject:self.myFeedNavVC];
-        
-        self.trendingNavVC = [self simpleNavWithRootViewController:@"trending"];
-        // [vcArray addObject:self.myFeedNavVC];
 
-        self.searchNavVC = [self searchNavWithRootViewController:@"search"];
+        self.searchNavVC = [self searchNavWithRootViewController:@"discover"];
         [vcArray addObject:self.searchNavVC];
         
         self.myRoomsNavVC = [self simpleNavWithRootViewController:@"rooms"];
@@ -71,13 +68,19 @@
 - (SearchNavigationController *)searchNavWithRootViewController:(NSString *)rootID {
     SearchNavigationController *searchNav;
     
-    if ([rootID isEqualToString:@"search"]) {
-        SearchTableViewController *viewController = [[SearchTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
+    if ([rootID isEqualToString:@"discover"]) {
+        FeedType type = [rootID isEqualToString:@"trending"] ? FeedTypeTrending : FeedTypeTimeline;
+        FeedViewController *viewController = [[FeedViewController alloc] initWithFeedType:type];
+        viewController.title = [rootID isEqualToString:@"trending"] ?
+        [Session sharedInstance].defaults.home.discoverPageTitle :
+        [Session sharedInstance].defaults.home.feedPageTitle;
+        
+        viewController.tableView.frame = viewController.view.bounds;
         
         searchNav = [[SearchNavigationController alloc] initWithRootViewController:viewController];
     }
     
-    UITabBarItem *tabBarItem = [[UITabBarItem alloc] initWithTitle:@"" image:[[UIImage imageNamed:[NSString stringWithFormat:@"tabIcon-%@", rootID]] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] selectedImage:[[UIImage imageNamed:[NSString stringWithFormat:@"tabIcon-%@_selected", rootID]] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
+    UITabBarItem *tabBarItem = [[UITabBarItem alloc] initWithTitle:@"" image:[[UIImage imageNamed:[NSString stringWithFormat:@"tabIcon-search"]] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] selectedImage:[[UIImage imageNamed:[NSString stringWithFormat:@"tabIcon-search_selected"]] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
     searchNav.tabBarItem = tabBarItem;
     
     return searchNav;
@@ -95,6 +98,7 @@
         simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:viewController];
         [simpleNav setLeftAction:SNActionTypeInvite];
         [simpleNav setRightAction:SNActionTypeCompose];
+        simpleNav.currentTheme = [UIColor clearColor];
         
         viewController.tableView.frame = viewController.view.bounds;
     }
@@ -104,6 +108,7 @@
         viewController.title = [Session sharedInstance].defaults.home.myRoomsPageTitle;
         
         simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:viewController];
+        simpleNav.currentTheme = [UIColor clearColor];
         [simpleNav setRightAction:SNActionTypeAdd];
     }
     else if ([rootID isEqualToString:@"notifs"]) {
@@ -112,20 +117,22 @@
         viewController.view.backgroundColor = [UIColor whiteColor];
         
         simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:viewController];
+        [simpleNav setLeftAction:SNActionTypeInvite];
+        simpleNav.currentTheme = [UIColor clearColor];
     }
     else if ([rootID isEqualToString:@"me"]) {
         User *user = [Session sharedInstance].currentUser;
         
         ProfileViewController *viewController = [[ProfileViewController alloc] init];
         viewController.title = @"My Profile";
-        NSString *themeCSS = user.attributes.details.color.length == 6 ? user.attributes.details.color : (user.identifier ? @"0076ff" : @"707479");
+        NSString *themeCSS = user.attributes.details.color.length == 6 ? user.attributes.details.color : @"7d8a99";
         viewController.theme = [UIColor fromHex:themeCSS];
         viewController.user = user;
         
         simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:viewController];
-        [simpleNav setLeftAction:SNActionTypeInvite];
-        [simpleNav setRightAction:SNActionTypeMore];
         simpleNav.currentTheme = viewController.theme;
+        [simpleNav setLeftAction:SNActionTypeSettings];
+        [simpleNav setRightAction:SNActionTypeCompose];
     }
     else {
         UIViewController *viewController = [[UIViewController alloc] init];
@@ -145,21 +152,22 @@
     
     self.tabIndicator = [[UIView alloc] initWithFrame:CGRectMake(20, 0, 22, 2)];
     self.tabIndicator.layer.cornerRadius = self.tabIndicator.frame.size.height / 2;
-    self.tabIndicator.backgroundColor = [Session sharedInstance].themeColor;
+    self.tabIndicator.backgroundColor = [UIColor bonfireBrand];
     //[self.tabBar addSubview:self.tabIndicator];
     
     [self.tabBar setBackgroundImage:[UIImage new]];
     [self.tabBar setShadowImage:[UIImage new]];
     [self.tabBar setTranslucent:true];
     [self.tabBar setBarTintColor:[UIColor whiteColor]];
-    [self.tabBar setTintColor:[Session sharedInstance].themeColor];
+    [self.tabBar setTintColor:[UIColor bonfireBrand]];
     
     self.blurView = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleLight]];
-    self.blurView.frame = CGRectMake(0, 0, self.tabBar.frame.size.width, self.tabBar.frame.size.height * 2);
+    self.blurView.frame = CGRectMake(0, 0, self.tabBar.frame.size.width, self.tabBar.frame.size.height + [UIApplication sharedApplication].delegate.window.safeAreaInsets.bottom);
     self.blurView.backgroundColor = [UIColor colorWithWhite:1 alpha:0.85f];
     self.blurView.layer.masksToBounds = true;
     [self.tabBar insertSubview:self.blurView atIndex:0];
 
+    // tab bar hairline
     self.tabBar.layer.shadowOffset = CGSizeMake(0, -1 * (1.0 / [UIScreen mainScreen].scale));
     self.tabBar.layer.shadowRadius = 0;
     self.tabBar.layer.shadowColor = [UIColor blackColor].CGColor;
@@ -168,7 +176,8 @@
     
     [self setupNotification];
     [self updateTintColor];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userUpdated:) name:@"UserUpdated" object:nil];
+    // not used anymore
+    // [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userUpdated:) name:@"UserUpdated" object:nil];
 }
 - (void)setupNotification {
     self.isShowingNotification = false;
@@ -190,11 +199,16 @@
     [self.notification.contentView addSubview:self.notificationLabel];
 }
 - (void)userUpdated:(NSNotification *)notification {
-    [self updateTintColor];
+    if ([notification.object isKindOfClass:[User class]]) {
+        User *user = notification.object;
+        if ([user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
+            // [self updateTintColor];
+        }
+    }
 }
 - (void)updateTintColor {
     if (FBTweakValue(@"Home", @"Tab Bar", @"Uses Theme", YES)) {
-        self.tabBar.tintColor = [Session sharedInstance].themeColor;
+        self.tabBar.tintColor = [UIColor bonfireBrand];
     }
     else {
         NSLog(@"does not use theme");
@@ -205,12 +219,15 @@
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     
-    [self addTabBarPressEffects];
+    if (self.view.tag != 1) {
+        self.view.tag = 1;
+        //[self addTabBarPressEffects];
+    }
 }
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     
-    self.blurView.frame = CGRectMake(0, 0, self.tabBar.frame.size.width, self.tabBar.frame.size.height);
+    //self.blurView.frame = CGRectMake(0, 0, self.tabBar.frame.size.width, self.tabBar.frame.size.height);
 }
 
 - (void)addTabBarPressEffects {

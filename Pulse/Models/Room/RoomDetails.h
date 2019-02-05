@@ -8,10 +8,10 @@
 
 @interface RoomDetails : JSONModel
 
-@property (nonatomic) NSString *identifier;
-@property (nonatomic) NSString *title;
+@property (nonatomic) NSString <Optional> *identifier;
+@property (nonatomic) NSString <Optional> *title;
 @property (nonatomic) NSString <Optional> *theDescription;
-@property (nonatomic) NSString *color;
+@property (nonatomic) NSString <Optional> *color;
 
 @end
 

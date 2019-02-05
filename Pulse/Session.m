@@ -8,6 +8,7 @@
 
 #import "Session.h"
 
+#import "Launcher.h"
 #import "AppDelegate.h"
 #import <Lockbox/Lockbox.h>
 #import "NSDictionary+Clean.h"
@@ -17,8 +18,8 @@
 #import <Tweaks/FBTweakInline.h>
 #import "NSDictionary+Clean.h"
 #import "NSArray+Clean.h"
-
-#define envConfig [[[NSUserDefaults standardUserDefaults] objectForKey:@"config"] objectForKey:[[NSUserDefaults standardUserDefaults] stringForKey:@"environment"]]
+#import <PINCache/PINCache.h>
+#import "InsightsLogger.h"
 
 @interface Session ()
 
@@ -47,20 +48,12 @@ static Session *session;
             NSLog(@"🙎‍♂️ User: @%@", session.currentUser.attributes.details.identifier);
         }
         
-        if ([session getAccessTokenWithVerification:true] != nil) {
+        if ([session getAccessTokenWithVerification:true] != nil && session.currentUser.identifier != nil) {
             // update user object
             [session fetchUser:^(BOOL success) {
                 
             }];
-            //[session syncDeviceToken];
-        }
-        else {
-            /* TODO: Remove comments
-            [session signOut];
-            
-            AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-            [appDelegate launchOnboarding];
-             */
+            [session syncDeviceToken];
         }
         
         [session resetTemporaryDefaults];
@@ -87,12 +80,11 @@ static Session *session;
     
     session.defaults = [[Defaults alloc] initWithDictionary:dictionaryJSON error:&error];
     if (error) {
-        NSLog(@"session defaults error: %@", error);
+        NSLog(@"⚠️ session defaults error: %@", error);
     }
     
     // get new defaults!!
     NSString *url = [NSString stringWithFormat:@"%@/%@/clients/defaults.json", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"]];
-    [session.manager.requestSerializer setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
     [session.manager GET:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSError *error;
         Defaults *newDefaults = [[Defaults alloc] initWithDictionary:responseObject error:&error];
@@ -104,12 +96,13 @@ static Session *session;
             [session updateDefaultsJSON:responseObject];
         }
         else {
-            NSLog(@"error with new json: %@", error);
+            NSLog(@"⚠️ error with new json: %@", error);
         }
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         NSLog(@"😞 darn. error getting the new defaults");
         NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
         NSLog(@"errorResponse: %@", ErrorResponse);
+        NSLog(@"---------");
     }];
     
     // Customize defaults via Tweaks
@@ -175,22 +168,20 @@ static Session *session;
                     NSLog(@"bad token");
                     //[session signOut];
                     
-                    AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-                    [appDelegate launchOnboarding];
+                    [[Launcher sharedInstance] openOnboarding];
                 }
             }];
         }
         else if (statusCode == BAD_REFRESH_TOKEN || statusCode == BAD_REFRESH_LOGIN_REQ) {
             [session signOut];
             
-            AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-            [appDelegate launchOnboarding];
+            [[Launcher sharedInstance] openOnboarding];
         }
     }
 }
 
 - (UIColor *)themeColor {
-    return [[session.currentUser.attributes.details.color lowercaseString] isEqualToString:@"ffffff"] ? [UIColor colorWithWhite:0.2f alpha:1] : [UIColor fromHex:session.currentUser.attributes.details.color.length > 0 ? session.currentUser.attributes.details.color : @"0076ff"];
+    return [[session.currentUser.attributes.details.color lowercaseString] isEqualToString:@"ffffff"] ? [UIColor colorWithWhite:0.2f alpha:1] : [UIColor fromHex:session.currentUser.attributes.details.color.length > 0 ? session.currentUser.attributes.details.color : @"7d8a99"];
 }
 
 - (void)syncDeviceToken {
@@ -226,13 +217,15 @@ static Session *session;
     [[NSUserDefaults standardUserDefaults] setObject:[newUser toJSONData] forKey:@"user"];
     
     session.currentUser = newUser;
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"UserUpdated" object:newUser];
 }
 - (void)fetchUser:(void (^)(BOOL success))handler {
     NSDictionary *accessToken = [session getAccessTokenWithVerification:true];
-    
+
     if (accessToken != nil) {
         NSString *url = [NSString stringWithFormat:@"%@/%@/users/me", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"]];
         
+        NSLog(@"session.manager: %@", session.manager);
         [session.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", accessToken[@"attributes"][@"access_token"]] forHTTPHeaderField:@"Authorization"];
         [session.manager GET:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
             NSError *error;
@@ -241,7 +234,6 @@ static Session *session;
             if (error) { NSLog(@"GET -> /users/me; User error: %@", error); }
             
             [session updateUser:user];
-            [[NSNotificationCenter defaultCenter] postNotificationName:@"UserUpdated" object:user];
             
             handler(TRUE);
         } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
@@ -252,6 +244,8 @@ static Session *session;
             handler(FALSE);
         }];
     }
+    
+    handler(FALSE);
 }
 
 - (void)addToRecents:(id)object {
@@ -260,6 +254,10 @@ static Session *session;
         NSMutableArray *searchRecents = [[NSMutableArray alloc] initWithArray:[[NSUserDefaults standardUserDefaults] arrayForKey:@"recents_search"]];
         
         NSDictionary *objJSON = [object toDictionary];
+        
+        if ([object isKindOfClass:[Room class]]) {
+            [self incrementOpensForRoom:(Room *)object];
+        }
         
         // add object or push to front if in recents
         BOOL existingMatch = false;
@@ -280,7 +278,7 @@ static Session *session;
             // remove context first
             if ([object isKindOfClass:[Room class]]) {
                 Room *room = (Room *)object;
-                room.attributes.context = nil;
+                //room.attributes.context = nil;
                 
                 [searchRecents insertObject:[room toDictionary] atIndex:0];
             }
@@ -291,16 +289,43 @@ static Session *session;
                 [searchRecents insertObject:[user toDictionary] atIndex:0];
             }
             
-            
-            if (searchRecents.count > 8) {
-                searchRecents = [[NSMutableArray alloc] initWithArray:[searchRecents subarrayWithRange:NSMakeRange(0, 8)]];
+            NSMutableArray *removeObjects = [[NSMutableArray alloc] init];
+            NSInteger numOfRooms = 0;
+            NSInteger numOfUsers = 0;
+            for (NSDictionary *object in searchRecents) {
+                if ([object isKindOfClass:[NSDictionary class]] && [object[@"type"] isKindOfClass:[NSString class]]) {
+                    if ([object[@"type"] isEqualToString:@"room"]) {
+                        numOfRooms = numOfRooms + 1;
+                        if (numOfRooms > 16) {
+                            [removeObjects addObject:object];
+                        }
+                    }
+                    if ([object[@"type"] isEqualToString:@"user"]) {
+                        numOfUsers = numOfUsers + 1;
+                        if (numOfUsers > 16) {
+                            [removeObjects addObject:object];
+                        }
+                    }
+                }
             }
+            [searchRecents removeObjectsInArray:removeObjects];
         }
         
         // update NSUserDefaults
-        NSLog(@"set new : %@", [searchRecents clean]);
         [[NSUserDefaults standardUserDefaults] setObject:[searchRecents clean] forKey:@"recents_search"];
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"RecentsUpdated" object:nil];
     }
+}
+- (void)incrementOpensForRoom:(Room *)room {
+    NSMutableDictionary *opens = [[NSMutableDictionary alloc] initWithDictionary:[[NSUserDefaults standardUserDefaults] dictionaryForKey:@"room_opens"]];
+    
+    // set
+    NSInteger opensForRoom = [opens objectForKey:room.identifier] ? [opens[room.identifier] integerValue] : 0;
+    opensForRoom = opensForRoom + 1;
+    [opens setObject:[NSNumber numberWithInteger:opensForRoom] forKey:room.identifier];
+    
+    // save
+    [[NSUserDefaults standardUserDefaults] setObject:opens forKey:@"room_opens"];
 }
 - (NSString *)convertToString:(id)object {
     return [NSString stringWithFormat:@"%@", object];
@@ -312,7 +337,11 @@ static Session *session;
     NSString *version = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
     [authTokenWithAppVersion setValue:version forKey:@"app_version"];
     
+    NSLog(@"set access token: %@", accessToken);
+    
     [Lockbox archiveObject:authTokenWithAppVersion forKey:@"access_token"];
+    
+    
 }
 - (NSString *)refreshToken {
     NSDictionary *accessToken = [Lockbox unarchiveObjectForKey:@"access_token"];
@@ -330,17 +359,22 @@ static Session *session;
 }
 
 - (void)signOut {
+    // close off all insights
+    NSLog(@"⚡️⚡️⚡️⚡️⚡️⚡️  SIGN OUT  ⚡️⚡️⚡️⚡️⚡️⚡️⚡️");
+
     // send DELETE request to API
-    
     if ([[Session sharedInstance] getAccessTokenWithVerification:true] != nil) {
+        [[InsightsLogger sharedInstance] uploadAllInsights];
+        
         NSString *url = [NSString stringWithFormat:@"%@/%@/oauth/access_token", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"]];
         
         [session authenticate:^(BOOL success, NSString *token) {
             if (success) {
                 [session.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
-                [session.manager.requestSerializer setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
 
-                [session.manager DELETE:url parameters:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+                NSLog(@"headers... : %@", session.manager.requestSerializer.HTTPRequestHeaders);
+                
+                [session.manager DELETE:url parameters:@{@"access_token": token} success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                     NSLog(@"✌️ Logged out of User");
                 } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
                     NSLog(@"❌ Failed to log out of User");
@@ -349,42 +383,44 @@ static Session *session;
                 }];
             }
         }];
-        
-        // keep the config
-        NSString *environment = [[NSUserDefaults standardUserDefaults] stringForKey:@"environment"];
-        NSDictionary *config = [[NSUserDefaults standardUserDefaults] dictionaryForKey:@"config"];
-        NSInteger launches = [[NSUserDefaults standardUserDefaults] integerForKey:@"launches"];
-        
-        // keep device token
-        NSString *deviceToken = session.deviceToken;
-        
-        // clear session
-        session = nil;
-        
-        // ❌🗑❌ clear local app data ❌🗑❌
-        NSString *appDomain = [[NSBundle mainBundle] bundleIdentifier];
-        [[NSUserDefaults standardUserDefaults] removePersistentDomainForName:appDomain];
-        
-        // set the config again
-        [[NSUserDefaults standardUserDefaults] setObject:environment forKey:@"environment"];
-        [[NSUserDefaults standardUserDefaults] setObject:config forKey:@"config"];
-        [[NSUserDefaults standardUserDefaults] setBool:TRUE forKey:@"kFirstLaunch"];
-        [[NSUserDefaults standardUserDefaults] setInteger:launches forKey:@"launches"];
-        
-        // set the device token again
-        [[NSUserDefaults standardUserDefaults] setObject:deviceToken forKey:@"device_token"];
-        
-        // clear Lockbox
-        [Lockbox archiveObject:nil forKey:@"access_token"];
     }
+    
+    // keep the config
+    NSString *environment = [[NSUserDefaults standardUserDefaults] stringForKey:@"environment"];
+    NSDictionary *config = [[NSUserDefaults standardUserDefaults] dictionaryForKey:@"config"];
+    NSInteger launches = [[NSUserDefaults standardUserDefaults] integerForKey:@"launches"];
+    
+    // keep device token
+    NSString *deviceToken = session.deviceToken;
+    
+    // clear session
+    session = nil;
+    
+    // ❌🗑❌ clear local app data ❌🗑❌
+    NSString *appDomain = [[NSBundle mainBundle] bundleIdentifier];
+    [[NSUserDefaults standardUserDefaults] removePersistentDomainForName:appDomain];
+    
+    // clear cache
+    [[PINCache sharedCache] removeAllObjects];
+    
+    // set the config again
+    [[NSUserDefaults standardUserDefaults] setObject:environment forKey:@"environment"];
+    [[NSUserDefaults standardUserDefaults] setObject:config forKey:@"config"];
+    [[NSUserDefaults standardUserDefaults] setBool:TRUE forKey:@"kFirstLaunch"];
+    [[NSUserDefaults standardUserDefaults] setInteger:launches forKey:@"launches"];
+    
+    // set the device token again
+    [[NSUserDefaults standardUserDefaults] setObject:deviceToken forKey:@"device_token"];
+    
+    // clear Lockbox
+    [Lockbox archiveObject:nil forKey:@"access_token"];
+    
+    NSLog(@"..... ADIOSSSS AMIGO ......");
 }
 
 - (void)authenticate:(void (^)(BOOL success, NSString *token))handler {
     NSDictionary *accessToken = [session getAccessTokenWithVerification:false];
     NSDictionary *verifiedAccessToken = [session getAccessTokenWithVerification:true];
-
-    // NSLog(@"attempt authenticate");
-    // NSLog(@"accessToken: %@", (accessToken == nil ? @"FALSE" : @"TRUE"));
     
     // load cache of user
     if (verifiedAccessToken != nil) {
@@ -401,8 +437,7 @@ static Session *session;
                 NSLog(@"bad token");
                 [session signOut];
                 
-                AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-                [appDelegate launchOnboarding];
+                [[Launcher sharedInstance] openOnboarding];
             }
         }];
     }
@@ -517,8 +552,85 @@ static Session *session;
 
 // Actions
 // -- Post --
+- (void)createPost:(NSDictionary *)params postingIn:(Room *)postingIn replyingTo:(Post * _Nullable)replyingTo {    
+    // CREATE TEMP POST
+    // --> This will place a temporary post at the top of related streams
+    // --> Once the post has been created, we send a notification telling the View Controllers to remove the temporary post and replace it with the new post
+    Post *tempPost = [[Post alloc] init];
+    [tempPost createTempWithMessage:params[@"message"] images:params[@"images"] postedIn:postingIn parent:replyingTo.identifier];
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"NewPostBegan" object:tempPost];
+
+    [self uploadImages:params[@"images"] copmletion:^(BOOL imageSuccess, NSArray *images) {
+        if (imageSuccess) {
+            [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
+                if (success) {
+                    NSLog(@"token::: %@", token);
+                    NSString *url;
+                    if ([postingIn isKindOfClass:[Room class]]) {
+                        // post in Room
+                        Room *room = postingIn;
+                        if (replyingTo) {
+                            url = [NSString stringWithFormat:@"%@/%@/rooms/%@/posts/%ld/replies", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], room.identifier, replyingTo.identifier];
+                        }
+                        else {
+                            url = [NSString stringWithFormat:@"%@/%@/rooms/%@/posts", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], room.identifier];
+                        }
+                    }
+                    else {
+                        // post to user profile
+                        if (replyingTo) {
+                            User *user = replyingTo.attributes.details.creator;
+                            NSLog(@"reply to @%@", user.attributes.details.identifier);
+                            url = [NSString stringWithFormat:@"%@/%@/users/%@/posts/%ld/replies", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], user.identifier, replyingTo.identifier];
+                        }
+                        else {
+                            url = [NSString stringWithFormat:@"%@/%@/users/me/posts", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"]];
+                        }
+                    }
+                    
+                    NSLog(@"params: %@", params);
+                    NSMutableDictionary *mutableParams = [[NSMutableDictionary alloc] initWithDictionary:params];
+                    if ([params objectForKey:@"images"] && images.count != 0) {
+                        [mutableParams setObject:images forKey:@"images"];
+                    }
+                    else {
+                        [mutableParams removeObjectForKey:@"image"];
+                    }
+                    
+                    [session.manager.requestSerializer setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+                    [session.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
+                    session.manager.responseSerializer = [AFJSONResponseSerializer serializer];
+                    [session.manager POST:url parameters:mutableParams progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+                        // NSLog(@"CommonTableViewController / getPosts() success! ✅");
+                        
+                        NSError *postError;
+                        Post *post = [[Post alloc] initWithDictionary:responseObject[@"data"] error:&postError];
+                        
+                        [[NSNotificationCenter defaultCenter] postNotificationName:@"NewPostCompleted" object:@{@"tempId": tempPost.tempId, @"post": post}];
+                    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+                        NSLog(@"Session / createPost() - error: %@", error);
+                        // NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+                        
+                        [[NSNotificationCenter defaultCenter] postNotificationName:@"NewPostFailed" object:tempPost];
+                    }];
+                }
+            }];
+        }
+        else {
+            
+        }
+    }];
+}
 - (void)deletePost:(Post *)post completion:(void (^)(BOOL success, id responseObject))handler {
-    NSString *url = [NSString stringWithFormat:@"%@/%@/rooms/%@/posts/%ld", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], post.attributes.status.postedIn.identifier, (long)post.identifier];
+    NSString *url;
+    if (post.attributes.status.postedIn) {
+        // posted in a room
+        url = [NSString stringWithFormat:@"%@/%@/rooms/%@/posts/%ld", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], post.attributes.status.postedIn.identifier, (long)post.identifier];
+    }
+    else {
+        // posted on a profile
+        url = [NSString stringWithFormat:@"%@/%@/users/%@/posts/%ld", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], post.attributes.details.creator.attributes.details.identifier, (long)post.identifier];
+    }
     NSDictionary *params = @{};
     
     NSLog(@"url:: %@", url);
@@ -543,7 +655,16 @@ static Session *session;
     handler(true, @{});
 }
 - (void)sparkPost:(Post *)post completion:(void (^)(BOOL success, id responseObject))handler {
-    NSString *url = [NSString stringWithFormat:@"%@/%@/rooms/%@/posts/%ld/votes", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], post.attributes.status.postedIn.identifier, (long)post.identifier];
+    NSString *url;
+    if (post.attributes.status.postedIn) {
+        // posted in a room
+        url = [NSString stringWithFormat:@"%@/%@/rooms/%@/posts/%ld/votes", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], post.attributes.status.postedIn.identifier, (long)post.identifier];
+    }
+    else {
+        // posted on a profile
+        url = [NSString stringWithFormat:@"%@/%@/users/%@/posts/%ld/votes", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], post.attributes.details.creator.attributes.details.identifier, (long)post.identifier];
+    }
+    
     NSDictionary *params = @{};
     
     NSLog(@"url:: %@", url);
@@ -565,7 +686,7 @@ static Session *session;
     // update the UI
     NSDateFormatter *gmtDateFormatter = [[NSDateFormatter alloc] init];
     gmtDateFormatter.timeZone = [NSTimeZone timeZoneForSecondsFromGMT:0];
-    gmtDateFormatter.dateFormat = @"yyyy-MM-dd HH:mm:ss";
+    gmtDateFormatter.dateFormat = @"yyyy-MM-dd'T'HH:mm:ssZ";
     NSString *dateString = [gmtDateFormatter stringFromDate:[NSDate new]];
     
     PostContextVote *voteDict = [[PostContextVote alloc] initWithDictionary:@{@"created_at": dateString} error:nil];
@@ -574,7 +695,15 @@ static Session *session;
     [[NSNotificationCenter defaultCenter] postNotificationName:@"PostUpdated" object:post];
 }
 - (void)unsparkPost:(Post *)post completion:(void (^)(BOOL success, id responseObject))handler {
-    NSString *url = [NSString stringWithFormat:@"%@/%@/rooms/%@/posts/%ld/votes", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], post.attributes.status.postedIn.identifier, (long)post.identifier];
+    NSString *url;
+    if (post.attributes.status.postedIn) {
+        // posted in a room
+        url = [NSString stringWithFormat:@"%@/%@/rooms/%@/posts/%ld/votes", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], post.attributes.status.postedIn.identifier, (long)post.identifier];
+    }
+    else {
+        // posted on a profile
+        url = [NSString stringWithFormat:@"%@/%@/users/%@/posts/%ld/votes", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], post.attributes.details.creator.attributes.details.identifier, (long)post.identifier];
+    }
     NSDictionary *params = @{};
     
     [session.manager.requestSerializer setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
@@ -638,8 +767,6 @@ static Session *session;
         NSLog(@"--------");
         NSLog(@"success: unfollowUser");
         NSLog(@"--------");
-        
-        NSLog(@"responseObject: %@", responseObject);
         
         // refresh user object
         // [[NSNotificationCenter defaultCenter] postNotificationName:@"refreshMyRooms" object:nil];
@@ -745,27 +872,30 @@ static Session *session;
     NSDictionary *params = @{};
     
     [session.manager.requestSerializer setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
-    [session.manager POST:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        NSLog(@"--------");
-        NSLog(@"success: followRoom");
-        NSLog(@"--------");
+    [session authenticate:^(BOOL success, NSString *token) {
+        [session.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
         
-        // refresh my rooms
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"refreshMyRooms" object:nil];
-        
-        NSError *error;
-        NSLog(@"responseObject: %@", responseObject);
-        RoomContext *roomContextResponse = [[RoomContext alloc] initWithDictionary:responseObject[@"data"] error:&error];
-        
-        if (!error) { NSLog(@"room context reponse:"); NSLog(@"%@", roomContextResponse); };
-        
-        handler(true, roomContextResponse);
-    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-        NSLog(@"error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);
-        NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-        NSLog(@"%@",ErrorResponse);
-        
-        handler(false, @{@"error": ErrorResponse});
+        [session.manager POST:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+            NSLog(@"--------");
+            NSLog(@"success: followRoom");
+            NSLog(@"--------");
+            
+            // refresh my rooms
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"refreshMyRooms" object:nil];
+            
+            NSError *error;
+            RoomContext *roomContextResponse = [[RoomContext alloc] initWithDictionary:responseObject[@"data"] error:&error];
+            
+            if (!error) { NSLog(@"room context reponse:"); NSLog(@"%@", roomContextResponse); };
+            
+            handler(true, roomContextResponse);
+        } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+            NSLog(@"error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);
+            NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+            NSLog(@"%@",ErrorResponse);
+            
+            handler(false, @{@"error": ErrorResponse});
+        }];
     }];
 }
 - (void)unfollowRoom:(NSString *)roomId completion:(void (^)(BOOL success, id responseObject))handler {
@@ -773,27 +903,182 @@ static Session *session;
     NSDictionary *params = @{};
     
     [session.manager.requestSerializer setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
-    [session.manager DELETE:url parameters:params success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        NSLog(@"--------");
-        NSLog(@"success: unfollowRoom");
-        NSLog(@"--------");
+    
+    [session authenticate:^(BOOL success, NSString *token) {
+        [session.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
         
-        // refresh my rooms
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"refreshMyRooms" object:nil];
-        
-        NSError *error;
-        RoomContext *roomContextResponse = [[RoomContext alloc] initWithDictionary:responseObject[@"data"] error:&error];
-        
-        if (!error) { NSLog(@"room context reponse:"); NSLog(@"%@", roomContextResponse); };
-        
-        handler(true, roomContextResponse);
-    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-        NSLog(@"error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);
-        NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-        NSLog(@"%@",ErrorResponse);
-        
-        handler(false, @{@"error": ErrorResponse});
+        [session.manager DELETE:url parameters:params success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+            NSLog(@"--------");
+            NSLog(@"success: unfollowRoom");
+            NSLog(@"--------");
+            
+            // refresh my rooms
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"refreshMyRooms" object:nil];
+            
+            NSError *error;
+            RoomContext *roomContextResponse = [[RoomContext alloc] initWithDictionary:responseObject[@"data"] error:&error];
+            roomContextResponse.status = ROOM_STATUS_LEFT;
+            
+            if (!error) { NSLog(@"room context reponse:"); NSLog(@"%@", roomContextResponse); };
+            
+            handler(true, roomContextResponse);
+        } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+            NSLog(@"error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);
+            NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+            NSLog(@"%@",ErrorResponse);
+            
+            handler(false, @{@"error": ErrorResponse});
+        }];
     }];
+}
+
+#pragma Mutli-Use Methods
+- (void)uploadImages:(NSArray *)images copmletion:(void (^)(BOOL success, NSArray *uploadedImages))handler {
+    __block NSUInteger remaining = images.count;
+    NSMutableArray *uploadedImages = [[NSMutableArray alloc] init];
+    
+    if (remaining == 0) {
+        handler(true, nil);
+    }
+    
+    for (int i = 0; i < remaining; i++) {
+        NSData *imageData = images[i];
+        
+        if (imageData && [imageData isKindOfClass:[NSData class]]) {
+            // has images
+            NSLog(@"has image to upload -> upload them then continue");
+            
+            NSString *url = [NSString stringWithFormat:@"%@/%@/upload", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"]];
+            NSLog(@"POST /images url: %@", url);
+            
+            [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
+                if (success) {
+                    AFHTTPSessionManager *localManager = [AFHTTPSessionManager manager];
+                    [localManager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
+                    [localManager.requestSerializer setValue:[NSString stringWithFormat:@"iosClient/%@", [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"]] forHTTPHeaderField:@"x-rooms-client"];
+                    // [localManager.requestSerializer setValue:@"https://hallway.app" forHTTPHeaderField:@"origin"];
+                    // [localManager.requestSerializer setValue:nil forHTTPHeaderField:@"Origin"];
+                    
+                    [localManager POST:url parameters:nil constructingBodyWithBlock:^(id<AFMultipartFormData>  _Nonnull formData) {
+                        NSString *mimeType = [self mimeTypeForData:imageData];
+                        if ([mimeType isEqualToString:@"image/jpeg"]) {
+                            [formData appendPartWithFileData:imageData name:@"img" fileName:@"image.jpg" mimeType:mimeType];
+                        }
+                        else if ([mimeType isEqualToString:@"image/gif"]) {
+                            [formData appendPartWithFileData:imageData name:@"img" fileName:@"image.gif" mimeType:mimeType];
+                        }
+                        else if ([mimeType isEqualToString:@"image/png"]) {
+                            [formData appendPartWithFileData:imageData name:@"img" fileName:@"image.png" mimeType:mimeType];
+                        }
+                    } progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+                        NSLog(@"--------");
+                        NSLog(@"response object:");
+                        NSLog(@"%@", responseObject);
+                        NSLog(@"--------");
+                        
+                        if (responseObject[@"data"] && responseObject[@"data"] != [NSNull null] && [responseObject[@"data"] count] > 0) {
+                            [uploadedImages addObject:[NSString stringWithFormat:@"%@", responseObject[@"data"][0][@"id"]]];
+                        }
+                        
+                        remaining = remaining - 1;
+                        
+                        if (remaining == 0) {
+                            handler(true, uploadedImages);
+                        }
+                    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+                        NSLog(@"error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);
+                        NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+                        NSLog(@"%@",ErrorResponse);
+                        NSLog(@"%@", error);
+                        NSLog(@"idk: %@", task.response);
+                        
+                        if (remaining == 0) {
+                            handler(true, uploadedImages);
+                        }
+                    }];
+                }
+                else {
+                    handler(false, nil);
+                }
+            }];
+        }
+        else {
+            NSLog(@"does not have image");
+            if (remaining == 0) {
+                handler(true, uploadedImages);
+            }
+        }
+    }
+}
+- (NSData *)compressAndEncodeToData:(UIImage *)image
+{
+    //Scale Image to some width (xFinal)
+    float ratio = image.size.width/image.size.height;
+    float xFinal = image.size.width;
+    if (image.size.width > 1125) {
+        xFinal = 1125; //Desired max image width
+    }
+    float yFinal = xFinal/ratio;
+    UIImage *scaledImage = [self imageWithImage:image scaledToSize:CGSizeMake(xFinal, yFinal)];
+    
+    //Compress the image iteratively until either the maximum compression threshold (maxCompression) is reached or the maximum file size requirement is satisfied (maxSize)
+    CGFloat compression = 1.0f;
+    CGFloat maxCompression = 0.1f;
+    float maxSize = 2*1024*1024; //specified in bytes
+    
+    NSData *imageData = UIImageJPEGRepresentation(scaledImage, compression);
+    while ([imageData length] > maxSize && compression > maxCompression) {
+        compression -= 0.10;
+        imageData = UIImageJPEGRepresentation(scaledImage, compression);
+        NSLog(@"Compressed to: %.2f MB with Factor: %.2f",(float)imageData.length/1024.0f/1024.0f, compression);
+    }
+    NSLog(@"Final Image Size: %.2f MB",(float)imageData.length/1024.0f/1024.0f);
+    return imageData;
+}
+- (NSString *)mimeTypeForData:(NSData *)data {
+    uint8_t c;
+    [data getBytes:&c length:1];
+    
+    switch (c) {
+        case 0xFF:
+            return @"image/jpeg";
+            break;
+        case 0x89:
+            return @"image/png";
+            break;
+        case 0x47:
+            return @"image/gif";
+            break;
+        case 0x49:
+        case 0x4D:
+            return @"image/tiff";
+            break;
+        case 0x25:
+            return @"application/pdf";
+            break;
+        case 0xD0:
+            return @"application/vnd";
+            break;
+        case 0x46:
+            return @"text/plain";
+            break;
+        default:
+            return @"application/octet-stream";
+    }
+    return nil;
+}
+// Ancillary method to scale an image based on a CGSize
+- (UIImage *)imageWithImage:(UIImage*)originalImage scaledToSize:(CGSize)newSize;
+{
+    @synchronized(self)
+    {
+        UIGraphicsBeginImageContext(newSize);
+        [originalImage drawInRect:CGRectMake(0,0,newSize.width, newSize.height)];
+        UIImage *newImage = UIGraphicsGetImageFromCurrentImageContext();
+        UIGraphicsEndImageContext();
+        return newImage;
+    }
+    return nil;
 }
 
 @end

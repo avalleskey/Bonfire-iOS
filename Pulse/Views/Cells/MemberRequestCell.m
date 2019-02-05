@@ -17,11 +17,8 @@
 - (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier {
     self = [super initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:reuseIdentifier];
     if (self) {
-        self.imageView.image = [UIImage new];
-        self.imageView.layer.masksToBounds = true;
-        self.imageView.layer.borderColor = [UIColor clearColor].CGColor;
-        self.imageView.layer.borderWidth = 1 / [UIScreen mainScreen].scale;
-        self.imageView.backgroundColor = [UIColor whiteColor];
+        self.profilePicture = [[BFAvatarView alloc] initWithFrame:CGRectMake(16, 10, 42, 42)];
+        [self.contentView addSubview:self.profilePicture];
         
         self.textLabel.font = [UIFont systemFontOfSize:15.f weight:UIFontWeightBold];
         self.textLabel.textColor = [UIColor colorWithWhite:0.2f alpha:1];
@@ -83,24 +80,13 @@
     [super layoutSubviews];
     
     // image view
-    self.imageView.frame = CGRectMake(16, 10, 42, 42);
+    self.profilePicture.frame = CGRectMake(16, 10, 42, 42);
     
     // text label
     self.textLabel.frame = CGRectMake(70, 13, self.frame.size.width - 70 - 16, 18);
     
     // detail text label
     self.detailTextLabel.frame = CGRectMake(self.textLabel.frame.origin.x, self.textLabel.frame.origin.y + self.textLabel.frame.size.height + 1, self.textLabel.frame.size.width, 16);
-    
-    // type-specific settings
-    self.imageView.layer.borderColor = [UIColor colorWithWhite:0 alpha:0.06f].CGColor;
-    
-    BOOL circleProfilePictures = FBTweakValue(@"Post", @"General", @"Circle Profile Pictures", NO);
-    if (circleProfilePictures) {
-        self.imageView.layer.cornerRadius = self.imageView.frame.size.height * .5;
-    }
-    else {
-        self.imageView.layer.cornerRadius = self.imageView.frame.size.height * .25;
-    }
     
     CGFloat buttonContainerWidth = self.frame.size.width - 70 - 16;
     self.approveButton.frame = CGRectMake(70, 60, buttonContainerWidth / 2 - 6, 34);

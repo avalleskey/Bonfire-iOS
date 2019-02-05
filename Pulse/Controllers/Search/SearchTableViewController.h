@@ -14,6 +14,16 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic) CGFloat currentKeyboardHeight;
 
+typedef enum {
+    BFSearchResultsTypeTop = 0,
+    BFSearchResultsTypeRooms = 1,
+    BFSearchResultsTypeUsers = 2,
+    BFSearchResultsTypeFeeds = 3,
+    BFSearchResultsTypeTopPosts = 4,
+    BFSearchResultsTypeRecentPosts = 5,
+    BFSearchResultsTypeHotPosts = 6
+} BFSearchResultsType;
+@property (nonatomic) BFSearchResultsType resultsType;
 - (void)getSearchResults;
 
 - (void)searchFieldDidBeginEditing;

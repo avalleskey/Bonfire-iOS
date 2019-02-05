@@ -13,29 +13,30 @@
         <!--View Controller-->
         <scene sceneID="EHf-IW-A2E">
             <objects>
-                <viewController id="01J-lp-oVM" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="launchScreen" id="01J-lp-oVM" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="Ze5-6b-2t3">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Bonfire" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="dhR-Nb-iyD">
-                                <rect key="frame" x="103" y="304.5" width="169" height="58"/>
-                                <fontDescription key="fontDescription" type="system" weight="heavy" pointSize="48"/>
-                                <nil key="textColor"/>
-                                <nil key="highlightedColor"/>
-                            </label>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="bonfire_wordmark" translatesAutoresizingMaskIntoConstraints="NO" id="HqN-0t-IZE">
+                                <rect key="frame" x="85.5" y="308.5" width="204" height="50"/>
+                            </imageView>
                         </subviews>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <color key="backgroundColor" red="0.99657901473945731" green="0.38026960784313724" blue="0.29560796065001343" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                         <constraints>
-                            <constraint firstItem="dhR-Nb-iyD" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="Vf6-qQ-56T"/>
-                            <constraint firstItem="dhR-Nb-iyD" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="xKP-Ly-NRm"/>
+                            <constraint firstItem="HqN-0t-IZE" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="YkN-d9-cUd"/>
+                            <constraint firstItem="HqN-0t-IZE" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="vd3-Ua-I3S"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                     </view>
+                    <nil key="simulatedTopBarMetrics"/>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="iYj-Kq-Ea1" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="52" y="374.66266866566718"/>
         </scene>
     </scenes>
+    <resources>
+        <image name="bonfire_wordmark" width="204" height="50"/>
+    </resources>
 </document>

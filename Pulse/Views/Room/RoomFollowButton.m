@@ -9,6 +9,7 @@
 #import "RoomFollowButton.h"
 #import "RoomContext.h"
 #import "Session.h"
+#import "UIColor+Palette.h"
 
 @implementation RoomFollowButton
 
@@ -38,7 +39,7 @@
     else {
         // STATUS_LEFT, STATUS_NO_RELATION, STATUS_INVITED
         [self setImage:[[UIImage imageNamed:@"plusIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
-        [self setTitle:[NSString stringWithFormat:@"%@ Room", [Session sharedInstance].defaults.room.followVerb] forState:UIControlStateNormal];
+        [self setTitle:[NSString stringWithFormat:@"%@ Camp", [Session sharedInstance].defaults.room.followVerb] forState:UIControlStateNormal];
     }
     
     // set filled state + colors
@@ -46,27 +47,52 @@
     UIColor *themeColor = self.superview.tintColor;
     
     if ([status isEqualToString:ROOM_STATUS_MEMBER] ||
-        [status isEqualToString:ROOM_STATUS_REQUESTED]) {
+        [status isEqualToString:ROOM_STATUS_REQUESTED] ||
+        [status isEqualToString:USER_STATUS_LOADING]) {
         self.layer.borderWidth = 1.f;
         self.backgroundColor = [UIColor clearColor];
         
-        self.tintColor = [UIColor colorWithWhite:0.2f alpha:1];
-        [self setTitleColor:[UIColor colorWithWhite:0.2f alpha:1] forState:UIControlStateNormal];
+        if ([status isEqualToString:USER_STATUS_LOADING]) {
+            self.tintColor = disabledColor;
+        }
+        else {
+            self.tintColor = [UIColor bonfireGrayWithLevel:900];
+        }
+        [self setTitleColor:self.tintColor forState:UIControlStateNormal];
     }
     else {
         self.layer.borderWidth = 0;
-        self.tintColor = [UIColor whiteColor];
-        [self setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        
+        UIColor *backgroundColor;
+        UIColor *tintColor = [UIColor whiteColor];
+        UIColor *titleColor = [UIColor whiteColor];
         
         if ([status isEqualToString:ROOM_STATUS_REQUESTED] ||
                  [status isEqualToString:ROOM_STATUS_BLOCKED] ||
-                 [status isEqualToString:ROOM_STATUS_ROOM_BLOCKED] ||
-                 [status isEqualToString:ROOM_STATUS_LOADING]) {
-            self.backgroundColor = disabledColor;
+                 [status isEqualToString:ROOM_STATUS_ROOM_BLOCKED]) {
+            backgroundColor = disabledColor;
         }
         else {
-            self.backgroundColor = themeColor;
+            if ([UIColor useWhiteForegroundForColor:themeColor]) {
+                backgroundColor = themeColor;
+                tintColor =
+                titleColor = [UIColor whiteColor];
+            }
+            else if ([themeColor isEqual:[UIColor whiteColor]]) {
+                backgroundColor = [UIColor colorWithWhite:0.2f alpha:1];
+                tintColor =
+                titleColor = [UIColor whiteColor];
+            }
+            else {
+                backgroundColor = [UIColor darkerColorForColor:themeColor amount:0.4];
+                tintColor =
+                titleColor = [UIColor whiteColor];
+            }
         }
+        
+        self.backgroundColor = backgroundColor;
+        self.tintColor = tintColor;
+        [self setTitleColor:titleColor forState:UIControlStateNormal];
     }
 }
 

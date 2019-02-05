@@ -19,21 +19,19 @@ typedef enum {
     SNActionTypeInvite = 3,
     SNActionTypeMore = 4,
     SNActionTypeAdd = 5,
-    SNActionTypeBack = 6
+    SNActionTypeBack = 6,
+    SNActionTypeShare = 7,
+    SNActionTypeDone = 8,
+    SNActionTypeSettings = 9
 } SNActionType;
 - (void)setLeftAction:(SNActionType)actionType;
 - (void)setRightAction:(SNActionType)actionType;
 
-@property (strong, nonatomic) UILabel *titleLabel;
-@property (strong, nonatomic) UIView *navigationBackgroundView;
-@property (strong, nonatomic) UIVisualEffectView *blurView;
-@property (strong, nonatomic) UIView *hairline;
-
-- (void)hide:(BOOL)animated;
-- (void)show:(BOOL)animated;
-
 - (void)setShadowVisibility:(BOOL)visible withAnimation:(BOOL)animation;
-- (void)updateBarColor:(id)background withAnimation:(int)animationType statusBarUpdateDelay:(CGFloat)statusBarUpdateDelay;
+- (void)hideBottomHairline;
+- (void)showBottomHairline;
+
+- (void)updateBarColor:(id)background;
 
 @property (strong, nonatomic) UIColor *currentTheme;
 

@@ -16,13 +16,12 @@
 #import "AppDelegate.h"
 #import "HAWebService.h"
 #import "UIColor+Palette.h"
+#import "Launcher.h"
 
 #import <RSKImageCropper/RSKImageCropper.h>
 #import <BlocksKit/BlocksKit.h>
 #import <BlocksKit/BlocksKit+UIKit.h>
 #import <JGProgressHUD/JGProgressHUD.h>
-
-#define envConfig [[[NSUserDefaults standardUserDefaults] objectForKey:@"config"] objectForKey:[[NSUserDefaults standardUserDefaults] stringForKey:@"environment"]]
 
 @interface ModifyDefaultsViewController () <UITextFieldDelegate, UINavigationControllerDelegate>
 
@@ -67,9 +66,9 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     self.navigationItem.rightBarButtonItem = self.saveButton;
     
     
-    self.tableView.backgroundColor = [UIColor colorWithWhite:0.98 alpha:1];
+    self.tableView.backgroundColor = [UIColor headerBackgroundColor];
     self.tableView.separatorInset = UIEdgeInsetsZero;
-    self.tableView.separatorColor = [UIColor colorWithWhite:0.92 alpha:1];
+    self.tableView.separatorColor = [UIColor separatorColor];
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
     self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 48, 0);
     
@@ -150,9 +149,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
                 // save user
                 User *user = [[User alloc] initWithDictionary:responseObject[@"data"] error:nil];
                 [[Session sharedInstance] updateUser:user]; // TODO: Swap out for new user object
-                
-                [[NSNotificationCenter defaultCenter] postNotificationName:@"UserUpdated" object:nil];
-                
+                                
                 [self.navigationController dismissViewControllerAnimated:YES completion:nil];
                 
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
@@ -373,8 +370,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
         UIAlertAction *confirm = [UIAlertAction actionWithTitle:@"Sign Out" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
             [[Session sharedInstance] signOut];
             
-            AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-            [appDelegate launchOnboarding];
+            [[Launcher sharedInstance] openOnboarding];
             
             [areYouSure dismissViewControllerAnimated:YES completion:nil];
         }];

@@ -4,8 +4,8 @@
 
 @interface Room : JSONModel
 
-@property (nonatomic) NSString *identifier;
-@property (nonatomic) NSString *type;
-@property (nonatomic) RoomAttributes *attributes;
+@property (nonatomic) NSString <Optional> *identifier;
+@property (nonatomic) NSString <Optional> *type;
+@property (nonatomic) RoomAttributes <Optional> *attributes;
 
 @end

@@ -7,23 +7,14 @@
 //
 
 #import "ErrorView.h"
+#import "UIColor+Palette.h"
 
 @implementation ErrorView
-
-const NSInteger ErrorViewTypeGeneral         = 0;
-const NSInteger ErrorViewTypeBlocked         = 1;
-const NSInteger ErrorViewTypeNotFound        = 2;
-const NSInteger ErrorViewTypeNoInternet      = 3;
-const NSInteger ErrorViewTypeLocked          = 4;
-const NSInteger ErrorViewTypeHeart           = 5;
-const NSInteger ErrorViewTypeNoPosts         = 6;
-const NSInteger ErrorViewTypeNoNotifications = 7;
-const NSInteger ErrorViewTypeContactsDenied  = 8;
 
 - (id)initWithFrame:(CGRect)rect title:(NSString *)title description:(NSString *)description type:(NSInteger)type {
     self = [super initWithFrame:rect];
     if (self) {
-        self.imageView = [[UIImageView alloc] initWithFrame:CGRectMake(self.frame.size.width / 2 - 32, 0, 64, 64)];
+        self.imageView = [[UIImageView alloc] initWithFrame:CGRectMake(self.frame.size.width / 2 - 28, 0, 56, 56)];
         self.imageView.contentMode = UIViewContentModeCenter;
         self.imageView.layer.cornerRadius = self.imageView.frame.size.width / 2;
         self.imageView.layer.masksToBounds = true;
@@ -31,17 +22,17 @@ const NSInteger ErrorViewTypeContactsDenied  = 8;
         [self updateType:type];
         [self addSubview:self.imageView];
         
-        self.errorTitle = [[UILabel alloc] initWithFrame:CGRectMake(0, self.imageView.frame.origin.y + self.imageView.frame.size.height + 16, self.frame.size.width, 30)];
-        self.errorTitle.font = [UIFont systemFontOfSize:24.f weight:UIFontWeightHeavy];
-        self.errorTitle.textColor = [UIColor colorWithWhite:0.2f alpha:1];
+        self.errorTitle = [[UILabel alloc] initWithFrame:CGRectMake(0, self.imageView.frame.origin.y + self.imageView.frame.size.height + 12, self.frame.size.width, 30)];
+        self.errorTitle.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightHeavy];
+        self.errorTitle.textColor = [UIColor colorWithWhite:0.47f alpha:1];
         self.errorTitle.text = title;
         self.errorTitle.textAlignment = NSTextAlignmentCenter;
         self.errorTitle.numberOfLines = 0;
         self.errorTitle.lineBreakMode = NSLineBreakByWordWrapping;
         [self addSubview:self.errorTitle];
         
-        self.errorDescription = [[UILabel alloc] initWithFrame:CGRectMake(self.frame.size.width * .1, self.errorTitle.frame.origin.y + self.errorTitle.frame.size.height + 8, self.frame.size.width * .8, 30)];
-        self.errorDescription.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightRegular];
+        self.errorDescription = [[UILabel alloc] initWithFrame:CGRectMake(self.frame.size.width * .1, self.errorTitle.frame.origin.y + self.errorTitle.frame.size.height + 6, self.frame.size.width * .8, 30)];
+        self.errorDescription.font = [UIFont systemFontOfSize:15.f weight:UIFontWeightRegular];
         self.errorDescription.textColor = [UIColor colorWithWhite:0.6f alpha:1];
         self.errorDescription.text = description;
         self.errorDescription.textAlignment = NSTextAlignmentCenter;
@@ -59,10 +50,11 @@ const NSInteger ErrorViewTypeContactsDenied  = 8;
     CGPoint oldCenter = self.center;
     
     CGRect titleRect = [self.errorTitle.text boundingRectWithSize:CGSizeMake(self.frame.size.width, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:self.errorTitle.font} context:nil];
-    self.errorTitle.frame = CGRectMake(self.errorTitle.frame.origin.x, self.errorTitle.frame.origin.y, self.frame.size.width, ceilf(titleRect.size.height));
+    titleRect.origin.y = (self.imageView.isHidden ? 0 : self.imageView.frame.origin.y + self.imageView.frame.size.height + 12);
+    self.errorTitle.frame = CGRectMake(self.errorTitle.frame.origin.x, titleRect.origin.y, self.frame.size.width, ceilf(titleRect.size.height));
     
     CGRect descriptionRect = [self.errorDescription.text boundingRectWithSize:CGSizeMake(self.frame.size.width * .8, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:self.errorDescription.font} context:nil];
-    self.errorDescription.frame = CGRectMake(self.frame.size.width * .1, self.errorTitle.frame.origin.y + self.errorTitle.frame.size.height + 8, self.frame.size.width * .8, ceilf(descriptionRect.size.height));
+    self.errorDescription.frame = CGRectMake(self.frame.size.width * .1, self.errorTitle.frame.origin.y + self.errorTitle.frame.size.height + 6, self.frame.size.width * .8, ceilf(descriptionRect.size.height));
     
     if (self.errorDescription.text.length == 0) {
         self.frame = CGRectMake(self.frame.origin.x, self.frame.origin.y, self.frame.size.width, self.errorTitle.frame.origin.y + self.errorTitle.frame.size.height);
@@ -74,11 +66,12 @@ const NSInteger ErrorViewTypeContactsDenied  = 8;
     self.center = oldCenter;
 }
 
-- (void)updateType:(NSInteger)newType {
+- (void)updateType:(ErrorViewType)newType {
+    BOOL hideImageView = false;
+    
     switch (newType) {
         case ErrorViewTypeGeneral:
-            self.imageView.image = [UIImage imageNamed:@"errorGeneral"];
-            self.imageView.backgroundColor = [UIColor colorWithDisplayP3Red:0.44 green:0.45 blue:0.47 alpha:1.0];
+            hideImageView = true;
             break;
         case ErrorViewTypeBlocked:
             self.imageView.image = [UIImage imageNamed:@"errorBlocked"];
@@ -98,7 +91,7 @@ const NSInteger ErrorViewTypeContactsDenied  = 8;
             break;
         case ErrorViewTypeHeart:
             self.imageView.image = [UIImage imageNamed:@"errorHeart"];
-            self.imageView.backgroundColor = [UIColor colorWithDisplayP3Red:0.89 green:0.10 blue:0.13 alpha:1.0];
+            self.imageView.backgroundColor = [UIColor bonfireBrand];
             break;
         case ErrorViewTypeNoPosts:
             self.imageView.image = [UIImage imageNamed:@"errorFlower"];
@@ -112,23 +105,40 @@ const NSInteger ErrorViewTypeContactsDenied  = 8;
             self.imageView.image = [UIImage imageNamed:@"errorContacts"];
             self.imageView.backgroundColor = [UIColor colorWithDisplayP3Red:0.44 green:0.45 blue:0.47 alpha:1.0];
             break;
+        case ErrorViewTypeClock:
+            self.imageView.image = [UIImage imageNamed:@"errorClock"];
+            self.imageView.backgroundColor = [UIColor colorWithDisplayP3Red:0.44 green:0.45 blue:0.47 alpha:1.0];
+            break;
             
         default:
             self.imageView.image = [UIImage imageNamed:@"errorGeneral"];
             self.imageView.backgroundColor = [UIColor colorWithDisplayP3Red:0.96 green:0.54 blue:0.14 alpha:1.0];
             break;
     }
+
+    self.imageView.hidden = hideImageView;
+    
+    [self updateErrorTitleColor];
 }
-- (void)updateTitle:(NSString *)newTitle {
+- (void)updateTitle:(nullable NSString *)newTitle {
     self.errorTitle.text = newTitle;
     [self resize];
+    
+    [self updateErrorTitleColor];
 }
-- (void)updateDescription:(NSString *)newDescription {
+- (void)updateDescription:(nullable NSString *)newDescription {
     self.errorDescription.text = newDescription;
     [self resize];
     
-    if (newDescription.length == 0) {
+    [self updateErrorTitleColor];
+}
+
+- (void)updateErrorTitleColor {
+    if (self.errorDescription.text.length == 0) {
         self.errorTitle.textColor = [UIColor colorWithWhite:0.6f alpha:1];
+    }
+    else if (self.imageView.image == nil) {
+        self.errorTitle.textColor = [UIColor colorWithWhite:0.47f alpha:1];
     }
     else {
         self.errorTitle.textColor = [UIColor colorWithWhite:0.2f alpha:1];

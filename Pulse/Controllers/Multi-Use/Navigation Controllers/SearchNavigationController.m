@@ -31,37 +31,20 @@
 }
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
-    
-    self.navigationBackgroundView.frame = CGRectMake(0, 0, self.navigationBar.frame.size.width, self.navigationBar.frame.origin.y + self.navigationBar.frame.size.height);
-    self.blurView.frame = self.navigationBackgroundView.bounds;
 }
 
 - (void)setupNavigationBar {
     // setup items
     [self.navigationBar setTitleTextAttributes:
      @{NSForegroundColorAttributeName:[UIColor clearColor],
-       NSFontAttributeName:[UIFont systemFontOfSize:1.f]}];
+       NSFontAttributeName:[UIFont systemFontOfSize:17.f]}];
     
     //
     self.navigationBar.translucent = true;
     self.navigationBar.tintColor = [UIColor colorWithWhite:0.07 alpha:1];
-    
-    // add blur view background
-    self.navigationBackgroundView = [[UIView alloc] init];
-    self.navigationBackgroundView.backgroundColor = [[UIColor headerBackgroundColor] colorWithAlphaComponent:0.9];
-    [self.view insertSubview:self.navigationBackgroundView belowSubview:self.navigationBar];
-    
-    self.blurView = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleLight]];
-    self.blurView.frame = self.navigationBackgroundView.bounds;
-    [self.navigationBackgroundView addSubview:self.blurView];
-    
-    // remove default hairline
-    [self.navigationBar setBackgroundImage:[UIImage new] forBarMetrics:UIBarMetricsDefault];
-    [self.navigationBar setShadowImage:[UIImage new]];
-    // add custom hairline
-    self.hairline = [[UIView alloc] initWithFrame:CGRectMake(0, self.navigationBar.frame.size.height, self.navigationBar.frame.size.width, (1 / [UIScreen mainScreen].scale))];
-    self.hairline.backgroundColor = [UIColor colorWithWhite:0 alpha:0.08f];
-    [self.navigationBar addSubview:self.hairline];
+    self.navigationBar.backgroundColor = [UIColor clearColor];
+    self.navigationBar.shadowImage = [self imageWithColor:[UIColor colorWithWhite:0 alpha:0.08f]];
+    self.navigationBar.barTintColor = [UIColor colorWithRed:0.98 green:0.98 blue:0.99 alpha:1.00];
     
     self.searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(16, 0, self.view.frame.size.width - (16 * 2), 34)];
     self.searchView.textField.delegate = self;
@@ -72,6 +55,7 @@
             [topSearchController searchFieldDidChange];
         }
     } forControlEvents:UIControlEventEditingChanged];
+    self.searchView.openSearchControllerOntap = true;
     [self.navigationBar addSubview:self.searchView];
     
     self.cancelButton = [UIButton buttonWithType:UIButtonTypeSystem];
@@ -83,12 +67,30 @@
         self.searchView.textField.text = @"";
         [self.searchView.textField resignFirstResponder];
         
+        [self popToRootViewControllerAnimated:NO];
+        
         SearchTableViewController *topSearchController = (SearchTableViewController *)self.topViewController;
         if ([self.topViewController isKindOfClass:[SearchTableViewController class]]) {
             [topSearchController searchFieldDidChange];
         }
     }];
     [self.navigationBar addSubview:self.cancelButton];
+}
+
+- (UIImage *)imageWithColor:(UIColor *)color {
+    CGRect rect = CGRectMake(0.0f, 0.0f, 1.0f, 0.5);
+    const CGFloat alpha = CGColorGetAlpha(color.CGColor);
+    const BOOL opaque = alpha == 1;
+    UIGraphicsBeginImageContextWithOptions(rect.size, opaque, 0);
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    
+    CGContextSetFillColorWithColor(context, [color CGColor]);
+    CGContextFillRect(context, rect);
+    
+    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    
+    return image;
 }
 
 - (void)textFieldDidBeginEditing:(UITextField *)textField {
@@ -120,6 +122,10 @@
 }
 
 - (BOOL)textFieldShouldReturn:(UITextField *)textField {
+    SearchTableViewController *topSearchController = (SearchTableViewController *)self.topViewController;
+    if ([self.topViewController isKindOfClass:[SearchTableViewController class]]) {
+        [topSearchController searchFieldDidReturn];
+    }
     [textField resignFirstResponder];
     
     return false;

@@ -7,16 +7,13 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "ErrorView.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 @interface EmptyChannelCell : UICollectionViewCell
 
-@property (strong, nonatomic) UIView *container;
-
-@property (strong, nonatomic) UIImageView *circleImageView;
-@property (strong, nonatomic) UILabel *titleLabel;
-@property (strong, nonatomic) UILabel *descriptionLabel;
+@property (strong, nonatomic) ErrorView *errorView;
 
 @end
 

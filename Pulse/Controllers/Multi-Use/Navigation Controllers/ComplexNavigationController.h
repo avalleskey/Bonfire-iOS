@@ -7,7 +7,6 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "SOLOptionsTransitionAnimator.h"
 #import "SloppySwiper.h"
 #import "BFSearchView.h"
 #import "Session.h"
@@ -15,7 +14,7 @@
 #import "Post.h"
 #import "User.h"
 
-@interface ComplexNavigationController : UINavigationController <UINavigationControllerDelegate, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate, UIGestureRecognizerDelegate, SloppySwiperDelegate>
+@interface ComplexNavigationController : UINavigationController <UINavigationControllerDelegate, UITextFieldDelegate, UIGestureRecognizerDelegate, SloppySwiperDelegate>
 
 typedef enum {
     LNActionTypeNone = 0,

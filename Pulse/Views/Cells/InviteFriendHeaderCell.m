@@ -62,7 +62,7 @@
         self.member1.layer.masksToBounds = true;
         self.member1.image = [[UIImage imageNamed:@"inviteFriendHeaderImage"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
         self.member1.contentMode = UIViewContentModeScaleToFill;
-        self.member1.tintColor = [UIColor bonfireBlue];
+        self.member1.tintColor = [UIColor bonfireBrand];
         
         self.member2 = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 44, 44)];
         self.member3 = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 44, 44)];
@@ -89,7 +89,7 @@
         [self styleMemberProfilePictureView:self.member7];
         
         self.lineSeparator = [[UIView alloc] init];
-        self.lineSeparator.backgroundColor = [UIColor colorWithWhite:0.9 alpha:1];
+        self.lineSeparator.backgroundColor = [UIColor separatorColor];
         [self.contentView addSubview:self.lineSeparator];
     }
     return self;
@@ -131,7 +131,7 @@
 }
 
 - (void)styleMemberProfilePictureView:(UIImageView *)imageView  {
-    BOOL circleProfilePictures = FBTweakValue(@"Post", @"General", @"Circle Profile Pictures", NO);
+    BOOL circleProfilePictures = FBTweakValue(@"Post", @"General", @"Circle Profile Pictures", YES);
     if (circleProfilePictures) {
         [self continuityRadiusForView:imageView withRadius:imageView.frame.size.height * .5];
     }

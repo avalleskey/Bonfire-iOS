@@ -10,7 +10,7 @@
 #import <BlocksKit/BlocksKit+UIKit.h>
 #import <HapticHelper/HapticHelper.h>
 #import "L360ConfettiArea.h"
-#import "MiniChannelCell.h"
+#import "LargeRoomCardCell.h"
 #import "Session.h"
 #import "Room.h"
 #import "ComplexNavigationController.h"
@@ -18,8 +18,10 @@
 #import "RoomViewController.h"
 #import "Launcher.h"
 #import "UIColor+Palette.h"
+#import "NSString+Validation.h"
 
-#define envConfig [[[NSUserDefaults standardUserDefaults] objectForKey:@"config"] objectForKey:[[NSUserDefaults standardUserDefaults] stringForKey:@"environment"]]
+#import <JGProgressHUD/JGProgressHUD.h>
+#import <HapticHelper/HapticHelper.h>
 
 #define UIViewParentController(__view) ({ \
     UIResponder *__responder = __view; \
@@ -48,13 +50,14 @@
 
 @implementation CreateRoomViewController
 
-static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
+static NSString * const largeCardReuseIdentifier = @"LargeCard";
+static NSString * const blankCellIdentifier = @"BlankCell";
 
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     self.view.backgroundColor = [UIColor whiteColor];
-    self.view.tintColor = [[Session sharedInstance] themeColor];
+    self.view.tintColor = [UIColor bonfireBrand];
     
     self.manager = [HAWebService manager];
     
@@ -84,8 +87,23 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
 }
 
 - (void)addListeners {
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(roomUpdated:) name:@"RoomUpdated" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillChangeFrame:) name:UIKeyboardWillChangeFrameNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillDismiss:) name:UIKeyboardWillHideNotification object:nil];
+}
+
+- (void)roomUpdated:(NSNotification *)notification {
+    Room *room = notification.object;
+    
+    if (room != nil) {
+        for (int i = 0; i < self.similarRooms.count; i++) {
+            if ([self.similarRooms[i][@"id"] isEqualToString:room.identifier]) {
+                // same room -> replace it with updated object
+                [self.similarRooms replaceObjectAtIndex:i withObject:[room toDictionary]];
+            }
+        }
+        [self.similarRoomsCollectionView reloadData];
+    }
 }
 
 - (void)setupViews {
@@ -136,18 +154,18 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
     self.instructionLabel.textAlignment = NSTextAlignmentCenter;
     self.instructionLabel.text = @"";
     self.instructionLabel.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightMedium];
-    self.instructionLabel.textColor = [UIColor colorWithWhite:0.2f alpha:1];
+    self.instructionLabel.textColor = [UIColor colorWithRed:0.31 green:0.31 blue:0.32 alpha:1.0];
     self.instructionLabel.numberOfLines = 0;
     self.instructionLabel.lineBreakMode = NSLineBreakByWordWrapping;
     [self.view addSubview:self.instructionLabel];
     
     self.steps = [[NSMutableArray alloc] init];
     
-    [self.steps addObject:@{@"id": @"room_name", @"skip": [NSNumber numberWithBool:false], @"next": @"Next", @"instruction": @"What would you like your new Room to be called?", @"placeholder": @"Room Name", @"sensitive": [NSNumber numberWithBool:false], @"keyboard": @"title", @"answer": [NSNull null], @"textField": [NSNull null], @"block": [NSNull null]}];
-    [self.steps addObject:@{@"id": @"room_description", @"skip": [NSNumber numberWithBool:false], @"next": @"Next", @"instruction": @"Briefly describe your Room (optional)", @"placeholder":@"Room Description", @"sensitive": [NSNumber numberWithBool:false], @"keyboard": @"text", @"answer": [NSNull null], @"textField": [NSNull null], @"block": [NSNull null]}];
-    [self.steps addObject:@{@"id": @"room_similar", @"skip": [NSNumber numberWithBool:false], @"next": @"Continue Anyways", @"instruction": @"Would you like to join a similar Room instead?", @"sensitive": [NSNumber numberWithBool:true], @"answer": [NSNull null], @"block": [NSNull null]}];
-    [self.steps addObject:@{@"id": @"room_color", @"skip": [NSNumber numberWithBool:false], @"next": @"Create Room", @"instruction": @"Select Room Color\nand Privacy Setting", @"sensitive": [NSNumber numberWithBool:true], @"answer": [NSNull null], @"block": [NSNull null]}];
-    [self.steps addObject:@{@"id": @"room_share", @"skip": [NSNumber numberWithBool:false], @"next": @"Enter Room", @"instruction": @"Your Room has been created! Invite others to join below", @"sensitive": [NSNumber numberWithBool:true], @"answer": [NSNull null], @"block": [NSNull null]}];
+    [self.steps addObject:@{@"id": @"room_name", @"skip": [NSNumber numberWithBool:false], @"next": @"Next", @"instruction": @"What would you like your new Camp to be called?", @"placeholder": @"Camp Name", @"sensitive": [NSNumber numberWithBool:false], @"keyboard": @"title", @"answer": [NSNull null], @"textField": [NSNull null], @"block": [NSNull null]}];
+    [self.steps addObject:@{@"id": @"room_description", @"skip": [NSNumber numberWithBool:false], @"next": @"Next", @"instruction": @"Briefly describe your Camp (optional)", @"placeholder":@"Camp Description", @"sensitive": [NSNumber numberWithBool:false], @"keyboard": @"text", @"answer": [NSNull null], @"textField": [NSNull null], @"block": [NSNull null]}];
+    [self.steps addObject:@{@"id": @"room_similar", @"skip": [NSNumber numberWithBool:false], @"next": @"Continue Anyways", @"instruction": @"Would you like to join a\nsimilar Camp instead?", @"sensitive": [NSNumber numberWithBool:true], @"answer": [NSNull null], @"block": [NSNull null]}];
+    [self.steps addObject:@{@"id": @"room_color", @"skip": [NSNumber numberWithBool:false], @"next": @"Create Camp", @"instruction": @"Select Camp Color\nand Privacy Setting", @"sensitive": [NSNumber numberWithBool:true], @"answer": [NSNull null], @"block": [NSNull null]}];
+    [self.steps addObject:@{@"id": @"room_share", @"skip": [NSNumber numberWithBool:false], @"next": @"Enter Camp", @"instruction": @"Your Camp has been created! Invite others to join below", @"sensitive": [NSNumber numberWithBool:true], @"answer": [NSNull null], @"block": [NSNull null]}];
     
     for (int i = 0; i < [self.steps count]; i++) {
         // add each step to the right
@@ -164,26 +182,29 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
         
         UITextField *textField = [[UITextField alloc] initWithFrame:CGRectMake(24, 0, self.view.frame.size.width - (24 * 2), 56)];
         textField.textColor = [UIColor colorWithWhite:0.2f alpha:1];
-        textField.backgroundColor = [UIColor colorWithWhite:0.97 alpha:1];
-        if ([mutatedStep[@"name"] isEqualToString:@"room_name"]) {
+        textField.backgroundColor = [UIColor colorWithWhite:1 alpha:1];
+        textField.layer.cornerRadius = 12.f;
+        textField.layer.masksToBounds = false;
+        textField.layer.shadowRadius = 2.f;
+        textField.layer.shadowOffset = CGSizeMake(0, 1);
+        textField.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.1f].CGColor;
+        textField.layer.shadowOpacity = 1.f;
+        if ([mutatedStep[@"id"] isEqualToString:@"room_name"]) {
             textField.tag = 201;
         }
-        else if ([mutatedStep[@"name"] isEqualToString:@"room_description"]) {
+        else if ([mutatedStep[@"id"] isEqualToString:@"room_description"]) {
             textField.tag = 202;
         }
-        [self continuityRadiusForView:textField withRadius:12.f];
+//        [self continuityRadiusForView:textField withRadius:12.f];
         
         
         if ([mutatedStep objectForKey:@"keyboard"] && [mutatedStep[@"keyboard"] isEqualToString:@"email"]) {
             textField.autocapitalizationType = UITextAutocapitalizationTypeNone;
             textField.keyboardType = UIKeyboardTypeEmailAddress;
-            textField.tag = 101;
         }
         else if ([mutatedStep objectForKey:@"keyboard"] && [mutatedStep[@"keyboard"] isEqualToString:@"number"]) {
-            textField.tag = 102;
             
             textField.keyboardType = UIKeyboardTypeNumberPad;
-            NSLog(@"keyboard number");
         }
         else {
             textField.keyboardType = UIKeyboardTypeDefault;
@@ -227,26 +248,28 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
         [mutatedStep setObject:textField forKey:@"textField"];
     }
     else if ([mutatedStep[@"id"] isEqualToString:@"room_similar"]) {
-        UIView *block = [[UIView alloc] initWithFrame:CGRectMake(0, self.view.frame.size.width, self.view.frame.size.width, 240)];
+        UIView *block = [[UIView alloc] initWithFrame:CGRectMake(0, self.view.frame.size.width, self.view.frame.size.width, 304)];
         block.center = CGPointMake(self.view.frame.size.width / 2, self.view.frame.size.height / 2);
         block.alpha = 0;
         block.transform = CGAffineTransformMakeTranslation(self.view.frame.size.width, 0);
         [self.view addSubview:block];
         
         UICollectionViewFlowLayout *flowLayout = [[UICollectionViewFlowLayout alloc] init];
-        flowLayout.minimumLineSpacing = 8.f;
+        flowLayout.minimumLineSpacing = 12.f;
         flowLayout.scrollDirection = UICollectionViewScrollDirectionHorizontal;
         
         self.loadingSimilarRooms = true;
         
-        self.similarRoomsCollectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 240) collectionViewLayout:flowLayout];
+        self.similarRoomsCollectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 304) collectionViewLayout:flowLayout];
         self.similarRoomsCollectionView.delegate = self;
         self.similarRoomsCollectionView.dataSource = self;
         self.similarRoomsCollectionView.contentInset = UIEdgeInsetsMake(0, 24, 0, 24);
-        [self.similarRoomsCollectionView registerClass:[MiniChannelCell class] forCellWithReuseIdentifier:miniChannelReuseIdentifier];
         self.similarRoomsCollectionView.showsHorizontalScrollIndicator = false;
-        self.similarRoomsCollectionView.layer.masksToBounds = true;
+        self.similarRoomsCollectionView.layer.masksToBounds = false;
         self.similarRoomsCollectionView.backgroundColor = [UIColor clearColor];
+        
+        [self.similarRoomsCollectionView registerClass:[LargeRoomCardCell class] forCellWithReuseIdentifier:largeCardReuseIdentifier];
+        [self.similarRoomsCollectionView registerClass:[UICollectionViewCell class] forCellWithReuseIdentifier:blankCellIdentifier];
         
         self.similarRooms = [[NSMutableArray alloc] init];
         
@@ -262,13 +285,13 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
         colorBlock.transform = CGAffineTransformMakeTranslation(self.view.frame.size.width, 0);
         [self.view addSubview:colorBlock];
         
-        colors = @[[UIColor bonfireBlue],  // 0
+        colors = @[[UIColor bonfireBlueWithLevel:500],  // 0
                    [UIColor bonfireViolet],  // 1
                    [UIColor bonfireRed],  // 2
                    [UIColor bonfireOrange],  // 3
-                   [UIColor bonfireGreenWithLevel:700],  // 4
+                   [UIColor colorWithRed:0.16 green:0.72 blue:0.01 alpha:1.00], // cash green
                    [UIColor brownColor],  // 5
-                   [UIColor bonfireYellow],  // 6
+                   [UIColor colorWithRed:0.96 green:0.76 blue:0.23 alpha:1.00],  // 6
                    [UIColor bonfireCyanWithLevel:800],  // 7
                    [UIColor bonfireGrayWithLevel:900]]; // 8
         
@@ -308,13 +331,13 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
         
         // add public room UISwitch
         UISwitch *publicRoomSwitch = [[UISwitch alloc] initWithFrame:CGRectZero];
-        publicRoomSwitch.on = true;
+        publicRoomSwitch.on = false;
         publicRoomSwitch.frame = CGRectMake(colorBlock.frame.size.width - publicRoomSwitch.frame.size.width, colorBlock.frame.size.height - publicRoomSwitch.frame.size.height, publicRoomSwitch.frame.size.width, publicRoomSwitch.frame.size.height);
         publicRoomSwitch.tag = 10;
         [colorBlock addSubview:publicRoomSwitch];
         
         UILabel *publicRoomLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, publicRoomSwitch.frame.origin.y, colorBlock.frame.size.width - publicRoomSwitch.frame.size.width, publicRoomSwitch.frame.size.height)];
-        publicRoomLabel.text = @"Public Room";
+        publicRoomLabel.text = @"Private Camp";
         publicRoomLabel.textColor = [UIColor colorWithWhite:0.33 alpha:1];
         publicRoomLabel.textAlignment = NSTextAlignmentLeft;
         publicRoomLabel.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightMedium];
@@ -327,75 +350,90 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
         [mutatedStep setObject:colorBlock forKey:@"block"];
     }
     else if ([mutatedStep[@"id"] isEqualToString:@"room_share"]) {
-        UIView *shareBlock = [[UIView alloc] initWithFrame:CGRectMake(0, self.view.frame.size.width, self.view.frame.size.width, 120)];
+        UIView *shareBlock = [[UIView alloc] initWithFrame:CGRectMake(0, self.view.frame.size.width, self.view.frame.size.width, 116)];
         shareBlock.center = CGPointMake(shareBlock.center.x, self.view.frame.size.height / 2);
         shareBlock.alpha = 0;
         shareBlock.transform = CGAffineTransformMakeTranslation(self.view.frame.size.width, 0);
         [self.view addSubview:shareBlock];
         
         UIButton *shareField = [[UIButton alloc] initWithFrame:CGRectMake(24, 0, self.view.frame.size.width - (24 * 2), 56)];
+        shareField.backgroundColor = [UIColor colorWithWhite:1 alpha:1];
+        shareField.layer.cornerRadius = 12.f;
+        shareField.layer.masksToBounds = false;
+        shareField.layer.shadowRadius = 2.f;
+        shareField.layer.shadowOffset = CGSizeMake(0, 1);
+        shareField.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.1f].CGColor;
+        shareField.layer.shadowOpacity = 1.f;
         [shareField setTitleColor:[UIColor colorWithWhite:0.2f alpha:1] forState:UIControlStateNormal];
         shareField.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
-        shareField.contentEdgeInsets = UIEdgeInsetsMake(0, 20, 0, 0);
-        shareField.backgroundColor = [UIColor colorWithWhite:0.97 alpha:1];
-        [self continuityRadiusForView:shareField withRadius:12.f];
+        shareField.contentEdgeInsets = UIEdgeInsetsMake(0, 20, 0, 84);
+        shareField.titleLabel.lineBreakMode = NSLineBreakByTruncatingTail;
         shareField.titleLabel.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightMedium];
         shareField.tag = 10;
         [shareBlock addSubview:shareField];
         [shareField bk_addEventHandler:^(id sender) {
             [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-                [shareField setTitleColor:[UIColor colorWithWhite:0.6f alpha:1] forState:UIControlStateNormal];
+                shareField.alpha = 0.75;
             } completion:nil];
         } forControlEvents:UIControlEventTouchDown];
         [shareField bk_addEventHandler:^(id sender) {
             [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-                [shareField setTitleColor:[UIColor colorWithWhite:0.2f alpha:1] forState:UIControlStateNormal];
+                shareField.alpha = 1;
             } completion:nil];
         } forControlEvents:(UIControlEventTouchUpInside|UIControlEventTouchCancel|UIControlEventTouchDragExit)];
         [shareField bk_whenTapped:^{
-            NSString *copiedText = @"Copied to Clipboard!";
-            if (![shareField.currentTitle isEqualToString:copiedText]) {
-                NSString *originalText = shareField.currentTitle;
-                
-                NSLog(@"let's do this thing!");
-                [shareField setTitle:copiedText forState:UIControlStateNormal];
-                
-                [UIView animateWithDuration:0.2f delay:1.f options:UIViewAnimationOptionCurveEaseOut animations:^{
-                    [shareField setTitle:originalText forState:UIControlStateNormal];
-                } completion:nil];
-            }
+            UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
+            pasteboard.string = @"http://joinbonfire.com/camps/camp-name";
+            
+            JGProgressHUD *HUD = [JGProgressHUD progressHUDWithStyle:JGProgressHUDStyleExtraLight];
+            HUD.indicatorView = [[JGProgressHUDSuccessIndicatorView alloc] init];
+            HUD.tintColor = [UIColor colorWithWhite:0 alpha:0.6f];
+            HUD.textLabel.text = @"Copied Link!";
+            HUD.vibrancyEnabled = false;
+            HUD.animation = [[JGProgressHUDFadeZoomAnimation alloc] init];
+            HUD.textLabel.textColor = [UIColor colorWithWhite:0 alpha:0.6f];
+            HUD.backgroundColor = [UIColor colorWithWhite:0 alpha:0.1f];
+            
+            [HUD showInView:self.view animated:YES];
+            [HapticHelper generateFeedback:FeedbackType_Notification_Success];
+            
+            [HUD dismissAfterDelay:1.5f];
         }];
         
+        UILabel *copyLabel = [[UILabel alloc] initWithFrame:CGRectMake(shareField.frame.size.width - 20 - 64, 0, 64, shareField.frame.size.height)];
+        copyLabel.textAlignment = NSTextAlignmentRight;
+        copyLabel.text = @"Copy";
+        copyLabel.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightBold];
+        copyLabel.tag = 12;
+        [shareField addSubview:copyLabel];
+        
         UIButton *shareButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        shareButton.frame = CGRectMake(shareField.frame.origin.x, shareBlock.frame.size.height - 48, shareField.frame.size.width, 48);
-        [shareButton setTitle:@"Share Room" forState:UIControlStateNormal];
+        shareButton.frame = CGRectMake(shareField.frame.origin.x, shareBlock.frame.size.height - 44, shareField.frame.size.width, 44);
+        [shareButton setTitle:@"Share Camp" forState:UIControlStateNormal];
+        shareButton.tintColor = [self currentColor];
         [shareButton setTitleColor:[self currentColor] forState:UIControlStateNormal];
-        [shareButton setTitleEdgeInsets:UIEdgeInsetsMake(0, 8, 0, 0)];
-        [shareButton setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 8)];
-        shareButton.titleLabel.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightSemibold];
+        [shareButton setTitleEdgeInsets:UIEdgeInsetsMake(0, 10, 0, 0)];
+        [shareButton setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 10)];
+        shareButton.titleLabel.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightBold];
         shareButton.adjustsImageWhenHighlighted = false;
-        shareButton.layer.cornerRadius = 16.f;
-        shareButton.layer.borderColor = [shareButton.currentTitleColor colorWithAlphaComponent:0.2f].CGColor;
-        shareButton.layer.borderWidth = 2.f;
+        shareButton.layer.cornerRadius = 12.f;
+        shareButton.layer.borderColor = [UIColor colorWithRed:0.92 green:0.93 blue:0.94 alpha:1.0].CGColor;
+        shareButton.layer.borderWidth = 1.f;
         shareButton.layer.masksToBounds = true;
         shareButton.tag = 11;
-        [shareButton setImage:[[UIImage imageNamed:@"roomShareIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+        [shareButton setImage:[[UIImage imageNamed:@"shareIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
         
         [shareBlock addSubview:shareButton];
         
         [shareButton bk_addEventHandler:^(id sender) {
             [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-                shareButton.transform = CGAffineTransformMakeScale(0.8, 0.8);
-                shareButton.backgroundColor = [[self currentColor] colorWithAlphaComponent:0.2f];
-                shareButton.layer.borderWidth = 0;
+                shareButton.transform = CGAffineTransformMakeScale(0.92, 0.92);
             } completion:nil];
         } forControlEvents:UIControlEventTouchDown];
         
         [shareButton bk_addEventHandler:^(id sender) {
             [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-                shareButton.transform = CGAffineTransformMakeScale(1, 1);
-                shareButton.backgroundColor = [UIColor clearColor];
-                shareButton.layer.borderWidth = 2.f;
+                shareButton.transform = CGAffineTransformIdentity;
             } completion:nil];
         } forControlEvents:(UIControlEventTouchUpInside|UIControlEventTouchCancel|UIControlEventTouchDragExit)];
         
@@ -413,12 +451,11 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
 - (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string {
     NSString *newStr = [textField.text stringByReplacingCharactersInRange:range withString:string];
     
-    NSLog(@"%@",newStr);
     if (textField.tag == 201) {
-        return newStr.length <= 20 ? YES : NO;
+        return newStr.length <= MAX_ROOM_TITLE_LENGTH ? YES : NO;
     }
     else if (textField.tag == 202) {
-        return newStr.length <= 40 ? YES : NO;
+        return newStr.length <= MAX_ROOM_DESC_LENGTH ? YES : NO;
     }
     else if (textField.tag == 10) {
         return NO;
@@ -435,8 +472,6 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
         int colorStep = [self getIndexOfStepWithId:@"room_color"];
         UIView *colorBlock = self.steps[colorStep][@"block"];
         
-        NSLog(@"previous color: %li", (long)self.themeColor);
-        
         UIView *previousColorView;
         for (UIView *subview in colorBlock.subviews) {
             if (subview.tag == self.themeColor) {
@@ -444,9 +479,8 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
                 break;
             }
         }
-        NSLog(@"previousColorView: %@", previousColorView);
+
         for (UIImageView *imageView in previousColorView.subviews) {
-            NSLog(@"imageView unda: %@", imageView);
             if (imageView.tag == 999) {
                 [UIView animateWithDuration:0.25f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
                     imageView.transform = CGAffineTransformMakeScale(0.1, 0.1);
@@ -458,7 +492,6 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
             }
         }
         
-        NSLog(@"new color: %li", (long)sender.tag);
         self.themeColor = sender.tag;
         
         // add check image view
@@ -498,7 +531,7 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
 - (void)textFieldChanged:(UITextField *)sender {
     if ([self.steps[self.currentStep][@"id"] isEqualToString:@"room_name"]) {
         if (sender.text.length <= 1) {
-            self.nextButton.backgroundColor = [UIColor colorWithWhite:0.92 alpha:1];
+            self.nextButton.backgroundColor = [UIColor colorWithRed:0.89 green:0.90 blue:0.91 alpha:1.0];
             self.nextButton.enabled = false;
         }
         else {
@@ -511,7 +544,7 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
 
 - (void)greyOutNextButton {
     self.nextButton.enabled = false;
-    self.nextButton.backgroundColor = [UIColor colorWithWhite:0.92 alpha:1];
+    self.nextButton.backgroundColor = [UIColor colorWithRed:0.89 green:0.90 blue:0.91 alpha:1.0];
 }
 
 - (void)handleNext {
@@ -521,13 +554,11 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
     
     // sign in to school
     if ([step[@"id"] isEqualToString:@"room_description"]) {
-        UITextField *textField = step[@"textField"];
-        
         // check for similar names
         [self greyOutNextButton];
         [self showSpinnerForStep:self.currentStep];
         
-        [self getSimilarRooms:textField.text];
+        [self getSimilarRooms];
     }
     else if ([step[@"id"] isEqualToString:@"room_color"]) {
         // create that room!
@@ -614,17 +645,21 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
         if ([nextStep[@"id"] isEqualToString:@"room_color"]) {
             [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
                 self.nextButton.backgroundColor = [self currentColor];
+                self.nextButton.enabled = true;
                 self.closeButton.tintColor = [self currentColor];
             } completion:nil];
         }
         if ([nextStep[@"id"] isEqualToString:@"room_share"]) {
             // remove previously selected color
-            UIButton *shareField = [nextBlock viewWithTag:10];
+            UILabel *copyLabel = [nextBlock viewWithTag:12];
             UIButton *shareRoomButton = [nextBlock viewWithTag:11];
-            shareRoomButton.tintColor = [self currentColor];
-            [shareRoomButton setTitleColor:[self currentColor] forState:UIControlStateNormal];
-            shareRoomButton.layer.borderColor = [[self currentColor] colorWithAlphaComponent:0.2f].CGColor;
-            [shareField setTitle:@"blah blah blah" forState:UIControlStateNormal];
+            copyLabel.textColor = [self currentColor];
+            shareRoomButton.tintColor = copyLabel.textColor;
+            [shareRoomButton setTitleColor:copyLabel.textColor forState:UIControlStateNormal];
+            shareRoomButton.layer.borderColor = [copyLabel.textColor colorWithAlphaComponent:0.2f].CGColor;
+            
+            self.nextButton.backgroundColor = copyLabel.textColor;
+            self.nextButton.enabled = true;
             
             self.closeButton.userInteractionEnabled = false;
             [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
@@ -641,7 +676,7 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
             [confettiArea burstAt:CGPointMake(self.view.frame.size.width / 2, -80) confettiWidth:12.f numberOfConfetti:60];
         }
         
-        if ([nextStep objectForKey:@"textField"] && ![nextStep[@"textfield"] isEqual:[NSNull null]]) {
+        if ([nextStep objectForKey:@"textField"] && ![nextStep[@"textField"] isEqual:[NSNull null]]) {
             UITextField *nextTextField = nextStep[@"textField"];
             
             CGFloat delay = self.currentStep == -1 ? 0.4f : 0;
@@ -723,17 +758,28 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
         
     }
 }
-- (void)getSimilarRooms:(NSString *)roomName {
-    NSLog(@"getSimilarRooms()");
+- (void)getSimilarRooms {
+    int roomNameIndex = [self getIndexOfStepWithId:@"room_name"];
+    NSString *roomName = ((UITextField *)self.steps[roomNameIndex][@"textField"]).text;
+    int roomDescriptionIndex = [self getIndexOfStepWithId:@"room_description"];
+    NSString *roomDescription = ((UITextField *)self.steps[roomDescriptionIndex][@"textField"]).text;
+    
+    NSString *query = roomName;
+    if (roomDescription.length > 0) {
+        query = [query stringByAppendingString:[NSString stringWithFormat:@" %@", roomDescription]];
+    }
+    
     [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
         if (success) {
             [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
             
             NSString *url = [NSString stringWithFormat:@"%@/%@/search/rooms", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"]];
-            [self.manager GET:url parameters:@{@"q": roomName} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+            NSLog(@"url: %@", url);
+            NSLog(@"q: %@", query);
+            [self.manager GET:url parameters:@{@"q": query} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 // NSLog(@"CreateRoomViewController / getSimilarRooms() success! ✅");
                 
-                // NSLog(@"response: %@", responseObject[@"data"][@"results"][@"rooms"]);
+                NSLog(@"response: %@", responseObject[@"data"][@"results"][@"rooms"]);
                 
                 NSArray *responseData = (NSArray *)responseObject[@"data"][@"results"][@"rooms"];
                 
@@ -752,17 +798,21 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
                 else {
                     [mutableDict setObject:[NSNumber numberWithBool:true] forKey:@"skip"];
                 }
+                [self.steps replaceObjectAtIndex:similarRoomsStepIndex withObject:mutableDict];
                 
                 self.nextButton.enabled = true;
-                [self.steps replaceObjectAtIndex:similarRoomsStepIndex withObject:mutableDict];
                 
                 [self removeSpinnerForStep:self.currentStep];
                 [self nextStep:true];
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                NSLog(@"FeedViewController / getPosts() - error: %@", error);
+                NSLog(@"CreateRoomViewController / getSimilarRooms() - error: %@", error);
                 //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
                 
-                [self.similarRoomsCollectionView reloadData];
+                // just skip it...
+                int similarRoomsStepIndex = [self getIndexOfStepWithId:@"room_similar"];
+                NSMutableDictionary *mutableDict = [[NSMutableDictionary alloc] initWithDictionary:self.steps[similarRoomsStepIndex]];
+                [mutableDict setObject:[NSNumber numberWithBool:true] forKey:@"skip"];
+                [self.steps replaceObjectAtIndex:similarRoomsStepIndex withObject:mutableDict];
                 
                 [self nextStep:true];
             }];
@@ -790,23 +840,23 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
     int themeAndPrivacyStep = [self getIndexOfStepWithId:@"room_color"];
     UIView *nextBlock = self.steps[themeAndPrivacyStep][@"block"];
     UISwitch *isPrivateSwitch = [nextBlock viewWithTag:10];
-    BOOL isPrivate = !isPrivateSwitch.on;
+    BOOL visibility = !isPrivateSwitch.on;
     
-    NSLog(@"params: %@", @{@"title": roomTitle, @"description": roomDescription, @"color": roomColor, @"visibility": [NSNumber numberWithBool:isPrivate]});
+    NSLog(@"params: %@", @{@"title": roomTitle, @"description": roomDescription, @"color": roomColor, @"visibility": [NSNumber numberWithBool:visibility]});
 
     [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
         if (success) {
             [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
             
             [self.manager.requestSerializer setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
-            [self.manager POST:url parameters:@{@"title": roomTitle, @"description": roomDescription, @"color": roomColor, @"visibility": [NSNumber numberWithBool:isPrivate]} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+            [self.manager POST:url parameters:@{@"title": roomTitle, @"description": roomDescription, @"color": roomColor, @"visibility": [NSNumber numberWithBool:visibility]} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 NSError *error;
                 Room *room = [[Room alloc] initWithDictionary:responseObject[@"data"] error:&error];
                 
                 int shareStep = [self getIndexOfStepWithId:@"room_share"];
                 UIView *shareBlock = self.steps[shareStep][@"block"];
                 UIButton *shareField = [shareBlock viewWithTag:10];
-                [shareField setTitle:[NSString stringWithFormat:@"https://rooms.co/%@", room.identifier] forState:UIControlStateNormal];
+                [shareField setTitle:[NSString stringWithFormat:@"https://joinbonfire.com/camp/%@", room.attributes.details.identifier] forState:UIControlStateNormal];
                 // update url
                 
                 
@@ -827,12 +877,7 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
                 [self.nextButton bk_whenTapped:^{
                     [self setEditing:false animated:YES];
                     
-                    ComplexNavigationController *launchNavVC = (ComplexNavigationController *)self.presentingViewController;
-                    NSLog(@"launchNavVc: %@", launchNavVC);
-                    
                     [self dismissViewControllerAnimated:YES completion:^{
-                        NSLog(@"launchNavVc 2: %@", launchNavVC);
-                        
                         [[Launcher sharedInstance] openRoom:room];
                     }];
                 }];
@@ -875,7 +920,7 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
     miniSpinner.tintColor = self.view.tintColor;
     miniSpinner.center = CGPointMake(block.frame.size.width / 2, block.frame.size.height / 2);
     miniSpinner.alpha = 0;
-    miniSpinner.tag = 1111;
+    miniSpinner.tag = 112;
     
     CABasicAnimation *rotationAnimation;
     rotationAnimation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.z"];
@@ -902,17 +947,13 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
 - (void)removeSpinnerForStep:(int)step {
     UIView *block = (UIView *)[[self.steps objectAtIndex:step] objectForKey:@"block"];
     UITextField *textField = (UITextField *)[[self.steps objectAtIndex:step] objectForKey:@"textField"];
-    UIImageView *miniSpinner = [block viewWithTag:1111];
-    
-    NSLog(@"textField: %@", textField);
+    UIImageView *miniSpinner = [block viewWithTag:112];
     
     [UIView animateWithDuration:0.6f delay:0 options:UIViewAnimationOptionTransitionCrossDissolve animations:^{
         miniSpinner.alpha = 0;
     } completion:^(BOOL finished) {
         [miniSpinner removeFromSuperview];
-        
-        NSLog(@"hola: %@", textField);
-        
+                
         [UIView transitionWithView:textField duration:0.3 options:UIViewAnimationOptionTransitionCrossDissolve animations:^{
             textField.textColor = [UIColor colorWithWhite:0.2f alpha:1];
             textField.tintColor = [self.view tintColor];
@@ -933,7 +974,7 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
     spinner.tintColor = [self currentColor];
     spinner.center = self.view.center;
     spinner.alpha = 0;
-    spinner.tag = 1111;
+    spinner.tag = 111;
     
     CABasicAnimation *rotationAnimation;
     rotationAnimation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.z"];
@@ -955,7 +996,7 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
 }
 - (void)removeBigSpinnerForStep:(int)step push:(BOOL)push {
     UIView *block = (UIView *)[[self.steps objectAtIndex:step] objectForKey:@"block"];
-    UIImageView *spinner = [self.view viewWithTag:1111];
+    UIImageView *spinner = [self.view viewWithTag:111];
     
     [UIView animateWithDuration:0.3f delay:0 options:UIViewAnimationOptionTransitionCrossDissolve animations:^{
         spinner.alpha = 0;
@@ -1003,88 +1044,88 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
     }
 }
 - (__kindof UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
-    MiniChannelCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:miniChannelReuseIdentifier forIndexPath:indexPath];
-    
-    if (self.loadingSimilarRooms) {
-        cell.backgroundColor = [UIColor colorWithWhite:0.95 alpha:1];
-        cell.title.layer.cornerRadius = 6.f;
-        cell.title.textColor = [UIColor clearColor];
-        cell.title.layer.masksToBounds = true;
-        cell.title.backgroundColor = [UIColor whiteColor];
-        cell.title.text = @"Loading";
-        cell.title.textColor = [UIColor whiteColor];
+    if (self.loadingSimilarRooms || self.similarRooms.count > 0) {
+        LargeRoomCardCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:largeCardReuseIdentifier forIndexPath:indexPath];
         
-        cell.ticker.hidden = true;
-    }
-    else {
-        NSError *error;
-        Room *room = [[Room alloc] initWithDictionary:self.similarRooms[indexPath.item] error:&error];
+        cell.loading = self.loadingSimilarRooms;
         
-        NSLog(@"room at index: %@", room);
-        
-        if (!error) {
-            cell.room = room;
+        if (!cell.loading) {
+            NSError *error;
+            cell.room = [[Room alloc] initWithDictionary:self.similarRooms[indexPath.item] error:&error];
+            cell.tintColor = [UIColor fromHex:cell.room.attributes.details.color];
             
-            cell.title.text = room.attributes.details.title;
-            cell.title.textColor = [UIColor whiteColor];
-            cell.title.backgroundColor = [UIColor clearColor];
-            
-            cell.backgroundColor = [UIColor fromHex:room.attributes.details.color];
-            
-            if (room.attributes.summaries.counts.live >= [Session sharedInstance].defaults.room.liveThreshold) {
-                // show live ticker
-                cell.ticker.hidden = false;
-                [cell.ticker setTitle:[NSString stringWithFormat:@"%ld", (long)room.attributes.summaries.counts.live] forState:UIControlStateNormal];
-                cell.membersView.hidden = true;
-            }
-            else {
-                // show member counts
-                cell.ticker.hidden = true;
+            cell.roomHeaderView.backgroundColor = [UIColor fromHex:cell.room.attributes.details.color];
+            // set profile pictures
+            for (int i = 0; i < 4; i++) {
+                BFAvatarView *avatarView;
+                if (i == 0) { avatarView = cell.member1; }
+                else if (i == 1) { avatarView = cell.member2; }
+                else if (i == 2) { avatarView = cell.member3; }
+                else { avatarView = cell.member4; }
                 
-                cell.membersView.hidden = false;
-                for (int i = 0; i < cell.membersView.subviews.count; i++) {
-                    if ([cell.membersView.subviews[i] isKindOfClass:[UIImageView class]]) {
-                        UIImageView *imageView = cell.membersView.subviews[i];
-                        if (cell.room.attributes.summaries.members.count > imageView.tag) {
-                            imageView.hidden = false;
-                            
-
-                            NSError *userError;
-                            User *userForImageView = [[User alloc] initWithDictionary:(NSDictionary *)room.attributes.summaries.members[imageView.tag] error:&userError];
-                            
-                            UIImage *anonymousProfilePic = [UIImage imageNamed:@"anonymous"];
-                            
-                            if (!userError) {
-                                NSString *picURL = userForImageView.attributes.details.media.profilePicture;
-                                if (picURL.length > 0) {
-                                    [imageView sd_setImageWithURL:[NSURL URLWithString:picURL]];
-                                }
-                                else {
-                                    [imageView setImage:anonymousProfilePic];
-                                }
-                            }
-                            else {
-                                [imageView setImage:anonymousProfilePic];
-                            }
-                        }
-                        else {
-                            imageView.hidden = true;
-                        }
-                    }
+                if (cell.room.attributes.summaries.members.count > i) {
+                    avatarView.superview.hidden = false;
+                    
+                    NSError *userError;
+                    User *userForImageView = [[User alloc] initWithDictionary:(NSDictionary *)cell.room.attributes.summaries.members[i] error:&userError];
+                    
+                    avatarView.user = userForImageView;
+                }
+                else {
+                    avatarView.superview.hidden = true;
                 }
             }
             
+            cell.roomTitleLabel.text = cell.room.attributes.details.title;
+            cell.roomDescriptionLabel.text = cell.room.attributes.details.theDescription;
+            
+            cell.profilePicture.tintColor = [UIColor fromHex:cell.room.attributes.details.color];
+            
+            if (cell.room.attributes.status.isBlocked) {
+                [cell.followButton updateStatus:ROOM_STATUS_ROOM_BLOCKED];
+            }
+            else if (self.loadingSimilarRooms && cell.room.attributes.context == nil) {
+                [cell.followButton updateStatus:ROOM_STATUS_LOADING];
+            }
+            else {
+                [cell.followButton updateStatus:cell.room.attributes.context.status];
+            }
+            
+            DefaultsRoomMembersTitle *membersTitle = [Session sharedInstance].defaults.room.membersTitle;
+            if (cell.room.attributes.summaries.counts.members) {
+                NSInteger members = cell.room.attributes.summaries.counts.members;
+                cell.membersLabel.text = [NSString stringWithFormat:@"%ld %@", members, members == 1 ? [membersTitle.singular lowercaseString] : [membersTitle.plural lowercaseString]];
+                cell.membersLabel.alpha = 1;
+            }
+            else {
+                cell.membersLabel.text = [NSString stringWithFormat:@"0 %@", [membersTitle.plural lowercaseString]];
+                cell.membersLabel.alpha = 0.5;
+            }
+            
+            if (cell.room.attributes.summaries.counts.posts) {
+                NSInteger posts = (long)cell.room.attributes.summaries.counts.posts;
+                cell.postsCountLabel.text = [NSString stringWithFormat:@"%ld %@", posts, posts == 1 ? @"post" : @"posts"];
+                cell.postsCountLabel.alpha = 1;
+            }
+            else {
+                cell.postsCountLabel.text = @"0 posts";
+                cell.postsCountLabel.alpha = 0.5;
+            }
+            
+            [cell layoutSubviews];
         }
         
-        [cell layoutSubviews];
+        return cell;
     }
     
-    return cell;
+    // if all else fails, return a blank cell
+    UICollectionViewCell *blankCell = [collectionView dequeueReusableCellWithReuseIdentifier:blankCellIdentifier forIndexPath:indexPath];
+    return blankCell;
 }
 - (CGSize)collectionView:(UICollectionView *)collectionView
                   layout:(UICollectionViewLayout *)collectionViewLayout
   sizeForItemAtIndexPath:(NSIndexPath *)indexPath {
-    return CGSizeMake(180, 240);
+    return CGSizeMake(268, 304);
 }
 
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
@@ -1107,7 +1148,7 @@ static NSString * const miniChannelReuseIdentifier = @"MiniChannel";
     RoomViewController *r = [[RoomViewController alloc] init];
     
     r.room = room;
-    r.theme = [UIColor fromHex:room.attributes.details.color.length == 6 ? room.attributes.details.color : @"707479"];
+    r.theme = [UIColor fromHex:room.attributes.details.color.length == 6 ? room.attributes.details.color : @"7d8a99"];
     
     r.title = r.room.attributes.details.title ? r.room.attributes.details.title : @"Loading...";
     

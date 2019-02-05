@@ -11,6 +11,9 @@
 #import "Session.h"
 #import "NSDate+NVTimeAgo.h"
 #import <Tweaks/FBTweakInline.h>
+#import <BlocksKit/BlocksKit.h>
+#import <BlocksKit/BlocksKit+UIKit.h>
+#import "Launcher.h"
 
 @implementation NotificationCell
 
@@ -33,25 +36,10 @@
         self.accessoryType = UITableViewCellAccessoryNone;
         self.separatorInset = UIEdgeInsetsMake(0, screenWidth, 0, 0);
         
-        self.profilePicture = [[UIImageView alloc] initWithFrame:CGRectMake(16, 10, 42, 42)];
-
-        BOOL circleProfilePictures = FBTweakValue(@"Post", @"General", @"Circle Profile Pictures", NO);
-        if (circleProfilePictures) {
-            self.profilePicture.layer.cornerRadius = self.profilePicture.frame.size.height * .5;
-        }
-        else {
-            self.profilePicture.layer.cornerRadius = self.profilePicture.frame.size.height * .25;
-        }
-        
-        self.profilePicture.layer.borderColor = [UIColor colorWithWhite:0 alpha:0.06f].CGColor;
-        self.profilePicture.layer.borderWidth = 1.f;
-        self.profilePicture.layer.masksToBounds = true;
-        self.profilePicture.contentMode = UIViewContentModeScaleAspectFill;
-        [self.profilePicture setImage:[[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
-        self.profilePicture.tintColor = [UIColor bonfireGray];
+        self.profilePicture = [[BFAvatarView alloc] initWithFrame:CGRectMake(12, 10, 48, 48)];
         [self.contentView addSubview:self.profilePicture];
         
-        self.typeIndicator = [[UIImageView alloc] initWithFrame:CGRectMake(self.profilePicture.frame.origin.x + self.profilePicture.frame.size.width - 18 + 2, self.profilePicture.frame.origin.y + self.profilePicture.frame.size.height - 18 + 2, 18, 18)];
+        self.typeIndicator = [[UIImageView alloc] initWithFrame:CGRectMake(self.profilePicture.frame.origin.x + self.profilePicture.frame.size.width - 26 + 1, self.profilePicture.frame.origin.y + self.profilePicture.frame.size.height - 26 + 1, 26, 26)];
         self.typeIndicator.layer.cornerRadius = self.typeIndicator.frame.size.height / 2;
         self.typeIndicator.layer.masksToBounds = false;
         self.typeIndicator.backgroundColor = [UIColor colorWithWhite:0.2f alpha:1];
@@ -63,18 +51,44 @@
         self.typeIndicator.tintColor = [UIColor whiteColor];
         [self.contentView addSubview:self.typeIndicator];
         
-        self.actionButton = [[UIButton alloc] initWithFrame:CGRectMake(self.frame.size.width - 96 - 16, 16, 96, 32)];
+        self.actionButton = [[UIButton alloc] initWithFrame:CGRectMake(self.frame.size.width - 96 - 36, 0, 96, 32)];
         self.actionButton.center = CGPointMake(self.actionButton.center.x, self.profilePicture.center.y);
         self.actionButton.layer.cornerRadius = 6.f;
         self.actionButton.layer.masksToBounds = true;
         self.actionButton.layer.borderColor = [UIColor colorWithRed:0.92 green:0.93 blue:0.94 alpha:1.0].CGColor;
         self.actionButton.layer.borderWidth = 0;
         self.actionButton.titleLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightBold];
+        
+        [self.actionButton bk_addEventHandler:^(id sender) {
+            [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+                self.actionButton.transform = CGAffineTransformMakeScale(0.92, 0.92);
+            } completion:nil];
+        } forControlEvents:UIControlEventTouchDown];
+        [self.actionButton bk_addEventHandler:^(id sender) {
+            [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+                self.actionButton.transform = CGAffineTransformIdentity;
+            } completion:nil];
+        } forControlEvents:(UIControlEventTouchUpInside|UIControlEventTouchCancel|UIControlEventTouchDragExit)];
+        [self.actionButton bk_whenTapped:^{
+            [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+                self.actionButton.transform = CGAffineTransformIdentity;
+            } completion:nil];
+        }];
         [self.contentView addSubview:self.actionButton];
         
-        self.textLabel.frame = CGRectMake(70, 12, self.frame.size.width - 70 - self.actionButton.frame.size.width - 10, 32);
-        self.textLabel.font = [UIFont systemFontOfSize:15.f weight:UIFontWeightRegular];
-        self.textLabel.textColor = [UIColor colorWithWhite:0.2f alpha:1];
+        self.moreButton = [UIButton buttonWithType:UIButtonTypeSystem];
+        self.moreButton.frame = CGRectMake(self.frame.size.width - 36, 18, 36, 44);
+        [self.moreButton setImage:[UIImage imageNamed:@"notificationsMoreIcon"] forState:UIControlStateNormal];
+        self.moreButton.tintColor = [UIColor bonfireGrayWithLevel:700];
+        self.moreButton.center = CGPointMake(self.moreButton.center.x, self.profilePicture.center.y);
+        [self.moreButton bk_whenTapped:^{
+            [self presentNotificationActions];
+        }];
+        [self.contentView addSubview:self.moreButton];
+        
+        self.textLabel.frame = CGRectMake(70, 18, self.frame.size.width - 70 - self.actionButton.frame.size.width - 6, 32);
+        self.textLabel.font = [UIFont systemFontOfSize:15.f];
+        self.textLabel.textColor = [UIColor bonfireGrayWithLevel:900];
     }
     else {
         
@@ -86,9 +100,12 @@
 - (void)layoutSubviews {
     [super layoutSubviews];
     
-    self.actionButton.frame = CGRectMake(self.frame.size.width - self.actionButton.frame.size.width - 16, self.actionButton.frame.origin.y, self.actionButton.frame.size.width, self.actionButton.frame.size.height);
+    self.moreButton.frame = CGRectMake(self.frame.size.width - self.moreButton.frame.size.width, self.profilePicture.frame.origin.y + (self.profilePicture.frame.size.height / 2) - (self.moreButton.frame.size.height / 2), self.moreButton.frame.size.width, self.moreButton.frame.size.height);
+    self.actionButton.frame = CGRectMake(self.frame.size.width - self.actionButton.frame.size.width - 36, self.actionButton.frame.origin.y, self.actionButton.frame.size.width, self.actionButton.frame.size.height);
     
-    CGFloat textLabelWidth = self.frame.size.width - 70 - self.actionButton.frame.size.width - 16  - 10;
+    CGFloat textLabelWidth = self.actionButton.frame.origin.x - 70 - 6;
+    
+    NSLog(@"textLabelWidth: %f", textLabelWidth);
     CGRect textLabelRect = [self.textLabel.attributedText boundingRectWithSize:CGSizeMake(textLabelWidth, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) context:nil];
     CGFloat textLabelHeight = textLabelRect.size.height;
     
@@ -97,11 +114,14 @@
     int lineCount = roundf(rHeight/charSize);
     
     if (lineCount == 1) {
-        self.textLabel.frame = CGRectMake(70, 12, textLabelWidth, textLabelRect.size.height);
+        self.textLabel.frame = CGRectMake(70, 18, textLabelWidth, ceilf(textLabelRect.size.height));
         self.textLabel.center = CGPointMake(self.textLabel.center.x, self.profilePicture.center.y);
     }
+    else if (lineCount == 2) {
+        self.textLabel.frame = CGRectMake(70, 18, textLabelWidth, ceilf(textLabelRect.size.height));
+    }
     else {
-        self.textLabel.frame = CGRectMake(70, 12, textLabelWidth, textLabelRect.size.height);
+        self.textLabel.frame = CGRectMake(70, 12, textLabelWidth, ceilf(textLabelRect.size.height));
     }
 }
 
@@ -114,7 +134,6 @@
         
         switch (type) {
             case NotificationTypeUserNewFollower:
-                NSLog(@"NotificationTypeUserNewFollower");
                 self.typeIndicator.image = [UIImage imageNamed:@"notificationIndicator_profile"];
                 self.typeIndicator.backgroundColor = [UIColor bonfireBlue];
                 // TODO: set dynamically based on following context
@@ -165,10 +184,10 @@
             case NotificationStateOutline:
                 self.actionButton.backgroundColor = [UIColor clearColor];
                 self.actionButton.layer.borderWidth = 1.f;
-                [self.actionButton setTitleColor:[UIColor colorWithWhite:0.2f alpha:1] forState:UIControlStateNormal];
+                [self.actionButton setTitleColor:[UIColor bonfireGrayWithLevel:900] forState:UIControlStateNormal];
                 break;
             case NotificationStateFilled:
-                self.actionButton.backgroundColor = [Session sharedInstance].themeColor;
+                self.actionButton.backgroundColor = [UIColor bonfireBrand];
                 self.actionButton.layer.borderWidth = 0;
                 [self.actionButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
                 break;
@@ -190,6 +209,26 @@
             self.contentView.backgroundColor = [UIColor clearColor];
         } completion:nil];
     }
+}
+
+- (void)presentNotificationActions {
+    UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:nil message:nil preferredStyle:UIAlertControllerStyleActionSheet];
+    actionSheet.view.tintColor = [UIColor colorWithWhite:0.2 alpha:1];
+    
+    // imessage , share via...
+    
+    UIAlertAction *hideAction = [UIAlertAction actionWithTitle:@"Hide this Notification" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        NSLog(@"Hide this Notifications");
+    }];
+    [actionSheet addAction:hideAction];
+    
+    UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+        NSLog(@"cancel");
+    }];
+    [cancel setValue:[UIColor bonfireBrand] forKey:@"titleTextColor"];
+    [actionSheet addAction:cancel];
+    
+    [[Launcher sharedInstance].activeViewController presentViewController:actionSheet animated:YES completion:nil];
 }
 
 @end

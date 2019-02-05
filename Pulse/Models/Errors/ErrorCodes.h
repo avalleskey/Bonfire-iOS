@@ -54,6 +54,7 @@ extern const NSInteger RESOURCE_OWNERSHIP_FAILURE;
 extern const NSInteger USER_PASSWORD_REQ_RESET;
 extern const NSInteger USER_PROFILE_SUSPENDED;
 extern const NSInteger USER_EMAIL_TAKEN;
+extern const NSInteger USER_USERNAME_TAKEN;
 
 /**
  * Errors 90-99: Generic errors

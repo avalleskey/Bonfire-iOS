@@ -95,3 +95,19 @@
 }
 
 @end
+
+@implementation DefaultsLogging
+
+@end
+
+@implementation DefaultsLoggingInsights
+
+@end
+
+@implementation DefaultsLoggingInsightsImpressions
+
+@end
+
+@implementation DefaultsLoggingInsightsImpressionsBatching
+
+@end

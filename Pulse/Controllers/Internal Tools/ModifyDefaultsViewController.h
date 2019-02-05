@@ -12,9 +12,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface ModifyDefaultsViewController : UITableViewController
 
-- initWithData:(id) data;
-- (void) setData:(id)data;
-
 @property (strong, nonatomic) UIView *navigationBackgroundView;
 
 @property (strong, nonatomic) UIBarButtonItem *cancelButton;

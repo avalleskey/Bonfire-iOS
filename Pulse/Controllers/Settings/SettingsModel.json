@@ -1,0 +1,83 @@
+{
+    "sections": [
+        {
+            "id": "my_account",
+            "title": "@{username}",
+            "rows": [
+                {
+                    "id": "edit_profile",
+                    "title": "Edit Profile",
+                    "present": true
+                },
+                {
+                    "id": "change_password",
+                    "title": "Change Password",
+                    "push": true
+                },
+                {
+                    "id": "notifications",
+                    "title": "Notifications",
+                    "push": true
+                }
+            ]
+        },
+        {
+            "id": "about_bonfire",
+            "title": "Bonfire",
+            "footer": "Version {app_version}",
+            "rows": [
+                {
+                    "id": "get_help",
+                    "title": "Get Help",
+                    "present": true
+                },
+                {
+                    "id": "give_feedback",
+                    "title": "Give Feedback",
+                    "present": true
+                },
+                {
+                    "id": "rate_app_store",
+                    "title": "Rate us on the App Store",
+                    "present": true
+                },
+                {
+                    "id": "community_guidelines",
+                    "title": "Community Guidelines",
+                    "push": true
+                },
+                {
+                    "id": "legal",
+                    "title": "Legal",
+                    "push": true
+                }
+            ]
+        },
+        {
+            "id": "bonfire_beta",
+            "title": "Bonfire Beta",
+            "footer": "Build {build_version}",
+            "rows": [
+                {
+                    "id": "report_bug",
+                    "title": "Report a Bug",
+                    "present": true
+                },
+                {
+                    "id": "invite_friends_beta",
+                    "title": "Copy Beta Invite Link"
+                }
+            ]
+        },
+        {
+            "id": "sign_out",
+            "rows": [
+                {
+                    "id": "sign_out",
+                    "title": "Sign Out",
+                    "destructive": true
+                }
+            ]
+        }
+    ]
+}

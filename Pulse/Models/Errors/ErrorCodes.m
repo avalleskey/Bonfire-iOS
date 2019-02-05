@@ -52,6 +52,7 @@ const NSInteger RESOURCE_OWNERSHIP_FAILURE = 78;
 const NSInteger USER_PASSWORD_REQ_RESET = 80;
 const NSInteger USER_PROFILE_SUSPENDED  = 81;
 const NSInteger USER_EMAIL_TAKEN        = 82;
+const NSInteger USER_USERNAME_TAKEN     = 83;
 
 /**
  * Errors 90-99: Generic errors

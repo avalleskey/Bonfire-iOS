@@ -21,16 +21,21 @@ typedef enum {
     FeedTypeTrending = 1
 } FeedType;
 
+enum {
+    MAX_FEED_CACHED_POSTS = 100
+};
+
 - (id)initWithFeedType:(FeedType)feedType;
 @property (strong, nonatomic) HAWebService *manager;
 
 @property (strong, nonatomic) UIScrollView *scrollView;
 @property (strong, nonatomic) Room *room;
-@property (strong, nonatomic) NSMutableArray *content;
 @property (nonatomic, strong) ErrorView *errorView;
 
 @property (nonatomic) FeedType feedType;
 @property (nonatomic) int previousScrollOffset;
 @property (nonatomic) CGFloat currentKeyboardHeight;
+
+@property (strong, nonatomic) UIButton *morePostsIndicator;
 
 @end

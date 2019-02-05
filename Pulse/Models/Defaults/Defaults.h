@@ -18,6 +18,10 @@
 @class DefaultsRoomMembersTitle;
 @class DefaultsOnboarding;
 @class DefaultsOnboardingMyRooms;
+@class DefaultsLogging;
+@class DefaultsLoggingInsights;
+@class DefaultsLoggingInsightsImpressions;
+@class DefaultsLoggingInsightsImpressionsBatching;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -29,6 +33,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic) DefaultsSharing <Optional> *sharing;
 @property (nonatomic) DefaultsRoom <Optional> *room;
 @property (nonatomic) DefaultsOnboarding <Optional> *onboarding;
+@property (nonatomic) DefaultsLogging <Optional> *logging;
 
 @end
 
@@ -98,6 +103,31 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic) NSString <Optional> *title;
 @property (nonatomic) NSString <Optional> *theDescription;
+
+@end
+
+@interface DefaultsLogging : JSONModel
+
+@property (nonatomic) DefaultsLoggingInsights <Optional> *insights;
+
+@end
+
+@interface DefaultsLoggingInsights : JSONModel
+
+@property (nonatomic) DefaultsLoggingInsightsImpressions <Optional> *impressions;
+
+@end
+
+@interface DefaultsLoggingInsightsImpressions : JSONModel
+
+@property (nonatomic) DefaultsLoggingInsightsImpressionsBatching <Optional> *batching;
+
+@end
+
+@interface DefaultsLoggingInsightsImpressionsBatching : JSONModel
+
+@property (nonatomic) NSInteger max_timeframes;
+@property (nonatomic) NSInteger max_length_hrs;
 
 @end
 

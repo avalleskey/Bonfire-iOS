@@ -12,19 +12,21 @@
 #import "ProfilePictureCell.h"
 #import "ThemeSelectorCell.h"
 #import "InputCell.h"
-#import "ButtonCell.h"
+#import "ToggleCell.h"
 #import "AppDelegate.h"
 #import "HAWebService.h"
 #import "UIColor+Palette.h"
+#import "Launcher.h"
+#import "NSString+Validation.h"
 
 #import <RSKImageCropper/RSKImageCropper.h>
 #import <BlocksKit/BlocksKit.h>
 #import <BlocksKit/BlocksKit+UIKit.h>
 #import <JGProgressHUD/JGProgressHUD.h>
 
-#define envConfig [[[NSUserDefaults standardUserDefaults] objectForKey:@"config"] objectForKey:[[NSUserDefaults standardUserDefaults] stringForKey:@"environment"]]
+#define ROOM_PRIVATE_DESCRIPTION @"When your Room is private, only people you approve can see content posted inside your Room. Your existing members won’t be affected."
 
-@interface EditRoomViewController () <UITextFieldDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate, RSKImageCropViewControllerDelegate, RSKImageCropViewControllerDataSource>
+@interface EditRoomViewController () <UITextFieldDelegate, UITextViewDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate, RSKImageCropViewControllerDelegate, RSKImageCropViewControllerDataSource>
 
 @property (strong, nonatomic) HAWebService *manager;
 
@@ -37,22 +39,22 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
 static NSString * const profilePictureReuseIdentifier = @"ProfilePictureCell";
 static NSString * const themeSelectorReuseIdentifier = @"ThemeSelectorCell";
 static NSString * const inputReuseIdentifier = @"InputCell";
-static NSString * const buttonReuseIdentifier = @"ButtonCell";
+static NSString * const toggleReuseIdentifier = @"ToggleCell";
 
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    self.title = @"Edit Room";
+    self.title = @"Edit Camp";
     
     self.manager = [HAWebService manager];
     
     self.cancelButton = [[UIBarButtonItem alloc] initWithTitle:@"Cancel" style:UIBarButtonItemStylePlain target:self action:@selector(dismiss:)];
     [self.cancelButton setTintColor:[UIColor whiteColor]];
     [self.cancelButton setTitleTextAttributes:@{
-                                         NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightMedium]
+                                         NSFontAttributeName: [UIFont systemFontOfSize:17.f weight:UIFontWeightMedium]
                                          } forState:UIControlStateNormal];
     [self.cancelButton setTitleTextAttributes:@{
-                                              NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightMedium]
+                                              NSFontAttributeName: [UIFont systemFontOfSize:17.f weight:UIFontWeightMedium]
                                               } forState:UIControlStateHighlighted];
     self.navigationItem.leftBarButtonItem = self.cancelButton;
     
@@ -61,17 +63,17 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     }];
     [self.saveButton setTintColor:[UIColor whiteColor]];
     [self.saveButton setTitleTextAttributes:@{
-                                           NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightBold]
+                                           NSFontAttributeName: [UIFont systemFontOfSize:17.f weight:UIFontWeightBold]
                                            } forState:UIControlStateNormal];
     [self.saveButton setTitleTextAttributes:@{
-                                              NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightBold]
+                                              NSFontAttributeName: [UIFont systemFontOfSize:17.f weight:UIFontWeightBold]
                                               } forState:UIControlStateHighlighted];
     self.navigationItem.rightBarButtonItem = self.saveButton;
     
     
     self.tableView.backgroundColor = [UIColor headerBackgroundColor];
-    self.tableView.separatorInset = UIEdgeInsetsZero;
-    self.tableView.separatorColor = [UIColor colorWithWhite:0.92 alpha:1];
+    self.tableView.separatorInset = UIEdgeInsetsMake(0, 16, 0, 0);
+    self.tableView.separatorColor = [UIColor separatorColor];
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
     self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 48, 0);
     
@@ -90,7 +92,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     [self.tableView registerClass:[ProfilePictureCell class] forCellReuseIdentifier:profilePictureReuseIdentifier];
     [self.tableView registerClass:[ThemeSelectorCell class] forCellReuseIdentifier:themeSelectorReuseIdentifier];
     [self.tableView registerClass:[InputCell class] forCellReuseIdentifier:inputReuseIdentifier];
-    [self.tableView registerClass:[ButtonCell class] forCellReuseIdentifier:buttonReuseIdentifier];
+    [self.tableView registerClass:[ToggleCell class] forCellReuseIdentifier:toggleReuseIdentifier];
 }
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
@@ -106,10 +108,9 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     [self.view endEditing:TRUE];
     
     NSDictionary *changes = [self changes];
-    
     NSLog(@"changes: %@", changes);
     
-    if (changes != nil && changes.count > 0) {
+    if (changes != false && changes.count > 0) {
         // requirements have been met and there's more than one change to save
         
         JGProgressHUD *HUD = [JGProgressHUD progressHUDWithStyle:JGProgressHUDStyleExtraLight];
@@ -153,49 +154,110 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
             }];
         }];
     }
-    else {
+    else if (changes != false) {
         [self dismiss:nil];
     }
 }
 - (NSDictionary *)changes {
     NSMutableDictionary *changes = [[NSMutableDictionary alloc] init];
     
-    InputCell *roomNameCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:2 inSection:0]];
+    InputCell *roomNameCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:1 inSection:0]];
     NSString *roomName = roomNameCell.input.text;
     
     if (![roomName isEqualToString:self.room.attributes.details.title]) {
-        if (roomName.length == 0) {
-            [self alertWithTitle:@"Requirements Not Met" message:@"Uh oh! Your Room's must be at least 3 characters"];
-            
-            return nil;
-        }
-        else {
+        BFValidationError error = [roomName validateBonfireRoomTitle];
+        if (error == BFValidationErrorNone) {
             // good to go!
             [changes setObject:roomName forKey:@"title"];
+        }
+        else {
+            NSString *title = @"";
+            NSString *message = @"";
+            switch (error) {
+                case BFValidationErrorTooShort:
+                    title = @"Camp Name Too Short";
+                    message = @"Your Camp name must at least 1 character long";
+                    break;
+                case BFValidationErrorTooLong:
+                    title = @"Camp Name Too Long";
+                    message = [NSString stringWithFormat:@"Your Camp name cannot be longer than 20 characters"];
+                    break;
+                    
+                default:
+                    title = @"Requirements Not Met";
+                    message = [NSString stringWithFormat:@"Please ensure that your Camp name is between 1 and 20 characters long"];
+                    break;
+            }
+            
+            [self alertWithTitle:title message:message];
+            
+            return false;
+        }
+    }
+    
+    InputCell *roomDisplayIdCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:2 inSection:0]];
+    NSString *camptag = [roomDisplayIdCell.input.text stringByReplacingOccurrencesOfString:@"#" withString:@""];
+    
+    if (![camptag isEqualToString:self.room.attributes.details.identifier]) {
+        BFValidationError error = [roomName validateBonfireRoomTag];
+        if (error == BFValidationErrorNone) {
+            // good to go!
+            [changes setObject:[camptag stringByReplacingOccurrencesOfString:@"#" withString:@""] forKey:@"identifier"];
+        }
+        else {
+            NSString *title = @"";
+            NSString *message = @"";
+            switch (error) {
+                case BFValidationErrorTooShort:
+                    title = @"#Camptag Too Short";
+                    message = @"Your Camp name must at least 1 character long";
+                    break;
+                case BFValidationErrorTooLong:
+                    title = @"#Camptag Too Long";
+                    message = [NSString stringWithFormat:@"Your #Camptag cannot be longer than %d characters", MAX_ROOM_TAG_LENGTH];
+                    break;
+                    
+                default:
+                    title = @"Requirements Not Met";
+                    message = [NSString stringWithFormat:@"Please ensure that your #Camptag is between 1 and %d characters long", MAX_ROOM_TAG_LENGTH];
+                    break;
+            }
+            
+            [self alertWithTitle:title message:message];
+            
+            return false;
         }
     }
     
     InputCell *descriptionCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:3 inSection:0]];
-    NSString *description = descriptionCell.input.text;
+    NSString *description = descriptionCell.textView.text;
     
     if (![description isEqualToString:self.room.attributes.details.theDescription]) {
         // good to go!
         [changes setObject:description forKey:@"description"];
     }
     
-    ThemeSelectorCell *themeColorCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:1 inSection:0]];
+    ThemeSelectorCell *themeColorCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:4 inSection:0]];
     NSString *themeColor = themeColorCell.selectedColor;
     
     if (![[themeColor lowercaseString] isEqualToString:[self.room.attributes.details.color lowercaseString]]) {
         if (themeColor.length != 6) {
             [self alertWithTitle:@"Invalid Favorite Color" message:@"Well... this is awkward! Try closing out and trying again!"];
             
-            return nil;
+            return false;
         }
         else {
             // good to go!
             [changes setObject:themeColor forKey:@"color"];
         }
+    }
+    
+    ToggleCell *visibilityCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:1]];
+    BOOL isPrivate = visibilityCell.toggle.on;
+    
+    if (isPrivate != self.room.attributes.status.visibility.isPrivate) {
+        // good to go!
+        [changes setObject:[NSNumber numberWithBool:!isPrivate] forKey:@"visibility"];
     }
     
     return changes;
@@ -214,11 +276,11 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
 #pragma mark - Table view data source
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    return 1;
+    return 2;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return section == 0 ? 4 : 1;
+    return section == 0 ? 5 : 1;
 }
 
 - (void)dismiss:(id)sender {
@@ -231,57 +293,84 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
             ProfilePictureCell *cell = [tableView dequeueReusableCellWithIdentifier:profilePictureReuseIdentifier forIndexPath:indexPath];
             
             // Configure the cell...
-            cell.profilePicture.layer.cornerRadius = cell.profilePicture.frame.size.height / 2;
-            cell.profilePicture.layer.masksToBounds = true;
-            
-            cell.profilePicture.image = [[UIImage imageNamed:@"anonymousGroup"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-            cell.changeProfilePictureLabel.text = @"Change Room Photo";
+            cell.changeProfilePictureLabel.textColor = self.themeColor;
             
             return cell;
         }
-        else if (indexPath.row == 1) {
-            ThemeSelectorCell *cell = [tableView dequeueReusableCellWithIdentifier:themeSelectorReuseIdentifier forIndexPath:indexPath];
-            
-            if (cell == nil) {
-                cell = [[ThemeSelectorCell alloc] initWithColor:self.room.attributes.details.color reuseIdentifier:themeSelectorReuseIdentifier];
-            }
-            
-            // Configure the cell...
-            cell.selectedColor = self.room.attributes.details.color;
-            cell.selectorLabel.text = @"Theme Color";
-            
-            return cell;
-        }
-        else if (indexPath.row == 2 || indexPath.row == 3) {
+        else if (indexPath.row == 1 || indexPath.row == 2 || indexPath.row == 3) {
             InputCell *cell = [tableView dequeueReusableCellWithIdentifier:inputReuseIdentifier forIndexPath:indexPath];
             
             // Configure the cell...
-            if (indexPath.row == 2) {
+            if (indexPath.row == 1) {
+                cell.type = InputCellTypeTextField;
                 cell.inputLabel.text = @"Name";
                 cell.input.text = self.room.attributes.details.title;
-                cell.input.placeholder = @"";
+                cell.input.placeholder = @"Name";
                 cell.input.tag = 1;
             }
-            else if (indexPath.row == 3) {
-                cell.inputLabel.text = @"Description";
-                cell.input.text = self.room.attributes.details.theDescription;
-                cell.input.placeholder = @"Optional";
+            else if (indexPath.row == 2) {
+                cell.type = InputCellTypeTextField;
+                cell.inputLabel.text = @"Camptag";
+                cell.input.text = [NSString stringWithFormat:@"#%@", self.room.attributes.details.identifier];
+                cell.input.placeholder = @"#Camptag";
                 cell.input.tag = 2;
             }
+            else if (indexPath.row == 3) {
+                cell.type = InputCellTypeTextView;
+                cell.inputLabel.text = @"Description";
+                cell.textView.text = self.room.attributes.details.theDescription;
+                cell.textView.placeholder = @"A little bit about the Camp...";
+                cell.textView.tag = 3;
+                cell.charactersRemainingLabel.text = [NSString stringWithFormat:@"%i", (int)(MAX_ROOM_DESC_LENGTH - cell.textView.text.length)];
+            }
+            
+            cell.charactersRemainingLabel.hidden = (cell.type != InputCellTypeTextView);
             
             cell.input.delegate = self;
+            cell.textView.delegate = self;
             
-            cell.input.tintColor = self.themeColor;
+            return cell;
+        }
+        else if (indexPath.row == 4) {
+            ThemeSelectorCell *cell = [tableView dequeueReusableCellWithIdentifier:themeSelectorReuseIdentifier forIndexPath:indexPath];
+            
+            // Configure the cell...
+            cell.selectedColor = self.room.attributes.details.color;
+            cell.selectorLabel.text = @"Camp Color";
             
             return cell;
         }
     }
     else if (indexPath.section == 1) {
-        ButtonCell *cell = [tableView dequeueReusableCellWithIdentifier:buttonReuseIdentifier forIndexPath:indexPath];
+        ToggleCell *cell = [tableView dequeueReusableCellWithIdentifier:toggleReuseIdentifier forIndexPath:indexPath];
         
         // Configure the cell...
-        cell.buttonLabel.text = @"Leave Room";
-        cell.buttonLabel.textColor = cell.kButtonColorDestructive;
+        cell.textLabel.text = @"Private Camp";
+        cell.toggle.on = self.room.attributes.status.visibility.isPrivate;
+        
+        if (cell.toggle.tag == 0) {
+            cell.toggle.tag = 1;
+            [cell.toggle bk_addEventHandler:^(id sender) {
+                if (!cell.toggle.isOn && self.room.attributes.status.visibility.isPrivate) {
+                    NSLog(@"toggle is now on");
+                    // confirm action
+                    UIAlertController *confirmActionSheet = [UIAlertController alertControllerWithTitle:@"Change Privacy?" message:@"When your Camp is public, everyone can see content posted inside your Camp. Also, any pending member requests will be automatically approved once you save." preferredStyle:UIAlertControllerStyleAlert];
+                    confirmActionSheet.view.tintColor = self.themeColor;
+                    
+                    UIAlertAction *cancelActionSheet = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                        [cell.toggle setOn:true animated:YES];
+                    }];
+                    [confirmActionSheet addAction:cancelActionSheet];
+                    
+                    UIAlertAction *confirmAction = [UIAlertAction actionWithTitle:@"Confirm" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                        
+                    }];
+                    [confirmActionSheet addAction:confirmAction];
+                    
+                    [self.navigationController presentViewController:confirmActionSheet animated:YES completion:nil];
+                }
+            } forControlEvents:UIControlEventValueChanged];
+        }
         
         return cell;
     }
@@ -290,25 +379,43 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     return blankCell;
 }
 
-- (void)textFieldDidBeginEditing:(UITextField *)textField {
-    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, self.tableView.frame.size.height / 2, 0);
-}
 - (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string {
     NSString *newStr = [textField.text stringByReplacingCharactersInRange:range withString:string];
     
-    NSLog(@"%@",newStr);
     if (textField.tag == 1) {
-        return newStr.length >= 1 && newStr.length <= 20 ? YES : NO;
+        return newStr.length <= MAX_ROOM_TITLE_LENGTH ? YES : NO;
     }
-    else if (textField.tag == 2) {
-        return newStr.length <= 40 ? YES : NO;
+    if (textField.tag == 2) {
+        if (newStr.length == 0) return NO;
+        
+        if ([newStr hasPrefix:@"#"]) {
+            newStr = [newStr substringFromIndex:1];
+        }
+        
+        return newStr.length <= MAX_ROOM_TAG_LENGTH ? YES : NO;
     }
     
     return YES;
 }
-- (BOOL)textFieldShouldEndEditing:(UITextField *)textField {
-    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 48, 0);
+- (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
+    NSString *newStr = [textView.text stringByReplacingCharactersInRange:range withString:text];
+    
+    if (textView.tag == 3) {
+        return newStr.length <= MAX_ROOM_DESC_LENGTH ? YES : NO;
+    }
+    
     return YES;
+}
+
+- (void)textViewDidChange:(UITextView *)textView {
+    if (textView.tag == 3) {
+        // description
+        [self.tableView beginUpdates];
+        [self.tableView endUpdates];
+        
+        InputCell *cell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:3 inSection:0]];
+        cell.charactersRemainingLabel.text = [NSString stringWithFormat:@"%i", (int)(MAX_ROOM_DESC_LENGTH - textView.text.length)];
+    }
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -316,15 +423,39 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
         if (indexPath.row == 0) {
             return 148;
         }
-        else if (indexPath.row == 1) {
-            return 106;
+        else if (indexPath.row == 1 || indexPath.row == 2) {
+            return 48;
         }
-        else if (indexPath.row == 2 || indexPath.row == 3) {
-            return 86;
+        else if (indexPath.row == 3) {
+            // profile bio -- auto resizing
+            InputCell *cell = [self.tableView cellForRowAtIndexPath:indexPath];
+            
+            NSString *text;
+            if (cell) {
+                text = cell.textView.text;
+            }
+            else {
+                text = self.room.attributes.details.theDescription;
+                if (text.length == 0) text = @" ";
+            }
+            
+            CGSize boundingSize = CGSizeMake(self.view.frame.size.width - (INPUT_CELL_LABEL_LEFT_PADDING + INPUT_CELL_TEXTVIEW_INSETS.left + INPUT_CELL_TEXTVIEW_INSETS.right) - INPUT_CELL_LABEL_WIDTH, CGFLOAT_MAX);
+            
+            CGSize prfoileBioSize = [text boundingRectWithSize:boundingSize options:(NSStringDrawingUsesFontLeading | NSStringDrawingUsesLineFragmentOrigin) attributes:@{NSFontAttributeName: INPUT_CELL_FONT} context:nil].size;
+            
+            CGFloat cellHeight = INPUT_CELL_TEXTVIEW_INSETS.top + ceilf(prfoileBioSize.height) + 24 + INPUT_CELL_TEXTVIEW_INSETS.bottom;
+            
+            cell.textView.frame = CGRectMake(cell.textView.frame.origin.x, cell.textView.frame.origin.y, cell.textView.frame.size.width, cellHeight);
+            cell.charactersRemainingLabel.frame = CGRectMake(cell.textView.frame.origin.x + INPUT_CELL_TEXTVIEW_INSETS.left, cell.frame.size.height - INPUT_CELL_TEXTVIEW_INSETS.bottom - 12, cell.textView.frame.size.width - (INPUT_CELL_TEXTVIEW_INSETS.left + INPUT_CELL_TEXTVIEW_INSETS.right), 12);
+            
+            return cellHeight;
+        }
+        else if (indexPath.row == 4) {
+            return 98;
         }
     }
     else if (indexPath.section == 1) {
-        return 52;
+        return 48;
     }
     
     return 0;
@@ -332,7 +463,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
     if (section == 1) {
-        return 64;
+        return 32;
     }
     
     return 0;
@@ -341,7 +472,36 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     return nil;
 }
 - (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
-    return 0;
+    if (section == 1) {
+        CGSize labelSize = [ROOM_PRIVATE_DESCRIPTION boundingRectWithSize:CGSizeMake(self.view.frame.size.width - 32, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:12.f weight:UIFontWeightRegular]} context:nil].size;
+        
+        return labelSize.height + (12 * 2); // 24 padding on top and bottom
+    }
+    
+    return CGFLOAT_MIN;
+}
+- (UIView *)tableView:(UITableView *)tableView viewForFooterInSection:(NSInteger)section {
+    if (section == 1) {
+        UIView *footer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 90)];
+        
+        UILabel *descriptionLabel = [[UILabel alloc] initWithFrame:CGRectMake(16, 12, footer.frame.size.width - 32, 42)];
+        descriptionLabel.text = ROOM_PRIVATE_DESCRIPTION;
+        descriptionLabel.textColor = [UIColor colorWithWhite:0.6f alpha:1];
+        descriptionLabel.font = [UIFont systemFontOfSize:12.f weight:UIFontWeightRegular];
+        descriptionLabel.textAlignment = NSTextAlignmentLeft;
+        descriptionLabel.numberOfLines = 0;
+        descriptionLabel.lineBreakMode = NSLineBreakByWordWrapping;
+        
+        CGSize labelSize = [descriptionLabel.text boundingRectWithSize:CGSizeMake(descriptionLabel.frame.size.width, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:descriptionLabel.font} context:nil].size;
+        descriptionLabel.frame = CGRectMake(descriptionLabel.frame.origin.x, descriptionLabel.frame.origin.y, descriptionLabel.frame.size.width, labelSize.height);
+        [footer addSubview:descriptionLabel];
+        
+        footer.frame = CGRectMake(0, 0, footer.frame.size.width, descriptionLabel.frame.size.height + (descriptionLabel.frame.origin.y*2));
+        
+        return footer;
+    }
+    
+    return nil;
 }
 
 - (void)updateBarColor:(id)newColor withAnimation:(int)animationType statusBarUpdateDelay:(CGFloat)statusBarUpdateDelay {
@@ -350,6 +510,13 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     }
     self.themeColor = newColor;
     self.view.tintColor = self.themeColor;
+    
+    Room *modifiedRoom = [[Room alloc] initWithDictionary:[self.room toDictionary] error:nil];
+    modifiedRoom.attributes.details.color = [UIColor toHex:newColor];
+    
+    ProfilePictureCell *cell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
+    cell.profilePicture.room = modifiedRoom;
+    cell.changeProfilePictureLabel.textColor = newColor;
     
     UIView *newColorView = [[UIView alloc] init];
     if (animationType == 1) {
@@ -380,14 +547,14 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
         if ([UIColor useWhiteForegroundForColor:newColor]) {
             [self.navigationController.navigationBar setTitleTextAttributes:
              @{NSForegroundColorAttributeName:[UIColor whiteColor],
-               NSFontAttributeName:[UIFont systemFontOfSize:18.f weight:UIFontWeightBold]}];
+               NSFontAttributeName:[UIFont systemFontOfSize:17.f weight:UIFontWeightBold]}];
             self.cancelButton.tintColor = [UIColor whiteColor];
             self.saveButton.tintColor = [UIColor whiteColor];
         }
         else {
             [self.navigationController.navigationBar setTitleTextAttributes:
              @{NSForegroundColorAttributeName:[UIColor colorWithWhite:0.07f alpha:1],
-               NSFontAttributeName:[UIFont systemFontOfSize:18.f weight:UIFontWeightBold]}];
+               NSFontAttributeName:[UIFont systemFontOfSize:17.f weight:UIFontWeightBold]}];
             
             self.cancelButton.tintColor = [UIColor colorWithWhite:0.07f alpha:1];
             self.saveButton.tintColor = [UIColor colorWithWhite:0.07f alpha:1];
@@ -427,7 +594,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
         UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
             [areYouSure dismissViewControllerAnimated:YES completion:nil];
         }];
-        ThemeSelectorCell *themeColorCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:1 inSection:0]];
+        ThemeSelectorCell *themeColorCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:4 inSection:0]];
         NSString *themeColor = themeColorCell.selectedColor;
         [cancel setValue:themeColor forKey:@"titleTextColor"];
         [areYouSure addAction:cancel];
@@ -435,8 +602,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
         UIAlertAction *confirm = [UIAlertAction actionWithTitle:@"Sign Out" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
             [[Session sharedInstance] signOut];
             
-            AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-            [appDelegate launchOnboarding];
+            [[Launcher sharedInstance] openOnboarding];
             
             [areYouSure dismissViewControllerAnimated:YES completion:nil];
         }];
@@ -497,8 +663,8 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
                   rotationAngle:(CGFloat)rotationAngle
 {
     ProfilePictureCell *cell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
-    cell.profilePicture.image = croppedImage;
-    cell.profilePicture.contentMode = UIViewContentModeScaleAspectFill;
+    cell.profilePicture.imageView.image = croppedImage;
+    cell.profilePicture.imageView.contentMode = UIViewContentModeScaleAspectFill;
     
     cell.changeProfilePictureLabel.text = @"Looking good!";
     

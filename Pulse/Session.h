@@ -44,6 +44,7 @@
 
 
 // -- Post --
+- (void)createPost:(NSDictionary *)params postingIn:(Room *)postingIn replyingTo:(Post * _Nullable)replyingTo;
 - (void)deletePost:(Post *)post completion:(void (^)(BOOL success, id responseObject))handler;
 - (void)reportPost:(NSInteger)postId completion:(void (^)(BOOL success, id responseObject))handler;
 - (void)sparkPost:(Post *)post completion:(void (^)(BOOL success, id responseObject))handler;

@@ -9,6 +9,8 @@
 #import "RoomSuggestionsListCell.h"
 #import "MiniChannelCell.h"
 #import "ComplexNavigationController.h"
+#import "UIColor+Palette.h"
+#import "Launcher.h"
 
 #define padding 24
 
@@ -50,7 +52,7 @@ static NSString * const reuseIdentifier = @"MiniChannel";
     [self.contentView addSubview:_collectionView];
     
     self.lineSeparator = [[UIView alloc] init];
-    self.lineSeparator.backgroundColor = [UIColor colorWithWhite:0.85 alpha:1];
+    self.lineSeparator.backgroundColor = [UIColor separatorColor];
     [self.contentView addSubview:self.lineSeparator];
 }
 
@@ -59,7 +61,7 @@ static NSString * const reuseIdentifier = @"MiniChannel";
         return 4;
     }
     else {
-        return 10;
+        return self.roomSuggestions.count;
     }
 }
 - (__kindof UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
@@ -67,6 +69,8 @@ static NSString * const reuseIdentifier = @"MiniChannel";
     
     if (self.loading) {
         cell.backgroundColor = [UIColor colorWithWhite:0.95 alpha:1];
+        cell.profilePicture.image = [UIImage new];
+        cell.profilePicture.backgroundColor = [UIColor colorWithWhite:0 alpha:0.08f];
         cell.title.layer.cornerRadius = 6.f;
         cell.title.layer.masksToBounds = true;
         cell.title.backgroundColor = [UIColor whiteColor];
@@ -74,29 +78,58 @@ static NSString * const reuseIdentifier = @"MiniChannel";
         cell.title.textColor = [UIColor clearColor];
         
         cell.ticker.hidden = true;
+        cell.membersView.hidden = true;
     }
     else {
-        // NSDictionary *channel = self.roomSuggestions[indexPath.item];
+        Room *room = [[Room alloc] initWithDictionary:self.roomSuggestions[indexPath.row] error:nil];
         
-        if (indexPath.row == 0) {
-            cell.backgroundColor = [UIColor colorWithDisplayP3Red:0 green:0.46 blue:1 alpha:1.0];
-        }
-        else if (indexPath.row == 1) {
-            cell.backgroundColor = [UIColor colorWithDisplayP3Red:0.98 green:0.42 blue:0.14 alpha:1];
-        }
-        else {
-            cell.backgroundColor = [UIColor colorWithDisplayP3Red:0.44 green:0.29 blue:0.89 alpha:1.0];
-        }
+        cell.room = room;
         
-        cell.title.text = @"Room Name";
+        cell.membersView.hidden = false;
+        
+        cell.profilePicture.image = [[UIImage imageNamed:@"anonymousGroup"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+        cell.profilePicture.tintColor = [UIColor whiteColor];
+        cell.profilePicture.backgroundColor = [UIColor clearColor];
+        cell.profilePicture.layer.shadowOpacity = 0;
+        
+        cell.title.text = cell.room.attributes.details.title;
         cell.title.textColor = [UIColor whiteColor];
         cell.title.backgroundColor = [UIColor clearColor];
         
-        [cell.ticker setTitle:@"24" forState:UIControlStateNormal];
-        // cell.membersView.text = @"650 members";
+        if (cell.room.attributes.summaries.counts.live < [Session sharedInstance].defaults.room.liveThreshold) {
+            cell.ticker.hidden = true;
+        }
+        else {
+            cell.ticker.hidden = false;
+            [cell.ticker setTitle:[NSString stringWithFormat:@"%ld live", (long)cell.room.attributes.summaries.counts.live] forState:UIControlStateNormal];
+        }
         
-        cell.ticker.hidden = false;
+        for (int i = 0; i < cell.membersView.subviews.count; i++) {
+            if ([cell.membersView.subviews[i] isKindOfClass:[UIImageView class]]) {
+                UIImageView *imageView = cell.membersView.subviews[i];
+                
+                if (cell.room.attributes.summaries.members.count > imageView.tag) {
+                    imageView.hidden = false;
+                    
+                    User *member = [[User alloc] initWithDictionary:cell.room.attributes.summaries.members[imageView.tag] error:nil];
+                    NSString *picURL = member.attributes.details.media.profilePicture;
+                    if (picURL.length > 0) {
+                        [imageView sd_setImageWithURL:[NSURL URLWithString:picURL]];
+                    }
+                    else {
+                        [imageView setImage:[[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
+                        imageView.tintColor = [UIColor fromHex:member.attributes.details.color];
+                    }
+                }
+                else {
+                    imageView.hidden = true;
+                }
+            }
+        }
         
+        cell.backgroundColor = [UIColor fromHex:cell.room.attributes.details.color];
+        
+        cell.clipsToBounds = false;
         [cell layoutSubviews];
     }
     
@@ -110,9 +143,9 @@ static NSString * const reuseIdentifier = @"MiniChannel";
 
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
     if (!self.loading) {
-        // animate the cell user tapped on
+        Room *room = [[Room alloc] initWithDictionary:self.roomSuggestions[indexPath.row] error:nil];
         
-        // [(LauncherNavigationViewController *)self.navigationController openRoom:self.channels[indexPath.row]];
+        [[Launcher sharedInstance] openRoom:room];
     }
 }
 

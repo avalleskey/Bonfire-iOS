@@ -1,5 +1,5 @@
 //
-//  PostCell.h
+//  LoadingCell.h
 //  Pulse
 //
 //  Created by Austin Valleskey on 5/30/18.

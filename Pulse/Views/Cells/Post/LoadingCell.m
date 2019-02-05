@@ -31,8 +31,8 @@
         
         self.shimmerContentView = [[UIView alloc] init];
         
-        self.profilePicture.image = [UIImage new];
-        self.profilePicture.backgroundColor = [UIColor colorWithWhite:0.94f alpha:1];
+        self.profilePicture.imageView.image = [UIImage new];
+        self.profilePicture.imageView.backgroundColor = [UIColor colorWithWhite:0.94f alpha:1];
         [self.profilePicture removeFromSuperview];
         [self.shimmerContentView addSubview:self.profilePicture];
         
@@ -43,14 +43,24 @@
         [self.nameLabel removeFromSuperview];
         [self.shimmerContentView addSubview:self.nameLabel];
         
+        [self.postedInButton setTitleColor:[UIColor clearColor] forState:UIControlStateNormal];
+        self.postedInButton.layer.cornerRadius = 4.f;
+        self.postedInButton.layer.masksToBounds = true;
+        self.postedInButton.backgroundColor = [UIColor colorWithWhite:0.94f alpha:1];
+        [self.postedInButton setTitleEdgeInsets:UIEdgeInsetsZero];
+        [self.postedInButton setImage:nil forState:UIControlStateNormal];
+        [self.postedInButton removeFromSuperview];
+        [self.shimmerContentView addSubview:self.postedInButton];
+        
         // text view
-        self.textView.backgroundColor = [UIColor colorWithWhite:0.94f alpha:1];
+        self.textView.backgroundView.backgroundColor = [UIColor colorWithWhite:0.94f alpha:1];
+        self.textView.bubbleTip.tintColor = self.textView.backgroundView.backgroundColor;
         self.textView.layer.cornerRadius = 17.f;
-        self.textView.layer.masksToBounds = true;
         [self.textView removeFromSuperview];
         [self.shimmerContentView addSubview:self.textView];
         
-        self.detailsLabel.hidden = true;
+        self.repliesSnapshotView.hidden = true;
+        self.detailsView.hidden = true;
         
         // image view
         self.pictureView.backgroundColor = [UIColor colorWithWhite:0.94f alpha:1];
@@ -74,6 +84,8 @@
     
     self.nameLabel.frame = CGRectMake(self.nameLabel.frame.origin.x, self.nameLabel.frame.origin.y, (self.frame.size.width - self.nameLabel.frame.origin.x - postContentOffset.right) * (.4 + (.1 * self.type)), self.nameLabel.frame.size.height);
     
+    self.postedInButton.frame = CGRectMake(self.postedInButton.frame.origin.x, self.postedInButton.frame.origin.y, self.nameLabel.frame.size.width * .7, self.postedInButton.frame.size.height);
+    
     if (self.type == loadingCellTypeShortPost) {
         self.textView.frame = CGRectMake(self.textView.frame.origin.x, self.textView.frame.origin.y, (self.frame.size.width - self.textView.frame.origin.x - postContentOffset.right) * .7, 34);
         
@@ -90,6 +102,11 @@
         self.pictureView.hidden = false;
         self.pictureView.frame = CGRectMake(self.pictureView.frame.origin.x, self.textView.frame.origin.y + self.textView.frame.size.height + 6, self.frame.size.width - self.pictureView.frame.origin.x - postContentOffset.right, self.pictureView.frame.size.height);
     }
+    self.textView.backgroundView.frame = self.textView.bounds;
+    [self.textView resizeTip];
+    
+    // self.repliesSnapshotView.hidden = true;
+    // self.usernameLabel.frame = CGRectMake(self.usernameLabel.frame.origin.x, self.usernameLabel.frame.origin.y + 2, (self.frame.size.width - self.usernameLabel.frame.origin.x - postContentOffset.right) * (.2 + (.1 * self.type)), 11);
 }
 
 - (void)continuityRadiusForView:(UIView *)sender withRadius:(CGFloat)radius {

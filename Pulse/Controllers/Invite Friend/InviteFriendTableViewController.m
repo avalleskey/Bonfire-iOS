@@ -50,7 +50,7 @@ static NSString * const contactCellIdentifier = @"ContactCell";
         self.view.tintColor = [UIColor fromHex:((Room *)self.sender).attributes.details.color];
     }
     else {
-        self.view.tintColor = [UIColor bonfireBlue];
+        self.view.tintColor = [UIColor bonfireBrand];
     }
     
     self.manager = [HAWebService manager];
@@ -100,7 +100,7 @@ static NSString * const contactCellIdentifier = @"ContactCell";
     } forControlEvents:UIControlEventEditingChanged];
     
     UIView *lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, self.searchBar.frame.size.height - (1 / [UIScreen mainScreen].scale), self.view.frame.size.width, (1 / [UIScreen mainScreen].scale))];
-    lineSeparator.backgroundColor = [UIColor colorWithWhite:0 alpha:0.08f];
+    lineSeparator.backgroundColor = [UIColor separatorColor];
     [self.searchBar.contentView addSubview:lineSeparator];
 }
 
@@ -112,15 +112,15 @@ static NSString * const contactCellIdentifier = @"ContactCell";
     
     [self.navigationController.navigationBar setTitleTextAttributes:
      @{NSForegroundColorAttributeName:[UIColor whiteColor],
-       NSFontAttributeName:[UIFont systemFontOfSize:18.f weight:UIFontWeightBold]}];
+       NSFontAttributeName:[UIFont systemFontOfSize:17.f weight:UIFontWeightBold]}];
     
     self.cancelButton = [[UIBarButtonItem alloc] initWithTitle:@"Cancel" style:UIBarButtonItemStylePlain target:self action:@selector(dismiss:)];
     [self.cancelButton setTintColor:[UIColor whiteColor]];
     [self.cancelButton setTitleTextAttributes:@{
-                                                NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightMedium]
+                                                NSFontAttributeName: [UIFont systemFontOfSize:17.f weight:UIFontWeightMedium]
                                                 } forState:UIControlStateNormal];
     [self.cancelButton setTitleTextAttributes:@{
-                                                NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightMedium]
+                                                NSFontAttributeName: [UIFont systemFontOfSize:17.f weight:UIFontWeightMedium]
                                                 } forState:UIControlStateHighlighted];
     self.navigationItem.leftBarButtonItem = self.cancelButton;
     
@@ -129,10 +129,10 @@ static NSString * const contactCellIdentifier = @"ContactCell";
     }];
     [self.saveButton setTintColor:[UIColor whiteColor]];
     [self.saveButton setTitleTextAttributes:@{
-                                              NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightBold]
+                                              NSFontAttributeName: [UIFont systemFontOfSize:17.f weight:UIFontWeightBold]
                                               } forState:UIControlStateNormal];
     [self.saveButton setTitleTextAttributes:@{
-                                              NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightBold]
+                                              NSFontAttributeName: [UIFont systemFontOfSize:17.f weight:UIFontWeightBold]
                                               } forState:UIControlStateHighlighted];
     self.navigationItem.rightBarButtonItem = self.saveButton;
 }
@@ -159,6 +159,7 @@ static NSString * const contactCellIdentifier = @"ContactCell";
     if (self.errorView.isHidden) {
         self.errorView.hidden = false;
     }
+    [self.tableView reloadData];
 }
 - (void)hideError {
     self.errorView.hidden = true;
@@ -406,8 +407,6 @@ static NSString * const contactCellIdentifier = @"ContactCell";
         
         cell.tintColor = self.view.tintColor;
         
-        UIImage *anonymousProfilePic;
-        anonymousProfilePic = [[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
         for (int i = 0; i < 7; i++) {
             UIImageView *imageView;
             if (i == 0) { imageView = cell.member2; }
@@ -422,7 +421,7 @@ static NSString * const contactCellIdentifier = @"ContactCell";
                 imageView.image = self.featuredProfilePictures[i];
             }
             else {
-                imageView.image = anonymousProfilePic;
+                imageView.image = [[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
             }
         }
         
@@ -462,7 +461,8 @@ static NSString * const contactCellIdentifier = @"ContactCell";
         }
         else {
             [cell.imageView setImage:[[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
-            cell.imageView.tintColor = [UIColor bonfireGray];
+            cell.imageView.tintColor = [UIColor whiteColor];
+            cell.imageView.backgroundColor = [UIColor bonfireGray];
         }
         
         if ([self isSelectedContact:contact.recordID]) {
@@ -475,12 +475,14 @@ static NSString * const contactCellIdentifier = @"ContactCell";
         }
         cell.checkIcon.tintColor = self.view.tintColor;
         
-        if (indexPath.row == self.contacts.count) {
+        if (indexPath.row == (self.contacts.count - 1)) {
             // last row
-            cell.lineSeparator.hidden = true;
+            cell.lineSeparator.backgroundColor = [UIColor separatorColor];
+            cell.lineSeparator.frame = CGRectMake(0, cell.frame.size.height - cell.lineSeparator.frame.size.height, cell.frame.size.width, cell.lineSeparator.frame.size.height);
         }
         else {
-            cell.lineSeparator.hidden = false;
+            cell.lineSeparator.backgroundColor = [UIColor separatorColor];
+            cell.lineSeparator.frame = CGRectMake(cell.textLabel.frame.origin.x, cell.frame.size.height - cell.lineSeparator.frame.size.height, cell.frame.size.width - cell.textLabel.frame.origin.x, cell.lineSeparator.frame.size.height);
         }
         
         return cell;
@@ -555,7 +557,7 @@ static NSString * const contactCellIdentifier = @"ContactCell";
     header.backgroundColor = [UIColor headerBackgroundColor];
     
     UIView *lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, header.frame.size.height - (1 / [UIScreen mainScreen].scale), self.view.frame.size.width, (1 / [UIScreen mainScreen].scale))];
-    lineSeparator.backgroundColor = [UIColor colorWithWhite:0.9 alpha:1];
+    lineSeparator.backgroundColor = [UIColor separatorColor];
     [header addSubview:lineSeparator];
     
     UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(16, 28, self.view.frame.size.width - 32, 24)];

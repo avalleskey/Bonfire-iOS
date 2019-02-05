@@ -16,8 +16,8 @@
 #import "EditRoomViewController.h"
 #import "UIColor+Palette.h"
 #import "Launcher.h"
-
-#define envConfig [[[NSUserDefaults standardUserDefaults] objectForKey:@"config"] objectForKey:[[NSUserDefaults standardUserDefaults] stringForKey:@"environment"]]
+// #import "UIScrollView+ContentInsetFix.h"
+#import "InsightsLogger.h"
 
 @interface RoomViewController () {
     int previousTableViewYOffset;
@@ -25,14 +25,7 @@
 
 @property (nonatomic) BOOL loading;
 
-@property CGFloat minHeaderHeight;
-@property CGFloat maxHeaderHeight;
-@property BOOL isLoadingMyRooms;
-
 @property (strong, nonatomic) ComplexNavigationController *launchNavVC;
-@property (strong, nonatomic) UITableView *roomSelectorTableView;
-@property (strong, nonatomic) NSMutableArray *roomSearchResults;
-@property (strong, nonatomic) NSMutableArray *myRoomsResults;
 @property (strong, nonatomic) ErrorView *errorView;
 @property (nonatomic) BOOL userDidRefresh;
 
@@ -49,7 +42,8 @@ static NSString * const reuseIdentifier = @"Result";
     self.launchNavVC = (ComplexNavigationController *)self.navigationController;
     self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] init];
     
-    [self mock];
+    // [self mock];
+    // NSLog(@"self.room: %@", self.room);
     
     self.view.backgroundColor = [UIColor headerBackgroundColor];
     
@@ -60,21 +54,90 @@ static NSString * const reuseIdentifier = @"Result";
     
     [self setupComposeInputView];
     
-    if (self.isCreatingPost) {
-        self.tableView.hidden = true;
-        [self createRoomSelectorTableView];
-        [self getMyRooms];
-        
-        [self.composeInputView.textView becomeFirstResponder];
-    }
-    else {
-        self.title = self.room.attributes.details.title;
-        self.view.tintColor = self.theme;
-        
-        [self loadRoom];
-    }
+    self.view.tintColor = self.theme;
+    
+    self.loading = true;
+    [self loadRoom];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(roomUpdated:) name:@"RoomUpdated" object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(newPostBegan:) name:@"NewPostBegan" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(newPostCompleted:) name:@"NewPostCompleted" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(newPostFailed:) name:@"NewPostFailed" object:nil];
+}
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    
+    [self styleOnAppear];
+    
+    if (self.view.tag == 1) {
+        [InsightsLogger.sharedInstance openAllVisiblePostInsightsInTableView:self.tableView seenIn:InsightSeenInRoomView];
+    }
+    else {
+        self.view.tag = 1;
+    }
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillChangeFrame:) name:UIKeyboardWillChangeFrameNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillDismiss:) name:UIKeyboardWillHideNotification object:nil];
+}
+- (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    
+    [InsightsLogger.sharedInstance closeAllVisiblePostInsightsInTableView:self.tableView];
+    
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillChangeFrameNotification object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillHideNotification object:nil];
+}
+
+- (NSString *)roomIdentifier {
+    if (self.room.identifier != nil) return self.room.identifier;
+    if (self.room.attributes.details.identifier != nil) return self.room.attributes.details.identifier;
+    
+    return nil;
+}
+
+- (void)dealloc {    
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+- (void)newPostBegan:(NSNotification *)notification {
+    Post *tempPost = notification.object;
+    
+    if (tempPost != nil && [tempPost.attributes.status.postedIn.identifier isEqualToString:self.room.identifier] && tempPost.attributes.details.parent == 0) {
+        // TODO: Check for image as well
+        self.errorView.hidden = true;
+        [self.tableView.stream prependTempPost:tempPost];
+        [self.tableView refresh];
+        
+        [self.tableView setContentOffset:CGPointMake(0, -1 * (self.navigationController.navigationBar.frame.origin.y + self.navigationController.navigationBar.frame.size.height)) animated:YES];
+    }
+}
+- (void)newPostCompleted:(NSNotification *)notification {
+    NSDictionary *info = notification.object;
+    NSString *tempId = info[@"tempId"];
+    Post *post = info[@"post"];
+    
+    if (post != nil && [post.attributes.status.postedIn.identifier isEqualToString:self.room.identifier] && post.attributes.details.parent == 0) {
+        // TODO: Check for image as well
+        self.errorView.hidden = true;
+        [self.tableView.stream updateTempPost:tempId withFinalPost:post];
+        
+        self.room.attributes.summaries.counts.posts = self.room.attributes.summaries.counts.posts + 1;
+        self.tableView.parentObject = self.room;
+        
+        [self.tableView refresh];
+    }
+}
+// TODO: Allow tap to retry for posts
+- (void)newPostFailed:(NSNotification *)notification {
+    Post *tempPost = notification.object;
+    
+    if (tempPost != nil && [tempPost.attributes.status.postedIn.identifier isEqualToString:self.room.identifier] && tempPost.attributes.details.parent == 0) {
+        // TODO: Check for image as well
+        [self.tableView.stream removeTempPost:tempPost.tempId];
+        [self.tableView refresh];
+        self.errorView.hidden = (self.tableView.stream.posts.count != 0);
+    }
 }
 
 - (void)roomUpdated:(NSNotification *)notification {
@@ -93,13 +156,12 @@ static NSString * const reuseIdentifier = @"Result";
         self.room = room;
         self.tableView.parentObject = room;
         
-        NSLog(@"room: %@", room);
-        
-        if (canViewPosts_Before && [self.room.attributes.context.status isEqualToString:ROOM_STATUS_LEFT]) {
-            self.tableView.stream.pages = [[NSMutableArray alloc] init];
-            self.tableView.stream.posts = @[];
-            
-            [self loadRoomContent];
+        if ([self.room.attributes.context.status isEqualToString:ROOM_STATUS_MEMBER]) {
+            [self showComposeInputView];
+            [self.composeInputView updatePlaceholders];
+        }
+        else {
+            [self hideComposeInputView];
         }
         
         // Update Room
@@ -107,7 +169,7 @@ static NSString * const reuseIdentifier = @"Result";
         self.theme = themeColor;
         self.view.tintColor = themeColor;
         self.composeInputView.addMediaButton.tintColor = themeColor;
-        self.composeInputView.postButton.tintColor = themeColor;
+        self.composeInputView.postButton.backgroundColor = themeColor;
         // if top view controller -> update launch nav vc
         if ([self isEqual:self.navigationController.topViewController]) {
             [self.launchNavVC.searchView updateSearchText:room.attributes.details.title];
@@ -118,7 +180,7 @@ static NSString * const reuseIdentifier = @"Result";
         // update table view state based on new Room object
         // if and only if [self canViewPosts] changes values after setting the new room, should we update the table view
         BOOL canViewPosts_After = [self canViewPosts];
-        if (canViewPosts_Before != canViewPosts_After) {
+        if (canViewPosts_Before == false && canViewPosts_After == true) {
             [self loadRoomContent];
         }
         else {
@@ -126,58 +188,180 @@ static NSString * const reuseIdentifier = @"Result";
             [self.tableView.stream updateRoomObjects:room];
         }
         
-        if (self.room.attributes.status.visibility.isPrivate) {
-            [self.tableView refresh];
+        NSLog(@"canViewPosts_Before: %@", (canViewPosts_Before ? @"YES" : @"NO"));
+        NSLog(@"isPrivate? %@", (self.room.attributes.status.visibility.isPrivate ? @"YES" : @"NO"));
+        NSLog(@"Camp Status: %@", self.room.attributes.context.status);
+        
+        if (self.room.attributes.status.visibility.isPrivate && self.tableView.stream.posts.count > 0 && ([self.room.attributes.context.status isEqualToString:ROOM_STATUS_LEFT] || [self.room.attributes.context.status isEqualToString:ROOM_STATUS_NO_RELATION])) {
+            self.tableView.stream.pages = [[NSMutableArray alloc] init];
+            self.tableView.stream.posts = @[];
+            [self showErrorViewWithType:ErrorViewTypeLocked title:@"Private Camp" description:@"Request access above to get access to this Camp’s posts"];
         }
+        
+        [self.tableView refresh];
     }
 }
 
 - (void)loadRoom {
     NSError *roomError;
-    self.room = [[Room alloc] initWithDictionary:[self.room toDictionary] error:&roomError];
+    //self.room = [[Room alloc] initWithDictionary:[self.room toDictionary] error:&roomError];
     // [self mock];
     
-    self.tableView.parentObject = self.room;
-    self.tableView.lastMaxId = 0;
-    [self.tableView refresh];
-    if (roomError || self.room.attributes.context == nil) {
-        // Room requires context, even though it's Optional on the object
-        
-        // Room object is fragmented – get Room to fill in the pieces
-        if (roomError) {
-            NSLog(@"room error::::");
-            NSLog(@"%@", roomError);
+    if (self.room.identifier || self.room.attributes.details.identifier) {
+        self.tableView.parentObject = self.room;
+        [self.tableView refresh];
+        if (roomError || self.room.attributes.context == nil) {
+            // Room requires context, even though it's Optional on the object
+            
+            // Room object is fragmented
+            if (roomError) {
+                NSLog(@"room error::::");
+                NSLog(@"%@", roomError);
+            }
+            
+            // let's fetch info to fill in the gaps
+            self.composeInputView.hidden = true;
         }
         
-        // let's fetch info to fill in the gaps
-        self.composeInputView.hidden = true;
+        // load room info before loading posts
+        [self getRoomInfo];
     }
-    
-    [self getRoomInfo];
+    else {
+        NSLog(@"room nto found");
+        // room not found
+        self.tableView.hidden = true;
+        self.errorView.hidden = false;
+        
+        [self.errorView updateTitle:@"Room Not Found"];
+        [self.errorView updateDescription:@"We couldn’t find the Room\nyou were looking for"];
+        [self.errorView updateType:ErrorViewTypeNotFound];
+        
+        [self.launchNavVC.searchView updateSearchText:@""];
+        
+        [UIView animateWithDuration:0.25f delay:0 usingSpringWithDamping:0.72f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
+            self.launchNavVC.rightActionButton.alpha = 0;
+        } completion:^(BOOL finished) {
+        }];
+    }
 }
+- (void)getRoomInfo {
+    NSString *url = [NSString stringWithFormat:@"%@/%@/rooms/%@", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], [self roomIdentifier]];
+    
+    NSLog(@"self.room identifier: %@", [self roomIdentifier]);
+    NSLog(@"%@", self.room.attributes.details.identifier);
+    
+    [self.manager.requestSerializer setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+    self.manager.responseSerializer = [AFJSONResponseSerializer serializer];
+    [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
+        if (success) {
+            [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
+            
+            NSDictionary *params = @{};
+            
+            [self.manager GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+                NSDictionary *responseData = (NSDictionary *)responseObject[@"data"];
+                
+                // NSLog(@"::::: getRoomInfo() :::::");
+                
+                // this must go before we set self.room to the new Room object
+                BOOL requiresColorUpdate = (self.room.attributes.details.color == nil);
+                
+                // first page
+                
+                NSError *contextError;
+                RoomContext *context = [[RoomContext alloc] initWithDictionary:responseData[@"attributes"][@"context"] error:&contextError];
+                
+                NSError *roomError;
+                self.room = [[Room alloc] initWithDictionary:responseData error:&roomError];
+                self.room.attributes.context = context;
+                if (roomError) {
+                    NSLog(@"room error: %@", roomError);
+                }
+                [[Session sharedInstance] addToRecents:self.room];
+                
+                // update the theme color (in case we didn't know the room's color before
+                if (requiresColorUpdate) {
+                    [self updateTheme];
+                }
+                
+                // update the title (in case we didn't know the room's title before)
+                self.title = self.room.attributes.details.title;
+                [self.launchNavVC.searchView updateSearchText:self.title];
+                
+                // update the compose input placeholder (in case we didn't know the room's title before)
+                [self.composeInputView updatePlaceholders];
+                
+                self.tableView.parentObject = self.room;
+                
+                // Now that the VC's Room object is complete,
+                // Go on to load the room content
+                [self loadRoomContent];
+            } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+                NSLog(@"RoomViewController / getRoom() - error: %@", error);
+                //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+                
+                self.errorView.hidden = false;
+                
+                NSHTTPURLResponse *httpResponse = error.userInfo[AFNetworkingOperationFailingURLResponseErrorKey];
+                NSInteger statusCode = httpResponse.statusCode;
+                if (statusCode == 404) {
+                    [self.errorView updateTitle:@"Camp Not Found"];
+                    [self.errorView updateDescription:@"We couldn’t find the Camp\nyou were looking for"];
+                    [self.errorView updateType:ErrorViewTypeNotFound];
+                }
+                else {
+                    [self.errorView updateType:ErrorViewTypeGeneral];
+                    [self.errorView updateTitle:@"Error Loading"];
+                    [self.errorView updateDescription:@"Check your network settings and tap here to try again"];
+                }
+                
+                [self positionErrorView];
+                
+                self.loading = false;
+                self.tableView.loading = false;
+                self.tableView.error = true;
+                [self.tableView refresh];
+            }];
+        }
+    }];
+}
+
+- (void)showComposeInputView {
+    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, self.composeInputView.frame.size.height - [UIApplication sharedApplication].delegate.window.safeAreaInsets.bottom, 0);
+    self.tableView.scrollIndicatorInsets = self.tableView.contentInset;
+    
+    if (self.composeInputView.isHidden) {
+        self.composeInputView.transform = CGAffineTransformMakeTranslation(0, self.composeInputView.frame.size.height);
+        self.composeInputView.hidden = false;
+        
+        [UIView animateWithDuration:0.3f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+            self.composeInputView.transform = CGAffineTransformIdentity;
+        } completion:nil];
+    }
+}
+- (void)hideComposeInputView {
+    self.tableView.contentInset = UIEdgeInsetsZero;
+    self.tableView.scrollIndicatorInsets = self.tableView.contentInset;
+    
+    if (!self.composeInputView.isHidden) {
+        [UIView animateWithDuration:0.3f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+            self.composeInputView.transform = CGAffineTransformMakeTranslation(0, self.composeInputView.frame.size.height);
+        } completion:^(BOOL finished) {
+            self.composeInputView.hidden = true;
+        }];
+    }
+}
+
 - (void)loadRoomContent {
     if ([self canViewPosts]) {
-        NSLog(@"can't view posts m8 soz");
-        if (self.composeInputView.isHidden) {
-            self.composeInputView.transform = CGAffineTransformMakeTranslation(0, self.composeInputView.frame.size.height);
-            self.composeInputView.hidden = false;
-            
-            [UIView animateWithDuration:0.3f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-                self.composeInputView.transform = CGAffineTransformIdentity;
-            } completion:nil];
+        if ([self.room.attributes.context.status isEqualToString:ROOM_STATUS_MEMBER]) {
+            [self showComposeInputView];
         }
         
         [self getPostsWithMaxId:0];
     }
     else {
-        NSLog(@"can't view posts m8 soz");
-        if (!self.composeInputView.isHidden) {
-            [UIView animateWithDuration:0.3f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-                self.composeInputView.transform = CGAffineTransformMakeTranslation(0, self.composeInputView.frame.size.height);
-            } completion:^(BOOL finished) {
-                self.composeInputView.hidden = true;
-            }];
-        }
+        [self hideComposeInputView];
         
         self.errorView.hidden = false;
         
@@ -187,24 +371,24 @@ static NSString * const reuseIdentifier = @"Result";
         [self.tableView refresh];
         
         if (self.room.attributes.status.isBlocked) { // Room has been blocked
-            [self.errorView updateTitle:@"Room Not Available"];
+            [self.errorView updateTitle:@"Camp Not Available"];
             [self.errorView updateDescription:@"This Room is no longer available"];
             [self.errorView updateType:ErrorViewTypeBlocked];
         }
         else if ([self.room.attributes.context.status isEqualToString:ROOM_STATUS_BLOCKED]) { // blocked from Room
-            [self.errorView updateTitle:@"Blocked By Room"];
+            [self.errorView updateTitle:@"Blocked By Camp"];
             [self.errorView updateDescription:@"Your account is blocked from creating and viewing posts in this Room"];
             [self.errorView updateType:ErrorViewTypeBlocked];
         }
         else if (self.room.attributes.status.visibility.isPrivate) { // not blocked, not member
-            // private room but not a member yet
-            [self.errorView updateTitle:@"Private Room"];
-            [self.errorView updateDescription:@"Request access above to get access to this Room’s posts"];
+            // private camp but not a member yet
+            [self.errorView updateTitle:@"Private Camp"];
+            [self.errorView updateDescription:@"Request access above to get access to this Camp’s posts"];
             [self.errorView updateType:ErrorViewTypeLocked];
         }
         else {
-            [self.errorView updateTitle:@"Room Not Found"];
-            [self.errorView updateDescription:@"We couldn’t find the Room\nyou were looking for"];
+            [self.errorView updateTitle:@"Camp Not Found"];
+            [self.errorView updateDescription:@"We couldn’t find the Camp\nyou were looking for"];
             [self.errorView updateType:ErrorViewTypeNotFound];
             
             [UIView animateWithDuration:0.25f delay:0 usingSpringWithDamping:0.72f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
@@ -222,77 +406,13 @@ static NSString * const reuseIdentifier = @"Result";
     [self.launchNavVC updateBarColor:theme withAnimation:1 statusBarUpdateDelay:0];
     [UIView animateWithDuration:0.25f delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
         self.composeInputView.textView.tintColor = theme;
+        self.composeInputView.postButton.backgroundColor = theme;
         self.composeInputView.addMediaButton.tintColor = theme;
-        self.composeInputView.postButton.tintColor = theme;
     } completion:^(BOOL finished) {
     }];
     
     self.theme = theme;
     self.view.tintColor = self.theme;
-}
-
-- (void)getRoomInfo {
-    NSString *url = [NSString stringWithFormat:@"%@/%@/rooms/%@", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], self.room.identifier];
-    
-    [self.manager.requestSerializer setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-    self.manager.responseSerializer = [AFJSONResponseSerializer serializer];
-    [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
-        if (success) {
-            [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
-            
-            NSDictionary *params = @{};
-            
-            [self.manager GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                NSDictionary *responseData = (NSDictionary *)responseObject[@"data"];
-                
-                // NSLog(@"response dataaaaa: %@", responseData);
-                
-                // this must go before we set self.room to the new Room object
-                BOOL requiresColorUpdate = (self.room.attributes.details.color == nil);
-                
-                // first page
-                NSError *roomError;
-                self.room = [[Room alloc] initWithDictionary:responseData error:&roomError];
-                [[Session sharedInstance] addToRecents:self.room];
-                
-                // update the theme color (in case we didn't know the room's color before
-                if (requiresColorUpdate) {
-                    [self updateTheme];
-                }
-                
-                // update the title (in case we didn't know the room's title before)
-                if (!self.isCreatingPost) {
-                    [self.launchNavVC.searchView updateSearchText:self.room.attributes.details.title];
-                }
-                
-                // update the compose input placeholder (in case we didn't know the room's title before)
-                [self.composeInputView updatePlaceholders];
-                
-                self.tableView.parentObject = self.room;
-                [self.tableView refresh];
-                
-                // Now that the VC's Room object is complete,
-                // Go on to load the room content
-                [self loadRoomContent];
-            } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                NSLog(@"RoomViewController / getRoom() - error: %@", error);
-                //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-                
-                self.errorView.hidden = false;
-                
-                [self.errorView updateType:ErrorViewTypeGeneral];
-                [self.errorView updateTitle:@"Error Loading"];
-                [self.errorView updateDescription:@"Check your network settings and tap here to try again"];
-                
-                [self positionErrorView];
-                
-                self.loading = false;
-                self.tableView.loading = false;
-                self.tableView.error = true;
-                [self.tableView refresh];
-            }];
-        }
-    }];
 }
 
 - (void)mock {
@@ -317,10 +437,10 @@ static NSString * const reuseIdentifier = @"Result";
     
     self.room = room;
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.01 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        [self.launchNavVC updateBarColor:@"707479" withAnimation:0 statusBarUpdateDelay:0];
+        [self.launchNavVC updateBarColor:@"7d8a99" withAnimation:0 statusBarUpdateDelay:0];
         [self.launchNavVC updateSearchText:@"Loading..."];
     });
-    self.theme = [UIColor fromHex:@"707479"];*/
+    self.theme = [UIColor fromHex:@"7d8a99"];*/
     
     /* mimic opening Room with Room identifier only
     Room *room = [[Room alloc] init];
@@ -328,85 +448,9 @@ static NSString * const reuseIdentifier = @"Result";
 
     self.room = room;*/
 }
-    
-- (void)createRoomSelectorTableView {
-    self.roomSelectorTableView = [[UITableView alloc] initWithFrame:self.tableView.bounds style:UITableViewStyleGrouped];
-    self.roomSelectorTableView.delegate = self;
-    self.roomSelectorTableView.dataSource = self;
-    self.roomSelectorTableView.backgroundColor = [UIColor whiteColor];
-    self.roomSelectorTableView.separatorStyle = UITableViewCellSeparatorStyleNone;
-    self.roomSelectorTableView.separatorInset = UIEdgeInsetsMake(0, self.view.frame.size.width, 0, 0);
-    self.roomSelectorTableView.separatorColor = [UIColor colorWithWhite:0.85 alpha:1];
-    self.roomSelectorTableView.alpha = 1;
-    self.roomSelectorTableView.hidden = false;
-    [self.roomSelectorTableView registerClass:[SearchResultCell class] forCellReuseIdentifier:reuseIdentifier];
-    [self.view insertSubview:self.roomSelectorTableView belowSubview:self.composeInputView];
-    
-    [self.launchNavVC.searchView.textField bk_addEventHandler:^(id sender) {
-        if (self.isCreatingPost) {
-            if (self.launchNavVC.searchView.textField.text.length == 0) {
-                [self.roomSelectorTableView reloadData];
-            }
-            else {
-                [self getSearchResults];
-            }
-        }
-    } forControlEvents:UIControlEventEditingChanged];
-    [self.launchNavVC.searchView.textField bk_addEventHandler:^(id sender) {
-        if (self.isCreatingPost && self.roomSelectorTableView.alpha == 0) {
-            self.room = nil;
-            self.tableView.stream = [[PostStream alloc] init];
-            self.loading = true;
-            
-            self.composeInputView.addMediaButton.tintColor = [Session sharedInstance].themeColor;
-            self.composeInputView.postButton.tintColor = [Session sharedInstance].themeColor;
-            self.composeInputView.textView.tintColor  = [Session sharedInstance].themeColor;
-            [self.composeInputView updatePlaceholders];
-            
-            self.tableView.loading = true;
-            [self.tableView refresh];
-
-            self.launchNavVC.searchView.textField.text = @"";
-            self.launchNavVC.searchView.textField.textAlignment = NSTextAlignmentCenter;
-            
-            [self.launchNavVC updateBarColor:[UIColor whiteColor] withAnimation:1 statusBarUpdateDelay:NO];
-            self.launchNavVC.rightActionButton.alpha = 0;
-            self.launchNavVC.leftActionButton.tintColor = [Session sharedInstance].themeColor;
-            // self.launchNavVC.moreButton.alpha = 0;
-            // self.launchNavVC.backButton.tintColor = [Session sharedInstance].themeColor;
-            
-            [self.roomSelectorTableView reloadData];
-            
-            [UIView animateWithDuration:0.2f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-                self.roomSelectorTableView.transform = CGAffineTransformMakeScale(1, 1);
-                self.roomSelectorTableView.alpha = 1;
-                
-                self.tableView.alpha = 0;
-                self.tableView.transform = CGAffineTransformMakeScale(0.9, 0.9);
-            } completion:^(BOOL finished) {
-            }];
-        }
-        
-    } forControlEvents:UIControlEventEditingDidBegin];
-}
-
-- (void)viewWillAppear:(BOOL)animated {
-    [super viewWillAppear:animated];
-    
-    [self styleOnAppear];
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillChangeFrame:) name:UIKeyboardWillChangeFrameNotification object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillDismiss:) name:UIKeyboardWillHideNotification object:nil];
-}
-- (void)viewWillDisappear:(BOOL)animated {
-    [super viewWillDisappear:animated];
-    
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillChangeFrameNotification object:nil];
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillHideNotification object:nil];
-}
 
 - (void)setupErrorView {
-    self.errorView = [[ErrorView alloc] initWithFrame:CGRectMake(16, 0, self.view.frame.size.width - 32, 100) title:@"Room Not Found" description:@"We couldn’t find the Room you were looking for" type:ErrorViewTypeNotFound];
+    self.errorView = [[ErrorView alloc] initWithFrame:CGRectMake(16, 0, self.view.frame.size.width - 32, 100) title:@"Camp Not Found" description:@"We couldn’t find the Room you were looking for" type:ErrorViewTypeNotFound];
     self.errorView.center = self.tableView.center;
     self.errorView.hidden = true;
     [self.tableView addSubview:self.errorView];
@@ -423,7 +467,7 @@ static NSString * const reuseIdentifier = @"Result";
             self.tableView.loadingMore = false;
             [self.tableView refresh];
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                [self getPostsWithMaxId:0];
+                [self loadRoom];
             });
         }
     }];
@@ -432,11 +476,16 @@ static NSString * const reuseIdentifier = @"Result";
 
 - (void)setupComposeInputView {
     self.composeInputView = [[ComposeInputView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleLight]];
-    self.composeInputView.frame = CGRectMake(0, self.view.frame.size.height - 52, self.view.frame.size.width, 190);
+    self.composeInputView.hidden = true;
+    
+    CGFloat bottomPadding = [[[UIApplication sharedApplication] delegate] window].safeAreaInsets.bottom;
+    CGFloat collapsed_inputViewHeight = ((self.composeInputView.textView.frame.origin.y * 2) + self.composeInputView.textView.frame.size.height) + bottomPadding;
+    
+    self.composeInputView.frame = CGRectMake(0, self.view.bounds.size.height - collapsed_inputViewHeight, self.view.frame.size.width, collapsed_inputViewHeight);
     self.composeInputView.parentViewController = self;
-    self.composeInputView.postButton.tintColor = [self.theme isEqual:[UIColor whiteColor]] ? [UIColor colorWithWhite:0.2f alpha:1] : self.theme;
-    self.composeInputView.addMediaButton.tintColor = self.composeInputView.postButton.tintColor;
-    self.composeInputView.textView.tintColor = self.composeInputView.postButton.tintColor;
+    self.composeInputView.postButton.backgroundColor = [self.theme isEqual:[UIColor whiteColor]] ? [UIColor colorWithWhite:0.2f alpha:1] : self.theme;
+    self.composeInputView.addMediaButton.tintColor = self.composeInputView.postButton.backgroundColor;
+    self.composeInputView.textView.tintColor = self.composeInputView.postButton.backgroundColor;
     
     [self.composeInputView bk_whenTapped:^{
         if (![self.composeInputView isActive]) {
@@ -446,15 +495,20 @@ static NSString * const reuseIdentifier = @"Result";
     [self.composeInputView.postButton bk_whenTapped:^{
         [self postMessage];
     }];
+    [self.composeInputView.expandButton bk_whenTapped:^{
+        [[Launcher sharedInstance] openComposePost:self.room inReplyTo:nil withMessage:self.composeInputView.textView.text media:self.composeInputView.media];
+    }];
     
     [self.view addSubview:self.composeInputView];
     
     self.composeInputView.textView.delegate = self;
     self.composeInputView.tintColor = self.view.tintColor;
+    
+    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, self.composeInputView.frame.size.height - [UIApplication sharedApplication].delegate.window.safeAreaInsets.bottom, 0);
+    self.tableView.scrollIndicatorInsets = self.tableView.contentInset;
 }
 - (void)textViewDidChange:(UITextView *)textView {
     if ([textView isEqual:self.composeInputView.textView]) {
-        NSLog(@"text view did change");
         [self.composeInputView resize:false];
         
         UIWindow *window = UIApplication.sharedApplication.keyWindow;
@@ -472,89 +526,29 @@ static NSString * const reuseIdentifier = @"Result";
 }
 
 - (void)postMessage {
-    NSString *url = [NSString stringWithFormat:@"%@/%@/rooms/%@/posts", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], self.room.identifier];
-    
-    NSLog(@"url: %@", url);
-    [self.manager.requestSerializer setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-    self.manager.responseSerializer = [AFJSONResponseSerializer serializer];
-    
     NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
-    if (self.composeInputView.textView.text.length > 0) {
-        [params setObject:self.composeInputView.textView.text forKey:@"message"];
+    NSString *message = self.composeInputView.textView.text;
+    if (message.length > 0) {
+        [params setObject:message forKey:@"message"];
+    }
+    if (self.composeInputView.media.count > 0) {
+        [params setObject:self.composeInputView.media forKey:@"images"];
+    }
+    
+    if ([params objectForKey:@"message"] || [params objectForKey:@"images"]) {
+        // meets min. requirements
+        [[Session sharedInstance] createPost:params postingIn:self.room replyingTo:nil];
+        
         self.composeInputView.textView.text = @"";
+        [self.composeInputView hidePostButton];
         [self.composeInputView.textView resignFirstResponder];
         self.composeInputView.media = [[NSMutableArray alloc] init];
         [self.composeInputView hideMediaTray];
-    }
-    
-    if ([params objectForKey:@"message"]) {
-        [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
-            if (success) {
-                NSLog(@"token::: %@", token);
-                [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
-                [self.manager POST:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                    // NSLog(@"CommonTableViewController / getPosts() success! ✅");
-                    
-                    // NSArray *responseData = (NSArray *)responseObject[@"data"];
-                    // NSLog(@"responsedata: %@", responseData);
-                    
-                    // scroll to top if neccessary
-                    RoomHeaderCell *headerCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
-                    CGFloat heightOfHeader = headerCell.frame.size.height;
-                    if (self.tableView.contentOffset.y > heightOfHeader) {
-                        // we need to scroll to the top!
-                        [self.tableView setContentOffset:CGPointMake(0, heightOfHeader) animated:YES];
-                    }
-                    
-                    self.room.attributes.summaries.counts.posts = self.room.attributes.summaries.counts.posts + 1;
-                    self.tableView.parentObject = self.room;
-                    
-                    [self.tableView refresh];
-                    [self getPostsWithMaxId:0];
-                    [self.view endEditing:true];
-                } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                    NSLog(@"FeedViewController / getPosts() - error: %@", error);
-                    //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-                    
-                    self.loading = false;
-                    self.tableView.userInteractionEnabled = true;
-                    [self.tableView reloadData];
-                }];
-            }
-        }];
-        
-        // reset isCreatingPost (if neccessary)
-        if (self.isCreatingPost) {
-            [self turnOffComposeMode];
-            
-            if (!self.room.identifier) {
-                // share with everyone...
-                
-                ProfileViewController *p = [[ProfileViewController alloc] init];
-                // NSLog(@"channel: %@", room);
-                // p.room = [[Room alloc] initWithObject:room];
-                User *myUser = [Session sharedInstance].currentUser;
-                
-                p.theme = [UIColor fromHex:myUser.attributes.details.color.length == 6 ? myUser.attributes.details.color : @"0076ff"];
-                // r.tableView.delegate = self;
-                p.user = myUser;
-                
-                self.launchNavVC.searchView.textField.text = p.user.attributes.details.displayName;
-                
-                [self.launchNavVC updateBarColor:p.theme withAnimation:2 statusBarUpdateDelay:NO];
-                
-                [self.launchNavVC setViewControllers:[NSArray arrayWithObject:p]
-                                            animated:NO];
-                
-                [self.launchNavVC updateNavigationBarItemsWithAnimation:YES];
-            }
-        }
     }
 }
 
 - (void)styleOnAppear {
     self.tableView.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height);
-    self.roomSelectorTableView.frame = self.tableView.frame;
     
     UIWindow *window = UIApplication.sharedApplication.keyWindow;
     CGFloat bottomPadding = window.safeAreaInsets.bottom;
@@ -562,30 +556,27 @@ static NSString * const reuseIdentifier = @"Result";
     CGFloat collapsed_inputViewHeight = ((self.composeInputView.textView.frame.origin.y * 2) + self.composeInputView.textView.frame.size.height) + bottomPadding;
     
     self.composeInputView.frame = CGRectMake(0, self.view.bounds.size.height - collapsed_inputViewHeight, self.view.bounds.size.width, collapsed_inputViewHeight);
-    
-    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, self.composeInputView.frame.size.height - bottomPadding, 0);
-    self.roomSelectorTableView.contentInset = UIEdgeInsetsMake(0, 0, self.composeInputView.frame.size.height - bottomPadding, 0);
 }
 
 - (BOOL)canViewPosts {
-    NSLog(@"context status: %@", self.room.attributes.context.status);
-    NSLog(@"room_status_member: %@", ROOM_STATUS_MEMBER);
-    NSLog(@"is member? %@", ([self.room.attributes.context.status isEqualToString:ROOM_STATUS_MEMBER] ? @"TRUE" : @"FALSE"));
     BOOL canViewPosts = self.room.identifier != nil && // has an ID
                         !self.room.attributes.status.isBlocked && // Room not blocked
                         ![self.room.attributes.context.status isEqualToString:ROOM_STATUS_BLOCKED] && // User blocked by Room
                         (!self.room.attributes.status.visibility.isPrivate || // (public room OR
                          [self.room.attributes.context.status isEqualToString:ROOM_STATUS_MEMBER]);
-    NSLog(@"can view posts? %@", (canViewPosts ? @"TRUE" : @"FALSE"));
     
-    return canViewPosts;    //  private and member)
+    return canViewPosts;
 }
 
 - (void)getPostsWithMaxId:(NSInteger)maxId {
-    self.errorView.hidden = true;
     self.tableView.hidden = false;
+    if (self.tableView.stream.posts.count == 0) {
+        self.errorView.hidden = true;
+        self.tableView.loading = true;
+        [self.tableView refresh];
+    }
     
-    NSString *url = [NSString stringWithFormat:@"%@/%@/rooms/%@/stream", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], self.room.identifier];
+    NSString *url = [NSString stringWithFormat:@"%@/%@/rooms/%@/stream", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], [self roomIdentifier]];
     
     [self.manager.requestSerializer setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
     self.manager.responseSerializer = [AFJSONResponseSerializer serializer];
@@ -593,8 +584,7 @@ static NSString * const reuseIdentifier = @"Result";
         if (success) {
             [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
             
-            NSDictionary *params = maxId != 0 ? @{@"max_id": [NSNumber numberWithInteger:maxId-1], @"count": @(10)} : @{@"count": @(10)};
-//            NSLog(@"params to getPostsWith:::: %@", params);
+            NSDictionary *params = maxId != 0 ? @{@"max_id": [NSNumber numberWithInteger:maxId-1]} : @{};
             
             [self.manager GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 self.tableView.scrollEnabled = true;
@@ -606,20 +596,16 @@ static NSString * const reuseIdentifier = @"Result";
                 }
                 
                 PostStreamPage *page = [[PostStreamPage alloc] initWithDictionary:responseObject error:nil];
-                [self.tableView.stream appendPage:page];
+                if (page.data.count == 0) {
+                    self.tableView.reachedBottom = true;
+                }
+                else {
+                    [self.tableView.stream appendPage:page];
+                }
                 
                 if (self.tableView.stream.posts.count == 0) {
                     // Error: No posts yet!
-                    self.errorView.hidden = false;
-                    
-                    RoomHeaderCell *headerCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
-                    CGFloat heightOfHeader = headerCell.frame.size.height;
-                    
-                    [self.errorView updateType:ErrorViewTypeNoPosts];
-                    [self.errorView updateTitle:@"No Posts Yet"];
-                    [self.errorView updateDescription:@""];
-                    
-                    self.errorView.frame = CGRectMake(self.errorView.frame.origin.x, heightOfHeader + 72, self.errorView.frame.size.width, self.errorView.frame.size.height);
+                    [self showErrorViewWithType:ErrorViewTypeNoPosts title:@"No Posts Yet" description:nil];
                 }
                 else {
                     self.errorView.hidden = true;
@@ -632,7 +618,7 @@ static NSString * const reuseIdentifier = @"Result";
                 
                 [self.tableView refresh];
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                NSLog(@"FeedViewController / getPosts() - error: %@", error);
+                NSLog(@"RoomViewController / getPostsWithMaxId() - error: %@", error);
                 //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
                 
                 if (self.tableView.stream.posts.count == 0) {
@@ -665,9 +651,8 @@ static NSString * const reuseIdentifier = @"Result";
     self.tableView.dataType = RSTableViewTypeRoom;
     self.tableView.parentObject = self.room;
     self.tableView.loading = true;
+    self.tableView.loadingMore = false;
     self.tableView.paginationDelegate = self;
-    self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, 60, 0);
-    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 60, 0);
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
     [self.tableView.refreshControl addTarget:self action:@selector(refresh) forControlEvents:UIControlEventValueChanged];
     
@@ -678,8 +663,26 @@ static NSString * const reuseIdentifier = @"Result";
     [self.tableView insertSubview:headerHack atIndex:0];
 }
 - (void)refresh {
+    self.tableView.loading = true;
+    self.tableView.loadingMore = false;
+    [self.tableView refresh];
+    
     self.userDidRefresh = true;
+    self.tableView.reachedBottom = false;
     [self loadRoom];
+}
+
+- (void)showErrorViewWithType:(ErrorViewType)type title:(NSString *)title description:(NSString *)description {
+    self.errorView.hidden = false;
+    
+    RoomHeaderCell *headerCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
+    CGFloat heightOfHeader = headerCell.frame.size.height;
+    
+    [self.errorView updateType:type];
+    [self.errorView updateTitle:title];
+    [self.errorView updateDescription:description];
+    
+    self.errorView.frame = CGRectMake(self.errorView.frame.origin.x, heightOfHeader + 72, self.errorView.frame.size.width, self.errorView.frame.size.height);
 }
 
 - (void)tableView:(id)tableView didRequestNextPageWithMaxId:(NSInteger)maxId {
@@ -719,22 +722,20 @@ static NSString * const reuseIdentifier = @"Result";
     return true;
 }
 - (BOOL)textViewShouldEndEditing:(UITextView *)textView {
-    if (!self.isCreatingPost) {
-        UIView *tapToDismissView = [self.view viewWithTag:888];
-        
-        if (self.loading) {
-            self.tableView.scrollEnabled = false;
-        }
-        else {
-            self.tableView.scrollEnabled = true;
-        }
-
-        [UIView animateWithDuration:0.3f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-            tapToDismissView.alpha = 0;
-        } completion:^(BOOL finished) {
-            [tapToDismissView removeFromSuperview];
-        }];
+    UIView *tapToDismissView = [self.view viewWithTag:888];
+    
+    if (self.loading) {
+        self.tableView.scrollEnabled = false;
     }
+    else {
+        self.tableView.scrollEnabled = true;
+    }
+    
+    [UIView animateWithDuration:0.3f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        tapToDismissView.alpha = 0;
+    } completion:^(BOOL finished) {
+        [tapToDismissView removeFromSuperview];
+    }];
     
     return true;
 }
@@ -745,260 +746,23 @@ static NSString * const reuseIdentifier = @"Result";
     CGRect keyboardFrameBeginRect = [keyboardFrameBegin CGRectValue];
     _currentKeyboardHeight = keyboardFrameBeginRect.size.height;
     
-    NSLog(@"keyboard will change frame");
-    
     UIWindow *window = UIApplication.sharedApplication.keyWindow;
     CGFloat bottomPadding = window.safeAreaInsets.bottom;
-    
-    NSLog(@"bottom Padding: %f", bottomPadding);
     
     CGFloat newComposeInputViewY = self.view.frame.size.height - self.currentKeyboardHeight - self.composeInputView.frame.size.height + bottomPadding;
     
     self.composeInputView.frame = CGRectMake(self.composeInputView.frame.origin.x, newComposeInputViewY, self.composeInputView.frame.size.width, self.composeInputView.frame.size.height);
-    
-    CGFloat contentInset = (self.view.frame.size.height - self.composeInputView.frame.origin.y) - bottomPadding;
-    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, contentInset + 8, 0);
-    self.tableView.scrollIndicatorInsets = self.tableView.contentInset;
-    
-    if (self.isCreatingPost) {
-        self.roomSelectorTableView.contentInset = UIEdgeInsetsMake(0, 0, contentInset + 8, 0);
-        self.roomSelectorTableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, contentInset, 0);
-    }
 }
 
 - (void)keyboardWillDismiss:(NSNotification *)notification {
     _currentKeyboardHeight = 0;
-    
-    UIWindow *window = UIApplication.sharedApplication.keyWindow;
-    CGFloat bottomPadding = window.safeAreaInsets.bottom;
     
     NSNumber *duration = [notification.userInfo objectForKey:UIKeyboardAnimationDurationUserInfoKey];
     [UIView animateWithDuration:[duration floatValue] delay:0 options:[[notification.userInfo objectForKey:UIKeyboardAnimationCurveUserInfoKey] intValue] << 16 animations:^{
         [self.composeInputView resize:false];
         
         self.composeInputView.frame = CGRectMake(self.composeInputView.frame.origin.x, self.view.frame.size.height - self.composeInputView.frame.size.height, self.composeInputView.frame.size.width, self.composeInputView.frame.size.height);
-        
-        self.tableView.contentInset = UIEdgeInsetsMake(0, 0, self.composeInputView.frame.size.height - bottomPadding, 0);
-        self.tableView.scrollIndicatorInsets = self.tableView.contentInset;
     } completion:nil];
-}
-
-- (void)getMyRooms {
-    self.isLoadingMyRooms = true;
-    
-    NSString *url = [NSString stringWithFormat:@"%@/%@/users/me/rooms", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"]];
-    
-    [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
-        if (success) {
-            [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
-            [self.manager GET:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                // NSLog(@"RoomViewController / getMyRooms() success! ✅");
-                
-                NSLog(@"response: %@", responseObject[@"data"]);
-                
-                NSArray *responseData = (NSArray *)responseObject[@"data"];
-                
-                self.isLoadingMyRooms = false;
-                
-                self.roomSearchResults = [[NSMutableArray alloc] init];
-                self.myRoomsResults = [[NSMutableArray alloc] initWithArray:responseData];
-                
-                [self.roomSelectorTableView reloadData];
-            } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                NSLog(@"MyRoomsViewController / getRooms() - error: %@", error);
-                //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-                
-                self.isLoadingMyRooms = false;
-                
-                [self.roomSelectorTableView reloadData];
-            }];
-        }
-    }];
-}
-- (void)getSearchResults {
-    NSLog(@"getSearchResults()");
-    [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
-        if (success) {
-            [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
-            
-            NSString *url = [NSString stringWithFormat:@"%@/%@/search/rooms", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"]];
-            [self.manager GET:url parameters:@{@"q": self.launchNavVC.searchView.textField.text} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                // NSLog(@"LauncherNavigationViewController / getSearchResults() success! ✅");
-                
-                NSLog(@"response: %@", responseObject[@"data"][@"results"][@"rooms"]);
-
-                NSArray *responseData = (NSArray *)responseObject[@"data"][@"results"][@"rooms"];
-                
-                self.roomSearchResults = [[NSMutableArray alloc] initWithArray:responseData];
-                
-                [self.roomSelectorTableView reloadData];
-            } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                NSLog(@"FeedViewController / getPosts() - error: %@", error);
-                //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-                
-                [self.roomSelectorTableView reloadData];
-            }];
-        }
-    }];
-}
-
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    SearchResultCell *cell = [tableView dequeueReusableCellWithIdentifier:reuseIdentifier forIndexPath:indexPath];
-    
-    if (cell == nil) {
-        cell = [[SearchResultCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:reuseIdentifier];
-    }
-    
-    // -- Type --
-    cell.type = 1;
-    
-    NSDictionary *json = self.launchNavVC.searchView.textField.text.length == 0 ? self.myRoomsResults[indexPath.row] : self.roomSearchResults[indexPath.row];
-    
-    NSError *error;
-    Room *room = [[Room alloc] initWithDictionary:json error:&error];
-    if (error) { NSLog(@"room error: %@", error); };
-    
-    // 1 = Room
-    cell.textLabel.text = room.attributes.details.title;
-    cell.imageView.tintColor = [UIColor fromHex:room.attributes.details.color];
-    cell.imageView.backgroundColor = [UIColor whiteColor];
-    
-    NSString *detailText = [NSString stringWithFormat:@"%ld %@", (long)room.attributes.summaries.counts.members, (room.attributes.summaries.counts.members == 1 ? @"member" : @"members")];
-    BOOL useLiveCount = room.attributes.summaries.counts.live > [Session sharedInstance].defaults.room.liveThreshold;
-    if (useLiveCount) {
-        cell.detailTextLabel.text = [NSString stringWithFormat:@"%@ · %li live", detailText, (long)room.attributes.summaries.counts.live];
-    }
-    cell.detailTextLabel.text = detailText;
-    
-    return cell;
-}
-- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return 64;
-}
-- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    return 1;
-}
-- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    NSDictionary *roomJSON = self.launchNavVC.searchView.textField.text.length == 0 ? self.myRoomsResults[indexPath.row] : self.roomSearchResults[indexPath.row];
-    Room *room = [[Room alloc] initWithDictionary:roomJSON error:nil];
-    self.room = room;
-    
-    self.tableView.hidden = false;
-    self.tableView.alpha = 0;
-    self.tableView.transform = CGAffineTransformMakeScale(0.9, 0.9);
-    self.tableView.parentObject = self.room;
-    [self.tableView refresh];
-    
-    self.title = self.room.attributes.details.title;
-    self.theme = [UIColor fromHex:self.room.attributes.details.color.length == 6 ? self.room.attributes.details.color : @"0076ff"];
-    self.view.tintColor = self.theme;
-    
-    [self loadRoom];
-    
-    // fancy text field text
-    NSMutableAttributedString *string = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"To: %@", self.room.attributes.details.title]];
-    [string addAttribute:NSForegroundColorAttributeName value:[UIColor colorWithWhite:1 alpha:0.5] range:NSMakeRange(0,4)];
-    [string addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:self.launchNavVC.searchView.textField.font.pointSize weight:UIFontWeightRegular] range:NSMakeRange(0,4)];
-    [string addAttribute:NSForegroundColorAttributeName value:[UIColor whiteColor] range:NSMakeRange(4,self.room.attributes.details.title.length)];
-    self.launchNavVC.searchView.textField.attributedText = string;
-    
-    [self.launchNavVC textFieldDidEndEditing:self.launchNavVC.searchView.textField];
-    [self.composeInputView.textView becomeFirstResponder];
-    
-    UIView *rightView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 40, self.launchNavVC.searchView.textField.frame.size.height)];
-    UIImageView *clearButton = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 14, 14)];
-    clearButton.center = CGPointMake(rightView.frame.size.width / 2, rightView.frame.size.height / 2);
-    clearButton.image = [[UIImage imageNamed:@"navCloseIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-    clearButton.tintColor = [UIColor whiteColor];
-    [rightView addSubview:clearButton];
-    self.launchNavVC.searchView.textField.rightView = rightView;
-    
-    self.composeInputView.postButton.tintColor = self.theme;
-    self.composeInputView.tintColor = self.theme;
-    self.composeInputView.textView.tintColor  = self.theme;
-    self.composeInputView.addMediaButton.tintColor = self.theme;
-    [self.composeInputView updatePlaceholders];
-    
-    [UIView animateWithDuration:0.2f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-        self.roomSelectorTableView.transform = CGAffineTransformMakeScale(0.9, 0.9);
-        self.roomSelectorTableView.alpha = 0;
-        
-        self.tableView.alpha = 1;
-        self.tableView.transform = CGAffineTransformMakeScale(1, 1);
-    } completion:^(BOOL finished) {
-    }];
-    [self.roomSelectorTableView reloadData];
-    
-    [self.launchNavVC updateBarColor:self.view.tintColor withAnimation:YES statusBarUpdateDelay:NO];
-    [self.launchNavVC updateNavigationBarItemsWithAnimation:YES];
-}
-
-- (void)turnOffComposeMode {
-    self.isCreatingPost = false;
-    self.launchNavVC.isCreatingPost = false;
-    [self.launchNavVC updateNavigationBarItemsWithAnimation:YES];
-    self.launchNavVC.searchView.textField.textAlignment = NSTextAlignmentCenter;
-    self.launchNavVC.searchView.textField.rightView = self.launchNavVC.searchView.textField.leftView; // remove pencil icon
-    if (self.launchNavVC.searchView.textField.text.length > 4 && [[self.launchNavVC.searchView.textField.text substringWithRange:NSMakeRange(0, 4)] isEqualToString:@"To: "]) {
-        self.launchNavVC.searchView.textField.text = [self.launchNavVC.searchView.textField.text substringWithRange:NSMakeRange(4, self.launchNavVC.searchView.textField.text.length-4)];
-    }
-    
-    UIView *tapToDismissView = [self.view viewWithTag:888];
-    self.tableView.scrollEnabled = true;
-    [UIView animateWithDuration:0.3f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-        tapToDismissView.alpha = 0;
-    } completion:^(BOOL finished) {
-        [tapToDismissView removeFromSuperview];
-    }];
-}
-
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return self.launchNavVC.searchView.textField.text.length == 0 ? self.myRoomsResults.count : self.roomSearchResults.count;
-}
-
-- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    CGFloat headerHeight = 48;
-    
-    return headerHeight;
-}
-
-- (nullable UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
-    UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 48)];
-    
-    UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(16, 21, self.view.frame.size.width - 32, 19)];
-    if (self.launchNavVC.searchView.textField.text.length == 0) {
-        if (self.isLoadingMyRooms) {
-            title.text = @"Loading...";
-            title.textAlignment = NSTextAlignmentCenter;
-        }
-        else {
-            if (self.myRoomsResults.count == 0) {
-                title.text = @"";
-                title.textAlignment = NSTextAlignmentCenter;
-            }
-            else {
-                title.text = @"My Rooms";
-                title.textAlignment = NSTextAlignmentLeft;
-            }
-        }
-    }
-    else {
-        title.text = @"Suggestions";
-    }
-    
-    title.textAlignment = NSTextAlignmentLeft;
-    title.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightBold];
-    title.textColor = [UIColor colorWithWhite:0.07f alpha:1];
-    
-    [header addSubview:title];
-    
-    return header;
-}
-- (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
-    return CGFLOAT_MIN;
-}
-- (UIView*)tableView:(UITableView*)tableView viewForFooterInSection:(NSInteger)section {
-    return [[UIView alloc] initWithFrame:CGRectZero];
 }
 
 - (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
@@ -1022,12 +786,13 @@ static NSString * const reuseIdentifier = @"Result";
 
 - (void)openRoomActions {
     // TODO: check that the user is actually an Admin, not just a member
-    BOOL isRoomAdmin   = (self.room.attributes.context.membership.role.identifier == ROOM_ROLE_ADMIN);
+    BOOL isMember              = [self.room.attributes.context.status isEqualToString:ROOM_STATUS_MEMBER];
+    BOOL isRoomAdmin           = self.room.attributes.context.membership.role.identifier == ROOM_ROLE_ADMIN;
     // BOOL insideRoom    = false; // compare ID of post room and active room
     // BOOL followingRoom = true;
-    BOOL roomPostNotifications = false;
-    BOOL hasTwitter = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"twitter://"]];
-    BOOL hasiMessage = [MFMessageComposeViewController canSendText];
+    BOOL roomPostNotifications = self.room.attributes.context.membership.subscription != nil;
+    BOOL hasTwitter            = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"twitter://"]];
+    BOOL hasiMessage           = [MFMessageComposeViewController canSendText];
     
     // Share to...
     // Turn on/off post notifications
@@ -1040,9 +805,7 @@ static NSString * const reuseIdentifier = @"Result";
     actionSheet.view.tintColor = [UIColor colorWithWhite:0.2 alpha:1];
     
     if (isRoomAdmin) {
-        UIAlertAction *editRoom = [UIAlertAction actionWithTitle:@"Edit Room" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-            NSLog(@"edit room");
-            
+        UIAlertAction *editCamp = [UIAlertAction actionWithTitle:@"Edit Camp" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
             EditRoomViewController *epvc = [[EditRoomViewController alloc] initWithStyle:UITableViewStyleGrouped];
             epvc.view.tintColor = [Session sharedInstance].themeColor;
             epvc.themeColor = [UIColor fromHex:self.room.attributes.details.color];
@@ -1057,40 +820,41 @@ static NSString * const reuseIdentifier = @"Result";
             
             [self.launchNavVC presentViewController:newNavController animated:YES completion:nil];
         }];
-        [actionSheet addAction:editRoom];
+        [actionSheet addAction:editCamp];
     }
     
-    UIAlertAction *togglePostNotifications = [UIAlertAction actionWithTitle:[NSString stringWithFormat:@"Turn %@ Post Notifications", roomPostNotifications ? @"Off" : @"On"] style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-        NSLog(@"toggle post notifications");
-        // confirm action
-        if ([Session sharedInstance].deviceToken != nil) {
-            if (roomPostNotifications) {
-                [self turnOffPostNotifications];
+    if (isMember) {
+        UIAlertAction *togglePostNotifications = [UIAlertAction actionWithTitle:[NSString stringWithFormat:@"Turn %@ Post Notifications", roomPostNotifications ? @"Off" : @"On"] style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            NSLog(@"toggle post notifications");
+            // confirm action
+            if ([Session sharedInstance].deviceToken != nil) {
+                if (roomPostNotifications) {
+                    [self turnOffPostNotifications];
+                }
+                else {
+                    [self turnOnPostNotifications];
+                }
             }
             else {
-                [self turnOnPostNotifications];
+                // confirm action
+                UIAlertController *notificationsNotice = [UIAlertController alertControllerWithTitle:@"Notications Not Enabled" message:@"In order to enable Post Notifications, you must turn on notifications for Bonfire in the iOS Settings" preferredStyle:UIAlertControllerStyleAlert];
+                
+                UIAlertAction *alertCancel = [UIAlertAction actionWithTitle:@"Okay" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+                }];
+                [notificationsNotice addAction:alertCancel];
+                
+                [self.navigationController presentViewController:notificationsNotice animated:YES completion:nil];
             }
-        }
-        else {
-            // confirm action
-            UIAlertController *notificationsNotice = [UIAlertController alertControllerWithTitle:@"Notications Not Enabled" message:@"Please check your notification settings for Bonfire and try again" preferredStyle:UIAlertControllerStyleAlert];
-            
-            UIAlertAction *alertCancel = [UIAlertAction actionWithTitle:@"Okay" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-                NSLog(@"k");
-            }];
-            [notificationsNotice addAction:alertCancel];
-            
-            [self.navigationController presentViewController:notificationsNotice animated:YES completion:nil];
-        }
-    }];
-    [actionSheet addAction:togglePostNotifications];
+        }];
+        [actionSheet addAction:togglePostNotifications];
+    }
     
-    UIAlertAction *sharePost = [UIAlertAction actionWithTitle:@"Share Room via..." style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+    UIAlertAction *shareRoom = [UIAlertAction actionWithTitle:@"Share Camp via..." style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         NSLog(@"share room");
         
         [self showShareRoomSheet];
     }];
-    [actionSheet addAction:sharePost];
+    [actionSheet addAction:shareRoom];
     
     if (hasTwitter) {
         UIAlertAction *shareOnTwitter = [UIAlertAction actionWithTitle:@"Share on Twitter" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
@@ -1099,7 +863,7 @@ static NSString * const reuseIdentifier = @"Result";
             UIImage *shareImage = [self roomShareImage];
             
             // confirm action
-            UIAlertController *saveAndOpenTwitterConfirm = [UIAlertController alertControllerWithTitle:@"Share on Twitter" message:@"Would you like to save a personalized Room picture and open Twitter?" preferredStyle:UIAlertControllerStyleAlert];
+            UIAlertController *saveAndOpenTwitterConfirm = [UIAlertController alertControllerWithTitle:@"Share on Twitter" message:@"Would you like to save a personalized Camp picture and open Twitter?" preferredStyle:UIAlertControllerStyleAlert];
             
             UIAlertAction *alertConfirm = [UIAlertAction actionWithTitle:@"Yes!" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
                 UIImageWriteToSavedPhotosAlbum(shareImage, nil, nil, nil);
@@ -1121,17 +885,11 @@ static NSString * const reuseIdentifier = @"Result";
     if (hasiMessage) {
         UIAlertAction *shareOniMessage = [UIAlertAction actionWithTitle:@"Share on iMessage" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
             NSLog(@"share on iMessage");
-            // confirm action
-            MFMessageComposeViewController *messageController = [[MFMessageComposeViewController alloc] init]; // Create message VC
-            messageController.messageComposeDelegate = self; // Set delegate to current instance
-            messageController.transitioningDelegate = [Launcher sharedInstance];
             
-            messageController.body = @"Join my room! https://rooms.app/room/room-name"; // Set initial text to example message
+            NSString *url = [NSString stringWithFormat:@"https://joinbonfire.com/camps/%@", self.room.attributes.details.identifier];
+            NSString *message = [NSString stringWithFormat:@"Join my Camp on Bonfire! 🔥 %@", url];
             
-            //NSData *dataImg = UIImagePNGRepresentation([UIImage imageNamed:@"logoApple"]);//Add the image as attachment
-            //[messageController addAttachmentData:dataImg typeIdentifier:@"public.data" filename:@"Image.png"];
-            
-            [self.navigationController presentViewController:messageController animated:YES completion:NULL];
+            [[Launcher sharedInstance] shareOniMessage:message image:nil];
         }];
         [actionSheet addAction:shareOniMessage];
     }
@@ -1145,16 +903,22 @@ static NSString * const reuseIdentifier = @"Result";
     [self.navigationController presentViewController:actionSheet animated:YES completion:nil];
 }
 - (void)turnOnPostNotifications {
-    // TODO: Update the model
+    // Update the model
+    RoomContextMembershipSubscription *subscription = [[RoomContextMembershipSubscription alloc] init];
+    NSDate *date = [NSDate new];
+    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+    [dateFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ssZ"];
+    subscription.createdAt = [dateFormatter stringFromDate:date];
+    self.room.attributes.context.membership.subscription = subscription;
     
-    NSString *url = [NSString stringWithFormat:@"%@/%@/rooms/%@/notify", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], self.room.identifier];
+    NSString *url = [NSString stringWithFormat:@"%@/%@/rooms/%@/members/subscriptions", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], [self roomIdentifier]];
     
     [self.manager.requestSerializer setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
     self.manager.responseSerializer = [AFJSONResponseSerializer serializer];
     [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
         if (success) {
             [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
-            [self.manager POST:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+            [self.manager POST:url parameters:@{@"vendor": @"APNS"} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 NSLog(@"turn on post notifications!");
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
                 NSLog(@"RoomViewController / turnOnPostNotifications() - error: %@", error);
@@ -1165,9 +929,10 @@ static NSString * const reuseIdentifier = @"Result";
     }];
 }
 - (void)turnOffPostNotifications {
-    // TODO: Update the model
+    // Update the model
+    self.room.attributes.context.membership.subscription = nil;
     
-    NSString *url = [NSString stringWithFormat:@"%@/%@/rooms/%@/notify", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], self.room.identifier];
+    NSString *url = [NSString stringWithFormat:@"%@/%@/rooms/%@/members/subscriptions", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], [self roomIdentifier]];
 
     [self.manager.requestSerializer setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
     self.manager.responseSerializer = [AFJSONResponseSerializer serializer];
@@ -1191,10 +956,11 @@ static NSString * const reuseIdentifier = @"Result";
     
 - (void)showShareRoomSheet {
     UIImage *shareImage = [self roomShareImage];
-    
-    UIActivityViewController *controller = [[UIActivityViewController alloc]initWithActivityItems:@[shareImage, @"hi insta"] applicationActivities:nil];
+    NSString *url = [NSString stringWithFormat:@"https://joinbonfire.com/camps/%@", self.room.attributes.details.identifier];
+    NSString *message = [NSString stringWithFormat:@"Join my Camp on Bonfire! 🔥 %@", url];
     
     // and present it
+    UIActivityViewController *controller = [[UIActivityViewController alloc]initWithActivityItems:@[shareImage, message] applicationActivities:nil];
     controller.modalPresentationStyle = UIModalPresentationPopover;
     [self.navigationController presentViewController:controller animated:YES completion:nil];
 }

@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "BFAvatarView.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -29,10 +30,11 @@ typedef enum {
 } NotificationState;
 @property (nonatomic) NotificationState state;
 
-@property (strong, nonatomic) UIImageView *profilePicture;
+@property (strong, nonatomic) BFAvatarView *profilePicture;
 @property (strong, nonatomic) UIImageView *typeIndicator;
 // @property (strong, nonatomic) UILabel *textLabel; -- inherited from UITableViewCell
 @property (strong, nonatomic) UIButton *actionButton;
+@property (strong, nonatomic) UIButton *moreButton;
 
 @end
 

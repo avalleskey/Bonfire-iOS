@@ -9,6 +9,8 @@
 #import "AFHTTPSessionManager.h"
 #import <AFNetworking/AFNetworking.h>
 
+#define envConfig [[[NSUserDefaults standardUserDefaults] objectForKey:@"config"] objectForKey:[[NSUserDefaults standardUserDefaults] stringForKey:@"environment"]]
+
 @interface HAWebService : AFHTTPSessionManager
 
 + (instancetype)manager;

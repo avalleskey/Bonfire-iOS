@@ -15,17 +15,26 @@
 #import "PostImagesView.h"
 #import "PostSurveyView.h"
 #import "PostActionsView.h"
-#import "PostURLPreviewView.h"
 #import <Messages/Messages.h>
 #import <MessageUI/MessageUI.h>
+#import <ResponsiveLabel/ResponsiveLabel.H>
+#import "BFAvatarView.h"
+#import "PostContextView.h"
 
 #define seperator_color [UIColor colorWithWhite:0 alpha:0.04]
 
-#define postContentOffset UIEdgeInsetsMake(10, 62, 10, 12)
-#define postTextViewInset UIEdgeInsetsMake(6, 12, 6, 12)
-#define textViewFont [UIFont preferredFontForTextStyle:UIFontTextStyleBody]
+#define postContentOffset UIEdgeInsetsMake(10, 68, 10, 12)
+#define replyContentOffset UIEdgeInsetsMake(postContentOffset.top, postContentOffset.left + 38, postContentOffset.bottom, postContentOffset.right)
+#define postTextViewInset UIEdgeInsetsMake(6, 10, 6, 10)
 
-@interface BubblePostCell : UITableViewCell <UITextFieldDelegate>
+@interface BubblePostCell : UITableViewCell <UITextFieldDelegate, PostTextViewDelegate>
+
+typedef enum {
+    SparkAnimationTypeNone = 0,
+    SparkAnimationTypeButton = 1,
+    SparkAnimationTypeRipple = 2,
+    SparkAnimationTypeAll = 3
+} SparkAnimationType;
 
 // Determines if the cell has been created or not
 @property BOOL created;
@@ -35,27 +44,34 @@
 // @property (strong) NSDictionary *theme;
 @property (strong, nonatomic) Post *post;
 
-@property (strong, nonatomic) UIImageView *sparkIndicator;
-@property (strong, nonatomic) UIImageView *replyIndicator;
+- (BOOL)isReply; // automatically set
+@property (nonatomic) BOOL themed; // needs to be manually set. defaults to grey bubblew with black text
+@property (nonatomic) BOOL threaded;
 
 // Views
-@property (strong, nonatomic) UIView *leftBar;
+@property (strong, nonatomic) PostContextView *contextView;
 @property (strong, nonatomic) PostTextView *textView;
-@property (strong, nonatomic) UIImageView *profilePicture;
-@property (strong, nonatomic) UIButton *moreButton;
+@property (strong, nonatomic) BFAvatarView *profilePicture;
 @property (strong, nonatomic) UIImageView *pictureView;
 @property (strong, nonatomic) UILabel *nameLabel;
-@property (strong, nonatomic) UILabel *usernameLabel;
+@property (strong, nonatomic) UIButton *postedInButton;
 
-@property (strong, nonatomic) UILabel *detailsLabel;
+@property (strong, nonatomic) UIView *repliesSnapshotView;
+@property (strong, nonatomic) BFAvatarView *repliesSnapshotAvatar;
+@property (strong, nonatomic) UILabel *repliesSnapshotLabel;
 
-@property (strong, nonatomic) UIImageView *sparkedIcon;
-@property (strong, nonatomic) PostActionsView *actionsView;
-@property (strong, nonatomic) PostURLPreviewView *urlPreviewView;
+// @property (strong, nonatomic) PostURLPreviewView *urlPreviewView;
+
+@property (strong, nonatomic) UIView *detailsView;
+@property (strong, nonatomic) UILabel *detailDateLabel;
+@property (strong, nonatomic) UIButton *detailSparkButton;
+@property (strong, nonatomic) UIButton *detailReplyButton;
 
 @property (strong, nonatomic) UIView *lineSeparator;
 
 @property BOOL sparked;
-- (void)setSparked:(BOOL)isSparked withAnimation:(BOOL)animated;
+- (void)setSparked:(BOOL)isSparked withAnimation:(SparkAnimationType)animationType;
+
++ (NSAttributedString *)attributedCreatorStringForPost:(Post *)post;
 
 @end

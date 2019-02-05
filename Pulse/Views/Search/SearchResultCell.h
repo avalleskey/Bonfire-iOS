@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "BFAvatarView.h"
 
 @interface SearchResultCell : UITableViewCell
 
@@ -15,7 +16,15 @@
 // 0 = page inside Home (e.g. Timeline, My Rooms, Trending)
 // 1 = Room
 // 2 = User
-@property (nonatomic) int type;
+typedef enum {
+    SearchResultCellTypeNone = 0,
+    SearchResultCellTypeRoom = 1,
+    SearchResultCellTypeUser = 2
+} SearchResultCellType;
+@property (nonatomic) SearchResultCellType type;
+
+@property (nonatomic, strong) BFAvatarView *profilePicture;
+@property (nonatomic, strong) UIImageView *checkIcon;
 
 
 // ---- VIEWS ----

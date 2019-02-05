@@ -22,7 +22,7 @@
         self.imageView.layer.borderWidth = 1 / [UIScreen mainScreen].scale;
         self.imageView.backgroundColor = [UIColor whiteColor];
         
-        self.textLabel.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightBold];
+        self.textLabel.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightBold];
         self.textLabel.textColor = [UIColor colorWithWhite:0.07 alpha:1];
         
         self.detailTextLabel.font = [UIFont systemFontOfSize:12.f weight:UIFontWeightMedium];
@@ -30,18 +30,16 @@
         self.detailTextLabel.textColor = [UIColor colorWithWhite:0.6f alpha:1];
         self.detailTextLabel.lineBreakMode = NSLineBreakByTruncatingTail;
         
-        self.checkIcon = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 20, 14)];
+        self.checkIcon = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 28, 28)];
         self.checkIcon.image = [[UIImage imageNamed:@"tableCellCheckIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-        self.checkIcon.tintColor = [UIColor bonfireBlue];
+        self.checkIcon.tintColor = [UIColor bonfireBrand];
         self.checkIcon.hidden = true;
         [self.contentView addSubview:self.checkIcon];
         
         // general cell styling
-        self.separatorInset = UIEdgeInsetsMake(0, 62, 0, 0);
         self.selectionStyle = UITableViewCellSelectionStyleNone;
         
-        self.lineSeparator = [[UIView alloc] init];
-        self.lineSeparator.backgroundColor = [UIColor colorWithWhite:0.92 alpha:1];
+        self.lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, self.frame.size.height, self.frame.size.width, (1 / [UIScreen mainScreen].scale))];
         [self.contentView addSubview:self.lineSeparator];
     }
     return self;
@@ -55,30 +53,27 @@
 - (void)layoutSubviews {
     [super layoutSubviews];
     
-    // line separator
-    self.lineSeparator.frame = CGRectMake(62, self.frame.size.height - (1 / [UIScreen mainScreen].scale), self.frame.size.width - 62, 1 / [UIScreen mainScreen].scale);
-    
     // selection view
     self.checkIcon.frame = CGRectMake(self.contentView.frame.size.width - self.checkIcon.frame.size.width - 16, self.frame.size.height / 2 - (self.checkIcon.frame.size.height / 2), self.checkIcon.frame.size.width, self.checkIcon.frame.size.height);
     
     // image view
-    self.imageView.frame = CGRectMake(16, self.frame.size.height / 2 - 16, 32, 32);
+    self.imageView.frame = CGRectMake(12, self.frame.size.height / 2 - 18, 36, 36);
     
     // text label
     if (self.isSearching) {
         self.textLabel.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightBold];
-        self.textLabel.frame = CGRectMake(62, 9, self.frame.size.width - 62 - self.checkIcon.frame.size.width - 16 - 8, 19);
+        self.textLabel.frame = CGRectMake(60, 9, self.frame.size.width - 60 - self.checkIcon.frame.size.width - 16 - 8, 19);
         
         self.detailTextLabel.hidden = false;
         self.detailTextLabel.frame = CGRectMake(self.textLabel.frame.origin.x, 30, self.textLabel.frame.size.width, 14);
     }
     else {
-        self.textLabel.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightBold];
-        self.textLabel.frame = CGRectMake(62, 0, self.frame.size.width - 62 - self.checkIcon.frame.size.width - 16 - 8, self.frame.size.height);
+        self.textLabel.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightBold];
+        self.textLabel.frame = CGRectMake(60, 0, self.frame.size.width - 60 - self.checkIcon.frame.size.width - 16 - 8, self.frame.size.height);
         self.detailTextLabel.hidden = true;
     }
     
-    BOOL circleProfilePictures = FBTweakValue(@"Post", @"General", @"Circle Profile Pictures", NO);
+    BOOL circleProfilePictures = FBTweakValue(@"Post", @"General", @"Circle Profile Pictures", YES);
     if (circleProfilePictures) {
         self.imageView.layer.cornerRadius = self.imageView.frame.size.height * .5;
     }

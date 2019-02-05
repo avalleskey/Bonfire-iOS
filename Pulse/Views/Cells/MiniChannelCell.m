@@ -37,9 +37,10 @@
     profilepictureContainer.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.12f].CGColor;
     profilepictureContainer.layer.shadowRadius = 6.f;
     self.profilePicture = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, profilepictureContainer.frame.size.width, profilepictureContainer.frame.size.height)];
-    self.profilePicture.backgroundColor = [UIColor colorWithWhite:1 alpha:0.4f];
     self.profilePicture.layer.cornerRadius = self.profilePicture.frame.size.width / 2;
     self.profilePicture.layer.masksToBounds = true;
+    self.profilePicture.image = [[UIImage imageNamed:@"anonymousGroup"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+    self.profilePicture.tintColor = [UIColor whiteColor];
     [profilepictureContainer addSubview:self.profilePicture];
     [self.contentView addSubview:profilepictureContainer];
     
@@ -47,6 +48,7 @@
     self.title.font = [UIFont systemFontOfSize:22.f weight:UIFontWeightHeavy];
     self.title.textAlignment = NSTextAlignmentLeft;
     self.title.numberOfLines = 0;
+    self.title.lineBreakMode = NSLineBreakByWordWrapping;
     self.title.textColor = [UIColor whiteColor];
     self.title.text = @"Baseball Fans";
     [self.contentView addSubview:self.title];
@@ -120,6 +122,8 @@
                                                        context:nil];
     titleRect.origin.x = padding;
     titleRect.origin.y = 90;
+    titleRect.size.width = roundf(titleRect.size.width);
+    titleRect.size.height = ceil(titleRect.size.height);
     self.title.frame = titleRect;
     
     // ticker

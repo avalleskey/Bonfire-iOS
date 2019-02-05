@@ -15,8 +15,8 @@
 #import "HAWebService.h"
 #import "Launcher.h"
 #import "UIColor+Palette.h"
-
-#define envConfig [[[NSUserDefaults standardUserDefaults] objectForKey:@"config"] objectForKey:[[NSUserDefaults standardUserDefaults] stringForKey:@"environment"]]
+#import <BlocksKit/BlocksKit.h>
+#import <BlocksKit/BlocksKit+UIKit.h>
 
 @interface RoomMembersViewController ()
 
@@ -54,8 +54,8 @@ static NSString * const requestCellIdentifier = @"RequestCell";
     self.tableView.dataSource = self;
     
     self.tableView.backgroundColor = [UIColor headerBackgroundColor];
-    self.tableView.separatorColor = [UIColor colorWithWhite:0 alpha:0.08f];
-    self.tableView.separatorInset = UIEdgeInsetsMake(0, 62, 0, 0);
+    self.tableView.separatorColor = [UIColor separatorColor];
+    self.tableView.separatorInset = UIEdgeInsetsMake(0, 66, 0, 0);
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
     self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 48, 0);
     
@@ -106,9 +106,7 @@ static NSString * const requestCellIdentifier = @"RequestCell";
                 
                 self.loadingRequests = false;
                 
-                [self.tableView beginUpdates];
-                [self.tableView reloadSections:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, 1)] withRowAnimation:UITableViewRowAnimationNone];
-                [self.tableView endUpdates];
+                [self.tableView reloadData];
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
                 NSLog(@"RoomViewController / getRequests() - error: %@", error);
                 //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
@@ -151,9 +149,9 @@ static NSString * const requestCellIdentifier = @"RequestCell";
 }
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     if (section == 0) {
-        if (![self isMember] || !self.room.attributes.status.visibility.isPrivate) return 0;
+        if (![self isMember] || !self.room.attributes.status.visibility.isPrivate || self.loadingRequests) return 0;
         
-        return self.loadingRequests ? 1 : self.requests.count;
+        return self.requests.count;
     }
     else if (section == 1) {
         return self.loadingMembers ? self.room.attributes.summaries.counts.members : self.members.count + ([self isMember] ? 1 : 0);
@@ -210,10 +208,8 @@ static NSString * const requestCellIdentifier = @"RequestCell";
                 // member cell
                 User *user = [[User alloc] initWithDictionary:self.requests[indexPath.row] error:nil];
                 cell.tag = [self.requests[indexPath.row][@"id"] integerValue];
+                cell.profilePicture.user = user;
                 
-                cell.imageView.backgroundColor = [UIColor whiteColor];
-                cell.imageView.image = [[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-                cell.imageView.tintColor = [UIColor fromHex:[[user.attributes.details.color lowercaseString] isEqualToString:@"ffffff"]?@"222222":user.attributes.details.color];
                 cell.textLabel.text = user.attributes.details.displayName;
                 cell.textLabel.textColor = [UIColor colorWithWhite:0.2f alpha:1];
                 cell.detailTextLabel.text = [NSString stringWithFormat:@"@%@", user.attributes.details.identifier];
@@ -252,9 +248,9 @@ static NSString * const requestCellIdentifier = @"RequestCell";
         cell.type = 2;
         
         if (self.loadingMembers) {
-            cell.imageView.backgroundColor = [UIColor colorWithWhite:0.9f alpha:1];
+            cell.profilePicture.imageView.backgroundColor = [UIColor colorWithWhite:0.9f alpha:1];
             cell.textLabel.text = @"Loading...";
-            cell.textLabel.textColor = [UIColor colorWithWhite:0.8f alpha:1];
+            cell.textLabel.alpha = 0.5;
             cell.detailTextLabel.text = @"";
         }
         else {
@@ -268,12 +264,10 @@ static NSString * const requestCellIdentifier = @"RequestCell";
             else {
                 user = [[User alloc] initWithDictionary:self.members[adjustedRowIndex] error:nil];
             }
+            cell.profilePicture.user = user;
             
-            cell.imageView.backgroundColor = [UIColor whiteColor];
-            cell.imageView.image = [[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-            cell.imageView.tintColor = [UIColor fromHex:[[user.attributes.details.color lowercaseString] isEqualToString:@"ffffff"]?@"222222":user.attributes.details.color];
             cell.textLabel.text = user.attributes.details.displayName != nil ? user.attributes.details.displayName : @"Unkown User";
-            cell.textLabel.textColor = [UIColor colorWithWhite:0.2f alpha:1];
+            cell.textLabel.alpha = 1;
             cell.detailTextLabel.text = [NSString stringWithFormat:@"@%@", user.attributes.details.identifier];
         }
         
@@ -299,10 +293,12 @@ static NSString * const requestCellIdentifier = @"RequestCell";
     self.manager.responseSerializer = [AFJSONResponseSerializer serializer];
     [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
         if (success) {
-            NSLog(@"params: %@", @{@"user_id": request[@"id"]});
             [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
             [self.manager POST:url parameters:@{@"user_id": request[@"id"]} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 NSLog(@"approved request!");
+                
+                // refresh members list to include the newly accepted member
+                [self getMembers];
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
                 NSLog(@"RoomMembersViewController / acceptRequest() - error: %@", error);
                 NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
@@ -324,12 +320,11 @@ static NSString * const requestCellIdentifier = @"RequestCell";
     self.manager.responseSerializer = [AFJSONResponseSerializer serializer];
     [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
         if (success) {
-            NSLog(@"params: %@", @{@"user_id": request[@"id"]});
             [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
             [self.manager DELETE:url parameters:@{@"user_id": request[@"id"]} success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                NSLog(@"decline request.");
+                // declined request success
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                NSLog(@"RoomMembersViewController / declineRequest() - error: %@", error);
+                NSLog(@"‼️ RoomMembersViewController / declineRequest() - error: %@", error);
                 NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
                 NSLog(@"errorResponse: %@", ErrorResponse);
             }];
@@ -338,48 +333,75 @@ static NSString * const requestCellIdentifier = @"RequestCell";
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return indexPath.section == 0 ? 106 : 62;
+    return indexPath.section == 0 ? 106 : 64;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
     CGFloat headerHeight = 64;
     
-    if (section == 0 && [self isMember] && [self isPrivate]) return headerHeight;
+    if (section == 0 && !self.loadingRequests && [self isMember] && [self isPrivate]) {
+        return self.requests.count == 0 ? 110 : headerHeight;
+    }
     if (section == 1) return headerHeight;
     
     return 0;
 }
 
 - (nullable UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
-    if (section == 0 && (![self isMember] || ![self isPrivate])) return nil;
+    if (section == 0 && (![self isMember] || ![self isPrivate] || self.loadingRequests)) return nil;
     
-    UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 64)];
-    
-    UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(16, 28, self.view.frame.size.width - 32, 24)];
-    title.textAlignment = NSTextAlignmentLeft;
-    title.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightSemibold];
-    title.textColor = [UIColor colorWithWhite:0.6f alpha:1];
-    if (section == 0) {
-        NSInteger requests = self.requests.count;
-        if (requests == 0) {
-            title.text = @"No Requests";
-        }
-        else {
+    if (section == 0 && self.requests.count == 0) {
+        UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 110)];
+        
+        UIView *upsell = [[UIView alloc] initWithFrame:CGRectMake(16, 16, header.frame.size.width - 32, 94)];
+        upsell.layer.cornerRadius = 10.f;
+        upsell.backgroundColor = [UIColor whiteColor];
+        upsell.layer.shadowOpacity = 1.f;
+        upsell.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.06f].CGColor;
+        upsell.layer.shadowRadius = 3.f;
+        upsell.layer.shadowOffset = CGSizeMake(0, 1);
+        upsell.layer.masksToBounds = false;
+
+        UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(8, 24, upsell.frame.size.width - 16, 21)];
+        title.text = @"No Member Requests";
+        title.textColor = [UIColor colorWithWhite:0.2f alpha:1];
+        title.textAlignment = NSTextAlignmentCenter;
+        title.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightSemibold];
+        [upsell addSubview:title];
+        
+        UIButton *shareWithFriends = [UIButton buttonWithType:UIButtonTypeSystem];
+        [shareWithFriends setTitle:@"Invite Friends to Camp" forState:UIControlStateNormal];
+        [shareWithFriends setTitleColor:self.theme forState:UIControlStateNormal];
+        shareWithFriends.frame = CGRectMake(8, title.frame.origin.y + title.frame.size.height + 6, upsell.frame.size.width - 16, 19);
+        shareWithFriends.titleLabel.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightMedium];
+        [shareWithFriends bk_whenTapped:^{
+            [[Launcher sharedInstance] openInviteFriends:self.room];
+        }];
+        [upsell addSubview:shareWithFriends];
+        
+        [header addSubview:upsell];
+        
+        return header;
+    }
+    else {
+        UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 64)];
+        
+        UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(16, 32, self.view.frame.size.width - 32, 21)];
+        title.textAlignment = NSTextAlignmentLeft;
+        title.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightBold];
+        title.textColor = [UIColor colorWithWhite:0.47f alpha:1];
+        if (section == 0) {
+            NSInteger requests = self.requests.count;
             title.text = [NSString stringWithFormat:@"%ld %@", (long)requests, (requests == 1) ? @"Request" : @"Requests"];
         }
+        else if (section == 1) {
+            NSInteger members = self.room.attributes.summaries.counts.members;
+            title.text = [NSString stringWithFormat:@"%ld %@", (long)members, (members == 1) ? [Session sharedInstance].defaults.room.membersTitle.singular : [Session sharedInstance].defaults.room.membersTitle.plural];
+        }
+        [header addSubview:title];
+        
+        return header;
     }
-    else if (section == 1) {
-        NSInteger members = self.room.attributes.summaries.counts.members;
-        title.text = [NSString stringWithFormat:@"%ld %@", (long)members, (members == 1) ? [Session sharedInstance].defaults.room.membersTitle.singular : [Session sharedInstance].defaults.room.membersTitle.plural];
-    }
-    [header addSubview:title];
-    
-    UIView *hairline = [[UIView alloc] initWithFrame:CGRectMake(0, header.frame.size.height - (1 / [UIScreen mainScreen].scale), header.frame.size.width, (1 / [UIScreen mainScreen].scale))];
-    hairline.backgroundColor = [UIColor colorWithWhite:0 alpha:0.08f];
-    hairline.hidden = !(section == 0 && self.requests.count == 0);
-    [header addSubview:hairline];
-    
-    return header;
     
     return nil;
 }

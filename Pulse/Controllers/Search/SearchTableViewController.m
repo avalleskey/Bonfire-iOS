@@ -21,14 +21,15 @@
 #import <SDWebImage/UIImageView+WebCache.h>
 #import "SearchNavigationController.h"
 #import "ComplexNavigationController.h"
-
-#define envConfig [[[NSUserDefaults standardUserDefaults] objectForKey:@"config"] objectForKey:[[NSUserDefaults standardUserDefaults] stringForKey:@"environment"]]
+#import "NSString+Validation.h"
+#import "ErrorView.h"
 
 @interface SearchTableViewController ()
 
 @property (strong, nonatomic) NSMutableArray *searchResults;
 @property (strong, nonatomic) NSMutableArray *recentSearchResults;
 @property (strong, nonatomic) HAWebService *manager;
+@property (strong, nonatomic) ErrorView *errorView;
 
 @end
 
@@ -37,12 +38,21 @@
 static NSString * const reuseIdentifier = @"Result";
 static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
 
+- (id)init {
+    self = [super init];
+    if (self) {
+        self.resultsType = BFSearchResultsTypeTop;
+    }
+    return self;
+}
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     
     self.manager = [HAWebService manager];
     self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] init];
     
+    [self setupErrorView];
     [self setupSearch];
 }
 
@@ -62,17 +72,28 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     }
 }
 
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+}
+
+- (void)setupErrorView {
+    self.errorView = [[ErrorView alloc] initWithFrame:CGRectMake(16, 0, self.view.frame.size.width - 32, 100) title:@"No Results Found" description:@"" type:ErrorViewTypeNotFound];
+    self.errorView.center = CGPointMake(self.view.frame.size.width / 2, (self.tableView.frame.size.height - self.tableView.adjustedContentInset.top - self.tableView.adjustedContentInset.bottom) / 2);
+    self.errorView.hidden = true;
+    [self.tableView addSubview:self.errorView];
+}
+
 - (void)setupSearch {
     [self emptySearchResults];
     [self initRecentSearchResults];
     
     self.tableView.delegate = self;
     self.tableView.dataSource = self;
-    self.tableView.backgroundColor = [UIColor whiteColor];
+    self.tableView.backgroundColor = [UIColor headerBackgroundColor];
     //self.tableView.contentInset = UIEdgeInsetsMake(self.navigationController.navigationBar.frame.origin.y + self.navigationController.navigationBar.frame.size.height, 0, 0, 0);
-    self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+    self.tableView.separatorStyle = UITableViewCellSeparatorStyleSingleLine;
     self.tableView.separatorInset = UIEdgeInsetsMake(0, 68, 0, 0);
-    self.tableView.separatorColor = [UIColor colorWithWhite:0.92 alpha:1];
+    self.tableView.separatorColor = [UIColor separatorColor];
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
     
     [self.tableView registerClass:[SearchResultCell class] forCellReuseIdentifier:reuseIdentifier];
@@ -97,9 +118,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     }
 }
 
-- (void)getSearchResults {
-    NSLog(@"getSearchResults");
-    
+- (void)getSearchResults {    
     NSString *searchText;
     if ([self.navigationController isKindOfClass:[SearchNavigationController class]]) {
         searchText = ((SearchNavigationController *)self.navigationController).searchView.textField.text;
@@ -116,19 +135,57 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
         [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
             if (success) {
                 [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
-                
+
                 NSString *url = [NSString stringWithFormat:@"%@/%@/search", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"]];
+                
+                switch (self.resultsType) {
+                    case BFSearchResultsTypeTop:
+                        url = [url stringByAppendingString:@"/top"];
+                        break;
+                    case BFSearchResultsTypeRooms:
+                        url = [url stringByAppendingString:@"/rooms"];
+                        break;
+                    case BFSearchResultsTypeUsers:
+                        url = [url stringByAppendingString:@"/users"];
+                        break;
+                    case BFSearchResultsTypeFeeds:
+                        url = [url stringByAppendingString:@"/feeds"];
+                        break;
+                    case BFSearchResultsTypeTopPosts:
+                        url = [url stringByAppendingString:@"/posts/top"];
+                        break;
+                    case BFSearchResultsTypeRecentPosts:
+                        url = [url stringByAppendingString:@"/posts/recent"];
+                        break;
+                    case BFSearchResultsTypeHotPosts:
+                        url = [url stringByAppendingString:@"/posts/hot"];
+                        break;
+                        
+                    default:
+                        break;
+                }
+                
                 [self.manager GET:url parameters:@{@"q": searchText} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                     NSDictionary *responseData = (NSDictionary *)responseObject[@"data"];
                     
                     self.searchResults = [[NSMutableArray alloc] init];
                     [self populateSearchResults:responseData];
                     
+                    if (self.searchResults.count == 0 && [searchText validateBonfireUsername] != BFValidationErrorNone) {
+                        // Error: No posts yet!
+                        self.errorView.hidden = false;
+                        
+                        self.errorView.center = CGPointMake(self.view.frame.size.width / 2, (self.tableView.frame.size.height - self.tableView.adjustedContentInset.top - self.tableView.adjustedContentInset.bottom) / 2);
+                    }
+                    else {
+                        self.errorView.hidden = true;
+                    }
+                    
                     NSLog(@"self.searchResults: %@", self.searchResults);
                     
                     [self.tableView reloadData];
                 } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                    NSLog(@"FeedViewController / getPosts() - error: %@", error);
+                    NSLog(@"SearchTableViewController / getPosts() - error: %@", error);
                     //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
                     
                     [self.tableView reloadData];
@@ -216,14 +273,13 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
             if (error) { NSLog(@"room error: %@", error); };
             
             // 1 = Room
+            cell.profilePicture.room = room;
             cell.textLabel.text = room.attributes.details.title;
-            cell.imageView.tintColor = [UIColor fromHex:room.attributes.details.color];
-            cell.imageView.backgroundColor = [UIColor whiteColor];
             
-            NSString *detailText = [NSString stringWithFormat:@"%ld %@", (long)room.attributes.summaries.counts.members, (room.attributes.summaries.counts.members == 1 ? @"member" : @"members")];
+            NSString *detailText = [NSString stringWithFormat:@"%ld %@", (long)room.attributes.summaries.counts.members, (room.attributes.summaries.counts.members == 1 ? [Session sharedInstance].defaults.room.membersTitle.singular : [Session sharedInstance].defaults.room.membersTitle.plural)];
             BOOL useLiveCount = room.attributes.summaries.counts.live > [Session sharedInstance].defaults.room.liveThreshold;
             if (useLiveCount) {
-                cell.detailTextLabel.text = [NSString stringWithFormat:@"%@ · %li live", detailText, (long)room.attributes.summaries.counts.live];
+                cell.detailTextLabel.text = [NSString stringWithFormat:@"%@ · %li LIVE", detailText, (long)room.attributes.summaries.counts.live];
             }
             cell.detailTextLabel.text = detailText;
         }
@@ -231,19 +287,11 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
             NSError *error;
             User *user = [[User alloc] initWithDictionary:json error:&error];
             
+            cell.profilePicture.user = user;
+            
             // 2 = User
             cell.textLabel.text = user.attributes.details.displayName;
             cell.detailTextLabel.text = [NSString stringWithFormat:@"@%@", user.attributes.details.identifier];
-            if (user.attributes.details.media.profilePicture != nil && user.attributes.details.media.profilePicture.length > 0) {
-                [cell.imageView sd_setImageWithURL:[NSURL URLWithString:user.attributes.details.media.profilePicture] placeholderImage:[[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] options:SDWebImageRefreshCached];
-            }
-            else {
-                cell.imageView.image = [[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-            }
-            
-            // 2 = User
-            cell.imageView.tintColor = [[user.attributes.details.color lowercaseString] isEqualToString:@"ffffff"] ? [UIColor colorWithWhite:0.2f alpha:1] : [UIColor fromHex:user.attributes.details.color];
-            cell.imageView.backgroundColor = [UIColor whiteColor];
         }
         
         return cell;
@@ -264,7 +312,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
         return 52;
     }
     
-    return 62;
+    return 64;
 }
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     return 2;
@@ -322,22 +370,23 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
                 
                 [[Launcher sharedInstance] openProfile:user];
             }
-            
-            [self initRecentSearchResults];
-            [self.tableView reloadData];
         }
     }
     
-    if (self.navigationController.tabBarController != nil) {
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.6f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.4f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        BFSearchView *searchView;
+        if ([self.navigationController isKindOfClass:[SearchNavigationController class]]) {
+            searchView = ((SearchNavigationController *)self.navigationController).searchView;
+            [self.navigationController popToRootViewControllerAnimated:NO];
             [searchView updateSearchText:@""];
-            [self emptySearchResults];
+        }
+        else if ([self.navigationController isKindOfClass:[ComplexNavigationController class]]) {
+            searchView = ((ComplexNavigationController *)self.navigationController).searchView;
+        }
+        if (searchView && searchView.textField.text.length == 0) {
             [self.tableView reloadData];
-        });
-    }
-    else {
-        
-    }
+        }
+    });
     
     [searchView.textField resignFirstResponder];
 }
@@ -347,7 +396,8 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     if (section == 0 && [self showRecents]) {
-        return self.recentSearchResults.count;
+        CGFloat maxRecents = 8;
+        return self.recentSearchResults.count > maxRecents ? maxRecents : self.recentSearchResults.count;
     }
     else if (section == 1) {
         NSString *searchText;
@@ -360,11 +410,11 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
         
         if (searchText.length > 0) {
             if (self.searchResults.count == 0) {
-                if ([[searchText componentsSeparatedByString:@" "] count] > 1) {
-                    return 0;
+                if ([searchText validateBonfireUsername] == BFValidationErrorNone) {
+                    return 1;
                 }
                 
-                return 1;
+                return 0;
             }
             else {
                 return self.searchResults.count;
@@ -388,6 +438,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
+    /*
     NSString *searchText;
     if ([self.navigationController isKindOfClass:[SearchNavigationController class]]) {
         searchText = ((SearchNavigationController *)self.navigationController).searchView.textField.text;
@@ -404,10 +455,13 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
         self.searchResults.count == 0 &&
         [searchText componentsSeparatedByString:@" "].count == 1) return CGFLOAT_MIN;
     
-    return 48;
+    return 48;*/
+    return CGFLOAT_MIN;
 }
 
 - (nullable UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
+    return nil;
+    /*
     NSString *searchText;
     if ([self.navigationController isKindOfClass:[SearchNavigationController class]]) {
         searchText = ((SearchNavigationController *)self.navigationController).searchView.textField.text;
@@ -446,22 +500,28 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     hairline.backgroundColor = [UIColor colorWithWhite:0 alpha:0.08f];
     //[header addSubview:hairline];
     
-    return header;
+    return header;*/
 }
 - (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
+    /*
     if (section == 0 && self.recentSearchResults.count == 0) return CGFLOAT_MIN;
     if (section == 1 && self.searchResults.count == 0) return CGFLOAT_MIN;
     
-    return (1 / [UIScreen mainScreen].scale);
+    return (1 / [UIScreen mainScreen].scale);*/
+    
+    return CGFLOAT_MIN;
 }
 - (UIView*)tableView:(UITableView*)tableView viewForFooterInSection:(NSInteger)section {
+    /*
     if (section == 0 && self.recentSearchResults.count == 0) return nil;
     if (section == 1 && self.searchResults.count == 0) return nil;
     
     UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, (1 / [UIScreen mainScreen].scale))];
-    view.backgroundColor = [UIColor colorWithWhite:0.92 alpha:1];
+    view.backgroundColor = [UIColor colorWithWhite:0.85 alpha:1];
     
-    return view;
+    return view; */
+    
+    return nil;
 }
 
 - (void)searchFieldDidBeginEditing {
@@ -498,6 +558,22 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     [self.tableView reloadData];
 }
 - (void)searchFieldDidReturn {
+    BFSearchView *searchView;
+    if ([self.navigationController isKindOfClass:[SearchNavigationController class]]) {
+        searchView = ((SearchNavigationController *)self.navigationController).searchView;
+    }
+    else if ([self.navigationController isKindOfClass:[ComplexNavigationController class]]) {
+        searchView = ((ComplexNavigationController *)self.navigationController).searchView;
+    }
+    
+    if (!searchView) {
+        return;
+    }
+    
+    
+    if (searchView.textField.text.length == 0) {
+        [self.navigationController popToRootViewControllerAnimated:NO];
+    }
     /*
     if ([self showRecents]) {
         [self tableView:self.tableView didSelectRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
@@ -528,6 +604,8 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     
     self.tableView.contentInset = UIEdgeInsetsMake(self.tableView.contentInset.top, 0, _currentKeyboardHeight - bottomPadding + 24, 0);
     self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(self.tableView.contentInset.top, 0, _currentKeyboardHeight - bottomPadding, 0);
+    
+    self.errorView.center = CGPointMake(self.view.frame.size.width / 2, (self.tableView.frame.size.height - self.tableView.adjustedContentInset.top - _currentKeyboardHeight) / 2);
 }
 
 - (void)keyboardWillDismiss:(NSNotification *)notification {
@@ -537,6 +615,8 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     [UIView animateWithDuration:[duration floatValue] delay:0 options:[[notification.userInfo objectForKey:UIKeyboardAnimationCurveUserInfoKey] intValue] << 16 animations:^{
         self.tableView.contentInset = UIEdgeInsetsMake(self.tableView.contentInset.top, 0, 0, 0);
         self.tableView.scrollIndicatorInsets = self.tableView.contentInset;
+        
+        self.errorView.center = CGPointMake(self.view.frame.size.width / 2, (self.tableView.frame.size.height / 2) - self.tableView.adjustedContentInset.bottom);
     } completion:nil];
 }
 

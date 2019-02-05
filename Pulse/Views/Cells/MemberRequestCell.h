@@ -7,9 +7,11 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "BFAvatarView.h"
 
 @interface MemberRequestCell : UITableViewCell
 
+@property (strong, nonatomic) BFAvatarView *profilePicture;
 @property (strong, nonatomic) UIButton *approveButton;
 @property (strong, nonatomic) UIButton *declineButton;
 

@@ -11,17 +11,21 @@
 #import "PostActionsView.h"
 #import "Post.h"
 #import <UITextView+Placeholder.h>
+#import "TappableButton.h"
+#import <FLAnimatedImage/FLAnimatedImageView.h>
 
 @interface ComposeInputView : UIVisualEffectView <UITextViewDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate> {
     BOOL _active;
 }
     
 @property (strong, nonatomic) Post *post;
+@property (strong, nonatomic) Post *replyingTo;
 
 @property (strong, nonatomic) UIButton *addMediaButton;
 @property (strong, nonatomic) UITextView *textView;
 
-@property (strong, nonatomic) UIButton *postButton;
+@property (strong, nonatomic) TappableButton *postButton;
+@property (strong, nonatomic) UIButton *expandButton;
 
 @property (strong, nonatomic) UIViewController *parentViewController;
 
@@ -31,6 +35,8 @@
 @property (strong, nonatomic) UIView *mediaLineSeparator;
 @property (strong, nonatomic) UIScrollView *mediaScrollView;
 @property (strong, nonatomic) UIStackView *mediaContainerView;
+
+@property (strong, nonatomic) UILabel *replyingToLabel;
 
 - (void)setActive:(BOOL)isActive;
 - (BOOL)isActive;

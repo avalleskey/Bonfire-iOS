@@ -36,6 +36,12 @@ static NSString * const notificationCellReuseIdentifier = @"NotificationCell";
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userProfileUpdated:) name:@"UserUpdated" object:nil];
 }
 
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    
+    [[UIApplication sharedApplication] setApplicationIconBadgeNumber:0];
+}
+
 - (void)userProfileUpdated:(NSNotification *)notification {
     [self.tableView reloadData];
 }
@@ -72,7 +78,9 @@ static NSString * const notificationCellReuseIdentifier = @"NotificationCell";
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     NotificationCell *cell = [tableView dequeueReusableCellWithIdentifier:notificationCellReuseIdentifier forIndexPath:indexPath];
-        
+    
+    cell.profilePicture.user = [Session sharedInstance].currentUser;
+    
     // Configure the cell...
     switch (indexPath.row) {
         case 0:
@@ -99,16 +107,13 @@ static NSString * const notificationCellReuseIdentifier = @"NotificationCell";
     }
     cell.textLabel.attributedText = [NSAttributedString attributedStringForType:cell.type];
     
-    cell.profilePicture.tintColor = [UIColor bonfireBlue];
-    
     return cell;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    CGFloat minHeight = 62;
+    CGFloat minHeight = 68;
     
-    CGFloat topPadding = 14;
-    CGFloat bottomPadding = topPadding;
+    CGFloat topPadding = 10;
     
     NotificationType type;
     switch (indexPath.row) {
@@ -136,14 +141,27 @@ static NSString * const notificationCellReuseIdentifier = @"NotificationCell";
             break;
     }
     
-    CGFloat actionButtonWidth = 96;
-    CGFloat textLabelWidth = self.view.frame.size.width - 70 - actionButtonWidth - 16  - 10;
+    CGFloat actionButtonWidth = 96 + 6;
+    CGFloat textLabelWidth = self.view.frame.size.width - 70 - actionButtonWidth - 36; // 36 = action button distance from right
     CGRect textLabelRect = [[NSAttributedString attributedStringForType:type] boundingRectWithSize:CGSizeMake(textLabelWidth, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) context:nil];
+    CGFloat textLabelHeight = textLabelRect.size.height;
     
-    CGFloat calculatedHeight = topPadding + textLabelRect.size.height + bottomPadding;
+    long charSize = lroundf( [UIFont systemFontOfSize:15.f].lineHeight);
+    long rHeight = lroundf(textLabelHeight);
+    int lineCount = roundf(rHeight/charSize);
     
-    NSLog(@"calculatedHeight: %f", calculatedHeight);
+    if (lineCount > 2) {
+        // 12 from top
+        topPadding = 12;
+    }
+    else {
+        // 18 from top
+        topPadding = 18;
+    }
+    CGFloat bottomPadding = topPadding;
     
+    CGFloat calculatedHeight = topPadding + ceilf(textLabelRect.size.height) + bottomPadding;
+        
     return calculatedHeight < minHeight ? minHeight : calculatedHeight;
 }
 
@@ -186,7 +204,7 @@ static NSString * const notificationCellReuseIdentifier = @"NotificationCell";
     if (section == 1 && [self oldNotifications].count == 0) return nil;
     
     UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, (1 / [UIScreen mainScreen].scale))];
-    view.backgroundColor = [UIColor colorWithWhite:0.92 alpha:1];
+    view.backgroundColor = [UIColor separatorColor];
     
     return view;
 }

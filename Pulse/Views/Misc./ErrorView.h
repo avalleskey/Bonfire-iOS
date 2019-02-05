@@ -8,15 +8,18 @@
 
 #import <UIKit/UIKit.h>
 
-extern const NSInteger ErrorViewTypeGeneral;
-extern const NSInteger ErrorViewTypeBlocked;
-extern const NSInteger ErrorViewTypeNotFound;
-extern const NSInteger ErrorViewTypeNoInternet;
-extern const NSInteger ErrorViewTypeLocked;
-extern const NSInteger ErrorViewTypeHeart;
-extern const NSInteger ErrorViewTypeNoPosts;
-extern const NSInteger ErrorViewTypeNoNotifications;
-extern const NSInteger ErrorViewTypeContactsDenied;
+typedef enum : NSUInteger {
+    ErrorViewTypeGeneral,
+    ErrorViewTypeBlocked,
+    ErrorViewTypeNotFound,
+    ErrorViewTypeNoInternet,
+    ErrorViewTypeLocked,
+    ErrorViewTypeHeart,
+    ErrorViewTypeNoPosts,
+    ErrorViewTypeNoNotifications,
+    ErrorViewTypeContactsDenied,
+    ErrorViewTypeClock
+} ErrorViewType;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -28,9 +31,9 @@ NS_ASSUME_NONNULL_BEGIN
 @property (strong, nonatomic) UILabel *errorTitle;
 @property (strong, nonatomic) UILabel *errorDescription;
 
-- (void)updateType:(NSInteger)newType;
-- (void)updateTitle:(NSString *)newTitle;
-- (void)updateDescription:(NSString *)newDescription;
+- (void)updateType:(ErrorViewType)newType;
+- (void)updateTitle:(nullable NSString *)newTitle;
+- (void)updateDescription:(nullable NSString *)newDescription;
 
 @end
 

@@ -20,6 +20,20 @@ NS_ASSUME_NONNULL_BEGIN
 + (UIColor * _Nonnull)fromHex:(NSString *)hex;
 
 /**
+ *  Return lighter variant of provided color, given a (optional) specified amount
+ *
+ *  @return A lighter color variant of the provided color
+ */
++ (UIColor *)lighterColorForColor:(UIColor *)c amount:(CGFloat)amount;
+
+/**
+ *  Return darker variant of provided color, given a (optional) specified amount
+ *
+ *  @return A darker color variant of the provided color
+ */
++ (UIColor *)darkerColorForColor:(UIColor *)c amount:(CGFloat)amount;
+
+/**
  * Convert UIColor to hex string
  *
  * @return The hex string value of the UIColor
@@ -34,6 +48,22 @@ NS_ASSUME_NONNULL_BEGIN
  *  @return UIColor representing the current header background color. May return user-defined Tweak value.
  */
 + (UIColor * _Nonnull) headerBackgroundColor;
+
+/**
+ *  Separator background color
+ *
+ *  @return UIColor representing the current line separator color.
+ */
++ (UIColor * _Nonnull) separatorColor;
+
+/**
+ *  Bonfire brand color of the specified level
+ *
+ *  @param level The level of color from 50,100-900 (increment of 100)
+ *
+ *  @return UIColor representing the bonfire brand color
+ */
++ (UIColor * _Nonnull) bonfireBrandWithLevel:(int)level;
 
 /**
  *  Bonfire gray color of the specified level
@@ -152,6 +182,12 @@ NS_ASSUME_NONNULL_BEGIN
  */
 + (UIColor * _Nonnull) bonfireCyanWithLevel:(int)level;
 
+/**
+ *  Bonfire brand color of level 500
+ *
+ *  @return UIColor representing the bonfire brand color at level 500
+ */
++ (UIColor * _Nonnull)bonfireBrand;
 
 /**
  *  Bonfire gray color of level 500

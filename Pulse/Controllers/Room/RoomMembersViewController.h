@@ -8,13 +8,13 @@
 
 #import <UIKit/UIKit.h>
 #import "Room.h"
+#import "ThemedTableViewController.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface RoomMembersViewController : UITableViewController
+@interface RoomMembersViewController : ThemedTableViewController
 
 @property (strong, nonatomic) Room *room;
-@property (strong, nonatomic) UIColor *theme;
 
 @end
 

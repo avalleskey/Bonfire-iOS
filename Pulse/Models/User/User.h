@@ -9,9 +9,9 @@
 
 @interface User : JSONModel
 
-@property (nonatomic) NSString *identifier;
-@property (nonatomic) NSString *type;
-@property (nonatomic) UserAttributes *attributes;
+@property (nonatomic) NSString <Optional> *identifier;
+@property (nonatomic) NSString <Optional> *type;
+@property (nonatomic) UserAttributes <Optional> *attributes;
 
 @end
 

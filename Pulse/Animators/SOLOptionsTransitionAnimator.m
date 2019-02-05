@@ -27,40 +27,40 @@
     
     if (self.appearing) {
         UIView *containerView = [transitionContext containerView];
-        containerView.backgroundColor = [UIColor bonfireGrayWithLevel:900];
+        containerView.backgroundColor = [UIColor colorWithWhite:0.07f alpha:1];
         
         [containerView addSubview:toView];
         
         fromView.layer.cornerRadius = 0;
         
-        toView.layer.cornerRadius = 24.f;
+        toView.layer.cornerRadius = 32.f;
         toView.frame = CGRectMake(0, toView.frame.size.height, toView.frame.size.width, toView.frame.size.height);
         
         CGFloat animationDuration = FBTweakValue(@"Transitions", @"View Controller - Appearing", @"Duration", 0.6);
-        CGFloat animationDamping = FBTweakValue(@"Transitions", @"View Controller - Appearing", @"Damping", 0.85);
+        CGFloat animationDamping = FBTweakValue(@"Transitions", @"View Controller - Appearing", @"Damping", 0.88);
         [UIView animateWithDuration:animationDuration delay:0 usingSpringWithDamping:animationDamping initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
-            fromView.alpha = 0.5;
-            fromView.layer.cornerRadius = 24.f;
-            fromView.transform = CGAffineTransformMakeScale(0.82, 0.82);
+            fromView.alpha = 0;
+            fromView.layer.cornerRadius = 32.f;
+            fromView.transform = CGAffineTransformMakeScale(0.88, 0.88);
             
             toView.center = CGPointMake(containerView.frame.size.width / 2, containerView.frame.size.height / 2);
-            toView.layer.cornerRadius = 0;
         } completion:^(BOOL finished) {
             [fromView removeFromSuperview];
             toView.userInteractionEnabled = YES;
             [transitionContext completeTransition:![transitionContext transitionWasCancelled]];
+            toView.layer.cornerRadius = 0;
         }];
     }
     else {
         UIView *containerView = [transitionContext containerView];
-        containerView.backgroundColor = [UIColor bonfireGrayWithLevel:900];
+        containerView.backgroundColor = [UIColor colorWithWhite:0.07f alpha:1];
         
         [containerView addSubview:toView];
         [containerView bringSubviewToFront:fromView];
         
-        toView.alpha = 0.5;
-        toView.transform = CGAffineTransformMakeScale(0.82, 0.82);
-        toView.layer.cornerRadius = 24.f;
+        toView.alpha = 0;
+        toView.transform = CGAffineTransformMakeScale(0.88, 0.88);
+        toView.layer.cornerRadius = 32.f;
         fromView.alpha = 1;
         fromView.layer.cornerRadius = 0;
         
@@ -71,10 +71,10 @@
             toView.transform = CGAffineTransformMakeScale(1, 1);
             toView.layer.cornerRadius = 0;
             
-            fromView.layer.cornerRadius = 24.f;
-            fromView.transform = CGAffineTransformMakeScale(0.9, 0.9);
+            fromView.layer.cornerRadius = 32.f;
+            fromView.transform = CGAffineTransformMakeScale(0.88, 0.88);
             fromView.center = CGPointMake(containerView.frame.size.width / 2, containerView.frame.size.height * 1.5);
-            fromView.layer.cornerRadius = 24.f;
+            fromView.layer.cornerRadius = 32.f;
         } completion:^(BOOL finished) {
             [fromView removeFromSuperview];
             toView.userInteractionEnabled = YES;

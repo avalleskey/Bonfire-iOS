@@ -7,9 +7,11 @@
 #import "SloppySwiper.h"
 #import "SSWAnimator.h"
 #import "SSWDirectionalPanGestureRecognizer.h"
+#import "UIColor+Palette.h"
 
 @interface SloppySwiper() <UIGestureRecognizerDelegate, SSWAnimatorDelegate>
 @property (weak, readwrite, nonatomic) UIPanGestureRecognizer *panRecognizer;
+@property (weak, readwrite, nonatomic) UIPanGestureRecognizer *dismissRecognizer;
 @property (weak, nonatomic) IBOutlet UINavigationController *navigationController;
 @property (strong, nonatomic) SSWAnimator *animator;
 @property (strong, nonatomic) UIPercentDrivenInteractiveTransition *interactionController;
@@ -73,7 +75,7 @@
     if ([self.delegate respondsToSelector:@selector(sloppySwiperTransitionDimAmount:)]) {
         return [self.delegate sloppySwiperTransitionDimAmount:self];
     } else {
-        return 0.1f;
+        return 0.2f;
     }
 }
 
@@ -82,29 +84,58 @@
 - (void)pan:(UIPanGestureRecognizer*)recognizer
 {
     UIView *view = self.navigationController.view;
-    if (recognizer.state == UIGestureRecognizerStateBegan) {
-        if (self.navigationController.viewControllers.count > 1 && !self.duringAnimation) {
-            self.interactionController = [[UIPercentDrivenInteractiveTransition alloc] init];
-            self.interactionController.completionCurve = UIViewAnimationCurveEaseOut;
-
-            [self.navigationController popViewControllerAnimated:YES];
+    if (recognizer == self.panRecognizer) {
+        if (recognizer.state == UIGestureRecognizerStateBegan) {
+            if (self.navigationController.viewControllers.count > 1 && !self.duringAnimation) {
+                self.interactionController = [[UIPercentDrivenInteractiveTransition alloc] init];
+                self.interactionController.completionCurve = UIViewAnimationCurveEaseOut;
+                
+                [self.navigationController popViewControllerAnimated:YES];
+            }
+        } else if (recognizer.state == UIGestureRecognizerStateChanged) {
+            CGPoint translation = [recognizer translationInView:view];
+            // Cumulative translation.x can be less than zero because user can pan slightly to the right and then back to the left.
+            CGFloat d = translation.x > 0 ? translation.x / CGRectGetWidth(view.bounds) : 0;
+            [self.interactionController updateInteractiveTransition:d];
+        } else if (recognizer.state == UIGestureRecognizerStateEnded || recognizer.state == UIGestureRecognizerStateCancelled) {
+            if ([recognizer velocityInView:view].x > 0) {
+                [self.interactionController finishInteractiveTransition];
+                
+                [self.delegate didFinishSwiping];
+            } else {
+                [self.interactionController cancelInteractiveTransition];
+                // When the transition is cancelled, `navigationController:didShowViewController:animated:` isn't called, so we have to maintain `duringAnimation`'s state here too.
+                self.duringAnimation = NO;
+            }
+            self.interactionController = nil;
         }
-    } else if (recognizer.state == UIGestureRecognizerStateChanged) {
-        CGPoint translation = [recognizer translationInView:view];
-        // Cumulative translation.x can be less than zero because user can pan slightly to the right and then back to the left.
-        CGFloat d = translation.x > 0 ? translation.x / CGRectGetWidth(view.bounds) : 0;
-        [self.interactionController updateInteractiveTransition:d];
-    } else if (recognizer.state == UIGestureRecognizerStateEnded || recognizer.state == UIGestureRecognizerStateCancelled) {
-        if ([recognizer velocityInView:view].x > 0) {
-            [self.interactionController finishInteractiveTransition];
+    }
+    else if (recognizer == self.dismissRecognizer) {
+        if (recognizer.state == UIGestureRecognizerStateBegan) {
+            if (!self.duringAnimation) {
+                self.interactionController = [[UIPercentDrivenInteractiveTransition alloc] init];
+                self.interactionController.completionCurve = UIViewAnimationCurveEaseOut;
+                
+                [self.navigationController dismissViewControllerAnimated:YES completion:nil];
+            }
+        } else if (recognizer.state == UIGestureRecognizerStateChanged) {
+            CGPoint translation = [recognizer translationInView:view];
+            // Cumulative translation.x can be less than zero because user can pan slightly to the right and then back to the left.
+            CGFloat d = translation.y > 0 ? translation.y / CGRectGetHeight(view.bounds) : 0;
             
-            [self.delegate didFinishSwiping];
-        } else {
-            [self.interactionController cancelInteractiveTransition];
-            // When the transition is cancelled, `navigationController:didShowViewController:animated:` isn't called, so we have to maintain `duringAnimation`'s state here too.
-            self.duringAnimation = NO;
+            [self.interactionController updateInteractiveTransition:d];
+        } else if (recognizer.state == UIGestureRecognizerStateEnded || recognizer.state == UIGestureRecognizerStateCancelled) {
+            if ([recognizer velocityInView:view].y > 0) {
+                [self.interactionController finishInteractiveTransition];
+                
+                [self.delegate didFinishSwiping];
+            } else {
+                [self.interactionController cancelInteractiveTransition];
+                // When the transition is cancelled, `navigationController:didShowViewController:animated:` isn't called, so we have to maintain `duringAnimation`'s state here too.
+                self.duringAnimation = NO;
+            }
+            self.interactionController = nil;
         }
-        self.interactionController = nil;
     }
 }
 
@@ -114,6 +145,7 @@
     if (self.navigationController.viewControllers.count > 1) {
         return YES;
     }
+    
     return NO;
 }
 
@@ -124,6 +156,7 @@
     if (operation == UINavigationControllerOperationPop) {
         return self.animator;
     }
+    
     return nil;
 }
 

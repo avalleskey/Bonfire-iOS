@@ -13,7 +13,6 @@ target 'Pulse' do
   # Pods for Pulse
   pod 'BlocksKit'
   pod 'AFNetworking'
-  pod 'NSStringEmojize'
   pod 'Shimmer'
   pod 'UITextView+Placeholder', '~> 1.2'
   pod 'SDWebImage', '~> 4.0'
@@ -21,10 +20,8 @@ target 'Pulse' do
   pod 'HapticHelper'
   pod 'GoogleAnalytics'
   pod 'JTSImageViewController'
-  pod 'LGSemiModalNavController'
   pod 'UINavigationItem+Margin'
   pod 'Lockbox'
-  pod 'ZFDragableModalTransition'
   pod 'L360Confetti'
   pod 'JSONModel'
   pod 'RSKImageCropper'
@@ -32,6 +29,10 @@ target 'Pulse' do
   pod 'APAddressBook'
   pod 'libPhoneNumber-iOS', '~> 0.8'
   pod 'Tweaks'
+  pod 'ResponsiveLabel', '~> 1.0.11'
+  pod 'TTTAttributedLabel'
+  pod 'Regexer'
+  pod 'PINCache'
 
   target 'PulseTests' do
     inherit! :search_paths

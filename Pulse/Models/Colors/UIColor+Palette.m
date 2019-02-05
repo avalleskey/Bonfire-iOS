@@ -26,6 +26,29 @@
         return [UIColor bonfireGrayWithLevel:700];
     }
 }
++ (UIColor *)lighterColorForColor:(UIColor *)c amount:(CGFloat)amount {
+    if (amount == 0) amount = 0.2;
+    
+    CGFloat r, g, b, a;
+    if ([c getRed:&r green:&g blue:&b alpha:&a])
+        return [UIColor colorWithRed:MIN(r + amount, 1.0)
+                               green:MIN(g + amount, 1.0)
+                                blue:MIN(b + amount, 1.0)
+                               alpha:a];
+    return [UIColor whiteColor];
+}
+
++ (UIColor *)darkerColorForColor:(UIColor *)c amount:(CGFloat)amount {
+    if (amount == 0) amount = 0.2;
+    
+    CGFloat r, g, b, a;
+    if ([c getRed:&r green:&g blue:&b alpha:&a])
+        return [UIColor colorWithRed:MAX(r - amount, 0.0)
+                               green:MAX(g - amount, 0.0)
+                                blue:MAX(b - amount, 0.0)
+                               alpha:a];
+    return [UIColor blackColor];
+}
 + (NSString *)toHex:(UIColor *)color {
     const CGFloat *components = CGColorGetComponents(color.CGColor);
     
@@ -50,7 +73,7 @@
         darknessScore = (((componentColors[0]*255) * 299) + ((componentColors[1]*255) * 587) + ((componentColors[2]*255) * 114)) / 1000;
     }
     
-    if (darknessScore >= 185) {
+    if (darknessScore >= 195) {
         return false;
     }
     
@@ -59,8 +82,46 @@
 
 // Header background color -- Used in [Home -> Rooms]
 + (UIColor * _Nonnull) headerBackgroundColor {
-    UIColor *color = FBTweakValue(@"Rooms", @"My Rooms", @"Header Background", [UIColor colorWithRed:0.98 green:0.98 blue:0.99 alpha:1.0]);
+    UIColor *color = FBTweakValue(@"Camps", @"My Rooms", @"Header Background", [UIColor colorWithRed:0.97 green:0.97 blue:0.98 alpha:1.0]);
     return color;
+}
+
++ (UIColor * _Nonnull) separatorColor {
+    UIColor *color = [UIColor colorWithRed:0.86 green:0.86 blue:0.87 alpha:1.0];
+    return color;
+}
+
+// Gray
++ (UIColor * _Nonnull) bonfireBrandWithLevel:(int)level {
+    switch(level) {
+        case 50:
+            return [UIColor fromHex:@"#ffedeb"];
+        case 100:
+            return [UIColor fromHex:@"#ffd9d4"];
+        case 200:
+            return [UIColor fromHex:@"#ffc2bb"];
+        case 300:
+            return [UIColor fromHex:@"#ffa79d"];
+        case 400:
+            return [UIColor fromHex:@"#ff8577"];
+        case 500:
+            return [UIColor fromHex:@"#FF513C"];
+        case 600:
+            return [UIColor fromHex:@"#e64836"];
+        case 700:
+            return [UIColor fromHex:@"#ca3f2f"];
+        case 800:
+            return [UIColor fromHex:@"#a73427"];
+        case 900:
+            return [UIColor fromHex:@"#78251c"];
+        default:
+            return [UIColor bonfireBrandWithLevel:500];
+    }
+}
++ (UIColor * _Nonnull) bonfireBrand {
+    // return [UIColor colorWithRed:1.00 green:0.32 blue:0.24 alpha:1.0];
+    
+    return [UIColor colorWithDisplayP3Red:0.99 green:0.38 blue:0.29 alpha:1.0];
 }
 
 // Gray
@@ -108,7 +169,7 @@
         case 400:
             return [UIColor fromHex:@"#4b9fff"];
         case 500:
-            return [UIColor fromHex:@"#0077ff"];
+            return [UIColor fromHex:@"#0076ff"];
         case 600:
             return [UIColor fromHex:@"#006be6"];
         case 700:
@@ -122,7 +183,7 @@
     }
 }
 + (UIColor * _Nonnull) bonfireBlue {
-    return [UIColor bonfireBlueWithLevel:500];
+    return [UIColor colorWithDisplayP3Red:0.00 green:0.47 blue:1.00 alpha:1.00];
 }
 
 // Indigo

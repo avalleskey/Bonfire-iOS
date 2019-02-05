@@ -14,13 +14,13 @@
 #import "ComposeInputView.h"
 #import <Messages/Messages.h>
 #import <MessageUI/MessageUI.h>
+#import "ThemedViewController.h"
 
-@interface RoomViewController : UIViewController <UITextViewDelegate, UITableViewDataSource, UITableViewDelegate, RSTableViewPaginationDelegate, MFMessageComposeViewControllerDelegate>
+@interface RoomViewController : ThemedViewController <UITextViewDelegate, RSTableViewPaginationDelegate, MFMessageComposeViewControllerDelegate>
 
 @property (strong, nonatomic) HAWebService *manager;
 
 @property (strong, nonatomic) Room *room;
-@property (strong, nonatomic) UIColor *theme;
 
 @property (strong, nonatomic) UILabel *navTitle;
 @property (strong, nonatomic) UIScrollView *scrollView;
@@ -29,8 +29,6 @@
 
 @property (nonatomic) CGFloat currentKeyboardHeight;
     
-@property (nonatomic) BOOL isCreatingPost;
-
 - (void)openRoomActions;
 
 @end

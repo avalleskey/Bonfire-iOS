@@ -59,3 +59,11 @@ NSString * const ROOM_STATUS_LOADING = @"loading";
 }
 
 @end
+
+@implementation RoomContextMembershipSubscription
+
++ (JSONKeyMapper *)keyMapper {
+    return [JSONKeyMapper mapperForSnakeCase];
+}
+
+@end

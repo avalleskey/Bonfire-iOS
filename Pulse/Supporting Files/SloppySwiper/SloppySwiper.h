@@ -29,13 +29,12 @@
 /**
  *  `SloppySwiper` is a class conforming to `UINavigationControllerDelegate` protocol that allows pan back gesture to be started from anywhere on the screen (not only from the left edge).
  */
-@interface SloppySwiper : NSObject <UINavigationControllerDelegate>
-
-/// Gesture recognizer used to recognize swiping to the right.
-@property (weak, readonly, nonatomic) UIPanGestureRecognizer *popPanRecognizer;
-@property (weak, readonly, nonatomic) UIPanGestureRecognizer *dismissPanRecognizer;
+@interface SloppySwiper : NSObject <UINavigationControllerDelegate, UIViewControllerTransitioningDelegate>
 
 @property (nonatomic, weak) id<SloppySwiperDelegate> delegate;
+
+@property (nonatomic, strong) UIScrollView *contentScrollView;
+@property (nonatomic, assign, getter = isAppearing) BOOL appearing;
 
 /// Designated initializer if the class isn't used from the Interface Builder.
 - (instancetype)initWithNavigationController:(UINavigationController *)navigationController;

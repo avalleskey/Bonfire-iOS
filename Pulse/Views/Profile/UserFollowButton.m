@@ -9,6 +9,7 @@
 #import "UserFollowButton.h"
 #import "UserContext.h"
 #import "Session.h"
+#import "UIColor+Palette.h"
 
 @implementation UserFollowButton
 
@@ -54,12 +55,18 @@
     
     if ([status isEqualToString:USER_STATUS_FOLLOWS] ||
         [status isEqualToString:USER_STATUS_FOLLOW_BOTH] ||
-        [status isEqualToString:USER_STATUS_ME]) {
+        [status isEqualToString:USER_STATUS_ME] ||
+        [status isEqualToString:USER_STATUS_LOADING]) {
         self.layer.borderWidth = 1.f;
         self.backgroundColor = [UIColor clearColor];
         
-        self.tintColor = [UIColor colorWithWhite:0.2f alpha:1];
-        [self setTitleColor:[UIColor colorWithWhite:0.2f alpha:1] forState:UIControlStateNormal];
+        if ([status isEqualToString:USER_STATUS_LOADING]) {
+            self.tintColor = disabledColor;
+        }
+        else {
+            self.tintColor = [UIColor bonfireGrayWithLevel:900];
+        }
+        [self setTitleColor:self.tintColor forState:UIControlStateNormal];
     }
     else {
         self.layer.borderWidth = 0;
@@ -71,8 +78,7 @@
         }
         else if ([status isEqualToString:USER_STATUS_BLOCKS_BOTH] ||
                  [status isEqualToString:USER_STATUS_BLOCKS] ||
-                 [status isEqualToString:USER_STATUS_BLOCKED] ||
-                 [status isEqualToString:USER_STATUS_LOADING]) {
+                 [status isEqualToString:USER_STATUS_BLOCKED]) {
             self.backgroundColor = disabledColor;
         }
     }

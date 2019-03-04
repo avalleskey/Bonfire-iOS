@@ -17,7 +17,7 @@
 - (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier {
     self = [super initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:reuseIdentifier];
     if (self) {
-        self.profilePicture = [[BFAvatarView alloc] initWithFrame:CGRectMake(16, 10, 42, 42)];
+        self.profilePicture = [[BFAvatarView alloc] initWithFrame:CGRectMake(12, 10, 42, 42)];
         [self.contentView addSubview:self.profilePicture];
         
         self.textLabel.font = [UIFont systemFontOfSize:15.f weight:UIFontWeightBold];
@@ -29,7 +29,7 @@
         self.detailTextLabel.lineBreakMode = NSLineBreakByTruncatingMiddle;
         
         // general cell styling
-        self.separatorInset = UIEdgeInsetsMake(0, 70, 0, 0);
+        self.separatorInset = UIEdgeInsetsMake(0, 68, 0, 0);
         self.selectionStyle = UITableViewCellSelectionStyleNone;
         
         self.approveButton = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -80,16 +80,16 @@
     [super layoutSubviews];
     
     // image view
-    self.profilePicture.frame = CGRectMake(16, 10, 42, 42);
+    self.profilePicture.frame = CGRectMake(12, 10, 42, 42);
     
     // text label
-    self.textLabel.frame = CGRectMake(70, 13, self.frame.size.width - 70 - 16, 18);
+    self.textLabel.frame = CGRectMake(68, 13, self.frame.size.width - 68 - 12, 18);
     
     // detail text label
     self.detailTextLabel.frame = CGRectMake(self.textLabel.frame.origin.x, self.textLabel.frame.origin.y + self.textLabel.frame.size.height + 1, self.textLabel.frame.size.width, 16);
     
-    CGFloat buttonContainerWidth = self.frame.size.width - 70 - 16;
-    self.approveButton.frame = CGRectMake(70, 60, buttonContainerWidth / 2 - 6, 34);
+    CGFloat buttonContainerWidth = self.frame.size.width - 68 - 12;
+    self.approveButton.frame = CGRectMake(68, 60, buttonContainerWidth / 2 - 6, 34);
     self.declineButton.frame = CGRectMake(self.approveButton.frame.origin.x + self.approveButton.frame.size.width + 12, self.approveButton.frame.origin.y, self.approveButton.frame.size.width, self.approveButton.frame.size.height);
 }
 

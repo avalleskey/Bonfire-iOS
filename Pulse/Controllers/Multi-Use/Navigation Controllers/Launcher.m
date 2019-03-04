@@ -26,6 +26,7 @@
 #import "ComposeViewController.h"
 #import "SSWDirectionalPanGestureRecognizer.h"
 #import "InsightsLogger.h"
+#import "QuickReplyViewController.h"
 
 #import <SafariServices/SafariServices.h>
 #import <Tweaks/FBTweakViewController.h>
@@ -216,7 +217,7 @@ static Launcher *launcher;
     [activity becomeCurrent];
 }
 - (void)openRoomMembersForRoom:(Room *)room {
-    RoomMembersViewController *rm = [[RoomMembersViewController alloc] initWithStyle:UITableViewStyleGrouped];
+    RoomMembersViewController *rm = [[RoomMembersViewController alloc] init];
     
     rm.room = room;
     rm.theme = [UIColor fromHex:room.attributes.details.color.length == 6 ? room.attributes.details.color : @"7d8a99"];
@@ -433,13 +434,24 @@ static Launcher *launcher;
             activeLauncherNavVC.searchView.textField.text = p.title;
             [activeLauncherNavVC.searchView hideSearchIcon:false];
             
-            [activeLauncherNavVC updateBarColor:p.theme withAnimation:1 statusBarUpdateDelay:NO];
+            [activeLauncherNavVC updateBarColor:p.theme withAnimation:2 statusBarUpdateDelay:NO];
             
             [launcher push:p animated:YES];
             
             [activeLauncherNavVC updateNavigationBarItemsWithAnimation:YES];
         }
     }
+}
+- (void)openPostReply:(Post *)post sender:(UIView *)sender {
+    QuickReplyViewController *quickReplyVC = [[QuickReplyViewController alloc] init];
+    quickReplyVC.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
+    quickReplyVC.modalPresentationStyle = UIModalPresentationOverCurrentContext;
+    quickReplyVC.replyingTo = post;
+    UIView *senderSuperView = sender.superview;
+    quickReplyVC.fromCenter = [senderSuperView convertPoint:sender.center toView:senderSuperView.superview];
+    [[launcher activeViewController] presentViewController:quickReplyVC animated:NO completion:^{
+        //[self setRootViewController:vc];
+    }];
 }
 - (void)openCreateRoom {
     CreateRoomViewController *c = [[CreateRoomViewController alloc] init];

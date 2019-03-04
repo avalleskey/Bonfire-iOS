@@ -24,7 +24,7 @@
 #import <BlocksKit/BlocksKit+UIKit.h>
 #import <JGProgressHUD/JGProgressHUD.h>
 
-#define ROOM_PRIVATE_DESCRIPTION @"When your Room is private, only people you approve can see content posted inside your Room. Your existing members won’t be affected."
+#define ROOM_PRIVATE_DESCRIPTION @"When your Camp is private, only people you approve can see content posted inside your Camp. Your existing members won’t be affected."
 
 @interface EditRoomViewController () <UITextFieldDelegate, UITextViewDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate, RSKImageCropViewControllerDelegate, RSKImageCropViewControllerDataSource>
 
@@ -589,14 +589,11 @@ static NSString * const toggleReuseIdentifier = @"ToggleCell";
     else if (indexPath.section == 1) {
         // sign out
         UIAlertController *areYouSure = [UIAlertController alertControllerWithTitle:@"Sign Out?" message:@"Please confirm you would like to sign out" preferredStyle:UIAlertControllerStyleAlert];
-        areYouSure.view.tintColor = [UIColor colorWithWhite:0.2f alpha:1];
         
         UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
             [areYouSure dismissViewControllerAnimated:YES completion:nil];
         }];
         ThemeSelectorCell *themeColorCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:4 inSection:0]];
-        NSString *themeColor = themeColorCell.selectedColor;
-        [cancel setValue:themeColor forKey:@"titleTextColor"];
         [areYouSure addAction:cancel];
         
         UIAlertAction *confirm = [UIAlertAction actionWithTitle:@"Sign Out" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
@@ -614,7 +611,6 @@ static NSString * const toggleReuseIdentifier = @"ToggleCell";
 
 - (void)showImagePicker {
     UIAlertController *imagePickerOptions = [UIAlertController alertControllerWithTitle:@"Set Profile Photo" message:nil preferredStyle:UIAlertControllerStyleActionSheet];
-    imagePickerOptions.view.tintColor = [UIColor colorWithWhite:0.2f alpha:1];
     
     UIAlertAction *takePhoto = [UIAlertAction actionWithTitle:@"Take Photo" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         [self takePhotoForProfilePicture:nil];
@@ -628,7 +624,6 @@ static NSString * const toggleReuseIdentifier = @"ToggleCell";
     
     UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
     }];
-    [cancel setValue:self.navigationBackgroundView.backgroundColor forKey:@"titleTextColor"];
     [imagePickerOptions addAction:cancel];
     
     [self presentViewController:imagePickerOptions animated:YES completion:nil];

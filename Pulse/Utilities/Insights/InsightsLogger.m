@@ -8,7 +8,7 @@
 
 #import "InsightsLogger.h"
 #import "ExpandedPostCell.h"
-#import "BubblePostCell.h"
+#import "PostCell.h"
 #import "Session.h"
 #import "HAWebService.h"
 
@@ -140,12 +140,12 @@ static InsightsLogger *logger;
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         for (UITableViewCell *cell in visibleCells) {
             Post *post;
-            if ([cell isKindOfClass:[BubblePostCell class]]) {
-                BubblePostCell *bubblePostCell = (BubblePostCell *)cell;
-                post = bubblePostCell.post;
+            if ([cell isKindOfClass:[PostCell class]]) {
+                PostCell *postCell = (PostCell *)cell;
+                post = postCell.post;
             } else if ([cell isKindOfClass:[ExpandedPostCell class]]) {
-                ExpandedPostCell *bubblePostCell = (ExpandedPostCell *)cell;
-                post = bubblePostCell.post;
+                ExpandedPostCell *PostCell = (ExpandedPostCell *)cell;
+                post = PostCell.post;
             }
             else {
                 continue;
@@ -209,12 +209,12 @@ static InsightsLogger *logger;
     
     for (UITableViewCell *cell in visibleCells) {
         Post *post;
-        if ([cell isKindOfClass:[BubblePostCell class]]) {
-            BubblePostCell *bubblePostCell = (BubblePostCell *)cell;
-            post = bubblePostCell.post;
+        if ([cell isKindOfClass:[PostCell class]]) {
+            PostCell *postCell = (PostCell *)cell;
+            post = postCell.post;
         } else if ([cell isKindOfClass:[ExpandedPostCell class]]) {
-            ExpandedPostCell *bubblePostCell = (ExpandedPostCell *)cell;
-            post = bubblePostCell.post;
+            ExpandedPostCell *postCell = (ExpandedPostCell *)cell;
+            post = postCell.post;
         }
         else {
             continue;

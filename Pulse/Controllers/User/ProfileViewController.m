@@ -93,8 +93,8 @@
             
             [self.tableView.stream updateUserObjects:user];
             
-            [self.tableView refresh];
             [self updateTheme];
+            [self.tableView refresh];
         }
     }
 }
@@ -142,7 +142,6 @@
     // Report Room
     
     UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:[NSString stringWithFormat:@"@%@", self.user.attributes.details.identifier] message:nil preferredStyle:UIAlertControllerStyleActionSheet];
-    actionSheet.view.tintColor = [UIColor colorWithWhite:0.2f alpha:1];
     
     // 1.A.* -- Any user, any page, any following state
     UIAlertAction *shareUser = [UIAlertAction actionWithTitle:[NSString stringWithFormat:@"Share %@ via...", [self isCurrentUser] ? @"your profile" : [NSString stringWithFormat:@"@%@", self.user.attributes.details.identifier]] style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
@@ -227,7 +226,6 @@
     UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
         NSLog(@"cancel");
     }];
-    [cancel setValue:self.theme forKey:@"titleTextColor"];
     [actionSheet addAction:cancel];
     
     [self.navigationController presentViewController:actionSheet animated:YES completion:nil];

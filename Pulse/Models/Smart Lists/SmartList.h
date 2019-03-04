@@ -20,16 +20,28 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface SmartList : JSONModel
 
+@property (nonatomic) NSString <Optional> *identifier;
+@property (nonatomic) NSString <Optional> *title;
 @property (nonatomic) NSArray <SmartListSection *> <SmartListSection> *sections;
 
 @end
 
 @interface SmartListSection : JSONModel
 
-@property (nonatomic) NSString *identifier;
+typedef enum {
+    SmartListStateEmpty = 0,
+    SmartListStateLoading = 1,
+    SmartListStateLoaded = 2
+} SmartListState;
+
+@property (nonatomic) NSString <Optional> *identifier;
 @property (nonatomic) NSString <Optional> *title;
 @property (nonatomic) NSString <Optional> *footer;
-@property (nonatomic) NSArray <SmartListSectionRow *> <SmartListSectionRow> *rows;
+@property (nonatomic) NSString <Optional> *url;
+@property (nonatomic) NSMutableArray <Optional> *data;
+@property (nonatomic) NSString <Optional> *next_cursor;
+@property (nonatomic) SmartListState state;
+@property (nonatomic) NSArray <SmartListSectionRow *> <SmartListSectionRow, Optional> *rows;
 
 @end
 

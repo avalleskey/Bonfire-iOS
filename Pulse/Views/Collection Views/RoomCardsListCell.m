@@ -118,46 +118,6 @@ static NSString * const errorRoomCellReuseIdentifier = @"ErrorRoomCell";
             if (!cell.loading) {
                 NSError *error;
                 cell.room = [[Room alloc] initWithDictionary:self.rooms[indexPath.item] error:&error];
-                cell.tintColor = [UIColor fromHex:cell.room.attributes.details.color];
-                
-                cell.themeLine.layer.borderColor = [UIColor fromHex:cell.room.attributes.details.color].CGColor;
-                
-                cell.roomTitleLabel.text = cell.room.attributes.details.title;
-                cell.roomDescriptionLabel.text = cell.room.attributes.details.theDescription;
-                
-                cell.profilePicture.room = cell.room;
-                
-                DefaultsRoomMembersTitle *membersTitle = [Session sharedInstance].defaults.room.membersTitle;
-                if (cell.room.attributes.summaries.counts.members) {
-                    NSInteger members = cell.room.attributes.summaries.counts.members;
-                    cell.membersLabel.text = [NSString stringWithFormat:@"%ld %@", members, members == 1 ? [membersTitle.singular lowercaseString] : [membersTitle.plural lowercaseString]];
-                    
-                    if (members > 0) {
-                        // setup the replies view
-                        for (int i = 0; i < 3; i++) {
-                            BFAvatarView *avatarView;
-                            if (i == 0) avatarView = cell.member1;
-                            if (i == 1) avatarView = cell.member2;
-                            if (i == 2) avatarView = cell.member3;
-                            
-                            if (cell.room.attributes.summaries.members.count > i) {
-                                avatarView.hidden = false;
-                                
-                                User *userForImageView = [[User alloc] initWithDictionary:cell.room.attributes.summaries.members[i] error:nil];
-                                
-                                avatarView.user = userForImageView;
-                            }
-                            else {
-                                avatarView.hidden = true;
-                            }
-                        }
-                    }
-                }
-                else {
-                    cell.membersLabel.text = [NSString stringWithFormat:@"0 %@", [membersTitle.plural lowercaseString]];
-                }
-                
-                [cell layoutSubviews];
             }
             
             return cell;

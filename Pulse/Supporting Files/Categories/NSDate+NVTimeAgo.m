@@ -54,7 +54,7 @@
     
     // < 1 minute = "Just now"
     if(secondsSince < MINUTE)
-        return @"Just now";
+        return @"1s";
     
     
     // < 1 hour = "x minutes ago"
@@ -261,7 +261,7 @@
     
     //Format
     if (form == TimeAgoShortForm) {
-        [dateFormatter setDateFormat:@"MMM, YYYY"];
+        [dateFormatter setDateFormat:@"MMM YYYY"];
     }
     else {
         [dateFormatter setDateFormat:@"MMMM d, YYYY"];

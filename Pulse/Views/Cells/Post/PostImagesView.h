@@ -7,12 +7,18 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "UIImageView+WebCache.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 @interface PostImagesView : UIView
 
-@property (strong, nonatomic) UIImageView *imageView;
+@property (strong, nonatomic) NSMutableArray *imageViews;
+
+// array of URLs and/or UIImages
+@property (strong, nonatomic) NSArray *media;
+
++ (CGFloat)streamImageHeight;
 
 @end
 

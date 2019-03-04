@@ -47,6 +47,7 @@
     [self.contentView addSubview:self.roomHeaderView];
     
     self.profilePictureContainerView = [[UIView alloc] initWithFrame:CGRectMake(20, 20, 80, 80)];
+    self.profilePictureContainerView.userInteractionEnabled = false;
     self.profilePictureContainerView.backgroundColor = [UIColor whiteColor];
     self.profilePictureContainerView.layer.cornerRadius = self.profilePictureContainerView.frame.size.width / 2;
     self.profilePictureContainerView.layer.shadowOffset = CGSizeMake(0, 1);

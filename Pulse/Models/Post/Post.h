@@ -87,6 +87,7 @@
 @property (nonatomic) User <Optional> *creator;
 // parent post ID --> used for Post replies
 @property (nonatomic) NSInteger parent;
+@property (nonatomic) NSArray <Post *> <Post, Optional> *replies;
 
 - (NSString *)simpleMessage;
 

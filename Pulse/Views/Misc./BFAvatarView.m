@@ -111,7 +111,7 @@
 }
 
 - (void)setUser:(User *)user {
-    if (user == nil || user != _user) {
+    if (user == nil || user != _user || ![user.attributes.details.color isEqualToString:_user.attributes.details.color]) {
         _user = user;
         
         if (user == nil) {
@@ -141,7 +141,7 @@
             }
         }
         else {
-            if (_user.attributes.details.media.profilePicture.length > 0) {
+            if (![_user.attributes.details.media.profilePicture isEqualToString:@"<null>"] && _user.attributes.details.media.profilePicture.length > 0) {
                 if (diff(self.imageView.backgroundColor, [UIColor whiteColor]))
                     self.imageView.backgroundColor = [UIColor whiteColor];
                 
@@ -161,10 +161,10 @@
                 UIColor *tintColor;
                 if ([UIColor useWhiteForegroundForColor:[UIColor fromHex:_user.attributes.details.color]]) {
                     // dark enough
-                    tintColor = [UIColor lighterColorForColor:[UIColor fromHex:_user.attributes.details.color] amount:BFAvatarViewIconContrast];
+                    tintColor = [UIColor whiteColor]; //[UIColor lighterColorForColor:[UIColor fromHex:_user.attributes.details.color] amount:BFAvatarViewIconContrast];
                 }
                 else {
-                    tintColor = [UIColor darkerColorForColor:[UIColor fromHex:_user.attributes.details.color] amount:BFAvatarViewIconContrast];
+                    tintColor = [UIColor blackColor]; // [UIColor darkerColorForColor:[UIColor fromHex:_user.attributes.details.color] amount:BFAvatarViewIconContrast];
                 }
                 if (diff(self.imageView.tintColor, tintColor))
                     self.imageView.tintColor = tintColor;
@@ -198,10 +198,10 @@
                 self.imageView.backgroundColor = [UIColor fromHex:_room.attributes.details.color];
                 if ([UIColor useWhiteForegroundForColor:[UIColor fromHex:_room.attributes.details.color]]) {
                     // dark enough
-                    self.imageView.tintColor = [UIColor lighterColorForColor:[UIColor fromHex:_room.attributes.details.color] amount:BFAvatarViewIconContrast];
+                    self.imageView.tintColor = [UIColor whiteColor]; // [UIColor lighterColorForColor:[UIColor fromHex:_room.attributes.details.color] amount:BFAvatarViewIconContrast];
                 }
                 else {
-                    self.imageView.tintColor = [UIColor darkerColorForColor:[UIColor fromHex:_room.attributes.details.color] amount:BFAvatarViewIconContrast];
+                    self.imageView.tintColor = [UIColor blackColor]; // [UIColor darkerColorForColor:[UIColor fromHex:_room.attributes.details.color] amount:BFAvatarViewIconContrast];
                 }
             }
         }

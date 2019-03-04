@@ -49,7 +49,6 @@ static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
     self.tableView = [[RSTableView alloc] initWithFrame:self.view.bounds style:UITableViewStyleGrouped];
     tv.separatorColor = [UIColor separatorColor];
     tv.separatorInset = UIEdgeInsetsZero;
-    tv.separatorStyle = UITableViewCellSeparatorStyleSingleLine;
     tv.dataType = RSTableViewTypeFeed;
     tv.dataSubType = (self.feedType == FeedTypeTimeline ? RSTableViewSubTypeHome : RSTableViewSubTypeTrending);
     tv.loading = true;
@@ -96,7 +95,7 @@ static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
     if (tempPost != nil && tempPost.attributes.details.parent == 0) {
         // TODO: Check for image as well
         self.errorView.hidden = true;
-        [tv.stream prependTempPost:tempPost];
+        [tv.stream addTempPost:tempPost];
         [tv refresh];
         [tv scrollToTop];
     }
@@ -256,6 +255,12 @@ static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
 }
 
 - (void)setupContent {
+    tv.stream = [[PostStream alloc] init];
+    
+    [self fetchNewPosts];
+}
+
+- (void)loadCache {
     NSArray *cache = @[];
     if (self.feedType == FeedTypeTimeline) {
         cache = [[PINCache sharedCache] objectForKey:@"home_feed_cache"];
@@ -280,8 +285,6 @@ static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
     else {
         tv.stream = [[PostStream alloc] init];
     }
-    
-    [self fetchNewPosts];
 }
 
 - (void)fetchNewPosts {
@@ -373,7 +376,7 @@ static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
                             newCache = [newCache subarrayWithRange:NSMakeRange(0, MAX_FEED_CACHED_POSTS)];
                         }
                         
-                        [[PINCache sharedCache] setObject:newCache forKey:cacheKey block:nil]; // returns immediately
+                        [[PINCache sharedCache] setObject:newCache forKey:cacheKey];
                     }
                 }
                 
@@ -414,6 +417,8 @@ static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
                 NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
                 NSLog(@"FeedViewController / getPosts() - ErrorResponse: %@", ErrorResponse);
+                
+                [self loadCache];
                 
                 if (tv.stream.posts.count == 0) {
                     self.errorView.hidden = false;

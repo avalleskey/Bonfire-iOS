@@ -73,6 +73,10 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
     NSError *listError;
     self.list = [[SmartList alloc] initWithDictionary:json error:&listError];
     
+    if (listError) {
+        NSLog(@"listError: %@", listError);
+    }
+    
     [self.tableView reloadData];
 }
 

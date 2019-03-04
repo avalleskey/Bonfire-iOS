@@ -65,6 +65,7 @@
     }
     return self;
 }
+
 - (SearchNavigationController *)searchNavWithRootViewController:(NSString *)rootID {
     SearchNavigationController *searchNav;
     
@@ -227,7 +228,12 @@
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     
-    //self.blurView.frame = CGRectMake(0, 0, self.tabBar.frame.size.width, self.tabBar.frame.size.height);
+    if ([UIApplication sharedApplication].applicationIconBadgeNumber > 0) {
+        self.notificationsNavVC.tabBarItem.badgeValue = [NSString stringWithFormat:@"%ld", (long)[UIApplication sharedApplication].applicationIconBadgeNumber];
+    }
+    else {
+        self.notificationsNavVC.tabBarItem.badgeValue = nil;
+    }
 }
 
 - (void)addTabBarPressEffects {

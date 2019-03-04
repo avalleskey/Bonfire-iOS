@@ -213,7 +213,6 @@
 
 - (void)presentNotificationActions {
     UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:nil message:nil preferredStyle:UIAlertControllerStyleActionSheet];
-    actionSheet.view.tintColor = [UIColor colorWithWhite:0.2 alpha:1];
     
     // imessage , share via...
     
@@ -225,7 +224,6 @@
     UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
         NSLog(@"cancel");
     }];
-    [cancel setValue:[UIColor bonfireBrand] forKey:@"titleTextColor"];
     [actionSheet addAction:cancel];
     
     [[Launcher sharedInstance].activeViewController presentViewController:actionSheet animated:YES completion:nil];

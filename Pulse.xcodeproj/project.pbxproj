@@ -11,6 +11,7 @@
 		878DA0E3ACC2B7101A2CBA95 /* libPods-Pulse.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F81B5CD30EB3F68F148550E7 /* libPods-Pulse.a */; };
 		C3AF8E5D0DAE8D383FF1AC61 /* libPods-PulseUITests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F41F73E6D23504AE2C61294E /* libPods-PulseUITests.a */; };
 		D902CD4F21993D390088F479 /* RoomViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D902CD4E21993D390088F479 /* RoomViewController.m */; };
+		D906C854220E0AA6005D283C /* PostReplySnapshotView.m in Sources */ = {isa = PBXBuildFile; fileRef = D906C853220E0AA6005D283C /* PostReplySnapshotView.m */; };
 		D907B082214EEC5000A59712 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = D907B081214EEC5000A59712 /* AppDelegate.m */; };
 		D907B088214EEC5000A59712 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D907B086214EEC5000A59712 /* Main.storyboard */; };
 		D907B08A214EEC5300A59712 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D907B089214EEC5300A59712 /* Assets.xcassets */; };
@@ -25,7 +26,8 @@
 		D907B1052150697400A59712 /* NSDictionary+Clean.m in Sources */ = {isa = PBXBuildFile; fileRef = D907B1022150697300A59712 /* NSDictionary+Clean.m */; };
 		D907B1202150960400A59712 /* MiniChannelCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D907B11F2150960300A59712 /* MiniChannelCell.m */; };
 		D9114F8321954D4F0033765A /* MemberRequestCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D9114F8221954D4F0033765A /* MemberRequestCell.m */; };
-		D9114F86219627100033765A /* BubblePostCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D9114F84219627100033765A /* BubblePostCell.m */; };
+		D912BD70222C80B500F9F4EC /* RoomMembers.json in Resources */ = {isa = PBXBuildFile; fileRef = D912BD6E222C742500F9F4EC /* RoomMembers.json */; };
+		D912BD73222DA86B00F9F4EC /* AddManagerCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D912BD72222DA86B00F9F4EC /* AddManagerCell.m */; };
 		D91643092162BE4800523770 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D91643082162BE4800523770 /* QuartzCore.framework */; };
 		D916430D2162C3A100523770 /* SearchResultCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D916430C2162C3A100523770 /* SearchResultCell.m */; };
 		D9164310216407C300523770 /* ProfileViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D916430F216407C300523770 /* ProfileViewController.m */; };
@@ -63,6 +65,7 @@
 		D94DE3322199203C00CA3E1F /* SSWDirectionalPanGestureRecognizer.m in Sources */ = {isa = PBXBuildFile; fileRef = D94DE32D2199203B00CA3E1F /* SSWDirectionalPanGestureRecognizer.m */; };
 		D94DE3332199203C00CA3E1F /* SloppySwiper.m in Sources */ = {isa = PBXBuildFile; fileRef = D94DE3302199203C00CA3E1F /* SloppySwiper.m */; };
 		D94DE3342199203C00CA3E1F /* SSWAnimator.m in Sources */ = {isa = PBXBuildFile; fileRef = D94DE3312199203C00CA3E1F /* SSWAnimator.m */; };
+		D94F3317221A247A00331ADC /* ExpandThreadCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D94F3316221A247A00331ADC /* ExpandThreadCell.m */; };
 		D94FD19821685D6000B84E45 /* CreateRoomViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D94FD19721685D6000B84E45 /* CreateRoomViewController.m */; };
 		D94FD19E2168644200B84E45 /* EmptyChannelCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D94FD19D2168644200B84E45 /* EmptyChannelCell.m */; };
 		D94FD1A4216C5B4400B84E45 /* OnboardingViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D94FD1A2216C5B4300B84E45 /* OnboardingViewController.m */; };
@@ -79,6 +82,10 @@
 		D94FD205216D730300B84E45 /* UserAttributes.m in Sources */ = {isa = PBXBuildFile; fileRef = D94FD1DF216D730300B84E45 /* UserAttributes.m */; };
 		D94FD207216D730300B84E45 /* UserDetails.m in Sources */ = {isa = PBXBuildFile; fileRef = D94FD1E1216D730300B84E45 /* UserDetails.m */; };
 		D94FD20B216D730300B84E45 /* UserMedia.m in Sources */ = {isa = PBXBuildFile; fileRef = D94FD1E8216D730300B84E45 /* UserMedia.m */; };
+		D9504D32221F59AB00DD35B0 /* StreamPostCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D9504D30221F59AB00DD35B0 /* StreamPostCell.m */; };
+		D9504D352220979500DD35B0 /* MiniReplyCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D9504D332220979500DD35B0 /* MiniReplyCell.m */; };
+		D9504D382223328600DD35B0 /* QuickReplyViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9504D372223328600DD35B0 /* QuickReplyViewController.m */; };
+		D9504D3E22284D8000DD35B0 /* PostActivityView.m in Sources */ = {isa = PBXBuildFile; fileRef = D9504D3D22284D8000DD35B0 /* PostActivityView.m */; };
 		D95CBC302177E7EA001E6D2D /* LocalDefaults.json in Resources */ = {isa = PBXBuildFile; fileRef = D95CBC2F2177E67C001E6D2D /* LocalDefaults.json */; };
 		D96AD78C217CFA4E00849F6B /* RoomContext.m in Sources */ = {isa = PBXBuildFile; fileRef = D96AD78B217CFA4E00849F6B /* RoomContext.m */; };
 		D96AD78F2180CBD100849F6B /* ErrorChannelCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D96AD78E2180CBD100849F6B /* ErrorChannelCell.m */; };
@@ -103,6 +110,7 @@
 		D998462921934309000B901F /* RoomMembersViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D998462821934309000B901F /* RoomMembersViewController.m */; };
 		D9A1CC0F21E15144006D377C /* MiniBubbleAddReplyView.m in Sources */ = {isa = PBXBuildFile; fileRef = D9A1CC0E21E15144006D377C /* MiniBubbleAddReplyView.m */; };
 		D9A1CC1221E52950006D377C /* PostContextView.m in Sources */ = {isa = PBXBuildFile; fileRef = D9A1CC1121E52950006D377C /* PostContextView.m */; };
+		D9AE329D220A3F6000334340 /* PostCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D9AE329B220A3F6000334340 /* PostCell.m */; };
 		D9AECE3A21571DBE00F01CAD /* TabBarView.m in Sources */ = {isa = PBXBuildFile; fileRef = D9AECE3921571DBE00F01CAD /* TabBarView.m */; };
 		D9B2D57421ACAED5007B3C0C /* Intents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9B2D57321ACAED5007B3C0C /* Intents.framework */; };
 		D9B2D57721AE3265007B3C0C /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = D9B2D57521AE3265007B3C0C /* Reachability.m */; };
@@ -155,7 +163,7 @@
 		D9E5EB7E21FC199000B9F5FD /* ProfileFollowingListViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9E5EB7C21FC198F00B9F5FD /* ProfileFollowingListViewController.m */; };
 		D9E5EB8121FF6AE000B9F5FD /* ThemedViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9E5EB8021FF6AE000B9F5FD /* ThemedViewController.m */; };
 		D9E5EB8421FF6AEE00B9F5FD /* ThemedTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9E5EB8321FF6AEE00B9F5FD /* ThemedTableViewController.m */; };
-		D9E5EB8A2203D1DB00B9F5FD /* ReplyPostCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D9E5EB892203D1DB00B9F5FD /* ReplyPostCell.m */; };
+		D9E5EB8A2203D1DB00B9F5FD /* ReplyCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D9E5EB892203D1DB00B9F5FD /* ReplyCell.m */; };
 		D9E5EB8D2205167600B9F5FD /* ThreadedPostCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D9E5EB8C2205167600B9F5FD /* ThreadedPostCell.m */; };
 		D9E8E87921C0709A00DDFEBA /* UserSummaries.m in Sources */ = {isa = PBXBuildFile; fileRef = D9E8E87821C0709A00DDFEBA /* UserSummaries.m */; };
 		D9E8E87C21C1C9D600DDFEBA /* ToggleCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D9E8E87A21C1C9D600DDFEBA /* ToggleCell.m */; };
@@ -194,6 +202,8 @@
 		D4781EA5627B7BFF528F28B5 /* Pods-PulseUITests.beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PulseUITests.beta.xcconfig"; path = "Pods/Target Support Files/Pods-PulseUITests/Pods-PulseUITests.beta.xcconfig"; sourceTree = "<group>"; };
 		D902CD4D21993D390088F479 /* RoomViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RoomViewController.h; sourceTree = "<group>"; };
 		D902CD4E21993D390088F479 /* RoomViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RoomViewController.m; sourceTree = "<group>"; };
+		D906C852220E0AA6005D283C /* PostReplySnapshotView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PostReplySnapshotView.h; sourceTree = "<group>"; };
+		D906C853220E0AA6005D283C /* PostReplySnapshotView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PostReplySnapshotView.m; sourceTree = "<group>"; };
 		D907B07D214EEC5000A59712 /* Pulse.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Pulse.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D907B080214EEC5000A59712 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		D907B081214EEC5000A59712 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; wrapsLines = 0; };
@@ -222,8 +232,9 @@
 		D907B11F2150960300A59712 /* MiniChannelCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MiniChannelCell.m; sourceTree = "<group>"; };
 		D9114F8121954D4E0033765A /* MemberRequestCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MemberRequestCell.h; sourceTree = "<group>"; };
 		D9114F8221954D4F0033765A /* MemberRequestCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MemberRequestCell.m; sourceTree = "<group>"; };
-		D9114F84219627100033765A /* BubblePostCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BubblePostCell.m; sourceTree = "<group>"; };
-		D9114F85219627100033765A /* BubblePostCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BubblePostCell.h; sourceTree = "<group>"; };
+		D912BD6E222C742500F9F4EC /* RoomMembers.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = RoomMembers.json; sourceTree = "<group>"; };
+		D912BD71222DA86B00F9F4EC /* AddManagerCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AddManagerCell.h; sourceTree = "<group>"; };
+		D912BD72222DA86B00F9F4EC /* AddManagerCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AddManagerCell.m; sourceTree = "<group>"; };
 		D91643082162BE4800523770 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		D916430B2162C3A100523770 /* SearchResultCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SearchResultCell.h; sourceTree = "<group>"; };
 		D916430C2162C3A100523770 /* SearchResultCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SearchResultCell.m; sourceTree = "<group>"; };
@@ -290,6 +301,8 @@
 		D94DE32F2199203C00CA3E1F /* SSWAnimator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SSWAnimator.h; sourceTree = "<group>"; };
 		D94DE3302199203C00CA3E1F /* SloppySwiper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SloppySwiper.m; sourceTree = "<group>"; };
 		D94DE3312199203C00CA3E1F /* SSWAnimator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SSWAnimator.m; sourceTree = "<group>"; };
+		D94F3315221A247A00331ADC /* ExpandThreadCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ExpandThreadCell.h; sourceTree = "<group>"; };
+		D94F3316221A247A00331ADC /* ExpandThreadCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ExpandThreadCell.m; sourceTree = "<group>"; };
 		D94FD19621685D6000B84E45 /* CreateRoomViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CreateRoomViewController.h; sourceTree = "<group>"; };
 		D94FD19721685D6000B84E45 /* CreateRoomViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CreateRoomViewController.m; sourceTree = "<group>"; };
 		D94FD19C2168644200B84E45 /* EmptyChannelCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EmptyChannelCell.h; sourceTree = "<group>"; };
@@ -322,6 +335,14 @@
 		D94FD1E3216D730300B84E45 /* User.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = User.h; sourceTree = "<group>"; };
 		D94FD1E7216D730300B84E45 /* UserAttributes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UserAttributes.h; sourceTree = "<group>"; };
 		D94FD1E8216D730300B84E45 /* UserMedia.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UserMedia.m; sourceTree = "<group>"; };
+		D9504D30221F59AB00DD35B0 /* StreamPostCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = StreamPostCell.m; sourceTree = "<group>"; };
+		D9504D31221F59AB00DD35B0 /* StreamPostCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StreamPostCell.h; sourceTree = "<group>"; };
+		D9504D332220979500DD35B0 /* MiniReplyCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MiniReplyCell.m; sourceTree = "<group>"; };
+		D9504D342220979500DD35B0 /* MiniReplyCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MiniReplyCell.h; sourceTree = "<group>"; };
+		D9504D362223328600DD35B0 /* QuickReplyViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = QuickReplyViewController.h; sourceTree = "<group>"; };
+		D9504D372223328600DD35B0 /* QuickReplyViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = QuickReplyViewController.m; sourceTree = "<group>"; };
+		D9504D3C22284D8000DD35B0 /* PostActivityView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PostActivityView.h; sourceTree = "<group>"; };
+		D9504D3D22284D8000DD35B0 /* PostActivityView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PostActivityView.m; sourceTree = "<group>"; };
 		D95CBC2F2177E67C001E6D2D /* LocalDefaults.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = LocalDefaults.json; sourceTree = "<group>"; };
 		D96AD78A217CFA4E00849F6B /* RoomContext.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RoomContext.h; sourceTree = "<group>"; };
 		D96AD78B217CFA4E00849F6B /* RoomContext.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RoomContext.m; sourceTree = "<group>"; };
@@ -370,6 +391,8 @@
 		D9A1CC0E21E15144006D377C /* MiniBubbleAddReplyView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MiniBubbleAddReplyView.m; sourceTree = "<group>"; };
 		D9A1CC1021E52950006D377C /* PostContextView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PostContextView.h; sourceTree = "<group>"; };
 		D9A1CC1121E52950006D377C /* PostContextView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PostContextView.m; sourceTree = "<group>"; };
+		D9AE329B220A3F6000334340 /* PostCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PostCell.m; sourceTree = "<group>"; };
+		D9AE329C220A3F6000334340 /* PostCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PostCell.h; sourceTree = "<group>"; };
 		D9AECE3821571DBE00F01CAD /* TabBarView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TabBarView.h; sourceTree = "<group>"; };
 		D9AECE3921571DBE00F01CAD /* TabBarView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TabBarView.m; sourceTree = "<group>"; };
 		D9B2D57221ACAEBE007B3C0C /* Pulse.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Pulse.entitlements; sourceTree = "<group>"; };
@@ -469,8 +492,8 @@
 		D9E5EB8021FF6AE000B9F5FD /* ThemedViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ThemedViewController.m; sourceTree = "<group>"; };
 		D9E5EB8221FF6AEE00B9F5FD /* ThemedTableViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ThemedTableViewController.h; sourceTree = "<group>"; };
 		D9E5EB8321FF6AEE00B9F5FD /* ThemedTableViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ThemedTableViewController.m; sourceTree = "<group>"; };
-		D9E5EB882203D1DB00B9F5FD /* ReplyPostCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ReplyPostCell.h; sourceTree = "<group>"; };
-		D9E5EB892203D1DB00B9F5FD /* ReplyPostCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ReplyPostCell.m; sourceTree = "<group>"; };
+		D9E5EB882203D1DB00B9F5FD /* ReplyCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ReplyCell.h; sourceTree = "<group>"; };
+		D9E5EB892203D1DB00B9F5FD /* ReplyCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ReplyCell.m; sourceTree = "<group>"; };
 		D9E5EB8B2205167600B9F5FD /* ThreadedPostCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ThreadedPostCell.h; path = Pulse/Views/Cells/ThreadedPostCell.h; sourceTree = SOURCE_ROOT; };
 		D9E5EB8C2205167600B9F5FD /* ThreadedPostCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = ThreadedPostCell.m; path = Pulse/Views/Cells/ThreadedPostCell.m; sourceTree = SOURCE_ROOT; };
 		D9E8E87721C0709A00DDFEBA /* UserSummaries.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UserSummaries.h; sourceTree = "<group>"; };
@@ -604,6 +627,16 @@
 				D907B0A6214EEC5300A59712 /* Info.plist */,
 			);
 			path = PulseUITests;
+			sourceTree = "<group>";
+		};
+		D912BD6F222C744D00F9F4EC /* Room Members */ = {
+			isa = PBXGroup;
+			children = (
+				D998462721934309000B901F /* RoomMembersViewController.h */,
+				D998462821934309000B901F /* RoomMembersViewController.m */,
+				D912BD6E222C742500F9F4EC /* RoomMembers.json */,
+			);
+			path = "Room Members";
 			sourceTree = "<group>";
 		};
 		D916430A2162C37B00523770 /* Navigation Controllers */ = {
@@ -804,6 +837,8 @@
 				D9742E7621C459DE002CBEFC /* ComposeViewController.m */,
 				D9742E7E21C5AB3E002CBEFC /* PrivacySelectorTableViewController.h */,
 				D9742E7F21C5AB3E002CBEFC /* PrivacySelectorTableViewController.m */,
+				D9504D362223328600DD35B0 /* QuickReplyViewController.h */,
+				D9504D372223328600DD35B0 /* QuickReplyViewController.m */,
 			);
 			path = Compose;
 			sourceTree = "<group>";
@@ -811,20 +846,26 @@
 		D974B74221614B6D00C03269 /* Post */ = {
 			isa = PBXGroup;
 			children = (
+				D9AE329C220A3F6000334340 /* PostCell.h */,
+				D9AE329B220A3F6000334340 /* PostCell.m */,
+				D9504D31221F59AB00DD35B0 /* StreamPostCell.h */,
+				D9504D30221F59AB00DD35B0 /* StreamPostCell.m */,
 				D9CB78E62166BAD700EEDBC9 /* ExpandedPostCell.h */,
 				D9CB78E72166BAD700EEDBC9 /* ExpandedPostCell.m */,
+				D9E5EB882203D1DB00B9F5FD /* ReplyCell.h */,
+				D9E5EB892203D1DB00B9F5FD /* ReplyCell.m */,
+				D9504D342220979500DD35B0 /* MiniReplyCell.h */,
+				D9504D332220979500DD35B0 /* MiniReplyCell.m */,
 				D9B2EBD821DECBF900C5FC3D /* MiniBubblePostView.h */,
 				D9B2EBD921DECBF900C5FC3D /* MiniBubblePostView.m */,
 				D9A1CC0D21E15144006D377C /* MiniBubbleAddReplyView.h */,
 				D9A1CC0E21E15144006D377C /* MiniBubbleAddReplyView.m */,
 				D983D731216E5A5900F9D201 /* LoadingCell.h */,
 				D983D732216E5A5900F9D201 /* LoadingCell.m */,
-				D9114F85219627100033765A /* BubblePostCell.h */,
-				D9114F84219627100033765A /* BubblePostCell.m */,
 				D9E5EB8B2205167600B9F5FD /* ThreadedPostCell.h */,
 				D9E5EB8C2205167600B9F5FD /* ThreadedPostCell.m */,
-				D9E5EB882203D1DB00B9F5FD /* ReplyPostCell.h */,
-				D9E5EB892203D1DB00B9F5FD /* ReplyPostCell.m */,
+				D94F3315221A247A00331ADC /* ExpandThreadCell.h */,
+				D94F3316221A247A00331ADC /* ExpandThreadCell.m */,
 				D924BE2B21542EE400EB7385 /* PostTextView.h */,
 				D924BE2C21542EE400EB7385 /* PostTextView.m */,
 				D9DB3F4D2198C63400B824A9 /* PostURLPreviewView.h */,
@@ -835,8 +876,12 @@
 				D924BE2621542E5500EB7385 /* PostSurveyView.m */,
 				D924BE2821542E8F00EB7385 /* PostActionsView.h */,
 				D924BE2921542E8F00EB7385 /* PostActionsView.m */,
+				D9504D3C22284D8000DD35B0 /* PostActivityView.h */,
+				D9504D3D22284D8000DD35B0 /* PostActivityView.m */,
 				D9A1CC1021E52950006D377C /* PostContextView.h */,
 				D9A1CC1121E52950006D377C /* PostContextView.m */,
+				D906C852220E0AA6005D283C /* PostReplySnapshotView.h */,
+				D906C853220E0AA6005D283C /* PostReplySnapshotView.m */,
 			);
 			path = Post;
 			sourceTree = "<group>";
@@ -848,8 +893,7 @@
 				D902CD4E21993D390088F479 /* RoomViewController.m */,
 				D9824234219CAA0C003626DA /* EditRoomViewController.h */,
 				D9824235219CAA0D003626DA /* EditRoomViewController.m */,
-				D998462721934309000B901F /* RoomMembersViewController.h */,
-				D998462821934309000B901F /* RoomMembersViewController.m */,
+				D912BD6F222C744D00F9F4EC /* Room Members */,
 				D94FD19621685D6000B84E45 /* CreateRoomViewController.h */,
 				D94FD19721685D6000B84E45 /* CreateRoomViewController.m */,
 			);
@@ -1080,6 +1124,8 @@
 				D9B2D59B21B8BD8A007B3C0C /* NSAttributedString+NotificationConveniences.m */,
 				D9E8E87B21C1C9D600DDFEBA /* ToggleCell.h */,
 				D9E8E87A21C1C9D600DDFEBA /* ToggleCell.m */,
+				D912BD71222DA86B00F9F4EC /* AddManagerCell.h */,
+				D912BD72222DA86B00F9F4EC /* AddManagerCell.m */,
 			);
 			path = Cells;
 			sourceTree = "<group>";
@@ -1396,6 +1442,7 @@
 			files = (
 				D9267C8321DAECED00E21862 /* OpenSource.json in Resources */,
 				D907B08D214EEC5300A59712 /* LaunchScreen.storyboard in Resources */,
+				D912BD70222C80B500F9F4EC /* RoomMembers.json in Resources */,
 				D95CBC302177E7EA001E6D2D /* LocalDefaults.json in Resources */,
 				D9267C7921D7FB4700E21862 /* NotificationsModel.json in Resources */,
 				D9C8B56D21A4B18000A9A282 /* throwingmoney.gif in Resources */,
@@ -1512,18 +1559,19 @@
 				D907B0FF215068BD00A59712 /* HAWebService.m in Sources */,
 				D907B0FC215068A900A59712 /* Session.m in Sources */,
 				D94FD1ED216D730300B84E45 /* RoomDetails.m in Sources */,
-				D9114F86219627100033765A /* BubblePostCell.m in Sources */,
 				D9D9B18821CECF0300B5003B /* MiniRoomCell.m in Sources */,
 				D921172521AC5F9700853F3F /* RoomFollowButton.m in Sources */,
 				D9742E7321C34140002CBEFC /* TappableButton.m in Sources */,
 				D9B2D58F21B1F3A4007B3C0C /* BFSearchView.m in Sources */,
 				D9824236219CAA0D003626DA /* EditRoomViewController.m in Sources */,
+				D9504D32221F59AB00DD35B0 /* StreamPostCell.m in Sources */,
 				D94FD202216D730300B84E45 /* User.m in Sources */,
 				D94FD19E2168644200B84E45 /* EmptyChannelCell.m in Sources */,
 				D924BE2721542E5500EB7385 /* PostSurveyView.m in Sources */,
 				D902CD4F21993D390088F479 /* RoomViewController.m in Sources */,
 				D924BE2421542E4500EB7385 /* PostImagesView.m in Sources */,
 				D9AECE3A21571DBE00F01CAD /* TabBarView.m in Sources */,
+				D9AE329D220A3F6000334340 /* PostCell.m in Sources */,
 				D96AD79C218102AF00849F6B /* InputCell.m in Sources */,
 				D9267C6021D6ABAC00E21862 /* SmartListTableViewController.m in Sources */,
 				D9C8B564219F897700A9A282 /* RoomCardsListCell.m in Sources */,
@@ -1549,6 +1597,7 @@
 				D916430D2162C3A100523770 /* SearchResultCell.m in Sources */,
 				D9114F8321954D4F0033765A /* MemberRequestCell.m in Sources */,
 				D907B1052150697400A59712 /* NSDictionary+Clean.m in Sources */,
+				D9504D382223328600DD35B0 /* QuickReplyViewController.m in Sources */,
 				D924BE2A21542E8F00EB7385 /* PostActionsView.m in Sources */,
 				D94FD203216D730300B84E45 /* UserStatus.m in Sources */,
 				D9BF52A621D43451004E9F12 /* BFComposeButton.m in Sources */,
@@ -1573,6 +1622,7 @@
 				D9164321216678A200523770 /* ProfileHeaderCell.m in Sources */,
 				D9C0394D215DF17000B30A41 /* FeedViewController.m in Sources */,
 				D94FD1FE216D730300B84E45 /* Post.m in Sources */,
+				D94F3317221A247A00331ADC /* ExpandThreadCell.m in Sources */,
 				D9164310216407C300523770 /* ProfileViewController.m in Sources */,
 				D9D9B19221D01B6A00B5003B /* SmallRoomCardCell.m in Sources */,
 				D9B2D58321B1DACB007B3C0C /* SearchTableViewController.m in Sources */,
@@ -1583,7 +1633,7 @@
 				D921171421A6488F00853F3F /* ContactCell.m in Sources */,
 				D923802B2183D98100E01A34 /* PaginationCell.m in Sources */,
 				D9BF52B121D539B2004E9F12 /* ZFModalTransitionAnimator.m in Sources */,
-				D9E5EB8A2203D1DB00B9F5FD /* ReplyPostCell.m in Sources */,
+				D9E5EB8A2203D1DB00B9F5FD /* ReplyCell.m in Sources */,
 				D91643242166824F00523770 /* RSTableView.m in Sources */,
 				D9CB78EF2166E1B400EEDBC9 /* VLDContextSheetItem.m in Sources */,
 				D9267C6421D6B3A600E21862 /* SmartList.m in Sources */,
@@ -1595,10 +1645,12 @@
 				D96AD799218102A200849F6B /* ThemeSelectorCell.m in Sources */,
 				D94DE3332199203C00CA3E1F /* SloppySwiper.m in Sources */,
 				D9267C8221DAECED00E21862 /* OpenSourceLibrariesTableViewController.m in Sources */,
+				D9504D3E22284D8000DD35B0 /* PostActivityView.m in Sources */,
 				D9C0393D215A9D8600B30A41 /* SOLOptionsTransitionAnimator.m in Sources */,
 				D9B2EBDA21DECBF900C5FC3D /* MiniBubblePostView.m in Sources */,
 				D96AD78F2180CBD100849F6B /* ErrorChannelCell.m in Sources */,
 				D9C0393E215A9D8600B30A41 /* SOLBaseTransitionAnimator.m in Sources */,
+				D912BD73222DA86B00F9F4EC /* AddManagerCell.m in Sources */,
 				D9CB78E82166BAD700EEDBC9 /* ExpandedPostCell.m in Sources */,
 				D94FD1EB216D730300B84E45 /* RoomCounts.m in Sources */,
 				D9CB78F12166E1B400EEDBC9 /* VLDContextSheet.m in Sources */,
@@ -1614,6 +1666,8 @@
 				D94FD205216D730300B84E45 /* UserAttributes.m in Sources */,
 				D9C8B56B21A1E33B00A9A282 /* UIColor+Palette.m in Sources */,
 				D9267C7121D7FB0D00E21862 /* NotificationsSettingsTableViewController.m in Sources */,
+				D9504D352220979500DD35B0 /* MiniReplyCell.m in Sources */,
+				D906C854220E0AA6005D283C /* PostReplySnapshotView.m in Sources */,
 				D9B2D59221B86C6B007B3C0C /* NotificationCell.m in Sources */,
 				D94FD20B216D730300B84E45 /* UserMedia.m in Sources */,
 				D998462921934309000B901F /* RoomMembersViewController.m in Sources */,

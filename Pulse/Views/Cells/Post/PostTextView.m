@@ -11,6 +11,7 @@
 #import "Launcher.h"
 #import <JGProgressHUD.h>
 #import <HapticHelper/HapticHelper.h>
+#import "UIColor+Palette.h"
 
 #define TWUValidUsername                @"[@][a-z0-9_]{1,20}"
 #define TWUValidCampDisplayId           @"[#][a-z0-9_]{1,30}"
@@ -22,16 +23,10 @@
     if (self) {
         self.userInteractionEnabled = true;
         self.layer.masksToBounds = false;
+        
+        self.edgeInsets = UIEdgeInsetsZero;
 
         self.translatesAutoresizingMaskIntoConstraints = YES;
-        
-        _backgroundView = [[UIView alloc] initWithFrame:self.bounds];
-        _backgroundView.layer.cornerRadius = 17.f;
-        _backgroundView.layer.masksToBounds = true;
-        _backgroundView.layer.shouldRasterize = true;
-        _backgroundView.layer.rasterizationScale = [UIScreen mainScreen].scale;
-        _backgroundView.backgroundColor = kDefaultBubbleBackgroundColor;
-        [self addSubview:_backgroundView];
         
         _messageLabel = [[TTTAttributedLabel alloc] initWithFrame:frame];
         _messageLabel.extendsLinkTouchArea = false;
@@ -51,10 +46,10 @@
         [mutableActiveLinkAttributes setValue:[NSNumber numberWithFloat:0] forKey:(NSString *)kTTTBackgroundLineWidthAttributeName];
         _messageLabel.activeLinkAttributes = mutableActiveLinkAttributes;
         
-        _bubbleTip = [[UIImageView alloc] initWithFrame:CGRectMake(-12, self.frame.size.height - 17, 24, 17)];
-        _bubbleTip.tintColor = kDefaultBubbleBackgroundColor;
-        _bubbleTip.image = [[UIImage imageNamed:@"bubbleTip"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-        [self addSubview:_bubbleTip];
+        // update tint color
+        NSMutableDictionary *mutableLinkAttributes = [NSMutableDictionary dictionary];
+        [mutableLinkAttributes setObject:[UIColor bonfireBlue] forKey:(__bridge NSString *)kCTForegroundColorAttributeName];
+        _messageLabel.linkAttributes = mutableLinkAttributes;
         
         [self addSubview:_messageLabel];
         
@@ -62,13 +57,13 @@
         UITapGestureRecognizer* doubleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(doubleTap:)];
         doubleTap.numberOfTapsRequired = 2;
         doubleTap.numberOfTouchesRequired = 1;
-        [self addGestureRecognizer:doubleTap];
+        // [self addGestureRecognizer:doubleTap];
         
         UITapGestureRecognizer *singleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(singleTap:)];
         singleTap.numberOfTapsRequired = 1;
         singleTap.numberOfTouchesRequired = 1;
         singleTap.delegate = self;
-        [self addGestureRecognizer:singleTap];
+        // [self addGestureRecognizer:singleTap];
         
         [singleTap setDelaysTouchesBegan:true];
         [singleTap setCancelsTouchesInView:false];
@@ -128,49 +123,14 @@
     [[[Launcher sharedInstance] activeViewController] presentViewController:alertController animated:YES completion:nil];
 }
 
-- (void)resize {
-    CGSize messageSize = [PostTextView sizeOfBubbleWithMessage:self.message withConstraints:CGSizeMake([UIScreen mainScreen].bounds.size.width - self.frame.origin.x - (postTextViewInset.left + postTextViewInset.right) - 24, CGFLOAT_MAX) font:self.messageLabel.font];
+- (void)update {
+    // resize
+    CGSize messageSize = [PostTextView sizeOfBubbleWithMessage:self.message withConstraints:CGSizeMake(self.frame.size.width-(self.edgeInsets.left+self.edgeInsets.right), CGFLOAT_MAX) font:self.messageLabel.font];
     
-    self.frame = CGRectMake(self.frame.origin.x, self.frame.origin.y, messageSize.width + postTextViewInset.left + postTextViewInset.right, messageSize.height + postTextViewInset.top + postTextViewInset.bottom);
-    self.backgroundView.frame = self.bounds;
+    CGFloat width = (UIEdgeInsetsEqualToEdgeInsets(UIEdgeInsetsZero, self.edgeInsets) ? self.frame.size.width : messageSize.width + self.edgeInsets.left + self.edgeInsets.right);
+    self.frame = CGRectMake(self.frame.origin.x, self.frame.origin.y, width, messageSize.height + self.edgeInsets.top + self.edgeInsets.bottom);
     _messageLabel.translatesAutoresizingMaskIntoConstraints = YES;
-    self.messageLabel.frame = CGRectMake(postTextViewInset.left, postTextViewInset.top, messageSize.width, messageSize.height);
-    
-    [self resizeTip];
-    
-    // [self initPatternDetections];
-    // [PostTextView createRoundedCornersForView:self tl:true tr:true br:true bl:false];
-}
-
-- (void)resizeTip {
-    float tipHeight = (self.frame.size.height / 2 < 17.f ? self.frame.size.height / 2 : 17.f);
-    float tipWidth = ((_bubbleTip.image.size.width / _bubbleTip.image.size.height) * tipHeight);
-    _bubbleTip.frame = CGRectMake(-1 * (tipWidth / 2), self.frame.size.height - tipHeight, tipWidth, tipHeight);
-}
-
-+ (void)createRoundedCornersForView:(UIView*)parentView tl:(BOOL)tl tr:(BOOL)tr br:(BOOL)br bl:(BOOL)bl {
-    CGFloat cornerRadius = (17.f > parentView.frame.size.height / 2 ? parentView.frame.size.height / 2 : 17.f);
-    
-    parentView.layer.cornerRadius = cornerRadius * .5;
-    CAShapeLayer * maskLayer = [CAShapeLayer layer];
-    UIRectCorner corners = 0;
-    if (bl) {
-        corners |= UIRectCornerBottomLeft;
-    }
-    if (br) {
-        corners |= UIRectCornerBottomRight;
-    }
-    if (tl) {
-        corners |= UIRectCornerTopLeft;
-    }
-    if (tr) {
-        corners |= UIRectCornerTopRight;
-    }
-    maskLayer.path = [UIBezierPath bezierPathWithRoundedRect:parentView.bounds
-                                           byRoundingCorners:corners
-                                                 cornerRadii:CGSizeMake(cornerRadius, cornerRadius)].CGPath;
-    
-    parentView.layer.mask = maskLayer;
+    self.messageLabel.frame = CGRectMake(self.edgeInsets.left, self.edgeInsets.top, messageSize.width, messageSize.height);
 }
 
 - (void)setMessage:(NSString *)message {
@@ -179,24 +139,17 @@
         
         self.messageLabel.text = message;
         
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
-            // Write your code here
-            NSMutableDictionary *mutableLinkAttributes = [NSMutableDictionary dictionary];
-            [mutableLinkAttributes setObject:self.tintColor forKey:(__bridge NSString *)kCTForegroundColorAttributeName];
-            self.messageLabel.linkAttributes = mutableLinkAttributes;
-            
-            NSRegularExpression *usernameRegex = [[NSRegularExpression alloc] initWithPattern:TWUValidUsername options:NSRegularExpressionCaseInsensitive error:nil];
-            for (NSTextCheckingResult* match in [usernameRegex matchesInString:self.message options:0 range:NSMakeRange(0, [self.message length])]) {
-                NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"bonfireapp://user?username=%@", [[self.message substringWithRange:match.range] stringByReplacingOccurrencesOfString:@"@" withString:@""]]];
-                [self.messageLabel addLinkToURL:url withRange:match.range];
-            }
-            
-            NSRegularExpression *campRegex = [[NSRegularExpression alloc] initWithPattern:TWUValidCampDisplayId options:NSRegularExpressionCaseInsensitive error:nil];
-            for (NSTextCheckingResult* match in [campRegex matchesInString:self.message options:0 range:NSMakeRange(0, [self.message length])]) {
-                NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"bonfireapp://camp?display_id=%@", [[self.message substringWithRange:match.range] stringByReplacingOccurrencesOfString:@"#" withString:@""]]];
-                [self.messageLabel addLinkToURL:url withRange:match.range];
-            }
-        });
+        NSRegularExpression *usernameRegex = [[NSRegularExpression alloc] initWithPattern:TWUValidUsername options:NSRegularExpressionCaseInsensitive error:nil];
+        for (NSTextCheckingResult* match in [usernameRegex matchesInString:self.message options:0 range:NSMakeRange(0, [self.message length])]) {
+            NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"bonfireapp://user?username=%@", [[self.message substringWithRange:match.range] stringByReplacingOccurrencesOfString:@"@" withString:@""]]];
+            [self.messageLabel addLinkToURL:url withRange:match.range];
+        }
+        
+        NSRegularExpression *campRegex = [[NSRegularExpression alloc] initWithPattern:TWUValidCampDisplayId options:NSRegularExpressionCaseInsensitive error:nil];
+        for (NSTextCheckingResult* match in [campRegex matchesInString:self.message options:0 range:NSMakeRange(0, [self.message length])]) {
+            NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"bonfireapp://camp?display_id=%@", [[self.message substringWithRange:match.range] stringByReplacingOccurrencesOfString:@"#" withString:@""]]];
+            [self.messageLabel addLinkToURL:url withRange:match.range];
+        }
     }
 }
 

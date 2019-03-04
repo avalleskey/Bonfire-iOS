@@ -692,10 +692,10 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     cell.changeProfilePictureLabel.textColor = newColor;
     if ([UIColor useWhiteForegroundForColor:newColor]) {
         // dark enough
-        cell.profilePicture.imageView.tintColor = [UIColor lighterColorForColor:newColor amount:BFAvatarViewIconContrast];
+        cell.profilePicture.imageView.tintColor = [UIColor whiteColor];
     }
     else {
-        cell.profilePicture.imageView.tintColor = [UIColor darkerColorForColor:newColor amount:BFAvatarViewIconContrast];
+        cell.profilePicture.imageView.tintColor = [UIColor blackColor];
     }
     
     UIView *newColorView = [[UIView alloc] init];
@@ -770,7 +770,6 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
 
 - (void)showImagePicker {
     UIAlertController *imagePickerOptions = [UIAlertController alertControllerWithTitle:@"Set Profile Photo" message:nil preferredStyle:UIAlertControllerStyleActionSheet];
-    imagePickerOptions.view.tintColor = [UIColor colorWithWhite:0.2f alpha:1];
     
     UIAlertAction *takePhoto = [UIAlertAction actionWithTitle:@"Take Photo" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         [self takePhotoForProfilePicture:nil];
@@ -784,7 +783,6 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     
     UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
     }];
-    [cancel setValue:self.navigationBackgroundView.backgroundColor forKey:@"titleTextColor"];
     [imagePickerOptions addAction:cancel];
     
     [self presentViewController:imagePickerOptions animated:YES completion:nil];

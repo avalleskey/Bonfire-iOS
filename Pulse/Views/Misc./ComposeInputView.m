@@ -21,7 +21,7 @@
 #import "ProfileViewController.h"
 
 #define headerHeight 58
-#define postButtonShrinkScale 0.6
+#define postButtonShrinkScale 0.9
 
 #define UIViewParentController(__view) ({ \
     UIResponder *__responder = __view; \
@@ -34,164 +34,190 @@
     NSString *defaultPlaceholder;
     NSString *mediaPlaceholder;
 }
-    
-- (id)initWithEffect:(UIVisualEffect *)effect {
-    self = [super initWithEffect:effect];
-    
-    if (self) {
-        // self.backgroundColor = [UIColor colorWithWhite:1 alpha:0.5];
-        
-        self.post = [[Post alloc] init];
-        
-        CGRect screenRect = [[UIScreen mainScreen] bounds];
-        CGFloat screenWidth = screenRect.size.width;
-        self.frame = CGRectMake(0, self.frame.origin.y, screenWidth, self.frame.size.height);
-        
-        self.layer.masksToBounds = false;
-        
-        self.backgroundColor = [[UIColor whiteColor] colorWithAlphaComponent:0.9f];
-        
-        UIView *hairline = [[UIView alloc] initWithFrame:CGRectMake(0, 0, screenWidth, (1 / [UIScreen mainScreen].scale))];
-        hairline.backgroundColor = [UIColor colorWithWhite:0 alpha:0.08f];
-        [self.contentView addSubview:hairline];
-        
-        // text view
-        _textView = [[UITextView alloc] initWithFrame:CGRectMake(66, 6, self.frame.size.width - 66 - 12, 40)];
-        _textView.editable = true;
-        _textView.scrollEnabled = false;
-        _textView.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightRegular];
-        _textView.textContainer.lineFragmentPadding = 0;
-        _textView.contentInset = UIEdgeInsetsZero;
-        _textView.textContainerInset = UIEdgeInsetsMake(9, 14, 9, 44);
-        _textView.textContainer.lineBreakMode = NSLineBreakByWordWrapping;
-        _textView.textColor = [UIColor colorWithWhite:0.07f alpha:1];
-        _textView.layer.cornerRadius = 20.f;
-        _textView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.03f];
-        _textView.layer.borderWidth = 1;
-        _textView.layer.borderColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.12f].CGColor;
-        _textView.placeholder = defaultPlaceholder;
-        [self.contentView addSubview:_textView];
-        
-        _mediaScrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 8, _textView.frame.size.width, 140 - 16)];
-        _mediaScrollView.hidden = true;
-        _mediaScrollView.contentInset = UIEdgeInsetsMake(0, 8, 0, 8);
-        _mediaScrollView.showsHorizontalScrollIndicator = false;
-        _mediaScrollView.showsVerticalScrollIndicator = false;
-        [self.textView addSubview:_mediaScrollView];
-        
-        self.mediaLineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, _mediaScrollView.frame.origin.y +  _mediaScrollView.frame.size.height + 7, _mediaScrollView.frame.size.width, 1)];
-        self.mediaLineSeparator.backgroundColor = [UIColor colorWithWhite:0 alpha:0.06f];
-        self.mediaLineSeparator.hidden = true;
-        [self.textView addSubview:self.mediaLineSeparator];
-        
-        // Stack View
-        self.media = [[NSMutableArray alloc] init];
-        _mediaContainerView = [[UIStackView alloc] initWithFrame:CGRectMake(0, 0, _mediaScrollView.frame.size.width, _mediaScrollView.frame.size.height)];
-        _mediaContainerView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.2f];
-        _mediaContainerView.axis = UILayoutConstraintAxisHorizontal;
-        _mediaContainerView.distribution = UIStackViewDistributionFill;
-        _mediaContainerView.alignment = UIStackViewAlignmentFill;
-        _mediaContainerView.spacing = 6;
 
-        _mediaContainerView.translatesAutoresizingMaskIntoConstraints = false;
-        [_mediaScrollView addSubview:_mediaContainerView];
-        
-        [_mediaContainerView.leadingAnchor constraintEqualToAnchor:_mediaScrollView.leadingAnchor].active = true;
-        [_mediaContainerView.trailingAnchor constraintEqualToAnchor:_mediaScrollView.trailingAnchor].active = true;
-        [_mediaContainerView.bottomAnchor constraintEqualToAnchor:_mediaScrollView.bottomAnchor].active = true;
-        [_mediaContainerView.topAnchor constraintEqualToAnchor:_mediaScrollView.topAnchor].active = true;
-        [_mediaContainerView.heightAnchor constraintEqualToAnchor:_mediaScrollView.heightAnchor].active = true;
-        
-        // profile picture
-        self.addMediaButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        self.addMediaButton.frame = CGRectMake(16, 7, 40, 40);
-        self.addMediaButton.layer.cornerRadius = self.addMediaButton.frame.size.height / 2;
-        [self.addMediaButton setImage:[[UIImage imageNamed:@"composeAddPicture"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
-        self.addMediaButton.layer.masksToBounds = true;
-        self.addMediaButton.tintColor = [UIColor colorWithRed:0.43 green:0.43 blue:0.44 alpha:1.00];
-        self.addMediaButton.contentMode = UIViewContentModeScaleAspectFill;
-        self.addMediaButton.adjustsImageWhenHighlighted = false;
-        [self.addMediaButton bk_addEventHandler:^(id sender) {
-            [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-                self.addMediaButton.transform = CGAffineTransformMakeScale(postButtonShrinkScale, postButtonShrinkScale);
-            } completion:nil];
-        } forControlEvents:UIControlEventTouchDown];
-        
-        [self.addMediaButton bk_addEventHandler:^(id sender) {
-            [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-                self.addMediaButton.transform = CGAffineTransformMakeScale(1, 1);
-            } completion:nil];
-        } forControlEvents:(UIControlEventTouchUpInside|UIControlEventTouchCancel|UIControlEventTouchDragExit)];
-        
-        [self.addMediaButton bk_whenTapped:^{
-            [self showImagePicker];
-        }];
-        [self.contentView addSubview:self.addMediaButton];
-        
-        self.postButton = [TappableButton buttonWithType:UIButtonTypeCustom];
-        self.postButton.adjustsImageWhenHighlighted = false;
-        self.postButton.frame = CGRectMake(self.frame.size.width - 12 - 32 - 4, _textView.frame.origin.y + 4, 32, 32);
-        self.postButton.contentMode = UIViewContentModeCenter;
-        [self.postButton setImage:[UIImage imageNamed:@"sendButtonIcon"] forState:UIControlStateNormal];
-        [self.postButton setImage:[UIImage new] forState:UIControlStateDisabled];
-        self.postButton.userInteractionEnabled = false;
-        self.postButton.alpha = 0;
-        self.postButton.layer.cornerRadius = 16.f;
-        self.postButton.layer.shadowOpacity = 0.1f;
-        self.postButton.layer.shadowColor = [UIColor blackColor].CGColor;
-        self.postButton.layer.shadowOffset = CGSizeMake(0, 1);
-        self.postButton.layer.shadowRadius = 3.f;
-        self.postButton.transform = CGAffineTransformMakeScale(postButtonShrinkScale, postButtonShrinkScale);
-        [self.postButton bk_addEventHandler:^(id sender) {
-            [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-                self.postButton.alpha = 0.8;
-                self.postButton.transform = CGAffineTransformMakeScale(postButtonShrinkScale, postButtonShrinkScale);
-            } completion:nil];
-        } forControlEvents:UIControlEventTouchDown];
-        
-        [self.postButton bk_addEventHandler:^(id sender) {
-            NSLog(@"cancel or drag exit");
-            if (self.textView.text.length > 0 || self.media.count > 0) {
-                [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-                    self.postButton.alpha = 1;
-                    self.postButton.transform = CGAffineTransformMakeScale(1, 1);
-                } completion:nil];
-            }
-        } forControlEvents:(UIControlEventTouchCancel|UIControlEventTouchDragExit)];
-        
-        [self.contentView addSubview:self.postButton];
-        
-        self.expandButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        self.expandButton.adjustsImageWhenHighlighted = false;
-        self.expandButton.frame = CGRectMake(self.frame.size.width - 12 - 40, _textView.frame.origin.y, 40, 40);
-        self.expandButton.contentMode = UIViewContentModeCenter;
-        [self.expandButton setImage:[UIImage imageNamed:@"expandComposeIcon"] forState:UIControlStateNormal];
-        [self.expandButton setImage:[UIImage new] forState:UIControlStateDisabled];
-        self.expandButton.userInteractionEnabled = true;
-        [self.expandButton bk_addEventHandler:^(id sender) {
-            [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-                self.expandButton.alpha = 0.8;
-                self.expandButton.transform = CGAffineTransformMakeScale(postButtonShrinkScale, postButtonShrinkScale);
-            } completion:nil];
-        } forControlEvents:UIControlEventTouchDown];
-        
-        [self.expandButton bk_addEventHandler:^(id sender) {
-            if (self.textView.text.length == 0 && self.media.count == 0) {
-                [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-                    self.expandButton.alpha = 1;
-                    self.expandButton.transform = CGAffineTransformMakeScale(1, 1);
-                } completion:nil];
-            }
-        } forControlEvents:(UIControlEventTouchCancel|UIControlEventTouchDragExit)];
-        
-        [self.contentView insertSubview:self.expandButton belowSubview:self.postButton];
-        
-        self.replyingToLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, -48, self.frame.size.width, 48)];
-        self.replyingToLabel.backgroundColor = [UIColor colorWithWhite:0.8 alpha:1];
-        [self.contentView addSubview:self.replyingToLabel];
+- (id)initWithFrame:(CGRect)frame {
+    self = [super initWithFrame:frame];
+    if (self) {
+        [self setup];
+    }
+    return self;
+}
+- (id)init {
+    self = [super init];
+    if (self) {
+        [self setup];
     }
     
     return self;
+}
+
+- (void)setup {
+    self.post = [[Post alloc] init];
+    
+    CGRect screenRect = [[UIScreen mainScreen] bounds];
+    CGFloat screenWidth = screenRect.size.width;
+    self.frame = CGRectMake(0, self.frame.origin.y, screenWidth, self.frame.size.height);
+    
+    self.contentView = [[UIView alloc] initWithFrame:self.bounds];
+    self.contentView.backgroundColor = [UIColor whiteColor];
+    [self addSubview:self.contentView];
+    
+    self.layer.masksToBounds = false;
+    
+    UIView *hairline = [[UIView alloc] initWithFrame:CGRectMake(0, -(1 / [UIScreen mainScreen].scale), screenWidth, (1 / [UIScreen mainScreen].scale))];
+    hairline.backgroundColor = [UIColor separatorColor];
+    [self addSubview:hairline];
+    
+    // text view
+    _textView = [[UITextView alloc] initWithFrame:CGRectMake(56, 6, self.frame.size.width - 56 - 12, 40)];
+    _textView.editable = true;
+    _textView.scrollEnabled = false;
+    _textView.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightRegular];
+    _textView.textContainer.lineFragmentPadding = 0;
+    _textView.contentInset = UIEdgeInsetsZero;
+    _textView.textContainerInset = UIEdgeInsetsMake(9, 12, 9, 44);
+    _textView.textContainer.lineBreakMode = NSLineBreakByWordWrapping;
+    _textView.textColor = [UIColor colorWithWhite:0.07f alpha:1];
+    _textView.layer.cornerRadius = 20.f;
+    _textView.backgroundColor = [[UIColor fromHex:@"9FA6AD"] colorWithAlphaComponent:0.1];
+    _textView.layer.borderWidth = (1 / [UIScreen mainScreen].scale);
+    _textView.layer.borderColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.06f].CGColor;
+    _textView.placeholder = defaultPlaceholder;
+    [self.contentView addSubview:_textView];
+    
+    _mediaScrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 8, _textView.frame.size.width, 140 - 16)];
+    _mediaScrollView.hidden = true;
+    _mediaScrollView.contentInset = UIEdgeInsetsMake(0, 8, 0, 8);
+    _mediaScrollView.showsHorizontalScrollIndicator = false;
+    _mediaScrollView.showsVerticalScrollIndicator = false;
+    [self.textView addSubview:_mediaScrollView];
+    
+    self.mediaLineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, _mediaScrollView.frame.origin.y +  _mediaScrollView.frame.size.height + 7, _mediaScrollView.frame.size.width, 1)];
+    self.mediaLineSeparator.backgroundColor = [UIColor colorWithWhite:0 alpha:0.06f];
+    self.mediaLineSeparator.hidden = true;
+    [self.textView addSubview:self.mediaLineSeparator];
+    
+    // Stack View
+    self.maxImages = 4; // we only allow 1 for replies
+    self.media = [[NSMutableArray alloc] init];
+    _mediaContainerView = [[UIStackView alloc] initWithFrame:CGRectMake(0, 0, _mediaScrollView.frame.size.width, _mediaScrollView.frame.size.height)];
+    _mediaContainerView.backgroundColor = [UIColor whiteColor];
+    _mediaContainerView.axis = UILayoutConstraintAxisHorizontal;
+    _mediaContainerView.distribution = UIStackViewDistributionFill;
+    _mediaContainerView.alignment = UIStackViewAlignmentFill;
+    _mediaContainerView.spacing = 6;
+    
+    _mediaContainerView.translatesAutoresizingMaskIntoConstraints = false;
+    [_mediaScrollView addSubview:_mediaContainerView];
+    
+    [_mediaContainerView.leadingAnchor constraintEqualToAnchor:_mediaScrollView.leadingAnchor].active = true;
+    [_mediaContainerView.trailingAnchor constraintEqualToAnchor:_mediaScrollView.trailingAnchor].active = true;
+    [_mediaContainerView.bottomAnchor constraintEqualToAnchor:_mediaScrollView.bottomAnchor].active = true;
+    [_mediaContainerView.topAnchor constraintEqualToAnchor:_mediaScrollView.topAnchor].active = true;
+    [_mediaContainerView.heightAnchor constraintEqualToAnchor:_mediaScrollView.heightAnchor].active = true;
+    
+    // profile picture
+    self.addMediaButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    self.addMediaButton.frame = CGRectMake(9, 7, 40, 40);
+    //self.addMediaButton.layer.cornerRadius = self.addMediaButton.frame.size.height / 2;
+    [self.addMediaButton setImage:[[UIImage imageNamed:@"composeAddPicture"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+    self.addMediaButton.layer.masksToBounds = true;
+    self.addMediaButton.tintColor = [UIColor fromHex:@"9FA6AD"];
+    self.addMediaButton.contentMode = UIViewContentModeScaleAspectFill;
+    self.addMediaButton.adjustsImageWhenHighlighted = false;
+    [self.addMediaButton bk_addEventHandler:^(id sender) {
+        [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+            self.addMediaButton.transform = CGAffineTransformMakeScale(postButtonShrinkScale, postButtonShrinkScale);
+        } completion:nil];
+    } forControlEvents:UIControlEventTouchDown];
+    
+    [self.addMediaButton bk_addEventHandler:^(id sender) {
+        [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+            self.addMediaButton.transform = CGAffineTransformMakeScale(1, 1);
+        } completion:nil];
+    } forControlEvents:(UIControlEventTouchUpInside|UIControlEventTouchCancel|UIControlEventTouchDragExit)];
+    
+    [self.addMediaButton bk_whenTapped:^{
+        [self showImagePicker];
+    }];
+    [self.contentView addSubview:self.addMediaButton];
+    
+    self.postButton = [TappableButton buttonWithType:UIButtonTypeCustom];
+    self.postButton.adjustsImageWhenHighlighted = false;
+    self.postButton.frame = CGRectMake(self.frame.size.width - 12 - 32 - 4, _textView.frame.origin.y + 4, 32, 32);
+    self.postButton.contentMode = UIViewContentModeCenter;
+    [self.postButton setImage:[UIImage imageNamed:@"sendButtonIcon"] forState:UIControlStateNormal];
+    [self.postButton setImage:[UIImage new] forState:UIControlStateDisabled];
+    self.postButton.userInteractionEnabled = false;
+    self.postButton.alpha = 0;
+    self.postButton.layer.cornerRadius = 16.f;
+    self.postButton.layer.shadowOpacity = 0.1f;
+    self.postButton.layer.shadowColor = [UIColor blackColor].CGColor;
+    self.postButton.layer.shadowOffset = CGSizeMake(0, 1);
+    self.postButton.layer.shadowRadius = 3.f;
+    self.postButton.transform = CGAffineTransformMakeScale(postButtonShrinkScale, postButtonShrinkScale);
+    [self.postButton bk_addEventHandler:^(id sender) {
+        [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+            self.postButton.alpha = 0.8;
+            self.postButton.transform = CGAffineTransformMakeScale(postButtonShrinkScale, postButtonShrinkScale);
+        } completion:nil];
+    } forControlEvents:UIControlEventTouchDown];
+    
+    [self.postButton bk_addEventHandler:^(id sender) {
+        NSLog(@"cancel or drag exit");
+        if (self.textView.text.length > 0 || self.media.count > 0) {
+            [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+                self.postButton.alpha = 1;
+                self.postButton.transform = CGAffineTransformMakeScale(1, 1);
+            } completion:nil];
+        }
+    } forControlEvents:(UIControlEventTouchCancel|UIControlEventTouchDragExit)];
+    
+    [self.contentView addSubview:self.postButton];
+    
+    self.expandButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    self.expandButton.adjustsImageWhenHighlighted = false;
+    self.expandButton.frame = CGRectMake(self.frame.size.width - 12 - 40, _textView.frame.origin.y, 40, 40);
+    self.expandButton.contentMode = UIViewContentModeCenter;
+    [self.expandButton setImage:[UIImage imageNamed:@"expandComposeIcon"] forState:UIControlStateNormal];
+    [self.expandButton setImage:[UIImage new] forState:UIControlStateDisabled];
+    self.expandButton.userInteractionEnabled = true;
+    [self.expandButton bk_addEventHandler:^(id sender) {
+        [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+            self.expandButton.alpha = 0.8;
+            self.expandButton.transform = CGAffineTransformMakeScale(postButtonShrinkScale, postButtonShrinkScale);
+        } completion:nil];
+    } forControlEvents:UIControlEventTouchDown];
+    
+    [self.expandButton bk_addEventHandler:^(id sender) {
+        if (self.textView.text.length == 0 && self.media.count == 0) {
+            [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+                self.expandButton.alpha = 1;
+                self.expandButton.transform = CGAffineTransformMakeScale(1, 1);
+            } completion:nil];
+        }
+    } forControlEvents:(UIControlEventTouchCancel|UIControlEventTouchDragExit)];
+    
+    [self.contentView insertSubview:self.expandButton belowSubview:self.postButton];
+    
+    self.replyingToLabel = [UIButton buttonWithType:UIButtonTypeCustom];
+    self.replyingToLabel.hidden = true;
+    self.replyingToLabel.frame = CGRectMake(0, 0, self.frame.size.width, 40);
+    self.replyingToLabel.backgroundColor = [UIColor colorWithRed:0.94 green:0.95 blue:0.96 alpha:1.00];
+    self.replyingToLabel.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
+    self.replyingToLabel.contentEdgeInsets = UIEdgeInsetsMake(0, 12, 0, 12);
+    self.replyingToLabel.titleLabel.font = [UIFont systemFontOfSize:12.f weight:UIFontWeightBold];
+    [self.replyingToLabel setTitleColor:[UIColor colorWithRed:0.55 green:0.58 blue:0.59 alpha:1.00] forState:UIControlStateNormal];
+    [self insertSubview:self.replyingToLabel belowSubview:self.contentView];
+    
+    UIImageView *closeIcon = [[UIImageView alloc] initWithFrame:CGRectMake(self.replyingToLabel.frame.size.width - 36, 0, 36, self.replyingToLabel.frame.size.height)];
+    closeIcon.image = [UIImage imageNamed:@"cancelReplyingToIcon"];
+    closeIcon.userInteractionEnabled = true;
+    closeIcon.contentMode = UIViewContentModeCenter;
+    [closeIcon bk_whenTapped:^{
+        [self setReplyingTo:nil];
+    }];
+    [self.replyingToLabel addSubview:closeIcon];
 }
 
 - (void)layoutSubviews
@@ -201,6 +227,8 @@
     if (defaultPlaceholder == nil || mediaPlaceholder == nil) {
         [self updatePlaceholders];
     }
+    
+    self.replyingToLabel.frame = CGRectMake(0, self.replyingToLabel.frame.origin.y, self.frame.size.width, 40);
     
     // style
     // -- text view
@@ -359,6 +387,7 @@
     
     [UIView animateWithDuration:animated?0.6:0 delay:0 usingSpringWithDamping:0.75f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
         self.frame = CGRectMake(frame.origin.x, bottomY - barHeight, frame.size.width, barHeight);
+        self.contentView.frame = self.bounds;
         self.textView.frame = CGRectMake(self.textView.frame.origin.x, self.textView.frame.origin.y, self.textView.frame.size.width, textHeight);
         
         self.postButton.center = CGPointMake(self.textView.frame.origin.x + self.textView.frame.size.width - 20, self.textView.frame.origin.y + self.textView.frame.size.height - 20);
@@ -408,7 +437,6 @@
     
 - (void)showImagePicker {
     UIAlertController *imagePickerOptions = [UIAlertController alertControllerWithTitle:nil message:nil preferredStyle:UIAlertControllerStyleActionSheet];
-    imagePickerOptions.view.tintColor = [UIColor colorWithWhite:0.2f alpha:1];
     
     UIAlertAction *takePhoto = [UIAlertAction actionWithTitle:@"Take Photo" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         [self takePhotoForProfilePicture:nil];
@@ -422,7 +450,6 @@
     
     UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
     }];
-    [cancel setValue:UIViewParentController(self).view.tintColor forKey:@"titleTextColor"];
     [imagePickerOptions addAction:cancel];
     
     [UIViewParentController(self) presentViewController:imagePickerOptions animated:YES completion:nil];
@@ -565,7 +592,7 @@
 }
 
 - (void)updateMediaAvailability {
-    self.addMediaButton.enabled = (self.media.count < 4);
+    self.addMediaButton.enabled = (self.media.count < self.maxImages);
     
     [UIView animateWithDuration:0.3f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
         self.addMediaButton.alpha = (self.addMediaButton.enabled ? 1 : 0.25);
@@ -610,6 +637,45 @@
         UIView *view = dictionary[@"view"];
         [view removeFromSuperview];
     }
+}
+
+- (void)setReplyingTo:(Post *)replyingTo {
+    NSLog(@"set replying to: %@", replyingTo);
+    if (replyingTo != _replyingTo) {
+        _replyingTo = replyingTo;
+        
+        if (_replyingTo) {
+            [_replyingToLabel setTitle:[NSString stringWithFormat:@"Replying to @%@", replyingTo.attributes.details.creator.attributes.details.identifier] forState:UIControlStateNormal];
+            [self showReplyingTo];
+        }
+        else {
+            [self hideReplyingTo];
+        }
+    }
+}
+- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
+{
+    CGPoint translatedPoint = [_replyingToLabel convertPoint:point fromView:self];
+    
+    if (!_replyingToLabel.isHidden && CGRectContainsPoint(_replyingToLabel.bounds, translatedPoint)) {
+        return [_replyingToLabel hitTest:translatedPoint withEvent:event];
+    }
+    return [super hitTest:point withEvent:event];
+    
+}
+
+- (void)showReplyingTo {
+    self.replyingToLabel.hidden = false;
+    [UIView animateWithDuration:0.2 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        self.replyingToLabel.frame = CGRectMake(0, -1 * self.replyingToLabel.frame.size.height, self.frame.size.width, self.replyingToLabel.frame.size.height);
+    } completion:nil];
+}
+- (void)hideReplyingTo {
+    [UIView animateWithDuration:0.2 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        self.replyingToLabel.frame = CGRectMake(0, 0, self.frame.size.width, self.replyingToLabel.frame.size.height);
+    } completion:^(BOOL finished) {
+        self.replyingToLabel.hidden = true;
+    }];
 }
 
 @end

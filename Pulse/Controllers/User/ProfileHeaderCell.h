@@ -26,7 +26,7 @@ NS_ASSUME_NONNULL_BEGIN
 #define PROFILE_HEADER_DISPLAY_NAME_FONT [UIFont systemFontOfSize:30.f weight:UIFontWeightHeavy]
 #define PROFILE_HEADER_DISPLAY_NAME_BOTTOM_PADDING 4
 // username macros
-#define PROFILE_HEADER_USERNAME_FONT [UIFont systemFontOfSize:16.f weight:UIFontWeightMedium]
+#define PROFILE_HEADER_USERNAME_FONT [UIFont systemFontOfSize:16.f weight:UIFontWeightHeavy]
 #define PROFILE_HEADER_USERNAME_BOTTOM_PADDING 10
 // bio macros
 #define PROFILE_HEADER_BIO_FONT [UIFont systemFontOfSize:13.f weight:UIFontWeightMedium]

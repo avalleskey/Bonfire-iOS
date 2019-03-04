@@ -21,7 +21,7 @@
 - (id)initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
     if (self) {
-        self.layer.cornerRadius = 12.f;
+        self.layer.cornerRadius = 8.f;
         self.layer.masksToBounds = true;
         
         self.resultsType = BFSearchResultsTypeTop;

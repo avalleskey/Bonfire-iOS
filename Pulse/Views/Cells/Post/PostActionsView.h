@@ -10,9 +10,9 @@
 
 @interface PostActionsView : UIView
 
+@property (nonatomic, strong) UIButton *replyButton;
 @property (nonatomic, strong) UIButton *sparkButton;
 @property (nonatomic, strong) UIButton *shareButton;
-@property (nonatomic, strong) UIButton *moreButton;
 
 @property (strong, nonatomic) UIView *middleSeparator;
 @property (strong, nonatomic) UIView *topSeparator;

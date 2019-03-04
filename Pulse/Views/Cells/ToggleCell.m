@@ -24,6 +24,9 @@
         self.separatorInset = UIEdgeInsetsMake(0, 16, 0, 0);
         self.textLabel.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightMedium];
         self.textLabel.textColor = [UIColor colorWithWhite:0.2f alpha:1];
+        
+        self.accessoryType = UITableViewCellAccessoryNone;
+        self.selectionStyle = UITableViewCellSelectionStyleNone;
     }
     
     return self;
@@ -35,9 +38,6 @@
     
     self.toggle.frame = CGRectMake(self.contentView.bounds.size.width - 51 - 16, self.contentView.bounds.size.height / 2 - (31 / 2), 51, 31);
     self.textLabel.frame = CGRectMake(16, 0, self.frame.size.width - 32, self.contentView.bounds.size.height);
-    
-    self.accessoryType = UITableViewCellAccessoryNone;
-    self.selectionStyle = UITableViewCellSelectionStyleNone;
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated {

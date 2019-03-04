@@ -8,6 +8,7 @@
 
 #import "SmallRoomCardCell.h"
 #import "UIColor+Palette.h"
+#import "Session.h"
 
 #define padding 16
 
@@ -34,6 +35,7 @@
     self.contentView.layer.masksToBounds = true;
     
     self.profilePicture = [[BFAvatarView alloc] initWithFrame:CGRectMake(16, 12, 48, 48)];
+    self.profilePicture.userInteractionEnabled = false;
     [self.contentView addSubview:self.profilePicture];
     
     self.themeLine = [[UIView alloc] initWithFrame:CGRectMake(self.profilePicture.frame.origin.x - 4, self.profilePicture.frame.origin.y - 4, self.profilePicture.frame.size.width + 8, self.profilePicture.frame.size.height + 8)];
@@ -174,6 +176,51 @@
         
         self.roomDescriptionLabel.hidden =
         self.membersLabel.hidden = false;
+    }
+}
+
+- (void)setRoom:(Room *)room {
+    if (room != _room) {
+        _room = room;
+        
+        self.tintColor = [UIColor fromHex:self.room.attributes.details.color];
+        
+        self.themeLine.layer.borderColor = [UIColor fromHex:self.room.attributes.details.color].CGColor;
+        
+        self.roomTitleLabel.text = _room.attributes.details.title;
+        self.roomDescriptionLabel.text = _room.attributes.details.theDescription;
+        
+        self.profilePicture.room = _room;
+        
+        DefaultsRoomMembersTitle *membersTitle = [Session sharedInstance].defaults.room.membersTitle;
+        if (self.room.attributes.summaries.counts.members) {
+            NSInteger members = self.room.attributes.summaries.counts.members;
+            self.membersLabel.text = [NSString stringWithFormat:@"%ld %@", members, members == 1 ? [membersTitle.singular lowercaseString] : [membersTitle.plural lowercaseString]];
+            
+            if (members > 0) {
+                // setup the replies view
+                for (int i = 0; i < 3; i++) {
+                    BFAvatarView *avatarView;
+                    if (i == 0) avatarView = self.member1;
+                    if (i == 1) avatarView = self.member2;
+                    if (i == 2) avatarView = self.member3;
+                    
+                    if (self.room.attributes.summaries.members.count > i) {
+                        avatarView.hidden = false;
+                        
+                        User *userForImageView = [[User alloc] initWithDictionary:self.room.attributes.summaries.members[i] error:nil];
+                        
+                        avatarView.user = userForImageView;
+                    }
+                    else {
+                        avatarView.hidden = true;
+                    }
+                }
+            }
+        }
+        else {
+            self.membersLabel.text = [NSString stringWithFormat:@"0 %@", [membersTitle.plural lowercaseString]];
+        }
     }
 }
 

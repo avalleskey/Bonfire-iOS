@@ -8,6 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import "PostStream.h"
+#import "ComposeInputView.h"
 
 #define UIViewParentController(__view) ({ \
         UIResponder *__responder = __view; \
@@ -19,8 +20,7 @@
 typedef enum {
     RSTableViewTypeFeed = 1,
     RSTableViewTypeRoom = 2,
-    RSTableViewTypeProfile = 3,
-    RSTableViewTypePost = 4
+    RSTableViewTypeProfile = 3
 } RSTableViewType;
 
 typedef enum {
@@ -66,6 +66,8 @@ typedef enum {
 - (void)scrollToTop;
 
 @property (strong, nonatomic) PostStream *stream;
+
+@property (nonatomic) ComposeInputView *inputView;
 
 @property (nonatomic, weak) id <RSTableViewPaginationDelegate> paginationDelegate;
 

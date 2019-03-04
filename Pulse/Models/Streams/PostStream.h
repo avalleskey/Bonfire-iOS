@@ -18,6 +18,12 @@
 
 @interface PostStream : NSObject <NSCoding>
 
+typedef enum {
+    PostStreamOptionTempPostPositionTop = 0,
+    PostStreamOptionTempPostPositionBottom = 1
+} PostStreamOptionTempPostPosition;
+@property (nonatomic) PostStreamOptionTempPostPosition tempPostPosition;
+
 @property (strong, nonatomic) NSMutableArray <PostStreamPage *> *pages;
 
 @property (strong, nonatomic) NSMutableArray <Post *> *tempPosts;
@@ -29,14 +35,20 @@
 // Used when creating a post
 // returns unique ID for new post, which can be used to remove/replace new post
 - (BOOL)removeTempPost:(NSString *)tempId;
-- (NSString *)prependTempPost:(Post *)post;
+- (NSString *)addTempPost:(Post *)post;
 - (BOOL)updateTempPost:(NSString *)tempId withFinalPost:(Post *)post;
+
+- (NSString *)addTempSubReply:(Post *)subReply;
+- (BOOL)updateTempSubReply:(NSString *)tempId withFinalSubReply:(Post *)finalSubReply;
+- (BOOL)clearSubRepliesForPost:(Post *)reply;
+- (BOOL)addSubReplies:(NSArray *)newSubReplies toPost:(Post *)post;
 
 - (Post *)postWithId:(NSInteger)postId;
 - (BOOL)updatePost:(Post *)post;
 - (void)removePost:(Post *)post;
 - (void)updateRoomObjects:(Room *)room;
 - (void)updateUserObjects:(User *)user;
+
 
 @property (nonatomic) NSInteger topId;
 @property (nonatomic) NSInteger bottomId;

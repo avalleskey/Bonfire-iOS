@@ -17,6 +17,7 @@
     self = [super initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:reuseIdentifier];
     if (self) {
         self.profilePicture = [[BFAvatarView alloc] initWithFrame:CGRectMake(12, self.frame.size.height / 2 - 21, 42, 42)];
+        self.profilePicture.userInteractionEnabled = false;
         [self.contentView addSubview:self.profilePicture];
         
         self.textLabel.font = [UIFont systemFontOfSize:15.f weight:UIFontWeightBold];
@@ -28,7 +29,7 @@
         self.detailTextLabel.lineBreakMode = NSLineBreakByTruncatingMiddle;
         
         // general cell styling
-        self.separatorInset = UIEdgeInsetsMake(0, 66, 0, 0);
+        self.separatorInset = UIEdgeInsetsMake(0, 68, 0, 0);
         self.selectionStyle = UITableViewCellSelectionStyleNone;
         
         self.checkIcon = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 28, 28)];
@@ -52,7 +53,7 @@
     self.profilePicture.frame = CGRectMake(12, self.frame.size.height / 2 - 21, 42, 42);
     
     // text label
-    self.textLabel.frame = CGRectMake(66, 14, self.frame.size.width - 66 - 16 - (self.selected ? 32 : 0), 18);
+    self.textLabel.frame = CGRectMake(68, 14, self.frame.size.width - 68 - 16 - (self.selected ? 32 : 0), 18);
     
     // detail text label
     self.detailTextLabel.frame = CGRectMake(self.textLabel.frame.origin.x, self.textLabel.frame.origin.y + self.textLabel.frame.size.height + 1, self.textLabel.frame.size.width, 16);
@@ -80,5 +81,4 @@
 
     // Configure the view for the selected state
 }
-
 @end

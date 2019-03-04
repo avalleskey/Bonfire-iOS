@@ -1,16 +1,16 @@
 //
-//  ReplyPostCell.h
+//  AddManagerCell.h
 //  Pulse
 //
-//  Created by Austin Valleskey on 1/31/19.
+//  Created by Austin Valleskey on 3/4/19.
 //  Copyright © 2019 Austin Valleskey. All rights reserved.
 //
 
-#import "BubblePostCell.h"
+#import <UIKit/UIKit.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface ReplyPostCell : BubblePostCell
+@interface AddManagerCell : UITableViewCell
 
 @end
 

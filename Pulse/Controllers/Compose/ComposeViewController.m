@@ -21,6 +21,7 @@
 
 @interface ComposeViewController () {
     NSInteger maxLength;
+    NSInteger maxImages;
 }
 
 @end
@@ -83,6 +84,7 @@
         }];
     }
     
+    maxImages = (self.replyingTo == nil ? 4 : 1);
     if (self.replyingTo) {
         self.navigationItem.titleView = nil;
         self.title = @"Reply";
@@ -555,8 +557,8 @@
 }
 
 - (void)updateToolbarAvailability {
-    self.takePictureButton.enabled = (self.media.count < 4);
-    self.choosePictureButton.enabled = (self.media.count < 4);
+    self.takePictureButton.enabled = (self.media.count < maxImages);
+    self.choosePictureButton.enabled = (self.media.count < maxImages);
     
     [UIView animateWithDuration:0.3f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
         self.takePictureButton.alpha = (self.takePictureButton.enabled ? 1 : 0.25);

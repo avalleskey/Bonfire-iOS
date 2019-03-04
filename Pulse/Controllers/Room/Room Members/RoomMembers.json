@@ -1,0 +1,47 @@
+{
+    "tabs": [
+        {
+            "id": "pending",
+            "title": "Pending",
+            "sections": [
+                {
+                    "id": "members_requests",
+                    "title": "Member Requests",
+                    "footer": "Since your Camp is private, users who request to join your Camp will show up here.",
+                    "url": "/rooms/{room.id}/members/requests",
+                    "state": 0
+                }
+            ]
+        },
+        {
+            "id": "members",
+            "title": "Members",
+            "sections": [
+                {
+                    "id": "members_current",
+                    "url": "/rooms/{room.id}/members",
+                    "state": 0
+                }
+            ]
+        },
+        {
+            "id": "managers",
+            "title": "Managers",
+            "sections": [
+                {
+                    "id": "members_directors",
+                    "title": "Directors",
+                    "url": "/rooms/{room.id}/members/admins",
+                    "state": 0
+                },
+                {
+                    "id": "members_managers",
+                    "title": "Managers",
+                    "footer": "Managers are like directors, but with limited permissions. They can accept camper requests, block members, remove posts and more.",
+                    "url": "/rooms/{room.id}/members/moderators",
+                    "state": 0
+                }
+            ]
+        }
+    ]
+}

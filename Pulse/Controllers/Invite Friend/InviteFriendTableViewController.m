@@ -68,7 +68,7 @@ static NSString * const contactCellIdentifier = @"ContactCell";
 }
 
 - (void)setupErrorView {
-    self.errorView = [[ErrorView alloc] initWithFrame:CGRectMake(16, 206 + 72, self.view.frame.size.width - 32, 100) title:@"Please allow Contacts" description:@"Open Settings, find Bonfire and allow Bonfire to view your Contacts" type:ErrorViewTypeContactsDenied];
+    self.errorView = [[ErrorView alloc] initWithFrame:CGRectMake(12, 206 + 72, self.view.frame.size.width - 24, 100) title:@"Please allow Contacts" description:@"Open Settings, find Bonfire and allow Bonfire to view your Contacts" type:ErrorViewTypeContactsDenied];
     self.errorView.frame = CGRectMake(self.errorView.frame.origin.x, 206 + 72, self.errorView.frame.size.width, self.errorView.frame.size.height);
     self.errorView.hidden = true;
     [self.tableView addSubview:self.errorView];
@@ -86,7 +86,7 @@ static NSString * const contactCellIdentifier = @"ContactCell";
     self.searchBar.userInteractionEnabled = true;
     [self.navigationController.view addSubview:self.searchBar];
     
-    self.searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(16, 10, self.view.frame.size.width - (16 * 2), 34)];
+    self.searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(12, 10, self.view.frame.size.width - (12 * 2), 34)];
     self.searchView.textField.placeholder = @"Search Contacts";
     [self.searchView updateSearchText:@""];
     self.searchView.textField.delegate = self;
@@ -560,7 +560,7 @@ static NSString * const contactCellIdentifier = @"ContactCell";
     lineSeparator.backgroundColor = [UIColor separatorColor];
     [header addSubview:lineSeparator];
     
-    UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(16, 28, self.view.frame.size.width - 32, 24)];
+    UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(12, 28, self.view.frame.size.width - 24, 24)];
     if (section == 1) {
         if (self.isSearching) {
             if (self.searchResults.count == 0) {

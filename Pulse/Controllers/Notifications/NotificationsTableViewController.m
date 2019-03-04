@@ -40,6 +40,7 @@ static NSString * const notificationCellReuseIdentifier = @"NotificationCell";
     [super viewWillAppear:animated];
     
     [[UIApplication sharedApplication] setApplicationIconBadgeNumber:0];
+    self.navigationController.tabBarItem.badgeValue = nil;
 }
 
 - (void)userProfileUpdated:(NSNotification *)notification {

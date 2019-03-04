@@ -28,6 +28,11 @@
                                                                   }];
 }
 
++ (BOOL)propertyIsOptional:(NSString*)propertyName
+{
+    return YES; // all are optional
+}
+
 @end
 
 @implementation SmartListSectionRow

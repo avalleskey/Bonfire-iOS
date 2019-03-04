@@ -34,6 +34,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)openRoom:(Room *)room;
 - (void)openRoomMembersForRoom:(Room *)room;
 - (void)openPost:(Post *)post withKeyboard:(BOOL)withKeyboard;
+- (void)openPostReply:(Post *)post sender:(UIView *)sender;
 - (void)openProfile:(User *)user;
 - (void)openProfileCampsJoined:(User *)user;
 - (void)openProfileUsersFollowing:(User *)user;

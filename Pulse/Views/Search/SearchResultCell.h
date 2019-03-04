@@ -26,7 +26,6 @@ typedef enum {
 @property (nonatomic, strong) BFAvatarView *profilePicture;
 @property (nonatomic, strong) UIImageView *checkIcon;
 
-
 // ---- VIEWS ----
 
 @end

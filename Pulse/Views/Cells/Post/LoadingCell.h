@@ -6,14 +6,14 @@
 //  Copyright © 2018 Hallway App. All rights reserved.
 //
 
-#import "BubblePostCell.h"
+#import "PostCell.h"
 #import <Shimmer/FBShimmeringView.h>
 
 #define loadingCellTypeShortPost 0
 #define loadingCellTypeLongPost 1
 #define loadingCellTypePicturePost 2
 
-@interface LoadingCell : BubblePostCell
+@interface LoadingCell : PostCell
 
 // @property (strong) NSDictionary *theme;
 @property (nonatomic) NSInteger type;

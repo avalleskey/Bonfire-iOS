@@ -32,7 +32,7 @@ target 'Pulse' do
   pod 'ResponsiveLabel', '~> 1.0.11'
   pod 'TTTAttributedLabel'
   pod 'Regexer'
-  pod 'PINCache'
+  pod 'PINCache', '~> 3.0.0-beta.13'
 
   target 'PulseTests' do
     inherit! :search_paths

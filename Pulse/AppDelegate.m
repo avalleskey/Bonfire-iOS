@@ -120,56 +120,101 @@
     }
 }
 - (void)statusBarTouchedAction {
-    // use UIAlertController
-    UIAlertController *alert= [UIAlertController
-                               alertControllerWithTitle:@"Set API"
-                               message:@"Enter in the URL that you would like to prefix any API requests in the app."
-                               preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertController *options = [UIAlertController alertControllerWithTitle:@"Internal Tools" message:@"What would you like to do?" preferredStyle:UIAlertControllerStyleAlert];
     
-    UIAlertAction *ok = [UIAlertAction actionWithTitle:@"Save" style:UIAlertActionStyleDefault
-                                               handler:^(UIAlertAction * action){
-                                                   //Do Some action here
-                                                   UITextField *textField = alert.textFields[0];
-                                                   
-                                                   // save new development url
-                                                   NSMutableDictionary *config = [[NSMutableDictionary alloc] initWithDictionary:[[NSUserDefaults standardUserDefaults] dictionaryForKey:@"config"]];
-                                                   NSMutableDictionary *configDevelopment = [[NSMutableDictionary alloc] initWithDictionary:config[@"development"]];
-                                                   [configDevelopment setObject:textField.text forKey:@"API_BASE_URI"];
-                                                   [config setObject:configDevelopment forKey:@"development"];
-                                                   
-                                                   [[NSUserDefaults standardUserDefaults] setObject:config forKey:@"config"];
-                                               }];
-    UIAlertAction *saveAndQuit = [UIAlertAction actionWithTitle:@"Save & Quit" style:UIAlertActionStyleDefault
-                                               handler:^(UIAlertAction * action){
-                                                   //Do Some action here
-                                                   UITextField *textField = alert.textFields[0];
-                                                   
-                                                   // save new development url
-                                                   NSMutableDictionary *config = [[NSMutableDictionary alloc] initWithDictionary:[[NSUserDefaults standardUserDefaults] dictionaryForKey:@"config"]];
-                                                   NSMutableDictionary *configDevelopment = [[NSMutableDictionary alloc] initWithDictionary:config[@"development"]];
-                                                   [configDevelopment setObject:textField.text forKey:@"API_BASE_URI"];
-                                                   [config setObject:configDevelopment forKey:@"development"];
-                                                   
-                                                   [[NSUserDefaults standardUserDefaults] setObject:config forKey:@"config"];
-                                                   
-                                                   exit(0);
-                                               }];
-    UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel
-                                                   handler:^(UIAlertAction * action) {
-                                                       [alert dismissViewControllerAnimated:YES completion:nil];
+    UIAlertAction *changeURL = [UIAlertAction actionWithTitle:@"Set API URL" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        [options dismissViewControllerAnimated:YES completion:nil];
+        
+        // use UIAlertController
+        UIAlertController *alert= [UIAlertController
+                                   alertControllerWithTitle:@"Set API"
+                                   message:@"Enter in the URL that you would like to prefix any API requests in the app."
+                                   preferredStyle:UIAlertControllerStyleAlert];
+        
+        UIAlertAction *ok = [UIAlertAction actionWithTitle:@"Save" style:UIAlertActionStyleDefault
+                                                   handler:^(UIAlertAction * action){
+                                                       //Do Some action here
+                                                       UITextField *textField = alert.textFields[0];
+                                                       
+                                                       // save new development url
+                                                       NSMutableDictionary *config = [[NSMutableDictionary alloc] initWithDictionary:[[NSUserDefaults standardUserDefaults] dictionaryForKey:@"config"]];
+                                                       NSMutableDictionary *configDevelopment = [[NSMutableDictionary alloc] initWithDictionary:config[@"development"]];
+                                                       [configDevelopment setObject:textField.text forKey:@"API_BASE_URI"];
+                                                       [config setObject:configDevelopment forKey:@"development"];
+                                                       
+                                                       [[NSUserDefaults standardUserDefaults] setObject:config forKey:@"config"];
                                                    }];
-    
-    [alert addAction:cancel];
-    [alert addAction:ok];
-    [alert addAction:saveAndQuit];
-    
-    [alert addTextFieldWithConfigurationHandler:^(UITextField *textField) {
-        textField.placeholder = @"Development URL";
-        textField.text = [[NSUserDefaults standardUserDefaults] dictionaryForKey:@"config"][@"development"][@"API_BASE_URI"];
-        textField.keyboardType = UIKeyboardTypeURL;
+        UIAlertAction *saveAndQuit = [UIAlertAction actionWithTitle:@"Save & Quit" style:UIAlertActionStyleDefault
+                                                            handler:^(UIAlertAction * action){
+                                                                //Do Some action here
+                                                                UITextField *textField = alert.textFields[0];
+                                                                
+                                                                // save new development url
+                                                                NSMutableDictionary *config = [[NSMutableDictionary alloc] initWithDictionary:[[NSUserDefaults standardUserDefaults] dictionaryForKey:@"config"]];
+                                                                NSMutableDictionary *configDevelopment = [[NSMutableDictionary alloc] initWithDictionary:config[@"development"]];
+                                                                [configDevelopment setObject:textField.text forKey:@"API_BASE_URI"];
+                                                                [config setObject:configDevelopment forKey:@"development"];
+                                                                
+                                                                [[NSUserDefaults standardUserDefaults] setObject:config forKey:@"config"];
+                                                                
+                                                                exit(0);
+                                                            }];
+        UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel
+                                                       handler:^(UIAlertAction * action) {
+                                                           [alert dismissViewControllerAnimated:YES completion:nil];
+                                                       }];
+        
+        [alert addAction:cancel];
+        [alert addAction:ok];
+        [alert addAction:saveAndQuit];
+        
+        [alert addTextFieldWithConfigurationHandler:^(UITextField *textField) {
+            textField.placeholder = @"Development URL";
+            textField.text = [[NSUserDefaults standardUserDefaults] dictionaryForKey:@"config"][@"development"][@"API_BASE_URI"];
+            textField.keyboardType = UIKeyboardTypeURL;
+        }];
+        
+        [[[Launcher sharedInstance] activeViewController] presentViewController:alert animated:YES completion:nil];
     }];
     
-    [[[Launcher sharedInstance] activeViewController] presentViewController:alert animated:YES completion:nil];
+    [options addAction:changeURL];
+    
+    NSString *token = [[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"];
+    if (token != nil) {
+        UIAlertAction *apnsToken = [UIAlertAction actionWithTitle:@"View APNS Token" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            [options dismissViewControllerAnimated:YES completion:nil];
+            
+            // use UIAlertController
+            NSString *token = [[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"];
+            UIAlertController *alert = [UIAlertController
+                                        alertControllerWithTitle:@"APNS Token"
+                                        message:token
+                                        preferredStyle:UIAlertControllerStyleAlert];
+            
+            UIAlertAction *ok = [UIAlertAction actionWithTitle:@"Copy" style:UIAlertActionStyleDefault
+                                                       handler:^(UIAlertAction * action){
+                                                           UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
+                                                           pasteboard.string = token;
+                                                       }];
+            
+            UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel
+                                                           handler:^(UIAlertAction * action) {
+                                                               [alert dismissViewControllerAnimated:YES completion:nil];
+                                                           }];
+            
+            [alert addAction:cancel];
+            [alert addAction:ok];
+            
+            [[[Launcher sharedInstance] activeViewController] presentViewController:alert animated:YES completion:nil];
+        }];
+        
+        [options addAction:apnsToken];
+    }
+    
+    UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
+    [options addAction:cancel];
+    
+    [[[Launcher sharedInstance] activeViewController] presentViewController:options animated:YES completion:nil];
 }
 
 - (void)launchLoggedIn {
@@ -315,8 +360,8 @@
     NSString *token = [[deviceToken description] stringByTrimmingCharactersInSet: [NSCharacterSet characterSetWithCharactersInString:@"<>"]];
     token = [token stringByReplacingOccurrencesOfString:@" " withString:@""];
 
-    if ([[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"] != nil &&
-        ![[[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"] isEqualToString:token])
+    if ([[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"] == nil || ([[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"] != nil &&
+        ![[[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"] isEqualToString:token]))
     {
         [[NSUserDefaults standardUserDefaults] setObject:token forKey:@"device_token"];
         [[Session sharedInstance] syncDeviceToken];

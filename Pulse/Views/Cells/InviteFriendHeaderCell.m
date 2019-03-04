@@ -140,7 +140,8 @@
     }
     
     imageView.image = [[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-    imageView.tintColor = [UIColor bonfireGray];
+    imageView.tintColor = [UIColor whiteColor];
+    imageView.backgroundColor = [UIColor bonfireGray];
 }
 
 - (void)continuityRadiusForView:(UIView *)sender withRadius:(CGFloat)radius {

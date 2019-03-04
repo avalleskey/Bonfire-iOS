@@ -29,7 +29,7 @@
         self.profilePicture = [[BFAvatarView alloc] initWithFrame:CGRectMake(0, PROFILE_HEADER_EDGE_INSETS.top, PROFILE_HEADER_AVATAR_SIZE, PROFILE_HEADER_AVATAR_SIZE)];
         self.profilePicture.center = CGPointMake(self.contentView.frame.size.width / 2, self.profilePicture.center.y);
         [self.contentView addSubview:self.profilePicture];
-        
+
         self.followingButton = [UIButton buttonWithType:UIButtonTypeSystem];
         self.followingButton.frame = CGRectMake(PROFILE_HEADER_EDGE_INSETS.left, 0, self.profilePicture.frame.origin.x - PROFILE_HEADER_EDGE_INSETS.left, 34);
         self.followingButton.center = CGPointMake(self.followingButton.center.x, self.profilePicture.center.y);
@@ -64,7 +64,8 @@
         self.textLabel.backgroundColor = [UIColor clearColor];
         
         // username
-        self.detailTextLabel.font = PROFILE_HEADER_USERNAME_FONT;
+        UIFont *heavyItalicFont = [UIFont fontWithDescriptor:[[[UIFont systemFontOfSize:PROFILE_HEADER_USERNAME_FONT.pointSize weight:UIFontWeightHeavy] fontDescriptor] fontDescriptorWithSymbolicTraits:UIFontDescriptorTraitItalic] size:PROFILE_HEADER_USERNAME_FONT.pointSize];
+        self.detailTextLabel.font = heavyItalicFont;
         self.detailTextLabel.textAlignment = NSTextAlignmentCenter;
         self.detailTextLabel.textColor = [UIColor colorWithWhite:0.47f alpha:1];
         self.detailTextLabel.numberOfLines = 0;

@@ -14,13 +14,14 @@
 #import "TappableButton.h"
 #import <FLAnimatedImage/FLAnimatedImageView.h>
 
-@interface ComposeInputView : UIVisualEffectView <UITextViewDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate> {
+@interface ComposeInputView : UIView <UITextViewDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate> {
     BOOL _active;
 }
     
 @property (strong, nonatomic) Post *post;
 @property (strong, nonatomic) Post *replyingTo;
 
+@property (strong, nonatomic) UIView *contentView;
 @property (strong, nonatomic) UIButton *addMediaButton;
 @property (strong, nonatomic) UITextView *textView;
 
@@ -29,6 +30,7 @@
 
 @property (strong, nonatomic) UIViewController *parentViewController;
 
+@property (nonatomic) NSInteger maxImages;
 - (void)removeImageAtIndex:(NSInteger)index;
 - (void)hideMediaTray;
 @property (strong, nonatomic) NSMutableArray *media;
@@ -36,7 +38,7 @@
 @property (strong, nonatomic) UIScrollView *mediaScrollView;
 @property (strong, nonatomic) UIStackView *mediaContainerView;
 
-@property (strong, nonatomic) UILabel *replyingToLabel;
+@property (strong, nonatomic) UIButton *replyingToLabel;
 
 - (void)setActive:(BOOL)isActive;
 - (BOOL)isActive;
@@ -47,6 +49,5 @@
 - (void)hidePostButton;
 
 - (void)updatePlaceholders;
-
 
 @end

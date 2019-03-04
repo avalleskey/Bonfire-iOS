@@ -106,7 +106,7 @@ static NSString * const reuseIdentifier = @"Result";
     if (tempPost != nil && [tempPost.attributes.status.postedIn.identifier isEqualToString:self.room.identifier] && tempPost.attributes.details.parent == 0) {
         // TODO: Check for image as well
         self.errorView.hidden = true;
-        [self.tableView.stream prependTempPost:tempPost];
+        [self.tableView.stream addTempPost:tempPost];
         [self.tableView refresh];
         
         [self.tableView setContentOffset:CGPointMake(0, -1 * (self.navigationController.navigationBar.frame.origin.y + self.navigationController.navigationBar.frame.size.height)) animated:YES];
@@ -475,13 +475,12 @@ static NSString * const reuseIdentifier = @"Result";
 
 
 - (void)setupComposeInputView {
-    self.composeInputView = [[ComposeInputView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleLight]];
-    self.composeInputView.hidden = true;
-    
     CGFloat bottomPadding = [[[UIApplication sharedApplication] delegate] window].safeAreaInsets.bottom;
     CGFloat collapsed_inputViewHeight = ((self.composeInputView.textView.frame.origin.y * 2) + self.composeInputView.textView.frame.size.height) + bottomPadding;
     
-    self.composeInputView.frame = CGRectMake(0, self.view.bounds.size.height - collapsed_inputViewHeight, self.view.frame.size.width, collapsed_inputViewHeight);
+    self.composeInputView = [[ComposeInputView alloc] initWithFrame:CGRectMake(0, self.view.bounds.size.height - collapsed_inputViewHeight, self.view.frame.size.width, collapsed_inputViewHeight)];
+    self.composeInputView.hidden = true;
+    
     self.composeInputView.parentViewController = self;
     self.composeInputView.postButton.backgroundColor = [self.theme isEqual:[UIColor whiteColor]] ? [UIColor colorWithWhite:0.2f alpha:1] : self.theme;
     self.composeInputView.addMediaButton.tintColor = self.composeInputView.postButton.backgroundColor;
@@ -506,6 +505,7 @@ static NSString * const reuseIdentifier = @"Result";
     
     self.tableView.contentInset = UIEdgeInsetsMake(0, 0, self.composeInputView.frame.size.height - [UIApplication sharedApplication].delegate.window.safeAreaInsets.bottom, 0);
     self.tableView.scrollIndicatorInsets = self.tableView.contentInset;
+    self.tableView.inputView = self.composeInputView;
 }
 - (void)textViewDidChange:(UITextView *)textView {
     if ([textView isEqual:self.composeInputView.textView]) {
@@ -544,6 +544,7 @@ static NSString * const reuseIdentifier = @"Result";
         [self.composeInputView.textView resignFirstResponder];
         self.composeInputView.media = [[NSMutableArray alloc] init];
         [self.composeInputView hideMediaTray];
+        [self.composeInputView setReplyingTo:nil];
     }
 }
 
@@ -802,7 +803,6 @@ static NSString * const reuseIdentifier = @"Result";
     // Report Room
     
     UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:nil message:self.room.attributes.details.title preferredStyle:UIAlertControllerStyleActionSheet];
-    actionSheet.view.tintColor = [UIColor colorWithWhite:0.2 alpha:1];
     
     if (isRoomAdmin) {
         UIAlertAction *editCamp = [UIAlertAction actionWithTitle:@"Edit Camp" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
@@ -897,7 +897,6 @@ static NSString * const reuseIdentifier = @"Result";
     UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
         NSLog(@"cancel");
     }];
-    [cancel setValue:self.theme forKey:@"titleTextColor"];
     [actionSheet addAction:cancel];
     
     [self.navigationController presentViewController:actionSheet animated:YES completion:nil];

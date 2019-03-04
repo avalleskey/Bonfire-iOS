@@ -191,12 +191,14 @@ static Session *session;
         // has device token and it isn't equal the user_device_token
         NSLog(@"🚨 user has a new device token -> we need to register it");
                 
-        NSString *url = [NSString stringWithFormat:@"%@/%@/users/me/notifications/token", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"]];
+        NSString *url = [NSString stringWithFormat:@"%@/%@/users/me/notifications/tokens", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"]];
         
         [session authenticate:^(BOOL success, NSString *token) {
             [session.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
+            [session.manager.requestSerializer setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
             
-            [session.manager POST:url parameters:@{@"system": @"apns", @"token": [[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"]} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+            NSLog(@"parameters: %@", @{@"vendor": @(1), @"token": [[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"]});
+            [session.manager POST:url parameters:@{@"vendor": @(1), @"token": [[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"]} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 NSLog(@"🤪 successfully updated the device token for @%@", session.currentUser.attributes.details.identifier);
                 [[NSUserDefaults standardUserDefaults] setObject:[[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"] forKey:@"user_device_token"];
                 
@@ -391,7 +393,7 @@ static Session *session;
     NSInteger launches = [[NSUserDefaults standardUserDefaults] integerForKey:@"launches"];
     
     // keep device token
-    NSString *deviceToken = session.deviceToken;
+    NSString *deviceToken = [[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"];
     
     // clear session
     session = nil;

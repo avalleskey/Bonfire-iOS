@@ -121,7 +121,7 @@
 + (UIColor * _Nonnull) bonfireBrand {
     // return [UIColor colorWithRed:1.00 green:0.32 blue:0.24 alpha:1.0];
     
-    return [UIColor colorWithDisplayP3Red:0.99 green:0.38 blue:0.29 alpha:1.0];
+    return [UIColor colorWithDisplayP3Red:1.00 green:0.38 blue:0.30 alpha:1.0];
 }
 
 // Gray

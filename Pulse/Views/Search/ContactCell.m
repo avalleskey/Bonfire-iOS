@@ -9,7 +9,6 @@
 #import "ContactCell.h"
 #import <SDWebImage/UIImageView+WebCache.h>
 #import "UIColor+Palette.h"
-#import <Tweaks/FBTweakInline.h>
 
 @implementation ContactCell
 
@@ -23,11 +22,11 @@
         self.imageView.backgroundColor = [UIColor whiteColor];
         
         self.textLabel.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightBold];
-        self.textLabel.textColor = [UIColor colorWithWhite:0.07 alpha:1];
+        self.textLabel.textColor = [UIColor bonfireBlack];
         
         self.detailTextLabel.font = [UIFont systemFontOfSize:12.f weight:UIFontWeightMedium];
         self.detailTextLabel.textAlignment = NSTextAlignmentLeft;
-        self.detailTextLabel.textColor = [UIColor colorWithWhite:0.6f alpha:1];
+        self.detailTextLabel.textColor = [UIColor bonfireGray];
         self.detailTextLabel.lineBreakMode = NSLineBreakByTruncatingTail;
         
         self.checkIcon = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 28, 28)];
@@ -73,13 +72,7 @@
         self.detailTextLabel.hidden = true;
     }
     
-    BOOL circleProfilePictures = FBTweakValue(@"Post", @"General", @"Circle Profile Pictures", YES);
-    if (circleProfilePictures) {
-        self.imageView.layer.cornerRadius = self.imageView.frame.size.height * .5;
-    }
-    else {
-        self.imageView.layer.cornerRadius = self.imageView.frame.size.height * .25;
-    }
+    self.imageView.layer.cornerRadius = self.imageView.frame.size.height * .5;
 }
 
 - (void)setHighlighted:(BOOL)highlighted animated:(BOOL)animated {

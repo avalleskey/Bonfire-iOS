@@ -8,20 +8,19 @@
 
 #import <UIKit/UIKit.h>
 #import "RoomFollowButton.h"
-#import <SpriteKit/SpriteKit.h>
 #import "Room.h"
 #import "BFAvatarView.h"
-#import "BFDetailsLabel.h"
+#import "BFDetailsCollectionView.h"
 
 #define ROOM_HEADER_EDGE_INSETS UIEdgeInsetsMake(24, 24, 24, 24)
 // avatar macros
 #define ROOM_HEADER_AVATAR_SIZE 96
 #define ROOM_HEADER_AVATAR_BOTTOM_PADDING 12
 // display name macros
-#define ROOM_HEADER_NAME_FONT [UIFont systemFontOfSize:28.f weight:UIFontWeightBold]
+#define ROOM_HEADER_NAME_FONT [UIFont systemFontOfSize:30.f weight:UIFontWeightHeavy]
 #define ROOM_HEADER_NAME_BOTTOM_PADDING 4
 // #Camptag macros
-#define ROOM_HEADER_TAG_FONT [UIFont systemFontOfSize:14.f weight:UIFontWeightRegular]
+#define ROOM_HEADER_TAG_FONT [UIFont systemFontOfSize:16.f weight:UIFontWeightHeavy]
 #define ROOM_HEADER_TAG_BOTTOM_PADDING 10
 // description macros
 #define ROOM_HEADER_DESCRIPTION_FONT [UIFont systemFontOfSize:16.f weight:UIFontWeightRegular]
@@ -35,34 +34,24 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface RoomHeaderCell : UITableViewCell
 
-@property (strong, nonatomic) Room *room;
+@property (nonatomic, strong) Room *room;
 
-@property (strong, nonatomic) BFDetailsLabel *detailsLabel;
+@property (nonatomic, strong) BFDetailsCollectionView *detailsCollectionView;
 
-@property (strong, nonatomic) UILabel *descriptionLabel;
-@property (strong, nonatomic) RoomFollowButton *followButton;
+@property (nonatomic, strong) UILabel *descriptionLabel;
+@property (nonatomic, strong) RoomFollowButton *followButton;
 
-/*
-@property (strong, nonatomic) UIView *statsView;
-@property (strong, nonatomic) UIView *statsViewTopSeparator;
-@property (strong, nonatomic) UIView *statsViewMiddleSeparator;
-@property (strong, nonatomic) UIButton *membersLabel;
-@property (strong, nonatomic) UILabel *postsCountLabel;
+@property (nonatomic, strong) BFAvatarView *roomPicture;
+@property (nonatomic, strong) UIButton *infoButton;
 
-@property (strong, nonatomic) UIView *actionsBarView;
-@property (strong, nonatomic) UIView *membersContainer;*/
+@property (nonatomic, strong) BFAvatarView *member2;
+@property (nonatomic, strong) BFAvatarView *member3;
+@property (nonatomic, strong) BFAvatarView *member4;
+@property (nonatomic, strong) BFAvatarView *member5;
+@property (nonatomic, strong) BFAvatarView *member6;
+@property (nonatomic, strong) BFAvatarView *member7;
 
-@property (strong, nonatomic) BFAvatarView *roomPicture;
-@property (strong, nonatomic) UIButton *infoButton;
-
-@property (strong, nonatomic) BFAvatarView *member2;
-@property (strong, nonatomic) BFAvatarView *member3;
-@property (strong, nonatomic) BFAvatarView *member4;
-@property (strong, nonatomic) BFAvatarView *member5;
-@property (strong, nonatomic) BFAvatarView *member6;
-@property (strong, nonatomic) BFAvatarView *member7;
-
-@property (strong, nonatomic) UIView *lineSeparator;
+@property (nonatomic, strong) UIView *lineSeparator;
 
 @end
 

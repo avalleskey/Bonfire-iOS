@@ -55,12 +55,12 @@ static InsightsLogger *logger;
      */
     NSInteger MAX_LENGTH_HRS = [Session sharedInstance].defaults.logging.insights.impressions.batching.max_length_hrs;
     
-    NSLog(@"completed timeframes count (before): %ld", (long)[self completedTimeframesCount]);
+    // NSLog(@"completed timeframes count (before): %ld", (long)[self completedTimeframesCount]);
     
     NSMutableDictionary *newBatch = [[NSMutableDictionary alloc] init];
     
     NSArray *keys = logger.completedTimeframes.allKeys;
-    for (int i = 0; i < keys.count; i++) {
+    for (NSInteger i = 0; i < keys.count; i++) {
         NSString *postId = keys[i];
         
         NSMutableArray *completedTimeframesForPost = [[NSMutableArray alloc] initWithArray:logger.completedTimeframes[postId]];
@@ -68,11 +68,11 @@ static InsightsLogger *logger;
         
         for (int p = (int)completedTimeframesForPost.count - 1; p >= 0; p--) {
             InsightsLoggerTimeframe *timeframe = completedTimeframesForPost[p];
-            NSLog(@"%f / %ld", [timeframe.ts_end timeIntervalSinceNow], -1 * (MAX_LENGTH_HRS * 60 * 60));
+            // NSLog(@"%f / %ld", [timeframe.ts_end timeIntervalSinceNow], -1 * (MAX_LENGTH_HRS * 60 * 60));
             
             if ([timeframe.ts_end timeIntervalSinceNow] <= -1 * (MAX_LENGTH_HRS * 60 * 60)) {
                 // exceeded time length
-                NSLog(@"––––– exceeded time length! –––––");
+                // NSLog(@"––––– exceeded time length! –––––");
                 [exceededPostTimeframes addObject:timeframe];
                 [completedTimeframesForPost removeObjectAtIndex:p];
             }
@@ -84,8 +84,8 @@ static InsightsLogger *logger;
         }
     }
     
-    NSLog(@"exceeded timeframes batch: %@", newBatch);
-    NSLog(@"completed timeframes count (after): %ld", (long)[self completedTimeframesCount]);
+    // NSLog(@"exceeded timeframes batch: %@", newBatch);
+    // NSLog(@"completed timeframes count (after): %ld", (long)[self completedTimeframesCount]);
     
     if (newBatch.allKeys.count > 0) {
         [logger.queuedBatches addObject:newBatch];
@@ -130,7 +130,7 @@ static InsightsLogger *logger;
     InsightsLoggerTimeframe *newTimeframe = [[InsightsLoggerTimeframe alloc] init];
     newTimeframe.seen_in = seenIn;
     
-    NSLog(@"✳️ openPostInsight(%li) seenIn(%@)", postId, seenIn);
+    // NSLog(@"✳️ openPostInsight(%li) seenIn(%@)", postId, seenIn);
     
     [logger.activeTimeframes setObject:newTimeframe forKey:[self stringifyId:postId]];
 }
@@ -169,7 +169,7 @@ static InsightsLogger *logger;
     InsightsLoggerTimeframe *timeframe = logger.activeTimeframes[idString];
     timeframe.ts_end = [NSDate new];
     
-    NSLog(@"❌ closePostInsight(%li) action(%@)", postId, action);
+    // NSLog(@"❌ closePostInsight(%li) action(%@)", postId, action);
     if (action) {
         timeframe.action = action;
     }
@@ -232,10 +232,10 @@ static InsightsLogger *logger;
     
     NSInteger MAX_TIMEFRAMES = [Session sharedInstance].defaults.logging.insights.impressions.batching.max_timeframes;
     
-    NSLog(@"%ld out of %ld", (long)[self completedTimeframesCount], (long)MAX_TIMEFRAMES);
+    // NSLog(@"%ld out of %ld", (long)[self completedTimeframesCount], (long)MAX_TIMEFRAMES);
     
     if ([self completedTimeframesCount] >= MAX_TIMEFRAMES) {
-        NSLog(@"🚨🚨🚨 copmletedTimeframes(%ld) > MAX_TIMEFRAMES(%ld) 🚨🚨🚨", (long)[self completedTimeframesCount], (long)MAX_TIMEFRAMES);
+        // NSLog(@"🚨🚨🚨 copmletedTimeframes(%ld) > MAX_TIMEFRAMES(%ld) 🚨🚨🚨", (long)[self completedTimeframesCount], (long)MAX_TIMEFRAMES);
         createBatch = true;
     }
     
@@ -267,18 +267,16 @@ static InsightsLogger *logger;
             // remove object from queued batches to avoid duplicates
             [queuedBatchesCopy removeObject:batch];
             
-            [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
-                AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
-                manager.requestSerializer = [AFJSONRequestSerializer serializer];
-                [manager.requestSerializer setValue:[NSString stringWithFormat:@"iosClient/%@", [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"]] forHTTPHeaderField:@"x-rooms-client"];
-                [manager.requestSerializer setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-                [manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
+            [Session authenticate:^(BOOL success, NSString *token) {
+                HAWebService *insightsManager = [[HAWebService alloc] init];
                 
-                NSString *url = [NSString stringWithFormat:@"%@/%@/insights/impressions", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"]];
+                NSLog(@"set up the manager");
+                
+                [insightsManager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
+                insightsManager.requestSerializer.HTTPMethodsEncodingParametersInURI = [NSSet setWithObjects:@"GET", @"HEAD", nil];
                 
                 NSDictionary *normalizedBatch = [self normalizeBatch:batch];
-                
-                [manager POST:url parameters:@{@"impressions": normalizedBatch} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+                [insightsManager POST:@"insights/impressions" parameters:@{@"impressions": normalizedBatch} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                     // success
                     NSLog(@"successfully uploaded batch");
                     NSLog(@"response: %@", responseObject);
@@ -289,9 +287,13 @@ static InsightsLogger *logger;
                     NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
                     NSLog(@"%@", ErrorResponse);
                     
-                    if (![logger.queuedBatches containsObject:batch]) {
-                        [logger.queuedBatches addObject:batch];
-                        [logger updateQueuedDefaults];
+                    NSHTTPURLResponse *httpResponse = error.userInfo[AFNetworkingOperationFailingURLResponseErrorKey];
+                    NSInteger statusCode = httpResponse.statusCode;
+                    if (statusCode != 401) {
+                        if (![logger.queuedBatches containsObject:batch]) {
+                            [logger.queuedBatches addObject:batch];
+                            [logger updateQueuedDefaults];
+                        }
                     }
                 }];
             }];
@@ -304,7 +306,7 @@ static InsightsLogger *logger;
     NSMutableDictionary *mutableBatch = [[NSMutableDictionary alloc] init];
     
     NSArray *keys = [batch allKeys];
-    for (int i = 0; i < keys.count; i++) {
+    for (NSInteger i = 0; i < keys.count; i++) {
         NSString *key = keys[i];
         NSArray *timeframes = batch[key];
         
@@ -334,8 +336,8 @@ static InsightsLogger *logger;
         }
     }
     
-    NSLog(@"normalized batch: ");
-    NSLog(@"%@", [mutableBatch copy]);
+    // NSLog(@"normalized batch: ");
+    // NSLog(@"%@", [mutableBatch copy]);
     
     return [mutableBatch copy];
 }

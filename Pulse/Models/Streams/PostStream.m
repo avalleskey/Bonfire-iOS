@@ -9,7 +9,6 @@
 #import "PostStream.h"
 #import "Session.h"
 #import "PostCell.h"
-#import <Tweaks/FBTweakInline.h>
 
 @implementation PostStream
 
@@ -45,7 +44,7 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
         [mutableArray addObjectsFromArray:self.tempPosts];
     }
     
-    for (int i = 0; i < self.pages.count; i++) {
+    for (NSInteger i = 0; i < self.pages.count; i++) {
         // TODO: Insert 'load missing posts' post if before/after doesn't match previous/next page
         
         PostStreamPage *page = self.pages[i];
@@ -63,7 +62,7 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
 
 - (void)prependPage:(PostStreamPage *)page {
     NSMutableArray *pageData = [[NSMutableArray alloc] initWithArray:page.data];
-    for (int i = 0; i < pageData.count; i++) {
+    for (NSInteger i = 0; i < pageData.count; i++) {
         Post *post = [[Post alloc] initWithDictionary:pageData[i] error:nil];
         [pageData replaceObjectAtIndex:i withObject:post];
     }
@@ -74,10 +73,18 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
 }
 - (void)appendPage:(PostStreamPage *)page {
     NSMutableArray *pageData = [[NSMutableArray alloc] initWithArray:page.data];
-    for (int i = 0; i < pageData.count; i++) {
+    for (NSInteger i = 0; i < pageData.count; i++) {
         if ([pageData[i] isKindOfClass:[NSDictionary class]]) {
-            Post *post = [[Post alloc] initWithDictionary:pageData[i] error:nil];
-            [pageData replaceObjectAtIndex:i withObject:post];
+            NSError *error;
+            
+            Post *post = [[Post alloc] initWithDictionary:pageData[i] error:&error];
+            
+            if (error) {
+                NSLog(@"error: %@", error);
+            }
+            if (post != nil) {
+                [pageData replaceObjectAtIndex:i withObject:post];
+            }
         }
     }
     page.data = [pageData copy];
@@ -90,7 +97,7 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
     return [self updateTempPost:tempId withFinalPost:nil];
 }
 - (NSString *)addTempPost:(Post *)post {
-    NSString *tempId = [NSString stringWithFormat:@"%d", [[Session sharedInstance] getTempId]];
+    NSString *tempId = [NSString stringWithFormat:@"%d", [Session getTempId]];
     post.tempId = tempId;
     if (self.tempPostPosition == PostStreamOptionTempPostPositionTop) {
         [self.tempPosts insertObject:post atIndex:0];
@@ -126,23 +133,24 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
 }
 
 - (NSString *)addTempSubReply:(Post *)subReply {
-    NSString *tempId = [NSString stringWithFormat:@"%d", [[Session sharedInstance] getTempId]];
+    NSString *tempId = [NSString stringWithFormat:@"%d", [Session getTempId]];
     subReply.tempId = tempId;
     
     // always add to bottom
     BOOL foundMatch = false;
-    for (int i = 0; i < self.pages.count; i++) {
+    for (NSInteger i = 0; i < self.pages.count; i++) {
         PostStreamPage *page = self.pages[i];
         for (int p = 0; p < page.data.count; p++) {
             // go through each reply, checking to see if the sub reply parent  == identifier of post
             Post *reply = page.data[p];
-            if (reply.identifier == subReply.attributes.details.parent) {
+            if (reply.identifier == subReply.attributes.details.parentId) {
                 // match!
                 NSLog(@"heh match match !!");
                 NSMutableArray *mutableArray = [[NSMutableArray alloc] initWithArray:reply.attributes.summaries.replies];
                 [mutableArray addObject:subReply];
                 NSArray <Post *> <Post> *copy = [mutableArray copy];
                 reply.attributes.summaries.replies = copy;
+                reply.attributes.summaries.counts.replies = reply.attributes.summaries.counts.replies + 1;
                 
                 NSMutableArray *mutableData = [[NSMutableArray alloc] initWithArray:page.data];
                 [mutableData replaceObjectAtIndex:p withObject:reply];
@@ -172,7 +180,7 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
 - (BOOL)updateTempSubReply:(NSString *)tempId withFinalSubReply:(Post *)finalSubReply {
     // always add to bottom
     BOOL foundMatch = false;
-    for (int i = 0; i < self.pages.count; i++) {
+    for (NSInteger i = 0; i < self.pages.count; i++) {
         PostStreamPage *page = self.pages[i];
         for (int p = 0; p < page.data.count; p++) {
             // go through each reply, checking to see if the sub reply parent  == identifier of post
@@ -183,7 +191,6 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
                 Post *subReply = mutableSubReplies[s];
                 if ([subReply.tempId isEqualToString:tempId]) {
                     // match!
-                    NSLog(@"heh old temp match match !!");
                     [mutableSubReplies replaceObjectAtIndex:s withObject:finalSubReply];
                     NSArray <Post *> <Post> *copy = [mutableSubReplies copy];
                     reply.attributes.summaries.replies = copy;
@@ -193,8 +200,6 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
                     NSArray <Post *> <Post> *mutableDataCopy = [mutableData copy];
                     page.data = mutableDataCopy;
                     
-                    NSLog(@"even more wooo!");
-                    NSLog(@"page.data: %@", page.data);
                     foundMatch = true;
                     
                     break;
@@ -212,7 +217,7 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
 }
 - (BOOL)clearSubRepliesForPost:(Post *)reply {
     BOOL foundMatch = false;
-    for (int i = 0; i < self.pages.count; i++) {
+    for (NSInteger i = 0; i < self.pages.count; i++) {
         PostStreamPage *page = self.pages[i];
         for (int p = 0; p < page.data.count; p++) {
             // go through each reply, checking to see if the sub reply parent  == identifier of post
@@ -243,7 +248,7 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
 - (BOOL)addSubReplies:(NSArray *)newSubReplies toPost:(Post *)post {
     // always add to bottom
     BOOL foundMatch = false;
-    for (int i = 0; i < self.pages.count; i++) {
+    for (NSInteger i = 0; i < self.pages.count; i++) {
         PostStreamPage *page = self.pages[i];
         for (int p = 0; p < page.data.count; p++) {
             // go through each reply, checking to see if the sub reply parent  == identifier of post
@@ -290,9 +295,15 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
 }
 
 - (Post *)postWithId:(NSInteger)postId {
-    for (int i = 0; i < self.posts.count; i++) {
+    for (NSInteger i = 0; i < self.posts.count; i++) {
         if (self.posts[i].identifier == postId) {
             return self.posts[i];
+        }
+        
+        for (Post *post in self.posts[i].attributes.summaries.replies) {
+            if (post.identifier == postId) {
+                return post;
+            }
         }
     }
     
@@ -308,7 +319,6 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
             Post *postAtIndex = mutableArray[i];
             if (postAtIndex.identifier == post.identifier) {
                 [mutableArray replaceObjectAtIndex:i withObject:post];
-                post.rowHeight = 0;
                 changes = true;
             }
         }
@@ -331,6 +341,22 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
             Post *postAtIndex = mutableArray[i];
             if (postAtIndex.identifier == post.identifier) {
                 [mutableArray removeObjectAtIndex:i];
+                continue;
+            }
+            
+            if (post.attributes.details.parentId != 0 && post.attributes.details.parentId == postAtIndex.identifier) {
+                NSMutableArray *mutableSummariesArray = [[NSMutableArray alloc] initWithArray:postAtIndex.attributes.summaries.replies];
+                for (NSInteger i = mutableSummariesArray.count - 1; i >= 0; i--) {
+                    Post *subReply = mutableSummariesArray[i];
+                    if (subReply.identifier == post.identifier) {
+                        [mutableSummariesArray removeObject:subReply];
+                    }
+                }
+                postAtIndex.attributes.summaries.replies = [mutableSummariesArray copy];
+                
+                PostCounts *counts = [[PostCounts alloc] init];
+                counts.replies = (postAtIndex.attributes.summaries.counts.replies - 1);
+                postAtIndex.attributes.summaries.counts = counts;
             }
         }
         
@@ -348,9 +374,18 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
         NSMutableArray <Post *> *mutableArray = [[NSMutableArray alloc] initWithArray:page.data];
         for (NSInteger i = mutableArray.count - 1; i >= 0; i--) {
             Post *postAtIndex = mutableArray[i];
-            if (postAtIndex.attributes.status.postedIn.identifier == room.identifier) {
+            if ([postAtIndex.attributes.status.postedIn.identifier isEqualToString:room.identifier]) {
                 postAtIndex.attributes.status.postedIn = room;
                 NSLog(@"👀 updated room postedIn");
+                
+                // update replies
+                NSMutableArray *mutableReplies = [[NSMutableArray alloc] initWithArray:postAtIndex.attributes.summaries.replies];
+                for (int x = 0; x < mutableReplies.count; x++) {
+                    Post *reply = mutableReplies[x];
+                    reply.attributes.status.postedIn = room;
+                    [mutableReplies replaceObjectAtIndex:x withObject:reply];
+                }
+                postAtIndex.attributes.summaries.replies = [mutableReplies copy];
             }
             [mutableArray replaceObjectAtIndex:i withObject:postAtIndex];
         }
@@ -397,6 +432,7 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
     }
     
     [self updatePostsArray];
+    NSLog(@"finished updating user objects");
 }
 
 - (NSInteger)topId {
@@ -435,12 +471,22 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
 - (NSInteger)topId {
     if (self.data.count == 0) return 0;
     
-    return [self.data firstObject].identifier;
+    if ([[self.data firstObject] isKindOfClass:[Post class]]) {
+        return [self.data firstObject].identifier;
+    }
+    else {
+        return [[Post alloc] initWithDictionary:[[self.data firstObject] toDictionary] error:nil].identifier;
+    }
 }
 - (NSInteger)bottomId {
     if (self.data.count == 0) return 0;
     
-    return [self.data lastObject].identifier;
+    if ([[self.data lastObject] isKindOfClass:[Post class]]) {
+        return [self.data lastObject].identifier;
+    }
+    else {
+        return [[Post alloc] initWithDictionary:[[self.data lastObject] toDictionary] error:nil].identifier;
+    }
 }
 
 

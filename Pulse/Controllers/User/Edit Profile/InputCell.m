@@ -7,6 +7,7 @@
 //
 
 #import "InputCell.h"
+#import "UIColor+Palette.h"
 
 @implementation InputCell
 
@@ -29,7 +30,7 @@
         
         self.input = [[UITextField alloc] init];
         self.input.font = INPUT_CELL_FONT;
-        self.input.textColor = [UIColor colorWithWhite:0.2f alpha:1];
+        self.input.textColor = [UIColor bonfireBlack];
         self.input.textAlignment = NSTextAlignmentLeft;
         [self.contentView addSubview:self.input];
         
@@ -50,7 +51,7 @@
         
         self.charactersRemainingLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.textView.frame.size.width, 12)];
         self.charactersRemainingLabel.textAlignment = NSTextAlignmentRight;
-        self.charactersRemainingLabel.textColor = [UIColor colorWithWhite:0.6 alpha:1];
+        self.charactersRemainingLabel.textColor = [UIColor bonfireGray];
         self.charactersRemainingLabel.font = [UIFont systemFontOfSize:12.f weight:UIFontWeightMedium];
         [self.contentView addSubview:self.charactersRemainingLabel];
     }

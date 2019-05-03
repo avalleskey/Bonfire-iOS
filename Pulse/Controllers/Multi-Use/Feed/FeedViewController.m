@@ -13,6 +13,9 @@
 #import "InsightsLogger.h"
 #import "UIColor+Palette.h"
 #import <PINCache/PINCache.h>
+#import "TabController.h"
+#import "HAWebService.h"
+@import Firebase;
 
 #define tv ((RSTableView *)self.tableView)
 
@@ -60,7 +63,6 @@ static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
     
     self.tableView.scrollIndicatorInsets = UIEdgeInsetsZero;
     
-    self.manager = [HAWebService manager];
     [self setupContent];
 }
 
@@ -78,46 +80,67 @@ static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(newPostBegan:) name:@"NewPostBegan" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(newPostCompleted:) name:@"NewPostCompleted" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(newPostFailed:) name:@"NewPostFailed" object:nil];
+    
+    if (self.feedType == FeedTypeTimeline) {
+        // Google Analytics
+        [FIRAnalytics setScreenName:@"Home" screenClass:nil];
+        
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(fetchNewPosts) name:@"FetchNewTimelinePosts" object:nil];
+    }
+    else if (self.feedType == FeedTypeTrending) {
+        // Google Analytics
+        [FIRAnalytics setScreenName:@"Trending" screenClass:nil];
+    }
 }
 
 - (void)userUpdated:(NSNotification *)notification {
     if ([notification.object isKindOfClass:[User class]]) {
         User *user = notification.object;
         if ([user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
-            [self.tableView reloadData];
+            [tv refresh];
         }
     }
 }
 
 - (void)newPostBegan:(NSNotification *)notification {
+    if (self.feedType != FeedTypeTimeline) return;
+    
     Post *tempPost = notification.object;
     
-    if (tempPost != nil && tempPost.attributes.details.parent == 0) {
+    if (tempPost != nil && tempPost.attributes.details.parentId == 0) {
         // TODO: Check for image as well
         self.errorView.hidden = true;
         [tv.stream addTempPost:tempPost];
-        [tv refresh];
-        [tv scrollToTop];
+
+        [tv reloadData];
     }
 }
 - (void)newPostCompleted:(NSNotification *)notification {
+    if (self.feedType != FeedTypeTimeline) return;
+    
     NSDictionary *info = notification.object;
     NSString *tempId = info[@"tempId"];
     Post *post = info[@"post"];
     
-    if (post != nil && post.attributes.details.parent == 0) {
+    if (post != nil && post.attributes.details.parentId == 0) {
         // TODO: Check for image as well
         self.errorView.hidden = true;
         
         [tv.stream updateTempPost:tempId withFinalPost:post];
         [tv refresh];
+        
+        if (tv.contentOffset.y > 100 && self.morePostsIndicator.tag != 1) {
+            [self showMorePostsIndicator:YES];
+        }
     }
 }
 // TODO: Allow tap to retry for posts
 - (void)newPostFailed:(NSNotification *)notification {
+    if (self.feedType != FeedTypeTimeline) return;
+    
     Post *tempPost = notification.object;
     
-    if (tempPost != nil && tempPost.attributes.details.parent == 0) {
+    if (tempPost != nil && tempPost.attributes.details.parentId == 0) {
         // TODO: Check for image as well
         [tv.stream removeTempPost:tempPost.tempId];
         [tv refresh];
@@ -136,9 +159,9 @@ static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
             [InsightsLogger.sharedInstance openAllVisiblePostInsightsInTableView:self.tableView seenIn:InsightSeenInTrendingView];
         }
         
-        // fetch new posts after 5mins
+        // fetch new posts after 2mins
         NSTimeInterval secondsSinceLastFetch = [lastFetch timeIntervalSinceNow];
-        NSLog(@"seconds since last fetch: %f", secondsSinceLastFetch);
+        NSLog(@"seconds since last fetch: %f", -secondsSinceLastFetch);
         if (secondsSinceLastFetch < -(2 * 60)) {
             [self fetchNewPosts];
         }
@@ -155,9 +178,9 @@ static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
         self.morePostsIndicator.layer.shadowRadius = 2.f;
         self.morePostsIndicator.tag = 0; // inactive
         self.morePostsIndicator.layer.cornerRadius = self.morePostsIndicator.frame.size.height / 2;
-        self.morePostsIndicator.backgroundColor = [[UIColor bonfireBrand] colorWithAlphaComponent:0.98];
+        self.morePostsIndicator.backgroundColor = [UIColor colorWithWhite:1 alpha:0.98];
         [self.morePostsIndicator setTitle:@"See new Posts" forState:UIControlStateNormal];
-        [self.morePostsIndicator setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        [self.morePostsIndicator setTitleColor:[UIColor bonfireBlack] forState:UIControlStateNormal];
         self.morePostsIndicator.titleLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightSemibold];
         [self.navigationController.view insertSubview:self.morePostsIndicator belowSubview:self.navigationController.navigationBar];
         
@@ -184,6 +207,8 @@ static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
         }];
         
         [self hideMorePostsIndicator:false];
+        
+        [self loadCache];
     }
     
     [self styleOnAppear];
@@ -191,12 +216,22 @@ static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
 
 - (void)hideMorePostsIndicator:(BOOL)animated {
     NSLog(@"hide more posts indicator");
+    if ([self.tabBarController isKindOfClass:[TabController class]]) {
+        // remove dot from home tab
+        [(TabController *)self.tabBarController setBadgeValue:nil forItem:self.navigationController.tabBarItem];
+    }
+
     self.morePostsIndicator.tag = 0;
     [UIView animateWithDuration:(animated?0.8f:0) delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
         self.morePostsIndicator.center = CGPointMake(self.morePostsIndicator.center.x, self.morePostsIndicator.frame.size.height * -.5);
     } completion:nil];
 }
 - (void)showMorePostsIndicator:(BOOL)animated {
+    if ([self.tabBarController isKindOfClass:[TabController class]]) {
+        // add dot to home tab
+        [(TabController *)self.tabBarController setBadgeValue:@"1" forItem:self.navigationController.tabBarItem];
+    }
+    
     self.morePostsIndicator.tag = 1;
     [UIView animateWithDuration:(animated?1.2f:0) delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
         self.morePostsIndicator.center = CGPointMake(self.morePostsIndicator.center.x, self.navigationController.navigationBar.frame.origin.y + self.navigationController.navigationBar.frame.size.height + 12 + (self.morePostsIndicator.frame.size.height * 0.5));
@@ -299,12 +334,10 @@ static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
 }
 
 - (void)tableViewDidScroll:(UITableView *)tableView {
-    /*
     if (tableView.contentOffset.y <= 100 && self.morePostsIndicator.tag == 1) {
         NSLog(@"hide that post indicator");
         [self hideMorePostsIndicator:YES];
     }
-     */
 }
 
 - (void)tableView:(id)tableView didRequestNextPageWithMaxId:(NSInteger)maxId {
@@ -329,111 +362,116 @@ static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
     
     NSString *url;
     if (self.feedType == FeedTypeTrending) {
-        url = [NSString stringWithFormat:@"%@/%@/streams/trending", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"]];
+        url = @"streams/trending";
     }
     else if (self.feedType == FeedTypeTimeline) {
-        url = [NSString stringWithFormat:@"%@/%@/streams/me", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"]];
+        url = @"streams/me";
     }
     
-    [self.manager.requestSerializer setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-    self.manager.responseSerializer = [AFJSONResponseSerializer serializer];
-    [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
-        if (success) {
-            [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
-            
-            NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
-            if (sinceId != 0 || maxId == 0) {
-                [params setObject:[NSNumber numberWithInteger:sinceId] forKey:@"since_id"];
+    NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
+    if (sinceId != 0 || maxId == 0) {
+        [params setObject:[NSNumber numberWithInteger:sinceId] forKey:@"since_id"];
+    }
+    if (maxId != 0) {
+        [params setObject:[NSNumber numberWithInteger:maxId-1] forKey:@"max_id"];
+    }
+    
+    NSLog(@"GET -> %@", url);
+    NSLog(@"params: %@", params);
+    
+    [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        PostStreamPage *page = [[PostStreamPage alloc] initWithDictionary:responseObject error:nil];
+        if (page.data.count > 0) {
+            if (sinceId != 0) {
+                [tv.stream prependPage:page];
             }
-            if (maxId != 0) {
-                [params setObject:[NSNumber numberWithInteger:maxId-1] forKey:@"max_id"];
+            else {
+                [tv.stream appendPage:page];
             }
             
-            NSLog(@"params: %@", params);
+            NSLog(@"responseObject: %@", responseObject);
             
-            [self.manager GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                PostStreamPage *page = [[PostStreamPage alloc] initWithDictionary:responseObject error:nil];
-                if (page.data.count > 0) {
-                    if (sinceId != 0) {
-                        [tv.stream prependPage:page];
-                    }
-                    else {
-                        [tv.stream appendPage:page];
-                    }
-                    
-                    // save cache
-                    NSString *cacheKey;
-                    if (self.feedType == FeedTypeTimeline) {
-                        cacheKey = @"home_feed_cache";
-                    }
-                    if (self.feedType == FeedTypeTrending) {
-                        cacheKey = @"trending_feed_cache";
-                    }
-                    
-                    if (cacheKey) {
-                        NSArray *newCache = tv.stream.posts;
-                        if (newCache.count > MAX_FEED_CACHED_POSTS) {
-                            newCache = [newCache subarrayWithRange:NSMakeRange(0, MAX_FEED_CACHED_POSTS)];
-                        }
-                        
-                        [[PINCache sharedCache] setObject:newCache forKey:cacheKey];
-                    }
+            // save cache
+            NSString *cacheKey;
+            if (self.feedType == FeedTypeTimeline) {
+                cacheKey = @"home_feed_cache";
+            }
+            if (self.feedType == FeedTypeTrending) {
+                cacheKey = @"trending_feed_cache";
+            }
+            
+            if (cacheKey) {
+                NSArray *newCache = tv.stream.posts;
+                if (newCache.count > MAX_FEED_CACHED_POSTS) {
+                    newCache = [newCache subarrayWithRange:NSMakeRange(0, MAX_FEED_CACHED_POSTS)];
                 }
                 
-                if (tv.stream.posts.count == 0) {
-                    // Error: No posts yet!
-                    self.errorView.hidden = false;
-                    
-                    [self.errorView updateType:ErrorViewTypeHeart];
-                    [self.errorView updateTitle:@"For You"];
-                    [self.errorView updateDescription:@"The posts you care about from the Camps and people you care about."];
-                }
-                else {
-                    self.errorView.hidden = true;
-                }
-                
-                self.loading = false;
-                
-                tv.loading = false;
-                tv.loadingMore = false;
-                
-                [tv refresh];
-                
-                if (self.userDidRefresh) {
-                    self.userDidRefresh = false;
-                }
-                else {
-                    /* DEBUG
-                    NSLog(@"posts count: %ld", tv.stream.posts.count);
-                    NSLog(@"posts count: %ld", page.data.count);
-                    NSLog(@"posts count: %f", self.tableView.contentOffset.y);
-                     */
-                    
-                    if (tv.stream.posts.count > 0 && page.data.count > 0 && self.tableView.contentOffset.y > 100 && sinceId != 0) {
-                        NSLog(@"show more posts indicator");
-                        [self showMorePostsIndicator:YES];
-                    }
-                }
-            } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-                NSLog(@"FeedViewController / getPosts() - ErrorResponse: %@", ErrorResponse);
-                
-                [self loadCache];
-                
-                if (tv.stream.posts.count == 0) {
-                    self.errorView.hidden = false;
-                    [self.errorView updateType:ErrorViewTypeGeneral];
-                    [self.errorView updateTitle:@"Error Loading"];
-                    [self.errorView updateDescription:@"Check your network settings and tap here to try again"];
-                }
-                
-                self.loading = false;
-                tv.loading = false;
-                tv.loadingMore = false;
-                self.tableView.userInteractionEnabled = true;
-                [tv refresh];
-            }];
+                [[PINCache sharedCache] setObject:newCache forKey:cacheKey];
+            }
         }
+        
+        if (tv.stream.posts.count == 0 && self.feedType == FeedTypeTimeline) {
+            // Error: No posts yet!
+            self.errorView.hidden = false;
+            
+            [self.errorView updateType:ErrorViewTypeHeart];
+            [self.errorView updateTitle:@"For You"];
+            [self.errorView updateDescription:@"The posts you care about from the Camps and people you care about."];
+        }
+        else {
+            self.errorView.hidden = true;
+        }
+        
+        self.loading = false;
+        
+        tv.loading = false;
+        tv.loadingMore = false;
+        
+        [tv refresh];
+        
+        if (self.userDidRefresh) {
+            self.userDidRefresh = false;
+        }
+        else {
+            /* DEBUG
+             NSLog(@"posts count: %ld", tv.stream.posts.count);
+             NSLog(@"posts count: %ld", page.data.count);
+             NSLog(@"posts count: %f", self.tableView.contentOffset.y);
+             */
+            
+            if (tv.stream.posts.count > 0 && page.data.count > 0 && self.tableView.contentOffset.y > 100 && sinceId != 0) {
+                NSLog(@"show more posts indicator");
+                [self showMorePostsIndicator:YES];
+            }
+        }
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+        NSLog(@"FeedViewController / getPosts() - ErrorResponse: %@", ErrorResponse);
+        
+        // NSHTTPURLResponse *httpResponse = error.userInfo[AFNetworkingOperationFailingURLResponseErrorKey];
+        // NSInteger statusCode = httpResponse.statusCode;
+        // NSLog(@"status code: %ld", (long)statusCode);
+        
+        if (tv.stream.posts.count == 0) {
+            self.errorView.hidden = false;
+            
+            if ([HAWebService hasInternet]) {
+                [self.errorView updateType:ErrorViewTypeGeneral];
+                [self.errorView updateTitle:@"Error Loading"];
+                [self.errorView updateDescription:@"Check your network settings and tap here to try again"];
+            }
+            else {
+                [self.errorView updateType:ErrorViewTypeNoInternet];
+                [self.errorView updateTitle:@"No Internet"];
+                [self.errorView updateDescription:@"Check your network settings and tap here to try again"];
+            }
+        }
+        
+        self.loading = false;
+        tv.loading = false;
+        tv.loadingMore = false;
+        self.tableView.userInteractionEnabled = true;
+        [tv refresh];
     }];
 }
 

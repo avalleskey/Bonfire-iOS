@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Beta</key>
+	<string>production</string>
+	<key>Release</key>
+	<string>production</string>
+	<key>Debug</key>
+	<string>development</string>
+	<key>environments</key>
+	<dict>
+		<key>production</key>
+		<dict>
+			<key>API_BASE_URI</key>
+			<string>https://api.bonfire.camp</string>
+			<key>API_CURRENT_VERSION</key>
+			<string>v1</string>
+			<key>API_KEY</key>
+			<string>c82f5645-8836-48d0-e4c2-4a2151317b97</string>
+		</dict>
+		<key>development</key>
+		<dict>
+			<key>API_BASE_URI</key>
+			<string>http://localhost:3120</string>
+			<key>API_CURRENT_VERSION</key>
+			<string>v1</string>
+			<key>API_KEY</key>
+			<string>999fc321-6924-478d-e66b-4ec06180f843</string>
+		</dict>
+	</dict>
+</dict>
+</plist>

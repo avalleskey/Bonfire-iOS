@@ -7,7 +7,6 @@
 
 #import <UIKit/UIKit.h>
 #import "ComposeInputView.h"
-#import "HAWebService.h"
 #import "Session.h"
 #import "ComposeInputView.h"
 #import "Room.h"
@@ -26,16 +25,15 @@ enum {
 };
 
 - (id)initWithFeedType:(FeedType)feedType;
-@property (strong, nonatomic) HAWebService *manager;
 
-@property (strong, nonatomic) UIScrollView *scrollView;
-@property (strong, nonatomic) Room *room;
+@property (nonatomic, strong) UIScrollView *scrollView;
+@property (nonatomic, strong) Room *room;
 @property (nonatomic, strong) ErrorView *errorView;
 
 @property (nonatomic) FeedType feedType;
 @property (nonatomic) int previousScrollOffset;
 @property (nonatomic) CGFloat currentKeyboardHeight;
 
-@property (strong, nonatomic) UIButton *morePostsIndicator;
+@property (nonatomic, strong) UIButton *morePostsIndicator;
 
 @end

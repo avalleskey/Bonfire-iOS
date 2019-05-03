@@ -8,37 +8,38 @@
 
 #import <UIKit/UIKit.h>
 #import "PostTextView.h"
-#import "PostActionsView.h"
 #import "Post.h"
-#import <UITextView+Placeholder.h>
+#import "UITextView+Placeholder.h"
 #import "TappableButton.h"
 #import <FLAnimatedImage/FLAnimatedImageView.h>
+#import "BFMedia.h"
 
-@interface ComposeInputView : UIView <UITextViewDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate> {
+@interface ComposeInputView : UIView <UITextViewDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, BFMediaDelegate> {
     BOOL _active;
 }
     
-@property (strong, nonatomic) Post *post;
-@property (strong, nonatomic) Post *replyingTo;
+@property (nonatomic, strong) Post *post;
+@property (nonatomic, strong) Post *replyingTo;
 
-@property (strong, nonatomic) UIView *contentView;
-@property (strong, nonatomic) UIButton *addMediaButton;
-@property (strong, nonatomic) UITextView *textView;
+@property (nonatomic, strong) UIView *contentView;
+@property (nonatomic, strong) UIButton *addMediaButton;
+@property (nonatomic, strong) UITextView *textView;
 
-@property (strong, nonatomic) TappableButton *postButton;
-@property (strong, nonatomic) UIButton *expandButton;
+@property (nonatomic, strong) TappableButton *postButton;
+@property (nonatomic, strong) UIButton *expandButton;
 
-@property (strong, nonatomic) UIViewController *parentViewController;
+@property (nonatomic, strong) UIViewController *parentViewController;
 
-@property (nonatomic) NSInteger maxImages;
 - (void)removeImageAtIndex:(NSInteger)index;
 - (void)hideMediaTray;
-@property (strong, nonatomic) NSMutableArray *media;
-@property (strong, nonatomic) UIView *mediaLineSeparator;
-@property (strong, nonatomic) UIScrollView *mediaScrollView;
-@property (strong, nonatomic) UIStackView *mediaContainerView;
+@property (nonatomic, strong) BFMedia *media;
+@property (nonatomic, strong) UIView *mediaLineSeparator;
+@property (nonatomic, strong) UIScrollView *mediaScrollView;
+@property (nonatomic, strong) UIStackView *mediaContainerView;
 
-@property (strong, nonatomic) UIButton *replyingToLabel;
+@property (nonatomic, strong) UIButton *replyingToLabel;
+
+@property (nonatomic, strong) NSArray *mediaTypes;
 
 - (void)setActive:(BOOL)isActive;
 - (BOOL)isActive;

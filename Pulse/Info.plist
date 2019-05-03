@@ -4,8 +4,6 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
-	<key>CFBundleDisplayName</key>
-	<string>Bonfire</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -20,7 +18,7 @@
 	<string>0.5</string>
 	<key>CFBundleURLSchemes</key>
 	<array>
-		<string>bonfireapp</string>
+		<string>bonfireapp${BUNDLE_ID_SUFFIX}</string>
 	</array>
 	<key>CFBundleURLTypes</key>
 	<array>
@@ -33,12 +31,14 @@
 			<string>Ingenious.bonfire</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>bonfireapp</string>
+				<string>bonfireapp${BUNDLE_ID_SUFFIX}</string>
 			</array>
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>50.5</string>
+	<string>69</string>
+	<key>Configuration</key>
+	<string>$(CONFIGURATION)</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>instagram</string>
@@ -49,16 +49,11 @@
 	<true/>
 	<key>NSAppTransportSecurity</key>
 	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
 		<key>NSExceptionDomains</key>
 		<dict>
 			<key>localhost</key>
-			<dict>
-				<key>NSExceptionAllowsInsecureHTTPLoads</key>
-				<true/>
-				<key>NSIncludesSubdomains</key>
-				<true/>
-			</dict>
-			<key>pravatar.cc</key>
 			<dict>
 				<key>NSExceptionAllowsInsecureHTTPLoads</key>
 				<true/>
@@ -84,7 +79,11 @@
 	<key>SCSDKClientId</key>
 	<string>ab6bfe71-3708-45ec-bac6-30c6149a2a80</string>
 	<key>SCSDKRedirectUrl</key>
-	<string>bonfireapp://app</string>
+	<string>bonfireapp${BUNDLE_ID_SUFFIX}://app</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
@@ -96,7 +95,7 @@
 	<key>UIStatusBarHidden</key>
 	<false/>
 	<key>UIStatusBarStyle</key>
-	<string>UIStatusBarStyleLightContent</string>
+	<string>UIStatusBarStyleDefault</string>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>

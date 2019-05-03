@@ -124,7 +124,7 @@
                     }
                     else if ([self.viewControllers[self.viewControllers.count-1] isKindOfClass:[PostViewController class]]) {
                         PostViewController *activePost = self.viewControllers[self.viewControllers.count-1];
-                        [activePost openPostActions];
+                        [[Launcher sharedInstance] openActionsForPost:activePost.post];
                     }
                     break;
                 }
@@ -178,18 +178,27 @@
 }
 
 // theming
-- (void)setShadowVisibility:(BOOL)visible withAnimation:(BOOL)animation {
-    if (visible) [self showBottomHairline];
-    else [self hideBottomHairline];
+- (void)setShadowVisibility:(BOOL)visible withAnimation:(BOOL)animated {
+    [UIView animateWithDuration:animated?(visible?0.2f:0.4f):0 animations:^{
+        if (visible) [self showBottomHairline];
+        else [self hideBottomHairline];
+    }];
 }
 - (void)hideBottomHairline {
     UIImageView *navBarHairlineImageView = [self findHairlineImageViewUnder:self.navigationBar];
-    navBarHairlineImageView.hidden = YES;
+    if (navBarHairlineImageView.alpha == 1) {
+        [navBarHairlineImageView.layer removeAllAnimations];
+    }
+    navBarHairlineImageView.alpha = 0;
 }
 - (void)showBottomHairline {
     // Show 1px hairline of translucent nav bar
     UIImageView *navBarHairlineImageView = [self findHairlineImageViewUnder:self.navigationBar];
-    navBarHairlineImageView.hidden = NO;
+
+    if (navBarHairlineImageView.alpha != 1) {
+        [navBarHairlineImageView.layer removeAllAnimations];
+    }
+    navBarHairlineImageView.alpha = 1;
 }
 - (UIImageView *)findHairlineImageViewUnder:(UIView *)view {
     if ([view isKindOfClass:UIImageView.class] && view.bounds.size.height <= 1.0) {
@@ -234,7 +243,7 @@
     }
 
     // generate foreground based on background
-    if (background == [UIColor clearColor]) {
+    if (background == [UIColor clearColor] || background == [UIColor whiteColor]) {
         [self makeTransparent];
     }
     else {
@@ -247,7 +256,7 @@
         if (background == nil || background == [UIColor clearColor]) {
             background = [UIColor colorWithRed:0.98 green:0.98 blue:0.99 alpha:1.00];
         }
-        foreground = [UIColor bonfireBrand];
+        foreground = [UIColor bonfireBlack];
     }
     else if ([UIColor useWhiteForegroundForColor:background]) {
         foreground = [UIColor whiteColor];

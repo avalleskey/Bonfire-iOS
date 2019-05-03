@@ -14,7 +14,6 @@
 #import "ComplexNavigationController.h"
 #import "Launcher.h"
 #import "UIColor+Palette.h"
-#import <Tweaks/FBTweakInline.h>
 
 @implementation StreamPostCell
 
@@ -35,15 +34,13 @@
         self.profilePicture.dimsViewOnTap = true;
         self.profilePicture.allowOnlineDot = true;
         
-        self.nameLabel.frame = CGRectMake(postContentOffset.left, postContentOffset.top, self.contentView.frame.size.width - postContentOffset.left - postContentOffset.right, 15);
-        self.nameLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightSemibold];
+        self.nameLabel.frame = CGRectMake(postContentOffset.left, postContentOffset.top, self.contentView.frame.size.width - postContentOffset.left - postContentOffset.right, 18);
+        self.nameLabel.font = [UIFont systemFontOfSize:15.f weight:UIFontWeightSemibold];
         self.nameLabel.text = @"Display Name";
-        self.nameLabel.textColor = [UIColor colorWithWhite:0.33f alpha:1];
         self.nameLabel.userInteractionEnabled = YES;
         
-        self.dateLabel.frame = CGRectMake(0, self.nameLabel.frame.origin.y, 21, self.nameLabel.frame.size.height);
+        self.dateLabel.frame = CGRectMake(0, self.nameLabel.frame.origin.y, self.nameLabel.frame.origin.y, self.nameLabel.frame.size.height);
         self.dateLabel.font = [UIFont systemFontOfSize:self.nameLabel.font.pointSize weight:UIFontWeightRegular];
-        self.dateLabel.textColor = [UIColor colorWithWhite:0.6 alpha:1];
         self.dateLabel.textAlignment = NSTextAlignmentRight;
         
         self.sparked = false;
@@ -56,28 +53,13 @@
         // image view
         self.imagesView.frame = CGRectMake(self.textView.frame.origin.x, 56, self.textView.frame.size.width, [PostImagesView streamImageHeight]);
         
-        self.detailsView = [[UIView alloc] initWithFrame:CGRectMake(self.nameLabel.frame.origin.x + postTextViewInset.left, 0, self.nameLabel.frame.size.width - (postTextViewInset.left + postTextViewInset.right), 32)];
-        // self.detailsView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.05f];
-        [self.contentView addSubview:self.detailsView];
-        
-        self.detailSparkButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        [self.detailSparkButton setTitleEdgeInsets:UIEdgeInsetsMake(0, 8, 0, 0)];
-        [self.detailSparkButton setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 8)];
-        [self.detailSparkButton setTitle:@"Spark" forState:UIControlStateNormal];
-        self.detailSparkButton.titleLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightSemibold];
-        self.detailSparkButton.frame = CGRectMake(0, 0, (self.detailsView.frame.size.width / 2) - 4, self.detailsView.frame.size.height);
-        self.detailSparkButton.layer.cornerRadius = 6.f;
-        self.detailSparkButton.layer.borderColor = [UIColor colorWithRed:0.92 green:0.93 blue:0.94 alpha:1.0].CGColor;
-        self.detailSparkButton.layer.borderWidth = 1.f;
-        self.detailSparkButton.adjustsImageWhenHighlighted = false;
-        
-        [self addTapHandlersToAction:self.detailSparkButton];
-        [self.detailSparkButton bk_whenTapped:^{
+        self.actionsView = [[PostActionsView alloc] initWithFrame:CGRectMake(self.nameLabel.frame.origin.x + postTextViewInset.left, 0, self.nameLabel.frame.size.width - (postTextViewInset.left + postTextViewInset.right), POST_ACTIONS_VIEW_HEIGHT)];
+        [self.actionsView.sparkButton bk_whenTapped:^{
             [self setSparked:!self.sparked animated:YES];
             
             if (self.sparked) {                
                 // not sparked -> spark it
-                [[Session sharedInstance] sparkPost:self.post completion:^(BOOL success, id responseObject) {
+                [BFAPI sparkPost:self.post completion:^(BOOL success, id responseObject) {
                     if (success) {
                         // NSLog(@"success upvoting!");
                     }
@@ -85,69 +67,16 @@
             }
             else {
                 // not sparked -> spark it
-                [[Session sharedInstance] unsparkPost:self.post completion:^(BOOL success, id responseObject) {
+                [BFAPI unsparkPost:self.post completion:^(BOOL success, id responseObject) {
                     if (success) {
                         // NSLog(@"success downvoting.");
                     }
                 }];
             }
-            
-            [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-                self.detailSparkButton.transform = CGAffineTransformIdentity;
-            } completion:nil];
         }];
-        [self.detailsView addSubview:self.detailSparkButton];
-        
-        self.detailShareButton = [UIButton buttonWithType:UIButtonTypeSystem];
-        [self.detailShareButton setImage:[[UIImage imageNamed:@"postActionShare"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] forState:UIControlStateNormal];
-        self.detailShareButton.frame = CGRectMake(0, 0, 48, self.detailsView.frame.size.height);
-        self.detailShareButton.tintColor = [UIColor fromHex:@"7D8A99"];
-        [self.detailShareButton bk_whenTapped:^{
-            [[Launcher sharedInstance] sharePost:self.post];
-        }];
-        //[self.detailsView addSubview:self.detailShareButton];
-        
-        self.detailMoreButton = [UIButton buttonWithType:UIButtonTypeSystem];
-        [self.detailMoreButton setImage:[[UIImage imageNamed:@"postActionMore"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] forState:UIControlStateNormal];
-        self.detailMoreButton.frame = CGRectMake(0, 0, 48, self.detailsView.frame.size.height);
-        self.detailMoreButton.tintColor = [UIColor fromHex:@"7D8A99"];
-        [self.detailMoreButton bk_whenTapped:^{
-            [self openPostActions];
-        }];
-        //[self.detailsView addSubview:self.detailMoreButton];
-        
-        self.detailReplyButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        self.detailReplyButton.titleLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightSemibold];
-        [self.detailReplyButton setTitleEdgeInsets:UIEdgeInsetsMake(0, 8, 0, 0)];
-        [self.detailReplyButton setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 8)];
-        [self.detailReplyButton setTitle:@"Reply" forState:UIControlStateNormal];
-        [self.detailReplyButton setTitleColor:[UIColor colorWithWhite:0.2f alpha:1] forState:UIControlStateNormal];
-        [self.detailReplyButton setImage:[[UIImage imageNamed:@"postActionReply"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
-        self.detailReplyButton.frame = CGRectMake(0, 0, (self.detailsView.frame.size.width / 2) - 4, self.detailsView.frame.size.height);
-        self.detailReplyButton.tintColor = self.detailReplyButton.currentTitleColor;
-        self.detailReplyButton.layer.cornerRadius = 6.f;
-        self.detailReplyButton.layer.borderColor = [UIColor colorWithRed:0.92 green:0.93 blue:0.94 alpha:1.0].CGColor;
-        self.detailReplyButton.layer.borderWidth = 1.f;
-        self.detailReplyButton.adjustsImageWhenHighlighted = false;
-        [self addTapHandlersToAction:self.detailReplyButton];
-        [self.detailReplyButton bk_whenTapped:^{
-            [[Launcher sharedInstance] openPost:self.post withKeyboard:YES];
-                        
-            [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-                self.detailSparkButton.transform = CGAffineTransformIdentity;
-            } completion:nil];
-        }];
-        
-        [self.detailsView addSubview:self.detailReplyButton];
+        [self.contentView addSubview:self.actionsView];
         
         self.lineSeparator.hidden = false;
-        
-        UILongPressGestureRecognizer *longPressForPostOptions = [[UILongPressGestureRecognizer alloc] bk_initWithHandler:^(UIGestureRecognizer *sender, UIGestureRecognizerState state, CGPoint location) {
-            if (state == UIGestureRecognizerStateBegan) {
-                [self openPostActions];
-            }
-        }];
-        [self addGestureRecognizer:longPressForPostOptions];
     }
     
     return self;
@@ -168,25 +97,30 @@
         yBottom = self.contextView.frame.origin.y + self.contextView.frame.size.height + 8;
     }
     
-    // self.profilePicture.frame = CGRectMake((self.threaded ? postContentOffset.left : 12), yBottom + (self.threaded ? 0 : -4), self.profilePicture.frame.size.width, self.profilePicture.frame.size.height);
-    self.profilePicture.frame = CGRectMake(12, yBottom - 4, self.profilePicture.frame.size.width, self.profilePicture.frame.size.height);
+    self.profilePicture.frame = CGRectMake(12, yBottom, self.profilePicture.frame.size.width, self.profilePicture.frame.size.height);
     
-    CGSize dateLabelSize = [self.dateLabel.text boundingRectWithSize:CGSizeMake(100, self.detailsView.frame.size.height) options:(NSStringDrawingUsesFontLeading|NSStringDrawingUsesLineFragmentOrigin) attributes:@{NSFontAttributeName: self.dateLabel.font} context:nil].size;
-    self.dateLabel.frame = CGRectMake(self.frame.size.width - ceilf(dateLabelSize.width) - postContentOffset.right, yBottom, ceilf(dateLabelSize.width), self.dateLabel.frame.size.height);
+    if (![self.moreButton isHidden]) {
+        CGFloat moreButtonPadding = 8;
+        CGFloat moreButtonWidth = self.moreButton.currentImage.size.width + (moreButtonPadding * 2);
+        self.moreButton.frame = CGRectMake(self.frame.size.width - moreButtonWidth - postContentOffset.right + moreButtonPadding, yBottom - moreButtonPadding, moreButtonWidth, self.nameLabel.frame.size.height + (moreButtonPadding * 2));
+    }
+    
+    CGSize dateLabelSize = [self.dateLabel.text boundingRectWithSize:CGSizeMake(100, self.actionsView.frame.size.height) options:(NSStringDrawingUsesFontLeading|NSStringDrawingUsesLineFragmentOrigin) attributes:@{NSFontAttributeName: self.dateLabel.font} context:nil].size;
+    self.dateLabel.frame = CGRectMake(([self.moreButton isHidden] ? self.frame.size.width - offset.right :  self.moreButton.frame.origin.x) - ceilf(dateLabelSize.width), yBottom, ceilf(dateLabelSize.width), self.dateLabel.frame.size.height);
     self.nameLabel.frame = CGRectMake(offset.left, yBottom, (self.dateLabel.frame.origin.x - 8) - offset.left, self.nameLabel.frame.size.height);
-    yBottom = self.nameLabel.frame.origin.y + self.nameLabel.frame.size.height;
+    yBottom = self.nameLabel.frame.origin.y + self.nameLabel.frame.size.height + 3;
     
     // -- text view
     self.textView.tintColor = self.tintColor;
-    self.textView.frame = CGRectMake(offset.left, yBottom + 4, self.frame.size.width - offset.left - offset.right, self.textView.frame.size.height);
+    self.textView.frame = CGRectMake(offset.left, yBottom, self.frame.size.width - offset.left - offset.right, self.textView.frame.size.height);
     [self.textView update];
     yBottom = self.textView.frame.origin.y + self.textView.frame.size.height;
     
-    BOOL hasImage = FBTweakValue(@"Post", @"General", @"Show Image", NO); //self.post.images != nil && self.post.images.count > 0;
+    BOOL hasImage = (self.post.attributes.details.media.count > 0 || self.post.attributes.details.attachments.media.count > 0); //self.post.images != nil && self.post.images.count > 0;
     self.imagesView.hidden = !hasImage;
     if (hasImage) {
         CGFloat imageHeight = [PostImagesView streamImageHeight];
-        self.imagesView.frame = CGRectMake(offset.left, yBottom + (self.post.attributes.details.message.length != 0 ? 4 : 0), self.frame.size.width - offset.left - postContentOffset.right, imageHeight);
+        self.imagesView.frame = CGRectMake(offset.left, yBottom + 4, self.frame.size.width - offset.left - postContentOffset.right, imageHeight);
         
         yBottom = self.imagesView.frame.origin.y + self.imagesView.frame.size.height;
     }
@@ -194,11 +128,12 @@
         yBottom = self.textView.frame.origin.y + self.textView.frame.size.height;
     }
     
-    self.detailsView.frame = CGRectMake(self.nameLabel.frame.origin.x, yBottom + 8, self.frame.size.width - offset.left - postContentOffset.right, self.detailsView.frame.size.height);
+    self.actionsView.frame = CGRectMake(self.nameLabel.frame.origin.x, yBottom + 8, self.frame.size.width - offset.left - postContentOffset.right, self.actionsView.frame.size.height);
     
-    CGFloat actionWidth = (self.detailsView.frame.size.width / 2) - 4;
-    self.detailReplyButton.frame = CGRectMake(0, 0, actionWidth, self.detailsView.frame.size.height);
-    self.detailSparkButton.frame = CGRectMake(self.detailsView.frame.size.width - actionWidth, 0, actionWidth, self.detailsView.frame.size.height);
+    if (!self.lineSeparator.isHidden) {
+        // self.lineSeparator.frame = CGRectMake(postContentOffset.left, self.frame.size.height - self.lineSeparator.frame.size.height, self.frame.size.width - postContentOffset.left, self.lineSeparator.frame.size.height);
+        self.lineSeparator.frame = CGRectMake(0, self.frame.size.height - self.lineSeparator.frame.size.height, self.frame.size.width, self.lineSeparator.frame.size.height);
+    }
 }
 
 // Setter method
@@ -213,49 +148,7 @@
     if (!animated || (isSparked != self.sparked)) {
         self.sparked = isSparked;
         
-        if (animated && self.sparked)
-            [HapticHelper generateFeedback:FeedbackType_Notification_Success];
-        
-        UIColor *sparkedColor;
-        if (self.sparked) {
-            if ([[Session sharedInstance].defaults.post.displayVote.icon isEqualToString:@"star"]) {
-                sparkedColor = [UIColor colorWithDisplayP3Red:0.99 green:0.58 blue:0.12 alpha:1.0];
-            }
-            else if ([[Session sharedInstance].defaults.post.displayVote.icon isEqualToString:@"heart"]) {
-                sparkedColor = [UIColor colorWithDisplayP3Red:0.89 green:0.10 blue:0.13 alpha:1.0];
-            }
-            else if ([[Session sharedInstance].defaults.post.displayVote.icon isEqualToString:@"thumb"]) {
-                sparkedColor = [UIColor colorWithDisplayP3Red:0.00 green:0.46 blue:1.00 alpha:1.0];
-            }
-            else if ([[Session sharedInstance].defaults.post.displayVote.icon isEqualToString:@"flame"]) {
-                sparkedColor = [UIColor colorWithDisplayP3Red:0.99 green:0.42 blue:0.12 alpha:1.0];
-            }
-            else {
-                sparkedColor = [UIColor colorWithDisplayP3Red:0.99 green:0.26 blue:0.12 alpha:1.0];
-            }
-            
-            [self.detailSparkButton setTitleColor:sparkedColor forState:UIControlStateNormal];
-            [self.detailSparkButton setImage:[[UIImage imageNamed:@"postActionBolt_active"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
-        }
-        else {
-            [self.detailSparkButton setTitleColor:[UIColor bonfireGrayWithLevel:900] forState:UIControlStateNormal];
-            [self.detailSparkButton setImage:[[UIImage imageNamed:@"postActionBolt"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
-        }
-        self.detailSparkButton.tintColor = self.detailSparkButton.currentTitleColor;
-        
-        void(^buttonPopAnimation)(void) = ^() {
-            if (!self.sparked)
-                return;
-            
-            [UIView animateWithDuration:animated?0.4f:0 delay:0 usingSpringWithDamping:0.6f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-                self.detailSparkButton.transform = CGAffineTransformMakeScale(1.15, 1.15);
-            } completion:^(BOOL finished) {
-                // self.actionsView.sparkButton.transform = CGAffineTransformMakeScale(1, 1);
-                [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.4f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-                    self.detailSparkButton.transform = CGAffineTransformMakeScale(1, 1);
-                } completion:nil];
-            }];
-        };
+        [self.actionsView setSparked:isSparked animated:animated];
         
         void(^rippleAnimation)(void) = ^() {
             if (!self.sparked)
@@ -268,7 +161,7 @@
             UIView *bubble = [[UIView alloc] initWithFrame:CGRectMake(0, 0, bubbleDiamater, bubbleDiamater)];
             bubble.userInteractionEnabled = false;
             bubble.center = self.textView.center;
-            bubble.backgroundColor = [sparkedColor colorWithAlphaComponent:0.06];
+            bubble.backgroundColor = [self.actionsView.sparkButton.tintColor colorWithAlphaComponent:0.06];
             bubble.layer.cornerRadius = bubble.frame.size.height / 2;
             bubble.layer.masksToBounds = true;
             bubble.transform = CGAffineTransformMakeScale(0.01, 0.01);
@@ -285,7 +178,6 @@
         };
         
         if (animated) {
-            buttonPopAnimation();
             rippleAnimation();
         }
     }
@@ -311,14 +203,13 @@
 }
 
 - (void)setPost:(Post *)post {
-    if (post != _post) {
+    if ([post toDictionary] != [_post toDictionary]) {
         _post = post;
-        // BOOL isCreator = [cell.post.attributes.details.creator.identifier isEqualToString:[Session sharedInstance].currentUser.identifier];
         
-        self.nameLabel.attributedText = [PostCell attributedCreatorStringForPost:_post includeTimestamp:false includePostedIn:true];
+        self.nameLabel.attributedText = [PostCell attributedCreatorStringForPost:_post includeTimestamp:false includeContext:self.includeContext];
                 
-        self.detailsView.userInteractionEnabled = (!_post.tempId);
-        self.detailsView.alpha = (_post.tempId ? 0.5 : 1);
+        self.actionsView.userInteractionEnabled = (!_post.tempId);
+        self.contentView.alpha = (_post.tempId ? 0.5 : 1);
         if (_post.tempId) {
             self.dateLabel.text = @"1s";
             
@@ -331,36 +222,41 @@
             self.userInteractionEnabled = true;
         }
         
-        self.textView.message = _post.attributes.details.simpleMessage;
+        UIFont *font = [post isEmojiPost] ? [UIFont systemFontOfSize:textViewFont.pointSize*POST_EMOJI_SIZE_MULTIPLIER] : textViewFont;
+        self.textView.messageLabel.font = font;
+        self.textView.message = self.post.attributes.details.simpleMessage;
         
         if (self.profilePicture.user != _post.attributes.details.creator) {
             self.profilePicture.user = _post.attributes.details.creator;
         }
-        else {
-            NSLog(@"no need to load new user");
-        }
         
         self.profilePicture.online = false;
-
-        [self setSparked:(_post.attributes.context.vote != nil) animated:false];
         
-        // [self.pictureView sd_setImageWithURL:[NSURL URLWithString:@"https://images.unsplash.com/photo-1490349368154-73de9c9bc37c?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2250&q=80"]];
-        [self.imagesView setMedia:@[@"https://source.unsplash.com/random", @"https://source.unsplash.com/daily", @"https://source.unsplash.com/weekly", @"https://source.unsplash.com/weekly?campfire"]];
+        if (self.post.attributes.details.attachments.media.count > 0) {
+            NSLog(@"media objects:: %lu", (unsigned long)self.post.attributes.details.attachments.media.count);
+            [self.imagesView setMedia:self.post.attributes.details.attachments.media];
+        }
+        else if (self.post.attributes.details.media.count > 0) {
+            [self.imagesView setMedia:self.post.attributes.details.media];
+        }
+        else {
+            [self.imagesView setMedia:@[]];
+        }
+        
+        [self setSparked:(self.post.attributes.context.vote != nil) animated:false];
+        [self.actionsView updateWithSummaries:post.attributes.summaries];
+    }
+    else {
+        NSLog(@"no need mucahcho");
     }
 }
-- (void)addTapHandlersToAction:(UIButton *)action {
-    [action bk_addEventHandler:^(id sender) {
-        [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-            action.transform = CGAffineTransformMakeScale(0.92, 0.92);
-        } completion:nil];
-    } forControlEvents:UIControlEventTouchDown];
-    [action bk_addEventHandler:^(id sender) {
-        [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-            action.transform = CGAffineTransformIdentity;
-        } completion:nil];
-    } forControlEvents:(UIControlEventTouchUpInside|UIControlEventTouchCancel|UIControlEventTouchDragExit)];
-}
 
++ (BOOL)showRepliesSnapshotForPost:(Post *)post {
+    NSInteger repliesCount = post.attributes.context.replies.count;
+    NSInteger summariesCount = post.attributes.summaries.replies.count;
+    
+    return (repliesCount >= 3 || summariesCount > 0);
+}
 + (CGFloat)heightForPost:(Post *)post {
     CGFloat height = postContentOffset.top;
     
@@ -373,31 +269,32 @@
     CGFloat screenWidth = [UIScreen mainScreen].bounds.size.width;
     CGFloat leftOffset = postContentOffset.left;
     
-    CGFloat nameHeight = 15 + 4; // 2pt padding underneath
+    CGFloat nameHeight = 18 + 3; // 3pt padding underneath
     height = height + nameHeight;
     
     // message
-    CGSize messageSize = [PostTextView sizeOfBubbleWithMessage:post.attributes.details.simpleMessage withConstraints:CGSizeMake(screenWidth - leftOffset - (postTextViewInset.left + postTextViewInset.right) - postContentOffset.right, CGFLOAT_MAX) font:textViewFont];
+    UIFont *font = [post isEmojiPost] ? [UIFont systemFontOfSize:textViewFont.pointSize*POST_EMOJI_SIZE_MULTIPLIER] : textViewFont;
+    CGSize messageSize = [PostTextView sizeOfBubbleWithMessage:post.attributes.details.simpleMessage withConstraints:CGSizeMake(screenWidth - leftOffset - (postTextViewInset.left + postTextViewInset.right) - postContentOffset.right, CGFLOAT_MAX) font:font];
     CGFloat textViewHeight = post.attributes.details.message.length == 0 ? 0 :  ceilf(messageSize.height) + (postTextViewInset.top + postTextViewInset.bottom);
     height = height + textViewHeight;
     
     // image
-    BOOL hasImage = FBTweakValue(@"Post", @"General", @"Show Image", NO); // postAtIndex.images != nil && postAtIndex.images.count > 0;
+    BOOL hasImage = post.attributes.details.media.count > 0 || post.attributes.details.attachments.media.count > 0; // postAtIndex.images != nil && postAtIndex.images.count > 0;
     if (hasImage) {
         CGFloat imageHeight = [PostImagesView streamImageHeight];
-        imageHeight = imageHeight + 8; // 8 above
+        imageHeight = imageHeight + 4; // 4 above
         height = height + imageHeight;
     }
     
     // 4 on top and 4 on bottom
     BOOL hasURLPreview = [post requiresURLPreview];
     if (hasURLPreview) {
-        CGFloat urlPreviewHeight = !hasImage && hasURLPreview ? [PostImagesView streamImageHeight] + 8 : 0; // 4 on bottom
+        CGFloat urlPreviewHeight = !hasImage && hasURLPreview ? [PostImagesView streamImageHeight] + 4 : 0; // 4 on bottom
         height = height + urlPreviewHeight;
     }
     
     // details view
-    CGFloat detailsHeight = 8 + 32; // 6 + 32; // 8 above
+    CGFloat detailsHeight = 8 + POST_ACTIONS_VIEW_HEIGHT; // 6 + 32; // 8 above
     height = height + detailsHeight + postContentOffset.bottom;
     
     return height;

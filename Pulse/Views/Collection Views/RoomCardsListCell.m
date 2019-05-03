@@ -20,7 +20,6 @@
 #import "EmptyChannelCell.h"
 #import "ComplexNavigationController.h"
 #import "UIColor+Palette.h"
-#import <Tweaks/FBTweakInline.h>
 
 #define padding 24
 
@@ -59,7 +58,6 @@ static NSString * const errorRoomCellReuseIdentifier = @"ErrorRoomCell";
     self.backgroundColor = [UIColor clearColor];
     
     self.rooms = [[NSMutableArray alloc] init];
-    self.manager = [HAWebService manager];
     self.loading = false;
     
     self.selectionStyle = UITableViewCellSelectionStyleNone;
@@ -134,7 +132,7 @@ static NSString * const errorRoomCellReuseIdentifier = @"ErrorRoomCell";
                 
                 cell.roomHeaderView.backgroundColor = [UIColor fromHex:cell.room.attributes.details.color];
                 // set profile pictures
-                for (int i = 0; i < 4; i++) {
+                for (NSInteger i = 0; i < 4; i++) {
                     BFAvatarView *avatarView;
                     if (i == 0) { avatarView = cell.member1; }
                     else if (i == 1) { avatarView = cell.member2; }
@@ -175,7 +173,7 @@ static NSString * const errorRoomCellReuseIdentifier = @"ErrorRoomCell";
                 
                 cell.roomHeaderView.backgroundColor = [UIColor fromHex:cell.room.attributes.details.color];
                 // set profile pictures
-                for (int i = 0; i < 4; i++) {
+                for (NSInteger i = 0; i < 4; i++) {
                     BFAvatarView *avatarView;
                     if (i == 0) { avatarView = cell.member1; }
                     else if (i == 1) { avatarView = cell.member2; }

@@ -8,14 +8,9 @@
 
 #import "TabController.h"
 #import "Session.h"
-#import <BlocksKit+UIKit.h>
-#import <Tweaks/FBTweakInline.h>
+#import <BlocksKit/BlocksKit+UIKit.h>
 #import "UIColor+Palette.h"
-
-#define IS_IPHONE        (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone)
-#define IS_IPHONE_5 ([[UIScreen mainScreen] bounds].size.height == 568.0)
-#define IS_IPHONE_X (IS_IPHONE && [[UIScreen mainScreen] bounds].size.height == 812.0)
-#define IS_TINY ([[UIScreen mainScreen] bounds].size.height == 480)
+#import <HapticHelper/HapticHelper.h>
 
 @interface TabController () <UITabBarControllerDelegate>
 
@@ -25,15 +20,15 @@
 
 - (id)init {
     self = [super init];
-    if (self) {        
+    if (self) {
         // setup all the view controllers
         NSMutableArray *vcArray = [[NSMutableArray alloc] init];
         
         self.myFeedNavVC = [self simpleNavWithRootViewController:@"timeline"];
         [vcArray addObject:self.myFeedNavVC];
 
-        self.searchNavVC = [self searchNavWithRootViewController:@"discover"];
-        [vcArray addObject:self.searchNavVC];
+        self.discoverNavVC = [self searchNavWithRootViewController:@"discover"];
+        [vcArray addObject:self.discoverNavVC];
         
         self.myRoomsNavVC = [self simpleNavWithRootViewController:@"rooms"];
         [vcArray addObject:self.myRoomsNavVC];
@@ -44,35 +39,47 @@
         self.myProfileNavVC = [self simpleNavWithRootViewController:@"me"];
         [vcArray addObject:self.myProfileNavVC];
         
-        for (int i = 0; i < [vcArray count]; i++) {
+        for (NSInteger i = 0; i < [vcArray count]; i++) {
             UINavigationController *navVC = vcArray[i];
             navVC.tabBarItem.title = @"";
             
-            navVC.tabBarItem.imageInsets = UIEdgeInsetsMake(5, 0, -5, 0);
+            if (!IS_IPAD) {
+                navVC.tabBarItem.imageInsets = UIEdgeInsetsMake(5, 0, -5, 0);
+            }
             [navVC.tabBarItem setTitleTextAttributes:@{NSForegroundColorAttributeName: [UIColor clearColor]}
                                             forState:UIControlStateNormal];
             [navVC.tabBarItem setTitleTextAttributes:@{NSForegroundColorAttributeName: [UIColor clearColor]}
-                                            forState:UIControlStateHighlighted];
+                                            forState:UIControlStateSelected];
             
             [vcArray replaceObjectAtIndex:i withObject:navVC];
         }
                 
         self.viewControllers = vcArray;
         
-        NSInteger defaultIndex = 2;
+        NSInteger defaultIndex = 0;
         self.selectedIndex = defaultIndex;
         [self setSelectedViewController:vcArray[defaultIndex]];
+        
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userProfileUpdated:) name:@"UserUpdated" object:nil];
     }
     return self;
+}
+
+- (void)userProfileUpdated:(NSNotification *)notification {
+    self.avatarTabView.user = [Session sharedInstance].currentUser;
+}
+
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:@"UserUpdated" object:nil];
 }
 
 - (SearchNavigationController *)searchNavWithRootViewController:(NSString *)rootID {
     SearchNavigationController *searchNav;
     
     if ([rootID isEqualToString:@"discover"]) {
-        FeedType type = [rootID isEqualToString:@"trending"] ? FeedTypeTrending : FeedTypeTimeline;
+        FeedType type = [rootID isEqualToString:@"discover"] ? FeedTypeTrending : FeedTypeTimeline;
         FeedViewController *viewController = [[FeedViewController alloc] initWithFeedType:type];
-        viewController.title = [rootID isEqualToString:@"trending"] ?
+        viewController.title = [rootID isEqualToString:@"discover"] ?
         [Session sharedInstance].defaults.home.discoverPageTitle :
         [Session sharedInstance].defaults.home.feedPageTitle;
         
@@ -141,7 +148,7 @@
         simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:viewController];
     }
     
-    UITabBarItem *tabBarItem = [[UITabBarItem alloc] initWithTitle:@"" image:[[UIImage imageNamed:[NSString stringWithFormat:@"tabIcon-%@", rootID]] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] selectedImage:[[UIImage imageNamed:[NSString stringWithFormat:@"tabIcon-%@_selected", rootID]] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
+    UITabBarItem *tabBarItem = [[UITabBarItem alloc] initWithTitle:@"" image:[[UIImage imageNamed:[NSString stringWithFormat:@"tabIcon-%@", rootID]] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] selectedImage:[[UIImage imageNamed:[NSString stringWithFormat:@"tabIcon-%@_selected", rootID]] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
     simpleNav.tabBarItem = tabBarItem;
     
     return simpleNav;
@@ -151,20 +158,20 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     
-    self.tabIndicator = [[UIView alloc] initWithFrame:CGRectMake(20, 0, 22, 2)];
+    self.tabIndicator = [[UIView alloc] initWithFrame:CGRectMake(20, 0, 22, 2.5)];
     self.tabIndicator.layer.cornerRadius = self.tabIndicator.frame.size.height / 2;
-    self.tabIndicator.backgroundColor = [UIColor bonfireBrand];
-    //[self.tabBar addSubview:self.tabIndicator];
+    self.tabIndicator.backgroundColor = [UIColor bonfireBlack];
+    // [self.tabBar addSubview:self.tabIndicator];
     
     [self.tabBar setBackgroundImage:[UIImage new]];
     [self.tabBar setShadowImage:[UIImage new]];
     [self.tabBar setTranslucent:true];
     [self.tabBar setBarTintColor:[UIColor whiteColor]];
-    [self.tabBar setTintColor:[UIColor bonfireBrand]];
+    [self.tabBar setTintColor:[UIColor bonfireBlack]];
     
     self.blurView = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleLight]];
     self.blurView.frame = CGRectMake(0, 0, self.tabBar.frame.size.width, self.tabBar.frame.size.height + [UIApplication sharedApplication].delegate.window.safeAreaInsets.bottom);
-    self.blurView.backgroundColor = [UIColor colorWithWhite:1 alpha:0.85f];
+    self.blurView.backgroundColor = [UIColor colorWithWhite:1 alpha:1];
     self.blurView.layer.masksToBounds = true;
     [self.tabBar insertSubview:self.blurView atIndex:0];
 
@@ -174,18 +181,16 @@
     self.tabBar.layer.shadowColor = [UIColor blackColor].CGColor;
     self.tabBar.layer.shadowOpacity = 0.12f;
     self.tabBar.layer.masksToBounds = false;
+    self.tabBar.tintColor = [UIColor bonfireBlack];
     
     [self setupNotification];
-    [self updateTintColor];
-    // not used anymore
-    // [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userUpdated:) name:@"UserUpdated" object:nil];
 }
 - (void)setupNotification {
     self.isShowingNotification = false;
     
     self.notificationContainer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 0)];
     self.notificationContainer.clipsToBounds = true;
-    [self.tabBar addSubview:self.notificationContainer];
+    //[self.tabBar addSubview:self.notificationContainer];
     
     self.notification = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleProminent]];
     self.notification.frame = CGRectMake(0, 0, self.view.frame.size.width, 52);
@@ -199,83 +204,92 @@
     self.notificationLabel.text = @"Submitting verification request...";
     [self.notification.contentView addSubview:self.notificationLabel];
 }
-- (void)userUpdated:(NSNotification *)notification {
-    if ([notification.object isKindOfClass:[User class]]) {
-        User *user = notification.object;
-        if ([user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
-            // [self updateTintColor];
-        }
-    }
-}
-- (void)updateTintColor {
-    if (FBTweakValue(@"Home", @"Tab Bar", @"Uses Theme", YES)) {
-        self.tabBar.tintColor = [UIColor bonfireBrand];
-    }
-    else {
-        NSLog(@"does not use theme");
-        self.tabBar.tintColor = [UIColor colorWithWhite:0.07f alpha:1];
-    }
-}
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     
     if (self.view.tag != 1) {
         self.view.tag = 1;
-        //[self addTabBarPressEffects];
+        [self addUserProfilePicture];
     }
 }
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
+}
+
+- (void)setBadgeValue:(NSString *)badgeValue forItem:(UITabBarItem *)tabBarItem {
+    NSUInteger index = [self.tabBar.items indexOfObject:tabBarItem];
+    UIView *tabBarItemView = [self viewForTabInTabBar:self.tabBar withIndex:index];
+        
+    UIView *bubbleView = [tabBarItemView viewWithTag:100];
     
-    if ([UIApplication sharedApplication].applicationIconBadgeNumber > 0) {
-        self.notificationsNavVC.tabBarItem.badgeValue = [NSString stringWithFormat:@"%ld", (long)[UIApplication sharedApplication].applicationIconBadgeNumber];
+    badgeValue = [NSString stringWithFormat:@"%@", badgeValue];
+    if (!badgeValue || badgeValue.length == 0 || [badgeValue intValue] == 0) {
+        // hide
+        if (!bubbleView) return;
+        
+        [UIView animateWithDuration:0.8f delay:0 usingSpringWithDamping:0.5f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+            bubbleView.transform = CGAffineTransformMakeScale(0.01, 0.01);
+            bubbleView.alpha = 0;
+        } completion:^(BOOL finished) {
+            [bubbleView removeFromSuperview];
+        }];
     }
     else {
-        self.notificationsNavVC.tabBarItem.badgeValue = nil;
+        // show
+        if (bubbleView) {
+            // just change the number
+        }
+        else {
+            // create bubble view
+            bubbleView = [[UIView alloc] initWithFrame:CGRectMake(tabBarItemView.frame.size.width / 2 + 7, 7, 12, 12)];
+            bubbleView.tag = 100;
+            bubbleView.backgroundColor = [UIColor whiteColor];
+            bubbleView.layer.cornerRadius = bubbleView.frame.size.width / 2;
+            
+            UIView *bubbleViewDot = [[UIView alloc] initWithFrame:CGRectMake(2, 2, bubbleView.frame.size.width - 4, bubbleView.frame.size.height - 4)];
+            bubbleViewDot.backgroundColor = [UIColor bonfireBrand];
+            bubbleViewDot.layer.cornerRadius = bubbleViewDot.frame.size.width / 2;
+            [bubbleView addSubview:bubbleViewDot];
+            
+            [tabBarItemView addSubview:bubbleView];
+            
+            // prepare for animations
+            bubbleView.transform = CGAffineTransformMakeScale(0.01, 0.01);
+            bubbleView.alpha = 0;
+            
+            [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.6f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+                bubbleView.transform = CGAffineTransformMakeScale(1, 1);
+                bubbleView.alpha = 1;
+            } completion:nil];
+        }
     }
 }
 
-- (void)addTabBarPressEffects {
-    for (int i = 0; i < self.viewControllers.count; i++) {
-        UIView *tabBarItemView = [self viewForTabInTabBar:self.tabBar withIndex:i];
-        tabBarItemView.userInteractionEnabled = true;
-        
-        UILongPressGestureRecognizer *pressRecognizer = [[UILongPressGestureRecognizer alloc] bk_initWithHandler:^(UIGestureRecognizer *sender, UIGestureRecognizerState state, CGPoint location) {
-            if (FBTweakValue(@"Home", @"Tab Bar", @"Pop Effect", YES)) {
-                if (state == UIGestureRecognizerStateBegan) {
-                    [UIView animateWithDuration:0.25f delay:0 usingSpringWithDamping:1.f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-                        sender.view.transform = CGAffineTransformMakeScale(0.8, 0.8);
-                    } completion:^(BOOL finished) {
-                    }];
-                }
-                if (state == UIGestureRecognizerStateEnded || state == UIGestureRecognizerStateCancelled) {
-                    [UIView animateWithDuration:0.25f delay:0 usingSpringWithDamping:1.f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-                        sender.view.transform = CGAffineTransformIdentity;
-                    } completion:^(BOOL finished) {
-                    }];
-                }
-                
-                if (state == UIGestureRecognizerStateEnded) {
-                    if (self.selectedIndex != i) {
-                        self.selectedIndex = i;
-                        [self setSelectedViewController:self.viewControllers[i]];
-                    }
-                    [self.delegate tabBarController:self didSelectViewController:self.selectedViewController];
-                }
-            }
-        }];
-        pressRecognizer.minimumPressDuration = CGFLOAT_MIN;
-        
-        [tabBarItemView addGestureRecognizer:pressRecognizer];
+- (void)addUserProfilePicture {
+    UIView *tabBarItemView = [self viewForTabInTabBar:self.tabBar withIndex:[self.tabBar.items count]-1];
+    UIImageView *tabBarImageView = nil;
+    for (UIImageView *subview in [tabBarItemView subviews]) {
+        if ([subview isKindOfClass:[UIImageView class]]) {
+            tabBarImageView = subview;
+            break;
+        }
     }
     
-//    self.tabIndicator.frame = CGRectMake(tabBarItemView.frame.origin.x + tabBarImageView.frame.origin.x, self.tabIndicator.frame.origin.y, tabBarImageView.frame.size.width, self.tabIndicator.frame.size.height);
-//    self.tabIndicator.center = CGPointMake(tabBarItemView.center.x, self.tabIndicator.center.y);
+    self.avatarTabView = [[BFAvatarView alloc] initWithFrame:CGRectMake(0, 0, tabBarImageView.frame.size.width - 6, tabBarImageView.frame.size.height - 6)];
+    self.avatarTabView.center = CGPointMake(tabBarImageView.frame.size.width / 2, tabBarImageView.frame.size.height / 2);
+    self.avatarTabView.user = [Session sharedInstance].currentUser;
+    [tabBarImageView addSubview:self.avatarTabView];
 }
-
 - (void)tabBar:(UITabBar *)tabBar didSelectItem:(UITabBarItem *)item {
     NSInteger index = [tabBar.items indexOfObject:item];
+    
+    if (item == tabBar.selectedItem) {
+        [HapticHelper generateFeedback:FeedbackType_Impact_Light];
+    }
+    else {
+        [HapticHelper generateFeedback:FeedbackType_Selection];
+    }
     
     UIView *tabBarItemView = [self viewForTabInTabBar:tabBar withIndex:index];
     UIImageView *tabBarImageView = nil;
@@ -286,22 +300,15 @@
         }
     }
     
-    [UIView animateWithDuration:0.3f delay:0 usingSpringWithDamping:0.75f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-        self.tabIndicator.frame = CGRectMake(tabBarItemView.frame.origin.x + tabBarImageView.frame.origin.x + (tabBarImageView.frame.size.width / 4), self.tabIndicator.frame.origin.y, tabBarImageView.frame.size.width / 2, self.tabIndicator.frame.size.height);
-    } completion:nil];
-    
-    /*
-    if (FBTweakValue(@"Home", @"Tab Bar", @"Pop Effect", YES)) {
-        [UIView animateWithDuration:0.25f delay:0 usingSpringWithDamping:1.f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-            tabBarImageView.transform = CGAffineTransformMakeScale(0.8, 0.8);
-        } completion:^(BOOL finished) {
-        }];
-        [UIView animateWithDuration:0.4f delay:0.25f usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+    [UIView animateWithDuration:0.185f delay:0 usingSpringWithDamping:0.9 initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+        self.tabIndicator.frame = CGRectMake(tabBarItemView.frame.origin.x + tabBarImageView.frame.origin.x, self.tabIndicator.frame.origin.y, tabBarImageView.frame.size.width, self.tabIndicator.frame.size.height);
+
+        tabBarImageView.transform = CGAffineTransformMakeScale(1, 1);
+    } completion:^(BOOL finished) {
+        [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.6 initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
             tabBarImageView.transform = CGAffineTransformIdentity;
-            self.tabIndicator.frame = CGRectMake(tabBarItemView.frame.origin.x + tabBarImageView.frame.origin.x, self.tabIndicator.frame.origin.y, tabBarImageView.frame.size.width, self.tabIndicator.frame.size.height);
-        } completion:^(BOOL finished) {
-        }];
-    }*/
+        } completion:nil];
+    }];
     
     [self setNeedsStatusBarAppearanceUpdate];
 }
@@ -312,7 +319,7 @@
     for (UIView *view in tabBar.subviews) {
         if ([view isKindOfClass:NSClassFromString(@"UITabBarButton")] && [view respondsToSelector:@selector(frame)]) {
             // check for the selector -frame to prevent crashes in the very unlikely case that in the future
-            // objects thar don't implement -frame can be subViews of an UIView
+            // objects that don't implement -frame can be subViews of an UIView
             [tabBarItems addObject:view];
         }
     }
@@ -349,18 +356,6 @@
         }
     }
     return retVal;
-}
-
-- (void)openView:(NSString *)view options:(NSDictionary *)options {
-    if ([view isEqualToString:@"report_problem"]) {
-        
-    }
-    else if ([view isEqualToString:@"create_post"]) {
-        
-    }
-    else if ([view isEqualToString:@"bells_settings"]) {
-        
-    }
 }
 
 - (void)showNotificationWithText:(NSString *)text {

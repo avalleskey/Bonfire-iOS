@@ -6,6 +6,7 @@
 //
 
 #import "ToggleCell.h"
+#import "UIColor+Palette.h"
 
 @implementation ToggleCell
 
@@ -23,7 +24,7 @@
         
         self.separatorInset = UIEdgeInsetsMake(0, 16, 0, 0);
         self.textLabel.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightMedium];
-        self.textLabel.textColor = [UIColor colorWithWhite:0.2f alpha:1];
+        self.textLabel.textColor = [UIColor bonfireBlack];
         
         self.accessoryType = UITableViewCellAccessoryNone;
         self.selectionStyle = UITableViewCellSelectionStyleNone;

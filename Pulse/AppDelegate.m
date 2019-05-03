@@ -7,34 +7,34 @@
 //
 
 #import "AppDelegate.h"
-#import <Lockbox/Lockbox.h>
+
 #import "Session.h"
 #import "Launcher.h"
-#import "SignInViewController.h"
+#import "StackedOnboardingViewController.h"
 #import "ComplexNavigationController.h"
 #import "SimpleNavigationController.h"
 #import "SearchNavigationController.h"
-
 #import "MyRoomsViewController.h"
 #import "NotificationsTableViewController.h"
 #import "SearchTableViewController.h"
 #import "FeedViewController.h"
 #import "ProfileViewController.h"
 #import "RoomCardsListCell.h"
-#import <SDWebImageCodersManager.h>
-#import <SDWebImageGIFCoder.h>
+#import "MiniRoomsListCell.h"
 #import "UIColor+Palette.h"
-#import <Tweaks/FBTweakInline.h>
 #import "InsightsLogger.h"
 
-#define IS_IPHONE_X ([[UIScreen mainScreen] bounds].size.height==812)
-#define IS_IPHONE_MAX ([[UIScreen mainScreen] bounds].size.height==896)
-#define IS_IPHONE_XR ([[UIScreen mainScreen] bounds].size.height==896)
-#define HAS_ROUNDED_CORNERS (IS_IPHONE_X || IS_IPHONE_MAX || IS_IPHONE_XR)
+#import <Lockbox/Lockbox.h>
+#import <SDWebImageCodersManager.h>
+#import <SDWebImageGIFCoder.h>
+#import <AudioToolbox/AudioServices.h>
+#import <Crashlytics/Crashlytics.h>
+#import "NSString+Validation.h"
+@import Firebase;
 
 @interface AppDelegate ()
 
-@property (strong, nonatomic) Session *session;
+@property (nonatomic, strong) Session *session;
 
 @end
 
@@ -48,51 +48,43 @@
     
     self.session = [Session sharedInstance];
     
-    
     [[SDWebImageCodersManager sharedInstance] addCoder:[SDWebImageGIFCoder sharedCoder]];
-    
-    //GAI *gai = [GAI sharedInstance];
-    //[gai trackerWithTrackingId:@"UA-121431078-1"];
-    
-    // gai.trackUncaughtExceptions = YES;
-    
+
     NSDictionary *accessToken = [self.session getAccessTokenWithVerification:true];
     NSString *refreshToken = self.session.refreshToken;
+    NSLog(@"refresh token:: %@", refreshToken);
+    NSLog(@"access token: %@", accessToken);
+    NSLog(@"self.session.currentUser: %@", self.session.currentUser.identifier);
     
     if ((accessToken != nil || refreshToken != nil) && self.session.currentUser.identifier != nil) {
+        NSLog(@"do this at least");
         [self launchLoggedIn];
     }
     else {
-        [self.session signOut];
-    
+        // launch onboarding
+        NSLog(@"launch onboarding");
+        
         [self launchOnboarding];
     }
 
     [self.window makeKeyAndVisible];
     
-    // [self setupLaunchAnimation];
+    // Google Analytics
+    [FIRApp configure];
     
     #ifdef DEBUG
-    // debug only code
     NSLog(@"[DEBUG MODE]");
-    //gai.logger.logLevel = kGAILogLevelError;
-    //[[GAI sharedInstance] setDryRun:YES];
     #else
     NSLog(@"[RELEASE MODE]");
-    // release only code
-    // gai.logger.logLevel = kGAILogLevelNone;
     #endif
     
-    //[self setupRoundedCorners];
+    [self setupRoundedCorners];
     
     return YES;
 }
 
 - (void)setupRoundedCorners {
-    if (HAS_ROUNDED_CORNERS) {
-        [self continuityRadiusForView:[[UIApplication sharedApplication] keyWindow] withRadius:32.f];
-    }
-    else {
+    if (!HAS_ROUNDED_CORNERS) {
         [self continuityRadiusForView:[[UIApplication sharedApplication] keyWindow] withRadius:8.f];
     }
 }
@@ -101,6 +93,7 @@
 - (void) touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
     [super touchesBegan:touches withEvent:event];
     
+    #ifdef DEBUG
     CGPoint location = [[[event allTouches] anyObject] locationInView:[self window]];
     CGRect statusBarFrame = [UIApplication sharedApplication].statusBarFrame;
     UITouch *touch = [touches anyObject];
@@ -110,7 +103,6 @@
         if (CGRectContainsPoint(statusBarFrame, location)) {
             if (location.x < [UIScreen mainScreen].bounds.size.width / 2) {
                 // left side
-                [[Launcher sharedInstance] openTweaks];
             }
             else {
                 // right side
@@ -118,66 +110,77 @@
             }
         }
     }
+    #endif
 }
 - (void)statusBarTouchedAction {
-    UIAlertController *options = [UIAlertController alertControllerWithTitle:@"Internal Tools" message:@"What would you like to do?" preferredStyle:UIAlertControllerStyleAlert];
+    BOOL isDevelopment = [Configuration isDevelopment];
+    UIAlertController *options = [UIAlertController alertControllerWithTitle:@"Internal Tools" message:(isDevelopment ? @"Bonfire Development" : @"Bonfire Production") preferredStyle:UIAlertControllerStyleAlert];
     
-    UIAlertAction *changeURL = [UIAlertAction actionWithTitle:@"Set API URL" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-        [options dismissViewControllerAnimated:YES completion:nil];
+    if (isDevelopment) {
+        UIAlertAction *switchToProduction = [UIAlertAction actionWithTitle:@"Switch to Production Mode" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            [[Session sharedInstance] signOut];
+            
+            [Configuration switchToProduction];
+            
+            [[Launcher sharedInstance] openOnboarding];
+        }];
+        [options addAction:switchToProduction];
         
-        // use UIAlertController
-        UIAlertController *alert= [UIAlertController
-                                   alertControllerWithTitle:@"Set API"
-                                   message:@"Enter in the URL that you would like to prefix any API requests in the app."
-                                   preferredStyle:UIAlertControllerStyleAlert];
-        
-        UIAlertAction *ok = [UIAlertAction actionWithTitle:@"Save" style:UIAlertActionStyleDefault
-                                                   handler:^(UIAlertAction * action){
-                                                       //Do Some action here
-                                                       UITextField *textField = alert.textFields[0];
-                                                       
-                                                       // save new development url
-                                                       NSMutableDictionary *config = [[NSMutableDictionary alloc] initWithDictionary:[[NSUserDefaults standardUserDefaults] dictionaryForKey:@"config"]];
-                                                       NSMutableDictionary *configDevelopment = [[NSMutableDictionary alloc] initWithDictionary:config[@"development"]];
-                                                       [configDevelopment setObject:textField.text forKey:@"API_BASE_URI"];
-                                                       [config setObject:configDevelopment forKey:@"development"];
-                                                       
-                                                       [[NSUserDefaults standardUserDefaults] setObject:config forKey:@"config"];
-                                                   }];
-        UIAlertAction *saveAndQuit = [UIAlertAction actionWithTitle:@"Save & Quit" style:UIAlertActionStyleDefault
-                                                            handler:^(UIAlertAction * action){
-                                                                //Do Some action here
-                                                                UITextField *textField = alert.textFields[0];
-                                                                
-                                                                // save new development url
-                                                                NSMutableDictionary *config = [[NSMutableDictionary alloc] initWithDictionary:[[NSUserDefaults standardUserDefaults] dictionaryForKey:@"config"]];
-                                                                NSMutableDictionary *configDevelopment = [[NSMutableDictionary alloc] initWithDictionary:config[@"development"]];
-                                                                [configDevelopment setObject:textField.text forKey:@"API_BASE_URI"];
-                                                                [config setObject:configDevelopment forKey:@"development"];
-                                                                
-                                                                [[NSUserDefaults standardUserDefaults] setObject:config forKey:@"config"];
-                                                                
-                                                                exit(0);
-                                                            }];
-        UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel
-                                                       handler:^(UIAlertAction * action) {
-                                                           [alert dismissViewControllerAnimated:YES completion:nil];
+        UIAlertAction *changeURL = [UIAlertAction actionWithTitle:@"Set API URL" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            [options dismissViewControllerAnimated:YES completion:nil];
+            
+            // use UIAlertController
+            UIAlertController *alert= [UIAlertController
+                                       alertControllerWithTitle:@"Set API"
+                                       message:@"Enter the base URI used when prefixing any API requests in the app."
+                                       preferredStyle:UIAlertControllerStyleAlert];
+            
+            UIAlertAction *ok = [UIAlertAction actionWithTitle:@"Save" style:UIAlertActionStyleDefault
+                                                       handler:^(UIAlertAction * action){
+                                                           //Do Some action here
+                                                           UITextField *textField = alert.textFields[0];
+                                                           
+                                                           [Configuration replaceDevelopmentURIWith:textField.text];
                                                        }];
-        
-        [alert addAction:cancel];
-        [alert addAction:ok];
-        [alert addAction:saveAndQuit];
-        
-        [alert addTextFieldWithConfigurationHandler:^(UITextField *textField) {
-            textField.placeholder = @"Development URL";
-            textField.text = [[NSUserDefaults standardUserDefaults] dictionaryForKey:@"config"][@"development"][@"API_BASE_URI"];
-            textField.keyboardType = UIKeyboardTypeURL;
+            UIAlertAction *saveAndQuit = [UIAlertAction actionWithTitle:@"Save & Quit" style:UIAlertActionStyleDefault
+                                                                handler:^(UIAlertAction * action){
+                                                                    //Do Some action here
+                                                                    UITextField *textField = alert.textFields[0];
+                                                                    
+                                                                    [Configuration replaceDevelopmentURIWith:textField.text];
+                                                                    
+                                                                    exit(0);
+                                                                }];
+            UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel
+                                                           handler:^(UIAlertAction * action) {
+                                                               [alert dismissViewControllerAnimated:YES completion:nil];
+                                                           }];
+            
+            [alert addAction:cancel];
+            [alert addAction:ok];
+            [alert addAction:saveAndQuit];
+            
+            [alert addTextFieldWithConfigurationHandler:^(UITextField *textField) {
+                textField.placeholder = @"Development Base URI";
+                textField.text = [Configuration DEVELOPMENT_BASE_URI];
+                textField.keyboardType = UIKeyboardTypeURL;
+            }];
+            
+            [[[Launcher sharedInstance] activeViewController] presentViewController:alert animated:YES completion:nil];
         }];
         
-        [[[Launcher sharedInstance] activeViewController] presentViewController:alert animated:YES completion:nil];
-    }];
-    
-    [options addAction:changeURL];
+        [options addAction:changeURL];
+    }
+    else {
+        UIAlertAction *switchToDevelopmentMode = [UIAlertAction actionWithTitle:@"Switch to Development Mode" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            [[Session sharedInstance] signOut];
+            
+            [Configuration switchToDevelopment];
+            
+            [[Launcher sharedInstance] openOnboarding];
+        }];
+        [options addAction:switchToDevelopmentMode];
+    }
     
     NSString *token = [[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"];
     if (token != nil) {
@@ -228,34 +231,20 @@
 }
 
 - (void)launchOnboarding {
-    if (![self.window.rootViewController isKindOfClass:[SignInViewController class]]) {
-        SignInViewController *vc = [[SignInViewController alloc] init];
+    if (![self.window.rootViewController isKindOfClass:[StackedOnboardingViewController class]]) {
+        StackedOnboardingViewController *vc = [[StackedOnboardingViewController alloc] init];
         vc.fromLaunch = true;
         self.window.rootViewController = vc;
     }
 }
 
 - (void)setupEnvironment {
-    [[NSUserDefaults standardUserDefaults] setObject:@"development" forKey:@"environment"];
+    NSLog(@"Current Configuration > %@", [Configuration configuration]);
     
     // clear app's keychain on first launch
-    if (![[NSUserDefaults standardUserDefaults] boolForKey:@"kFirstLaunch"]) {
+    if (![[NSUserDefaults standardUserDefaults] boolForKey:@"kHasLaunchedBefore"]) {
         [Lockbox archiveObject:nil forKey:@"auth_token"];
         [Lockbox archiveObject:nil forKey:@"login_token"];
-        
-        [[NSUserDefaults standardUserDefaults] setBool:TRUE forKey:@"kFirstLaunch"];
-        
-        [[NSUserDefaults standardUserDefaults] setObject:@{@"development": @{
-                                                                   @"API_BASE_URI": @"http://192.168.1.82:3120",
-                                                                   @"API_CURRENT_VERSION": @"v1",
-                                                                   @"API_KEY": @"999fc321-6924-478d-e66b-4ec06180f843"
-                                                                   },
-                                                           @"production": @{
-                                                                   @"API_BASE_URI": @"https://api.hallway.app",
-                                                                   @"API_CURRENT_VERSION": @"v1",
-                                                                   @"API_KEY": @"53783d81-a647-4447-b9fe-fdb3723e0664"
-                                                                   }
-                                                           } forKey:@"config"];
     }
 }
 
@@ -289,18 +278,34 @@
                 UITableViewController *tableViewController = (UITableViewController *)currentNavigationController.visibleViewController;
                 
                 if (currentNavigationController.navigationBar.prefersLargeTitles) {
-                    [tableViewController.tableView scrollRectToVisible:CGRectMake(0, -64, 1, 1) animated:YES];
+                    [tableViewController.tableView setContentOffset:CGPointMake(0, -140) animated:YES];
+                    [tableViewController.tableView reloadData];
+                    [tableViewController.tableView layoutIfNeeded];
+                    [tableViewController.tableView setContentOffset:CGPointZero animated:YES];
+                    
+                    [tableViewController.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:([tableViewController.tableView numberOfRowsInSection:0] > 0 ? 0 : 1)] atScrollPosition:UITableViewScrollPositionTop animated:YES];
                 }
                 else {
-                    [tableViewController.tableView setContentOffset:CGPointMake(0, -tableViewController.tableView.adjustedContentInset.top) animated:YES];
+                    if ([tableViewController.tableView isKindOfClass:[RSTableView class]]) {
+                        [(RSTableView *)tableViewController.tableView scrollToTop];
+                    }
+                    else {
+                        [tableViewController.tableView setContentOffset:CGPointMake(0, -tableViewController.tableView.adjustedContentInset.top) animated:YES];
+                    }
                 }
                 
                 if ([currentNavigationController.visibleViewController isKindOfClass:[MyRoomsViewController class]]) {
                     MyRoomsViewController *tableViewController = (MyRoomsViewController *)currentNavigationController.visibleViewController;
                     
-                    if ([[tableViewController.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]] isKindOfClass:[RoomCardsListCell class]]) {
-                        RoomCardsListCell *firstCell = [tableViewController.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
-                        [firstCell.collectionView setContentOffset:CGPointMake(-16, 0) animated:YES];
+                    for (NSInteger i = 0; i < [tableViewController.tableView numberOfSections]; i++) {
+                        if ([[tableViewController.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:i]] isKindOfClass:[RoomCardsListCell class]]) {
+                            RoomCardsListCell *firstCell = [tableViewController.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:i]];
+                            [firstCell.collectionView setContentOffset:CGPointMake(-16, 0) animated:YES];
+                        }
+                        if ([[tableViewController.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:i]] isKindOfClass:[MiniRoomsListCell class]]) {
+                            MiniRoomsListCell *firstCell = [tableViewController.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:i]];
+                            [firstCell.collectionView setContentOffset:CGPointMake(-16, 0) animated:YES];
+                        }
                     }
                 }
             }
@@ -319,6 +324,8 @@
 }
 
 - (BOOL)application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray<id<UIUserActivityRestoring>> * _Nullable))restorationHandler {
+    NSLog(@"continueUserActivity:");
+    
     if ([userActivity.activityType isEqualToString:@"com.Ingenious.bonfire.open-room-activity-type"])
     {
         if ([userActivity.userInfo objectForKey:@"room"] &&
@@ -328,6 +335,7 @@
             Room *room = [[Room alloc] initWithDictionary:userActivity.userInfo[@"room"] error:&error];
             if (!error) {
                 [[Launcher sharedInstance] openRoom:room];
+                return true;
             }
         }
     }
@@ -345,16 +353,170 @@
                 // trending
                 [[Launcher sharedInstance] openTrending];
             }
+            
+            return true;
+        }
+    }
+    else if ([userActivity.activityType isEqualToString:NSUserActivityTypeBrowsingWeb]) {
+        // only allow universal links to be opened if there is a user signed in
+        if (![Session sharedInstance].currentUser) {
+            return false;
+        }
+        
+        // Universal Links
+        NSURL *incomingURL = userActivity.webpageURL;
+        NSURLComponents *components = [NSURLComponents componentsWithURL:incomingURL resolvingAgainstBaseURL:true];
+        NSArray<NSURLQueryItem *> *params = components.queryItems;
+        NSString *path = components.path;
+        
+        if (path.length == 0) {
+            return false;
+        }
+        
+        NSArray *pathComponents = [path componentsSeparatedByString:@"/"];
+        
+        NSLog(@"pathComponents: %@", pathComponents);
+        NSLog(@"path: %@", path);
+        NSLog(@"params: %@", params);
+        
+        // this should never occur, but don't continue if it does
+        // would only occur if given: https://bonfire.camp/
+        if (pathComponents.count < 2) return false;
+        
+        BOOL camp = [pathComponents[1] isEqualToString:@"c"];
+        BOOL user = [pathComponents[1] isEqualToString:@"u"];
+        NSString *parent = pathComponents[2];
+        
+        /*                     01   2      3      4
+         - https://bonfire.camp/c/{camptag}
+         - https://bonfire.camp/u/{username}
+         - https://bonfire.camp/c/{camptag}/post/{post_id}
+         - https://bonfire.camp/u/{username}/post/{post_id}
+         */
+        if (pathComponents.count == 3 && (camp || user)) {
+            NSLog(@"check for camptag or username");
+            if (user && [parent validateBonfireUsername] == BFValidationErrorNone) {
+                // https://bonfire.camp/u/username
+                NSLog(@"valid username");
+                
+                // open username
+                User *user = [[User alloc] init];
+                UserAttributes *attributes = [[UserAttributes alloc] init];
+                UserDetails *details = [[UserDetails alloc] init];
+                details.identifier = [parent stringByReplacingOccurrencesOfString:@"@" withString:@""];
+                
+                attributes.details = details;
+                user.attributes = attributes;
+                
+                NSLog(@"user: %@", user);
+                
+                [[Launcher sharedInstance] openProfile:user];
+                
+                return true;
+            }
+            if (camp && [parent validateBonfireRoomTag] == BFValidationErrorNone) {
+                // https://bonfire.camp/c/camptag
+                NSLog(@"valid room");
+                
+                Room *room = [[Room alloc] init];
+                RoomAttributes *attributes = [[RoomAttributes alloc] init];
+                RoomDetails *details = [[RoomDetails alloc] init];
+                details.identifier = parent;
+                
+                attributes.details = details;
+                room.attributes = attributes;
+                
+                NSLog(@"room: %@", room);
+                
+                [[Launcher sharedInstance] openRoom:room];
+                
+                return true;
+            }
+        }
+        else if (pathComponents.count == 5 && (camp || user)) {
+            // https://bonfire.camp/#camptag/post/{post_id}
+            // https://bonfire.camp/@username/post/{post_id}
+            BOOL isPost = [pathComponents[3] isEqualToString:@"post"];
+            
+            NSLog(@"isPost? %@", isPost ? @"YES" : @"NO");
+            if (!isPost) return false;
+            
+            NSInteger postId = [pathComponents[4] integerValue];
+            NSLog(@"postId: %ld", (long)postId);
+            if (postId == 0) return false;
+            
+            // open post
+            Post *post =  [[Post alloc] init];
+            post.identifier = postId;
+            PostAttributes *attributes = [[PostAttributes alloc] init];
+            
+            if (user && [parent validateBonfireUsername] == BFValidationErrorNone) {
+                // https://bonfire.camp/u/username
+                NSLog(@"valid username");
+                
+                // open username
+                User *user = [[User alloc] init];
+                UserAttributes *userAttributes = [[UserAttributes alloc] init];
+                UserDetails *userDetails = [[UserDetails alloc] init];
+                userDetails.identifier = [parent stringByReplacingOccurrencesOfString:@"@" withString:@""];
+                
+                userAttributes.details = userDetails;
+                user.attributes = userAttributes;
+                
+                PostDetails *details = [[PostDetails alloc] init];
+                details.creator = user;
+                attributes.details = details;
+            }
+            if (camp && [parent validateBonfireRoomTag] == BFValidationErrorNone) {
+                // https://bonfire.camp/c/camptag
+                NSLog(@"valid room");
+                
+                Room *room = [[Room alloc] init];
+                RoomAttributes *roomAttributes = [[RoomAttributes alloc] init];
+                RoomDetails *roomDetails = [[RoomDetails alloc] init];
+                roomDetails.identifier = parent;
+                
+                roomAttributes.details = roomDetails;
+                room.attributes = roomAttributes;
+                
+                PostStatus *status = [[PostStatus alloc] init];
+                status.postedIn = room;
+                attributes.status = status;
+            }
+            post.attributes = attributes;
+            
+            NSLog(@"post to open: %@", post);
+            
+            [[Launcher sharedInstance] openPost:post withKeyboard:false];
+            return true;
         }
     }
     
-    return true;
+    return false;
+}
+
+
+- (void)application:(UIApplication *)application
+didReceiveRemoteNotification:(NSDictionary *)userInfo
+fetchCompletionHandler:(void (^)(UIBackgroundFetchResult result))completionHandler {
+    if ([[Launcher sharedInstance].activeTabController isKindOfClass:[TabController class]]) {
+        NSLog(@"userInfo: %@", userInfo);
+        TabController *tabVC = [Launcher sharedInstance].tabController;
+        
+        NSString *badgeValue = [NSString stringWithFormat:@"%@", [[userInfo objectForKey:@"aps"] objectForKey:@"badge"]];
+        [tabVC setBadgeValue:badgeValue forItem:tabVC.notificationsNavVC.tabBarItem];
+        if (badgeValue && badgeValue.length > 0 && [badgeValue intValue] > 0) {
+            AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
+        }
+        
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"RemoteNotificationReceived" object:nil userInfo:userInfo];
+    }
 }
 
 // notifications
 - (void)userNotificationCenter:(UNUserNotificationCenter* )center willPresentNotification:(UNNotification* )notification withCompletionHandler:(void (^)(UNNotificationPresentationOptions options))completionHandler {
     //For notification Banner - when app in foreground
-    completionHandler(UNNotificationPresentationOptionAlert);
+    completionHandler(UNNotificationPresentationOptionNone);
 }
 - (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
     NSString *token = [[deviceToken description] stringByTrimmingCharactersInSet: [NSCharacterSet characterSetWithCharactersInString:@"<>"]];
@@ -395,7 +557,7 @@
 }
 
 - (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options {
-    if (!url || ![url.scheme isEqualToString:@"bonfireapp"]) {
+    if (!url || ![url.scheme isEqualToString:LOCAL_APP_URI]) {
         return false;
     }
     

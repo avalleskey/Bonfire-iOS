@@ -63,7 +63,7 @@
         CGFloat buttonSpacing = 8;
         
         self.colors = [[NSMutableArray alloc] init];
-        for (int i = 0; i < [colorList count]; i++) {
+        for (NSInteger i = 0; i < [colorList count]; i++) {
             NSMutableDictionary *colorDict = [[NSMutableDictionary alloc] init];
             
             [colorDict setObject:colorList[i] forKey:@"color"];
@@ -109,7 +109,7 @@
     
     if (color && (!animated || ![[UIColor toHex:(UIColor *)color[@"color"]] isEqualToString:self.selectedColor])) {
         // remove previously selected color
-        for (int i = 0; i < [self.colors count]; i++) {
+        for (NSInteger i = 0; i < [self.colors count]; i++) {
             if ([self.colors[i][@"view"] viewWithTag:999]) {
                 UIImageView *imageView = [self.colors[i][@"view"] viewWithTag:999];
                 [UIView animateWithDuration:animated?0.25f:0 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
@@ -158,10 +158,7 @@
     if (![selectedColor isEqualToString:_selectedColor]) {
         _selectedColor = selectedColor;
         
-        NSLog(@"selected color: %@", _selectedColor);
-        
-        for (int i = 0; i < self.colors.count; i++) {
-            NSLog(@"%@ : %@", [UIColor toHex:self.colors[i][@"color"]], self.selectedColor);
+        for (NSInteger i = 0; i < self.colors.count; i++) {
             if ([self.selectedColor isEqualToString:[UIColor toHex:self.colors[i][@"color"]]]) {
                 [self setColor:self.colors[i][@"view"] withAnimation:false];
             }

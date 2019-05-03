@@ -12,16 +12,19 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface OnboardingViewController : UIViewController <UITextFieldDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, UIViewControllerTransitioningDelegate, UICollectionViewDelegate, UICollectionViewDataSource>
 
-@property (strong, nonatomic) UIButton *closeButton;
+@property (nonatomic, strong) UIButton *closeButton;
 
-@property (strong, nonatomic) UILabel *instructionLabel;
+@property (nonatomic, strong) UILabel *instructionLabel;
 
-@property (strong, nonatomic) UIButton *backButton;
-@property (strong, nonatomic) UIButton *nextButton;
-@property (strong, nonatomic) UILabel *nextBlockerInfoLabel;
+@property (nonatomic, strong) UIButton *backButton;
+@property (nonatomic, strong) UIButton *nextButton;
+@property (nonatomic, strong) UILabel *nextBlockerInfoLabel;
+@property (nonatomic, strong) UIButton *legalDisclosureLabel;
 
 @property (nonatomic) BOOL loadingRoomSuggestions;
-@property (strong, nonatomic) UICollectionView *roomSuggestionsCollectionView;
+@property (nonatomic, strong) UICollectionView *roomSuggestionsCollectionView;
+
+@property (nonatomic) BOOL signInLikely;
 
 @end
 

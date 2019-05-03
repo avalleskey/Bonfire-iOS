@@ -29,7 +29,7 @@
     self.roomTitleLabel.lineBreakMode = NSLineBreakByWordWrapping;
     self.roomTitleLabel.textAlignment = NSTextAlignmentCenter;
     self.roomTitleLabel.font = [UIFont systemFontOfSize:12.f weight:UIFontWeightSemibold];
-    self.roomTitleLabel.textColor = [UIColor colorWithWhite:0.2f alpha:1];
+    self.roomTitleLabel.textColor = [UIColor bonfireBlack];
     [self.contentView addSubview:self.roomTitleLabel];
     
     self.updatesDotView = [[UIImageView alloc] initWithFrame:CGRectMake(self.roomPicture.frame.origin.x + self.roomPicture.frame.size.width - 18 - 1, self.roomPicture.frame.origin.y + 1, 18, 18)];
@@ -90,7 +90,7 @@
             self.roomTitleLabel.layer.cornerRadius = 4.f;
         }
         else {
-            self.roomTitleLabel.textColor = [UIColor colorWithWhite:0.2f alpha:1];
+            self.roomTitleLabel.textColor = [UIColor bonfireBlack];
             self.roomTitleLabel.backgroundColor = [UIColor clearColor];
             self.roomTitleLabel.layer.masksToBounds = false;
             self.roomTitleLabel.layer.cornerRadius = 0;

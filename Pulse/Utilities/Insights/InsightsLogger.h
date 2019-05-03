@@ -17,13 +17,13 @@ NS_ASSUME_NONNULL_BEGIN
 + (InsightsLogger *)sharedInstance;
 
 // Currently active timeframes... no ts_end
-@property (strong, nonatomic) NSMutableDictionary *activeTimeframes;
+@property (nonatomic, strong) NSMutableDictionary *activeTimeframes;
 
 // Completed timeframes
-@property (strong, nonatomic) NSMutableDictionary *completedTimeframes;
+@property (nonatomic, strong) NSMutableDictionary *completedTimeframes;
 
 // Queued batches
-@property (strong, nonatomic) NSMutableArray *queuedBatches;
+@property (nonatomic, strong) NSMutableArray *queuedBatches;
 
 - (nullable InsightsLoggerTimeframe *)activeTimeframeForPostId:(NSInteger)postId;
 - (NSInteger)completedTimeframeCountForPostId:(NSInteger)postId;

@@ -7,7 +7,6 @@
 //
 
 #import "ProfilePictureCell.h"
-#import <Tweaks/FBTweakInline.h>
 #import "Session.h"
 
 @implementation ProfilePictureCell
@@ -28,28 +27,15 @@
         self.profilePicture.userInteractionEnabled = false;
         [self.contentView addSubview:self.profilePicture];
         
-        self.changeProfilePictureLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 96, 28)];
-        self.changeProfilePictureLabel.text = @"Edit Photo";
-        self.changeProfilePictureLabel.textAlignment = NSTextAlignmentCenter;
-        self.changeProfilePictureLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightSemibold];
-        self.changeProfilePictureLabel.userInteractionEnabled = false;
-        self.changeProfilePictureLabel.textColor = [UIColor colorWithWhite:0.2f alpha:1];
+        self.editPictureImageViewContainer = [[UIView alloc] initWithFrame:CGRectMake(self.profilePicture.frame.size.width - 40 + 6, self.profilePicture.frame.size.height - 40 + 6, 40, 40)];
+        self.editPictureImageViewContainer.backgroundColor = [UIColor whiteColor];
+        self.editPictureImageViewContainer.layer.cornerRadius = self.editPictureImageViewContainer.frame.size.height / 2;
+        [self.contentView addSubview:self.editPictureImageViewContainer];
         
-        CALayer *layer = self.changeProfilePictureLabel.layer;
-        layer.cornerRadius = 14.f;
-        layer.masksToBounds = NO;
-        
-        layer.shadowOffset = CGSizeMake(0, (1 / [UIScreen mainScreen].scale));
-        layer.shadowColor = [[UIColor blackColor] CGColor];
-        layer.shadowRadius = 1.f;
-        layer.shadowOpacity = 0.14f;
-        layer.shadowPath = [[UIBezierPath bezierPathWithRoundedRect:layer.bounds cornerRadius:layer.cornerRadius] CGPath];
-        
-        CGColorRef  bColor = [UIColor whiteColor].CGColor;
-        layer.backgroundColor =  bColor;
-
-        
-        [self.contentView addSubview:self.changeProfilePictureLabel];
+        self.editPictureImageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 32, 32)];
+        self.editPictureImageView.frame = CGRectMake(4, 4, 32, 32);
+        self.editPictureImageView.image = [[UIImage imageNamed:@"editProfilePictureIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+        [self.editPictureImageViewContainer addSubview:self.editPictureImageView];
     }
     
     return self;
@@ -75,7 +61,7 @@
     [super layoutSubviews];
     
     self.profilePicture.center = CGPointMake(self.frame.size.width / 2, self.profilePicture.center.y);
-    self.changeProfilePictureLabel.frame = CGRectMake(self.frame.size.width / 2 - self.changeProfilePictureLabel.frame.size.width / 2, 104, self.changeProfilePictureLabel.frame.size.width, self.changeProfilePictureLabel.frame.size.height);
+    self.editPictureImageViewContainer.frame = CGRectMake(self.profilePicture.frame.origin.x + self.profilePicture.frame.size.width - 40 + 8, self.profilePicture.frame.origin.y + self.profilePicture.frame.size.height - 40 + 8, 40, 40);
 }
 
 - (void)continuityRadiusForView:(UIView *)sender withRadius:(CGFloat)radius {

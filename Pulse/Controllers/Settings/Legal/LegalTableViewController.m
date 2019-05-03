@@ -10,6 +10,8 @@
 #import "Open Source Libraries/OpenSourceLibrariesTableViewController.h"
 #import "Launcher.h"
 
+@import Firebase;
+
 @interface LegalTableViewController ()
 
 @end
@@ -20,6 +22,9 @@
     [super viewDidLoad];
     
     [self setup];
+    
+    // Google Analytics
+    [FIRAnalytics setScreenName:@"Settings / Legal" screenClass:nil];
 }
 
 - (void)setup {
@@ -31,10 +36,10 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowWithId:(NSString *)rowId {
     if ([rowId isEqualToString:@"terms_and_conditions"]) {
-        [[Launcher sharedInstance] openURL:@"https://google.com"];
+        [[Launcher sharedInstance] openURL:@"https://bonfire.camp/terms"];
     }
     if ([rowId isEqualToString:@"privacy_policy"]) {
-        [[Launcher sharedInstance] openURL:@"https://google.com"];
+        [[Launcher sharedInstance] openURL:@"https://bonfire.camp/privacy"];
     }
     if ([rowId isEqualToString:@"open_source_libraries"]) {
         OpenSourceLibrariesTableViewController *openSourceLibrariesTableVC = [[OpenSourceLibrariesTableViewController alloc] initWithStyle:UITableViewStyleGrouped];

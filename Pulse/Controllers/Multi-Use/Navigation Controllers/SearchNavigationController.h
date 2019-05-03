@@ -13,8 +13,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface SearchNavigationController : UINavigationController <UITextFieldDelegate>
 
-@property (strong, nonatomic) BFSearchView *searchView;
-@property (strong, nonatomic) UIButton *cancelButton;
+@property (nonatomic, strong) BFSearchView *searchView;
+@property (nonatomic, strong) UIButton *cancelButton;
 
 @end
 

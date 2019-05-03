@@ -57,6 +57,13 @@ NS_ASSUME_NONNULL_BEGIN
 + (UIColor * _Nonnull) separatorColor;
 
 /**
+ *  Link color
+ *
+ *  @return UIColor representing the color used for links inside the app.
+ */
++ (UIColor * _Nonnull) linkColor;
+
+/**
  *  Bonfire brand color of the specified level
  *
  *  @param level The level of color from 50,100-900 (increment of 100)
@@ -188,6 +195,13 @@ NS_ASSUME_NONNULL_BEGIN
  *  @return UIColor representing the bonfire brand color at level 500
  */
 + (UIColor * _Nonnull)bonfireBrand;
+
+/**
+ *  Bonfire Black should be used as the primary action color outside of Camps and User Profiles
+ *
+ *  @return UIColor representing Bonfire Black
+ */
++ (UIColor * _Nonnull)bonfireBlack;
 
 /**
  *  Bonfire gray color of level 500

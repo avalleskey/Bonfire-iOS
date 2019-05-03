@@ -10,6 +10,7 @@
 @interface UserStatus : JSONModel
 
 @property (nonatomic) NSString *createdAt;
+@property (nonatomic) NSString <Optional> *verifiedAt;
 // @property (nonatomic) BOOL isActive;
 // @property (nonatomic) BOOL isBlocked;
 @property (nonatomic) UserDiscoverability <Optional> *discoverability;

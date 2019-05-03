@@ -28,12 +28,20 @@ target 'Pulse' do
   pod 'JGProgressHUD'
   pod 'APAddressBook'
   pod 'libPhoneNumber-iOS', '~> 0.8'
-  pod 'Tweaks'
   pod 'ResponsiveLabel', '~> 1.0.11'
   pod 'TTTAttributedLabel'
   pod 'Regexer'
   pod 'PINCache', '~> 3.0.0-beta.13'
-
+  pod 'ObjectiveGumbo'
+  pod 'SearchEmojiOnString', '~> 1.0'
+  pod 'ISAlternativeRefreshControl'
+  
+  # analytics
+  pod 'Firebase/Core'
+  pod 'Firebase/Performance'
+  pod 'Fabric', '~> 1.9.0'
+  pod 'Crashlytics', '~> 3.12.0'
+  
   target 'PulseTests' do
     inherit! :search_paths
     # Pods for testing

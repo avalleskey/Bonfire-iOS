@@ -17,6 +17,7 @@ NS_ASSUME_NONNULL_BEGIN
 enum
 {
     MAX_EMAIL_LENGTH = 254,
+    MIN_PASSWORD_LENGTH = 6,
     MAX_PASSWORD_LENGTH = 64,
     MAX_USER_DISPLAY_NAME_LENGTH = 40,
     MAX_USER_USERNAME_LENGTH = 15,
@@ -55,6 +56,10 @@ typedef enum {
 - (BFValidationError)validateBonfireRoomTitle;
 - (BFValidationError)validateBonfireRoomTag;
 - (BFValidationError)validateBonfireRoomDescription;
+
+- (NSArray *)rangesForUsernameMatches;
+- (NSArray *)rangesForRoomTagMatches;
+- (NSArray *)rangesForLinkMatches;
 
 @end
 

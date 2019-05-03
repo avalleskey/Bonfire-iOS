@@ -10,6 +10,8 @@
 #import <SafariServices/SafariServices.h>
 #import "Launcher.h"
 
+@import Firebase;
+
 @interface OpenSourceLibrariesTableViewController ()
 
 @end
@@ -20,6 +22,9 @@
     [super viewDidLoad];
     
     [self setup];
+    
+    // Google Analytics
+    [FIRAnalytics setScreenName:@"Settings / Legal / Open Source" screenClass:nil];
 }
 
 - (void)setup {
@@ -92,10 +97,6 @@
         // apache 2.0
         url = @"https://github.com/iziz/libPhoneNumber-iOS/blob/master/LICENSE";
     }
-    if ([rowId isEqualToString:@"tweaks"]) {
-        // BSD
-        url = @"https://github.com/facebook/Tweaks/blob/master/LICENSE";
-    }
     if ([rowId isEqualToString:@"responsive_label"]) {
         // mit
         url = @"https://github.com/hsusmita/ResponsiveLabel/blob/master/LICENSE";
@@ -111,6 +112,9 @@
     if ([rowId isEqualToString:@"pincache"]) {
         // apache 2.0
         url = @"https://github.com/pinterest/PINCache/blob/master/LICENSE.txt";
+    }
+    if ([rowId isEqualToString:@"google_toolbox"]) {
+        url = @"https://github.com/google/google-toolbox-for-mac/blob/master/LICENSE";
     }
     
     [[Launcher sharedInstance] openURL:url];

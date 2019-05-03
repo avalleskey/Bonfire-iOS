@@ -14,13 +14,13 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface RoomMembersViewController : ThemedViewController <UITableViewDelegate, UITableViewDataSource>
 
-@property (strong, nonatomic) UITableView *tableView;
+@property (nonatomic, strong) UITableView *tableView;
 
-@property (strong, nonatomic) Room *room;
-@property (strong, nonatomic) UIView *segmentedControl;
+@property (nonatomic, strong) Room *room;
+@property (nonatomic, strong) UIView *segmentedControl;
 
-@property (strong, nonatomic) UIView *shareView;
-@property (strong, nonatomic) UIButton *shareButton;
+@property (nonatomic, strong) UIView *shareView;
+@property (nonatomic, strong) UIButton *shareButton;
 
 @end
 

@@ -11,6 +11,7 @@
 #import "Launcher.h"
 #import <BlocksKit/BlocksKit.h>
 #import <BlocksKit/BlocksKit+UIKit.h>
+#import "Post.h"
 
 @implementation PostImagesView
 
@@ -81,7 +82,7 @@
         else {
             // since we've alraedy determined the counts are not equal and that there are more image views than media, we know we need to ADD image views
             NSInteger newImageViews = (_media.count - _imageViews.count);
-            for (int i = 0; i < newImageViews; i++) {
+            for (NSInteger i = 0; i < newImageViews; i++) {
                 UIImageView *imageView = [self newImageView];
                 
                 [self.imageViews addObject:imageView];
@@ -90,24 +91,38 @@
         }
     }
     
+    NSLog(@"suh _imageViews.count: %lu", (unsigned long)_imageViews.count);
+    
     if (_imageViews.count == 0) {
         // no image views, so stop the code here
         return;
     }
     
     // populate image views with corresponding media
-    for (int i = 0; i < self.imageViews.count; i++) {
+    for (NSInteger i = 0; i < self.imageViews.count; i++) {
         UIImageView *imageView = self.imageViews[i];
         
         // this should always be true, but we're including the conditional to make sure we never run into an out-of-index bug that crashes the app
         if (self.media.count > i) {
-            if ([self.media[i] isKindOfClass:[UIImage class]]) {
-                // image
-                imageView.image = self.media[i];
+            NSLog(@"ok class: %@", [self.media[i] class]);
+            if ([self.media[i] isKindOfClass:[PostAttachmentsMedia class]]) {
+                NSLog(@"iz attachment");
+                PostAttachmentsMedia *media = (PostAttachmentsMedia *)self.media[i];
+                [imageView sd_setImageWithURL:[NSURL URLWithString:media.attributes.hostedVersions.suggested.url]];
+                NSLog(@"url :: %@", media.attributes.hostedVersions.suggested.url);
             }
-            else if ([self.media[i] isKindOfClass:[NSString class]] && ((NSString *)self.media[i]).length > 0) {
-                // url
-                [imageView sd_setImageWithURL:[NSURL URLWithString:self.media[i]]];
+            else {
+                if ([self.media[i] isKindOfClass:[UIImage class]]) {
+                    // image
+                    imageView.image = self.media[i];
+                }
+                else if ([self.media[i] isKindOfClass:[NSData class]]) {
+                    imageView.image = [UIImage imageWithData:self.media[i]];
+                }
+                else if ([self.media[i] isKindOfClass:[NSString class]] && ((NSString *)self.media[i]).length > 0) {
+                    // url
+                    [imageView sd_setImageWithURL:[NSURL URLWithString:self.media[i]]];
+                }
             }
         }
     }

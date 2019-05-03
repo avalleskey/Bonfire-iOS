@@ -13,5 +13,8 @@
 @property (nonatomic) NSString <Optional> *type;
 @property (nonatomic) UserAttributes <Optional> *attributes;
 
+// helper methods
+- (BOOL)isVerified;
+
 @end
 

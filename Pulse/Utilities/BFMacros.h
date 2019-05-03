@@ -1,0 +1,49 @@
+//
+//  BFMacros.h
+//  Pulse
+//
+//  Created by Austin Valleskey on 5/2/19.
+//  Copyright © 2019 Austin Valleskey. All rights reserved.
+//
+
+#ifndef BFMacros_h
+#define BFMacros_h
+
+//////////////////////////////////////////////////////////////////
+// CGRect
+//////////////////////////////////////////////////////////////////
+
+#define SetX(v, x)               v.frame = CGRectMake(x, v.frame.origin.y, v.frame.size.width, v.frame.size.height)
+#define SetY(v, y)               v.frame = CGRectMake(v.frame.origin.x, y, v.frame.size.width, v.frame.size.height)
+#define SetWidth(v, w)           v.frame = CGRectMake(v.frame.origin.x, v.frame.origin.y, w, v.frame.size.height)
+#define SetHeight(v, h)          v.frame = CGRectMake(v.frame.origin.x, v.frame.origin.y, v.frame.size.width, h)
+#define SetOrigin(v, x, y)       v.frame = CGRectMake(x, y, v.frame.size.width, v.frame.size.height)
+#define SetSize(v, w, h)         v.frame = CGRectMake(v.frame.origin.x, v.frame.origin.y, w, h)
+#define SetFrame(v, x, y, w, h)  v.frame = CGRectMake(x, y, w, h)
+#define AddX(v, offset)          v.frame = CGRectMake(v.frame.origin.x + offset, v.frame.origin.y, v.frame.size.width, v.frame.size.height)
+#define AddY(v, offset)          v.frame = CGRectMake(v.frame.origin.x, v.frame.origin.y + offset, v.frame.size.width, v.frame.size.height)
+
+#define X(v)                     v.frame.origin.x
+#define Y(v)                     v.frame.origin.y
+#define Width(v)                 v.frame.size.width
+#define Height(v)                v.frame.size.height
+#define Origin(v)                v.frame.origin
+#define Size(v)                  v.frame.size
+
+//////////////////////////////////////////////////////////////////
+// Color
+//////////////////////////////////////////////////////////////////
+
+#define RGB(r, g, b)        [UIColor colorWithRed:r/255.0 green:g/255.0 blue:b/255.0 alpha:1.0]
+#define RGBA(r, g, b, a)    [UIColor colorWithRed:r/255.0 green:g/255.0 blue:b/255.0 alpha:a]
+
+#define diff(p1, p2) (p1 != p2)
+
+#define IS_IPAD (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
+#define IS_IPHONE_X ([[UIScreen mainScreen] bounds].size.height==812)
+#define IS_IPHONE_MAX ([[UIScreen mainScreen] bounds].size.height==896)
+#define IS_IPHONE_XR ([[UIScreen mainScreen] bounds].size.height==896)
+#define IS_IPHONE_5 ([[UIScreen mainScreen] bounds].size.height == 568.0)
+#define HAS_ROUNDED_CORNERS (IS_IPHONE_X || IS_IPHONE_MAX || IS_IPHONE_XR)
+
+#endif /* BFMacros_h */

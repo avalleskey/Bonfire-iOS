@@ -11,8 +11,8 @@
 
 @interface MemberRequestCell : UITableViewCell
 
-@property (strong, nonatomic) BFAvatarView *profilePicture;
-@property (strong, nonatomic) UIButton *approveButton;
-@property (strong, nonatomic) UIButton *declineButton;
+@property (nonatomic, strong) BFAvatarView *profilePicture;
+@property (nonatomic, strong) UIButton *approveButton;
+@property (nonatomic, strong) UIButton *declineButton;
 
 @end

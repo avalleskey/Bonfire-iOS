@@ -10,7 +10,6 @@
 #import <UIKit/UIKit.h>
 #import "Session.h"
 #import "UIColor+Palette.h"
-#import <Tweaks/FBTweakInline.h>
 
 @implementation SOLOptionsTransitionAnimator
 
@@ -31,17 +30,22 @@
         
         [containerView addSubview:toView];
         
-        fromView.layer.cornerRadius = 0;
+        toView.layer.cornerRadius = HAS_ROUNDED_CORNERS ? 32.f : 8.f;
+        fromView.layer.cornerRadius = toView.layer.cornerRadius;
         
-        toView.layer.cornerRadius = 32.f;
-        toView.frame = CGRectMake(0, toView.frame.size.height, toView.frame.size.width, toView.frame.size.height);
+        CGFloat x = (self.direction == SOLTransitionDirectionLeft || self.direction == SOLTransitionDirectionRight) ? containerView.frame.size.width : 0;
+        if (self.direction == SOLTransitionDirectionRight) x = (x * -1);
         
-        CGFloat animationDuration = FBTweakValue(@"Transitions", @"View Controller - Appearing", @"Duration", 0.6);
-        CGFloat animationDamping = FBTweakValue(@"Transitions", @"View Controller - Appearing", @"Damping", 0.88);
-        [UIView animateWithDuration:animationDuration delay:0 usingSpringWithDamping:animationDamping initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        CGFloat y = (self.direction == SOLTransitionDirectionUp || self.direction == SOLTransitionDirectionDown) ? containerView.frame.size.height : 0;
+        if (self.direction == SOLTransitionDirectionDown) y = (y * -1);
+        
+        toView.frame = CGRectMake(x, y, toView.frame.size.width, toView.frame.size.height);
+        
+        CGFloat animationDuration = 0.56;
+        CGFloat animationDamping = 0.88;
+        [UIView animateWithDuration:animationDuration delay:0 usingSpringWithDamping:animationDamping initialSpringVelocity:0.5f options:(UIViewAnimationOptionCurveEaseInOut|UIViewAnimationOptionAllowUserInteraction) animations:^{
             fromView.alpha = 0;
-            fromView.layer.cornerRadius = 32.f;
-            fromView.transform = CGAffineTransformMakeScale(0.88, 0.88);
+            fromView.transform = CGAffineTransformMakeScale(0.9, 0.9);
             
             toView.center = CGPointMake(containerView.frame.size.width / 2, containerView.frame.size.height / 2);
         } completion:^(BOOL finished) {
@@ -49,6 +53,7 @@
             toView.userInteractionEnabled = YES;
             [transitionContext completeTransition:![transitionContext transitionWasCancelled]];
             toView.layer.cornerRadius = 0;
+            fromView.layer.cornerRadius = 0;
         }];
     }
     else {
@@ -59,25 +64,30 @@
         [containerView bringSubviewToFront:fromView];
         
         toView.alpha = 0;
-        toView.transform = CGAffineTransformMakeScale(0.88, 0.88);
-        toView.layer.cornerRadius = 32.f;
+        toView.transform = CGAffineTransformMakeScale(0.9, 0.9);
+        toView.layer.cornerRadius = HAS_ROUNDED_CORNERS ? 32.f : 8.f;
         fromView.alpha = 1;
-        fromView.layer.cornerRadius = 0;
+        fromView.layer.cornerRadius = toView.layer.cornerRadius;
         
-        CGFloat animationDuration = FBTweakValue(@"Transitions", @"View Controller - Dismissing", @"Duration", 0.8);
-        CGFloat animationDamping = FBTweakValue(@"Transitions", @"View Controller - Dismissing", @"Damping", 0.75);
+        CGFloat centerX = containerView.frame.size.width * ((self.direction == SOLTransitionDirectionLeft || self.direction == SOLTransitionDirectionRight) ? 1.5 : 0.5);
+        if (self.direction == SOLTransitionDirectionLeft) centerX = (centerX * -1);
+        
+        CGFloat centerY = containerView.frame.size.height * ((self.direction == SOLTransitionDirectionUp || self.direction == SOLTransitionDirectionDown) ? 1.5 : 0.5);
+        if (self.direction == SOLTransitionDirectionDown) centerY = (centerY * -1);
+        
+        CGFloat animationDuration = 0.7;
+        CGFloat animationDamping = 0.75;
         [UIView animateWithDuration:animationDuration delay:0 usingSpringWithDamping:animationDamping initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
             toView.alpha = 1;
             toView.transform = CGAffineTransformMakeScale(1, 1);
-            toView.layer.cornerRadius = 0;
             
-            fromView.layer.cornerRadius = 32.f;
-            fromView.transform = CGAffineTransformMakeScale(0.88, 0.88);
-            fromView.center = CGPointMake(containerView.frame.size.width / 2, containerView.frame.size.height * 1.5);
-            fromView.layer.cornerRadius = 32.f;
+            fromView.transform = CGAffineTransformMakeScale(1, 1);
+            fromView.center = CGPointMake(centerX, centerY);
         } completion:^(BOOL finished) {
             [fromView removeFromSuperview];
             toView.userInteractionEnabled = YES;
+            toView.layer.cornerRadius = 0;
+            fromView.layer.cornerRadius = 0;
             [transitionContext completeTransition:![transitionContext transitionWasCancelled]];
         }];
     }

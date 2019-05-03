@@ -11,56 +11,62 @@
 @implementation ErrorCodes
 
 /**
- * Errors 40-49: Authentication/Client error
+ * Errors 400-499: Authentication/Client error
  */
-const NSInteger BAD_AUTHENTICATION    = 40;
-const NSInteger OUT_OF_DATE_CLIENT    = 41;
-const NSInteger IDENTITY_REQUIRED     = 42;
-const NSInteger MISSING_AUTHTOKEN     = 43;
-const NSInteger BAD_ORIGIN            = 44;
-const NSInteger BAD_ACCESS_TOKEN      = 45;
-const NSInteger BAD_REFRESH_TOKEN     = 46;
-const NSInteger MISMATCH_TOKEN        = 47;
-const NSInteger BAD_REFRESH_LOGIN_REQ = 48;
+const NSInteger BAD_AUTHENTICATION    = 400;
+const NSInteger MISSING_ACCESS_TOKEN  = 401;
+const NSInteger OUT_OF_DATE_CLIENT    = 410;
+const NSInteger IDENTITY_REQUIRED     = 420;
+const NSInteger BAD_ORIGIN            = 440;
+const NSInteger BAD_ACCESS_TOKEN      = 450;
+const NSInteger BAD_REFRESH_TOKEN     = 451;
+const NSInteger MISMATCH_TOKEN        = 452;
+const NSInteger BAD_REFRESH_LOGIN_REQ = 460;
 
 /**
- * Errors 60-69: Action failure
+ * Errors 600-699: Action failure
  */
-const NSInteger OPERATION_NOT_PERMITTED = 60;
-const NSInteger USER_MISSING_PERMISSION = 61;
-const NSInteger RESOURCE_ACTION_FAILURE = 62;
-const NSInteger MISSING_PARAMETER       = 63;
-const NSInteger INVALID_PARAMETER       = 64;
-const NSInteger INVALID_MEDIA           = 65;
+const NSInteger OPERATION_NOT_PERMITTED    = 600;
+const NSInteger USER_MISSING_PERMISSION    = 601;
+const NSInteger RESOURCE_ACTION_FAILURE    = 610;
+const NSInteger MISSING_PARAMETER          = 620;
+const NSInteger INVALID_PARAMETER          = 621;
+const NSInteger INVALID_MEDIA              = 630;
+const NSInteger ROOM_MIN_MEMBERS_VIOLATION = 640;
+const NSInteger IDENTIFIER_TAKEN           = 650;
+const NSInteger NO_CHANGE_OCCURRED         = 660;
+const NSInteger BAD_MEDIA_COMBINATION      = 670;
 
 /**
- * Errors 70-79: Resource failure
+ * Errors 700-799: Resource failure
  */
-const NSInteger RESOURCE_VALIDITY_FAILURE  = 70;
-const NSInteger ROOM_NOT_EXISTS            = 71;
-const NSInteger USER_NOT_EXISTS            = 72;
-const NSInteger POST_NOT_EXISTS            = 73;
-const NSInteger ROOM_INACCESSIBLE_BLOCKED  = 74;
-const NSInteger USER_INACCESSIBLE_BLOCKED  = 75;
-const NSInteger POST_INACCESSIBLE          = 76;
-const NSInteger SEARCH_TOO_COMPLEX         = 77;
-const NSInteger RESOURCE_OWNERSHIP_FAILURE = 78;
+const NSInteger RESOURCE_VALIDITY_FAILURE     = 700;
+const NSInteger ROOM_NOT_EXISTS               = 701;
+const NSInteger USER_NOT_EXISTS               = 702;
+const NSInteger POST_NOT_EXISTS               = 703;
+const NSInteger ROOM_INACCESSIBLE_BLOCKED     = 711;
+const NSInteger USER_INACCESSIBLE_BLOCKED     = 712;
+const NSInteger POST_INACCESSIBLE             = 713;
+const NSInteger SEARCH_TOO_COMPLEX            = 720;
+const NSInteger RESOURCE_OWNERSHIP_FAILURE    = 730;
+const NSInteger ROOM_INACCESSIBLE_BLOCKS_THEM = 740;
 
 /**
- * Errors 80-89: User information failure
+ * Errors 800-899: User information failure
  */
-const NSInteger USER_PASSWORD_REQ_RESET = 80;
-const NSInteger USER_PROFILE_SUSPENDED  = 81;
-const NSInteger USER_EMAIL_TAKEN        = 82;
-const NSInteger USER_USERNAME_TAKEN     = 83;
+const NSInteger USER_PASSWORD_REQ_RESET = 800;
+const NSInteger USER_PROFILE_SUSPENDED  = 810;
+const NSInteger USER_EMAIL_TAKEN        = 820;
+const NSInteger USER_USERNAME_TAKEN     = 830;
 
 /**
- * Errors 90-99: Generic errors
+ * Errors 900-999: Generic errors
  */
-const NSInteger INVALID_HTTP_METHOD = 90;
-const NSInteger BAD_API_VERSION     = 91;
+const NSInteger INVALID_HTTP_METHOD = 900;
+const NSInteger BAD_API_VERSION     = 910;
 // ...
-const NSInteger DATABASE_QUERY_ERROR  = 98;
-const NSInteger DEFAULT_UNKNOWN_ERROR = 99;
+const NSInteger DATABASE_QUERY_CONFLICT  = 970;
+const NSInteger DATABASE_QUERY_ERROR     = 980;
+const NSInteger DEFAULT_UNKNOWN_ERROR    = 990;
 
 @end

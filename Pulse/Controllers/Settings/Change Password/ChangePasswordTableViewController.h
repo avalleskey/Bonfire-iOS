@@ -12,7 +12,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface ChangePasswordTableViewController : SmartListTableViewController <SmartListDelegate>
 
-@property (strong, nonatomic) UIBarButtonItem *saveButton;
+@property (nonatomic, strong) UIBarButtonItem *saveButton;
 
 @end
 

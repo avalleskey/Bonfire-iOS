@@ -1,0 +1,106 @@
+{
+    "sections": [
+        {
+            "id": "new_followers",
+            "title": "New Followers",
+            "footer": "@hugo followed you!",
+            "rows": [
+                {
+                    "id": "new_followers_on",
+                    "title": "On",
+                    "radio": true
+                },
+                {
+                    "id": "new_followers_off",
+                    "title": "Off",
+                    "radio": true
+                }
+            ]
+        },
+        {
+            "id": "post_replies",
+            "title": "Post Replies",
+            "footer": "@hugo replied to your post",
+            "rows": [
+                {
+                    "id": "post_replies_on",
+                    "title": "On",
+                    "radio": true
+                },
+                {
+                    "id": "post_replies_off",
+                    "title": "Off",
+                    "radio": true
+                }
+            ]
+        },
+        {
+            "id": "post_sparks",
+            "title": "Post Sparks",
+            "footer": "@hugo sparked your post! ⚡️",
+            "rows": [
+                {
+                    "id": "post_sparks_on",
+                    "title": "On",
+                    "radio": true
+                },
+                {
+                    "id": "post_sparks_off",
+                    "title": "Off",
+                    "radio": true
+                }
+            ]
+        },
+        {
+            "id": "camp_trending",
+            "title": "Camp Trending Posts",
+            "footer": "Trending now in Pinball Fanatics 🔥",
+            "rows": [
+                {
+                    "id": "camp_trending_on",
+                    "title": "On",
+                    "radio": true
+                },
+                {
+                    "id": "camp_trending_off",
+                    "title": "Off",
+                    "radio": true
+                }
+            ]
+        },
+        {
+            "id": "new_camp_members",
+            "title": "New Camp Members",
+            "footer": "@hugo joined Pinball Fanatics",
+            "rows": [
+                {
+                    "id": "new_camp_members_on",
+                    "title": "On",
+                    "radio": true
+                },
+                {
+                    "id": "new_camp_members_off",
+                    "title": "Off",
+                    "radio": true
+                }
+            ]
+        },
+        {
+            "id": "camp_member_requests",
+            "title": "Camp Member Requests",
+            "footer": "@hugo requested to join Pinball Fanatics",
+            "rows": [
+                {
+                    "id": "camp_member_requests_on",
+                    "title": "On",
+                    "radio": true
+                },
+                {
+                    "id": "camp_member_requests_off",
+                    "title": "Off",
+                    "radio": true
+                }
+            ]
+        }
+    ]
+}

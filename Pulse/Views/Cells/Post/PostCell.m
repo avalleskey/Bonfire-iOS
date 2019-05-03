@@ -14,7 +14,6 @@
 #import "ComplexNavigationController.h"
 #import "Launcher.h"
 #import "UIColor+Palette.h"
-#import <Tweaks/FBTweakInline.h>
 #import <JGProgressHUD/JGProgressHUD.h>
 
 #define UIViewParentController(__view) ({ \
@@ -47,7 +46,7 @@
         self.contextView = [[PostContextView alloc] init];
         [self.contentView addSubview:self.contextView];
         
-        self.profilePicture = [[BFAvatarView alloc] initWithFrame:CGRectMake(12, 12, 48, 48)];
+        self.profilePicture = [[BFAvatarView alloc] initWithFrame:CGRectMake(12, 12, 56, 56)];
         self.profilePicture.openOnTap = false;
         self.profilePicture.dimsViewOnTap = true;
         self.profilePicture.allowOnlineDot = true;
@@ -60,22 +59,36 @@
         self.nameLabel.text = @"Display Name";
         self.nameLabel.numberOfLines = 1;
         self.nameLabel.lineBreakMode = NSLineBreakByTruncatingMiddle;
-        // self.nameLabel.userInteractionEnabled = YES;
+        self.nameLabel.userInteractionEnabled = YES;
+        self.nameLabel.textColor = [UIColor bonfireBlack];
         [self.contentView addSubview:self.nameLabel];
         
         self.dateLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, self.nameLabel.frame.origin.y, 21, self.nameLabel.frame.size.height)];
         self.dateLabel.font = [UIFont systemFontOfSize:self.nameLabel.font.pointSize weight:UIFontWeightRegular];
-        self.dateLabel.textColor = [UIColor colorWithWhite:0.6 alpha:1];
         self.dateLabel.textAlignment = NSTextAlignmentRight;
+        self.dateLabel.textColor = [UIColor bonfireGray];
         [self.contentView addSubview:self.dateLabel];
+        
+        self.moreButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        self.moreButton.contentMode = UIViewContentModeCenter;
+        [self.moreButton setImage:[UIImage imageNamed:@"postActionMore"] forState:UIControlStateNormal];
+        self.moreButton.imageEdgeInsets = UIEdgeInsetsMake(2, 0, 0, 0);
+        self.moreButton.frame = CGRectMake(0, self.dateLabel.frame.origin.y, self.moreButton.currentImage.size.width, self.dateLabel.frame.size.height);
+        self.moreButton.adjustsImageWhenHighlighted = false;
+        [self.moreButton bk_whenTapped:^{
+            [[Launcher sharedInstance] openActionsForPost:self.post];
+        }];
+        [self.contentView addSubview:self.moreButton];
         
         // text view
         self.textView = [[PostTextView alloc] initWithFrame:CGRectMake(12, 58, self.contentView.frame.size.width - (12 + 12), 200)]; // 58 will change based on whether or not the detail label is shown
         self.textView.messageLabel.font = textViewFont;
         self.textView.delegate = self;
+        self.textView.tintColor = self.tintColor;
         [self.contentView addSubview:self.textView];
         
         [self initImagesView];
+        //[self initURLPreviewView];
         
         self.lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, (1 / [UIScreen mainScreen].scale))];
         self.lineSeparator.backgroundColor = [UIColor separatorColor];
@@ -106,25 +119,27 @@
     
     UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:nil message:nil preferredStyle:UIAlertControllerStyleActionSheet];
     
-    UIAlertAction *copyPost = [UIAlertAction actionWithTitle:@"Copy" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-        UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
-        pasteboard.string = @"http://testflight.com/bonfire-ios";
-        
-        JGProgressHUD *HUD = [JGProgressHUD progressHUDWithStyle:JGProgressHUDStyleExtraLight];
-        HUD.textLabel.text = @"Copied!";
-        HUD.vibrancyEnabled = false;
-        HUD.animation = [[JGProgressHUDFadeZoomAnimation alloc] init];
-        HUD.tintColor = [UIColor colorWithWhite:0 alpha:0.6f];
-        HUD.textLabel.textColor = HUD.tintColor;
-        HUD.backgroundColor = [UIColor colorWithWhite:0 alpha:0.1f];
-        HUD.indicatorView = [[JGProgressHUDSuccessIndicatorView alloc] init];
-        
-        [HUD showInView:[Launcher sharedInstance].activeViewController.view animated:YES];
-        [HapticHelper generateFeedback:FeedbackType_Notification_Success];
-        
-        [HUD dismissAfterDelay:1.5f];
-    }];
-    [actionSheet addAction:copyPost];
+    if (self.post.attributes.details.message.length > 0) {
+        UIAlertAction *copyPost = [UIAlertAction actionWithTitle:@"Copy" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
+            pasteboard.string = [NSString stringWithFormat:@"\"%@\" - @%@ on Bonfire. Download here: %@", self.post.attributes.details.message, self.post.attributes.details.creator.attributes.details.identifier, @"http://testflight.com/bonfire-ios"];
+            
+            JGProgressHUD *HUD = [JGProgressHUD progressHUDWithStyle:JGProgressHUDStyleExtraLight];
+            HUD.textLabel.text = @"Copied!";
+            HUD.vibrancyEnabled = false;
+            HUD.animation = [[JGProgressHUDFadeZoomAnimation alloc] init];
+            HUD.tintColor = [UIColor colorWithWhite:0 alpha:0.6f];
+            HUD.textLabel.textColor = HUD.tintColor;
+            HUD.backgroundColor = [UIColor colorWithWhite:0 alpha:0.1f];
+            HUD.indicatorView = [[JGProgressHUDSuccessIndicatorView alloc] init];
+            
+            [HUD showInView:[Launcher sharedInstance].activeViewController.view animated:YES];
+            [HapticHelper generateFeedback:FeedbackType_Notification_Success];
+            
+            [HUD dismissAfterDelay:1.5f];
+        }];
+        [actionSheet addAction:copyPost];
+    }
     
     // !2.A.* -- Not Creator, any page, any following state
     if (!isCreator) {
@@ -133,7 +148,7 @@
             UIAlertController *confirmDeletePostActionSheet = [UIAlertController alertControllerWithTitle:@"Report Post" message:@"Are you sure you want to report this post?" preferredStyle:UIAlertControllerStyleAlert];
             
             UIAlertAction *confirmDeletePost = [UIAlertAction actionWithTitle:@"Report" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
-                [[Session sharedInstance] reportPost:self.post.identifier completion:^(BOOL success, id responseObject) {
+                [BFAPI reportPost:self.post.identifier completion:^(BOOL success, id responseObject) {
                     // NSLog(@"reported post!");
                 }];
             }];
@@ -157,7 +172,7 @@
             UIAlertAction *confirmDeletePost = [UIAlertAction actionWithTitle:@"Delete" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
                 NSLog(@"delete post");
                 // confirm action
-                [[Session sharedInstance] deletePost:self.post completion:^(BOOL success, id responseObject) {
+                [BFAPI deletePost:self.post completion:^(BOOL success, id responseObject) {
                     if (success) {
                         
                     }
@@ -179,57 +194,26 @@
     [[Launcher.sharedInstance activeViewController] presentViewController:actionSheet animated:YES completion:nil];
 }
 
-+ (NSAttributedString *)attributedCreatorStringForPost:(Post *)post includeTimestamp:(BOOL)includeTimestamp includePostedIn:(BOOL)includePostedIn {
++ (NSAttributedString *)attributedCreatorStringForPost:(Post *)post includeTimestamp:(BOOL)includeTimestamp includeContext:(BOOL)includeContext {
     // set display name + room name combo
     NSString *username = post.attributes.details.creator.attributes.details.identifier != nil ? [NSString stringWithFormat:@"@%@", post.attributes.details.creator.attributes.details.identifier] : @"anonymous";
     
-    UIFont *font = [UIFont systemFontOfSize:14.f weight:UIFontWeightRegular];
+    UIFont *font = [UIFont systemFontOfSize:15.f weight:UIFontWeightRegular];
     
     NSMutableAttributedString *creatorString = [[NSMutableAttributedString alloc] initWithString:username];
     PatternTapResponder creatorTapResponder = ^(NSString *string) {
         [[Launcher sharedInstance] openProfile:post.attributes.details.creator];
     };
     [creatorString addAttribute:RLTapResponderAttributeName value:creatorTapResponder range:NSMakeRange(0, creatorString.length)];
-    // [creatorString addAttribute:NSForegroundColorAttributeName value:[UIColor fromHex:post.attributes.details.creator.attributes.details.color] range:NSMakeRange(0, creatorString.length)];
-    [creatorString addAttribute:NSForegroundColorAttributeName value:[UIColor fromHex:post.attributes.details.creator.attributes.details.color] range:NSMakeRange(0, creatorString.length)];
+    [creatorString addAttribute:NSForegroundColorAttributeName value:[UIColor bonfireBlack] range:NSMakeRange(0, creatorString.length)];
     
-    UIFont *heavyItalicFont = [UIFont fontWithDescriptor:[[[UIFont systemFontOfSize:font.pointSize weight:UIFontWeightHeavy] fontDescriptor] fontDescriptorWithSymbolicTraits:UIFontDescriptorTraitItalic] size:font.pointSize];
-    [creatorString addAttribute:NSFontAttributeName value:heavyItalicFont range:NSMakeRange(0, creatorString.length)];
-    [creatorString addAttribute:RLHighlightedForegroundColorAttributeName value:[UIColor colorWithWhite:0.2f alpha:0.5f] range:NSMakeRange(0, creatorString.length)];
-    
-    if (includeTimestamp) {
-        NSMutableAttributedString *connector = [[NSMutableAttributedString alloc] initWithString:@"  "];
-        [connector addAttribute:NSFontAttributeName value:font range:NSMakeRange(0, connector.length)];
-        [creatorString appendAttributedString:connector];
-        
-        NSString *timeAgo = [NSDate mysqlDatetimeFormattedAsTimeAgo:post.attributes.status.createdAt withForm:TimeAgoShortForm];
-        if (timeAgo != nil) {
-            NSMutableAttributedString *timeAgoString = [[NSMutableAttributedString alloc] initWithString:timeAgo];
-            [timeAgoString addAttribute:NSForegroundColorAttributeName value:[UIColor colorWithWhite:0.6 alpha:1] range:NSMakeRange(0, timeAgoString.length)];
-            [timeAgoString addAttribute:NSFontAttributeName value:font range:NSMakeRange(0, timeAgoString.length)];
-            
-            [creatorString appendAttributedString:timeAgoString];
-        }
-    }
-    if (includePostedIn && post.attributes.status.postedIn != 0) {
-        NSMutableAttributedString *connector = [[NSMutableAttributedString alloc] initWithString:@" in "];
-        [connector addAttribute:NSForegroundColorAttributeName value:[UIColor colorWithWhite:0.6 alpha:1] range:NSMakeRange(0, connector.length)];
-        [connector addAttribute:NSFontAttributeName value:font range:NSMakeRange(0, connector.length)];
-        [creatorString appendAttributedString:connector];
-        
-        NSString *roomTitle = [NSString stringWithFormat:@"%@", post.attributes.status.postedIn.attributes.details.title];
-        NSMutableAttributedString *roomTitleString = [[NSMutableAttributedString alloc] initWithString:roomTitle];
-        [roomTitleString addAttribute:NSForegroundColorAttributeName value:[UIColor colorWithWhite:0.6 alpha:1] range:NSMakeRange(0, roomTitleString.length)];
-        [roomTitleString addAttribute:NSFontAttributeName value:font range:NSMakeRange(0, roomTitleString.length)];
-        
-        [creatorString appendAttributedString:roomTitleString];
-    }
+    [creatorString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:font.pointSize weight:UIFontWeightSemibold] range:NSMakeRange(0, creatorString.length)];
+    [creatorString addAttribute:RLHighlightedForegroundColorAttributeName value:[[UIColor bonfireBlack] colorWithAlphaComponent:0.5] range:NSMakeRange(0, creatorString.length)];
     
     /*
-    BOOL isVerified = false;
+    BOOL isVerified = true;
     if (isVerified) {
         NSMutableAttributedString *spacer = [[NSMutableAttributedString alloc] initWithString:@" "];
-        [spacer addAttribute:NSForegroundColorAttributeName value:color range:NSMakeRange(0, spacer.length)];
         [spacer addAttribute:NSFontAttributeName value:font range:NSMakeRange(0, spacer.length)];
         [creatorString appendAttributedString:spacer];
         
@@ -241,6 +225,56 @@
         NSAttributedString *attachmentString = [NSAttributedString attributedStringWithAttachment:attachment];
         [creatorString appendAttributedString:attachmentString];
     }*/
+    
+    BOOL isReply = post.attributes.details.parentId != 0;
+    
+    if (includeTimestamp) {
+        NSMutableAttributedString *connector = [[NSMutableAttributedString alloc] initWithString:@"  "];
+        [connector addAttribute:NSFontAttributeName value:font range:NSMakeRange(0, connector.length)];
+        [creatorString appendAttributedString:connector];
+        
+        NSString *timeAgo = [NSDate mysqlDatetimeFormattedAsTimeAgo:post.attributes.status.createdAt withForm:TimeAgoShortForm];
+        if (timeAgo != nil) {
+            NSMutableAttributedString *timeAgoString = [[NSMutableAttributedString alloc] initWithString:timeAgo];
+            [timeAgoString addAttribute:NSForegroundColorAttributeName value:[UIColor bonfireGray] range:NSMakeRange(0, timeAgoString.length)];
+            [timeAgoString addAttribute:NSFontAttributeName value:font range:NSMakeRange(0, timeAgoString.length)];
+            
+            [creatorString appendAttributedString:timeAgoString];
+        }
+    }
+    else if (includeContext) {
+        if (isReply || (post.attributes.status.postedIn != 0)) {
+            NSMutableAttributedString *spacer = [[NSMutableAttributedString alloc] initWithString:@" "];
+            [spacer addAttribute:NSFontAttributeName value:font range:NSMakeRange(0, spacer.length)];
+            [creatorString appendAttributedString:spacer];
+            
+            NSTextAttachment *attachment = [[NSTextAttachment alloc] init];
+            attachment.image = [UIImage imageNamed:@"postedInTriangleIcon-1"];
+            [attachment setBounds:CGRectMake(0, roundf(font.capHeight - attachment.image.size.height)/2.f, attachment.image.size.width, attachment.image.size.height)];
+            
+            NSAttributedString *attachmentString = [NSAttributedString attributedStringWithAttachment:attachment];
+            [creatorString appendAttributedString:attachmentString];
+            
+            [creatorString appendAttributedString:spacer];
+            
+            if (isReply) {
+                NSString *roomTitle = [NSString stringWithFormat:@"@%@'s post", post.attributes.details.parentUsername];
+                NSMutableAttributedString *roomTitleString = [[NSMutableAttributedString alloc] initWithString:roomTitle];
+                [roomTitleString addAttribute:NSForegroundColorAttributeName value:[UIColor bonfireGray] range:NSMakeRange(0, roomTitleString.length)];
+                [roomTitleString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:font.pointSize weight:UIFontWeightMedium] range:NSMakeRange(0, roomTitleString.length)];
+                
+                [creatorString appendAttributedString:roomTitleString];
+            }
+            else {
+                NSString *roomTitle = [NSString stringWithFormat:@"#%@", post.attributes.status.postedIn.attributes.details.identifier];
+                NSMutableAttributedString *roomTitleString = [[NSMutableAttributedString alloc] initWithString:roomTitle];
+                [roomTitleString addAttribute:NSForegroundColorAttributeName value:[UIColor bonfireGray] range:NSMakeRange(0, roomTitleString.length)];
+                [roomTitleString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:font.pointSize weight:UIFontWeightMedium] range:NSMakeRange(0, roomTitleString.length)];
+                
+                [creatorString appendAttributedString:roomTitleString];
+            }
+        }
+    }
     
     return creatorString;
 }

@@ -76,8 +76,10 @@
 
 - (UIStatusBarStyle)preferredStatusBarStyle {
     // ugly: responsibilities aren't separated well (proof of concept, only!)
-
+    NSLog(@"self.presentedViewController: %@", self.presentedViewController);
     if (self.presentedViewController && (!self.presentedViewController.isBeingDismissed)) {
+        NSLog(@"BOOOOOOOOOOOOOM : %ld", (long)self.presentedViewController.preferredStatusBarStyle);
+        NSLog(@"verdict: %@", self.presentedViewController.preferredStatusBarStyle == UIStatusBarStyleDefault ? @"DEFAULT BLEH" : @"LIIIIGHT");
         return self.presentedViewController.preferredStatusBarStyle;
     }
     
@@ -94,6 +96,7 @@
 }
 
 - (void)didFinishSwiping {
+    NSLog(@"didFinishSwiping!!!");
     [self goBack];
 }
 
@@ -248,7 +251,7 @@
             self.searchView.textField.textColor = [UIColor colorWithWhite:0.07f alpha:1];
             self.searchView.textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:self.searchView.textField.placeholder attributes:@{NSForegroundColorAttributeName: [UIColor colorWithWhite:0 alpha:0.25]}];
             
-            UIColor *tintColor = [UIColor colorWithWhite:0.2f alpha:1];
+            UIColor *tintColor = [UIColor bonfireBlack];
             self.searchView.textField.tintColor =
             self.leftActionButton.tintColor =
             self.rightActionButton.tintColor = tintColor;
@@ -286,10 +289,21 @@
         
         searchIcon.tintColor = self.searchView.textField.textColor;
     } completion:^(BOOL finished) {
-        if (animationType != 3) {
+        if (self.currentTheme == newColor && animationType != 3) {
             self.navigationBackgroundView.backgroundColor = newColor;
         }
-        [newColorView removeFromSuperview];
+        
+        if (self.currentTheme != newColor) {
+            // fade it out
+            [UIView animateWithDuration:0.25f animations:^{
+                newColorView.alpha = 0;
+            } completion:^(BOOL finished) {
+                [newColorView removeFromSuperview];
+            }];
+        }
+        else {
+            [newColorView removeFromSuperview];
+        }
     }];
 }
 
@@ -327,7 +341,7 @@
     self.searchView.backgroundColor = textFieldBackgroundColor;
     
     self.searchView.textField.textColor = [UIColor colorWithWhite:0.07f alpha:1];
-    self.searchView.textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:@"Search Bonfire..." attributes:@{NSForegroundColorAttributeName: [UIColor colorWithWhite:0 alpha:0.25]}];
+    self.searchView.textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:@"Search Camps & People" attributes:@{NSForegroundColorAttributeName: [UIColor colorWithWhite:0 alpha:0.25]}];
     
     self.searchView.textField.userInteractionEnabled = false;
     
@@ -372,13 +386,13 @@
         [self setRightAction:LNActionTypeNone];
     }
     
-    [UIView animateWithDuration:(animated?barColorUpdateDuration:0) delay:0 usingSpringWithDamping:0.75f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
+    [UIView animateWithDuration:(animated?barColorUpdateDuration:0) delay:0 usingSpringWithDamping:0.75f initialSpringVelocity:0.5 options:(UIViewAnimationOptionCurveEaseOut|UIViewAnimationOptionAllowUserInteraction) animations:^{
         if (self.leftActionButton.tag == LNActionTypeBack) {
             if (self.viewControllers.count == 1) {
                 self.leftActionButton.transform = CGAffineTransformMakeRotation(0);
             }
             else if (self.viewControllers.count > 1) {
-                self.leftActionButton.transform = CGAffineTransformMakeRotation(M_PI_2);
+                self.leftActionButton.transform = CGAffineTransformMakeRotation(0);
             }
         }
         
@@ -471,7 +485,7 @@
                 }
                 else if ([self.viewControllers[self.viewControllers.count-1] isKindOfClass:[PostViewController class]]) {
                     PostViewController *activePost = self.viewControllers[self.viewControllers.count-1];
-                    [activePost openPostActions];
+                    [[Launcher sharedInstance] openActionsForPost:activePost.post];
                 }
                 break;
             }

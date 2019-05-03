@@ -49,9 +49,11 @@
         if (post.attributes.summaries.counts.replies == 0) {
             [self.views addObject:[self firstToReplyLabelForPost:post]];
         }
-        [self.views addObject:[self liveCountButtonForPost:post]];
+        if (post.attributes.summaries.counts.live > 0) {
+            [self.views addObject:[self liveCountButtonForPost:post]];
+        }
         
-        for (int i = 0; i < self.views.count; i++) {
+        for (NSInteger i = 0; i < self.views.count; i++) {
             UIView *view = self.views[i];
             if (i != 0) {
                 view.transform = CGAffineTransformMakeTranslation(0, self.frame.size.height);
@@ -103,7 +105,10 @@
 }
 - (UIButton *)liveCountButtonForPost:(Post *)post {
     // use button so we can easily add the live dot to the left
-    NSInteger liveCount = 12; // fake it til we make it
+    NSLog(@"calculate live count for button with post:");
+    NSLog(@"%@", post);
+    
+    NSInteger liveCount = post.attributes.summaries.counts.live; // fake it til we make it
     
     UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
     if (liveCount == 0) {
@@ -144,10 +149,12 @@
         step = 0;
         
         [self stop];
-        timer = [NSTimer scheduledTimerWithTimeInterval:1.5
-                                                 target: self
-                                               selector:@selector(next)
-                                               userInfo:nil repeats:NO];
+        if (self.views.count > 1) {
+            timer = [NSTimer scheduledTimerWithTimeInterval:1.5
+                                                     target: self
+                                                   selector:@selector(next)
+                                                   userInfo:nil repeats:NO];
+        }
     }
 }
 - (void)stop {
@@ -156,6 +163,8 @@
 }
 
 - (void)next {
+    if (self.views.count <= 1) return;
+    
     UIView *currentView = self.views[step];
     
     step = step + 1;

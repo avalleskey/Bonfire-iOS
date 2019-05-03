@@ -8,23 +8,24 @@
 
 #import <UIKit/UIKit.h>
 #import "Room.h"
+#import "BFAvatarView.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 @interface InviteFriendHeaderCell : UITableViewCell
 
-@property (strong, nonatomic) UILabel *nameLabel;
-@property (strong, nonatomic) UILabel *descriptionLabel;
+@property (nonatomic, strong) UILabel *nameLabel;
+@property (nonatomic, strong) UILabel *descriptionLabel;
 
-@property (strong, nonatomic) UIImageView *member1;
-@property (strong, nonatomic) UIImageView *member2;
-@property (strong, nonatomic) UIImageView *member3;
-@property (strong, nonatomic) UIImageView *member4;
-@property (strong, nonatomic) UIImageView *member5;
-@property (strong, nonatomic) UIImageView *member6;
-@property (strong, nonatomic) UIImageView *member7;
+@property (nonatomic, strong) BFAvatarView *member1;
+@property (nonatomic, strong) UIImageView *member2;
+@property (nonatomic, strong) UIImageView *member3;
+@property (nonatomic, strong) UIImageView *member4;
+@property (nonatomic, strong) UIImageView *member5;
+@property (nonatomic, strong) UIImageView *member6;
+@property (nonatomic, strong) UIImageView *member7;
 
-@property (strong, nonatomic) UIView *lineSeparator;
+@property (nonatomic, strong) UIView *lineSeparator;
 
 @end
 

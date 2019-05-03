@@ -14,12 +14,15 @@
 #import "ComplexNavigationController.h"
 #import "UIColor+Palette.h"
 #import "Launcher.h"
-#import <Tweaks/FBTweakInline.h>
 #import "NSString+Validation.h"
 #import "HAWebService.h"
 #import "LargeRoomCardCell.h"
+#import "EmojiUtilities.h"
+#import "ResetPasswordViewController.h"
 
 @import UserNotifications;
+@import Firebase;
+@import FirebasePerformance;
 #import <RSKImageCropper/RSKImageCropper.h>
 
 #define UIViewParentController(__view) ({ \
@@ -30,22 +33,23 @@
     })
 
 #define IS_IPHONE        (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone)
-#define IS_IPHONE_5 ([[UIScreen mainScreen] bounds].size.height == 568.0)
-#define IS_TINY ([[UIScreen mainScreen] bounds].size.height == 480)
 
 @interface OnboardingViewController () <RSKImageCropViewControllerDelegate, RSKImageCropViewControllerDataSource> {
     UIEdgeInsets safeAreaInsets;
     NSArray *colors;
     NSMutableDictionary *roomsJoined;
+    
 }
 
-@property (strong, nonatomic) HAWebService *manager;
 @property (nonatomic) NSInteger themeColor;
-@property (nonatomic) int currentStep;
-@property (strong, nonatomic) NSMutableArray *steps;
-@property (strong, nonatomic) ComplexNavigationController *launchNavVC;
+@property (nonatomic) NSInteger currentStep;
+@property (nonatomic, strong) NSMutableArray *steps;
+@property (nonatomic, strong) ComplexNavigationController *launchNavVC;
 @property (nonatomic) CGFloat currentKeyboardHeight;
-@property (strong, nonatomic) NSMutableArray *roomSuggestions;
+@property (nonatomic, strong) NSMutableArray *roomSuggestions;
+
+@property (nonatomic) FIRTrace *signInTrace;
+@property (nonatomic) FIRTrace *signUpTrace;
 
 @end
 
@@ -58,9 +62,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     self.view.backgroundColor = [UIColor whiteColor];
-    self.view.tintColor = [UIColor bonfireBrand];
-    
-    self.manager = [HAWebService manager];
+    self.view.tintColor = [UIColor bonfireBlack];
     
     [self addListeners];
     [self setupViews];
@@ -70,7 +72,16 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     self.currentStep = -1;
     [self nextStep:false];
     
+    if (!self.signInLikely) {
+        // track how long it takes to finish sign up flow
+        self.signInTrace = [FIRPerformance startTraceWithName:@"Sign In"];
+        self.signUpTrace = [FIRPerformance startTraceWithName:@"Sign Up"];
+    }
+    
     [UIApplication sharedApplication].applicationIconBadgeNumber = 0;
+    
+    // Google Analytics
+    [FIRAnalytics setScreenName:@"Onboarding" screenClass:nil];
 }
 
 - (void)addListeners {
@@ -94,9 +105,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     }];
 }
 - (void)receivedNotificationsUpdate:(NSNotification *)notificaiton {
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.4f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        [[Launcher sharedInstance] launchLoggedIn:true];
-    });
+    [[Launcher sharedInstance] launchLoggedIn:true];
 }
 
 - (void)setupViews {
@@ -117,12 +126,11 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     self.backButton = [UIButton buttonWithType:UIButtonTypeSystem];
     self.backButton.frame = CGRectMake(3, self.closeButton.frame.origin.y, 44, 44);
     self.backButton.titleLabel.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightSemibold];
-    [self.backButton setTitleColor:[UIColor colorWithWhite:0.6f alpha:1] forState:UIControlStateDisabled];
+    [self.backButton setTitleColor:[UIColor bonfireGray] forState:UIControlStateDisabled];
     [self.backButton setImage:[[UIImage imageNamed:@"leftArrowIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
     self.backButton.tintColor = self.view.tintColor;
     self.backButton.alpha = 0;
     self.backButton.adjustsImageWhenHighlighted = false;
-    self.backButton.transform = CGAffineTransformMakeRotation(M_PI_2);
     [self.backButton bk_whenTapped:^{
         [self previousStep:-1];
     }];
@@ -132,7 +140,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     self.nextButton.frame = CGRectMake(24, self.view.frame.size.height, self.view.frame.size.width - (24 * 2), 48);
     self.nextButton.backgroundColor = [self.view tintColor];
     self.nextButton.titleLabel.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightSemibold];
-    [self.nextButton setTitleColor:[UIColor colorWithWhite:0.6f alpha:1] forState:UIControlStateDisabled];
+    [self.nextButton setTitleColor:[UIColor bonfireGray] forState:UIControlStateDisabled];
     [self continuityRadiusForView:self.nextButton withRadius:12.f];
     [self.nextButton setTitle:@"Next" forState:UIControlStateNormal];
     [self.view addSubview:self.nextButton];
@@ -156,17 +164,53 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         [self handleNext];
     }];
     
-    self.nextBlockerInfoLabel = [[UILabel alloc] init];
+    self.nextBlockerInfoLabel = [[UILabel alloc] initWithFrame:CGRectMake(24, self.view.frame.size.height, self.view.frame.size.width - 48, 0)];
     self.nextBlockerInfoLabel.textAlignment = NSTextAlignmentCenter;
-    self.nextBlockerInfoLabel.textColor = [UIColor colorWithWhite:0.6f alpha:1];
+    self.nextBlockerInfoLabel.textColor = [UIColor bonfireGray];
     self.nextBlockerInfoLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightRegular];
     self.nextBlockerInfoLabel.alpha = 0;
     [self.view addSubview:self.nextBlockerInfoLabel];
+    
+    self.legalDisclosureLabel = [UIButton buttonWithType:UIButtonTypeSystem];
+    self.legalDisclosureLabel.frame = CGRectMake(self.view.frame.size.width / 2 - 144, self.view.frame.size.height, 288, 0);
+    self.legalDisclosureLabel.alpha = 0;
+    self.legalDisclosureLabel.titleLabel.textAlignment = NSTextAlignmentCenter;
+    self.legalDisclosureLabel.titleLabel.numberOfLines = 0;
+    
+    NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:@"By continuing, you acknowledge that you have read the Privacy Policy and agree to the Terms of Service." attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:11.f weight:UIFontWeightRegular], NSForegroundColorAttributeName: [UIColor bonfireGray]}];
+    [attributedString addAttributes:@{NSFontAttributeName: [UIFont systemFontOfSize:11.f weight:UIFontWeightSemibold], NSForegroundColorAttributeName: [UIColor colorWithWhite:0.47 alpha:1]} range:[attributedString.string rangeOfString:@"Privacy Policy"]];
+    [attributedString addAttributes:@{NSFontAttributeName: [UIFont systemFontOfSize:11.f weight:UIFontWeightSemibold], NSForegroundColorAttributeName: [UIColor colorWithWhite:0.47 alpha:1]} range:[attributedString.string rangeOfString:@"Terms of Service"]];
+    [self.legalDisclosureLabel setAttributedTitle:attributedString forState:UIControlStateNormal];
+    
+    CGSize legalDisclosureSize = [attributedString boundingRectWithSize:CGSizeMake(self.legalDisclosureLabel.frame.size.width, CGFLOAT_MAX) options:(NSStringDrawingUsesFontLeading|NSStringDrawingUsesLineFragmentOrigin) context:nil].size;
+    self.legalDisclosureLabel.frame = CGRectMake(self.legalDisclosureLabel.frame.origin.x, self.view.frame.size.height, self.legalDisclosureLabel.frame.size.width, legalDisclosureSize.height);
+    
+    [self.legalDisclosureLabel bk_whenTapped:^{
+        // confirm action
+        UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:nil message:nil preferredStyle:UIAlertControllerStyleActionSheet];
+        
+        UIAlertAction *privacyPolicy = [UIAlertAction actionWithTitle:@"Privacy Policy" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            [[Launcher sharedInstance] openURL:@"https://bonfire.camp/privacy"];
+        }];
+        [actionSheet addAction:privacyPolicy];
+        
+        UIAlertAction *termsOfService = [UIAlertAction actionWithTitle:@"Terms of Service" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            [[Launcher sharedInstance] openURL:@"https://bonfire.camp/terms"];
+        }];
+        [actionSheet addAction:termsOfService];
+        
+        UIAlertAction *cancelActionSheet = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
+        [actionSheet addAction:cancelActionSheet];
+        
+        [self presentViewController:actionSheet animated:YES completion:nil];
+    }];
+    
+    [self.view addSubview:self.legalDisclosureLabel];
 }
 
 - (void)setupSteps {
     CGFloat inputCenterY = (self.view.frame.size.height / 2) - (self.view.frame.size.height * .15);
-    self.instructionLabel = [[UILabel alloc] initWithFrame:CGRectMake(48, 129, self.view.frame.size.width - 96, 42)];
+    self.instructionLabel = [[UILabel alloc] initWithFrame:CGRectMake(24, self.view.frame.size.height, self.view.frame.size.width - 48, 42)];
     self.instructionLabel.center = CGPointMake(self.instructionLabel.center.x, (inputCenterY / 2) + 16);
     self.instructionLabel.textAlignment = NSTextAlignmentCenter;
     self.instructionLabel.text = @"Last step, and it’s a fun one! What’s your favorite color?";
@@ -178,24 +222,24 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     
     self.steps = [[NSMutableArray alloc] init];
     
-    [self.steps addObject:@{@"id": @"user_email", @"skip": [NSNumber numberWithBool:false], @"next": @"Next", @"instruction": @"Welcome to Bonfire!\nWhat’s your email?", @"placeholder": @"Email Address", @"sensitive": [NSNumber numberWithBool:false], @"keyboard": @"email", @"textField": [NSNull null], @"block": [NSNull null]}];
-    [self.steps addObject:@{@"id": @"user_password", @"skip": [NSNumber numberWithBool:false], @"next": @"Next", @"instruction": @"Hi again! 👋\nEnter your password to login", @"placeholder":@"Password", @"sensitive": [NSNumber numberWithBool:true], @"keyboard": @"text", @"textField": [NSNull null], @"block": [NSNull null]}];
+    [self.steps addObject:@{@"id": @"user_email", @"skip": [NSNumber numberWithBool:false], @"next": @"Next", @"instruction": (self.signInLikely ? @"Hi again! 👋\nWhat's your email or username?" : @"Welcome to Bonfire!\nWhat’s your email?"), @"placeholder": (self.signInLikely ? @"Email or username" : @"Email Address"), @"sensitive": [NSNumber numberWithBool:false], @"keyboard": (self.signInLikely ? @"text" : @"email"), @"textField": [NSNull null], @"block": [NSNull null]}];
+    [self.steps addObject:@{@"id": @"user_password", @"skip": [NSNumber numberWithBool:false], @"next": @"Log In", @"instruction": @"Let's get you logged in!\nPlease enter your password", @"placeholder":@"Your Password", @"sensitive": [NSNumber numberWithBool:true], @"keyboard": @"text", @"textField": [NSNull null], @"block": [NSNull null]}];
     [self.steps addObject:@{@"id": @"user_set_password", @"skip": [NSNumber numberWithBool:false], @"next": @"Next", @"instruction": @"Let’s get you signed up!\nPlease set a password", @"placeholder": @"Password", @"sensitive": [NSNumber numberWithBool:true], @"keyboard": @"text", @"textField": [NSNull null], @"block": [NSNull null]}];
-    [self.steps addObject:@{@"id": @"user_confirm_password", @"skip": [NSNumber numberWithBool:false], @"next": @"Confirm", @"instruction": @"Just to be sure... please\nconfirm your password!", @"placeholder":@"Confirm Password", @"sensitive": [NSNumber numberWithBool:true], @"keyboard": @"text", @"textField": [NSNull null], @"block": [NSNull null]}];
+    [self.steps addObject:@{@"id": @"user_confirm_password", @"skip": [NSNumber numberWithBool:false], @"next": @"Confirm", @"instruction": @"Just to be sure... please\nconfirm your password", @"placeholder":@"Confirm Password", @"sensitive": [NSNumber numberWithBool:true], @"keyboard": @"text", @"textField": [NSNull null], @"block": [NSNull null]}];
     [self.steps addObject:@{@"id": @"user_display_name", @"skip": [NSNumber numberWithBool:false], @"next": @"Next", @"instruction": @"What would you like\nyour display name to be?", @"placeholder": @"Your Name", @"sensitive": [NSNumber numberWithBool:false], @"keyboard": @"title", @"textField": [NSNull null], @"block": [NSNull null]}];
-    [self.steps addObject:@{@"id": @"user_username", @"skip": [NSNumber numberWithBool:false], @"next": @"Next", @"instruction": @"Help others find you faster by setting a @username", @"placeholder": @"Username", @"sensitive": [NSNumber numberWithBool:false], @"keyboard": @"text", @"textField": [NSNull null], @"block": [NSNull null]}];
+    [self.steps addObject:@{@"id": @"user_username", @"skip": [NSNumber numberWithBool:false], @"next": @"Next", @"instruction": @"Help others find you faster\nby setting a @username", @"placeholder": @"Username", @"sensitive": [NSNumber numberWithBool:false], @"keyboard": @"text", @"textField": [NSNull null], @"block": [NSNull null]}];
     [self.steps addObject:@{@"id": @"user_profile_picture", @"skip": [NSNumber numberWithBool:false], @"next": @"Next", @"instruction": @"Set a profile picture\n(optional)", @"block": [NSNull null]}];
     [self.steps addObject:@{@"id": @"user_color", @"skip": [NSNumber numberWithBool:false], @"next": @"Sign Up", @"instruction": @"Last step, and it’s a fun one! What’s your favorite color?", @"block": [NSNull null]}];
     [self.steps addObject:@{@"id": @"user_room_suggestions", @"skip": [NSNumber numberWithBool:false], @"next": @"Next", @"instruction": @"Camps are the conversations you care about, in one place", @"block": [NSNull null]}];
     [self.steps addObject:@{@"id": @"user_push_notifications", @"skip": [NSNumber numberWithBool:false], @"next": [NSNull null], @"instruction": @"", @"block": [NSNull null]}];
     
-    for (int i = 0; i < [self.steps count]; i++) {
+    for (NSInteger i = 0; i < [self.steps count]; i++) {
         // add each step to the right
         [self addStep:i usingArray:self.steps];
     }
 }
 
-- (void)addStep:(int)stepIndex usingArray:(NSMutableArray *)parentArray {
+- (void)addStep:(NSInteger)stepIndex usingArray:(NSMutableArray *)parentArray {
     NSMutableDictionary *mutatedStep = [[NSMutableDictionary alloc] initWithDictionary:parentArray[stepIndex]];
     
     if ([mutatedStep objectForKey:@"textField"] && ![mutatedStep[@"textfield"] isEqual:[NSNull null]]) {
@@ -203,7 +247,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         [self.view addSubview:inputBlock];
         
         UITextField *textField = [[UITextField alloc] initWithFrame:CGRectMake(24, 0, self.view.frame.size.width - (24 * 2), 56)];
-        textField.textColor = [UIColor colorWithWhite:0.2f alpha:1];
+        textField.textColor = [UIColor bonfireBlack];
         textField.backgroundColor = [UIColor colorWithWhite:1 alpha:1];
         textField.layer.cornerRadius = 12.f;
         textField.layer.masksToBounds = false;
@@ -226,6 +270,28 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             textField.tag = 204;
         }
         
+        // set text content types
+        if ([mutatedStep[@"id"] isEqualToString:@"user_email"]) {
+            textField.textContentType = UITextContentTypeEmailAddress;
+        }
+        else if ([mutatedStep[@"id"] isEqualToString:@"user_password"]) {
+            textField.textContentType = UITextContentTypePassword;
+        }
+        else if ([mutatedStep[@"id"] isEqualToString:@"user_set_password"] || [mutatedStep[@"id"] isEqualToString:@"user_confirm_password"]) {
+            if (@available(iOS 12.0, *)) {
+                textField.textContentType = UITextContentTypeNewPassword;
+            } else {
+                // Fallback on earlier versions
+                textField.textContentType = UITextContentTypePassword;
+            }
+        }
+        else if ([mutatedStep[@"id"] isEqualToString:@"user_display_name"]) {
+            textField.textContentType = UITextContentTypeName;
+        }
+        else if ([mutatedStep[@"id"] isEqualToString:@"user_username"]) {
+            textField.textContentType = UITextContentTypeUsername;
+        }
+        
         if ([mutatedStep objectForKey:@"keyboard"] && [mutatedStep[@"keyboard"] isEqualToString:@"email"]) {
             textField.autocapitalizationType = UITextAutocapitalizationTypeNone;
             textField.keyboardType = UIKeyboardTypeEmailAddress;
@@ -240,9 +306,11 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             if ([mutatedStep objectForKey:@"keyboard"] && [mutatedStep[@"keyboard"] isEqualToString:@"title"]) {
                 textField.autocapitalizationType = UITextAutocapitalizationTypeWords;
             }
-            else if ([mutatedStep[@"id"] isEqualToString:@"user_username"]) {
+            else if ([mutatedStep[@"id"] isEqualToString:@"user_username"] ||
+                     [mutatedStep[@"id"] isEqualToString:@"user_email"]) {
                 textField.autocapitalizationType = UITextAutocapitalizationTypeNone;
                 textField.autocorrectionType = UITextAutocorrectionTypeNo;
+                textField.keyboardType = UIKeyboardTypeASCIICapable;
             }
             else {
                 textField.autocapitalizationType = UITextAutocapitalizationTypeSentences;
@@ -251,7 +319,6 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         
         textField.delegate = self;
         textField.returnKeyType = UIReturnKeyNext;
-        // textField.autocorrectionType = UITextAutocorrectionTypeNo;
         textField.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightMedium];
         
         [inputBlock addSubview:textField];
@@ -262,9 +329,8 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         textField.leftView = leftView;
         textField.rightView = leftView;
         textField.leftViewMode = UITextFieldViewModeAlways;
-        textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:([mutatedStep objectForKey:@"placeholder"] ? mutatedStep[@"placeholder"] : @"") attributes:@{NSForegroundColorAttributeName: [UIColor colorWithWhite:0.2f alpha:0.25]}];
+        textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:([mutatedStep objectForKey:@"placeholder"] ? mutatedStep[@"placeholder"] : @"") attributes:@{NSForegroundColorAttributeName: [UIColor bonfireGray]}];
         [textField addTarget:self action:@selector(textFieldChanged:) forControlEvents:UIControlEventEditingChanged];
-        
         
         if ([mutatedStep[@"sensitive"] boolValue]) {
             textField.secureTextEntry = true;
@@ -275,6 +341,28 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         
         inputBlock.alpha = 0;
         inputBlock.transform = CGAffineTransformMakeTranslation(self.view.frame.size.width, 0);
+        
+        // add a reset password button for password field
+        if ([mutatedStep[@"id"] isEqualToString:@"user_password"]) {
+            UIButton *forgotYourPassword = [UIButton buttonWithType:UIButtonTypeSystem];
+            [forgotYourPassword setTitle:@"Forgot your password?" forState:UIControlStateNormal];
+            forgotYourPassword.titleLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightSemibold];
+            [forgotYourPassword setTitleColor:[UIColor bonfireGray] forState:UIControlStateNormal];
+            forgotYourPassword.frame = CGRectMake(0, textField.frame.origin.y + textField.frame.size.height + 16, self.view.frame.size.width, 32);
+            [forgotYourPassword bk_whenTapped:^{
+                ResetPasswordViewController *resetPasswordVC = [[ResetPasswordViewController alloc] init];
+                
+                NSInteger lookupStep = [self getIndexOfStepWithId:@"user_email"];
+                UITextField *lookupTextField = self.steps[lookupStep][@"textField"];
+                resetPasswordVC.prefillLookup = lookupTextField.text;
+                
+                resetPasswordVC.transitioningDelegate = [Launcher sharedInstance];
+                [[Launcher sharedInstance] present:resetPasswordVC animated:YES];
+            }];
+            [inputBlock addSubview:forgotYourPassword];
+            
+            inputBlock.frame = CGRectMake(inputBlock.frame.origin.x, inputBlock.frame.origin.y, inputBlock.frame.size.width, forgotYourPassword.frame.origin.y + forgotYourPassword.frame.size.height);
+        }
         
         [mutatedStep setObject:inputBlock forKey:@"block"];
         [mutatedStep setObject:textField forKey:@"textField"];
@@ -298,15 +386,11 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                    [UIColor bonfireGrayWithLevel:900]]; // 8
         
         self.themeColor = 0 + arc4random() % (colors.count - 1);
-        
-        NSLog(@"self.themeColor: %li", (long)self.themeColor);
-        
-        for (int i = 0; i < 9; i++) {
-            int row = i % 3;
-            int column = floorf(i / 3);
-            
-            NSLog(@"r: %i / c: %i", row, column);
-            
+                
+        for (NSInteger i = 0; i < 9; i++) {
+            NSInteger row = i % 3;
+            NSInteger column = floorf(i / 3);
+                        
             UIView *colorOption = [[UIView alloc] initWithFrame:CGRectMake(column * 80, row * 80, 56, 56)];
             colorOption.layer.cornerRadius = colorOption.frame.size.height / 2;
             colorOption.backgroundColor = colors[i];
@@ -335,13 +419,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     }
     else if ([mutatedStep[@"id"] isEqualToString:@"user_profile_picture"]) {
         UIImageView *userProfilePictureBlock = [[UIImageView alloc] initWithFrame:CGRectMake(0, self.view.frame.size.width, 160, 160)];
-        BOOL circleProfilePictures = FBTweakValue(@"Post", @"General", @"Circle Profile Pictures", YES);
-        if (circleProfilePictures) {
-            [self continuityRadiusForView:userProfilePictureBlock withRadius:userProfilePictureBlock.frame.size.height / 2];
-        }
-        else {
-            [self continuityRadiusForView:userProfilePictureBlock withRadius:32.f];
-        }
+        [self continuityRadiusForView:userProfilePictureBlock withRadius:userProfilePictureBlock.frame.size.height / 2];
         userProfilePictureBlock.image = [UIImage imageNamed:@"addProfilePicture"];
         userProfilePictureBlock.center = CGPointMake(self.view.frame.size.width / 2, (self.view.frame.size.height / self.view.transform.d) / 2);
         userProfilePictureBlock.alpha = 0;
@@ -394,22 +472,6 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         arrowContainerView.transform = CGAffineTransformMakeTranslation(self.view.frame.size.width, 0);
         [self.view addSubview:arrowContainerView];
         
-        UIImageView *arrowView = [[UIImageView alloc] initWithFrame:CGRectMake(arrowContainerView.frame.size.width * .75 - 11, arrowContainerView.frame.size.height - 9, 22, 9)];
-        arrowView.image = [UIImage imageNamed:@"alertPreferredOptionArrow"];
-        arrowView.contentMode = UIViewContentModeScaleAspectFit;
-        /*[arrowContainerView addSubview:arrowView];
-        
-        CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"position"];
-        [animation setDuration:1.f];
-        animation.cumulative = YES;
-        animation.repeatCount = HUGE_VALF;
-        [animation setAutoreverses:YES];
-        [animation setFromValue:[NSValue valueWithCGPoint:
-                                 CGPointMake([arrowView center].x, [arrowView center].y - 4.f)]];
-        [animation setToValue:[NSValue valueWithCGPoint:
-                               CGPointMake([arrowView center].x, [arrowView center].y + 4.f)]];
-        [[arrowView layer] addAnimation:animation forKey:@"position"];*/
-        
         [mutatedStep setObject:arrowContainerView forKey:@"block"];
     }
     
@@ -442,10 +504,26 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     if (textField.tag == 204) {
         if (newStr.length == 0) return NO;
         
+        // prevent spaces
+        if ([newStr rangeOfCharacterFromSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]].location != NSNotFound) {
+            return NO;
+        }
+        
+        // prevent emojis
+        if ([EmojiUtilities containsEmoji:newStr]) {
+            return NO;
+        }
+        
         return newStr.length <= MAX_USER_USERNAME_LENGTH ? YES : NO;
     }
     
     return true;
+}
+
+- (BOOL)textFieldShouldReturn:(UITextField *)textField {
+    if (self.nextButton.enabled) [self handleNext];
+    
+    return false;
 }
 
 - (void)setColor:(UIView *)sender {
@@ -453,7 +531,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         [HapticHelper generateFeedback:FeedbackType_Selection];
         
         // remove previously selected color
-        int colorStep = [self getIndexOfStepWithId:@"user_color"];
+        NSInteger colorStep = [self getIndexOfStepWithId:@"user_color"];
         UIView *colorBlock = self.steps[colorStep][@"block"];
         
         NSLog(@"previous color: %li", (long)self.themeColor);
@@ -508,8 +586,8 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     
 }
 
-- (int)getIndexOfStepWithId:(NSString *)stepId {
-    for (int i = 0; i < [self.steps count]; i++) {
+- (NSInteger)getIndexOfStepWithId:(NSString *)stepId {
+    for (NSInteger i = 0; i < [self.steps count]; i++) {
         if ([self.steps[i][@"id"] isEqualToString:stepId]) {
             return i;
         }
@@ -519,7 +597,14 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 
 - (void)textFieldChanged:(UITextField *)sender {
     if ([self.steps[self.currentStep][@"id"] isEqualToString:@"user_email"]) {
-        if ([sender.text validateBonfireEmail] == BFValidationErrorNone) {
+        BOOL valid = ([sender.text validateBonfireEmail] == BFValidationErrorNone);
+        
+        if (self.signInLikely && !valid) {
+            // also allow username
+            valid = ([sender.text validateBonfireUsername] == BFValidationErrorNone || ([sender.text validateBonfireUsername] == BFValidationErrorTooShort && sender.text.length >= 1));
+        }
+        
+        if (valid) {
             // qualifies
             self.nextButton.backgroundColor = self.view.tintColor;
             self.nextButton.enabled = true;
@@ -541,6 +626,17 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             [self greyOutNextButton];
         }
     }
+    
+    if ([self.steps[self.currentStep][@"id"] isEqualToString:@"user_username"]) {
+        if ([sender.text validateBonfireUsername] == BFValidationErrorNone) {
+            // qualifies
+            self.nextButton.backgroundColor = self.view.tintColor;
+            self.nextButton.enabled = true;
+        }
+        else {
+            [self greyOutNextButton];
+        }
+    }
 }
 
 - (void)greyOutNextButton {
@@ -549,73 +645,93 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 }
 
 - (void)handleNext {
-    NSLog(@"handleNext:::::");
-    
     NSDictionary *step = self.steps[self.currentStep];
     
     self.nextButton.userInteractionEnabled = false;
     
     // sign in to school
     if ([step[@"id"] isEqualToString:@"user_email"]) {
-        // check for similar names
-        [self greyOutNextButton];
-        [self showSpinnerForStep:self.currentStep];
-        
         // check if user exists
         UITextField *textField = step[@"textField"];
-        NSString *url = [NSString stringWithFormat:@"%@/%@/accounts/validate/email", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"]]; // sample data
-        [self.manager GET:url parameters:@{@"email": textField.text} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, NSDictionary *responseObject) {
-            [self removeSpinnerForStep:self.currentStep];
+        
+        // determine if we should verify email or continue to sign in using username
+        BOOL email = ([textField.text validateBonfireEmail] == BFValidationErrorNone);
+        BOOL username = self.signInLikely && ([textField.text validateBonfireUsername] == BFValidationErrorNone || ([textField.text validateBonfireUsername] == BFValidationErrorTooShort && textField.text.length >= 1));
+
+        if (email) {
+            // check for similar names
+            [self greyOutNextButton];
+            [self showSpinnerForStep:self.currentStep];
             
-            BOOL isValid = [responseObject[@"data"][@"valid"] boolValue];
-            BOOL isOccupied = [responseObject[@"data"][@"occupied"] boolValue];
+            NSString *url = @"accounts/validate/email"; // sample data
             
-            NSLog(@"isValid? %@", (isValid ? @"YES" : @"NO" ));
-            NSLog(@"isOccupied? %@", (isOccupied ? @"YES" : @"NO" ));
+            NSLog(@"handleNext / user_email / url: %@", url);
             
-            if (isValid) {
-                if (isOccupied) {
-                    // proceed to login
-                    [self prepareForLogin];
+            NSLog(@"final url: %@", url);
+            [[HAWebService managerWithContentType:kCONTENT_TYPE_URL_ENCODED] GET:url parameters:@{@"email": textField.text} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, NSDictionary *responseObject) {
+                [self removeSpinnerForStep:self.currentStep];
+                
+                BOOL isValid = [responseObject[@"data"][@"valid"] boolValue];
+                BOOL isOccupied = [responseObject[@"data"][@"occupied"] boolValue];
+                
+                NSLog(@"isValid? %@", (isValid ? @"YES" : @"NO" ));
+                NSLog(@"isOccupied? %@", (isOccupied ? @"YES" : @"NO" ));
+                
+                if (isValid) {
+                    if (isOccupied) {
+                        // proceed to login
+                        [self prepareForLogin];
+                    }
+                    else {
+                        // proceed to sign up
+                        [self prepareForSignUp];
+                    }
+                    
+                    [self nextStep:true];
                 }
                 else {
-                    // proceed to sign up
-                    [self prepareForSignUp];
+                    // email not valid
+                    [self removeSpinnerForStep:self.currentStep];
+                    [self shakeInputBlock];
+                    
+                    [self enableNextButton];
+                    
+                    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Email Not Valid" message:@"We had an issue verifying your email. Please make sure there aren't any typos in the email provided." preferredStyle:UIAlertControllerStyleAlert];
+                    UIAlertAction *gotItAction = [UIAlertAction actionWithTitle:@"Okay" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+                        [alert dismissViewControllerAnimated:true completion:nil];
+                    }];
+                    [alert addAction:gotItAction];
+                    [self presentViewController:alert animated:YES completion:nil];
                 }
                 
-                [self nextStep:true];
-            }
-            else {
-                // email not valid
+            } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+                // not long enough –> shake input block
                 [self removeSpinnerForStep:self.currentStep];
                 [self shakeInputBlock];
                 
-                [self enableNextButton];
+                self.nextButton.enabled = true;
+                self.nextButton.backgroundColor = self.view.tintColor;
+                self.nextButton.userInteractionEnabled = true;
                 
-                UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Email Not Valid" message:@"We had an issue verifying your email. Please make sure there aren't any typos in the email provided." preferredStyle:UIAlertControllerStyleAlert];
+                NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+                NSLog(@"error: %@", ErrorResponse);
+                
+                UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Uh oh!" message:@"We encountered a network error while looking up your account. Check your network settings and try again." preferredStyle:UIAlertControllerStyleAlert];
                 UIAlertAction *gotItAction = [UIAlertAction actionWithTitle:@"Okay" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
                     [alert dismissViewControllerAnimated:true completion:nil];
                 }];
                 [alert addAction:gotItAction];
                 [self presentViewController:alert animated:YES completion:nil];
-            }
-            
-        } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-            // not long enough –> shake input block
-            [self removeSpinnerForStep:self.currentStep];
-            [self shakeInputBlock];
-            
-            self.nextButton.enabled = true;
-            self.nextButton.backgroundColor = self.view.tintColor;
-            self.nextButton.userInteractionEnabled = true;
-            
-            UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Uh oh!" message:@"We encountered a network error while looking up your account. Check your network settings and try again." preferredStyle:UIAlertControllerStyleAlert];
-            UIAlertAction *gotItAction = [UIAlertAction actionWithTitle:@"Okay" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-                [alert dismissViewControllerAnimated:true completion:nil];
             }];
-            [alert addAction:gotItAction];
-            [self presentViewController:alert animated:YES completion:nil];
-        }];
+        }
+        else if (username) {
+            [self prepareForLogin];
+            [self nextStep:true];
+        }
+        else {
+            [self shakeInputBlock];
+        }
+        
     }
     else if ([step[@"id"] isEqualToString:@"user_password"]) {
         // sign in to user
@@ -634,9 +750,10 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             [self showSpinnerForStep:self.currentStep];
             
             // check if username exists
-            NSString *url = [NSString stringWithFormat:@"%@/%@/accounts/validate/username?username=%@", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], [textField.text stringByReplacingOccurrencesOfString:@"@" withString:@""]]; // sample data
-            [self.manager.requestSerializer setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
-            [self.manager GET:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, NSDictionary *responseObject) {
+            NSString *url = [NSString stringWithFormat:@"accounts/validate/username?username=%@", [textField.text stringByReplacingOccurrencesOfString:@"@" withString:@""]]; // sample data
+            
+            NSLog(@"url: %@", url);
+            [[HAWebService managerWithContentType:kCONTENT_TYPE_URL_ENCODED] GET:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, NSDictionary *responseObject) {
                 [self removeSpinnerForStep:self.currentStep];
                 
                 BOOL isValid = [responseObject[@"data"][@"valid"] boolValue];
@@ -647,6 +764,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                 
                 if (isValid && !isOccupied) {
                     // username is available -> proceed to next step
+                    [self enableNextButton];
                     [self nextStep:true];
                 }
                 else if (!isValid) {
@@ -694,8 +812,12 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             }];
         }
     }
+    else if ([step[@"id"] isEqualToString:@"user_set_password"]) {
+        [self greyOutNextButton];
+        [self nextStep:true];
+    }
     else if ([self.steps[self.currentStep][@"id"] isEqualToString:@"user_confirm_password"]) {
-        int passwordStep = [self getIndexOfStepWithId:@"user_set_password"];
+        NSInteger passwordStep = [self getIndexOfStepWithId:@"user_set_password"];
         UITextField *passwordTextField = self.steps[passwordStep][@"textField"];
         NSString *password = passwordTextField.text;
         
@@ -756,7 +878,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 }
 - (void)prepareForLogin {
     // skip everything except email and password
-    for (int i = 0; i < self.steps.count; i++) {
+    for (NSInteger i = 0; i < self.steps.count; i++) {
         NSMutableDictionary *step = [[NSMutableDictionary alloc] initWithDictionary:self.steps[i]];
         if ([step[@"id"] isEqualToString:@"user_email"] || [step[@"id"] isEqualToString:@"user_password"]) {
             [step setObject:[NSNumber numberWithBool:false] forKey:@"skip"];
@@ -769,7 +891,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 }
 - (void)prepareForSignUp {
     // only skip password
-    for (int i = 0; i < self.steps.count; i++) {
+    for (NSInteger i = 0; i < self.steps.count; i++) {
         NSMutableDictionary *step = [[NSMutableDictionary alloc] initWithDictionary:self.steps[i]];
         if ([step[@"id"] isEqualToString:@"user_password"]) {
             [step setObject:[NSNumber numberWithBool:true] forKey:@"skip"];
@@ -784,35 +906,88 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     [self greyOutNextButton];
     [self showSpinnerForStep:self.currentStep];
     
-    // check if user exists
-    int emailStep = [self getIndexOfStepWithId:@"user_email"];
-    UITextField *emailTextField = self.steps[emailStep][@"textField"];
-    NSString *email = emailTextField.text;
+    [UIView animateWithDuration:0.25f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        self.backButton.alpha = 0;
+        self.closeButton.alpha = 0;
+    } completion:nil];
     
-    int passwordStep = [self getIndexOfStepWithId:@"user_password"];
+    // check if user exists
+    NSInteger emailOrUsernameStep = [self getIndexOfStepWithId:@"user_email"];
+    UITextField *emailOrUsernameTextField = self.steps[emailOrUsernameStep][@"textField"];
+    NSString *emailOrUsername = emailOrUsernameTextField.text;
+    
+    NSInteger passwordStep = [self getIndexOfStepWithId:@"user_password"];
     UITextField *passwordTextField = self.steps[passwordStep][@"textField"];
     NSString *password = passwordTextField.text;
     
-    NSString *url = [NSString stringWithFormat:@"%@/%@/oauth", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"]]; // sample data
-    [self.manager POST:url parameters:@{@"email": email, @"password": password, @"grant_type": @"password"} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, NSDictionary *responseObject) {
+    NSDictionary *params;
+    BOOL email = ([emailOrUsernameTextField.text validateBonfireEmail] == BFValidationErrorNone);
+    if (email) {
+        params = @{@"email": emailOrUsername, @"password": password, @"grant_type": @"password"};
+    }
+    else {
+        params = @{@"username": emailOrUsername, @"password": password, @"grant_type": @"password"};
+    }
+    
+    [[HAWebService managerWithContentType:kCONTENT_TYPE_URL_ENCODED] POST:@"oauth" parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, NSDictionary *responseObject) {
         [self removeSpinnerForStep:self.currentStep];
         
         [[Session sharedInstance] setAccessToken:responseObject[@"data"]];
         
         // TODO: Open LauncherNavigationViewController
-        [[Session sharedInstance] fetchUser:^(BOOL success) {
+        [BFAPI getUser:^(BOOL success) {
+            NSLog(@"success?>? %@", success ? @"YES" : @"NO");
             if (success) {
+                self.signUpTrace = nil;
+                [self.signInTrace stop];
+                [FIRAnalytics logEventWithName:@"onboarding_signed_in"
+                                    parameters:@{}];
+                
                 [self requestNotifications];
+            }
+            else {
+                [UIView animateWithDuration:0.25f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+                    self.backButton.alpha = 1;
+                    self.closeButton.alpha = 1;
+                } completion:nil];
+                
+                // not long enough –> shake input block
+                [self shakeInputBlock];
+                
+                [self enableNextButton];
             }
         }];
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        [UIView animateWithDuration:0.25f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+            self.backButton.alpha = 1;
+            self.closeButton.alpha = 1;
+        } completion:nil];
+        
         // not long enough –> shake input block
         [self removeSpinnerForStep:self.currentStep];
         [self shakeInputBlock];
         
         [self enableNextButton];
         
-        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Uh oh!" message:@"We encountered an error while signing you in. Please try again and check back soon for an update." preferredStyle:UIAlertControllerStyleAlert];
+        NSHTTPURLResponse *httpResponse = error.userInfo[AFNetworkingOperationFailingURLResponseErrorKey];
+        NSInteger statusCode = httpResponse.statusCode;
+        
+        NSString *errorTitle = @"Uh oh!";
+        NSString *errorMessage = @"We encountered an error while signing you in. Please try again and check back soon for an update.";
+        if (statusCode == 412) {
+            // invalid request parameter
+            // --> invalid password
+            errorTitle = @"Please try again";
+            errorMessage = @"The username and password you entered did not match our records. Please double-check and try again!";
+            
+            [FIRAnalytics logEventWithName:@"onboarding_invalid_credentials"
+                                parameters:@{}];
+        }
+        
+        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+        NSLog(@"error: %@", ErrorResponse);
+        
+        UIAlertController *alert = [UIAlertController alertControllerWithTitle:errorTitle message:errorMessage preferredStyle:UIAlertControllerStyleAlert];
         UIAlertAction *gotItAction = [UIAlertAction actionWithTitle:@"Okay" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
             [alert dismissViewControllerAnimated:true completion:nil];
         }];
@@ -821,24 +996,21 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     }];
 }
 - (void)attemptToSignUp {
-    NSString *url = [NSString stringWithFormat:@"%@/%@/accounts", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"]];
-    
-    int emailStep = [self getIndexOfStepWithId:@"user_email"];
+    NSInteger emailStep = [self getIndexOfStepWithId:@"user_email"];
     UITextField *emailTextField = self.steps[emailStep][@"textField"];
     NSString *email = emailTextField.text;
     
-    int passwordStep = [self getIndexOfStepWithId:@"user_set_password"];
+    NSInteger passwordStep = [self getIndexOfStepWithId:@"user_set_password"];
     UITextField *passwordTextField = self.steps[passwordStep][@"textField"];
     NSString *password = passwordTextField.text;
     
-    int displayNameStep = [self getIndexOfStepWithId:@"user_display_name"];
+    NSInteger displayNameStep = [self getIndexOfStepWithId:@"user_display_name"];
     UITextField *displayNameTextField = self.steps[displayNameStep][@"textField"];
     NSString *displayName = displayNameTextField.text;
     
     NSLog(@"params: %@", @{@"email": email, @"password": password, @"display_name": displayName});
     
-    [self.manager.requestSerializer setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
-    [self.manager POST:url parameters:@{@"email": email, @"password": password, @"display_name": displayName} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+    [[HAWebService managerWithContentType:kCONTENT_TYPE_URL_ENCODED] POST:@"accounts" parameters:@{@"email": email, @"password": password, @"display_name": displayName} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSLog(@"responseObject: %@", responseObject);
         
         NSError *error;
@@ -848,13 +1020,15 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             NSLog(@"error creating user object: %@", error);
         }
         
-        int usernameStep = [self getIndexOfStepWithId:@"user_username"];
+        NSInteger usernameStep = [self getIndexOfStepWithId:@"user_username"];
         UITextField *usernameTextField = self.steps[usernameStep][@"textField"];
         usernameTextField.text = [NSString stringWithFormat:@"@%@", user.attributes.details.identifier];
         
+        [FIRAnalytics logEventWithName:@"onboarding_signed_up"
+                            parameters:@{}];
+        
         // get access token for user
-        NSString *oauthURL = [NSString stringWithFormat:@"%@/%@/oauth", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"]]; // sample data
-        [self.manager POST:oauthURL parameters:@{@"email": email, @"password": password, @"grant_type": @"password"} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, NSDictionary *responseObject) {
+        [[HAWebService managerWithContentType:kCONTENT_TYPE_URL_ENCODED] POST:@"oauth" parameters:@{@"email": email, @"password": password, @"grant_type": @"password"} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, NSDictionary *responseObject) {
             [self removeSpinnerForStep:self.currentStep];
             
             [[Session sharedInstance] setAccessToken:responseObject[@"data"]];
@@ -909,62 +1083,86 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     }];
 }
 - (void)attemptToSaveUser {
-    NSString *url;
-    url = [NSString stringWithFormat:@"%@/%@/users/me", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"]]; // sample data
-    
-    int usernameStep = [self getIndexOfStepWithId:@"user_username"];
+    NSInteger usernameStep = [self getIndexOfStepWithId:@"user_username"];
     UITextField *usernameTextField = self.steps[usernameStep][@"textField"];
     NSString *username = [usernameTextField.text stringByReplacingOccurrencesOfString:@"@" withString:@""];
     
-    int profilePictureStep = [self getIndexOfStepWithId:@"user_profile_picture"];
+    NSInteger profilePictureStep = [self getIndexOfStepWithId:@"user_profile_picture"];
     UIImageView *profilePictureImageView = self.steps[profilePictureStep][@"block"];
     UIImage *profilePicture = profilePictureImageView.image;
+    CGImageRef cgref = [profilePicture CGImage];
+    CIImage *cim = [profilePicture CIImage];
+    BOOL hasProfilePicture = (cim != nil || cgref != NULL) && profilePictureImageView.tag == 1;
     
     NSString *color = [UIColor toHex:colors[self.themeColor]];
     
-    NSLog(@"params: %@", @{@"username": username, @"color": color});
+    void (^errorSaving)(void) = ^() {
+        [self removeBigSpinnerForStep:self.currentStep push:false];
+        self.nextButton.enabled = true;
+        self.nextButton.backgroundColor = [self currentColor];
+        self.nextButton.userInteractionEnabled = true;
+        [self shakeInputBlock];
+    };
     
-    [self uploadProfilePicture:profilePicture copmletion:^(BOOL success, NSString *img) {
-        [self.manager.requestSerializer setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
-        [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
+    void (^saveUser)(NSString *uploadedImage) = ^(NSString *uploadedImage) {
+        NSMutableDictionary *params = [[NSMutableDictionary alloc] initWithDictionary:@{@"username": username, @"color": color}];
+        if (uploadedImage && uploadedImage.length > 0) {
+            [params setObject:uploadedImage forKey:@"profile_pic"];
+        }
+        NSLog(@"params: %@", params);
+        
+        [[HAWebService authenticatedManager] PUT:@"users/me" parameters:params success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+            NSLog(@"responseObject: %@", responseObject);
+            
+            self.nextButton.enabled = true;
+            self.nextButton.backgroundColor = [self currentColor];
+            
+            // move spinner
+            [self removeBigSpinnerForStep:self.currentStep push:true];
+            
+            NSLog(@"all done! successfully saved user!");
+            User *updatedUser = [[User alloc] initWithDictionary:responseObject[@"data"] error:nil];
+            [[Session sharedInstance] updateUser:updatedUser];
+            
+            [self nextStep:true];
+            [self greyOutNextButton];
+            
+            [self.signUpTrace stop];
+            self.signInTrace = nil;
+            [FIRAnalytics logEventWithName:@"onboarding_updated_user"
+                                parameters:@{@"color": color}];
+            
+            self.closeButton.userInteractionEnabled = false;
+            self.backButton.userInteractionEnabled = false;
+            [UIView animateWithDuration:0.3f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+                self.closeButton.alpha = 0;
+                self.backButton.alpha = 0;
+            } completion:nil];
+        } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+            NSLog(@"error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);
+            NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+            NSLog(@"%@",ErrorResponse);
+            
+            errorSaving();
+        }];
+    };
+    
+    if (hasProfilePicture) {
+        BFMediaObject *profilePictureObject = [[BFMediaObject alloc] initWithImage:profilePicture];
+        
+        [BFAPI uploadImage:profilePictureObject copmletion:^(BOOL success, NSString * _Nonnull uploadedImageURL) {
             if (success) {
-                [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
-                [self.manager PUT:url parameters:@{@"username": username, @"color": color} success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                    NSLog(@"responseObject: %@", responseObject);
-                    
-                    self.nextButton.enabled = true;
-                    self.nextButton.backgroundColor = [self currentColor];
-                    
-                    // move spinner
-                    [self removeBigSpinnerForStep:self.currentStep push:true];
-                    
-                    NSLog(@"all done! successfully saved user!");
-                    User *updatedUser = [[User alloc] initWithDictionary:responseObject[@"data"] error:nil];
-                    [[Session sharedInstance] updateUser:updatedUser];
-                    
-                    [self nextStep:true];
-                    [self greyOutNextButton];
-                    
-                    self.closeButton.userInteractionEnabled = false;
-                    self.backButton.userInteractionEnabled = false;
-                    [UIView animateWithDuration:0.3f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-                        self.closeButton.alpha = 0;
-                        self.backButton.alpha = 0;
-                    } completion:nil];
-                } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                    NSLog(@"error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);
-                    NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-                    NSLog(@"%@",ErrorResponse);
-                    
-                    [self removeBigSpinnerForStep:self.currentStep push:false];
-                    self.nextButton.enabled = true;
-                    self.nextButton.backgroundColor = [self currentColor];
-                    self.nextButton.userInteractionEnabled = true;
-                    [self shakeInputBlock];
-                }];
+                saveUser(uploadedImageURL);
+            }
+            else {
+                // save it anyways -- despite the profile picture failing
+                saveUser(nil);
             }
         }];
-    }];
+    }
+    else {
+        saveUser(nil);
+    }
 }
 - (void)nextStep:(BOOL)withAnimation {
     /*
@@ -981,10 +1179,10 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         animationDuration = 0;
     }
     
-    int next = self.currentStep;
+    NSInteger next = self.currentStep;
 
     BOOL isComplete = true; // true until proven false
-    for (int i = self.currentStep + 1; i < [self.steps count]; i++) {
+    for (NSInteger i = self.currentStep + 1; i < [self.steps count]; i++) {
         // steps to the right of the currentStep
         if (i >= [self.steps count]) {
             // does not have a next step // this should never happen
@@ -994,11 +1192,10 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         else {
             NSDictionary *step = self.steps[i];
             if (![step[@"skip"] boolValue]) {
-                NSLog(@"this is the next step");
                 next = i;
             }
             else {
-                NSLog(@"skip step");
+                // skip step
             }
         }
         if (next != self.currentStep && i < [self.steps count]) {
@@ -1022,12 +1219,9 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             activeStep = self.steps[self.currentStep];
             activeBlock = activeStep[@"block"];
         }
-        NSLog(@"activeBlock: %@", activeBlock);
         
         NSDictionary *nextStep = self.steps[next];
         UIView *nextBlock = nextStep[@"block"];
-        
-        NSLog(@"next step: %@", [nextStep objectForKey:@"textField"]);
         
         if (self.backButton.alpha == 0 && ([nextStep[@"id"] isEqualToString:@"user_password"] || [nextStep[@"id"] isEqualToString:@"user_set_password"] || [nextStep[@"id"] isEqualToString:@"user_confirm_password"] || [nextStep[@"id"] isEqualToString:@"user_display_name"])) {
             [UIView animateWithDuration:0.3f animations:^{
@@ -1096,8 +1290,13 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             if ([nextStep[@"id"] isEqualToString:@"user_room_suggestions"]) {
                 self.nextBlockerInfoLabel.alpha = 1;
             }
+            else if ([nextStep[@"id"] isEqualToString:@"user_email"] && !self.signInLikely) {
+                // show legal disclosure
+                self.legalDisclosureLabel.alpha = 1;
+            }
             else {
                 self.nextBlockerInfoLabel.alpha = 0;
+                self.legalDisclosureLabel.alpha = 0;
             }
         } completion:^(BOOL finished) {
             self.nextButton.userInteractionEnabled = true;
@@ -1153,7 +1352,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         
     }
 }
-- (void)previousStep:(int)previous {
+- (void)previousStep:(NSInteger)previous {
     /*
      
      PREVIOUS STEP
@@ -1164,7 +1363,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     
     if (previous == -1) {
         previous = self.currentStep;
-        for (int i = self.currentStep - 1; i >= 0; i--) {
+        for (NSInteger i = self.currentStep - 1; i >= 0; i--) {
             // steps to the right of the currentStep
             if (i < 0) {
                 // does not have a previous step // this should never happen
@@ -1185,8 +1384,8 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         }
     }
     
-    NSLog(@"currentStep: %i", self.currentStep);
-    NSLog(@"previousStep: %i", previous);
+    NSLog(@"currentStep: %li", (long)self.currentStep);
+    NSLog(@"previousStep: %li", (long)previous);
     
     if (previous < 0) {
         // prevent negative steps
@@ -1206,15 +1405,13 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             // change the tint color back to blue
             self.backButton.tintColor = [self.view tintColor];
             previousTextField.tintColor = [self.view tintColor];
-            previousTextField.textColor = [UIColor colorWithWhite:0.2f alpha:1];
+            previousTextField.textColor = [UIColor bonfireBlack];
         }
         
         NSDictionary *activeStep = self.steps[self.currentStep];
         UIView *activeBlock = activeStep[@"block"];
         UITextField *activeTextField = activeStep[@"textField"];
-        
-        NSLog(@"activeBlock: %@", activeBlock);
-        
+                
         float animationDuration = 0.9f;
         
         // focus keyboard on previous text field
@@ -1294,62 +1491,6 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     return colors[self.themeColor];
 }
 
-- (void)uploadProfilePicture:(UIImage *)profilePicture copmletion:(void (^)(BOOL success, NSString *img))handler {
-    CGImageRef cgref = [profilePicture CGImage];
-    CIImage *cim = [profilePicture CIImage];
-    
-    if (profilePicture && (cim != nil || cgref != NULL) && [profilePicture isKindOfClass:[UIImage class]]) {
-        // has images
-        NSLog(@"has profile picture to upload -> upload them then continue");
-        
-        NSString *url = [NSString stringWithFormat:@"%@/%@/upload", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"]];
-        NSLog(@"POST /images url: %@", url);
-        
-        [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
-            if (success) {
-                AFHTTPSessionManager *localManager = [AFHTTPSessionManager manager];
-                [localManager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
-                [localManager.requestSerializer setValue:envConfig[@"API_KEY"] forHTTPHeaderField:@"x-hallway-apikey"];
-                [localManager.requestSerializer setValue:[NSString stringWithFormat:@"iosClient/%@", [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"]] forHTTPHeaderField:@"x-hallway-client"];
-                [localManager.requestSerializer setValue:@"https://hallway.app" forHTTPHeaderField:@"origin"];
-                [localManager.requestSerializer setValue:nil forHTTPHeaderField:@"Origin"];
-                
-                [localManager POST:url parameters:nil constructingBodyWithBlock:^(id<AFMultipartFormData>  _Nonnull formData) {
-                    NSData *imageData = [self compressAndEncodeToData:profilePicture];
-                    [formData appendPartWithFileData:imageData name:@"img" fileName:@"image.jpg" mimeType:@"image/jpeg"];
-                } progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                    NSLog(@"--------");
-                    NSLog(@"response object:");
-                    NSLog(@"%@", responseObject);
-                    NSLog(@"--------");
-                    
-                    if (responseObject[@"data"] && responseObject[@"data"] != [NSNull null] && [responseObject[@"data"] count] > 0) {
-                        handler(true, [NSString stringWithFormat:@"%@", responseObject[@"data"][0][@"id"]]);
-                    }
-                    else {
-                        handler(false, nil);
-                    }
-                } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                    NSLog(@"error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);
-                    NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-                    NSLog(@"%@",ErrorResponse);
-                    NSLog(@"%@", error);
-                    NSLog(@"idk: %@", task.response);
-                    
-                    handler(false, nil);
-                }];
-            }
-            else {
-                handler(false, nil);
-            }
-        }];
-    }
-    else {
-        NSLog(@"does not have profile picture -> proceed to create account");
-        handler(true, nil);
-    }
-}
-
 // Image compressions -> images should never be > 2mb
 - (NSData *)compressAndEncodeToData:(UIImage *)image
 {
@@ -1404,14 +1545,14 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     [[currentBlock layer] addAnimation:animation forKey:@"position"];
 }
 
-- (void)showSpinnerForStep:(int)step {
+- (void)showSpinnerForStep:(NSInteger)step {
     UIView *block = (UIView *)[[self.steps objectAtIndex:step] objectForKey:@"block"];
     UITextField *textField = (UITextField *)[[self.steps objectAtIndex:step] objectForKey:@"textField"];
     
     UIImageView *miniSpinner = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 32, 32)];
     miniSpinner.image = [[UIImage imageNamed:@"miniSpinner"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
     miniSpinner.tintColor = self.view.tintColor;
-    miniSpinner.center = CGPointMake(block.frame.size.width / 2, block.frame.size.height / 2);
+    miniSpinner.center = CGPointMake(block.frame.size.width / 2, textField.frame.size.height / 2);
     miniSpinner.alpha = 0;
     miniSpinner.tag = 1111;
     
@@ -1430,14 +1571,14 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         miniSpinner.alpha = 1;
     } completion:nil];
     [UIView transitionWithView:textField duration:0.3 options:UIViewAnimationOptionTransitionCrossDissolve animations:^{
-        textField.textColor = [UIColor colorWithWhite:0.2f alpha:0];
+        textField.textColor = [[UIColor bonfireBlack] colorWithAlphaComponent:0];
         if (textField.placeholder != nil) {
-            textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:textField.placeholder attributes:@{NSForegroundColorAttributeName: [UIColor colorWithWhite:0.2f alpha:0]}];
+            textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:textField.placeholder attributes:@{NSForegroundColorAttributeName: [[UIColor grayColor] colorWithAlphaComponent:0]}];
         }
         textField.tintColor = [UIColor clearColor];
     } completion:nil];
 }
-- (void)removeSpinnerForStep:(int)step {
+- (void)removeSpinnerForStep:(NSInteger)step {
     UIView *block = (UIView *)[[self.steps objectAtIndex:step] objectForKey:@"block"];
     UITextField *textField = (UITextField *)[[self.steps objectAtIndex:step] objectForKey:@"textField"];
     UIImageView *miniSpinner = [block viewWithTag:1111];
@@ -1447,21 +1588,17 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     } completion:^(BOOL finished) {
         [miniSpinner removeFromSuperview];
         
-        NSLog(@"textField inside completion block - removeSpinnerForStep: %@", textField);
-        
         [UIView transitionWithView:textField duration:0.3 options:UIViewAnimationOptionTransitionCrossDissolve animations:^{
-            textField.textColor = [UIColor colorWithWhite:0.2f alpha:1];
+            textField.textColor = [UIColor bonfireBlack];
             textField.tintColor = [self.view tintColor];
             if (textField.placeholder != nil) {
-                textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:textField.placeholder attributes:@{NSForegroundColorAttributeName: [UIColor colorWithWhite:0.2f alpha:0.25]}];
+                textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:textField.placeholder attributes:@{NSForegroundColorAttributeName: [UIColor bonfireGray]}];
             }
-        } completion:^(BOOL finished) {
-            NSLog(@"we finished something!!: %@", textField.textColor);
-        }];
+        } completion:nil];
     }];
 }
 
-- (void)showBigSpinnerForStep:(int)step {
+- (void)showBigSpinnerForStep:(NSInteger)step {
     UIView *block = (UIView *)[[self.steps objectAtIndex:step] objectForKey:@"block"];
     
     UIImageView *spinner = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 64, 64)];
@@ -1490,7 +1627,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         spinner.alpha = 1;
     } completion:nil];
 }
-- (void)removeBigSpinnerForStep:(int)step push:(BOOL)push {
+- (void)removeBigSpinnerForStep:(NSInteger)step push:(BOOL)push {
     NSDictionary *stepDict = [self.steps objectAtIndex:step];
     UIView *block = (UIView *)[stepDict objectForKey:@"block"];
     UIImageView *spinner = [self.view viewWithTag:1111];
@@ -1524,17 +1661,21 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     
     self.nextButton.frame = CGRectMake(self.nextButton.frame.origin.x, (self.view.frame.size.height / self.view.transform.d) - _currentKeyboardHeight - self.nextButton.frame.size.height - self.nextButton.frame.origin.x, self.nextButton.frame.size.width, self.nextButton.frame.size.height);
     self.nextBlockerInfoLabel.frame = CGRectMake(self.nextButton.frame.origin.x, self.nextButton.frame.origin.y - 16 - 21, self.nextButton.frame.size.width, 16);
+    self.legalDisclosureLabel.frame = CGRectMake(self.legalDisclosureLabel.frame.origin.x, self.nextButton.frame.origin.y - 16 - self.legalDisclosureLabel.frame.size.height, self.legalDisclosureLabel.frame.size.width, self.legalDisclosureLabel.frame.size.height);
 }
 
 - (void)keyboardWillDismiss:(NSNotification *)notification {
     _currentKeyboardHeight = 0;
     
-    UIEdgeInsets insets = safeAreaInsets;
+    UIWindow *window = UIApplication.sharedApplication.keyWindow;
+    CGFloat bottomPadding = window.safeAreaInsets.bottom + (HAS_ROUNDED_CORNERS ? (self.nextButton.frame.origin.x / 2) : self.nextButton.frame.origin.x);
     
     NSNumber *duration = [notification.userInfo objectForKey:UIKeyboardAnimationDurationUserInfoKey];
     [UIView animateWithDuration:[duration floatValue] delay:0 options:[[notification.userInfo objectForKey:UIKeyboardAnimationCurveUserInfoKey] intValue] << 16 animations:^{
-        self.nextButton.frame = CGRectMake(self.nextButton.frame.origin.x, (self.view.frame.size.height / self.view.transform.d) - self.nextButton.frame.size.height - (self.nextButton.frame.origin.x / 2) - insets.bottom, self.nextButton.frame.size.width, self.nextButton.frame.size.height);
+        self.nextButton.frame = CGRectMake(self.nextButton.frame.origin.x, (self.view.frame.size.height / self.view.transform.d) - self.nextButton.frame.size.height - bottomPadding, self.nextButton.frame.size.width, self.nextButton.frame.size.height);
+        
         self.nextBlockerInfoLabel.frame = CGRectMake(self.nextButton.frame.origin.x, self.nextButton.frame.origin.y - 16 - 21, self.nextButton.frame.size.width, 16);
+        self.legalDisclosureLabel.frame = CGRectMake(self.legalDisclosureLabel.frame.origin.x, self.nextButton.frame.origin.y - 16 - self.legalDisclosureLabel.frame.size.height, self.legalDisclosureLabel.frame.size.width, self.legalDisclosureLabel.frame.size.height);
     } completion:nil];
 }
 
@@ -1580,52 +1721,59 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     // init roomsJoined so we can keep track of how many Rooms have been joined
     roomsJoined = [[NSMutableDictionary alloc] init];
     
-    NSString *url = [NSString stringWithFormat:@"%@/%@/users/me/rooms/lists", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"]];
-    
-    [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
-        if (success) {
-            [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
+    [[HAWebService authenticatedManager] GET:@"users/me/rooms/lists" parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        NSArray *responseData = responseObject[@"data"];
+        
+        self.roomSuggestions = [[NSMutableArray alloc] init];
+        for (NSInteger i = 0; i < responseData.count; i++) {
+            // iterate through each rooms_list
+            NSDictionary *rooms_list = responseData[i];
+            NSArray *rooms_list_rooms = rooms_list[@"attributes"][@"rooms"];
             
-            [self.manager GET:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                NSArray *responseData = responseObject[@"data"];
-                
-                self.roomSuggestions = [[NSMutableArray alloc] init];
-                for (int i = 0; i < responseData.count; i++) {
-                    // iterate through each rooms_list
-                    NSDictionary *rooms_list = responseData[i];
-                    NSArray *rooms_list_rooms = rooms_list[@"attributes"][@"rooms"];
-                    
-                    [self.roomSuggestions addObjectsFromArray:rooms_list_rooms];
-                }
-                
-                if (self.roomSuggestions.count == 0) {
-                    [self nextStep:true];
-                }
-                else {
-                    // randomly sort
-                    int count = (int)[self.roomSuggestions count];
-                    NSLog(@"count: %i", count);
-                    for (int i = 0; i < count; ++i) {
-                        // Select a random element between i and end of array to swap with.
-                        int nElements = count - i;
-                        int n = (arc4random() % nElements) + i;
-                        [self.roomSuggestions exchangeObjectAtIndex:i withObjectAtIndex:n];
-                    }
-                }
-                
-                self.loadingRoomSuggestions = false;
-                
-                [self.roomSuggestionsCollectionView reloadData];
-            } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                NSLog(@"‼️ MyRoomsViewController / getLists() - error: %@", error);
-                //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-                
-                self.loadingRoomSuggestions = false;
-                
-                [self.roomSuggestionsCollectionView reloadData];
-                
+            [self.roomSuggestions addObjectsFromArray:rooms_list_rooms];
+        }
+        
+        if (self.roomSuggestions.count == 0) {
+            // skip step entirely
+            NSInteger stepIndex = [self getIndexOfStepWithId:@"user_room_suggestions"];
+            NSMutableDictionary *step = [[NSMutableDictionary alloc] initWithDictionary:self.steps[stepIndex]];
+            [step setObject:[NSNumber numberWithBool:true] forKey:@"skip"];
+            [self.steps replaceObjectAtIndex:stepIndex withObject:step];
+            
+            if (stepIndex == self.currentStep) {
                 [self nextStep:true];
-            }];
+            }
+        }
+        else {
+            // randomly sort
+            NSInteger count = [self.roomSuggestions count];
+            NSLog(@"count: %li", (long)count);
+            for (NSInteger i = 0; i < count; ++i) {
+                // Select a random element between i and end of array to swap with.
+                NSInteger nElements = count - i;
+                NSInteger n = (arc4random() % nElements) + i;
+                [self.roomSuggestions exchangeObjectAtIndex:i withObjectAtIndex:n];
+            }
+        }
+        
+        self.loadingRoomSuggestions = false;
+        
+        [self.roomSuggestionsCollectionView reloadData];
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        NSLog(@"‼️ MyRoomsViewController / getLists() - error: %@", error);
+        //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+        
+        self.loadingRoomSuggestions = false;
+        
+        [self.roomSuggestionsCollectionView reloadData];
+        
+        NSInteger stepIndex = [self getIndexOfStepWithId:@"user_room_suggestions"];
+        NSMutableDictionary *step = [[NSMutableDictionary alloc] initWithDictionary:self.steps[stepIndex]];
+        [step setObject:[NSNumber numberWithBool:true] forKey:@"skip"];
+        [self.steps replaceObjectAtIndex:stepIndex withObject:step];
+        
+        if (stepIndex == self.currentStep) {
+            [self nextStep:true];
         }
     }];
 }
@@ -1653,7 +1801,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             
             cell.roomHeaderView.backgroundColor = [UIColor fromHex:cell.room.attributes.details.color];
             // set profile pictures
-            for (int i = 0; i < 4; i++) {
+            for (NSInteger i = 0; i < 4; i++) {
                 BFAvatarView *avatarView;
                 if (i == 0) { avatarView = cell.member1; }
                 else if (i == 1) { avatarView = cell.member2; }
@@ -1738,7 +1886,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     Room *room = notification.object;
     
     if (room != nil) {
-        for (int i = 0; i < self.roomSuggestions.count; i++) {
+        for (NSInteger i = 0; i < self.roomSuggestions.count; i++) {
             if ([self.roomSuggestions[i][@"id"] isEqualToString:room.identifier]) {
                 // same room -> replace it with updated object
                 [self.roomSuggestions replaceObjectAtIndex:i withObject:[room toDictionary]];
@@ -1792,15 +1940,14 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                   usingCropRect:(CGRect)cropRect
                   rotationAngle:(CGFloat)rotationAngle
 {
-    int profilePictureStep = [self getIndexOfStepWithId:@"user_profile_picture"];
+    NSInteger profilePictureStep = [self getIndexOfStepWithId:@"user_profile_picture"];
     UIImageView *profilePictureImageView = self.steps[profilePictureStep][@"block"];
-    
+    profilePictureImageView.tag = 1;
     profilePictureImageView.image = croppedImage;
     
     [controller.navigationController dismissViewControllerAnimated:YES completion:nil];
     
     [self enableNextButton];
-    
     
     [controller.navigationController dismissViewControllerAnimated:YES completion:nil];
 }
@@ -1864,14 +2011,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     return maskRect;
 }
 - (UIBezierPath *)imageCropViewControllerCustomMaskPath:(RSKImageCropViewController *)controller {
-    CGFloat circleRadius;
-    BOOL circleProfilePictures = FBTweakValue(@"Post", @"General", @"Circle Profile Pictures", YES);
-    if (circleProfilePictures) {
-        circleRadius = controller.maskRect.size.width * .5;
-    }
-    else {
-        circleRadius = controller.maskRect.size.width * .25;
-    }
+    CGFloat circleRadius = controller.maskRect.size.width * .5;
     
     UIBezierPath *path = [UIBezierPath bezierPathWithRoundedRect:controller.maskRect
                                                byRoundingCorners:UIRectCornerBottomLeft|UIRectCornerBottomRight|UIRectCornerTopLeft|UIRectCornerTopRight

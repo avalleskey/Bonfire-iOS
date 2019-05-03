@@ -10,12 +10,13 @@
 #import "NotificationCell.h"
 #import "Room.h"
 #import "User.h"
+#import "UserActivity.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 @interface NSAttributedString (NotificationConveniences)
 
-+ (NSAttributedString *)attributedStringForType:(NotificationType)notificationType;
++ (NSAttributedString *)attributedStringForActivity:(UserActivity *)activity;
 
 @end
 

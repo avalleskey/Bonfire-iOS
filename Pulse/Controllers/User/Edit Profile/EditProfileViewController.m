@@ -18,17 +18,19 @@
 #import "HAWebService.h"
 #import "UIColor+Palette.h"
 #import "NSString+Validation.h"
+
 #import "ErrorCodes.h"
+#import "EmojiUtilities.h"
 
 #import <RSKImageCropper/RSKImageCropper.h>
 #import <BlocksKit/BlocksKit.h>
 #import <BlocksKit/BlocksKit+UIKit.h>
 #import <JGProgressHUD/JGProgressHUD.h>
-#import <Tweaks/FBTweakInline.h>
+@import Firebase;
 
-@interface EditProfileViewController () <UITextFieldDelegate, UITextViewDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate, RSKImageCropViewControllerDelegate, RSKImageCropViewControllerDataSource>
-
-@property (strong, nonatomic) HAWebService *manager;
+@interface EditProfileViewController () <UITextFieldDelegate, UITextViewDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate, RSKImageCropViewControllerDelegate, RSKImageCropViewControllerDataSource> {
+    UIImage *newAvatar;
+}
 
 @end
 
@@ -41,12 +43,17 @@ static NSString * const themeSelectorReuseIdentifier = @"ThemeSelectorCell";
 static NSString * const inputReuseIdentifier = @"InputCell";
 static NSString * const buttonReuseIdentifier = @"ButtonCell";
 
+static int const DISPLAY_NAME_FIELD = 201;
+static int const USERNAME_FIELD = 202;
+static int const BIO_FIELD = 203;
+static int const LOCATION_FIELD = 204;
+static int const WEBSITE_FIELD = 205;
+static int const EMAIL_FIELD = 206;
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     
     self.title = @"Edit Profile";
-    
-    self.manager = [HAWebService manager];
     
     self.cancelButton = [[UIBarButtonItem alloc] initWithTitle:@"Cancel" style:UIBarButtonItemStylePlain target:self action:@selector(dismiss:)];
     [self.cancelButton setTintColor:[UIColor whiteColor]];
@@ -77,7 +84,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
     self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 48, 0);
     
-    self.themeColor = [Session sharedInstance].themeColor;
+    self.themeColor = [UIColor fromHex:[[Session sharedInstance] currentUser].attributes.details.color];
     
     // add background color view
     self.navigationBackgroundView = [[UIView alloc] init];
@@ -93,6 +100,9 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     [self.tableView registerClass:[ThemeSelectorCell class] forCellReuseIdentifier:themeSelectorReuseIdentifier];
     [self.tableView registerClass:[InputCell class] forCellReuseIdentifier:inputReuseIdentifier];
     [self.tableView registerClass:[ButtonCell class] forCellReuseIdentifier:buttonReuseIdentifier];
+    
+    // Google Analytics
+    [FIRAnalytics setScreenName:@"Edit Profile" screenClass:nil];
 }
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
@@ -120,13 +130,29 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
         HUD.backgroundColor = [UIColor colorWithWhite:0 alpha:0.1f];
         [HUD showInView:self.navigationController.view animated:YES];
         
-        [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
-            [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
+        
+        
+        
+        // new
+        void (^errorSaving)(void) = ^() {
+            HUD.indicatorView = [[JGProgressHUDErrorIndicatorView alloc] init];
+            HUD.textLabel.text = @"Error Saving";
             
-            NSString *url = [NSString stringWithFormat:@"%@/%@/users/me", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"]];
+            [HUD dismissAfterDelay:1.f];
+        };
+        
+        void (^saveUser)(NSString *uploadedImage) = ^(NSString *uploadedImage) {
+            NSMutableDictionary *params = [[NSMutableDictionary alloc] initWithDictionary:changes];
+            if ([params objectForKey:@"profile_pic"]) {
+                if (uploadedImage) {
+                    [params setObject:uploadedImage forKey:@"profile_pic"];
+                }
+                else {
+                    [params removeObjectForKey:@"profile_pic"];
+                }
+            }
             
-            [self.manager.requestSerializer setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
-            [self.manager PUT:url parameters:changes success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+            [[HAWebService authenticatedManager] PUT:@"users/me" parameters:changes success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 NSLog(@"response object: %@", responseObject);
                 
                 // success
@@ -172,14 +198,34 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
                 
                 [HUD dismissAfterDelay:1.f];
             }];
-        }];
+        };
+        
+        if ([changes objectForKey:@"profile_pic"]) {
+            // upload avatar
+            BFMediaObject *avatarObject = [[BFMediaObject alloc] initWithImage:newAvatar];
+            [BFAPI uploadImage:avatarObject copmletion:^(BOOL success, NSString * _Nonnull uploadedImageURL) {
+                if (success && uploadedImageURL && uploadedImageURL.length > 0) {
+                    saveUser(uploadedImageURL);
+                }
+                else {
+                    errorSaving();
+                }
+            }];
+        }
+        else {
+            saveUser(nil);
+        }
     }
-    else if (changes != false) {
+    else {
         [self dismiss:nil];
     }
 }
 - (NSDictionary *)changes {
     NSMutableDictionary *changes = [[NSMutableDictionary alloc] init];
+    
+    if (newAvatar) {
+        [changes setObject:newAvatar forKey:@"profile_pic"];
+    }
     
     InputCell *displayNameCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:1 inSection:0]];
     NSString *displayName = displayNameCell.input.text;
@@ -335,11 +381,13 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     
     if (![website isEqualToString:currentWebsite]) {
         BFValidationError error = [website validateBonfireWebsite];
-        if (error == BFValidationErrorNone) {
-            // good to go!
-            if ([website rangeOfString:@"http://"].length == 0 && [website rangeOfString:@"https://"].length == 0) {
-                // prepend http:// if needed
-                website = [@"http://" stringByAppendingString:website];
+        if (error == BFValidationErrorNone || website.length == 0) {
+            if (website.length > 0) {
+                // if setting a new website, prepend http:// to the beginning if it doesn't exist already
+                if ([website rangeOfString:@"http://"].length == 0 && [website rangeOfString:@"https://"].length == 0) {
+                    // prepend http:// if needed
+                    website = [@"http://" stringByAppendingString:website];
+                }
             }
             
             [changes setObject:website forKey:@"website"];
@@ -450,7 +498,11 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
         if (indexPath.row == 0) {
             ProfilePictureCell *cell = [tableView dequeueReusableCellWithIdentifier:profilePictureReuseIdentifier forIndexPath:indexPath];
             
-            cell.changeProfilePictureLabel.textColor = self.themeColor;
+            cell.editPictureImageView.tintColor = self.themeColor;
+            
+            if (newAvatar) {
+                cell.profilePicture.imageView.image = newAvatar;
+            }
             
             return cell;
         }
@@ -463,27 +515,29 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
                 cell.inputLabel.text = @"Name";
                 cell.input.text = [Session sharedInstance].currentUser.attributes.details.displayName;
                 cell.input.placeholder = @"Name";
-                cell.input.tag = 203;
+                cell.input.tag = DISPLAY_NAME_FIELD;
                 cell.input.autocapitalizationType = UITextAutocapitalizationTypeWords;
                 cell.input.autocorrectionType = UITextAutocorrectionTypeDefault;
                 cell.input.keyboardType = UIKeyboardTypeDefault;
+                cell.input.textContentType = UITextContentTypeName;
             }
             else if (indexPath.row == 2) {
                 cell.type = InputCellTypeTextField;
                 cell.inputLabel.text = @"Username";
                 cell.input.text = [NSString stringWithFormat:@"@%@", [Session sharedInstance].currentUser.attributes.details.identifier];
                 cell.input.placeholder = @"@username";
-                cell.input.tag = 204;
+                cell.input.tag = USERNAME_FIELD;
                 cell.input.autocapitalizationType = UITextAutocapitalizationTypeNone;
                 cell.input.autocorrectionType = UITextAutocorrectionTypeNo;
-                cell.input.keyboardType = UIKeyboardTypeDefault;
+                cell.input.keyboardType = UIKeyboardTypeASCIICapable;
+                cell.input.textContentType = 0;
             }
             else if (indexPath.row == 3) {
                 cell.type = InputCellTypeTextView;
                 cell.inputLabel.text = @"Bio";
                 cell.textView.text = [Session sharedInstance].currentUser.attributes.details.bio;
                 cell.textView.placeholder = @"A little bit about me...";
-                cell.textView.tag = 205;
+                cell.textView.tag = BIO_FIELD;
                 cell.textView.autocapitalizationType = UITextAutocapitalizationTypeSentences;
                 cell.textView.autocorrectionType = UITextAutocorrectionTypeDefault;
                 cell.textView.keyboardType = UIKeyboardTypeDefault;
@@ -494,20 +548,22 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
                 cell.inputLabel.text = @"Location";
                 cell.input.text = [Session sharedInstance].currentUser.attributes.details.location.value;
                 cell.input.placeholder = @"Location";
-                cell.input.tag = 206;
+                cell.input.tag = LOCATION_FIELD;
                 cell.input.autocapitalizationType = UITextAutocapitalizationTypeWords;
                 cell.input.autocorrectionType = UITextAutocorrectionTypeNo;
                 cell.input.keyboardType = UIKeyboardTypeDefault;
+                cell.input.textContentType = UITextContentTypeAddressCityAndState;
             }
             else if (indexPath.row == 5) {
                 cell.type = InputCellTypeTextField;
                 cell.inputLabel.text = @"Website";
                 cell.input.text = [Session sharedInstance].currentUser.attributes.details.website.value;
                 cell.input.placeholder = @"Website";
-                cell.input.tag = 207;
+                cell.input.tag = WEBSITE_FIELD;
                 cell.input.autocapitalizationType = UITextAutocapitalizationTypeNone;
                 cell.input.autocorrectionType = UITextAutocorrectionTypeNo;
                 cell.input.keyboardType = UIKeyboardTypeURL;
+                cell.input.textContentType = UITextContentTypeURL;
             }
             
             cell.charactersRemainingLabel.hidden = (cell.type != InputCellTypeTextView);
@@ -547,39 +603,41 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
 
 - (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string {
     NSString *newStr = [textField.text stringByReplacingCharactersInRange:range withString:string];
-    
-    /*
-     201 - email
-     202 - password
-     203 - display name
-     204 - username
-     205 - bio
-     206 - location
-     207 - website
-     */
-    
-    if (textField.tag == 201) {
+
+    if (textField.tag == EMAIL_FIELD) {
+        // prevent spaces
+        if ([newStr rangeOfCharacterFromSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]].location != NSNotFound) {
+            return NO;
+        }
+        
         return newStr.length <= MAX_EMAIL_LENGTH ? YES : NO;
     }
-    if (textField.tag == 202) {
-        return newStr.length <= MAX_PASSWORD_LENGTH ? YES : NO;
-    }
-    if (textField.tag == 203) {
+    if (textField.tag == DISPLAY_NAME_FIELD) {
         return newStr.length <= MAX_USER_DISPLAY_NAME_LENGTH ? YES : NO;
     }
-    if (textField.tag == 204) {
+    if (textField.tag == USERNAME_FIELD) {
         if (newStr.length == 0) return NO;
         
         if ([newStr hasPrefix:@"@"]) {
             newStr = [newStr substringFromIndex:1];
         }
         
+        // prevent spaces
+        if ([newStr rangeOfCharacterFromSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]].location != NSNotFound) {
+            return NO;
+        }
+        
+        // prevent emojis
+        if ([EmojiUtilities containsEmoji:newStr]) {
+            return NO;
+        }
+        
         return newStr.length <= MAX_USER_USERNAME_LENGTH ? YES : NO;
     }
-    if (textField.tag == 206) {
+    if (textField.tag == LOCATION_FIELD) {
         return newStr.length <= MAX_USER_LOCATION_LENGTH ? YES : NO;
     }
-    if (textField.tag == 207) {
+    if (textField.tag == WEBSITE_FIELD) {
         return newStr.length <= MAX_USER_WEBSITE_LENGTH ? YES : NO;
     }
     
@@ -588,7 +646,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
 - (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
     NSString *newStr = [textView.text stringByReplacingCharactersInRange:range withString:text];
     
-    if (textView.tag == 205) {
+    if (textView.tag == BIO_FIELD) {
         // bio
         BOOL shouldChange = newStr.length <= MAX_USER_BIO_LENGTH;
         
@@ -599,7 +657,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
 }
 
 - (void)textViewDidChange:(UITextView *)textView {
-    if (textView.tag == 205) {
+    if (textView.tag == BIO_FIELD) {
         // bio
         [self.tableView beginUpdates];
         [self.tableView endUpdates];
@@ -654,7 +712,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
     if (section == 1) {
-        return 64;
+        return 56;
     }
     
     return 0;
@@ -662,13 +720,13 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
     if (section != 1) return nil;
     
-    UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 64)];
+    UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 56)];
     
-    UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(16, 32, self.view.frame.size.width - 32, 21)];
+    UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(12, 30, self.view.frame.size.width - 24, 18)];
     title.textAlignment = NSTextAlignmentLeft;
-    title.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightBold];
-    title.textColor = [UIColor colorWithWhite:0.47f alpha:1];
-    title.text = @"Private Information";
+    title.font = [UIFont systemFontOfSize:13.f weight:UIFontWeightSemibold];
+    title.textColor = [UIColor bonfireGray];
+    title.text = @"PRIVATE INFORMATION";
     [header addSubview:title];
     
     return header;
@@ -689,13 +747,16 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     
     ProfilePictureCell *cell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
     cell.profilePicture.imageView.backgroundColor = newColor;
-    cell.changeProfilePictureLabel.textColor = newColor;
+    cell.editPictureImageView.tintColor = newColor;
     if ([UIColor useWhiteForegroundForColor:newColor]) {
         // dark enough
-        cell.profilePicture.imageView.tintColor = [UIColor whiteColor];
+        cell.profilePicture.imageView.tintColor = [UIColor lighterColorForColor:newColor amount:BFAvatarViewIconContrast];
     }
     else {
-        cell.profilePicture.imageView.tintColor = [UIColor blackColor];
+        cell.profilePicture.imageView.tintColor = [UIColor darkerColorForColor:newColor amount:BFAvatarViewIconContrast];
+    }
+    if (newAvatar) {
+        cell.profilePicture.imageView.image = newAvatar;
     }
     
     UIView *newColorView = [[UIView alloc] init];
@@ -820,7 +881,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     cell.profilePicture.imageView.image = croppedImage;
     cell.profilePicture.imageView.contentMode = UIViewContentModeScaleAspectFill;
     
-    cell.changeProfilePictureLabel.text = @"Looking good!";
+    newAvatar = croppedImage;
     
     [controller.navigationController dismissViewControllerAnimated:YES completion:nil];
 }
@@ -882,15 +943,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     return maskRect;
 }
 - (UIBezierPath *)imageCropViewControllerCustomMaskPath:(RSKImageCropViewController *)controller {
-    CGFloat circleRadius;
-//    BOOL circleProfilePictures = FBTweakValue(@"Post", @"General", @"Circle Profile Pictures", NO);
-//    if (circleProfilePictures) {
-//        circleRadius = controller.maskRect.size.width * .5;
-//    }
-//    else {
-//        circleRadius = controller.maskRect.size.width * .25;
-//    }
-    circleRadius = controller.maskRect.size.width * .5;
+    CGFloat circleRadius = controller.maskRect.size.width * .5;
     
     UIBezierPath *path = [UIBezierPath bezierPathWithRoundedRect:controller.maskRect
                                                byRoundingCorners:UIRectCornerBottomLeft|UIRectCornerBottomRight|UIRectCornerTopLeft|UIRectCornerTopRight

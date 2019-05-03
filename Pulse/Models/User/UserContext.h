@@ -9,7 +9,9 @@
 #import <JSONModel/JSONModel.h>
 
 @class UserContext;
-@class UserContextMembership;
+@class UserContextFollow;
+@class UserContextFollowMe;
+@class UserContextFollowSubscription;
 
 @interface UserContext : JSONModel
 
@@ -27,16 +29,28 @@ extern NSString * const USER_STATUS_NO_RELATION;
 
 extern NSString * const USER_STATUS_LOADING;
 
-@property (nonatomic) UserContextMembership <Optional> *membership;
+@property (nonatomic) UserContextFollow <Optional> *follow;
 @property (nonatomic) NSString *status;
 
 - (void)setStatusWithString:(NSString *)string;
 
 @end
 
-@interface UserContextMembership : JSONModel
+@interface UserContextFollow : JSONModel
 
-@property (nonatomic) NSString *followedAt;
-@property (nonatomic) NSString <Optional> *blockedAt;
+@property (nonatomic) UserContextFollowMe <Optional> *me;
+
+@end
+
+@interface UserContextFollowMe : JSONModel
+
+@property (nonatomic) NSString *createdAt;
+@property (nonatomic) UserContextFollowSubscription <Optional> *subscription;
+
+@end
+
+@interface UserContextFollowSubscription : JSONModel
+
+@property (nonatomic) NSString *createdAt;
 
 @end

@@ -54,6 +54,7 @@ typedef enum {
 @property (nonatomic) SmartListSectionRowInput <Optional> *input;
 @property (nonatomic) BOOL push; // optional
 @property (nonatomic) BOOL present; // optional
+@property (nonatomic) BOOL radio; // optional
 
 @end
 

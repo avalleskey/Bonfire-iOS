@@ -12,6 +12,8 @@
 #import "ContactCell.h"
 #import "ErrorView.h"
 #import "InviteFriendHeaderCell.h"
+#import "Launcher.h"
+#import <HapticHelper/HapticHelper.h>
 
 #import <JGProgressHUD/JGProgressHUD.h>
 #import <BlocksKit/BlocksKit.h>
@@ -20,10 +22,10 @@
 #import <APAddressBook/APContact.h>
 #import <libPhoneNumber-iOS/NBPhoneNumberUtil.h>
 #import <libPhoneNumber-iOS/NBPhoneNumber.h>
+@import Firebase;
 
 @interface InviteFriendTableViewController ()
 
-@property (strong, nonatomic) HAWebService *manager;
 @property (strong, nonatomic) APAddressBook *addressBook;
 @property (strong, nonatomic) NSMutableArray <APContact *> *contacts;
 @property (strong, nonatomic) NSMutableArray <APContact *> *searchResults;
@@ -53,13 +55,15 @@ static NSString * const contactCellIdentifier = @"ContactCell";
         self.view.tintColor = [UIColor bonfireBrand];
     }
     
-    self.manager = [HAWebService manager];
     [self setupNavigationBar];
     [self setupSearchBar];
     [self setupTableView];
     [self setupErrorView];
     
     [self setupContacts];
+    
+    // Google Analytics
+    [FIRAnalytics setScreenName:@"Invite Friends" screenClass:nil];
 }
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
@@ -249,7 +253,7 @@ static NSString * const contactCellIdentifier = @"ContactCell";
                  [self.tableView reloadData];
                  
                  if ((self.searchView.textField.text.length == 0 && !self.isSearching) && self.featuredProfilePictures.count == 0) {
-                     for (int i = 0; i < self.contacts.count; i++) {
+                     for (NSInteger i = 0; i < self.contacts.count; i++) {
                          APContact *contact = self.contacts[i];
                          if (contact.thumbnail != nil) {
                              [self.featuredProfilePictures addObject:contact.thumbnail];
@@ -346,12 +350,55 @@ static NSString * const contactCellIdentifier = @"ContactCell";
 }
 
 - (void)dismiss:(id)sender {
+    [FIRAnalytics logEventWithName:@"abort_invite_friends"
+                        parameters:@{@"friends_selected": [NSNumber numberWithInteger:self.selectedContacts.count]}];
+    
     [self.navigationController dismissViewControllerAnimated:YES completion:nil];
 }
 - (void)sendInvites {
+    [FIRAnalytics logEventWithName:@"invite_friends_send"
+                        parameters:@{@"friends_selected": [NSNumber numberWithInteger:self.selectedContacts.count]}];
+    
+    UIAlertController *comingSoon = [UIAlertController alertControllerWithTitle:@"Feature Coming Soon" message:@"In the mean time, feel free to invite your friends to the beta, using the invite link below." preferredStyle:UIAlertControllerStyleAlert];
+    
+    UIAlertAction *copyShareLink = [UIAlertAction actionWithTitle:@"Copy Beta Invite Link" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        [FIRAnalytics logEventWithName:@"copy_beta_invite_link"
+                            parameters:@{@"location": @"invite_friends"}];
+        
+        UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
+        pasteboard.string = @"http://testflight.com/bonfire-ios";
+        
+        JGProgressHUD *HUD = [JGProgressHUD progressHUDWithStyle:JGProgressHUDStyleExtraLight];
+        HUD.textLabel.text = @"Copied Beta Link!";
+        HUD.vibrancyEnabled = false;
+        HUD.animation = [[JGProgressHUDFadeZoomAnimation alloc] init];
+        HUD.textLabel.textColor = [UIColor colorWithWhite:0 alpha:0.6f];
+        HUD.backgroundColor = [UIColor colorWithWhite:0 alpha:0.1f];
+        HUD.indicatorView = [[JGProgressHUDSuccessIndicatorView alloc] init];
+        HUD.indicatorView.tintColor = HUD.textLabel.textColor;
+        
+        [HUD showInView:[Launcher sharedInstance].activeViewController.view animated:YES];
+        [HapticHelper generateFeedback:FeedbackType_Notification_Success];
+        
+        [HUD dismissAfterDelay:1.5f];
+        
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [self.navigationController dismissViewControllerAnimated:YES completion:nil];
+        });
+    }];
+    [comingSoon addAction:copyShareLink];
+    
+    UIAlertAction *close = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+        [comingSoon dismissViewControllerAnimated:YES completion:nil];
+    }];
+    [comingSoon addAction:close];
+    
+    [self.navigationController presentViewController:comingSoon animated:YES completion:nil];
+    
+    /* TODO
     if (self.selectedContacts.count > 0) {
         NSMutableArray *arrayOfPhoneNumbers = [[NSMutableArray alloc] init];
-        for (int i = 0; i < [self.selectedContacts count]; i++) {
+        for (NSInteger i = 0; i < [self.selectedContacts count]; i++) {
             [arrayOfPhoneNumbers addObject:[self cleanPhoneNumber:self.selectedContacts[i].phones[0].number]];
         }
         
@@ -380,7 +427,7 @@ static NSString * const contactCellIdentifier = @"ContactCell";
         [alert addAction:cool];
         
         [self.navigationController presentViewController:alert animated:YES completion:nil];
-    }
+    }*/
 }
 
 #pragma mark - Table view data source
@@ -406,8 +453,12 @@ static NSString * const contactCellIdentifier = @"ContactCell";
         }
         
         cell.tintColor = self.view.tintColor;
+        if ([self.sender isKindOfClass:[Room class]]) {
+            Room *room = (Room *)self.sender;
+            cell.member1.room = room;
+        }
         
-        for (int i = 0; i < 7; i++) {
+        for (NSInteger i = 0; i < 7; i++) {
             UIImageView *imageView;
             if (i == 0) { imageView = cell.member2; }
             else if (i == 1) { imageView = cell.member3; }
@@ -501,7 +552,7 @@ static NSString * const contactCellIdentifier = @"ContactCell";
             // remove it
             [self removeSelectedContactWithRecordID:selectedContact.recordID];
             
-            cell.textLabel.textColor = [UIColor colorWithWhite:0.2f alpha:1];
+            cell.textLabel.textColor = [UIColor bonfireBlack];
             cell.checkIcon.hidden = true;
         }
         else {
@@ -523,7 +574,7 @@ static NSString * const contactCellIdentifier = @"ContactCell";
     return false;
 }
 - (void)removeSelectedContactWithRecordID:(NSNumber *)recordID {
-    for (int i = 0; i < [self.selectedContacts count]; i++) {
+    for (NSInteger i = 0; i < [self.selectedContacts count]; i++) {
         APContact *contact = self.selectedContacts[i];
         
         if ([contact.recordID isEqual:recordID]) {
@@ -541,7 +592,7 @@ static NSString * const contactCellIdentifier = @"ContactCell";
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
     if (section == 1) {
-        return 64;
+        return 56;
     }
     
     return 0;
@@ -549,9 +600,9 @@ static NSString * const contactCellIdentifier = @"ContactCell";
 - (nullable UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
     if (section != 1 || !self.errorView.isHidden) return nil;
     
-    UIView *headerContainer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 64)];
+    UIView *headerContainer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 56)];
     
-    UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 64)];
+    UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 56)];
     [headerContainer addSubview:header];
     
     header.backgroundColor = [UIColor headerBackgroundColor];
@@ -561,10 +612,13 @@ static NSString * const contactCellIdentifier = @"ContactCell";
     [header addSubview:lineSeparator];
     
     UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(12, 28, self.view.frame.size.width - 24, 24)];
+    title.font = [UIFont systemFontOfSize:13.f weight:UIFontWeightSemibold];
     if (section == 1) {
         if (self.isSearching) {
             if (self.searchResults.count == 0) {
                 title.text = @"No Results";
+                title.textAlignment = NSTextAlignmentCenter;
+                title.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightMedium];
                 lineSeparator.hidden = true;
             }
             else {
@@ -573,12 +627,11 @@ static NSString * const contactCellIdentifier = @"ContactCell";
             }
         }
         else {
-            title.text = @"Contacts";
+            title.text = @"CONTACTS";
             lineSeparator.hidden = false;
         }
     }
-    title.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightSemibold];
-    title.textColor = [UIColor colorWithWhite:0.6f alpha:1];
+    title.textColor = [UIColor bonfireGray];
     
     [header addSubview:title];
     

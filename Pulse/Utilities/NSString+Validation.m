@@ -22,7 +22,7 @@
 }
 
 - (BFValidationError)validateBonfirePassword {
-    if (self.length < 6) return BFValidationErrorTooShort;
+    if (self.length < MIN_PASSWORD_LENGTH) return BFValidationErrorTooShort;
     if (self.length > MAX_PASSWORD_LENGTH) return BFValidationErrorTooLong;
     
     return BFValidationErrorNone;
@@ -132,6 +132,36 @@
     if (self.length > MAX_ROOM_DESC_LENGTH) return BFValidationErrorTooLong;
     
     return BFValidationErrorNone;
+}
+
+//
+
+- (NSArray *)rangesForUsernameMatches {
+    NSMutableArray *matchRanges = [[NSMutableArray alloc] init];
+    NSRegularExpression *regEx = [[NSRegularExpression alloc] initWithPattern:[NSString stringWithFormat:@"(?!\\b)@([A-Za-z0-9_]{1,%i})(?=\\s|\\W|$)(?!@)", MAX_USER_USERNAME_LENGTH] options:NSRegularExpressionCaseInsensitive error:nil];
+    [regEx enumerateMatchesInString:self options:0 range:NSMakeRange(0, self.length) usingBlock:^(NSTextCheckingResult * _Nullable result, NSMatchingFlags flags, BOOL * _Nonnull stop) {
+        [matchRanges addObject:[NSValue valueWithRange:result.range]];
+    }];
+    
+    return [matchRanges copy];
+}
+- (NSArray *)rangesForRoomTagMatches {
+    NSMutableArray *matchRanges = [[NSMutableArray alloc] init];
+    NSRegularExpression *regEx = [[NSRegularExpression alloc] initWithPattern:[NSString stringWithFormat:@"(?!\\b)#([A-Za-z0-9_]{1,%i})(?=\\s|\\W|$)(?!#)", MAX_ROOM_TAG_LENGTH] options:NSRegularExpressionCaseInsensitive error:nil];
+    [regEx enumerateMatchesInString:self options:0 range:NSMakeRange(0, self.length) usingBlock:^(NSTextCheckingResult * _Nullable result, NSMatchingFlags flags, BOOL * _Nonnull stop) {
+        [matchRanges addObject:[NSValue valueWithRange:result.range]];
+    }];
+    
+    return [matchRanges copy];
+}
+- (NSArray *)rangesForLinkMatches {
+    NSMutableArray *matchRanges = [[NSMutableArray alloc] init];
+    NSRegularExpression *regEx = [[NSRegularExpression alloc] initWithPattern:@"((https|http)?:\\/\\/|)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&//=]*)" options:NSRegularExpressionCaseInsensitive error:nil];
+    [regEx enumerateMatchesInString:self options:0 range:NSMakeRange(0, self.length) usingBlock:^(NSTextCheckingResult * _Nullable result, NSMatchingFlags flags, BOOL * _Nonnull stop) {
+        [matchRanges addObject:[NSValue valueWithRange:result.range]];
+    }];
+    
+    return [matchRanges copy];
 }
 
 @end

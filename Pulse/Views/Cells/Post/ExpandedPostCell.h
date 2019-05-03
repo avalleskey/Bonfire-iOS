@@ -14,6 +14,7 @@
 #import <ResponsiveLabel/ResponsiveLabel.h>
 #import "BFAvatarView.h"
 #import "PostActivityView.h"
+#import "ExpandedPostActionsView.h"
 
 #define UIViewParentController(__view) ({ \
     UIResponder *__responder = __view; \
@@ -31,13 +32,12 @@
 @interface ExpandedPostCell : PostCell <UITextFieldDelegate, PostTextViewDelegate>
 
 // Views
-@property (strong, nonatomic) UIButton *postedInButton;
-@property (strong, nonatomic) UIButton *nameButton;
+@property (nonatomic, strong) UIButton *postedInButton;
+@property (nonatomic, strong) UIButton *nameButton;
 
-@property (strong, nonatomic) PostActionsView *actionsView;
-@property (strong, nonatomic) PostActivityView *activityView;
+@property (nonatomic, strong) ExpandedPostActionsView *actionsView;
+@property (nonatomic, strong) PostActivityView *activityView;
 
-@property BOOL sparked;
 - (void)setSparked:(BOOL)isSparked withAnimation:(BOOL)animated;
 
 + (CGFloat)heightForPost:(Post *)post;

@@ -14,8 +14,7 @@
 #import "BFAvatarView.h"
 #import "PostTextView.h"
 #import "PostImagesView.h"
-#import "PostSurveyView.h"
-#import "PostActionsView.h"
+// #import "PostURLPreviewView.h"
 
 #import <BlocksKit/BlocksKit+UIKit.h>
 #import "NSDate+NVTimeAgo.h"
@@ -24,6 +23,8 @@
 #import <MessageUI/MessageUI.h>
 #import <ResponsiveLabel/ResponsiveLabel.H>
 
+#define POST_EMOJI_SIZE_MULTIPLIER 2
+
 @interface PostCell : UITableViewCell <UITextFieldDelegate, PostTextViewDelegate>
 
 // Determines if the cell has been created or not
@@ -31,23 +32,25 @@
 @property BOOL loading;
 @property BOOL selectable;
 
+@property BOOL sparked;
+
 // @property (strong) NSDictionary *theme;
-@property (strong, nonatomic) Post *post;
+@property (nonatomic, strong) Post *post;
 
 // Views
-@property (strong, nonatomic) PostContextView *contextView;
-@property (strong, nonatomic) UILabel *nameLabel;
-@property (strong, nonatomic) UILabel *dateLabel;
+@property (nonatomic, strong) PostContextView *contextView;
+@property (nonatomic, strong) UILabel *nameLabel;
+@property (nonatomic, strong) UILabel *dateLabel;
+@property (nonatomic, strong) UIButton *moreButton;
 
-@property (strong, nonatomic) PostTextView *textView;
-@property (strong, nonatomic) BFAvatarView *profilePicture;
-@property (strong, nonatomic) PostImagesView *imagesView;
+@property (nonatomic, strong) PostTextView *textView;
+@property (nonatomic, strong) BFAvatarView *profilePicture;
+@property (nonatomic, strong) PostImagesView *imagesView;
+// @property (nonatomic, strong) PostURLPreviewView *urlPreviewView;
 
-// @property (strong, nonatomic) PostURLPreviewView *urlPreviewView;
+@property (nonatomic, strong) UIView *lineSeparator;
 
-@property (strong, nonatomic) UIView *lineSeparator;
-
-+ (NSAttributedString *)attributedCreatorStringForPost:(Post *)post includeTimestamp:(BOOL)includeTimestamp includePostedIn:(BOOL)includePostedIn;
++ (NSAttributedString *)attributedCreatorStringForPost:(Post *)post includeTimestamp:(BOOL)includeTimestamp includeContext:(BOOL)includeContext;
 
 - (void)openPostActions;
 

@@ -7,7 +7,6 @@
 
 #import <UIKit/UIKit.h>
 #import "ComposeInputView.h"
-#import "HAWebService.h"
 #import "Session.h"
 #import "RSTableView.h"
 #import "Room.h"
@@ -18,14 +17,13 @@
 
 @interface RoomViewController : ThemedViewController <UITextViewDelegate, RSTableViewPaginationDelegate, MFMessageComposeViewControllerDelegate>
 
-@property (strong, nonatomic) HAWebService *manager;
 
-@property (strong, nonatomic) Room *room;
+@property (nonatomic, strong) Room *room;
 
-@property (strong, nonatomic) UILabel *navTitle;
-@property (strong, nonatomic) UIScrollView *scrollView;
-@property (strong, nonatomic) RSTableView *tableView;
-@property (strong, nonatomic) ComposeInputView *composeInputView;
+@property (nonatomic, strong) UILabel *navTitle;
+@property (nonatomic, strong) UIScrollView *scrollView;
+@property (nonatomic, strong) RSTableView *tableView;
+@property (nonatomic, strong) ComposeInputView *composeInputView;
 
 @property (nonatomic) CGFloat currentKeyboardHeight;
     

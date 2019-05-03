@@ -12,7 +12,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface ThemedTableViewController : UITableViewController
 
-@property (strong, nonatomic) UIColor *theme;
+@property (nonatomic, strong) UIColor *theme;
 
 @end
 

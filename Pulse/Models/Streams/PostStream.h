@@ -24,10 +24,10 @@ typedef enum {
 } PostStreamOptionTempPostPosition;
 @property (nonatomic) PostStreamOptionTempPostPosition tempPostPosition;
 
-@property (strong, nonatomic) NSMutableArray <PostStreamPage *> *pages;
+@property (nonatomic, strong) NSMutableArray <PostStreamPage *> *pages;
 
-@property (strong, nonatomic) NSMutableArray <Post *> *tempPosts;
-@property (strong, nonatomic) NSArray <Post *> *posts;
+@property (nonatomic, strong) NSMutableArray <Post *> *tempPosts;
+@property (nonatomic, strong) NSArray <Post *> *posts;
 
 - (void)prependPage:(PostStreamPage *)page;
 - (void)appendPage:(PostStreamPage *)page;

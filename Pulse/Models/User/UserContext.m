@@ -26,7 +26,19 @@ NSString * const USER_STATUS_LOADING = @"loading";
 
 @end
 
-@implementation UserContextMembership
+@implementation UserContextFollow
+
+@end
+
+@implementation UserContextFollowMe
+
++ (JSONKeyMapper *)keyMapper {
+    return [JSONKeyMapper mapperForSnakeCase];
+}
+
+@end
+
+@implementation UserContextFollowSubscription
 
 + (JSONKeyMapper *)keyMapper {
     return [JSONKeyMapper mapperForSnakeCase];

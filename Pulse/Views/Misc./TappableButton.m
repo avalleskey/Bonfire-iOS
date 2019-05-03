@@ -12,7 +12,7 @@
 
 -(BOOL) pointInside:(CGPoint)point withEvent:(UIEvent *)event
 {
-    CGRect newArea = CGRectMake(self.bounds.origin.x - 5, self.bounds.origin.y - 5, self.bounds.size.width + 10, self.bounds.size.height + 10);
+    CGRect newArea = CGRectMake(self.bounds.origin.x - self.padding.left, self.bounds.origin.y - self.padding.top, self.bounds.size.width + (self.padding.left + self.padding.right), self.bounds.size.height + (self.padding.top + self.padding.bottom));
     
     return CGRectContainsPoint(newArea, point);
 }

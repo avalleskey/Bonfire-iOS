@@ -14,6 +14,8 @@
 #import <JGProgressHUD/JGProgressHUD.h>
 #import <HapticHelper/HapticHelper.h>
 
+@import Firebase;
+
 @interface SettingsTableViewController ()
 
 @end
@@ -24,6 +26,9 @@
     [super viewDidLoad];
     
     [self setup];
+    
+    // Google Analytics
+    [FIRAnalytics setScreenName:@"Settings" screenClass:nil];
 }
 
 - (void)setup {
@@ -33,6 +38,19 @@
     self.smartListDelegate = self;
     
     [self setJsonFile:@"SettingsModel"];
+    
+    // remove bonfire beta section if release
+    if ([Configuration isRelease] && self.list) {
+        NSMutableArray <SmartListSection> *sections = [[NSMutableArray<SmartListSection> alloc] initWithArray:self.list.sections];
+        for (NSInteger i = sections.count - 1; i >= 0; i--) {
+            SmartListSection *section = sections[i];
+            if ([section.identifier isEqualToString:@"bonfire_beta"]) {
+                [sections removeObject:section];
+            }
+        }
+        self.list.sections = sections;
+        [self.tableView reloadData];
+    }
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowWithId:(NSString *)rowId {
@@ -64,7 +82,7 @@
     }
     if ([rowId isEqualToString:@"community_guidelines"]) {
         // push community guidelines
-        [[Launcher sharedInstance] openURL:@"https://google.com"];
+        [[Launcher sharedInstance] openURL:@"https://bonfire.camp/community"];
     }
     if ([rowId isEqualToString:@"legal"]) {
         // push legal
@@ -90,6 +108,9 @@
         [self.navigationController presentViewController:areYouSure animated:YES completion:nil];
     }
     if ([rowId isEqualToString:@"invite_friends_beta"]) {
+        [FIRAnalytics logEventWithName:@"copy_beta_invite_link"
+                            parameters:@{@"location": @"settings"}];
+        
         UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
         pasteboard.string = @"http://testflight.com/bonfire-ios";
         
@@ -100,6 +121,7 @@
         HUD.textLabel.textColor = [UIColor colorWithWhite:0 alpha:0.6f];
         HUD.backgroundColor = [UIColor colorWithWhite:0 alpha:0.1f];
         HUD.indicatorView = [[JGProgressHUDSuccessIndicatorView alloc] init];
+        HUD.indicatorView.tintColor = HUD.textLabel.textColor;
         
         [HUD showInView:self.navigationController.view animated:YES];
         [HapticHelper generateFeedback:FeedbackType_Notification_Success];

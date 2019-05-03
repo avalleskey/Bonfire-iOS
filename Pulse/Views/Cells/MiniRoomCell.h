@@ -16,10 +16,10 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic) BOOL loading;
 @property (nonatomic) BOOL updates;
 
-@property (strong, nonatomic) BFAvatarView *roomPicture;
-@property (strong, nonatomic) UILabel *roomTitleLabel;
+@property (nonatomic, strong) BFAvatarView *roomPicture;
+@property (nonatomic, strong) UILabel *roomTitleLabel;
 
-@property (strong, nonatomic) UIImageView *updatesDotView;
+@property (nonatomic, strong) UIImageView *updatesDotView;
 
 @end
 

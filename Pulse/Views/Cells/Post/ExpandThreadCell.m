@@ -8,7 +8,7 @@
 
 #import "ExpandThreadCell.h"
 #import "ReplyCell.h"
-#import "MiniReplyCell.h"
+#import "StreamPostCell.h"
 #import "UIColor+Palette.h"
 
 @implementation ExpandThreadCell
@@ -24,14 +24,14 @@
     if (self) {
         self.selectionStyle = UITableViewCellSelectionStyleNone;
         
-        self.textLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightSemibold];
+        self.textLabel.font = [UIFont systemFontOfSize:15.f weight:UIFontWeightSemibold];
         self.textLabel.textColor = [UIColor colorWithWhite:0.33 alpha:1];
         
         self.morePostsIcon = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"showMorePostsIcon"]];
         self.morePostsIcon.contentMode = UIViewContentModeCenter;
-        [self.contentView addSubview:self.morePostsIcon];
+        //[self.contentView addSubview:self.morePostsIcon];
         
-        self.lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+        self.lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, self.frame.size.height - (1 / [UIScreen mainScreen].scale), self.frame.size.width, (1 / [UIScreen mainScreen].scale))];
         self.lineSeparator.backgroundColor = [UIColor separatorColor];
         [self addSubview:self.lineSeparator];
         self.lineSeparator.hidden = true;
@@ -43,9 +43,11 @@
 - (void)layoutSubviews {
     [super layoutSubviews];
     
-    CGFloat profilePictureWidth = 36;
-    self.textLabel.frame = CGRectMake(miniReplyContentOffset.left, 0, self.frame.size.width - miniReplyContentOffset.left - miniReplyContentOffset.right, self.frame.size.height);
-    self.morePostsIcon.frame = CGRectMake(replyContentOffset.left, self.textLabel.frame.origin.y, profilePictureWidth, self.textLabel.frame.size.height);
+    self.lineSeparator.frame = CGRectMake(0, self.frame.size.height - (1 / [UIScreen mainScreen].scale), self.frame.size.width, (1 / [UIScreen mainScreen].scale));
+    
+    CGFloat profilePictureWidth = 32;
+    self.textLabel.frame = CGRectMake(postContentOffset.left, 0, self.frame.size.width - postContentOffset.left - postContentOffset.right, self.frame.size.height);
+    self.morePostsIcon.frame = CGRectMake(postContentOffset.left, self.textLabel.frame.origin.y, profilePictureWidth, self.textLabel.frame.size.height);
 }
 
 - (void)setHighlighted:(BOOL)highlighted animated:(BOOL)animated {

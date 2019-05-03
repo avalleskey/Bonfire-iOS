@@ -6,15 +6,12 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "HAWebService.h"
 #import "Session.h"
 #import "RSTableView.h"
 #import "User.h"
 #import "ThemedViewController.h"
 
 @interface ProfileViewController : ThemedViewController <UITextViewDelegate, RSTableViewPaginationDelegate>
-
-@property (strong, nonatomic) HAWebService *manager;
 
 @property (strong, nonatomic) User *user;
 

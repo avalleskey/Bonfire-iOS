@@ -10,12 +10,12 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-#define CONVERSATION_EXPAND_CELL_HEIGHT 32
+#define CONVERSATION_EXPAND_CELL_HEIGHT 48
 
 @interface ExpandThreadCell : UITableViewCell
 
-@property (strong, nonatomic) UIImageView *morePostsIcon;
-@property (strong, nonatomic) UIView *lineSeparator;
+@property (nonatomic, strong) UIImageView *morePostsIcon;
+@property (nonatomic, strong) UIView *lineSeparator;
 
 @end
 

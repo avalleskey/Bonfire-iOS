@@ -8,7 +8,6 @@
 
 #import "BFAvatarView.h"
 #import "UIColor+Palette.h"
-#import <Tweaks/FBTweakInline.h>
 #import <UIImageView+WebCache.h>
 #import "Launcher.h"
 #import "UIColor+Palette.h"
@@ -44,8 +43,6 @@
     self.imageView.layer.masksToBounds = true;
     self.imageView.layer.borderWidth = 0;
     self.imageView.layer.borderColor = [UIColor colorWithWhite:0 alpha:0.04f].CGColor;
-    self.imageView.layer.shouldRasterize = true;
-    self.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
     [self addSubview:self.imageView];
     
     // functionality
@@ -101,20 +98,14 @@
 }
 
 - (void)updateCornerRadius {
-    BOOL circleProfilePictures = FBTweakValue(@"Post", @"General", @"Circle Profile Pictures", YES);
-    if (circleProfilePictures) {
-        self.imageView.layer.cornerRadius = self.imageView.frame.size.height * .5;
-    }
-    else {
-        self.imageView.layer.cornerRadius = self.imageView.frame.size.height * .25;
-    }
+    self.imageView.layer.cornerRadius = self.imageView.frame.size.height * .5;
 }
 
 - (void)setUser:(User *)user {
     if (user == nil || user != _user || ![user.attributes.details.color isEqualToString:_user.attributes.details.color]) {
         _user = user;
         
-        if (user == nil) {
+        if (user == nil || ![user isKindOfClass:[User class]]) {
             self.imageView.layer.borderWidth = 0;
             
             if (_allowAddUserPlaceholder) {
@@ -124,31 +115,25 @@
                 if (diff(self.imageView.backgroundColor, [UIColor whiteColor]))
                     self.imageView.backgroundColor = [UIColor whiteColor];
                 
-                BOOL circleProfilePictures = FBTweakValue(@"Post", @"General", @"Circle Profile Pictures", YES);
-                if (circleProfilePictures) {
-                    self.imageView.image = [[UIImage imageNamed:@"inviteFriendPlaceholderCircular"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-                }
-                else {
-                    self.imageView.image = [[UIImage imageNamed:@"inviteFriendPlaceholder"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-                }
+                self.imageView.image = [[UIImage imageNamed:@"inviteFriendPlaceholderCircular"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
             }
             else {
                 if (diff(self.imageView.tintColor, [UIColor whiteColor]))
                     self.imageView.tintColor = [UIColor whiteColor];
                 
-                if (diff(self.imageView.backgroundColor, [UIColor bonfireGray]))
-                    self.imageView.backgroundColor = [UIColor bonfireGray];
+                if (diff(self.imageView.backgroundColor, k_defaultAvatarTintColor))
+                    self.imageView.backgroundColor = k_defaultAvatarTintColor;
             }
         }
         else {
-            if (![_user.attributes.details.media.profilePicture isEqualToString:@"<null>"] && _user.attributes.details.media.profilePicture.length > 0) {
+            if (_user.attributes.details.media.userAvatar.suggested.url && _user.attributes.details.media.userAvatar.suggested.url.length > 0) {
                 if (diff(self.imageView.backgroundColor, [UIColor whiteColor]))
                     self.imageView.backgroundColor = [UIColor whiteColor];
                 
                 if (diff(self.imageView.layer.borderWidth, 1))
                     self.imageView.layer.borderWidth = 1;
                 
-                [self.imageView sd_setImageWithURL:[NSURL URLWithString:_user.attributes.details.media.profilePicture] placeholderImage:[[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
+                [self.imageView sd_setImageWithURL:[NSURL URLWithString:_user.attributes.details.media.userAvatar.suggested.url] placeholderImage:[[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
             }
             else {
                 self.imageView.layer.borderWidth = 0;
@@ -161,10 +146,10 @@
                 UIColor *tintColor;
                 if ([UIColor useWhiteForegroundForColor:[UIColor fromHex:_user.attributes.details.color]]) {
                     // dark enough
-                    tintColor = [UIColor whiteColor]; //[UIColor lighterColorForColor:[UIColor fromHex:_user.attributes.details.color] amount:BFAvatarViewIconContrast];
+                    tintColor = [UIColor lighterColorForColor:[UIColor fromHex:_user.attributes.details.color] amount:BFAvatarViewIconContrast];
                 }
                 else {
-                    tintColor = [UIColor blackColor]; // [UIColor darkerColorForColor:[UIColor fromHex:_user.attributes.details.color] amount:BFAvatarViewIconContrast];
+                    tintColor = [UIColor darkerColorForColor:[UIColor fromHex:_user.attributes.details.color] amount:BFAvatarViewIconContrast];
                 }
                 if (diff(self.imageView.tintColor, tintColor))
                     self.imageView.tintColor = tintColor;
@@ -185,11 +170,11 @@
             self.imageView.backgroundColor = [UIColor bonfireGray];
         }
         else {
-            BOOL hasRoomPicture = false; // _room.attributes.details.media.profilePicture.length > 0
-            if (hasRoomPicture) {
+            if (_room.attributes.details.media.roomAvatar.suggested.url && _room.attributes.details.media.roomAvatar.suggested.url.length > 0) {
                 self.imageView.backgroundColor = [UIColor whiteColor];
                 self.imageView.layer.borderColor = [UIColor colorWithWhite:0 alpha:0.04f].CGColor;
-                //[self.imageView sd_setImageWithURL:[NSURL URLWithString:_room.attributes.details.media.profilePicture] placeholderImage:[[UIImage imageNamed:@"anonymousGroup"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
+                
+                [self.imageView sd_setImageWithURL:[NSURL URLWithString:_room.attributes.details.media.roomAvatar.suggested.url] placeholderImage:[[UIImage imageNamed:@"anonymousGroup"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
             }
             else {
                 self.imageView.layer.borderColor = [UIColor clearColor].CGColor;

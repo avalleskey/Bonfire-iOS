@@ -13,11 +13,6 @@
                     "id": "change_password",
                     "title": "Change Password",
                     "push": true
-                },
-                {
-                    "id": "notifications",
-                    "title": "Notifications",
-                    "push": true
                 }
             ]
         },
@@ -33,7 +28,7 @@
                 },
                 {
                     "id": "give_feedback",
-                    "title": "Give Feedback",
+                    "title": "Suggest a Feature",
                     "present": true
                 },
                 {

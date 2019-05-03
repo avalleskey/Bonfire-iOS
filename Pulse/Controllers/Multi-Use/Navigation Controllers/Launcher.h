@@ -12,8 +12,8 @@
 #import "Post.h"
 #import "User.h"
 #import "SOLOptionsTransitionAnimator.h"
-#import "ZFModalTransitionAnimator.h"
 #import "ComplexNavigationController.h"
+#import "TabController.h"
 #import <JTSImageViewController/JTSImageViewController.h>
 
 NS_ASSUME_NONNULL_BEGIN
@@ -21,9 +21,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface Launcher : NSObject <UIViewControllerTransitioningDelegate>
 
 + (Launcher *)sharedInstance;
-@property (strong, nonatomic) SOLOptionsTransitionAnimator *animator;
-@property (strong, nonatomic) ZFModalTransitionAnimator *ZFAnimator;
-@property (strong, nonatomic) UIPercentDrivenInteractiveTransition *interactionController;
+@property (nonatomic, strong) SOLOptionsTransitionAnimator *animator;
 
 - (void)launchLoggedIn:(BOOL)animated;
 
@@ -52,26 +50,19 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)shareRoom:(Room *)room;
 - (void)shareUser:(User *)user;
 - (void)shareOniMessage:(NSString *)message image:(UIImage * _Nullable)image;
+- (void)openActionsForPost:(Post *)post;
 
 - (void)expandImageView:(UIImageView *)imageView;
 - (void)requestAppStoreRating;
 
+- (TabController *)tabController;
 - (UITabBarController *)activeTabController;
+- (UINavigationController *)activeNavigationController;
 - (ComplexNavigationController *)activeLauncherNavigationController;
 - (UIViewController *)activeViewController;
 
 - (void)present:(UIViewController *)viewController animated:(BOOL)animated;
 - (void)push:(UIViewController *)viewController animated:(BOOL)animated;
-
-- (void)openTweaks;
-
-@end
-
-@interface PushAnimator : NSObject <UIViewControllerAnimatedTransitioning>
-
-@end
-
-@interface PopAnimator : NSObject <UIViewControllerAnimatedTransitioning>
 
 @end
 

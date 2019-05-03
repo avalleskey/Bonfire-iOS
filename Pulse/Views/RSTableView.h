@@ -51,7 +51,7 @@ typedef enum {
     PostDisplayTypePreview = 2
 } PostDisplayType;
 
-@property (strong, nonatomic) id parentObject;
+@property (nonatomic, strong) id parentObject;
 @property (nonatomic) RSTableViewType dataType;
 @property (nonatomic) RSTableViewSubType dataSubType;
 
@@ -65,7 +65,7 @@ typedef enum {
 - (void)refresh;
 - (void)scrollToTop;
 
-@property (strong, nonatomic) PostStream *stream;
+@property (nonatomic, strong) PostStream *stream;
 
 @property (nonatomic) ComposeInputView *inputView;
 

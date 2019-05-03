@@ -11,8 +11,8 @@
 @interface ContactCell : UITableViewCell
 
 // ---- VIEWS ----
-@property (strong, nonatomic) UIImageView *checkIcon;
-@property (strong, nonatomic) UIView *lineSeparator;
+@property (nonatomic, strong) UIImageView *checkIcon;
+@property (nonatomic, strong) UIView *lineSeparator;
 
 @property (nonatomic) BOOL isSearching;
 

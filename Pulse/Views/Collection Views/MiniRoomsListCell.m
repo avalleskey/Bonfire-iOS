@@ -13,7 +13,6 @@
 #import "ChannelCell.h"
 #import "ComplexNavigationController.h"
 #import "UIColor+Palette.h"
-#import <Tweaks/FBTweakInline.h>
 
 #define padding 24
 
@@ -46,7 +45,6 @@ static NSString * const reuseIdentifier = @"RoomCell";
     self.backgroundColor = [UIColor clearColor];
     
     self.rooms = [[NSMutableArray alloc] init];
-    self.manager = [HAWebService manager];
     self.loading = true;
     
     self.selectionStyle = UITableViewCellSelectionStyleNone;

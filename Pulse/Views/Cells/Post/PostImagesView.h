@@ -13,10 +13,10 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface PostImagesView : UIView
 
-@property (strong, nonatomic) NSMutableArray *imageViews;
+@property (nonatomic, strong) NSMutableArray *imageViews;
 
 // array of URLs and/or UIImages
-@property (strong, nonatomic) NSArray *media;
+@property (nonatomic, strong) NSArray *media;
 
 + (CGFloat)streamImageHeight;
 

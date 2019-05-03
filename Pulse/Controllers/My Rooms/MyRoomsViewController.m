@@ -18,28 +18,33 @@
 #import "MiniRoomsListCell.h"
 #import "TabController.h"
 #import "UIColor+Palette.h"
-#import <Tweaks/FBTweakInline.h>
 #import "NSArray+Clean.h"
+#import "HAWebService.h"
+#import "ErrorView.h"
+#import "BFTipsManager.h"
+@import Firebase;
 
 @interface MyRoomsViewController ()
 
-@property (strong, nonatomic) SimpleNavigationController *simpleNav;
-@property (strong, nonatomic) NSMutableArray *recents;
+@property (nonatomic, strong) SimpleNavigationController *simpleNav;
+@property (nonatomic, strong) NSMutableArray *recents;
 
-@property (strong, nonatomic) NSMutableArray *featuredRooms;
+@property (nonatomic, strong) NSMutableArray *featuredRooms;
 @property (nonatomic) BOOL loadingFeaturedRooms;
 @property (nonatomic) BOOL errorLoadingFeaturedRooms;
 
-@property (strong, nonatomic) NSMutableArray *rooms;
+@property (nonatomic, strong) NSMutableArray *rooms;
 @property (nonatomic) BOOL loadingRooms;
 @property (nonatomic) BOOL errorLoadingRooms;
 
-@property (strong, nonatomic) NSMutableArray *lists;
+@property (nonatomic, strong) NSMutableArray *lists;
 @property (nonatomic) BOOL loadingLists;
 @property (nonatomic) BOOL errorLoadingLists;
 
 @property (nonatomic) BOOL userDidRefresh;
 @property (nonatomic) BOOL showAllRooms;
+
+@property (nonatomic, strong) ErrorView *errorView;
 
 @end
 
@@ -61,17 +66,14 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     
-    self.manager = [HAWebService manager];
     self.simpleNav = (SimpleNavigationController *)self.navigationController;
     
     self.view.backgroundColor = [UIColor whiteColor];
-    self.simpleNav.navigationBar.prefersLargeTitles = true;
-    self.extendedLayoutIncludesOpaqueBars = true;
-    // self.simpleNav.navigationItem.largeTitleDisplayMode = uinavigationlar
     
     [self initDefaults];
     
     [self setupTableView];
+    self.simpleNav.navigationBar.prefersLargeTitles = true;
     
     [self getFeaturedRooms];
     [self getRooms];
@@ -82,11 +84,23 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(recentsUpdated:) name:@"RecentsUpdated" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(refreshMyRooms:) name:@"refreshMyRooms" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userUpdated:) name:@"UserUpdated" object:nil];
+    
+    // Google Analytics
+    [FIRAnalytics setScreenName:@"Discover" screenClass:nil];
+}
+
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    NSLog(@"contentOffset: %f", scrollView.contentOffset.y);
 }
 
 - (void)initDefaults {
     self.featuredRooms = [[NSMutableArray alloc] initWithArray:[[NSUserDefaults standardUserDefaults] arrayForKey:@"featured_rooms_cache"]];
     self.rooms = [[NSMutableArray alloc] initWithArray:[[NSUserDefaults standardUserDefaults] arrayForKey:@"my_rooms_cache"]];
+    for (NSInteger i = 0; i < self.rooms.count; i++) {
+        if ([self.rooms[i] isKindOfClass:[Room class]]) {
+            [self.rooms replaceObjectAtIndex:i withObject:[((Room *)self.rooms[i]) toDictionary]];
+        }
+    }
     if (self.rooms.count > 1) [self sortRooms];
     self.recents = [[NSMutableArray alloc] init];
     self.lists = [[NSMutableArray alloc] init];
@@ -149,6 +163,17 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
     CGFloat navigationHeight = self.navigationController != nil ? self.navigationController.navigationBar.frame.origin.y + self.navigationController.navigationBar.frame.size.height : 0;
     self.tableView.frame = CGRectMake(0, 0, self.view.frame.size.width, [UIScreen mainScreen].bounds.size.height - navigationHeight);
 }
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    
+    // create tip
+    BFTipObject *tipObject = [BFTipObject tipWithCreatorType:BFTipCreatorTypeBonfireTip creator:nil title:@"How to Create a Camp 🏕" text:@"Creating a Camp is quick and easy. Start your own by tapping the + button on the top right of the screen." action:^{
+        NSLog(@"tip tapped");
+    }];
+    [[BFTipsManager manager] presentTip:tipObject completion:^{
+        NSLog(@"presentTip() completion");
+    }];
+}
 - (void)refresh {
     self.userDidRefresh = true;
     [self getFeaturedRooms];
@@ -156,6 +181,47 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
     [self getRecents];
     [self getLists];
 }
+
+- (void)setupErrorView {
+    self.errorView = [[ErrorView alloc] initWithFrame:CGRectMake(16, 0, self.view.frame.size.width - 32, 100) title:@"Error Loading" description:@"Check your network settings and tap here to try again" type:ErrorViewTypeNotFound];
+    self.errorView.center = self.tableView.center;
+    self.errorView.hidden = true;
+    [self.tableView addSubview:self.errorView];
+    
+    [self.errorView bk_whenTapped:^{
+        [self refresh];
+        [self reload];
+    }];
+}
+- (void)reload {
+    [self.tableView reloadData];
+    
+    if ((!self.loadingFeaturedRooms && self.featuredRooms.count == 0) && (!self.loadingRooms && self.rooms.count == 0) && (!self.loadingLists && self.lists.count == 0)) {
+        // empty state
+        NSLog(@"empty state");
+        if (!self.errorView) {
+            [self setupErrorView];
+        }
+        
+        self.errorView.center = CGPointMake(self.view.frame.size.width / 2, self.tableView.frame.size.height / 2 - self.navigationController.navigationBar.frame.size.height - self.navigationController.navigationBar.frame.origin.y);
+        self.errorView.hidden = false;
+        
+        if ([HAWebService hasInternet]) {
+            [self.errorView updateType:ErrorViewTypeGeneral];
+            [self.errorView updateTitle:@"Error Loading"];
+            [self.errorView updateDescription:@"Check your network settings and tap here to try again"];
+        }
+        else {
+            [self.errorView updateType:ErrorViewTypeNoInternet];
+            [self.errorView updateTitle:@"No Internet"];
+            [self.errorView updateDescription:@"Check your network settings and tap here to try again"];
+        }
+    }
+    else {
+        self.errorView.hidden = true;
+    }
+}
+
 - (void)setupTableView {
     self.tableView.delegate = self;
     self.tableView.dataSource = self;
@@ -174,9 +240,11 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
 }
 
 - (void)sortRooms {
+    if (!self.rooms || self.rooms.count == 0) return;
+    
     NSDictionary *opens = [[NSUserDefaults standardUserDefaults] dictionaryForKey:@"room_opens"];
     
-    for (int i = 0; i < self.rooms.count; i++) {
+    for (NSInteger i = 0; i < self.rooms.count; i++) {
         if ([self.rooms[i] isKindOfClass:[NSDictionary class]] && [self.rooms[i] objectForKey:@"id"]) {
             NSMutableDictionary *mutableRoom = [[NSMutableDictionary alloc] initWithDictionary:self.rooms[i]];
             NSString *roomId = mutableRoom[@"id"];
@@ -186,7 +254,7 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
         }
     }
     NSSortDescriptor *sortByName = [NSSortDescriptor sortDescriptorWithKey:@"opens"
-                                                                    ascending:NO];
+                                                                 ascending:NO];
     NSArray *sortDescriptors = [NSArray arrayWithObject:sortByName];
     NSArray *sortedArray = [self.rooms sortedArrayUsingDescriptors:sortDescriptors];
     
@@ -194,136 +262,111 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
 }
 
 - (void)getLists {
-    NSString *url = [NSString stringWithFormat:@"%@/%@/users/me/rooms/lists", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"]];
-    
-    [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
-        if (success) {
-            [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
-            
-            [self.manager GET:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                NSArray *responseData = responseObject[@"data"];
-                
-                if (responseData.count > 0) {
-                    self.lists = [[NSMutableArray alloc] initWithArray:responseData];
-                }
-                else {
-                    self.lists = [[NSMutableArray alloc] init];
-                }
-                
-                self.loadingLists = false;
-                self.errorLoadingLists = false;
-                
-                [self.tableView reloadData];
-                
-                if (!self.loadingLists && !self.loadingRooms) {
-                    [[self refreshControl] performSelector:@selector(endRefreshing) withObject:nil afterDelay:0.0];
-                }
-            } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                NSLog(@"‼️ MyRoomsViewController / getLists() - error: %@", error);
-                //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-                
-                self.loadingLists = false;
-                self.errorLoadingLists = true;
-                
-                [self.tableView reloadData];
-                
-                if (!self.loadingLists && !self.loadingRooms) {
-                    [[self refreshControl] performSelector:@selector(endRefreshing) withObject:nil afterDelay:0.0];
-                }
-            }];
+    [[HAWebService authenticatedManager] GET:@"users/me/rooms/lists" parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        NSArray *responseData = responseObject[@"data"];
+        
+        if (responseData.count > 0) {
+            self.lists = [[NSMutableArray alloc] initWithArray:responseData];
+        }
+        else {
+            self.lists = [[NSMutableArray alloc] init];
+        }
+        
+        self.loadingLists = false;
+        self.errorLoadingLists = false;
+        
+        [self reload];
+        
+        if (!self.loadingLists && !self.loadingRooms) {
+            [[self refreshControl] performSelector:@selector(endRefreshing) withObject:nil afterDelay:0.0];
+        }
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        NSLog(@"‼️ MyRoomsViewController / getLists() - error: %@", error);
+        //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+        
+        self.loadingLists = false;
+        self.errorLoadingLists = true;
+        
+        [self reload];
+        
+        if (!self.loadingLists && !self.loadingRooms) {
+            [[self refreshControl] performSelector:@selector(endRefreshing) withObject:nil afterDelay:0.0];
         }
     }];
 }
 
 - (void)getFeaturedRooms {
-    NSString *url;
-    url = [NSString stringWithFormat:@"%@/%@/users/me/rooms/lists/featured", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"]];
-    
-    [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
-        if (success) {
-            [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
-            
-            [self.manager GET:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                // NSLog(@"MyRoomsViewController / getRooms() success! ✅");
-                
-                NSArray *responseData = responseObject[@"data"];
-                
-                if (responseData.count > 0) {
-                    self.featuredRooms = [[NSMutableArray alloc] initWithArray:responseData];
-                }
-                else {
-                    self.featuredRooms = [[NSMutableArray alloc] init];
-                }
-                [[NSUserDefaults standardUserDefaults] setObject:[self.featuredRooms clean] forKey:@"featured_rooms_cache"];
-                
-                self.loadingFeaturedRooms = false;
-                self.errorLoadingFeaturedRooms = false;
-                
-                [self.tableView reloadData];
-                
-                if (!self.loadingLists && !self.loadingFeaturedRooms && !self.loadingRooms) {
-                    [[self refreshControl] performSelector:@selector(endRefreshing) withObject:nil afterDelay:0.0];
-                }
-            } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                NSLog(@"MyRoomsViewController / getRooms() - error: %@", error);
-                //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-                
-                self.loadingRooms = false;
-                self.errorLoadingRooms = true;
-                
-                [self.tableView reloadData];
-                
-                if (!self.loadingLists && !self.loadingFeaturedRooms && !self.loadingRooms) {
-                    [[self refreshControl] performSelector:@selector(endRefreshing) withObject:nil afterDelay:0.0];
-                }
-            }];
+    [[HAWebService authenticatedManager] GET:@"users/me/rooms/lists/featured" parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        // NSLog(@"MyRoomsViewController / getRooms() success! ✅");
+        
+        NSArray *responseData = responseObject[@"data"];
+        
+        if (responseData.count > 0) {
+            self.featuredRooms = [[NSMutableArray alloc] initWithArray:responseData];
+        }
+        else {
+            self.featuredRooms = [[NSMutableArray alloc] init];
+        }
+        [[NSUserDefaults standardUserDefaults] setObject:[self.featuredRooms clean] forKey:@"featured_rooms_cache"];
+        
+        self.loadingFeaturedRooms = false;
+        self.errorLoadingFeaturedRooms = false;
+        
+        [self reload];
+        
+        if (!self.loadingLists && !self.loadingFeaturedRooms && !self.loadingRooms) {
+            [[self refreshControl] performSelector:@selector(endRefreshing) withObject:nil afterDelay:0.0];
+        }
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        NSLog(@"MyRoomsViewController / getRooms() - error: %@", error);
+        //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+        
+        self.loadingFeaturedRooms = false;
+        self.errorLoadingFeaturedRooms = true;
+        
+        [self reload];
+        
+        if (!self.loadingLists && !self.loadingFeaturedRooms && !self.loadingRooms) {
+            [[self refreshControl] performSelector:@selector(endRefreshing) withObject:nil afterDelay:0.0];
         }
     }];
 }
 
 - (void)getRooms {
-    NSString *url;
-    url = [NSString stringWithFormat:@"%@/%@/users/me/rooms", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"]];
-    
-    [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
-        if (success) {
-            [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
-            
-            [self.manager GET:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                // NSLog(@"MyRoomsViewController / getRooms() success! ✅");
-                
-                NSArray *responseData = responseObject[@"data"];
-                
-                if (responseData.count > 0) {
-                    self.rooms = [[NSMutableArray alloc] initWithArray:responseData];
-                    if (self.rooms.count > 1) [self sortRooms];
-                }
-                else {
-                    self.rooms = [[NSMutableArray alloc] init];
-                }
-                [[NSUserDefaults standardUserDefaults] setObject:[self.rooms clean] forKey:@"my_rooms_cache"];
-                
-                self.loadingRooms = false;
-                self.errorLoadingRooms = false;
-                
-                [self.tableView reloadData];
-                
-                if (!self.loadingLists && !self.loadingRooms) {
-                    [[self refreshControl] performSelector:@selector(endRefreshing) withObject:nil afterDelay:0.0];
-                }
-            } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                NSLog(@"MyRoomsViewController / getRooms() - error: %@", error);
-                //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-                
-                self.loadingRooms = false;
-                self.errorLoadingRooms = true;
-                
-                [self.tableView reloadData];
-                
-                if (!self.loadingLists && !self.loadingRooms) {
-                    [[self refreshControl] performSelector:@selector(endRefreshing) withObject:nil afterDelay:0.0];
-                }
-            }];
+    [[HAWebService authenticatedManager] GET:@"users/me/rooms" parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        // NSLog(@"MyRoomsViewController / getRooms() success! ✅");
+        
+        NSArray *responseData = responseObject[@"data"];
+        
+        if (responseData.count > 0) {
+            self.rooms = [[NSMutableArray alloc] initWithArray:responseData];
+        }
+        else {
+            self.rooms = [[NSMutableArray alloc] init];
+        }
+        [[NSUserDefaults standardUserDefaults] setObject:[self.rooms clean] forKey:@"my_rooms_cache"];
+        
+        if (self.rooms.count > 1) [self sortRooms];
+        
+        self.loadingRooms = false;
+        self.errorLoadingRooms = false;
+        
+        [self reload];
+        
+        if (!self.loadingLists && !self.loadingRooms) {
+            [[self refreshControl] performSelector:@selector(endRefreshing) withObject:nil afterDelay:0.0];
+        }
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        NSLog(@"MyRoomsViewController / getRooms() - error: %@", error);
+        //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+        
+        self.loadingRooms = false;
+        self.errorLoadingRooms = true;
+        
+        [self reload];
+        
+        if (!self.loadingLists && !self.loadingRooms) {
+            [[self refreshControl] performSelector:@selector(endRefreshing) withObject:nil afterDelay:0.0];
         }
     }];
 }
@@ -338,15 +381,20 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
     // 4. Quick Links
 }
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    if (section == 0) return 1;
+    if (section == 0) {
+        if (self.loadingFeaturedRooms || self.featuredRooms.count > 0) {
+            return 1;
+        }
+        else {
+            return 0;
+        }
+    }
     if (section == 1) return 1;
     else if (section < (2 + self.lists.count)) {
         return 1;
     }
-    else {
-        // last section -- quick links
-        return 0;
-    }
+
+    return 0;
 }
 
 - (void)getRecents {
@@ -461,8 +509,6 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
     
     UITableViewCell *blankCell = [tableView dequeueReusableCellWithIdentifier:blankReuseIdentifier forIndexPath:indexPath];
     
-    blankCell.backgroundColor = [UIColor colorWithWhite:0.97 alpha:1];
-    
     return blankCell;
 }
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -476,7 +522,7 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
     }
     if (indexPath.section == 1) {
         // Size: mini
-        return self.rooms.count > 0 ? 116 : 0;
+        return (self.rooms.count > 0 || self.loadingRooms) ? 116 : 0;
     }
     if (!self.loadingLists && (indexPath.section > 1 && indexPath.section <= self.lists.count + 1)) {
         if (indexPath.section == 2) {
@@ -493,12 +539,14 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    if (section == 1 && self.rooms.count == 0) return 0;
+    if (section == 0 && self.featuredRooms.count == 0 && !self.loadingFeaturedRooms) return 0;
+    if (section == 1 && self.rooms.count == 0 && !self.loadingRooms) return 0;
     
     return 60;
 }
 - (nullable UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
-    if (section == 1 && self.rooms.count == 0) return nil;
+    if (section == 0 && self.featuredRooms.count == 0 && !self.loadingFeaturedRooms) return nil;
+    if (section == 1 && self.rooms.count == 0 && !self.loadingRooms) return nil;
     
     UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 8, self.view.frame.size.width, 60)];
     
@@ -510,6 +558,18 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
         title = @"Featured";
     }
     else if (section == 1) {
+        if (header.gestureRecognizers.count == 0) {
+            [header bk_whenTapped:^{
+                if (self.rooms.count > 0) {
+                    [[Launcher sharedInstance] openProfileCampsJoined:[Session sharedInstance].currentUser];
+                }
+            }];
+        }
+        if (self.rooms.count > 0) {
+            UIImageView *detailDisclosureIcon = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"headerDetailDisclosureIcon"]];
+            detailDisclosureIcon.frame = CGRectMake(header.frame.size.width - detailDisclosureIcon.frame.size.width - 16, header.frame.size.height -  detailDisclosureIcon.frame.size.height - 19, detailDisclosureIcon.frame.size.width, detailDisclosureIcon.frame.size.height);
+            [header addSubview:detailDisclosureIcon];
+        }
         title = @"My Camps";
     }
     else if (section < (2 + self.lists.count)) {
@@ -546,7 +606,7 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
     titleLabel.text = title;
     titleLabel.textAlignment = NSTextAlignmentLeft;
     titleLabel.font = [UIFont systemFontOfSize:22.f weight:UIFontWeightBold];
-    titleLabel.textColor = section == 0 ? [UIColor colorWithRed:0.43 green:0.46 blue:0.48 alpha:1.00] : [UIColor bonfireGrayWithLevel:900];
+    titleLabel.textColor = [UIColor bonfireBlack];
     [titleLabelView addSubview:titleLabel];
     [header addSubview:titleLabelView];
     
@@ -555,12 +615,17 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
     return header;
 }
 - (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
-    if (section == 1 && self.rooms.count == 0) return 0;
+    if (section == 0 && self.featuredRooms.count == 0 && !self.loadingFeaturedRooms) return 0;
+    if (section == 1 && self.rooms.count == 0 && !self.loadingRooms) return 0;
     
     return section == 0 ? 24 : 16;
 }
 - (nullable UIView *)tableView:(UITableView *)tableView viewForFooterInSection:(NSInteger)section {
-    if (section == self.lists.count + 1) return nil;
+    if (section == 0 && self.featuredRooms.count == 0 && !self.loadingFeaturedRooms) return nil;
+    if (section == 1 && self.rooms.count == 0 && !self.loadingRooms) return nil;
+    
+    // last second -> no line separator
+    if (section == [self numberOfSectionsInTableView:tableView] - 1) return nil;
     
     UIView *footer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, section == 0 ? 24 : 16)];
     
@@ -580,7 +645,7 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
         NSArray *dataArraysToCheck = @[self.rooms, self.featuredRooms];
         
         for (NSMutableArray *array in dataArraysToCheck) {
-            for (int i = 0; i < array.count; i++) {
+            for (NSInteger i = 0; i < array.count; i++) {
                 if ([array[i][@"id"] isEqualToString:room.identifier]) {
                     // same room -> replace it with updated object
                     if (array[i] != [room toDictionary]) {

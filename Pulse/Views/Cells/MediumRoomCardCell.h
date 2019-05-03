@@ -18,20 +18,20 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic) BOOL loading;
 
-@property (strong, nonatomic) Room *room;
+@property (nonatomic, strong) Room *room;
 
-@property (strong, nonatomic) UIView *roomHeaderView;
+@property (nonatomic, strong) UIView *roomHeaderView;
 
-@property (strong, nonatomic) UIView *profilePictureContainerView;
-@property (strong, nonatomic) BFAvatarView *profilePicture;
+@property (nonatomic, strong) UIView *profilePictureContainerView;
+@property (nonatomic, strong) BFAvatarView *profilePicture;
 
-@property (strong, nonatomic) BFAvatarView *member1;
-@property (strong, nonatomic) BFAvatarView *member2;
-@property (strong, nonatomic) BFAvatarView *member3;
-@property (strong, nonatomic) BFAvatarView *member4;
+@property (nonatomic, strong) BFAvatarView *member1;
+@property (nonatomic, strong) BFAvatarView *member2;
+@property (nonatomic, strong) BFAvatarView *member3;
+@property (nonatomic, strong) BFAvatarView *member4;
 
-@property (strong, nonatomic) UILabel *roomTitleLabel;
-@property (strong, nonatomic) UILabel *roomDescriptionLabel;
+@property (nonatomic, strong) UILabel *roomTitleLabel;
+@property (nonatomic, strong) UILabel *roomDescriptionLabel;
 
 @end
 

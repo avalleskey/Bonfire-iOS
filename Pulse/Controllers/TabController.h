@@ -14,15 +14,17 @@
 #import "FeedViewController.h"
 #import "ProfileViewController.h"
 #import "NotificationsTableViewController.h"
+#import "BFAvatarView.h"
 
 @interface TabController : UITabBarController
 
 @property (nonatomic, strong) SimpleNavigationController *myFeedNavVC;
-@property (nonatomic, strong) SimpleNavigationController *trendingNavVC;
-@property (nonatomic, strong) SearchNavigationController *searchNavVC;
+@property (nonatomic, strong) SearchNavigationController *discoverNavVC;
 @property (nonatomic, strong) SimpleNavigationController *myRoomsNavVC;
 @property (nonatomic, strong) SimpleNavigationController *notificationsNavVC;
 @property (nonatomic, strong) SimpleNavigationController *myProfileNavVC;
+
+@property (nonatomic, strong) BFAvatarView *avatarTabView;
 
 @property (nonatomic, strong) UIView *notificationContainer;
 @property (nonatomic, strong) UIVisualEffectView *notification;
@@ -33,5 +35,7 @@
 
 - (void)dismissNotificationWithText:(NSString *)textBeforeDismissing;
 - (void)showNotificationWithText:(NSString *)text;
+
+- (void)setBadgeValue:(NSString *)badgeValue forItem:(UITabBarItem *)tabBarItem;
 
 @end

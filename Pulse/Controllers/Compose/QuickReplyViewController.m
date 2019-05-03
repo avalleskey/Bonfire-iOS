@@ -93,7 +93,7 @@
         self.closeButton.transform = CGAffineTransformMakeScale(1, 1);
         self.closeButton.alpha = 1;
         
-        CGFloat scale = (self.view.frame.size.width - 24) / self.view.frame.size.width;
+        // CGFloat scale = (self.view.frame.size.width - 24) / self.view.frame.size.width;
         self.tableView.center = CGPointMake(self.tableView.center.x, self.view.frame.size.height - self.currentKeyboardHeight - (self.tableView.frame.size.height / 2) - 16);
     } completion:nil];
 }
@@ -152,8 +152,8 @@
     if (message.length > 0) {
         [params setObject:message forKey:@"message"];
     }
-    if (self.composeInputView.media.count > 0) {
-        [params setObject:self.composeInputView.media forKey:@"images"];
+    if (self.composeInputView.media.objects.count > 0) {
+        [params setObject:self.composeInputView.media forKey:@"media"];
     }
     
     if ([params objectForKey:@"message"] || [params objectForKey:@"images"]) {
@@ -163,7 +163,7 @@
         self.composeInputView.textView.text = @"";
         [self.composeInputView hidePostButton];
         [self.composeInputView.textView resignFirstResponder];
-        self.composeInputView.media = [[NSMutableArray alloc] init];
+        self.composeInputView.media = [[BFMedia alloc] init];
         [self.composeInputView hideMediaTray];
         [self.composeInputView setReplyingTo:nil];
     }

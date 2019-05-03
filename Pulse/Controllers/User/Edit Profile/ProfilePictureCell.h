@@ -7,7 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import <UIImageView+WebCache.h>
+#import "UIImageView+WebCache.h"
 #import "BFAvatarView.h"
 
 NS_ASSUME_NONNULL_BEGIN
@@ -15,7 +15,9 @@ NS_ASSUME_NONNULL_BEGIN
 @interface ProfilePictureCell : UITableViewCell
 
 @property (strong, nonatomic) BFAvatarView *profilePicture;
-@property (strong, nonatomic) UILabel *changeProfilePictureLabel;
+
+@property (strong, nonatomic) UIView *editPictureImageViewContainer;
+@property (strong, nonatomic) UIImageView *editPictureImageView;
 
 @end
 

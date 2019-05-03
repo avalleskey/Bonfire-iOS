@@ -12,14 +12,14 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface QuickReplyViewController : UIViewController <UITableViewDelegate, UITableViewDataSource, UITextViewDelegate>
+@interface QuickReplyViewController : UIViewController <UITextViewDelegate>
 
-@property (strong, nonatomic) UIButton *closeButton;
+@property (nonatomic, strong) UIButton *closeButton;
 
-@property (strong, nonatomic) UITableView *tableView;
-@property (strong, nonatomic) ComposeInputView *composeInputView;
+@property (nonatomic, strong) UITableView *tableView;
+@property (nonatomic, strong) ComposeInputView *composeInputView;
 
-@property (strong, nonatomic) Post *replyingTo;
+@property (nonatomic, strong) Post *replyingTo;
 @property (nonatomic) CGPoint fromCenter;
 
 @property (nonatomic) CGFloat currentKeyboardHeight;

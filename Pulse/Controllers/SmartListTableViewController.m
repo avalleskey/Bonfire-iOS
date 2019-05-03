@@ -7,7 +7,6 @@
 //
 
 #import "SmartListTableViewController.h"
-#import "SmartList.h"
 #import "UIColor+Palette.h"
 #import <BlocksKit/BlocksKit.h>
 #import <BlocksKit/BlocksKit+UIKit.h>
@@ -19,13 +18,8 @@
 #define row(indexPath) section(indexPath.section).rows[indexPath.row]
 
 #define DEFAULT_ROW_HEIGHT 52
+#define RADIO_ROW_HEIGHT 64
 #define INPUT_ROW_HEIGHT 52
-
-@interface SmartListTableViewController ()
-
-@property (strong, nonatomic) SmartList *list;
-
-@end
 
 @implementation SmartListTableViewController
 
@@ -135,23 +129,26 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
         
         if (row.push || row.present) {
             cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
-            
-            cell.buttonLabel.textColor = cell.kButtonColorDefault;
         }
         else {
             cell.accessoryType = UITableViewCellAccessoryNone;
-            
-            if (row.destructive) {
-                cell.buttonLabel.textColor = cell.kButtonColorDestructive;
-            }
-            else {
-                cell.buttonLabel.textColor = cell.kButtonColorBonfire;
-            }
+        }
+        
+        if (row.push || row.present || row.radio || row.detail) {
+            cell.buttonLabel.textColor = cell.kButtonColorDefault;
+        }
+        else if (row.destructive) {
+            cell.buttonLabel.textColor = cell.kButtonColorDestructive;
+        }
+        else {
+            cell.buttonLabel.textColor = cell.kButtonColorBonfire;
+        }
+        
+        if (row.radio) {
+            cell.checkIcon.hidden = (indexPath.row != 0);
         }
         
         if (row.detail) {
-            cell.buttonLabel.textColor = cell.kButtonColorDefault;
-            
             cell.detailTextLabel.text = [self parse:row.detail];
         }
         
@@ -168,6 +165,9 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
         // input cell
         return INPUT_ROW_HEIGHT;
     }
+    if (row.radio) {
+        return RADIO_ROW_HEIGHT;
+    }
     if (row.title) {
         return DEFAULT_ROW_HEIGHT;
     }
@@ -178,11 +178,11 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
     SmartListSection *s = section(section);
     
-    CGFloat headerHeight = 64;
+    CGFloat headerHeight = 56;
     
     if (s.title) return headerHeight;
     
-    return headerHeight / 2;
+    return 16;
 }
 
 - (nullable UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
@@ -190,13 +190,13 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
     
     if (!s.title) return nil;
     
-    UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 64)];
+    UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 56)];
     
-    UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(16, 32, self.view.frame.size.width - 32, 21)];
+    UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(16, 30, self.view.frame.size.width - 32, 18)];
     title.textAlignment = NSTextAlignmentLeft;
-    title.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightBold];
-    title.textColor = [UIColor colorWithWhite:0.47f alpha:1];
-    title.text = [self parse:s.title];
+    title.font = [UIFont systemFontOfSize:13.f weight:UIFontWeightSemibold];
+    title.textColor = [UIColor bonfireGray];
+    title.text = [[self parse:s.title] uppercaseString];
     [header addSubview:title];
 
     return header;
@@ -220,7 +220,7 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
         
         UILabel *descriptionLabel = [[UILabel alloc] initWithFrame:CGRectMake(16, 12, footer.frame.size.width - 32, 42)];
         descriptionLabel.text = [self parse:s.footer];
-        descriptionLabel.textColor = [UIColor colorWithWhite:0.6f alpha:1];
+        descriptionLabel.textColor = [UIColor bonfireGray];
         descriptionLabel.font = [UIFont systemFontOfSize:12.f weight:UIFontWeightRegular];
         descriptionLabel.textAlignment = NSTextAlignmentLeft;
         descriptionLabel.numberOfLines = 0;
@@ -244,7 +244,7 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
 }
 
 - (nullable InputCell *)inputCellForRowId:(NSString *)rowId {
-    for (int i = 0; i < self.list.sections.count; i++) {
+    for (NSInteger i = 0; i < self.list.sections.count; i++) {
         SmartListSection *s = self.list.sections[i];
         for (int x = 0; x < s.rows.count; x++) {
             SmartListSectionRow *r = s.rows[x];

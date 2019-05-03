@@ -20,7 +20,7 @@
 @property (nonatomic) BOOL hasPicture;
 
 // Views
-@property (strong, nonatomic) UIView *shimmerContentView;
-@property (strong, nonatomic) FBShimmeringView *shimmerContainer;
+@property (nonatomic, strong) UIView *shimmerContentView;
+@property (nonatomic, strong) FBShimmeringView *shimmerContainer;
 
 @end

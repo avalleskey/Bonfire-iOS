@@ -7,19 +7,16 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "HAWebService.h"
 
 @interface MiniRoomsListCell : UITableViewCell <UICollectionViewDelegate, UICollectionViewDataSource>
 
-@property (strong, nonatomic) HAWebService *manager;
+@property (nonatomic, strong) UICollectionView *collectionView;
 
-@property (strong, nonatomic) UICollectionView *collectionView;
+@property (nonatomic, strong) UIView *header;
+@property (nonatomic, strong) UILabel *bigTitle;
+@property (nonatomic, strong) UILabel *title;
 
-@property (strong, nonatomic) UIView *header;
-@property (strong, nonatomic) UILabel *bigTitle;
-@property (strong, nonatomic) UILabel *title;
-
-@property (strong, nonatomic) NSMutableArray *rooms;
+@property (nonatomic, strong) NSMutableArray *rooms;
 
 @property (nonatomic) BOOL loading;
 @property (nonatomic) BOOL errorLoading;

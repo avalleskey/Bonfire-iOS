@@ -8,13 +8,10 @@
 
 #import <UIKit/UIKit.h>
 #import <BlocksKit/BlocksKit+UIKit.h>
-#import "HAWebService.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 @interface MyRoomsViewController : UITableViewController <UIScrollViewDelegate>
-
-@property (strong, nonatomic) HAWebService *manager;
 
 @property (strong, nonatomic) UIButton *createRoomButton;
 

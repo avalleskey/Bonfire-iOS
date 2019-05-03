@@ -136,7 +136,7 @@
                     
                     UIAlertAction *confirmLeaveRoom = [UIAlertAction actionWithTitle:@"Leave" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
                         [self.followButton updateStatus:ROOM_STATUS_LEFT];
-                        [self decrementMembersCount];
+//                        [self decrementMembersCount];
                     }];
                     [confirmDeletePostActionSheet addAction:confirmLeaveRoom];
                     
@@ -147,7 +147,7 @@
                 }
                 else {
                     [self.followButton updateStatus:ROOM_STATUS_LEFT];
-                    [self decrementMembersCount];
+//                    [self decrementMembersCount];
                 }
                 
             }
@@ -156,9 +156,12 @@
             }
             [self updateRoomStatus];
             
-            [[Session sharedInstance] unfollowRoom:self.room.identifier completion:^(BOOL success, id responseObject) {
+            [BFAPI unfollowRoom:self.room completion:^(BOOL success, id responseObject) {
                 if (success) {
-                    [[NSNotificationCenter defaultCenter] postNotificationName:@"refreshMyRooms" object:nil];
+                    if ([responseObject isKindOfClass:[Room class]]) {
+                        NSLog(@"update the room context!");
+                        self.room = responseObject;
+                    }
                 }
             }];
         }
@@ -174,15 +177,18 @@
             else {
                 // since they've been invited already, jump straight to being a member
                 [self.followButton updateStatus:ROOM_STATUS_MEMBER];
-                [self incrementMembersCount];
+//                [self incrementMembersCount];
             }
             [self updateRoomStatus];
             
             [HapticHelper generateFeedback:FeedbackType_Notification_Success];
             
-            [[Session sharedInstance] followRoom:self.room.identifier completion:^(BOOL success, id responseObject) {
+            [BFAPI followRoom:self.room completion:^(BOOL success, id responseObject) {
                 if (success) {
-                    [[NSNotificationCenter defaultCenter] postNotificationName:@"refreshMyRooms" object:nil];
+                    if ([responseObject isKindOfClass:[Room class]]) {
+                        NSLog(@"update the room context!");
+                        self.room = responseObject;
+                    }
                 }
             }];
         }
@@ -329,12 +335,12 @@
         self.member4.superview.hidden = true;
     }
     else {
-        self.roomTitleLabel.textColor = [UIColor colorWithWhite:0.2f alpha:1];
+        self.roomTitleLabel.textColor = [UIColor bonfireBlack];
         self.roomTitleLabel.backgroundColor = [UIColor clearColor];
         self.roomTitleLabel.layer.masksToBounds = false;
         self.roomTitleLabel.layer.cornerRadius = 0;
         
-        self.roomDescriptionLabel.textColor = [UIColor colorWithWhite:0.6f alpha:1];
+        self.roomDescriptionLabel.textColor = [UIColor bonfireGray];
         self.roomDescriptionLabel.backgroundColor = [UIColor clearColor];
         self.roomDescriptionLabel.layer.masksToBounds = false;
         self.roomDescriptionLabel.layer.cornerRadius = 0;

@@ -19,8 +19,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface PrivacySelectorTableViewController : UITableViewController
 
-@property (strong, nonatomic) Room *currentSelection;
-@property (strong, nonatomic) UIBarButtonItem *cancelButton;
+@property (nonatomic, strong) Room *currentSelection;
+@property (nonatomic, strong) UIBarButtonItem *cancelButton;
 @property (nonatomic, weak) id <PrivacySelectorDelegate> delegate;
 
 @end

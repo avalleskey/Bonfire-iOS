@@ -8,11 +8,6 @@
 #import "ZFModalTransitionAnimator.h"
 #import "UIColor+Palette.h"
 
-#define IS_IPHONE_X ([[UIScreen mainScreen] bounds].size.height==812)
-#define IS_IPHONE_MAX ([[UIScreen mainScreen] bounds].size.height==896)
-#define IS_IPHONE_XR ([[UIScreen mainScreen] bounds].size.height==896)
-#define HAS_ROUNDED_CORNERS (IS_IPHONE_X || IS_IPHONE_MAX || IS_IPHONE_XR)
-
 @interface ZFModalTransitionAnimator ()
 @property (nonatomic, strong) ZFDetectScrollViewEndGestureRecognizer *gesture;
 @property (nonatomic, strong) id<UIViewControllerContextTransitioning> transitionContext;

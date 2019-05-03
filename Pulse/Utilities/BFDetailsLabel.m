@@ -16,6 +16,7 @@
     self = [super init];
     if (self) {
         _details = @[];
+        self.customTruncationEnabled = false;
     }
     return self;
 }
@@ -39,7 +40,8 @@
     if (details != _details) {
         _details = details;
         
-        self.attributedText = [BFDetailsLabel attributedStringForDetails:_details linkColor:self.tintColor];
+        [self setAttributedText:[BFDetailsLabel attributedStringForDetails:_details linkColor:self.tintColor] withTruncation:false];
+        [self setTextAlignment:NSTextAlignmentCenter];
         
         CGSize size = [self.attributedText boundingRectWithSize:CGSizeMake(self.frame.size.width, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) context:nil].size;
         
@@ -53,7 +55,7 @@
     UIColor *color = [UIColor colorWithWhite:0.33f alpha:1];
     
     NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] init];
-    for (int i = 0; i < details.count; i++) {
+    for (NSInteger i = 0; i < details.count; i++) {
         if (![details[i] objectForKey:@"type"] || ![details[i] objectForKey:@"value"])
             continue;
         
@@ -131,7 +133,6 @@
     
     NSMutableParagraphStyle *style = [[NSMutableParagraphStyle alloc] init];
     [style setLineSpacing:2.f];
-    [style setAlignment:NSTextAlignmentCenter];
     [attributedString addAttribute:NSParagraphStyleAttributeName
                              value:style
                              range:NSMakeRange(0, attributedString.length)];

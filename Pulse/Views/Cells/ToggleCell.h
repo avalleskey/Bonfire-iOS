@@ -9,6 +9,6 @@
 
 @interface ToggleCell : UITableViewCell
 
-@property (strong, nonatomic) UISwitch *toggle;
+@property (nonatomic, strong) UISwitch *toggle;
 
 @end

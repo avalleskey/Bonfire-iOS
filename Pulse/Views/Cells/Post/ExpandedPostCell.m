@@ -14,7 +14,6 @@
 #import "Session.h"
 #import "Launcher.h"
 #import "UIColor+Palette.h"
-#import <Tweaks/FBTweakInline.h>
 
 @implementation ExpandedPostCell
 
@@ -67,11 +66,13 @@
         self.textView.delegate = self;
         
         self.dateLabel.hidden = true;
+        self.moreButton.hidden = true;
+        
         self.activityView = [[PostActivityView alloc] initWithFrame:CGRectMake(0, self.textView.frame.origin.y + self.textView.frame.size.height, self.frame.size.width, 30)];
         [self.contentView addSubview:self.activityView];
         
         // actions view
-        self.actionsView = [[PostActionsView alloc] initWithFrame:CGRectMake(0, 56, self.frame.size.width, expandedActionsViewHeight)];
+        self.actionsView = [[ExpandedPostActionsView alloc] initWithFrame:CGRectMake(0, 56, self.frame.size.width, expandedActionsViewHeight)];
         [self.actionsView.sparkButton bk_whenTapped:^{
             [self setSparked:!self.sparked withAnimation:true];
             
@@ -79,7 +80,7 @@
                 [HapticHelper generateFeedback:FeedbackType_Notification_Success];
                 
                 // not sparked -> spark it
-                [[Session sharedInstance] sparkPost:self.post completion:^(BOOL success, id responseObject) {
+                [BFAPI sparkPost:self.post completion:^(BOOL success, id responseObject) {
                     if (success) {
                         // NSLog(@"success upvoting!");
                     }
@@ -87,7 +88,7 @@
             }
             else {
                 // sparked -> unspark it
-                [[Session sharedInstance] unsparkPost:self.post completion:^(BOOL success, id responseObject) {
+                [BFAPI unsparkPost:self.post completion:^(BOOL success, id responseObject) {
                     if (success) {
                         // NSLog(@"success downvoting.");
                     }
@@ -129,31 +130,18 @@
     self.nameButton.frame = CGRectMake(self.nameButton.frame.origin.x, self.nameButton.frame.origin.y, self.frame.size.width - (self.nameButton.frame.origin.x + expandedPostContentOffset.right), self.nameButton.frame.size.height);
     self.postedInButton.frame = CGRectMake(self.nameButton.frame.origin.x, self.postedInButton.frame.origin.y, self.frame.size.width - self.nameButton.frame.origin.x - expandedPostContentOffset.right, self.postedInButton.frame.size.height);
     
-    BOOL hasImage = FBTweakValue(@"Post", @"General", @"Show Image", NO); //self.post.images != nil && self.post.images.count > 0;
+    BOOL hasImage = (self.post.attributes.details.media.count > 0 || self.post.attributes.details.attachments.media.count > 0); //self.post.images != nil && self.post.images.count > 0;
     if (hasImage) {
         self.imagesView.hidden = false;
         
         CGFloat contentWidth = self.frame.size.width;
         CGFloat imageHeight = expandedImageHeightDefault;
         
-        UIImage *diskImage = [[SDImageCache sharedImageCache] imageFromDiskCacheForKey:@"https://images.unsplash.com/photo-1490349368154-73de9c9bc37c?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2250&q=80"];
-        if (diskImage) {
-            // disk image!
-            CGFloat heightToWidthRatio = diskImage.size.height / diskImage.size.width;
-            imageHeight = roundf(contentWidth * heightToWidthRatio);
-            
-            if (imageHeight < 100) {
-                // NSLog(@"too small muchacho");
-                imageHeight = 100;
-            }
-            if (imageHeight > 600) {
-                // NSLog(@"too big muchacho");
-                imageHeight = 600;
-            }
-        }
-        else {
-            UIImage *memoryImage = [[SDImageCache sharedImageCache] imageFromMemoryCacheForKey:@"https://images.unsplash.com/photo-1490349368154-73de9c9bc37c?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2250&q=80"];
-            if (memoryImage) {
+        if (self.post.attributes.details.media.count == 1 && [[self.post.attributes.details.media firstObject] isKindOfClass:[NSString class]]) {
+            NSString *imageURL = self.post.attributes.details.media[0];
+            UIImage *diskImage = [[SDImageCache sharedImageCache] imageFromDiskCacheForKey:imageURL];
+            if (diskImage) {
+                // disk image!
                 CGFloat heightToWidthRatio = diskImage.size.height / diskImage.size.width;
                 imageHeight = roundf(contentWidth * heightToWidthRatio);
                 
@@ -164,6 +152,22 @@
                 if (imageHeight > 600) {
                     // NSLog(@"too big muchacho");
                     imageHeight = 600;
+                }
+            }
+            else {
+                UIImage *memoryImage = [[SDImageCache sharedImageCache] imageFromMemoryCacheForKey:imageURL];
+                if (memoryImage) {
+                    CGFloat heightToWidthRatio = diskImage.size.height / diskImage.size.width;
+                    imageHeight = roundf(contentWidth * heightToWidthRatio);
+                    
+                    if (imageHeight < 100) {
+                        // NSLog(@"too small muchacho");
+                        imageHeight = 100;
+                    }
+                    if (imageHeight > 600) {
+                        // NSLog(@"too big muchacho");
+                        imageHeight = 600;
+                    }
                 }
             }
         }
@@ -255,36 +259,46 @@
     if (post != _post) {
         _post = post;
         
-        BOOL isReply = _post.attributes.details.parent != 0;
-        Room *postedInRoom = _post.attributes.status.postedIn;
+        BOOL isReply = _post.attributes.details.parentId != 0;
+        Room *postedInRoom = self.post.attributes.status.postedIn;
         
-        NSString *username = _post.attributes.details.creator.attributes.details.identifier;
+        NSString *username = self.post.attributes.details.creator.attributes.details.identifier;
         if (username != nil) {
-            UIFont *heavyItalicFont = [UIFont fontWithDescriptor:[[[UIFont systemFontOfSize:self.nameButton.titleLabel.font.pointSize weight:UIFontWeightHeavy] fontDescriptor] fontDescriptorWithSymbolicTraits:UIFontDescriptorTraitItalic] size:self.nameButton.titleLabel.font.pointSize];
-            NSAttributedString *attributedCreatorName = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"@%@", username] attributes:@{NSForegroundColorAttributeName: [UIColor fromHex:post.attributes.details.creator.attributes.details.color], NSFontAttributeName: heavyItalicFont}];
+            NSMutableAttributedString *attributedCreatorName = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"@%@", username] attributes:@{NSForegroundColorAttributeName: [UIColor colorWithWhite:0.2f alpha:1], NSFontAttributeName: [UIFont systemFontOfSize:self.nameButton.titleLabel.font.pointSize weight:UIFontWeightSemibold]}];
+            
             [self.nameButton setAttributedTitle:attributedCreatorName forState:UIControlStateNormal];
         }
         
-        self.textView.message = _post.attributes.details.simpleMessage;
+        UIFont *font = [post isEmojiPost] ? [UIFont systemFontOfSize:expandedTextViewFont.pointSize*POST_EMOJI_SIZE_MULTIPLIER] : expandedTextViewFont;
+        self.textView.messageLabel.font = font;
+        self.textView.message = self.post.attributes.details.simpleMessage;
         
         // todo: activity view init views
         [self.activityView initViewsWithPost:_post];
         
-        BOOL showPostedIn = (!isReply && postedInRoom != nil);
-        self.postedInButton.userInteractionEnabled = showPostedIn;
-        if (showPostedIn) {
+        self.postedInButton.userInteractionEnabled = (isReply || postedInRoom != nil);
+        if (postedInRoom && !isReply) {
             [UIView performWithoutAnimation:^{
-                [self.postedInButton setTitle:post.attributes.status.postedIn.attributes.details.title forState:UIControlStateNormal];
+                [self.postedInButton setTitle:[NSString stringWithFormat:@"#%@", post.attributes.status.postedIn.attributes.details.identifier] forState:UIControlStateNormal];
                 [self.postedInButton layoutIfNeeded];
             }];
+            self.postedInButton.userInteractionEnabled = true;
             [self.postedInButton setImage:[[UIImage imageNamed:@"replyingToIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
             self.postedInButton.tintColor = [UIColor fromHex:_post.attributes.status.postedIn.attributes.details.color];
-            [self.postedInButton setTitleColor:self.postedInButton.tintColor forState:UIControlStateNormal];
             if (self.postedInButton.gestureRecognizers.count == 0 && post.attributes.status.postedIn) {
                 [self.postedInButton bk_whenTapped:^{
                     [[Launcher sharedInstance] openRoom:post.attributes.status.postedIn];
                 }];
             }
+        }
+        else if (isReply) {
+            [UIView performWithoutAnimation:^{
+                [self.postedInButton setTitle:[NSString stringWithFormat:@"@%@'s post", post.attributes.details.parentUsername] forState:UIControlStateNormal];
+                [self.postedInButton layoutIfNeeded];
+            }];
+            [self.postedInButton setImage:[[UIImage imageNamed:@"replyingToIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+            self.postedInButton.tintColor = [UIColor bonfireGray];
+            self.postedInButton.userInteractionEnabled = false;
         }
         else {
             [UIView performWithoutAnimation:^{
@@ -292,18 +306,26 @@
                 [self.postedInButton layoutIfNeeded];
             }];
             self.postedInButton.tintColor = [UIColor colorWithWhite:0.6 alpha:1];
-            [self.postedInButton setTitleColor:self.postedInButton.tintColor forState:UIControlStateNormal];
             [self.postedInButton setImage:[[UIImage imageNamed:@"expanded_post_public"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+            self.postedInButton.userInteractionEnabled = false;
         }
+        [self.postedInButton setTitleColor:self.postedInButton.tintColor forState:UIControlStateNormal];
         
         self.profilePicture.user = post.attributes.details.creator;
         
-        // [self.pictureView sd_setImageWithURL:[NSURL URLWithString:@"https://images.unsplash.com/photo-1490349368154-73de9c9bc37c?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2250&q=80"]];
-        [self.imagesView setMedia:@[@"https://source.unsplash.com/random", @"https://source.unsplash.com/daily", @"https://source.unsplash.com/weekly"]];
+        if (self.post.attributes.details.attachments.media.count > 0) {
+            [self.imagesView setMedia:self.post.attributes.details.attachments.media];
+        }
+        else if (self.post.attributes.details.media.count > 0) {
+            [self.imagesView setMedia:self.post.attributes.details.media];
+        }
+        else {
+            [self.imagesView setMedia:@[]];
+        }
     }
 }
 
-+ (CGFloat)heightForPost:(Post *)post {
++ (CGFloat)heightForPost:(Post *)post {    
     // name @username • 2hr
     CGFloat avatarHeight = 48; // 2pt padding underneath
     CGFloat avatarBottomPadding = 12; //15 + 14; // 14pt padding underneath
@@ -311,15 +333,18 @@
     // message
     CGFloat contentWidth = [UIScreen mainScreen].bounds.size.width;
     NSStringDrawingContext *context = [[NSStringDrawingContext alloc] init];
-    CGRect textViewRect = [post.attributes.details.message boundingRectWithSize:CGSizeMake(contentWidth - 12 - 12, 1200) options:(NSStringDrawingUsesLineFragmentOrigin) attributes:@{NSFontAttributeName:expandedTextViewFont} context:context];
+    
+    UIFont *font = [post isEmojiPost] ? [UIFont systemFontOfSize:expandedTextViewFont.pointSize*POST_EMOJI_SIZE_MULTIPLIER] : expandedTextViewFont;
+    CGRect textViewRect = [post.attributes.details.message boundingRectWithSize:CGSizeMake(contentWidth - 12 - 12, 1200) options:(NSStringDrawingUsesLineFragmentOrigin) attributes:@{NSFontAttributeName:font} context:context];
     CGFloat textViewHeight = ceilf(textViewRect.size.height);
     
     // image
-    BOOL hasImage = FBTweakValue(@"Post", @"General", @"Show Image", NO); // postAtIndex.images != nil && postAtIndex.images.count > 0;
+    BOOL hasImage = (post.attributes.details.media.count > 0 || post.attributes.details.attachments.media.count > 0);
     CGFloat imageHeight = hasImage ? expandedImageHeightDefault + 8 : 0;
     
-    if (hasImage) {
-        UIImage *diskImage = [[SDImageCache sharedImageCache] imageFromDiskCacheForKey:@"https://images.unsplash.com/photo-1490349368154-73de9c9bc37c?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2250&q=80"];
+    if (post.attributes.details.media.count == 1 && [[post.attributes.details.media firstObject] isKindOfClass:[NSString class]]) {
+        NSString *imageURL = post.attributes.details.media[0];
+        UIImage *diskImage = [[SDImageCache sharedImageCache] imageFromDiskCacheForKey:imageURL];
         if (diskImage) {
             // disk image!
             CGFloat heightToWidthRatio = diskImage.size.height / diskImage.size.width;
@@ -335,7 +360,7 @@
             }
         }
         else {
-            UIImage *memoryImage = [[SDImageCache sharedImageCache] imageFromMemoryCacheForKey:@"https://images.unsplash.com/photo-1490349368154-73de9c9bc37c?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2250&q=80"];
+            UIImage *memoryImage = [[SDImageCache sharedImageCache] imageFromMemoryCacheForKey:imageURL];
             if (memoryImage) {
                 CGFloat heightToWidthRatio = diskImage.size.height / diskImage.size.width;
                 imageHeight = roundf(contentWidth * heightToWidthRatio);

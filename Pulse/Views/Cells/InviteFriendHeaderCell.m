@@ -15,7 +15,6 @@
 #import "Defaults.h"
 #import "RoomViewController.h"
 #import "UIColor+Palette.h"
-#import <Tweaks/FBTweakInline.h>
 
 #define UIViewParentController(__view) ({ \
         UIResponder *__responder = __view; \
@@ -36,7 +35,7 @@
         self.layer.masksToBounds = false;
         
         self.nameLabel = [[UILabel alloc] init];
-        self.nameLabel.font = [UIFont systemFontOfSize:34.f weight:UIFontWeightHeavy];
+        self.nameLabel.font = [UIFont systemFontOfSize:30.f weight:UIFontWeightHeavy];
         self.nameLabel.textColor = [UIColor colorWithWhite:0.07f alpha:1];
         self.nameLabel.textAlignment = NSTextAlignmentCenter;
         self.nameLabel.numberOfLines = 0;
@@ -57,12 +56,9 @@
         self.separatorInset = UIEdgeInsetsMake(0, self.frame.size.width, 0, 0);
         self.selectionStyle = UITableViewCellSelectionStyleNone;
         
-        self.member1 = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 80, 80)];
-        self.member1.layer.cornerRadius = self.member1.frame.size.height / 2;
-        self.member1.layer.masksToBounds = true;
-        self.member1.image = [[UIImage imageNamed:@"inviteFriendHeaderImage"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-        self.member1.contentMode = UIViewContentModeScaleToFill;
-        self.member1.tintColor = [UIColor bonfireBrand];
+        self.member1 = [[BFAvatarView alloc] initWithFrame:CGRectMake(0, 0, 80, 80)];
+        self.member1.imageView.image = [[UIImage imageNamed:@"inviteFriendHeaderImage"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+        self.member1.imageView.contentMode = UIViewContentModeScaleToFill;
         
         self.member2 = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 44, 44)];
         self.member3 = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 44, 44)];
@@ -105,9 +101,7 @@
     
     // line separator
     self.lineSeparator.frame = CGRectMake(0, self.frame.size.height - 1 / [UIScreen mainScreen].scale, self.frame.size.width, 1 / [UIScreen mainScreen].scale);
-    
-    self.member1.tintColor = self.tintColor;
-    
+        
     self.contentView.frame = self.bounds;
     
     // profile pic collage
@@ -131,13 +125,7 @@
 }
 
 - (void)styleMemberProfilePictureView:(UIImageView *)imageView  {
-    BOOL circleProfilePictures = FBTweakValue(@"Post", @"General", @"Circle Profile Pictures", YES);
-    if (circleProfilePictures) {
-        [self continuityRadiusForView:imageView withRadius:imageView.frame.size.height * .5];
-    }
-    else {
-        [self continuityRadiusForView:imageView withRadius:imageView.frame.size.height * .25];
-    }
+    [self continuityRadiusForView:imageView withRadius:imageView.frame.size.height * .5];
     
     imageView.image = [[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
     imageView.tintColor = [UIColor whiteColor];

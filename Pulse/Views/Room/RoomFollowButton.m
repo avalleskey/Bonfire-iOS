@@ -79,7 +79,7 @@
                 titleColor = [UIColor whiteColor];
             }
             else if ([themeColor isEqual:[UIColor whiteColor]]) {
-                backgroundColor = [UIColor colorWithWhite:0.2f alpha:1];
+                backgroundColor = [UIColor bonfireBlack];
                 tintColor =
                 titleColor = [UIColor whiteColor];
             }

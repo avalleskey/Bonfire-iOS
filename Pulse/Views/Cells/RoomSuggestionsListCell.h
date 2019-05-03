@@ -10,12 +10,10 @@
 
 @interface RoomSuggestionsListCell : UITableViewCell <UICollectionViewDelegate, UICollectionViewDataSource>
 
-@property (strong, nonatomic) NSArray *roomSuggestions;
-
-@property (strong, nonatomic) UICollectionView *collectionView;
-
 @property (nonatomic) BOOL loading;
 
-@property (strong, nonatomic) UIView *lineSeparator;
+@property (nonatomic, strong) NSArray *roomSuggestions;
+@property (nonatomic, strong) UICollectionView *collectionView;
+@property (nonatomic, strong) UIView *lineSeparator;
 
 @end

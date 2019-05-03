@@ -22,8 +22,8 @@ typedef enum {
 
 @property (nonatomic) PostContextViewType type;
 
-@property (strong, nonatomic) UILabel *contextLabel;
-@property (strong, nonatomic) UIImageView *contextIcon;
+@property (nonatomic, strong) UILabel *contextLabel;
+@property (nonatomic, strong) UIImageView *contextIcon;
 
 @end
 

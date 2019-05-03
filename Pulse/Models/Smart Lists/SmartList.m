@@ -46,7 +46,7 @@
 
 + (BOOL)propertyIsOptional:(NSString*)propertyName
 {
-    NSArray *optionalProperties = @[@"destructive", @"push", @"present"];
+    NSArray *optionalProperties = @[@"destructive", @"push", @"present", @"radio"];
     if ([optionalProperties containsObject:propertyName]) return YES;
     return NO;
 }

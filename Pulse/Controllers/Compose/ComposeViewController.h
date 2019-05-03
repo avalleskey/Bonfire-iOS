@@ -11,32 +11,33 @@
 #import "TappableView.h"
 #import "BFAvatarView.h"
 #import "PrivacySelectorTableViewController.h"
+#import "ComposeTextViewCell.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface ComposeViewController : UIViewController <UITextViewDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate, PrivacySelectorDelegate, UIScrollViewDelegate>
+@interface ComposeViewController : UIViewController <UITextViewDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate, PrivacySelectorDelegate, UIScrollViewDelegate, UITableViewDelegate, UITableViewDataSource, ComposeTextViewCellDelegate>
 
-@property (strong, nonatomic) Room *postingIn;
-@property (strong, nonatomic) Post *replyingTo;
-@property (strong, nonatomic) NSString *prefillMessage;
-@property (strong, nonatomic) NSMutableArray *media;
+@property (nonatomic, strong) Room *postingIn;
+@property (nonatomic, strong) Post *replyingTo;
+@property (nonatomic, strong) NSString *prefillMessage;
+
+@property (nonatomic, strong) UITableView *tableView;
 
 @property (nonatomic) CGFloat currentKeyboardHeight;
-@property (strong, nonatomic) UITextView *textView;
-@property (strong, nonatomic) UIScrollView *contentScrollView;
-@property (strong, nonatomic) BFAvatarView *contentAvatar;
-@property (strong, nonatomic) UIScrollView *mediaScrollView;
-@property (strong, nonatomic) UIStackView *mediaContainerView;
 
-@property (strong, nonatomic) TappableView *titleView;
-@property (strong, nonatomic) BFAvatarView *titleAvatar;
-@property (strong, nonatomic) UILabel *titleLabel;
-@property (strong, nonatomic) UIImageView *titleCaret;
+@property (nonatomic, strong) TappableView *titleView;
+@property (nonatomic, strong) BFAvatarView *titleAvatar;
+@property (nonatomic, strong) UILabel *titleLabel;
+@property (nonatomic, strong) UIImageView *titleCaret;
 
-@property (strong, nonatomic) UIVisualEffectView *toolbarView;
-@property (strong, nonatomic) UILabel *characterCountdownLabel;
-@property (strong, nonatomic) UIButton *takePictureButton;
-@property (strong, nonatomic) UIButton *choosePictureButton;
+@property (nonatomic, strong) UIVisualEffectView *toolbarView;
+
+@property (nonatomic, strong) UIView *toolbarButtonsContainer;
+@property (nonatomic, strong) UILabel *characterCountdownLabel;
+@property (nonatomic, strong) UIButton *takePictureButton;
+@property (nonatomic, strong) UIButton *choosePictureButton;
+
+@property (nonatomic, strong) UITableView *autoCompleteTableView;
 
 @end
 

@@ -14,13 +14,12 @@
 #import "ProfileCampsListViewController.h"
 #import "ProfileFollowingListViewController.h"
 #import "PostViewController.h"
-#import "SignInViewController.h"
+#import "StackedOnboardingViewController.h"
 #import "OnboardingViewController.h"
 #import "CreateRoomViewController.h"
 #import "EditProfileViewController.h"
 #import "UIColor+Palette.h"
 #import "AppDelegate.h"
-#import "TabController.h"
 #import "InviteFriendTableViewController.h"
 #import "SettingsTableViewController.h"
 #import "ComposeViewController.h"
@@ -29,11 +28,10 @@
 #import "QuickReplyViewController.h"
 
 #import <SafariServices/SafariServices.h>
-#import <Tweaks/FBTweakViewController.h>
-#import <Tweaks/FBTweakStore.h>
 #import <Messages/Messages.h>
 #import <MessageUI/MessageUI.h>
 #import <StoreKit/StoreKit.h>
+#import <JGProgressHUD.h>
 
 #define UIViewParentController(__view) ({ \
     UIResponder *__responder = __view; \
@@ -42,7 +40,9 @@
     (UIViewController *)__responder; \
 })
 
-@interface Launcher () <FBTweakViewControllerDelegate, MFMessageComposeViewControllerDelegate, SFSafariViewControllerDelegate>
+@interface Launcher () <MFMessageComposeViewControllerDelegate, SFSafariViewControllerDelegate>
+
+@property (nonatomic, strong) SFSafariViewController *safariVC;
 
 @end
 
@@ -55,8 +55,6 @@ static Launcher *launcher;
         launcher = [[Launcher alloc] init];
         
         launcher.animator = [[SOLOptionsTransitionAnimator alloc] init];
-        launcher.interactionController = [[UIPercentDrivenInteractiveTransition alloc] init];
-        launcher.ZFAnimator = [[ZFModalTransitionAnimator alloc] init];
     }
     return launcher;
 }
@@ -74,10 +72,38 @@ static Launcher *launcher;
 }
 
 - (UINavigationController *)activeNavigationController {
-    return [launcher activeViewController].navigationController;
+    UIViewController *activeViewController = [launcher activeViewController];
+    if ([activeViewController isKindOfClass:[UINavigationController class]]) {
+        return (UINavigationController *)[launcher activeViewController];
+    }
+    else if ([activeViewController isKindOfClass:[UITabBarController class]]) {
+        return (UINavigationController *)(((UITabBarController *)[launcher activeViewController]).selectedViewController);
+    }
+    else {
+        return [launcher activeViewController].navigationController;
+    }
+}
+- (TabController *)tabController {
+    if ([[UIApplication sharedApplication].delegate.window.rootViewController isKindOfClass:[TabController class]]) {
+        return (TabController *)[UIApplication sharedApplication].delegate.window.rootViewController;
+    }
+    
+    return nil;
 }
 - (UITabBarController *)activeTabController {
-    return [launcher activeViewController].navigationController.tabBarController;
+    UIViewController *activeVC = [launcher activeViewController];
+    if ([activeVC isKindOfClass:[UITabBarController class]]) {
+        return (UITabBarController *)activeVC;
+    }
+    else if ([activeVC isKindOfClass:[UINavigationController class]]) {
+        return ((UITabBarController *)activeVC).tabBarController;
+    }
+    else if (activeVC.navigationController) {
+        return ((UITabBarController *)activeVC).navigationController.tabBarController;
+    }
+    else {
+        return ((UITabBarController *)activeVC).tabBarController;
+    }
 }
 
 - (ComplexNavigationController *)activeLauncherNavigationController {
@@ -154,10 +180,23 @@ static Launcher *launcher;
 }
 
 - (void)openRoom:(Room *)room {
+    BOOL insideRoom = ([launcher activeNavigationController] &&
+                       [[[[launcher activeNavigationController] viewControllers] lastObject] isKindOfClass:[RoomViewController class]] &&
+                       [((RoomViewController *)[[[launcher activeNavigationController] viewControllers] lastObject]).room.identifier isEqualToString:room.identifier]);
+    if (insideRoom) {
+        [self shake];
+        return;
+    }
+    
     RoomViewController *r = [[RoomViewController alloc] init];
     
-    NSLog(@"open room: %@", room.identifier);
-    
+    // set a fake permissions
+    RoomContextPermissions *permissions = [[RoomContextPermissions alloc] init];
+    permissions.post = @[BFMediaTypeText];
+    permissions.reply = @[BFMediaTypeText];
+    permissions.invite = true;
+    room.attributes.context.permissions = permissions;
+        
     r.room = room;
     r.theme = [UIColor fromHex:room.attributes.details.color.length == 6 ? room.attributes.details.color : @"7d8a99"];
     
@@ -182,7 +221,7 @@ static Launcher *launcher;
         [newLauncher updateBarColor:r.theme withAnimation:0 statusBarUpdateDelay:NO];
         newLauncher.modalTransitionStyle = UIModalPresentationCustom;
         
-        [self present:newLauncher animated:YES];
+        [launcher push:newLauncher animated:YES];
         
         [newLauncher updateNavigationBarItemsWithAnimation:NO];
     }
@@ -255,6 +294,14 @@ static Launcher *launcher;
     }
 }
 - (void)openProfile:(User *)user {
+    BOOL insideProfile = ([launcher activeNavigationController] &&
+                          [[[[launcher activeNavigationController] viewControllers] lastObject] isKindOfClass:[ProfileViewController class]] &&
+                          [((ProfileViewController *)[[[launcher activeNavigationController] viewControllers] lastObject]).user.identifier isEqualToString:user.identifier]);
+    if (insideProfile) {
+        [self shake];
+        return;
+    }
+    
     ProfileViewController *p = [[ProfileViewController alloc] init];
     
     NSString *themeCSS = user.attributes.details.color.length == 6 ? user.attributes.details.color : @"7d8a99";
@@ -297,24 +344,24 @@ static Launcher *launcher;
         }
     }
 }
-// TODO: Implement [self shake] on existing proile when openProfile is called
 - (void)shake {
     CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"position"];
-    [animation setDuration:0.15f];
+    [animation setDuration:0.16f];
     [animation setRepeatCount:0];
     [animation setAutoreverses:YES];
+    [animation setTimingFunction:[CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseOut]];
     
     UIViewController *activeViewController = [launcher activeViewController];
+    if ([activeViewController isKindOfClass:[UITabBarController class]]) {
+        activeViewController = ((UITabBarController *)activeViewController).selectedViewController;
+    }
     
-    NSInteger shakeDistance = 4;
-    BOOL hasTabController = [launcher activeViewController].navigationController.tabBarController != nil;
+    NSInteger shakeDistance = 3;
     [animation setFromValue:[NSValue valueWithCGPoint:
-                             CGPointMake(activeViewController.view.center.x - shakeDistance, activeViewController.view.center.y + (hasTabController ? 44 : 0))]];
+                             CGPointMake(activeViewController.view.center.x + shakeDistance, activeViewController.view.center.y)]];
     [animation setToValue:[NSValue valueWithCGPoint:
-                           CGPointMake(activeViewController.view.center.x + shakeDistance, activeViewController.view.center.y + (hasTabController ? 44 : 0))]];
-    [[activeViewController.navigationController.view layer] addAnimation:animation forKey:@"position"];
-    
-    NSLog(@"%@", activeViewController.navigationController.view);
+                           CGPointMake(activeViewController.view.center.x - shakeDistance, activeViewController.view.center.y)]];
+    [[activeViewController.view layer] addAnimation:animation forKey:@"position"];
 }
 - (void)openProfileCampsJoined:(User *)user {
     ProfileCampsListViewController *pc = [[ProfileCampsListViewController alloc] initWithStyle:UITableViewStyleGrouped];
@@ -322,7 +369,7 @@ static Launcher *launcher;
     pc.user = user;
     pc.theme = [UIColor fromHex:user.attributes.details.color.length == 6 ? user.attributes.details.color : @"7d8a99"];
     
-    pc.title = @"Camps Joined";
+    pc.title = [user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier] ? @"My Camps" : @"Camps Joined";
     
     ComplexNavigationController *activeLauncherNavVC = [launcher activeLauncherNavigationController];
     if ([launcher activeTabController] != nil || activeLauncherNavVC == nil) {
@@ -425,7 +472,7 @@ static Launcher *launcher;
         
         [newLauncher updateBarColor:p.theme withAnimation:0 statusBarUpdateDelay:NO];
         
-        [launcher present:newLauncher animated:YES];
+        [launcher push:newLauncher animated:YES];
         
         [newLauncher updateNavigationBarItemsWithAnimation:NO];
     }
@@ -461,11 +508,11 @@ static Launcher *launcher;
 
 - (void)openComposePost:(Room * _Nullable)room inReplyTo:(Post * _Nullable)replyingTo withMessage:(NSString * _Nullable)message media:(NSArray * _Nullable)media {
     ComposeViewController *epvc = [[ComposeViewController alloc] init];
-    epvc.view.tintColor = [Session sharedInstance].themeColor;
+    epvc.view.tintColor = [UIColor bonfireBlack];
     epvc.postingIn = room;
     epvc.replyingTo = replyingTo;
     epvc.prefillMessage = message;
-    epvc.media = [[NSMutableArray alloc] initWithArray:media];
+    //epvc.media = [[NSMutableArray alloc] initWithArray:media];
     
     SimpleNavigationController *newNavController = [[SimpleNavigationController alloc] initWithRootViewController:epvc];
     newNavController.transitioningDelegate = self;
@@ -477,7 +524,7 @@ static Launcher *launcher;
 }
 - (void)openEditProfile {
     EditProfileViewController *epvc = [[EditProfileViewController alloc] initWithStyle:UITableViewStyleGrouped];
-    epvc.view.tintColor = [Session sharedInstance].themeColor;
+    epvc.view.tintColor = [UIColor bonfireBlack];
     
     UINavigationController *newNavController = [[UINavigationController alloc] initWithRootViewController:epvc];
     newNavController.transitioningDelegate = self;
@@ -506,9 +553,9 @@ static Launcher *launcher;
 }
 
 - (void)openOnboarding {
-    if (![[launcher activeViewController] isKindOfClass:[SignInViewController class]] &&
+    if (![[launcher activeViewController] isKindOfClass:[StackedOnboardingViewController class]] &&
         ![[launcher activeViewController] isKindOfClass:[OnboardingViewController class]]) {
-        SignInViewController *vc = [[SignInViewController alloc] init];
+        StackedOnboardingViewController *vc = [[StackedOnboardingViewController alloc] init];
         vc.transitioningDelegate = self;
         
         [[launcher activeViewController] presentViewController:vc animated:YES completion:^{
@@ -571,28 +618,220 @@ static Launcher *launcher;
 - (void)openURL:(NSString *)urlString {
     NSURL *url = [[NSURL alloc] initWithString:urlString];
     if ([[UIApplication sharedApplication] canOpenURL:url]) {
-        SFSafariViewController *svc = [[SFSafariViewController alloc] initWithURL:url];
-        svc.delegate = self;
-        svc.navigationController.navigationBar.tintColor = [UIColor bonfireBrand];
-        [[launcher activeViewController] presentViewController:svc animated:YES completion:nil];
+        self.safariVC = [[SFSafariViewController alloc] initWithURL:url];
+        self.safariVC.delegate = self;
+        self.safariVC.navigationController.navigationBar.tintColor = [UIColor bonfireBrand];
+        [[launcher activeViewController] presentViewController:self.safariVC animated:YES completion:nil];
     }
 }
 - (void)safariViewControllerDidFinish:(SFSafariViewController *)controller {
-    [controller dismissViewControllerAnimated:true completion:nil];
+    if ([[launcher activeViewController] isKindOfClass:[UINavigationController class]]) {
+        [[launcher activeViewController] setNeedsStatusBarAppearanceUpdate];
+    }
+    else if ([launcher activeViewController].navigationController) {
+        [[launcher activeViewController].navigationController setNeedsStatusBarAppearanceUpdate];
+    }
 }
 
+- (void)openActionsForPost:(Post *)post {
+    // Three Categories of Post Actions
+    // 1) Any user
+    // 2) Creator
+    // 3) Admin
+    BOOL isCreator = ([post.attributes.details.creator.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]);
+    BOOL isRoomAdmin = false;
+    
+    // Page action can be shown on
+    // A) Any page
+    // B) Inside Room
+    
+    UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:nil message:nil preferredStyle:UIAlertControllerStyleActionSheet];
+    
+    // 1.B.* -- Any user, outside room, any following state
+    if (post.attributes.status.postedIn == nil) {
+        BOOL insideProfile = ([launcher activeNavigationController] &&
+                              [[[[launcher activeNavigationController] viewControllers] lastObject] isKindOfClass:[ProfileViewController class]] &&
+                              [((ProfileViewController *)[[[launcher activeNavigationController] viewControllers] lastObject]).user.identifier isEqualToString:post.attributes.details.creator.identifier]);
+        if (!insideProfile && ![post.attributes.details.creator.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
+            UIAlertAction *openProfile = [UIAlertAction actionWithTitle:[NSString stringWithFormat:@"View @%@'s Profile", post.attributes.details.creator.attributes.details.identifier] style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                NSLog(@"open camp");
+                
+                NSError *error;
+                User *user = [[User alloc] initWithDictionary:[post.attributes.details.creator toDictionary] error:&error];
+                
+                [[Launcher sharedInstance] openProfile:user];
+            }];
+            [actionSheet addAction:openProfile];
+        }
+    }
+    else {
+        BOOL insideRoom = ([launcher activeNavigationController] &&
+                              [[[[launcher activeNavigationController] viewControllers] lastObject] isKindOfClass:[RoomViewController class]] &&
+                              [((RoomViewController *)[[[launcher activeNavigationController] viewControllers] lastObject]).room.identifier isEqualToString:post.attributes.status.postedIn.identifier]);
+        if (!insideRoom) {
+            UIAlertAction *openRoom = [UIAlertAction actionWithTitle:@"Open Camp" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                NSLog(@"open camp");
+                
+                NSError *error;
+                Room *room = [[Room alloc] initWithDictionary:[post.attributes.status.postedIn toDictionary] error:&error];
+                
+                [[Launcher sharedInstance] openRoom:room];
+            }];
+            [actionSheet addAction:openRoom];
+        }
+    }
+    
+    // 1.A.* -- Any user, any page, any following state
+    BOOL hasiMessage = [MFMessageComposeViewController canSendText];
+    if (hasiMessage) {
+        UIAlertAction *shareOniMessage = [UIAlertAction actionWithTitle:@"Share on iMessage" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            NSString *url;
+            if (post.attributes.status.postedIn != nil) {
+                // posted in a room
+                url = [NSString stringWithFormat:@"https://bonfire.camp/c/%@/post/%ld", post.attributes.status.postedIn.attributes.details.identifier, (long)post.identifier];
+            }
+            else {
+                // posted on a profile
+                url = [NSString stringWithFormat:@"https://bonfire.camp/u/%@/post/%ld", post.attributes.details.creator.attributes.details.identifier, (long)post.identifier];
+            }
+            
+            NSString *message;
+            if (post.attributes.details.message.length > 0) {
+                message = [NSString stringWithFormat:@"\"%@\" %@", post.attributes.details.message, url];
+            }
+            else {
+                message = url;
+            }
+            
+            [[Launcher sharedInstance] shareOniMessage:message image:nil];
+        }];
+        [actionSheet addAction:shareOniMessage];
+    }
+    
+    // 1.A.* -- Any user, any page, any following state
+    UIAlertAction *sharePost = [UIAlertAction actionWithTitle:@"Share via..." style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        NSLog(@"share post");
+        
+        [launcher sharePost:post];
+    }];
+    [actionSheet addAction:sharePost];
+    
+    // !2.A.* -- Not Creator, any page, any following state
+    if (!isCreator) {
+        UIAlertAction *reportPost = [UIAlertAction actionWithTitle:@"Report Post" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            NSLog(@"report post");
+            // confirm action
+            UIAlertController *confirmDeletePostActionSheet = [UIAlertController alertControllerWithTitle:@"Report Post" message:@"Are you sure you want to report this post?" preferredStyle:UIAlertControllerStyleAlert];
+            
+            UIAlertAction *confirmDeletePost = [UIAlertAction actionWithTitle:@"Report" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+                NSLog(@"confirm report post");
+                [BFAPI reportPost:post.identifier completion:^(BOOL success, id responseObject) {
+                    NSLog(@"reported post!");
+                }];
+            }];
+            [confirmDeletePostActionSheet addAction:confirmDeletePost];
+            
+            UIAlertAction *cancelDeletePost = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+                NSLog(@"cancel report post");
+            }];
+            [confirmDeletePostActionSheet addAction:cancelDeletePost];
+            
+            [[launcher activeViewController] presentViewController:confirmDeletePostActionSheet animated:YES completion:nil];
+        }];
+        [actionSheet addAction:reportPost];
+    }
+    
+    // 2|3.A.* -- Creator or room admin, any page, any following state
+    if (isCreator || isRoomAdmin) {
+        UIAlertAction *deletePost = [UIAlertAction actionWithTitle:@"Delete" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            [actionSheet dismissViewControllerAnimated:YES completion:nil];
+            NSLog(@"delete post");
+            // confirm action
+            UIAlertController *confirmDeletePostActionSheet = [UIAlertController alertControllerWithTitle:@"Delete Post" message:@"Are you sure you want to delete this post?" preferredStyle:UIAlertControllerStyleAlert];
+            
+            UIAlertAction *confirmDeletePost = [UIAlertAction actionWithTitle:@"Delete" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+                JGProgressHUD *HUD = [JGProgressHUD progressHUDWithStyle:JGProgressHUDStyleExtraLight];
+                HUD.textLabel.text = @"Deleting...";
+                HUD.vibrancyEnabled = false;
+                HUD.textLabel.textColor = [UIColor colorWithWhite:0 alpha:0.6f];
+                HUD.backgroundColor = [UIColor colorWithWhite:0 alpha:0.1f];
+                [HUD showInView:[launcher activeViewController].view animated:YES];
+                
+                NSLog(@"confirm delete post");
+                [BFAPI deletePost:post completion:^(BOOL success, id responseObject) {
+                    if (success) {
+                        NSLog(@"deleted post!");
+                        
+                        // update room object
+                        Room *postedInRoom = post.attributes.status.postedIn;
+                        if (postedInRoom) {
+                            postedInRoom.attributes.summaries.counts.posts = postedInRoom.attributes.summaries.counts.posts - 1;
+                            [[NSNotificationCenter defaultCenter] postNotificationName:@"RoomUpdated" object:postedInRoom];
+                            // update post object
+                            post.attributes.status.postedIn = postedInRoom;
+                        }
+                        
+                        // success
+                        [HUD dismissAfterDelay:0];
+                        
+                        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.2f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                            if ([launcher activeNavigationController] && [launcher activeNavigationController].viewControllers.count > 1) {
+                                [[launcher activeNavigationController] popViewControllerAnimated:YES];
+                                
+                                if ([[launcher activeNavigationController] isKindOfClass:[ComplexNavigationController class]]) {
+                                    [(ComplexNavigationController *)[launcher activeNavigationController] goBack];
+                                }
+                            }
+                            else {
+                                [[launcher activeViewController] dismissViewControllerAnimated:YES completion:nil];
+                            }
+                        });
+                    }
+                    else {
+                        HUD.indicatorView = [[JGProgressHUDErrorIndicatorView alloc] init];
+                        HUD.textLabel.text = @"Error Deleting";
+                        
+                        [HUD dismissAfterDelay:1.f];
+                    }
+                }];
+            }];
+            [confirmDeletePostActionSheet addAction:confirmDeletePost];
+            
+            UIAlertAction *cancelDeletePost = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+                NSLog(@"cancel delete post");
+            }];
+            [confirmDeletePostActionSheet addAction:cancelDeletePost];
+            
+            [[launcher activeViewController] presentViewController:confirmDeletePostActionSheet animated:YES completion:nil];
+        }];
+        [actionSheet addAction:deletePost];
+    }
+    
+    UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+        NSLog(@"cancel");
+    }];
+    [actionSheet addAction:cancel];
+    
+    [[launcher activeViewController] presentViewController:actionSheet animated:YES completion:nil];
+}
 - (void)sharePost:(Post *)post {
     NSString *url;
     if (post.attributes.status.postedIn != nil) {
         // posted in a room
-        url = [NSString stringWithFormat:@"https://bonfire.com/rooms/%@/posts/%ld", post.attributes.status.postedIn.identifier, (long)post.identifier];
+        url = [NSString stringWithFormat:@"https://bonfire.camp/c/%@/post/%ld", post.attributes.status.postedIn.attributes.details.identifier, (long)post.identifier];
     }
     else {
         // posted on a profile
-        url = [NSString stringWithFormat:@"https://bonfire.com/users/%@/posts/%ld", post.attributes.details.creator.identifier, (long)post.identifier];
+        url = [NSString stringWithFormat:@"https://bonfire.camp/u/%@/post/%ld", post.attributes.details.creator.attributes.details.identifier, (long)post.identifier];
     }
     
-    NSString *message = [NSString stringWithFormat:@"%@  %@", post.attributes.details.message, url];
+    NSString *message;
+    if (post.attributes.details.message.length > 0) {
+        message = [NSString stringWithFormat:@"\"%@\" %@", post.attributes.details.message, url];
+    }
+    else {
+        message = url;
+    }
     
     UIActivityViewController *controller = [[UIActivityViewController alloc]initWithActivityItems:@[message] applicationActivities:nil];
     controller.modalPresentationStyle = UIModalPresentationPopover;
@@ -600,13 +839,13 @@ static Launcher *launcher;
     [[launcher activeViewController] presentViewController:controller animated:YES completion:nil];
 }
 - (void)shareUser:(User *)user {
-    UIActivityViewController *controller = [[UIActivityViewController alloc]initWithActivityItems:@[@"https://bonfire.com/user/%@", user.attributes.details.identifier] applicationActivities:nil];
+    UIActivityViewController *controller = [[UIActivityViewController alloc]initWithActivityItems:@[[NSString stringWithFormat:@"https://bonfire.camp/u/%@", user.attributes.details.identifier]] applicationActivities:nil];
     controller.modalPresentationStyle = UIModalPresentationPopover;
     
     [[launcher activeViewController] presentViewController:controller animated:YES completion:nil];
 }
 - (void)shareRoom:(Room *)room {
-    UIActivityViewController *controller = [[UIActivityViewController alloc]initWithActivityItems:@[@"https://bonfire.com/room/%@", room.attributes.details.identifier] applicationActivities:nil];
+    UIActivityViewController *controller = [[UIActivityViewController alloc]initWithActivityItems:@[[NSString stringWithFormat:@"https://bonfire.camp/c/%@", room.attributes.details.identifier]] applicationActivities:nil];
     controller.modalPresentationStyle = UIModalPresentationPopover;
     
     [[launcher activeViewController] presentViewController:controller animated:YES completion:nil];
@@ -627,13 +866,28 @@ static Launcher *launcher;
             [messageController addAttachmentData:dataImg typeIdentifier:@"public.data" filename:@"Image.png"];
         }
         
-        //NSData *dataImg = UIImagePNGRepresentation([UIImage imageNamed:@"logoApple"]);//Add the image as attachment
-        //[messageController addAttachmentData:dataImg typeIdentifier:@"public.data" filename:@"Image.png"];
         [[launcher activeViewController] presentViewController:messageController animated:YES completion:nil];
     }
 }
 - (void)messageComposeViewController:(MFMessageComposeViewController *)controller didFinishWithResult:(MessageComposeResult)result {
-    [controller dismissViewControllerAnimated:YES completion:nil];
+    NSLog(@"did finish with result: %ld", (long)result);
+    if (result == MessageComposeResultSent) {
+        NSLog(@"sent");
+    }
+    else if (result == MessageComposeResultFailed) {
+        NSLog(@"failed");
+    }
+    else {
+        NSLog(@"cancelled");
+    }
+    [controller dismissViewControllerAnimated:YES completion:^{
+        if ([[launcher activeViewController] isKindOfClass:[UINavigationController class]]) {
+            [[launcher activeViewController] setNeedsStatusBarAppearanceUpdate];
+        }
+        else if ([launcher activeViewController].navigationController) {
+            [[launcher activeViewController].navigationController setNeedsStatusBarAppearanceUpdate];
+        }
+    }];
 }
 
 - (void)expandImageView:(UIImageView *)imageView {
@@ -685,23 +939,13 @@ static Launcher *launcher;
     }
 }
 
-- (void)openTweaks {
-    FBTweakViewController *tweakVC = [[FBTweakViewController alloc] initWithStore:[FBTweakStore sharedInstance]];
-    tweakVC.tweaksDelegate = self;
-    // Assuming this is in the app delegate
-    [self present:tweakVC animated:YES];
-}
-- (void)tweakViewControllerPressedDone:(FBTweakViewController *)tweakViewController {
-    [tweakViewController dismissViewControllerAnimated:YES completion:NULL];
-}
-
 - (void)present:(UIViewController *)viewController animated:(BOOL)animated {
     viewController.transitioningDelegate = self;
     
     [[launcher activeViewController] presentViewController:viewController animated:YES completion:nil];
 }
 - (void)push:(UIViewController *)viewController animated:(BOOL)animated {
-    if ([launcher canPush]) {        
+    if ([launcher canPush] && ![viewController isKindOfClass:[UINavigationController class]]) {
         [(UINavigationController *)[launcher activeViewController] pushViewController:viewController animated:YES];
     }
     else {
@@ -720,6 +964,12 @@ static Launcher *launcher;
     
     launcher.animator.appearing = YES;
     launcher.animator.duration = 0.3;
+    if ([presented isKindOfClass:[ComplexNavigationController class]]) {
+        launcher.animator.direction = SOLTransitionDirectionLeft;
+    }
+    else {
+        launcher.animator.direction = SOLTransitionDirectionUp;
+    }
     animationController = launcher.animator;
     
     return animationController;
@@ -733,106 +983,16 @@ static Launcher *launcher;
     
     launcher.animator.appearing = NO;
     launcher.animator.duration = 0.3;
+    
+    if ([dismissed isKindOfClass:[ComplexNavigationController class]]) {
+        launcher.animator.direction = SOLTransitionDirectionLeft;
+    }
+    else {
+        launcher.animator.direction = SOLTransitionDirectionUp;
+    }
     animationController = launcher.animator;
     
     return animationController;
-}
-
-
-// PUSH TRANSITION
-- (id<UIViewControllerAnimatedTransitioning>)navigationController:(UINavigationController *)navigationController
-animationControllerForOperation:(UINavigationControllerOperation)operation
-fromViewController:(UIViewController*)fromVC
-toViewController:(UIViewController*)toVC
-{
-    if (operation == UINavigationControllerOperationPush) {
-        
-        return [[PushAnimator alloc] init];
-    }
-    
-    if (operation == UINavigationControllerOperationPop) {
-        
-        return [[PopAnimator alloc] init];
-    }
-    
-    return nil;
-}
-
-@end
-
-
-@implementation PushAnimator
-
-- (NSTimeInterval)transitionDuration:(id <UIViewControllerContextTransitioning>)transitionContext
-{
-    return 0.5f;
-}
-
-- (void)animateTransition:(id<UIViewControllerContextTransitioning>)transitionContext
-{
-    UIViewController *fromVC = [transitionContext viewControllerForKey:UITransitionContextFromViewControllerKey];
-    UIViewController *toVC = [transitionContext viewControllerForKey:UITransitionContextToViewControllerKey];
-    UIView *fromView = fromVC.view;
-    UIView *toView = toVC.view;
-    UIView *containerView = [transitionContext containerView];
-    containerView.backgroundColor = [UIColor colorWithWhite:0.9 alpha:1];
-    NSTimeInterval duration = [self transitionDuration:transitionContext];
-    
-    // Presenting
-    [containerView addSubview:toView];
-    
-    fromView.userInteractionEnabled = NO;
-    
-    // Round the corners
-    fromView.layer.masksToBounds = YES;
-    toView.layer.masksToBounds = YES;
-    
-    CGFloat toViewEndY = toView.frame.origin.y;
-    toView.frame = CGRectMake(containerView.frame.size.width, toView.frame.origin.y, toView.frame.size.width, toView.frame.size.height);
-    toView.layer.masksToBounds = false;
-    
-    [UIView animateWithDuration:duration delay:0 usingSpringWithDamping:0.78f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        toView.frame = CGRectMake(toView.frame.origin.x, toViewEndY, toView.frame.size.width, toView.frame.size.height);
-        fromView.transform = CGAffineTransformMakeScale(0.8, 0.8);
-        fromView.layer.cornerRadius = 12.f;
-    } completion:^(BOOL finished) {
-        fromView.transform = CGAffineTransformMakeScale(1, 1);
-        [transitionContext completeTransition:![transitionContext transitionWasCancelled]];
-    }];
-}
-
-@end
-
-
-@implementation PopAnimator
-
-- (NSTimeInterval)transitionDuration:(id <UIViewControllerContextTransitioning>)transitionContext
-{
-    return 0.5f;
-}
-
-- (void)animateTransition:(id<UIViewControllerContextTransitioning>)transitionContext
-{
-    UIViewController *fromVC = [transitionContext viewControllerForKey:UITransitionContextFromViewControllerKey];
-    UIViewController *toVC = [transitionContext viewControllerForKey:UITransitionContextToViewControllerKey];
-    UIView *fromView = fromVC.view;
-    UIView *toView = toVC.view;
-    toView.transform = CGAffineTransformMakeScale(0.8, 0.8);
-    UIView *containerView = [transitionContext containerView];
-    NSTimeInterval duration = [self transitionDuration:transitionContext];
-    
-    [containerView addSubview:toView];
-    [containerView bringSubviewToFront:fromView];
-    
-    [UIView animateWithDuration:duration delay:0 usingSpringWithDamping:0.78f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        fromView.frame = CGRectMake(fromView.frame.origin.x, toVC.navigationController.view.frame.size.height, fromView.frame.size.width, fromView.frame.size.height);
-        toView.transform = CGAffineTransformMakeScale(1, 1);
-        toView.layer.cornerRadius = 0;
-    } completion:^(BOOL finished) {
-        [fromView removeFromSuperview];
-        toView.userInteractionEnabled = YES;
-        [transitionContext completeTransition:![transitionContext transitionWasCancelled]];
-    }];
 }
 
 @end

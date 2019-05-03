@@ -7,20 +7,19 @@
 //
 
 #import "PostCell.h"
+#import "PostActionsView.h"
 
-#define replyContentOffset UIEdgeInsetsMake(10, 72, 6, 12)
-#define replyBubbleInset UIEdgeInsetsZero
-#define replyTextViewFont [UIFont systemFontOfSize:18.f weight:UIFontWeightRegular]
+#define replyContentOffset UIEdgeInsetsMake(8, 120, 8, 12)
 
 @interface ReplyCell : PostCell <UITextFieldDelegate, PostTextViewDelegate>
 
-@property (strong, nonatomic) UIView *detailsView;
-@property (strong, nonatomic) UIButton *detailReplyButton;
-@property (strong, nonatomic) UIButton *detailSparkButton;
-@property (strong, nonatomic) UIButton *detailShareButton;
-@property (strong, nonatomic) UIButton *detailMoreButton;
+@property (nonatomic, strong) PostActionsView *actionsView;
 
-@property BOOL sparked;
+@property (nonatomic, strong) UIView *insetLine;
+
+@property (nonatomic) BOOL topCell;
+@property (nonatomic) BOOL bottomCell;
+
 - (void)setSparked:(BOOL)isSparked animated:(BOOL)animated;
 
 + (CGFloat)heightForPost:(Post *)post;

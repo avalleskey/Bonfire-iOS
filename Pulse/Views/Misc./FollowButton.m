@@ -8,6 +8,7 @@
 
 #import "FollowButton.h"
 #import "Session.h"
+#import "UIColor+Palette.h"
 
 @implementation FollowButton
 
@@ -18,7 +19,7 @@
         self.titleEdgeInsets = UIEdgeInsetsMake(0, 6, 0, 0);
         self.titleLabel.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightBold];
         self.adjustsImageWhenHighlighted = false;
-        self.backgroundColor = [UIColor colorWithWhite:1.f alpha:0.2f];
+        self.backgroundColor = [UIColor bonfireBlack];
         self.layer.cornerRadius = 10.f;
         self.layer.masksToBounds = false;
         self.layer.borderColor = [UIColor colorWithWhite:0 alpha:0.06f].CGColor;

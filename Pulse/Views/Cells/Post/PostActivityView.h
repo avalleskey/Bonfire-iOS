@@ -13,7 +13,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface PostActivityView : UIView
 
-@property (strong, nonatomic) NSMutableArray *views;
+@property (nonatomic, strong) NSMutableArray *views;
 - (void)initViewsWithPost:(Post *)post;
 
 - (void)start;

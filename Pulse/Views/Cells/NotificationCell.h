@@ -8,21 +8,13 @@
 
 #import <UIKit/UIKit.h>
 #import "BFAvatarView.h"
+#import "UserActivity.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 @interface NotificationCell : UITableViewCell
 
-typedef enum {
-    NotificationTypeUnkown = 0,
-    NotificationTypeUserNewFollower = 1,
-    NotificationTypeRoomJoinRequest = 2,
-    NotificationTypeRoomNewMember = 3,
-    NotificationTypeRoomApprovedRequest = 4,
-    NotificationTypePostReply = 5,
-    NotificationTypePostSparks = 6
-} NotificationType;
-@property (nonatomic) NotificationType type;
+@property (nonatomic) UserActivity *activity;
 
 typedef enum {
     NotificationStateOutline = 1,
@@ -30,11 +22,12 @@ typedef enum {
 } NotificationState;
 @property (nonatomic) NotificationState state;
 
-@property (strong, nonatomic) BFAvatarView *profilePicture;
-@property (strong, nonatomic) UIImageView *typeIndicator;
-// @property (strong, nonatomic) UILabel *textLabel; -- inherited from UITableViewCell
-@property (strong, nonatomic) UIButton *actionButton;
-@property (strong, nonatomic) UIButton *moreButton;
+@property (nonatomic, strong) BFAvatarView *profilePicture;
+@property (nonatomic, strong) UIImageView *typeIndicator;
+@property (nonatomic, strong) UIButton *actionButton;
+@property (nonatomic, strong) UIButton *moreButton;
+
++ (CGFloat)heightForUserActivity:(UserActivity *)activity;
 
 @end
 

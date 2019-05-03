@@ -17,11 +17,9 @@ typedef enum {
     ROOM_CARD_SIZE_LARGE = 2
 } ROOM_CARD_SIZE;
 
-@property (strong, nonatomic) HAWebService *manager;
+@property (nonatomic, strong) UICollectionView *collectionView;
 
-@property (strong, nonatomic) UICollectionView *collectionView;
-
-@property (strong, nonatomic) NSMutableArray *rooms;
+@property (nonatomic, strong) NSMutableArray *rooms;
 
 @property (nonatomic) BOOL loading;
 @property (nonatomic) BOOL errorLoading;

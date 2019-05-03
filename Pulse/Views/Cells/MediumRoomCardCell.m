@@ -76,7 +76,7 @@
     self.roomTitleLabel.textAlignment = NSTextAlignmentCenter;
     self.roomTitleLabel.numberOfLines = 0;
     self.roomTitleLabel.lineBreakMode = NSLineBreakByWordWrapping;
-    self.roomTitleLabel.textColor = [UIColor colorWithWhite:0.2f alpha:1];
+    self.roomTitleLabel.textColor = [UIColor bonfireBlack];
     self.roomTitleLabel.text = @"Baseball Fans";
     [self.contentView addSubview:self.roomTitleLabel];
     
@@ -85,7 +85,7 @@
     self.roomDescriptionLabel.textAlignment = NSTextAlignmentCenter;
     self.roomDescriptionLabel.numberOfLines = 0;
     self.roomDescriptionLabel.lineBreakMode = NSLineBreakByWordWrapping;
-    self.roomDescriptionLabel.textColor = [UIColor colorWithWhite:0.6f alpha:1];
+    self.roomDescriptionLabel.textColor = [UIColor bonfireGray];
     self.roomDescriptionLabel.text = @"We just really like pinball machines, ok?";
     [self.contentView addSubview:self.roomDescriptionLabel];
     
@@ -179,12 +179,12 @@
         self.member4.superview.hidden = true;
     }
     else {
-        self.roomTitleLabel.textColor = [UIColor colorWithWhite:0.2f alpha:1];
+        self.roomTitleLabel.textColor = [UIColor bonfireBlack];
         self.roomTitleLabel.backgroundColor = [UIColor clearColor];
         self.roomTitleLabel.layer.masksToBounds = false;
         self.roomTitleLabel.layer.cornerRadius = 0;
         
-        self.roomDescriptionLabel.textColor = [UIColor colorWithWhite:0.6f alpha:1];
+        self.roomDescriptionLabel.textColor = [UIColor bonfireGray];
         self.roomDescriptionLabel.backgroundColor = [UIColor clearColor];
         self.roomDescriptionLabel.layer.masksToBounds = false;
         self.roomDescriptionLabel.layer.cornerRadius = 0;

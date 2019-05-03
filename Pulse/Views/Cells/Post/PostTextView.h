@@ -19,15 +19,16 @@ NS_ASSUME_NONNULL_BEGIN
 
 @protocol PostTextViewDelegate <NSObject>
 
+@optional
 - (void)postTextViewDidDoubleTap:(PostTextView *)postTextView;
 
 @end
 
 @interface PostTextView : UIView <UITextViewDelegate, TTTAttributedLabelDelegate, UIGestureRecognizerDelegate>
 
-@property (strong, nonatomic) TTTAttributedLabel *messageLabel;
+@property (nonatomic, strong) TTTAttributedLabel *messageLabel;
 
-@property (strong, nonatomic) NSString *message;
+@property (nonatomic, strong) NSString *message;
 
 @property (nonatomic) UIEdgeInsets edgeInsets;
 

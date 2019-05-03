@@ -104,7 +104,7 @@ static NSString * const reuseIdentifier = @"MiniChannel";
             [cell.ticker setTitle:[NSString stringWithFormat:@"%ld live", (long)cell.room.attributes.summaries.counts.live] forState:UIControlStateNormal];
         }
         
-        for (int i = 0; i < cell.membersView.subviews.count; i++) {
+        for (NSInteger i = 0; i < cell.membersView.subviews.count; i++) {
             if ([cell.membersView.subviews[i] isKindOfClass:[UIImageView class]]) {
                 UIImageView *imageView = cell.membersView.subviews[i];
                 
@@ -112,7 +112,7 @@ static NSString * const reuseIdentifier = @"MiniChannel";
                     imageView.hidden = false;
                     
                     User *member = [[User alloc] initWithDictionary:cell.room.attributes.summaries.members[imageView.tag] error:nil];
-                    NSString *picURL = member.attributes.details.media.profilePicture;
+                    NSString *picURL = member.attributes.details.media.userAvatar.suggested.url;
                     if (picURL.length > 0) {
                         [imageView sd_setImageWithURL:[NSURL URLWithString:picURL]];
                     }

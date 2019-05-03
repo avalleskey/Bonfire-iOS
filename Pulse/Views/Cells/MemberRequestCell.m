@@ -10,7 +10,7 @@
 #import <SDWebImage/UIImageView+WebCache.h>
 #import <BlocksKit/BlocksKit.h>
 #import <BlocksKit/BlocksKit+UIKit.h>
-#import <Tweaks/FBTweakInline.h>
+#import "UIColor+Palette.h"
 
 @implementation MemberRequestCell
 
@@ -21,11 +21,11 @@
         [self.contentView addSubview:self.profilePicture];
         
         self.textLabel.font = [UIFont systemFontOfSize:15.f weight:UIFontWeightBold];
-        self.textLabel.textColor = [UIColor colorWithWhite:0.2f alpha:1];
+        self.textLabel.textColor = [UIColor bonfireBlack];
         
         self.detailTextLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightRegular];
         self.detailTextLabel.textAlignment = NSTextAlignmentLeft;
-        self.detailTextLabel.textColor = [UIColor colorWithWhite:0.6f alpha:1];
+        self.detailTextLabel.textColor = [UIColor bonfireGray];
         self.detailTextLabel.lineBreakMode = NSLineBreakByTruncatingMiddle;
         
         // general cell styling

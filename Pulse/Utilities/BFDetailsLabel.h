@@ -21,7 +21,7 @@ typedef enum {
 
 @interface BFDetailsLabel : ResponsiveLabel
 
-@property (strong, nonatomic) NSArray *details;
+@property (nonatomic, strong) NSArray *details;
 + (NSAttributedString *)attributedStringForDetails:(NSArray *)details linkColor:(UIColor * _Nullable)linkColor;
 
 + (NSDictionary *)BFDetailWithType:(BFDetailType)type value:(id)value action:(PatternTapResponder _Nullable)tapResponder;

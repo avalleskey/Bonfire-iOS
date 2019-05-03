@@ -11,12 +11,14 @@
 #import "Session.h"
 #import "UIColor+Palette.h"
 #import "InputCell.h"
+#import "SmartList.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 @protocol SmartListDelegate <NSObject>
 
 @optional
+
 - (void)tableView:(UITableView *)tableView didSelectRowWithId:(NSString *)rowId;
 - (void)textFieldDidChange:(UITextField *)textField withRowId:(NSString *)rowId;
 
@@ -24,8 +26,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface SmartListTableViewController : UITableViewController <UITextFieldDelegate>
 
-@property (strong, nonatomic) NSString *jsonFile;
+@property (nonatomic, strong) NSString *jsonFile;
 
+@property (nonatomic, strong) SmartList *list;
 @property (weak, nonatomic) id <SmartListDelegate> smartListDelegate;
 
 - (nullable InputCell *)inputCellForRowId:(NSString *)rowId;

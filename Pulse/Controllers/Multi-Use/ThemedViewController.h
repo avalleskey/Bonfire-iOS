@@ -12,7 +12,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface ThemedViewController : UIViewController
 
-@property (strong, nonatomic) UIColor *theme;
+@property (nonatomic, strong) UIColor *theme;
 
 @end
 

@@ -1,5 +1,7 @@
 #import "Post.h"
 #import "Session.h"
+#import "GTMNSString+HTML.h"
+#import <SearchEmojiOnString/NSString+EMOEmoji.h>
 
 @implementation Post
 
@@ -8,6 +10,13 @@
     return [[JSONKeyMapper alloc] initWithModelToJSONDictionary:@{
                                                                   @"identifier": @"id"
                                                                   }];
+}
+
++ (BOOL)propertyIsOptional:(NSString*)propertyName
+{
+    NSArray *optionalProperties = @[@"tempId"];
+    if ([optionalProperties containsObject:propertyName]) return YES;
+    return NO;
 }
 
 - (BOOL)requiresURLPreview {
@@ -37,35 +46,24 @@
     return false;*/
 }
 
-- (BOOL)validateUrl: (NSString *) candidate {
-    NSString *urlRegEx =
-    @"(http|https)://((\\w)*|([0-9]*)|([-|_])*)+([\\.|/]((\\w)*|([0-9]*)|([-|_])*))+";
-    NSPredicate *urlTest = [NSPredicate predicateWithFormat:@"SELF MATCHES %@", urlRegEx];
-    return [urlTest evaluateWithObject:candidate];
-}
-
-- (void)createTempWithMessage:(NSString *)message images:(NSArray *)images postedIn:(Room * _Nullable)postedIn parent:(NSInteger)parentId {
+- (void)createTempWithMessage:(NSString *)message media:(BFMedia *)media postedIn:(Room * _Nullable)postedIn parentId:(NSInteger)parentId {
     self.type = @"post";
-    self.tempId = [NSString stringWithFormat:@"%d", [[Session sharedInstance] getTempId]];
+    self.tempId = [NSString stringWithFormat:@"%d", [Session getTempId]];
     // TODO: Add support for images
     
     PostAttributes *attributes = [[PostAttributes alloc] init];
-    /*
-     @property (nonatomic) PostDetails *details;
-     @property (nonatomic) PostStatus *status;
-     @property (nonatomic) PostSummaries *summaries;
-     @property (nonatomic) PostContext *context;
-     */
+
     PostDetails *details = [[PostDetails alloc] init];
     details.creator = [Session sharedInstance].currentUser;
     if (message) {
         details.message = message;
     }
     if (parentId) {
-        details.parent = parentId;
+        NSLog(@"set parent id! %ld", (long)parentId);
+        details.parentId = parentId;
     }
-    if (images) {
-        
+    if (media && media.objects.count > 0) {
+        details.media = [media toDataArray];
     }
     attributes.details = details;
     
@@ -83,20 +81,28 @@
     self.attributes = attributes;
 }
 
-+ (BOOL)propertyIsOptional:(NSString*)propertyName
-{
-    NSArray *optionalProperties = @[@"rowHeight", @"tempId"];
-    if ([optionalProperties containsObject:propertyName]) return YES;
-    return NO;
+- (BOOL)validateUrl: (NSString *) candidate {
+    NSString *urlRegEx =
+    @"(http|https)://((\\w)*|([0-9]*)|([-|_])*)+([\\.|/]((\\w)*|([0-9]*)|([-|_])*))+";
+    NSPredicate *urlTest = [NSPredicate predicateWithFormat:@"SELF MATCHES %@", urlRegEx];
+    return [urlTest evaluateWithObject:candidate];
+}
+
++ (NSString *_Nullable)trimString:(NSString *_Nullable)string {
+    if (string != nil) {
+        return [string stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+    }
+    
+    return @"";
+}
+
+- (BOOL)isEmojiPost {
+    return self.attributes.details.emojify;
 }
 
 @end
 
 @implementation PostAttributes
-
-@end
-
-@implementation PostDisplay
 
 @end
 
@@ -120,6 +126,13 @@
 
 @implementation PostCounts
 
++ (BOOL)propertyIsOptional:(NSString*)propertyName
+{
+    NSArray *optionalProperties = @[@"replies", @"live"];
+    if ([optionalProperties containsObject:propertyName]) return YES;
+    return NO;
+}
+
 @end
 
 @implementation PostSummaries
@@ -135,13 +148,11 @@
 
 + (BOOL)propertyIsOptional:(NSString*)propertyName
 {
-    NSArray *optionalProperties = @[@"parent"];
-    if ([optionalProperties containsObject:propertyName]) return YES;
-    return NO;
+    return YES;
 }
 
 - (NSString *)simpleMessage {
-    NSString *trimmedString = [self trimString:self.message];
+    NSString *trimmedString = [Post trimString:self.message];
     
     return trimmedString;
     
@@ -177,12 +188,13 @@
      return self.message;*/
 }
 
-- (NSString *)trimString:(NSString *)string {
-    if (string != nil) {
-        return [string stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+- (void)setMessage:(NSString<Optional> *)message {
+    if (message != _message) {
+        _message = [message gtm_stringByUnescapingFromHTML];
+        
+        // set format
+        self.emojify = ([_message emo_isPureEmojiString] && [_message emo_emojiCount] <= 3);
     }
-    
-    return @"";
 }
 
 - (BOOL)validateUrl: (NSString *) candidate {
@@ -196,13 +208,64 @@
 
 @implementation PostContext
 
++ (BOOL)propertyIsOptional:(NSString*)propertyName
+{
+    return YES;
+}
+
 @end
 
 @implementation PostContextReplies
 
++ (BOOL)propertyIsOptional:(NSString*)propertyName
+{
+    return YES;
+}
+
 @end
 
 @implementation PostContextVote
+
++ (JSONKeyMapper *)keyMapper
+{
+    return [JSONKeyMapper mapperForSnakeCase];
+}
+
+@end
+
+@implementation PostAttachments
+
++ (JSONKeyMapper *)keyMapper
+{
+    return [JSONKeyMapper mapperForSnakeCase];
+}
+
+@end
+
+@implementation PostAttachmentsMedia
+
++ (JSONKeyMapper *)keyMapper
+{
+    return [JSONKeyMapper mapperForSnakeCase];
+}
+
+@end
+
+@implementation PostAttachmentsMediaAtributes
+
++ (JSONKeyMapper *)keyMapper
+{
+    return [JSONKeyMapper mapperForSnakeCase];
+}
+
++ (BOOL)propertyIsOptional:(NSString*)propertyName
+{
+    return YES;
+}
+
+@end
+
+@implementation PostAttachmentsMediaAtributesRawMedia
 
 + (JSONKeyMapper *)keyMapper
 {

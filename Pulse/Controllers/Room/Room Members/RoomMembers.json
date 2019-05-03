@@ -8,7 +8,7 @@
                     "id": "members_requests",
                     "title": "Member Requests",
                     "footer": "Since your Camp is private, users who request to join your Camp will show up here.",
-                    "url": "/rooms/{room.id}/members/requests",
+                    "url": "rooms/{room.id}/members/requests",
                     "state": 0
                 }
             ]
@@ -19,7 +19,7 @@
             "sections": [
                 {
                     "id": "members_current",
-                    "url": "/rooms/{room.id}/members",
+                    "url": "rooms/{room.id}/members",
                     "state": 0
                 }
             ]
@@ -31,14 +31,14 @@
                 {
                     "id": "members_directors",
                     "title": "Directors",
-                    "url": "/rooms/{room.id}/members/admins",
+                    "url": "rooms/{room.id}/members?filter_type=admins",
                     "state": 0
                 },
                 {
                     "id": "members_managers",
                     "title": "Managers",
-                    "footer": "Managers are like directors, but with limited permissions. They can accept camper requests, block members, remove posts and more.",
-                    "url": "/rooms/{room.id}/members/moderators",
+                    "footer": "Managers are like directors, but with limited permissions. They can accept new member requests, block members, remove posts and more.",
+                    "url": "rooms/{room.id}/members?filter_type=moderators",
                     "state": 0
                 }
             ]

@@ -12,6 +12,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface TappableButton : UIButton
 
+@property (nonatomic) UIEdgeInsets padding;
+
 @end
 
 NS_ASSUME_NONNULL_END

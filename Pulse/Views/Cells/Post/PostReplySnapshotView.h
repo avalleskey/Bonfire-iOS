@@ -14,13 +14,13 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface PostReplySnapshotView : UIView
 
-@property (strong, nonatomic) BFAvatarView *firstAvatar;
-@property (strong, nonatomic) BFAvatarView *secondAvatar;
-@property (strong, nonatomic) BFAvatarView *thirdAvatar;
+@property (nonatomic, strong) BFAvatarView *firstAvatar;
+@property (nonatomic, strong) BFAvatarView *secondAvatar;
+@property (nonatomic, strong) BFAvatarView *thirdAvatar;
 
-@property (strong, nonatomic) UILabel *postPreviewLabel;
+@property (nonatomic, strong) UILabel *postPreviewLabel;
 
-@property (strong, nonatomic) NSArray <Post *> *replies;
+@property (nonatomic, strong) NSArray <Post *> *replies;
 
 @end
 

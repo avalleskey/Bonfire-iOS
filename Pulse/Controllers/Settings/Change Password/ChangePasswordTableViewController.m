@@ -13,10 +13,11 @@
 #import "NSString+Validation.h"
 #import <JGProgressHUD/JGProgressHUD.h>
 #import "HAWebService.h"
+#import "ResetPasswordViewController.h"
+
+@import Firebase;
 
 @interface ChangePasswordTableViewController ()
-
-@property (strong, nonatomic) HAWebService *manager;
 
 @end
 
@@ -26,6 +27,9 @@
     [super viewDidLoad];
     
     [self setup];
+    
+    // Google Analytics
+    [FIRAnalytics setScreenName:@"Settings / Change Password" screenClass:nil];
 }
 
 - (void)setup {
@@ -35,8 +39,6 @@
     [self setupNavigationItems];
     
     [self setJsonFile:@"ChangePassword"];
-    
-    self.manager = [HAWebService manager];
 }
 
 - (void)setupNavigationItems {
@@ -90,31 +92,32 @@
     HUD.backgroundColor = [UIColor colorWithWhite:0 alpha:0.1f];
     [HUD showInView:self.navigationController.view animated:YES];
     
-    [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
-        [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
+    [[HAWebService authenticatedManager] PUT:@"users/me" parameters:@{@"old_password": currentPasswordCell.input.text, @"password": newPasswordCell.input.text} success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        HUD.indicatorView = [[JGProgressHUDSuccessIndicatorView alloc] init];
+        HUD.textLabel.text = @"Saved!";
         
-        NSString *url = [NSString stringWithFormat:@"%@/%@/users/me", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"]];
+        [HUD dismissAfterDelay:1.f];
         
-        [self.manager.requestSerializer setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
-        [self.manager PUT:url parameters:@{@"old_password": currentPasswordCell.input.text, @"password": newPasswordCell.input.text} success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-            HUD.indicatorView = [[JGProgressHUDSuccessIndicatorView alloc] init];
-            HUD.textLabel.text = @"Saved!";
-            
-            [HUD dismissAfterDelay:1.f];
-            
-            [self.navigationController popViewControllerAnimated:YES];
-            
-        } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-            NSLog(@"error saving user prefs");
-            NSLog(@"error:");
-            NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-            NSLog(@"%@", ErrorResponse);
-            HUD.indicatorView = [[JGProgressHUDErrorIndicatorView alloc] init];
-            HUD.textLabel.text = @"Error Saving";
-            
-            [HUD dismissAfterDelay:1.f];
-        }];
+        [self.navigationController popViewControllerAnimated:YES];
+        
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        NSLog(@"error saving user prefs");
+        NSLog(@"error:");
+        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+        NSLog(@"%@", ErrorResponse);
+        HUD.indicatorView = [[JGProgressHUDErrorIndicatorView alloc] init];
+        HUD.textLabel.text = @"Error Saving";
+        
+        [HUD dismissAfterDelay:1.f];
     }];
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowWithId:(NSString *)rowId {
+    if ([rowId isEqualToString:@"reset_password"]) {
+        ResetPasswordViewController *resetPasswordVC = [[ResetPasswordViewController alloc] init];
+        resetPasswordVC.transitioningDelegate = [Launcher sharedInstance];
+        [[Launcher sharedInstance] present:resetPasswordVC animated:YES];
+    }
 }
 
 @end

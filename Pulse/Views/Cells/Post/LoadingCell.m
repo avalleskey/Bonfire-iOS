@@ -58,6 +58,9 @@
         [self.shimmerContentView addSubview:self.imagesView];
         
         self.shimmerContainer.contentView = self.shimmerContentView;
+        
+        self.dateLabel.hidden =
+        self.moreButton.hidden = true;
     }
     
     return self;
@@ -67,7 +70,8 @@
 {
     [super layoutSubviews];
     
-    self.lineSeparator.frame = CGRectMake(self.textView.frame.origin.x, self.frame.size.height - (1 / [UIScreen mainScreen].scale), self.frame.size.width - self.textView.frame.origin.x, 1 / [UIScreen mainScreen].scale);
+    // self.lineSeparator.frame = CGRectMake(self.textView.frame.origin.x, self.frame.size.height - (1 / [UIScreen mainScreen].scale), self.frame.size.width - self.textView.frame.origin.x, 1 / [UIScreen mainScreen].scale);
+    self.lineSeparator.frame = CGRectMake(0, self.frame.size.height - (1 / [UIScreen mainScreen].scale), self.frame.size.width, 1 / [UIScreen mainScreen].scale);
     
     self.shimmerContainer.frame = self.bounds;
     self.shimmerContentView.frame = self.bounds;

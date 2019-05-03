@@ -94,12 +94,6 @@
                     "present": true
                 },
                 {
-                    "id": "tweaks",
-                    "title": "Tweaks",
-                    "detail": "BSD",
-                    "present": true
-                },
-                {
                     "id": "responsive_label",
                     "title": "ResponsiveLabel",
                     "detail": "MIT",
@@ -120,6 +114,12 @@
                 {
                     "id": "pincache",
                     "title": "PINCache",
+                    "detail": "APACHE",
+                    "present": true
+                },
+                {
+                    "id": "google_toolbox",
+                    "title": "Google Toolbox for Mac",
                     "detail": "APACHE",
                     "present": true
                 }

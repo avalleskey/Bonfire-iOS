@@ -11,6 +11,6 @@
 @interface PaginationCell : UITableViewCell
 
 @property BOOL loading;
-@property (strong, nonatomic) UIActivityIndicatorView *spinner;
+@property (nonatomic, strong) UIActivityIndicatorView *spinner;
 
 @end

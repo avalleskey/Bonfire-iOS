@@ -16,8 +16,9 @@
 #import "EditRoomViewController.h"
 #import "UIColor+Palette.h"
 #import "Launcher.h"
-// #import "UIScrollView+ContentInsetFix.h"
 #import "InsightsLogger.h"
+#import "HAWebService.h"
+@import Firebase;
 
 @interface RoomViewController () {
     int previousTableViewYOffset;
@@ -25,8 +26,8 @@
 
 @property (nonatomic) BOOL loading;
 
-@property (strong, nonatomic) ComplexNavigationController *launchNavVC;
-@property (strong, nonatomic) ErrorView *errorView;
+@property (nonatomic, strong) ComplexNavigationController *launchNavVC;
+@property (nonatomic, strong) ErrorView *errorView;
 @property (nonatomic) BOOL userDidRefresh;
 
 @end
@@ -49,9 +50,7 @@ static NSString * const reuseIdentifier = @"Result";
     
     [self setupTableView];
     [self setupErrorView];
-    
-    self.manager = [HAWebService manager];
-    
+        
     [self setupComposeInputView];
     
     self.view.tintColor = self.theme;
@@ -64,6 +63,9 @@ static NSString * const reuseIdentifier = @"Result";
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(newPostBegan:) name:@"NewPostBegan" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(newPostCompleted:) name:@"NewPostCompleted" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(newPostFailed:) name:@"NewPostFailed" object:nil];
+    
+    // Google Analytics
+    [FIRAnalytics setScreenName:@"Room" screenClass:nil];
 }
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
@@ -76,7 +78,7 @@ static NSString * const reuseIdentifier = @"Result";
     else {
         self.view.tag = 1;
     }
-    
+        
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillChangeFrame:) name:UIKeyboardWillChangeFrameNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillDismiss:) name:UIKeyboardWillHideNotification object:nil];
 }
@@ -103,13 +105,11 @@ static NSString * const reuseIdentifier = @"Result";
 - (void)newPostBegan:(NSNotification *)notification {
     Post *tempPost = notification.object;
     
-    if (tempPost != nil && [tempPost.attributes.status.postedIn.identifier isEqualToString:self.room.identifier] && tempPost.attributes.details.parent == 0) {
+    if (tempPost != nil && [tempPost.attributes.status.postedIn.identifier isEqualToString:self.room.identifier] && tempPost.attributes.details.parentId == 0) {
         // TODO: Check for image as well
         self.errorView.hidden = true;
         [self.tableView.stream addTempPost:tempPost];
         [self.tableView refresh];
-        
-        [self.tableView setContentOffset:CGPointMake(0, -1 * (self.navigationController.navigationBar.frame.origin.y + self.navigationController.navigationBar.frame.size.height)) animated:YES];
     }
 }
 - (void)newPostCompleted:(NSNotification *)notification {
@@ -117,7 +117,7 @@ static NSString * const reuseIdentifier = @"Result";
     NSString *tempId = info[@"tempId"];
     Post *post = info[@"post"];
     
-    if (post != nil && [post.attributes.status.postedIn.identifier isEqualToString:self.room.identifier] && post.attributes.details.parent == 0) {
+    if (post != nil && [post.attributes.status.postedIn.identifier isEqualToString:self.room.identifier] && post.attributes.details.parentId == 0) {
         // TODO: Check for image as well
         self.errorView.hidden = true;
         [self.tableView.stream updateTempPost:tempId withFinalPost:post];
@@ -132,7 +132,7 @@ static NSString * const reuseIdentifier = @"Result";
 - (void)newPostFailed:(NSNotification *)notification {
     Post *tempPost = notification.object;
     
-    if (tempPost != nil && [tempPost.attributes.status.postedIn.identifier isEqualToString:self.room.identifier] && tempPost.attributes.details.parent == 0) {
+    if (tempPost != nil && [tempPost.attributes.status.postedIn.identifier isEqualToString:self.room.identifier] && tempPost.attributes.details.parentId == 0) {
         // TODO: Check for image as well
         [self.tableView.stream removeTempPost:tempPost.tempId];
         [self.tableView refresh];
@@ -142,6 +142,9 @@ static NSString * const reuseIdentifier = @"Result";
 
 - (void)roomUpdated:(NSNotification *)notification {
     Room *room = notification.object;
+    
+    NSLog(@"room updated::");
+    NSLog(@"%@", room);
     
     if (room != nil &&
         [room.identifier isEqualToString:self.room.identifier]) {
@@ -156,13 +159,7 @@ static NSString * const reuseIdentifier = @"Result";
         self.room = room;
         self.tableView.parentObject = room;
         
-        if ([self.room.attributes.context.status isEqualToString:ROOM_STATUS_MEMBER]) {
-            [self showComposeInputView];
-            [self.composeInputView updatePlaceholders];
-        }
-        else {
-            [self hideComposeInputView];
-        }
+        [self updateComposeInputView];
         
         // Update Room
         UIColor *themeColor = [UIColor fromHex:[[self.room.attributes.details.color lowercaseString] isEqualToString:@"ffffff"]?@"222222":self.room.attributes.details.color];
@@ -202,6 +199,25 @@ static NSString * const reuseIdentifier = @"Result";
     }
 }
 
+- (void)updateComposeInputView {
+    if ([self.room.attributes.context.status isEqualToString:ROOM_STATUS_MEMBER]) {
+        [self showComposeInputView];
+        [self.composeInputView updatePlaceholders];
+        
+        /*
+        [self.composeInputView setMediaTypes:self.room.attributes.context.permissions.post];
+        if ([self.room.attributes.context.permissions canPost]) {
+            [self showComposeInputView];
+        }
+        else {
+            [self hideComposeInputView];
+        }*/
+    }
+    else {
+        [self hideComposeInputView];
+    }
+}
+
 - (void)loadRoom {
     NSError *roomError;
     //self.room = [[Room alloc] initWithDictionary:[self.room toDictionary] error:&roomError];
@@ -224,10 +240,10 @@ static NSString * const reuseIdentifier = @"Result";
         }
         
         // load room info before loading posts
+        self.errorView.hidden = true;
         [self getRoomInfo];
     }
     else {
-        NSLog(@"room nto found");
         // room not found
         self.tableView.hidden = true;
         self.errorView.hidden = false;
@@ -245,84 +261,94 @@ static NSString * const reuseIdentifier = @"Result";
     }
 }
 - (void)getRoomInfo {
-    NSString *url = [NSString stringWithFormat:@"%@/%@/rooms/%@", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], [self roomIdentifier]];
+    NSString *url = [NSString stringWithFormat:@"rooms/%@", [self roomIdentifier]];
     
     NSLog(@"self.room identifier: %@", [self roomIdentifier]);
     NSLog(@"%@", self.room.attributes.details.identifier);
     
-    [self.manager.requestSerializer setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-    self.manager.responseSerializer = [AFJSONResponseSerializer serializer];
-    [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
-        if (success) {
-            [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
-            
-            NSDictionary *params = @{};
-            
-            [self.manager GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                NSDictionary *responseData = (NSDictionary *)responseObject[@"data"];
-                
-                // NSLog(@"::::: getRoomInfo() :::::");
-                
-                // this must go before we set self.room to the new Room object
-                BOOL requiresColorUpdate = (self.room.attributes.details.color == nil);
-                
-                // first page
-                
-                NSError *contextError;
-                RoomContext *context = [[RoomContext alloc] initWithDictionary:responseData[@"attributes"][@"context"] error:&contextError];
-                
-                NSError *roomError;
-                self.room = [[Room alloc] initWithDictionary:responseData error:&roomError];
-                self.room.attributes.context = context;
-                if (roomError) {
-                    NSLog(@"room error: %@", roomError);
-                }
-                [[Session sharedInstance] addToRecents:self.room];
-                
-                // update the theme color (in case we didn't know the room's color before
-                if (requiresColorUpdate) {
-                    [self updateTheme];
-                }
-                
-                // update the title (in case we didn't know the room's title before)
-                self.title = self.room.attributes.details.title;
-                [self.launchNavVC.searchView updateSearchText:self.title];
-                
-                // update the compose input placeholder (in case we didn't know the room's title before)
-                [self.composeInputView updatePlaceholders];
-                
-                self.tableView.parentObject = self.room;
-                
-                // Now that the VC's Room object is complete,
-                // Go on to load the room content
-                [self loadRoomContent];
-            } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                NSLog(@"RoomViewController / getRoom() - error: %@", error);
-                //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-                
-                self.errorView.hidden = false;
-                
-                NSHTTPURLResponse *httpResponse = error.userInfo[AFNetworkingOperationFailingURLResponseErrorKey];
-                NSInteger statusCode = httpResponse.statusCode;
-                if (statusCode == 404) {
-                    [self.errorView updateTitle:@"Camp Not Found"];
-                    [self.errorView updateDescription:@"We couldn’t find the Camp\nyou were looking for"];
-                    [self.errorView updateType:ErrorViewTypeNotFound];
-                }
-                else {
-                    [self.errorView updateType:ErrorViewTypeGeneral];
-                    [self.errorView updateTitle:@"Error Loading"];
-                    [self.errorView updateDescription:@"Check your network settings and tap here to try again"];
-                }
-                
-                [self positionErrorView];
-                
-                self.loading = false;
-                self.tableView.loading = false;
-                self.tableView.error = true;
-                [self.tableView refresh];
-            }];
+    NSDictionary *params = @{};
+    
+    [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        NSDictionary *responseData = (NSDictionary *)responseObject[@"data"];
+        
+        // NSLog(@"::::: getRoomInfo() :::::");
+        
+        // this must go before we set self.room to the new Room object
+        BOOL requiresColorUpdate = (self.room.attributes.details.color == nil);
+        
+        // first page
+        
+        NSError *contextError;
+        RoomContext *context = [[RoomContext alloc] initWithDictionary:responseData[@"attributes"][@"context"] error:&contextError];
+        
+        NSError *roomError;
+        self.room = [[Room alloc] initWithDictionary:responseData error:&roomError];
+        self.room.attributes.context = context;
+        
+        // set a fake permissions
+        //                RoomContextPermissions *permissions = [[RoomContextPermissions alloc] init];
+        //                permissions.post = @[BFMediaTypeText];
+        //                permissions.reply = @[BFMediaTypeText];
+        //                permissions.invite = true;
+        //                self.room.attributes.context.permissions = permissions;
+        
+        if (roomError) {
+            NSLog(@"room error: %@", roomError);
         }
+        [[Session sharedInstance] addToRecents:self.room];
+        
+        // update the theme color (in case we didn't know the room's color before
+        if (requiresColorUpdate) {
+            [self updateTheme];
+        }
+        
+        // update the title (in case we didn't know the room's title before)
+        self.title = self.room.attributes.details.title;
+        [self.launchNavVC.searchView updateSearchText:self.title];
+        
+        // update the compose input placeholder (in case we didn't know the room's title before)
+        [self updateComposeInputView];
+        
+        self.tableView.parentObject = self.room;
+        
+        // Now that the VC's Room object is complete,
+        // Go on to load the room content
+        [self loadRoomContent];
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        NSLog(@"RoomViewController / getRoom() - error: %@", error);
+        //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+        
+        self.errorView.hidden = false;
+        
+        NSHTTPURLResponse *httpResponse = error.userInfo[AFNetworkingOperationFailingURLResponseErrorKey];
+        NSInteger statusCode = httpResponse.statusCode;
+        if (statusCode == 404) {
+            [self.errorView updateTitle:@"Camp Not Found"];
+            [self.errorView updateDescription:@"We couldn’t find the Camp\nyou were looking for"];
+            [self.errorView updateType:ErrorViewTypeNotFound];
+            
+            self.room = nil;
+            self.tableView.parentObject = self.room;
+        }
+        else {
+            if ([HAWebService hasInternet]) {
+                [self.errorView updateType:ErrorViewTypeGeneral];
+                [self.errorView updateTitle:@"Error Loading"];
+                [self.errorView updateDescription:@"Check your network settings and tap here to try again"];
+            }
+            else {
+                [self.errorView updateType:ErrorViewTypeNoInternet];
+                [self.errorView updateTitle:@"No Internet"];
+                [self.errorView updateDescription:@"Check your network settings and tap here to try again"];
+            }
+        }
+        
+        self.loading = false;
+        self.tableView.loading = false;
+        self.tableView.error = true;
+        [self.tableView refresh];
+        
+        [self positionErrorView];
     }];
 }
 
@@ -340,7 +366,7 @@ static NSString * const reuseIdentifier = @"Result";
     }
 }
 - (void)hideComposeInputView {
-    self.tableView.contentInset = UIEdgeInsetsZero;
+    self.tableView.contentInset = UIEdgeInsetsMake(self.tableView.contentInset.top, self.tableView.contentInset.left, 0, self.tableView.contentInset.right);
     self.tableView.scrollIndicatorInsets = self.tableView.contentInset;
     
     if (!self.composeInputView.isHidden) {
@@ -403,7 +429,10 @@ static NSString * const reuseIdentifier = @"Result";
 - (void)updateTheme {
     UIColor *theme = [UIColor fromHex:self.room.attributes.details.color];
     
-    [self.launchNavVC updateBarColor:theme withAnimation:1 statusBarUpdateDelay:0];
+    if (self.launchNavVC.topViewController == self) {
+        [self.launchNavVC updateBarColor:theme withAnimation:1 statusBarUpdateDelay:0];
+    }
+    
     [UIView animateWithDuration:0.25f delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
         self.composeInputView.textView.tintColor = theme;
         self.composeInputView.postButton.backgroundColor = theme;
@@ -482,7 +511,7 @@ static NSString * const reuseIdentifier = @"Result";
     self.composeInputView.hidden = true;
     
     self.composeInputView.parentViewController = self;
-    self.composeInputView.postButton.backgroundColor = [self.theme isEqual:[UIColor whiteColor]] ? [UIColor colorWithWhite:0.2f alpha:1] : self.theme;
+    self.composeInputView.postButton.backgroundColor = [self.theme isEqual:[UIColor whiteColor]] ? [UIColor bonfireBlack] : self.theme;
     self.composeInputView.addMediaButton.tintColor = self.composeInputView.postButton.backgroundColor;
     self.composeInputView.textView.tintColor = self.composeInputView.postButton.backgroundColor;
     
@@ -495,7 +524,7 @@ static NSString * const reuseIdentifier = @"Result";
         [self postMessage];
     }];
     [self.composeInputView.expandButton bk_whenTapped:^{
-        [[Launcher sharedInstance] openComposePost:self.room inReplyTo:nil withMessage:self.composeInputView.textView.text media:self.composeInputView.media];
+        [[Launcher sharedInstance] openComposePost:self.room inReplyTo:nil withMessage:self.composeInputView.textView.text media:nil];
     }];
     
     [self.view addSubview:self.composeInputView];
@@ -529,20 +558,20 @@ static NSString * const reuseIdentifier = @"Result";
     NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
     NSString *message = self.composeInputView.textView.text;
     if (message.length > 0) {
-        [params setObject:message forKey:@"message"];
+        [params setObject:[Post trimString:message] forKey:@"message"];
     }
-    if (self.composeInputView.media.count > 0) {
-        [params setObject:self.composeInputView.media forKey:@"images"];
+    if (self.composeInputView.media.objects.count > 0) {
+        [params setObject:self.composeInputView.media forKey:@"media"];
     }
     
     if ([params objectForKey:@"message"] || [params objectForKey:@"images"]) {
         // meets min. requirements
-        [[Session sharedInstance] createPost:params postingIn:self.room replyingTo:nil];
+        [BFAPI createPost:params postingIn:self.room replyingTo:nil];
         
         self.composeInputView.textView.text = @"";
         [self.composeInputView hidePostButton];
         [self.composeInputView.textView resignFirstResponder];
-        self.composeInputView.media = [[NSMutableArray alloc] init];
+        self.composeInputView.media = [[BFMedia alloc] init];
         [self.composeInputView hideMediaTray];
         [self.composeInputView setReplyingTo:nil];
     }
@@ -577,69 +606,68 @@ static NSString * const reuseIdentifier = @"Result";
         [self.tableView refresh];
     }
     
-    NSString *url = [NSString stringWithFormat:@"%@/%@/rooms/%@/stream", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], [self roomIdentifier]];
+    NSString *url = [NSString stringWithFormat:@"rooms/%@/stream", [self roomIdentifier]];
     
-    [self.manager.requestSerializer setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-    self.manager.responseSerializer = [AFJSONResponseSerializer serializer];
-    [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
-        if (success) {
-            [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
-            
-            NSDictionary *params = maxId != 0 ? @{@"max_id": [NSNumber numberWithInteger:maxId-1]} : @{};
-            
-            [self.manager GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                self.tableView.scrollEnabled = true;
-                
-                if (self.userDidRefresh) {
-                    self.userDidRefresh = false;
-                    self.tableView.stream.posts = @[];
-                    self.tableView.stream.pages = [[NSMutableArray alloc] init];
-                }
-                
-                PostStreamPage *page = [[PostStreamPage alloc] initWithDictionary:responseObject error:nil];
-                if (page.data.count == 0) {
-                    self.tableView.reachedBottom = true;
-                }
-                else {
-                    [self.tableView.stream appendPage:page];
-                }
-                
-                if (self.tableView.stream.posts.count == 0) {
-                    // Error: No posts yet!
-                    [self showErrorViewWithType:ErrorViewTypeNoPosts title:@"No Posts Yet" description:nil];
-                }
-                else {
-                    self.errorView.hidden = true;
-                }
-                
-                self.loading = false;
-                
-                self.tableView.loading = false;
-                self.tableView.loadingMore = false;
-                
-                [self.tableView refresh];
-            } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                NSLog(@"RoomViewController / getPostsWithMaxId() - error: %@", error);
-                //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-                
-                if (self.tableView.stream.posts.count == 0) {
-                    self.errorView.hidden = false;
-                    
-                    [self.errorView updateType:ErrorViewTypeGeneral];
-                    [self.errorView updateTitle:@"Error Loading"];
-                    [self.errorView updateDescription:@"Check your network settings and tap here to try again"];
-                    
-                    [self positionErrorView];
-                }
-                
-                self.loading = false;
-                self.tableView.loading = false;
-                self.tableView.loadingMore = false;
-                self.tableView.userInteractionEnabled = true;
-                self.tableView.scrollEnabled = false;
-                [self.tableView refresh];
-            }];
+    NSDictionary *params = maxId != 0 ? @{@"max_id": [NSNumber numberWithInteger:maxId-1]} : @{};
+    
+    [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        self.tableView.scrollEnabled = true;
+        
+        if (self.userDidRefresh) {
+            self.userDidRefresh = false;
+            self.tableView.stream.posts = @[];
+            self.tableView.stream.pages = [[NSMutableArray alloc] init];
         }
+        
+        PostStreamPage *page = [[PostStreamPage alloc] initWithDictionary:responseObject error:nil];
+        if (page.data.count == 0) {
+            self.tableView.reachedBottom = true;
+        }
+        else {
+            [self.tableView.stream appendPage:page];
+        }
+        
+        if (self.tableView.stream.posts.count == 0) {
+            // Error: No posts yet!
+            [self showErrorViewWithType:ErrorViewTypeNoPosts title:@"No Posts Yet" description:nil];
+        }
+        else {
+            self.errorView.hidden = true;
+        }
+        
+        self.loading = false;
+        
+        self.tableView.loading = false;
+        self.tableView.loadingMore = false;
+        
+        [self.tableView refresh];
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        NSLog(@"RoomViewController / getPostsWithMaxId() - error: %@", error);
+        //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+        
+        if (self.tableView.stream.posts.count == 0) {
+            self.errorView.hidden = false;
+            
+            if ([HAWebService hasInternet]) {
+                [self.errorView updateType:ErrorViewTypeGeneral];
+                [self.errorView updateTitle:@"Error Loading"];
+                [self.errorView updateDescription:@"Check your network settings and tap here to try again"];
+            }
+            else {
+                [self.errorView updateType:ErrorViewTypeNoInternet];
+                [self.errorView updateTitle:@"No Internet"];
+                [self.errorView updateDescription:@"Check your network settings and tap here to try again"];
+            }
+            
+            [self positionErrorView];
+        }
+        
+        self.loading = false;
+        self.tableView.loading = false;
+        self.tableView.loadingMore = false;
+        self.tableView.userInteractionEnabled = true;
+        self.tableView.scrollEnabled = false;
+        [self.tableView refresh];
     }];
 }
 - (void)positionErrorView {
@@ -655,22 +683,21 @@ static NSString * const reuseIdentifier = @"Result";
     self.tableView.loadingMore = false;
     self.tableView.paginationDelegate = self;
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
-    [self.tableView.refreshControl addTarget:self action:@selector(refresh) forControlEvents:UIControlEventValueChanged];
+    [self.tableView.refreshControl addTarget:self
+                                action:@selector(refresh)
+                      forControlEvents:UIControlEventValueChanged];
     
     [self.view addSubview:self.tableView];
     
     UIView *headerHack = [[UIView alloc] initWithFrame:CGRectMake(0, -1 * self.view.frame.size.height, self.view.frame.size.width, self.view.frame.size.height)];
     headerHack.backgroundColor = [UIColor colorWithWhite:1 alpha:1];
-    [self.tableView insertSubview:headerHack atIndex:0];
+    //[self.tableView insertSubview:headerHack atIndex:0];
 }
 - (void)refresh {
-    self.tableView.loading = true;
-    self.tableView.loadingMore = false;
-    [self.tableView refresh];
-    
     self.userDidRefresh = true;
     self.tableView.reachedBottom = false;
     [self loadRoom];
+    
 }
 
 - (void)showErrorViewWithType:(ErrorViewType)type title:(NSString *)title description:(NSString *)description {
@@ -789,10 +816,7 @@ static NSString * const reuseIdentifier = @"Result";
     // TODO: check that the user is actually an Admin, not just a member
     BOOL isMember              = [self.room.attributes.context.status isEqualToString:ROOM_STATUS_MEMBER];
     BOOL isRoomAdmin           = self.room.attributes.context.membership.role.identifier == ROOM_ROLE_ADMIN;
-    // BOOL insideRoom    = false; // compare ID of post room and active room
-    // BOOL followingRoom = true;
     BOOL roomPostNotifications = self.room.attributes.context.membership.subscription != nil;
-    BOOL hasTwitter            = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"twitter://"]];
     BOOL hasiMessage           = [MFMessageComposeViewController canSendText];
     
     // Share to...
@@ -802,13 +826,27 @@ static NSString * const reuseIdentifier = @"Result";
     // Share on iMessage
     // Report Room
     
-    UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:nil message:self.room.attributes.details.title preferredStyle:UIAlertControllerStyleActionSheet];
+    UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"\n\n\n\n\n\n" message:nil preferredStyle:UIAlertControllerStyleActionSheet];
+    //actionSheet.view.tintColor = [UIColor bonfireBlack];
+    
+    CGFloat margin = 8.0f;
+    UIView *customView = [[UIView alloc] initWithFrame:CGRectMake(margin, 0, actionSheet.view.bounds.size.width - margin * 4, 140.f)];
+    BFAvatarView *roomAvatar = [[BFAvatarView alloc] initWithFrame:CGRectMake(customView.frame.size.width / 2 - 32, 24, 64, 64)];
+    roomAvatar.room = self.room;
+    [customView addSubview:roomAvatar];
+    UILabel *nameLabel = [[UILabel alloc] initWithFrame:CGRectMake(16, 96, customView.frame.size.width - 32, 20)];
+    nameLabel.textAlignment = NSTextAlignmentCenter;
+    nameLabel.font = [UIFont systemFontOfSize:17.f weight:UIFontWeightSemibold];
+    nameLabel.textColor = [UIColor blackColor];
+    nameLabel.text = self.room.attributes.details.title;
+    [customView addSubview:nameLabel];
+    [actionSheet.view addSubview:customView];
     
     if (isRoomAdmin) {
         UIAlertAction *editCamp = [UIAlertAction actionWithTitle:@"Edit Camp" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
             EditRoomViewController *epvc = [[EditRoomViewController alloc] initWithStyle:UITableViewStyleGrouped];
-            epvc.view.tintColor = [Session sharedInstance].themeColor;
             epvc.themeColor = [UIColor fromHex:self.room.attributes.details.color];
+            epvc.view.tintColor = epvc.themeColor;
             epvc.room = self.room;
             
             UINavigationController *newNavController = [[UINavigationController alloc] initWithRootViewController:epvc];
@@ -855,7 +893,8 @@ static NSString * const reuseIdentifier = @"Result";
         [self showShareRoomSheet];
     }];
     [actionSheet addAction:shareRoom];
-    
+
+    /*
     if (hasTwitter) {
         UIAlertAction *shareOnTwitter = [UIAlertAction actionWithTitle:@"Share on Twitter" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
             NSLog(@"share on twitter");
@@ -881,13 +920,14 @@ static NSString * const reuseIdentifier = @"Result";
         }];
         [actionSheet addAction:shareOnTwitter];
     }
+     */
     
     if (hasiMessage) {
         UIAlertAction *shareOniMessage = [UIAlertAction actionWithTitle:@"Share on iMessage" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
             NSLog(@"share on iMessage");
             
-            NSString *url = [NSString stringWithFormat:@"https://joinbonfire.com/camps/%@", self.room.attributes.details.identifier];
-            NSString *message = [NSString stringWithFormat:@"Join my Camp on Bonfire! 🔥 %@", url];
+            NSString *url = [NSString stringWithFormat:@"https://bonfire.camp/c/%@", self.room.attributes.details.identifier];
+            NSString *message = [NSString stringWithFormat:@"Join the \"%@\" Camp on Bonfire! 🔥 %@", self.room.attributes.details.title, url];
             
             [[Launcher sharedInstance] shareOniMessage:message image:nil];
         }];
@@ -897,6 +937,7 @@ static NSString * const reuseIdentifier = @"Result";
     UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
         NSLog(@"cancel");
     }];
+    //[cancel setValue:[UIColor bonfireBlack] forKey:@"titleTextColor"];
     [actionSheet addAction:cancel];
     
     [self.navigationController presentViewController:actionSheet animated:YES completion:nil];
@@ -910,42 +951,28 @@ static NSString * const reuseIdentifier = @"Result";
     subscription.createdAt = [dateFormatter stringFromDate:date];
     self.room.attributes.context.membership.subscription = subscription;
     
-    NSString *url = [NSString stringWithFormat:@"%@/%@/rooms/%@/members/subscriptions", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], [self roomIdentifier]];
+    NSString *url = [NSString stringWithFormat:@"rooms/%@/members/subscriptions", [self roomIdentifier]];
     
-    [self.manager.requestSerializer setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-    self.manager.responseSerializer = [AFJSONResponseSerializer serializer];
-    [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
-        if (success) {
-            [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
-            [self.manager POST:url parameters:@{@"vendor": @"APNS"} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                NSLog(@"turn on post notifications!");
-            } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                NSLog(@"RoomViewController / turnOnPostNotifications() - error: %@", error);
-                NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-                NSLog(@"errorResponse: %@", ErrorResponse);
-            }];
-        }
+    [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] POST:url parameters:@{@"vendor": @"APNS"} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        NSLog(@"turn on post notifications!");
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        NSLog(@"RoomViewController / turnOnPostNotifications() - error: %@", error);
+        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+        NSLog(@"errorResponse: %@", ErrorResponse);
     }];
 }
 - (void)turnOffPostNotifications {
     // Update the model
     self.room.attributes.context.membership.subscription = nil;
     
-    NSString *url = [NSString stringWithFormat:@"%@/%@/rooms/%@/members/subscriptions", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], [self roomIdentifier]];
+    NSString *url = [NSString stringWithFormat:@"rooms/%@/members/subscriptions", [self roomIdentifier]];
 
-    [self.manager.requestSerializer setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-    self.manager.responseSerializer = [AFJSONResponseSerializer serializer];
-    [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
-        if (success) {
-            [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
-            [self.manager DELETE:url parameters:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                NSLog(@"turn off post notifications.");
-            } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                NSLog(@"RoomViewController / turnOffPostNotifications() - error: %@", error);
-                NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-                NSLog(@"errorResponse: %@", ErrorResponse);
-            }];
-        }
+    [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] DELETE:url parameters:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        NSLog(@"turn off post notifications.");
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        NSLog(@"RoomViewController / turnOffPostNotifications() - error: %@", error);
+        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+        NSLog(@"errorResponse: %@", ErrorResponse);
     }];
 }
 
@@ -955,8 +982,8 @@ static NSString * const reuseIdentifier = @"Result";
     
 - (void)showShareRoomSheet {
     UIImage *shareImage = [self roomShareImage];
-    NSString *url = [NSString stringWithFormat:@"https://joinbonfire.com/camps/%@", self.room.attributes.details.identifier];
-    NSString *message = [NSString stringWithFormat:@"Join my Camp on Bonfire! 🔥 %@", url];
+    NSString *url = [NSString stringWithFormat:@"https://bonfire.camp/c/%@", self.room.attributes.details.identifier];
+    NSString *message = [NSString stringWithFormat:@"Join the \"%@\" Camp on Bonfire! 🔥 %@", self.room.attributes.details.title, url];
     
     // and present it
     UIActivityViewController *controller = [[UIActivityViewController alloc]initWithActivityItems:@[shareImage, message] applicationActivities:nil];

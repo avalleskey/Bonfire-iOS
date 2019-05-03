@@ -5,10 +5,10 @@
 
 #import <Foundation/Foundation.h>
 #import <JSONModel/JSONModel.h>
+#import "BFHostedVersions.h"
 
 @interface UserMedia : JSONModel
 
-@property (nonatomic) NSString <Optional> *profilePicture;
+@property (nonatomic) BFHostedVersions <Optional> *userAvatar;
 
 @end
-

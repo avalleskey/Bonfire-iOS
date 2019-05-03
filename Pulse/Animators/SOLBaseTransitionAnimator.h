@@ -14,4 +14,13 @@
 @property (nonatomic, assign, getter = isAppearing) BOOL appearing;
 @property (nonatomic, assign) NSTimeInterval duration;
 
+
+typedef NS_ENUM(NSInteger, SOLTransitionDirection) {
+    SOLTransitionDirectionUp,
+    SOLTransitionDirectionDown,
+    SOLTransitionDirectionLeft,
+    SOLTransitionDirectionRight
+};
+@property (nonatomic) SOLTransitionDirection direction;
+
 @end

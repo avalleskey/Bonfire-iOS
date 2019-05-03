@@ -1,0 +1,49 @@
+//
+//  UserActivityStream.h
+//  Pulse
+//
+//  Created by Austin Valleskey on 3/8/19.
+//  Copyright © 2019 Austin Valleskey. All rights reserved.
+//
+
+#import "JSONModel.h"
+#import "UserActivity.h"
+
+NS_ASSUME_NONNULL_BEGIN
+
+@class UserActivityStream;
+@class UserActivityStreamPage;
+@class UserActivityStreamPageMeta;
+@class UserActivityStreamPageMetaPaging;
+
+@interface UserActivityStream : NSObject <NSCoding>
+
+@property (nonatomic, strong) NSMutableArray <UserActivityStreamPage *> *pages;
+@property (nonatomic, strong) NSArray <UserActivity *> *activities;
+
+- (void)prependPage:(UserActivityStreamPage *)page;
+- (void)appendPage:(UserActivityStreamPage *)page;
+
+@end
+
+@interface UserActivityStreamPage : JSONModel
+
+@property (nonatomic) NSArray<UserActivity *> *data;
+@property (nonatomic) UserActivityStreamPageMeta <Optional> *meta;
+
+@end
+
+@interface UserActivityStreamPageMeta : JSONModel
+
+@property (nonatomic) UserActivityStreamPageMetaPaging <Optional> *paging;
+
+@end
+
+@interface UserActivityStreamPageMetaPaging : JSONModel
+
+@property (nonatomic) NSString <Optional> *next_cursor;
+@property (nonatomic) NSInteger remaining_results;
+
+@end
+
+NS_ASSUME_NONNULL_END

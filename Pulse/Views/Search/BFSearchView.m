@@ -27,7 +27,7 @@
         self.resultsType = BFSearchResultsTypeTop;
         
         self.textField = [[UITextField alloc] initWithFrame:CGRectMake(0, 0, frame.size.width, frame.size.height)];
-        self.textField.placeholder = @"Search";
+        self.textField.placeholder = @"Search Camps & People";
         self.textField.textAlignment = NSTextAlignmentLeft;
         self.textField.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
         self.textField.font = [UIFont systemFontOfSize:17.f weight:UIFontWeightSemibold];
@@ -228,7 +228,7 @@
         NSLog(@"::: dark");
         self.backgroundColor = [UIColor bonfireTextFieldBackgroundOnWhite];
         
-        self.tintColor = [UIColor bonfireBrand];
+        self.tintColor = [UIColor bonfireBlack];
         self.textField.textColor = [UIColor colorWithWhite:0.07f alpha:1];
         self.searchIcon.alpha = 0.25;
     }

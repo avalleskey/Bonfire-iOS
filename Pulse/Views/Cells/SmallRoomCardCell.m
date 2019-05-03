@@ -64,7 +64,7 @@
     self.roomTitleLabel.textAlignment = NSTextAlignmentLeft;
     self.roomTitleLabel.numberOfLines = 1;
     self.roomTitleLabel.lineBreakMode = NSLineBreakByTruncatingTail;
-    self.roomTitleLabel.textColor = [UIColor colorWithWhite:0.2f alpha:1];
+    self.roomTitleLabel.textColor = [UIColor bonfireBlack];
     self.roomTitleLabel.text = @"";
     [self.contentView addSubview:self.roomTitleLabel];
     
@@ -73,7 +73,7 @@
     self.roomDescriptionLabel.textAlignment = NSTextAlignmentLeft;
     self.roomDescriptionLabel.numberOfLines = 0;
     self.roomDescriptionLabel.lineBreakMode = NSLineBreakByWordWrapping;
-    self.roomDescriptionLabel.textColor = [UIColor colorWithWhite:0.6f alpha:1];
+    self.roomDescriptionLabel.textColor = [UIColor bonfireGray];
     self.roomDescriptionLabel.text = @"";
     [self.contentView addSubview:self.roomDescriptionLabel];
     
@@ -169,7 +169,7 @@
         self.member3.superview.hidden = true;
     }
     else {
-        self.roomTitleLabel.textColor = [UIColor colorWithWhite:0.2f alpha:1];
+        self.roomTitleLabel.textColor = [UIColor bonfireBlack];
         self.roomTitleLabel.backgroundColor = [UIColor clearColor];
         self.roomTitleLabel.layer.masksToBounds = false;
         self.roomTitleLabel.layer.cornerRadius = 0;
@@ -199,7 +199,7 @@
             
             if (members > 0) {
                 // setup the replies view
-                for (int i = 0; i < 3; i++) {
+                for (NSInteger i = 0; i < 3; i++) {
                     BFAvatarView *avatarView;
                     if (i == 0) avatarView = self.member1;
                     if (i == 1) avatarView = self.member2;

@@ -9,7 +9,7 @@
 #import "PostTextView.h"
 #import "UITextView+Placeholder.h"
 #import "Launcher.h"
-#import <JGProgressHUD.h>
+#import "JGProgressHUD.h"
 #import <HapticHelper/HapticHelper.h>
 #import "UIColor+Palette.h"
 
@@ -48,7 +48,7 @@
         
         // update tint color
         NSMutableDictionary *mutableLinkAttributes = [NSMutableDictionary dictionary];
-        [mutableLinkAttributes setObject:[UIColor bonfireBlue] forKey:(__bridge NSString *)kCTForegroundColorAttributeName];
+        [mutableLinkAttributes setObject:[UIColor linkColor] forKey:(__bridge NSString *)kCTForegroundColorAttributeName];
         _messageLabel.linkAttributes = mutableLinkAttributes;
         
         [self addSubview:_messageLabel];
@@ -75,7 +75,7 @@
    didSelectLinkWithURL:(NSURL *)url {
     NSLog(@"did select link with url: %@", url);
     if ([[UIApplication sharedApplication] canOpenURL:url]) {
-        if ([url.scheme isEqualToString:@"bonfireapp"]) {
+        if ([url.scheme isEqualToString:LOCAL_APP_URI]) {
             // local url
             [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:^(BOOL success) {
                 NSLog(@"opened url!");
@@ -140,15 +140,19 @@
         self.messageLabel.text = message;
         
         NSRegularExpression *usernameRegex = [[NSRegularExpression alloc] initWithPattern:TWUValidUsername options:NSRegularExpressionCaseInsensitive error:nil];
-        for (NSTextCheckingResult* match in [usernameRegex matchesInString:self.message options:0 range:NSMakeRange(0, [self.message length])]) {
-            NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"bonfireapp://user?username=%@", [[self.message substringWithRange:match.range] stringByReplacingOccurrencesOfString:@"@" withString:@""]]];
-            [self.messageLabel addLinkToURL:url withRange:match.range];
+        if ([usernameRegex numberOfMatchesInString:self.message options:0 range:NSMakeRange(0, [self.message length])] > 0) {
+            for (NSTextCheckingResult* match in [usernameRegex matchesInString:self.message options:0 range:NSMakeRange(0, [self.message length])]) {
+                NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://user?username=%@", LOCAL_APP_URI, [[self.message substringWithRange:match.range] stringByReplacingOccurrencesOfString:@"@" withString:@""]]];
+                [self.messageLabel addLinkToURL:url withRange:match.range];
+            }
         }
         
         NSRegularExpression *campRegex = [[NSRegularExpression alloc] initWithPattern:TWUValidCampDisplayId options:NSRegularExpressionCaseInsensitive error:nil];
-        for (NSTextCheckingResult* match in [campRegex matchesInString:self.message options:0 range:NSMakeRange(0, [self.message length])]) {
-            NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"bonfireapp://camp?display_id=%@", [[self.message substringWithRange:match.range] stringByReplacingOccurrencesOfString:@"#" withString:@""]]];
-            [self.messageLabel addLinkToURL:url withRange:match.range];
+        if ([campRegex numberOfMatchesInString:self.message options:0 range:NSMakeRange(0, [self.message length])] > 0) {
+            for (NSTextCheckingResult* match in [campRegex matchesInString:self.message options:0 range:NSMakeRange(0, [self.message length])]) {
+                NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://camp?display_id=%@", LOCAL_APP_URI, [[self.message substringWithRange:match.range] stringByReplacingOccurrencesOfString:@"#" withString:@""]]];
+                [self.messageLabel addLinkToURL:url withRange:match.range];
+            }
         }
     }
 }

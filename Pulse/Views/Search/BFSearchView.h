@@ -24,7 +24,7 @@ typedef enum {
     BFSearchTextPositionCenter = 1
 } BFSearchTextPosition;
 
-@property (strong, nonatomic) UIImageView *searchIcon;
+@property (nonatomic, strong) UIImageView *searchIcon;
 @property (nonatomic) BFTextFieldTheme theme;
 @property (nonatomic) BFSearchTextPosition position;
 @property (nonatomic) UITextField *textField;

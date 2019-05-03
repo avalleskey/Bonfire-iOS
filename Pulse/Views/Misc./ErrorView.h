@@ -27,9 +27,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (id)initWithFrame:(CGRect)rect title:(NSString *)title description:(NSString *)description type:(NSInteger)type;
 
-@property (strong, nonatomic) UIImageView *imageView;
-@property (strong, nonatomic) UILabel *errorTitle;
-@property (strong, nonatomic) UILabel *errorDescription;
+@property (nonatomic, strong) UIImageView *imageView;
+@property (nonatomic, strong) UILabel *errorTitle;
+@property (nonatomic, strong) UILabel *errorDescription;
 
 - (void)updateType:(ErrorViewType)newType;
 - (void)updateTitle:(nullable NSString *)newTitle;

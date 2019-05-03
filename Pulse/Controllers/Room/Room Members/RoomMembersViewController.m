@@ -21,6 +21,8 @@
 #import "SmartList.h"
 #import <HapticHelper/HapticHelper.h>
 #import "NSDate+NVTimeAgo.h"
+#import "AddManagerTableViewController.h"
+@import Firebase;
 
 #define section(section) self.tabs[activeTab].sections[section]
 #define row(indexPath) section(indexPath.section).rows[indexPath.row]
@@ -30,10 +32,9 @@
     NSInteger activeTab;
 }
 
-@property (strong, nonatomic) HAWebService *manager;
-@property (strong, nonatomic) ComplexNavigationController *launchNavVC;
-@property (strong, nonatomic) NSMutableArray <SmartList *> *tabs;
-@property (strong, nonatomic) NSString *searchPhrase;
+@property (nonatomic, strong) ComplexNavigationController *launchNavVC;
+@property (nonatomic, strong) NSMutableArray <SmartList *> *tabs;
+@property (nonatomic, strong) NSString *searchPhrase;
 
 @end
 
@@ -54,8 +55,6 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     
     self.launchNavVC = (ComplexNavigationController *)self.navigationController;
     self.navigationItem.hidesBackButton = true;
-    
-    self.manager = [HAWebService manager];
     
     self.tableView = [[UITableView alloc] initWithFrame:self.view.bounds style:UITableViewStyleGrouped];
     [self.view addSubview:self.tableView];
@@ -82,6 +81,23 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     
     activeTab = -1;
     [self tabTappedAtIndex:0];
+    
+    // Google Analytics
+    [FIRAnalytics setScreenName:@"Room Members" screenClass:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reloadRoomManagers:) name:@"RoomManagersUpdated" object:nil];
+}
+
+- (void)reloadRoomManagers:(NSNotification *)notification {
+    Room *room = notification.object;
+    
+    NSLog(@"room managers updated::");
+    NSLog(@"%@", room);
+    
+    if (room != nil &&
+        [room.identifier isEqualToString:self.room.identifier]) {
+        [self reloadTabDataWithId:@"managers"];
+    }
 }
 
 - (void)loadJSON {
@@ -99,7 +115,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     NSLog(@"json tabs: %@", json[@"tabs"]);
     
     self.tabs = [[NSMutableArray alloc] init];
-    for (int i = 0; i < ((NSArray *)json[@"tabs"]).count; i++) {
+    for (NSInteger i = 0; i < ((NSArray *)json[@"tabs"]).count; i++) {
         SmartList *list = [[SmartList alloc] initWithDictionary:((NSArray *)json[@"tabs"])[i] error:nil];
         
         if ([list.identifier isEqualToString:@"pending"]) {
@@ -125,7 +141,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     CGFloat buttonPadding = 10; // only used if the button has a dynamic width
     CGFloat lastButtonX = 0;
     
-    for (int i = 0; i < self.tabs.count; i++) {
+    for (NSInteger i = 0; i < self.tabs.count; i++) {
         SmartList *list = self.tabs[i];
         UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
         button.tag = i;
@@ -198,8 +214,8 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
         } completion:nil];
     } forControlEvents:(UIControlEventTouchUpInside|UIControlEventTouchCancel|UIControlEventTouchDragExit)];
     [self.shareButton bk_whenTapped:^{
-        NSString *url = [NSString stringWithFormat:@"https://joinbonfire.com/camps/%@", self.room.attributes.details.identifier];
-        NSString *message = [NSString stringWithFormat:@"Join my Camp on Bonfire! 🔥 %@", url];
+        NSString *url = [NSString stringWithFormat:@"https://bonfire.camp/c/%@", self.room.attributes.details.identifier];
+        NSString *message = [NSString stringWithFormat:@"Join the \"%@\" Camp on Bonfire! 🔥 %@", self.room.attributes.details.title, url];
         
         // and present it
         UIActivityViewController *controller = [[UIActivityViewController alloc]initWithActivityItems:@[message] applicationActivities:nil];
@@ -224,7 +240,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
                 [button setTitleColor:self.theme forState:UIControlStateNormal];
             }
             else {
-                [button setTitleColor:[UIColor colorWithWhite:0.6 alpha:1] forState:UIControlStateNormal];
+                [button setTitleColor:[UIColor bonfireGray] forState:UIControlStateNormal];
             }
         }
         
@@ -232,7 +248,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     }
 }
 - (void)loadTabData {
-    for (int i = 0; i < self.tabs[activeTab].sections.count; i++) {
+    for (NSInteger i = 0; i < self.tabs[activeTab].sections.count; i++) {
         // load each section as needed
         SmartListSection *section = self.tabs[activeTab].sections[i];
         if (section.state == SmartListStateEmpty) {
@@ -247,12 +263,20 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     
     [self.tableView reloadData];
 }
+- (void)reloadTabDataWithId:(NSString *)tabId {
+    for (SmartListSection *section in [self tabForIdentifier:tabId].sections) {
+        section.state = SmartListStateLoading;
+        section.data = [[NSMutableArray alloc] init];
+        
+        [self.tableView reloadData];
+        [self loadDataForSection:section];
+    }
+}
 
 - (void)loadDataForSection:(SmartListSection *)section {
     section.state = SmartListStateLoading;
     
-    NSString *baseURL = [section.url stringByReplacingOccurrencesOfString:@"{room.id}" withString:self.room.identifier];
-    NSString *url = [NSString stringWithFormat:@"%@/%@%@", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], baseURL];
+    NSString *url = [section.url stringByReplacingOccurrencesOfString:@"{room.id}" withString:self.room.identifier];
     
     NSLog(@"final url: %@", url);
     
@@ -268,39 +292,31 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
         }
     }
     
-    [self.manager.requestSerializer setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-    self.manager.responseSerializer = [AFJSONResponseSerializer serializer];
-    [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
-        if (success) {
-            [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
+    [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        NSArray *responseData = (NSArray *)responseObject[@"data"];
+        
+        NSLog(@"response object for requests: %@", responseObject);
+        if (!section.data || section.state != SmartListStateLoaded) {
+            section.data = [[NSMutableArray alloc] init];
             
-            [self.manager GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                NSArray *responseData = (NSArray *)responseObject[@"data"];
-                
-                NSLog(@"response object for requests: %@", responseObject);
-                if (!section.data || section.state != SmartListStateLoaded) {
-                    section.data = [[NSMutableArray alloc] init];
-                    
-                    if ([section.identifier isEqualToString:@"members_current"] && [self isMember]) {
-                        [section.data addObject:[Session sharedInstance].currentUser];
-                    }
-                }
-                
-                section.next_cursor = [NSString stringWithFormat:@"%@", responseObject[@"meta"][@"paging"][@"next_cursor"]];
-                NSLog(@"section next cursor ::: %@", section.next_cursor);
-                
-                [section.data addObjectsFromArray:responseData];
-                section.state = SmartListStateLoaded;
-                
-                [self.tableView reloadData];
-            } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                NSLog(@"RoomMembersViewController / loadDataForSection(%@) - error: %@", section.identifier, error);
-                //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-                
-                section.state = SmartListStateLoaded;
-                [self.tableView reloadData];
-            }];
+            if ([section.identifier isEqualToString:@"members_current"] && [self isMember]) {
+                //[section.data addObject:[Session sharedInstance].currentUser];
+            }
         }
+        
+        section.next_cursor = [NSString stringWithFormat:@"%@", responseObject[@"meta"][@"paging"][@"next_cursor"]];
+        NSLog(@"section next cursor ::: %@", section.next_cursor);
+        
+        [section.data addObjectsFromArray:responseData];
+        section.state = SmartListStateLoaded;
+        
+        [self.tableView reloadData];
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        NSLog(@"RoomMembersViewController / loadDataForSection(%@) - error: %@", section.identifier, error);
+        //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+        
+        section.state = SmartListStateLoaded;
+        [self.tableView reloadData];
     }];
 }
 
@@ -339,7 +355,10 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     
     if ([s.identifier isEqualToString:@"members_directors"] || [s.identifier isEqualToString:@"members_managers"]) {
         // add directors, add managers cells
-        dataRows = dataRows + 1;
+        if (dataRows == 0) {
+            dataRows = 1; // display "This camp has no ____s"
+        }
+        dataRows = dataRows + [self isAdmin];
     }
     
     return dataRows;
@@ -365,7 +384,6 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     }
     else if (s.state == SmartListStateLoaded &&
              objectExists(indexPath.row, s.data)) {
-        NSLog(@"YAY!!!!");
         if ([s.identifier isEqualToString:@"members_requests"]) {
             MemberRequestCell *cell = [tableView dequeueReusableCellWithIdentifier:requestCellIdentifier forIndexPath:indexPath];
             
@@ -379,7 +397,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
             cell.profilePicture.user = user;
             
             cell.textLabel.text = user.attributes.details.displayName;
-            cell.textLabel.textColor = [UIColor colorWithWhite:0.2f alpha:1];
+            cell.textLabel.textColor = [UIColor bonfireBlack];
             cell.detailTextLabel.text = [NSString stringWithFormat:@"@%@", user.attributes.details.identifier];
             
             [cell.approveButton setTitle:@"Approve" forState:UIControlStateNormal];
@@ -413,8 +431,6 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
             // Configure the cell...
             cell.type = 2;
             
-            NSLog(@"s.data[@row]: %@", s.data[indexPath.row]);
-            
             // member cell
             User *user;
             if ([s.data[indexPath.row] isKindOfClass:[User class]]) {
@@ -425,19 +441,48 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
             }
             cell.profilePicture.user = user;
             
-            UIFont *heavyItalicFont = [UIFont fontWithDescriptor:[[[UIFont systemFontOfSize:cell.textLabel.font.pointSize weight:UIFontWeightHeavy] fontDescriptor] fontDescriptorWithSymbolicTraits:UIFontDescriptorTraitItalic] size:cell.textLabel.font.pointSize];
+            /*UIFont *heavyItalicFont = [UIFont fontWithDescriptor:[[[UIFont systemFontOfSize:cell.textLabel.font.pointSize weight:UIFontWeightHeavy] fontDescriptor] fontDescriptorWithSymbolicTraits:UIFontDescriptorTraitItalic] size:cell.textLabel.font.pointSize];
             cell.textLabel.font = heavyItalicFont;
             cell.textLabel.textColor = [UIColor fromHex:user.attributes.details.color];
-            cell.textLabel.text = [NSString stringWithFormat:@"@%@", user.attributes.details.identifier];
+             cell.textLabel.text = [NSString stringWithFormat:@"@%@", user.attributes.details.identifier];*/
+            NSMutableAttributedString *attributedCreatorName = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"%@", user.attributes.details.displayName] attributes:@{NSForegroundColorAttributeName: [UIColor bonfireBlack], NSFontAttributeName: [UIFont systemFontOfSize:cell.textLabel.font.pointSize weight:UIFontWeightSemibold]}];
+            NSAttributedString *usernameString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@" @%@", user.attributes.details.identifier] attributes:@{NSForegroundColorAttributeName: [UIColor bonfireGray], NSFontAttributeName: [UIFont systemFontOfSize:cell.textLabel.font.pointSize weight:UIFontWeightRegular]}];
+            [attributedCreatorName appendAttributedString:usernameString];
+            
+            cell.textLabel.attributedText = attributedCreatorName;
             cell.textLabel.alpha = 1;
-            cell.detailTextLabel.text = ([user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier] ? @"You" : [NSDate mysqlDatetimeFormattedAsTimeAgo:user.attributes.status.createdAt withForm:TimeAgoLongForm]);
+            cell.detailTextLabel.text = ([user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier] ? @"You" : [NSString stringWithFormat:@"Joined %@", [NSDate mysqlDatetimeFormattedAsTimeAgo:user.attributes.status.createdAt withForm:TimeAgoLongForm]]);
             
             cell.checkIcon.hidden = true;
             
             return cell;
         }
     }
-    else if (s.state == SmartListStateLoaded && indexPath.row == s.data.count) {
+    else if (s.state == SmartListStateLoaded &&
+             s.data.count == 0 &&
+             indexPath.row == 0) {
+        UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:emptySectionCellIdentifier forIndexPath:indexPath];
+        
+        if (cell == nil) {
+            cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:emptySectionCellIdentifier];
+        }
+        
+        cell.separatorInset = UIEdgeInsetsZero;
+        cell.textLabel.textAlignment = NSTextAlignmentCenter;
+        cell.textLabel.frame = cell.bounds;
+        cell.textLabel.textColor = [UIColor bonfireGray];
+        cell.textLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightRegular];
+        
+        if ([s.identifier isEqualToString:@"members_directors"]) {
+            cell.textLabel.text = @"This Camp has no directors";
+        }
+        else if ([s.identifier isEqualToString:@"members_managers"]) {
+            cell.textLabel.text = @"This Camp has no managers";
+        }
+        
+        return cell;
+    }
+    else if (s.state == SmartListStateLoaded && indexPath.row == [self.tableView numberOfRowsInSection:indexPath.section]-1) {
         if ([s.identifier isEqualToString:@"members_directors"] || [s.identifier isEqualToString:@"members_managers"]) {
             // extra last row
             AddManagerCell *cell = [tableView dequeueReusableCellWithIdentifier:addManagerCellIdentifier forIndexPath:indexPath];
@@ -462,8 +507,19 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     return blankCell;
 }
 
+- (SmartList *)tabForIdentifier:(NSString *)identifier {
+    for (NSInteger i = 0; i < self.tabs.count; i++) {
+        SmartList *tab = self.tabs[i];
+        if ([tab.identifier isEqualToString:identifier]) {
+            return tab;
+        }
+    }
+    
+    return nil;
+}
+
 - (SmartListSection *)sectionForIdentifier:(NSString *)identifier {
-    for (int i = 0; i < self.tabs.count; i++) {
+    for (NSInteger i = 0; i < self.tabs.count; i++) {
         SmartList *tab = self.tabs[i];
         for (int x = 0; x < tab.sections.count; x++) {
             SmartListSection *section = tab.sections[x];
@@ -480,7 +536,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     NSInteger row = ((UITapGestureRecognizer *)sender).view.tag;
     NSLog(@"row: %li", (long)row);
     
-    NSString *url = [NSString stringWithFormat:@"%@/%@/rooms/%@/members/requests", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], self.room.identifier];
+    NSString *url = [NSString stringWithFormat:@"rooms/%@/members/requests", self.room.identifier];
     
     NSDictionary *request = nil;
     SmartListSection *requestsSection = [self sectionForIdentifier:@"members_requests"];
@@ -496,28 +552,21 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     if (request != nil) {
         [self.tableView reloadData];
         
-        [self.manager.requestSerializer setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-        self.manager.responseSerializer = [AFJSONResponseSerializer serializer];
-        [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
-            if (success) {
-                [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
-                [self.manager POST:url parameters:@{@"user_id": request[@"id"]} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                    NSLog(@"approved request!");
-                    
-                    // TODO: set members list back to empty
-                    // [self getMembers];
-                    SmartListSection *membersSection = [self sectionForIdentifier:@"members_current"];
-                    if (membersSection != nil) {
-                        membersSection.data = [[NSMutableArray alloc] init]; // reset back to empty
-                        membersSection.state = SmartListStateEmpty;
-                        membersSection.next_cursor = @"";
-                    }
-                } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                    NSLog(@"RoomMembersViewController / acceptRequest() - error: %@", error);
-                    NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-                    NSLog(@"errorResponse: %@", ErrorResponse);
-                }];
+        [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] POST:url parameters:@{@"user_id": request[@"id"]} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+            NSLog(@"approved request!");
+            
+            // TODO: set members list back to empty
+            // [self getMembers];
+            SmartListSection *membersSection = [self sectionForIdentifier:@"members_current"];
+            if (membersSection != nil) {
+                membersSection.data = [[NSMutableArray alloc] init]; // reset back to empty
+                membersSection.state = SmartListStateEmpty;
+                membersSection.next_cursor = @"";
             }
+        } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+            NSLog(@"RoomMembersViewController / acceptRequest() - error: %@", error);
+            NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+            NSLog(@"errorResponse: %@", ErrorResponse);
         }];
     }
 }
@@ -525,7 +574,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     NSInteger row = ((UITapGestureRecognizer *)sender).view.tag;
     NSLog(@"row: %li", (long)row);
     
-    NSString *url = [NSString stringWithFormat:@"%@/%@/rooms/%@/members/requests", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], self.room.identifier];
+    NSString *url = [NSString stringWithFormat:@"rooms/%@/members/requests", self.room.identifier];
     
     NSDictionary *request = nil;
     SmartListSection *requestsSection = [self sectionForIdentifier:@"members_requests"];
@@ -541,22 +590,15 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     if (request != nil) {
         [self.tableView reloadData];
         
-        [self.manager.requestSerializer setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-        self.manager.responseSerializer = [AFJSONResponseSerializer serializer];
-        [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
-            if (success) {
-                [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
-                [self.manager DELETE:url parameters:@{@"user_id": request[@"id"]} success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                    NSLog(@"approved request!");
-                    
-                    // TODO: set members list back to empty
-                    // [self getMembers];
-                } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                    NSLog(@"RoomMembersViewController / deleteRequest() - error: %@", error);
-                    NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-                    NSLog(@"errorResponse: %@", ErrorResponse);
-                }];
-            }
+        [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] DELETE:url parameters:@{@"user_id": request[@"id"]} success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+            NSLog(@"declined request!");
+            
+            // TODO: set members list back to empty
+            // [self getMembers];
+        } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+            NSLog(@"RoomMembersViewController / deleteRequest() - error: %@", error);
+            NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+            NSLog(@"errorResponse: %@", ErrorResponse);
         }];
     }
 }
@@ -571,8 +613,8 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
             // member request cell
             return 106;
         }
-        else if (([s.identifier isEqualToString:@"members_directors"] || [s.identifier isEqualToString:@"members_managers"]) && indexPath.row == s.data.count) {
-            return cellHeight;
+        else if (([s.identifier isEqualToString:@"members_directors"] || [s.identifier isEqualToString:@"members_managers"]) && s.data.count == 0 &&indexPath.row == 0) {
+            return 96;
         }
     }
     
@@ -594,7 +636,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
         return 52;
     }*/
     
-    CGFloat headerHeight = 64;
+    CGFloat headerHeight = 56;
     
     if (s.title) return headerHeight;
     
@@ -615,13 +657,13 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
         upsell.backgroundColor = [UIColor whiteColor];
         upsell.layer.shadowOpacity = 1.f;
         upsell.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.06f].CGColor;
-        upsell.layer.shadowRadius = 3.f;
+        upsell.layer.shadowRadius = 2.f;
         upsell.layer.shadowOffset = CGSizeMake(0, 1);
         upsell.layer.masksToBounds = false;
         
         UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(8, 24, upsell.frame.size.width - 16, 21)];
         title.text = @"No Member Requests";
-        title.textColor = [UIColor colorWithWhite:0.2f alpha:1];
+        title.textColor = [UIColor bonfireBlack];
         title.textAlignment = NSTextAlignmentCenter;
         title.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightSemibold];
         [upsell addSubview:title];
@@ -662,13 +704,13 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     
     if (!s.title) return nil;
     
-    UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 64)];
+    UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 56)];
     
-    UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(16, 32, self.view.frame.size.width - 32, 21)];
+    UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(12, 30, self.view.frame.size.width - 24, 18)];
     title.textAlignment = NSTextAlignmentLeft;
-    title.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightBold];
-    title.textColor = [UIColor colorWithWhite:0.47f alpha:1];
-    title.text = (s.title ? [s.title stringByReplacingOccurrencesOfString:@"{members_count}" withString:[NSString stringWithFormat:@"%ld", self.room.attributes.summaries.counts.members]] : @"");
+    title.font = [UIFont systemFontOfSize:13.f weight:UIFontWeightSemibold];
+    title.textColor = [UIColor bonfireGray];
+    title.text = (s.title ? [[s.title uppercaseString] stringByReplacingOccurrencesOfString:@"{members_count}" withString:[NSString stringWithFormat:@"%ld", self.room.attributes.summaries.counts.members]] : @"");
     [header addSubview:title];
     
     return header;
@@ -691,9 +733,9 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     if (s.footer) {
         UIView *footer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 90)];
         
-        UILabel *descriptionLabel = [[UILabel alloc] initWithFrame:CGRectMake(16, 12, footer.frame.size.width - 32, 42)];
+        UILabel *descriptionLabel = [[UILabel alloc] initWithFrame:CGRectMake(12, 12, footer.frame.size.width - 24, 42)];
         descriptionLabel.text = s.footer;
-        descriptionLabel.textColor = [UIColor colorWithWhite:0.6f alpha:1];
+        descriptionLabel.textColor = [UIColor bonfireGray];
         descriptionLabel.font = [UIFont systemFontOfSize:12.f weight:UIFontWeightRegular];
         descriptionLabel.textAlignment = NSTextAlignmentLeft;
         descriptionLabel.numberOfLines = 0;
@@ -726,19 +768,42 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
                     user = [[User alloc] initWithDictionary:s.data[indexPath.row] error:nil];
                 }
                 
-                UIAlertController *alertController = [UIAlertController alertControllerWithTitle:nil message:[NSString stringWithFormat:@"%@ (@%@)", user.attributes.details.displayName, user.attributes.details.identifier] preferredStyle:UIAlertControllerStyleActionSheet];
+                UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"\n\n\n\n\n\n" message:nil preferredStyle:UIAlertControllerStyleActionSheet];
+                
+                CGFloat margin = 8.0f;
+                UIView *customView = [[UIView alloc] initWithFrame:CGRectMake(margin, 0, actionSheet.view.bounds.size.width - margin * 4, 140.f)];
+                BFAvatarView *roomAvatar = [[BFAvatarView alloc] initWithFrame:CGRectMake(customView.frame.size.width / 2 - 32, 24, 64, 64)];
+                roomAvatar.user = user;
+                [customView addSubview:roomAvatar];
+                UILabel *nameLabel = [[UILabel alloc] initWithFrame:CGRectMake(16, 96, customView.frame.size.width - 32, 20)];
+                nameLabel.textAlignment = NSTextAlignmentCenter;
+                nameLabel.font = [UIFont systemFontOfSize:17.f weight:UIFontWeightSemibold];
+                nameLabel.textColor = [UIColor blackColor];
+                nameLabel.text = user.attributes.details.displayName;
+                [customView addSubview:nameLabel];
+                [actionSheet.view addSubview:customView];
                 
                 UIAlertAction *viewProfile = [UIAlertAction actionWithTitle:@"View Profile" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
                     [Launcher.sharedInstance openProfile:user];
                 }];
-                [alertController addAction:viewProfile];
+                [actionSheet addAction:viewProfile];
                 
                 UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
-                [alertController addAction:cancel];
+                [actionSheet addAction:cancel];
                 
-                [[Launcher.sharedInstance activeViewController] presentViewController:alertController animated:YES completion:nil];
+                [[Launcher.sharedInstance activeViewController] presentViewController:actionSheet animated:YES completion:nil];
             }
         }
+    }
+    else if ([[tableView cellForRowAtIndexPath:indexPath] isKindOfClass:[AddManagerCell class]]) {
+        AddManagerTableViewController *addManagerTableVC = [[AddManagerTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
+        addManagerTableVC.room = self.room;
+        addManagerTableVC.managerType = ([section(indexPath.section).identifier isEqualToString:@"members_directors"] ? RoomManagerTypeAdmin : RoomManagerTypeModerator);
+        
+        UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController:addManagerTableVC];
+        navController.transitioningDelegate = [Launcher sharedInstance];
+        
+        [[Launcher.sharedInstance activeViewController] presentViewController:navController animated:YES completion:nil];
     }
 }
 

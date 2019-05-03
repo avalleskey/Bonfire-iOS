@@ -12,14 +12,13 @@
 #import "HAWebService.h"
 #import "Launcher.h"
 #import "UIColor+Palette.h"
+@import Firebase;
 
 @interface ProfileCampsListViewController ()
 
 @property (nonatomic) BOOL loadingCamps;
 
 @property (strong, nonatomic) NSMutableArray *camps;
-
-@property (strong, nonatomic) HAWebService *manager;
 
 @end
 
@@ -34,19 +33,17 @@ static NSString * const memberCellIdentifier = @"MemberCell";
     [super viewDidLoad];
     
     self.navigationItem.hidesBackButton = true;
-    
-    self.manager = [HAWebService manager];
-    
-    self.camps = [[NSMutableArray alloc] initWithArray:@[@{}]];
+        
+    self.camps = [[NSMutableArray alloc] init];
     
     self.tableView.delegate = self;
     self.tableView.dataSource = self;
     
     self.tableView.backgroundColor = [UIColor headerBackgroundColor];
     self.tableView.separatorColor = [UIColor separatorColor];
-    self.tableView.separatorInset = UIEdgeInsetsMake(0, 66, 0, 0);
+    self.tableView.separatorInset = UIEdgeInsetsMake(0, 68, 0, 0);
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
-    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 48, 0);
+    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
     
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:blankReuseIdentifier];
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:emptySectionCellIdentifier];
@@ -55,33 +52,37 @@ static NSString * const memberCellIdentifier = @"MemberCell";
     
     // if admin
     self.loadingCamps = true;
+    
+    // load in cache
+    if ([[Session sharedInstance].currentUser.identifier isEqualToString:self.user.identifier]) {
+        self.camps = [[NSMutableArray alloc] initWithArray:[[NSUserDefaults standardUserDefaults] arrayForKey:@"my_rooms_cache"]];
+        if (self.camps.count > 0) {
+            self.loadingCamps = false;
+            [self.tableView reloadData];
+        }
+    }
     [self getCampsList];
+    
+    // Google Analytics
+    [FIRAnalytics setScreenName:@"Profile / Camps" screenClass:nil];
 }
 
 - (void)getCampsList {
-    NSString *url = [NSString stringWithFormat:@"%@/%@/users/%@/rooms", envConfig[@"API_BASE_URI"], envConfig[@"API_CURRENT_VERSION"], self.user.identifier];
+    NSString *url = [NSString stringWithFormat:@"users/%@/rooms", self.user.identifier];
     
-    [self.manager.requestSerializer setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-    self.manager.responseSerializer = [AFJSONResponseSerializer serializer];
-    [[Session sharedInstance] authenticate:^(BOOL success, NSString *token) {
-        if (success) {
-            [self.manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
-            
-            [self.manager GET:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                NSArray *responseData = (NSArray *)responseObject[@"data"];
-                
-                NSLog(@"response data for requests: %@", responseData);
-                
-                self.camps = [[NSMutableArray alloc] initWithArray:responseData];
-                
-                self.loadingCamps = false;
-                
-                [self.tableView reloadData];
-            } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                NSLog(@"RoomViewController / getRequests() - error: %@", error);
-                //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-            }];
-        }
+    [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        NSArray *responseData = (NSArray *)responseObject[@"data"];
+        
+        NSLog(@"response data for requests: %@", responseData);
+        
+        self.camps = [[NSMutableArray alloc] initWithArray:responseData];
+        
+        self.loadingCamps = false;
+        
+        [self.tableView reloadData];
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        NSLog(@"RoomViewController / getRequests() - error: %@", error);
+        //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
     }];
 }
 
@@ -90,10 +91,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
     return 1;
 }
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    if (section == 0) {
-        if (self.loadingCamps)
-            return (self.user.attributes.summaries.counts.rooms == 0 ? 1 : self.user.attributes.summaries.counts.rooms);
-        
+    if (section == 0 && !self.loadingCamps) {
         return self.camps.count;
     }
     
@@ -160,25 +158,41 @@ static NSString * const memberCellIdentifier = @"MemberCell";
 
 - (nullable UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
     return nil;
-    
-    /*
-    UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 64)];
-    
-    UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(16, 32, self.view.frame.size.width - 32, 21)];
-    title.textAlignment = NSTextAlignmentLeft;
-    title.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightBold];
-    title.textColor = [UIColor colorWithWhite:0.47f alpha:1];
-    if (section == 0) {
-        title.text = @"Camps Joined";
-    }
-    [header addSubview:title];
-    
-    return header;*/
 }
 - (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
+    if (section == 0) {
+        // BOOL hasAnotherPage = self.stream.pages.count > 0 && [self.stream.pages lastObject].meta.paging.next_cursor != nil && [self.stream.pages lastObject].meta.paging.next_cursor.length > 0;
+        // BOOL showLoadingFooter = (self.loadingMore || hasAnotherPage);
+        
+        return self.loadingCamps;
+    }
+    
     return CGFLOAT_MIN;
 }
 - (UIView*)tableView:(UITableView*)tableView viewForFooterInSection:(NSInteger)section {
+    if (section == 0) {
+        //BOOL hasAnotherPage = self.stream.pages.count > 0 && [self.stream.pages lastObject].meta.paging.next_cursor != nil && [self.stream.pages lastObject].meta.paging.next_cursor.length > 0;
+        //BOOL showLoadingFooter = (self.loadingMore || hasAnotherPage);
+        
+        if (self.loadingCamps) {
+            UIView *footer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 52)];
+            
+            UIActivityIndicatorView *spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+            spinner.frame = CGRectMake(footer.frame.size.width / 2 - 10, footer.frame.size.height / 2 - 10, 20, 20);
+            [footer addSubview:spinner];
+            
+            [spinner startAnimating];
+            
+            /*if (!self.loadingMore && self.stream.pages.count > 0 && [self.stream.pages lastObject].meta.paging.next_cursor != nil && [self.stream.pages lastObject].meta.paging.next_cursor.length > 0) {
+                self.loadingMore = true;
+                NSLog(@"fetch next page");
+                [self getNotificationsWithNextCursor:true];
+            }*/
+            
+            return footer;
+        }
+    }
+    
     return nil;
 }
 

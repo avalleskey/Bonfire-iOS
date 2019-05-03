@@ -13,9 +13,7 @@
 #import <BlocksKit/BlocksKit+UIKit.h>
 #import "Session.h"
 #import "Defaults.h"
-#import <SpriteKit/SpriteKit.h>
 #import "RoomViewController.h"
-#import <Tweaks/FBTweakInline.h>
 #import "Launcher.h"
 #import "UIColor+Palette.h"
 
@@ -38,15 +36,16 @@
         self.layer.masksToBounds = false;
         
         self.textLabel.font = ROOM_HEADER_NAME_FONT;
-        self.textLabel.textColor = [UIColor colorWithWhite:0.07f alpha:1];
+        self.textLabel.textColor = [UIColor bonfireBlack];
         self.textLabel.textAlignment = NSTextAlignmentCenter;
         self.textLabel.numberOfLines = 0;
         self.textLabel.lineBreakMode = NSLineBreakByWordWrapping;
         
         // username
-        self.detailTextLabel.font = ROOM_HEADER_TAG_FONT;
+        UIFont *heavyItalicFont = [UIFont fontWithDescriptor:[[[UIFont systemFontOfSize:ROOM_HEADER_TAG_FONT.pointSize weight:UIFontWeightHeavy] fontDescriptor] fontDescriptorWithSymbolicTraits:UIFontDescriptorTraitItalic] size:ROOM_HEADER_TAG_FONT.pointSize];
+        self.detailTextLabel.font = heavyItalicFont;
         self.detailTextLabel.textAlignment = NSTextAlignmentCenter;
-        self.detailTextLabel.textColor = [UIColor colorWithWhite:0.47f alpha:1];
+        self.detailTextLabel.textColor = [UIColor bonfireGray];
         self.detailTextLabel.numberOfLines = 0;
         self.detailTextLabel.lineBreakMode = NSLineBreakByWordWrapping;
         self.detailTextLabel.backgroundColor = [UIColor clearColor];
@@ -54,7 +53,7 @@
         self.descriptionLabel = [[UILabel alloc] init];
         self.descriptionLabel.font = ROOM_HEADER_DESCRIPTION_FONT;
         self.descriptionLabel.textAlignment = NSTextAlignmentCenter;
-        self.descriptionLabel.textColor = [UIColor colorWithWhite:0.2f alpha:1];
+        self.descriptionLabel.textColor = [UIColor bonfireBlack];
         self.descriptionLabel.numberOfLines = 0;
         self.descriptionLabel.lineBreakMode = NSLineBreakByWordWrapping;
         [self.contentView addSubview:self.descriptionLabel];
@@ -105,10 +104,8 @@
         
         [self addTapHandlers:@[self.member2, self.member2, self.member3, self.member4, self.member5, self.member6, self.member7]];
         
-        self.detailsLabel = [[BFDetailsLabel alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, 16)];
-        self.detailsLabel.layer.cornerRadius = 4.f;
-        self.detailsLabel.layer.masksToBounds = true;
-        [self.contentView addSubview:self.detailsLabel];
+        self.detailsCollectionView = [[BFDetailsCollectionView alloc] initWithFrame:CGRectMake(ROOM_HEADER_EDGE_INSETS.left, 0, [UIScreen mainScreen].bounds.size.width - ROOM_HEADER_EDGE_INSETS.left - ROOM_HEADER_EDGE_INSETS.right, 16)];
+        [self.contentView addSubview:self.detailsCollectionView];
         
         self.followButton = [RoomFollowButton buttonWithType:UIButtonTypeCustom];
         
@@ -120,15 +117,34 @@
                 
                 if ([self.followButton.status isEqualToString:ROOM_STATUS_MEMBER]) {
                     // confirm action
-                    BOOL requiresConfirm = self.room.attributes.status.visibility.isPrivate;
+                    BOOL privateRoom = self.room.attributes.status.visibility.isPrivate;
+                    BOOL lastMember = self.room.attributes.summaries.counts.members <= 1;
                     
-                    if (requiresConfirm) {
-                        UIAlertController *confirmDeletePostActionSheet = [UIAlertController alertControllerWithTitle:@"Are you sure you want to leave this Camp?" message:@"You will no longer have access to the posts" preferredStyle:UIAlertControllerStyleAlert];
+                    void (^leave)(void) = ^(){
+                        [self.followButton updateStatus:ROOM_STATUS_LEFT];
+                        [self leaveRoom];
+                    };
+                    
+                    if (privateRoom || lastMember) {
+                        
+                        
+                        NSString *message;
+                        if (privateRoom && lastMember) {
+                            message = @"All camps must have at least one member. If you leave, this Camp and all of its posts will be deleted after 30 days of inactivity.";
+                        }
+                        else if (lastMember) {
+                            // leaving as the last member in a public room
+                            message = @"All camps must have at least one member. If you leave, this Camp will be archived and eligible for anyone to reopen.";
+                        }
+                        else {
+                            // leaving a private room, but the user isn't the last one
+                            message = @"You will no longer have access to this Camp's posts";
+                        }
+                        
+                        UIAlertController *confirmDeletePostActionSheet = [UIAlertController alertControllerWithTitle:@"Leave Camp?" message:message preferredStyle:UIAlertControllerStyleAlert];
                         
                         UIAlertAction *confirmLeaveRoom = [UIAlertAction actionWithTitle:@"Leave" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
-                            [self.followButton updateStatus:ROOM_STATUS_LEFT];
-                            [self decrementMembersCount];
-                            [self leaveRoom];
+                            leave();
                         }];
                         [confirmDeletePostActionSheet addAction:confirmLeaveRoom];
                         
@@ -138,11 +154,8 @@
                         [UIViewParentController(self) presentViewController:confirmDeletePostActionSheet animated:YES completion:nil];
                     }
                     else {
-                        [self.followButton updateStatus:ROOM_STATUS_LEFT];
-                        [self decrementMembersCount];
-                        [self leaveRoom];
+                        leave();
                     }
-                    
                 }
                 else {
                     [self.followButton updateStatus:ROOM_STATUS_NO_RELATION];
@@ -161,37 +174,15 @@
                 else {
                     // since they've been invited already, jump straight to being a member
                     [self.followButton updateStatus:ROOM_STATUS_MEMBER];
-                    [self incrementMembersCount];
                 }
                 [self updateRoomStatus];
                 
                 [HapticHelper generateFeedback:FeedbackType_Notification_Success];
                 
-                [[Session sharedInstance] followRoom:self.room.identifier completion:^(BOOL success, id responseObject) {
+                [BFAPI followRoom:self.room completion:^(BOOL success, id responseObject) {
                     if (success) {
-                        [[NSNotificationCenter defaultCenter] postNotificationName:@"refreshMyRooms" object:nil];
                     }
                 }];
-                
-                SKView *spriteKitView = [self.contentView viewWithTag:99];
-                if (spriteKitView == nil) {
-                    spriteKitView = [[SKView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, self.frame.size.height)];
-                    spriteKitView.backgroundColor = [UIColor clearColor];
-                    spriteKitView.userInteractionEnabled = false;
-                    spriteKitView.tag = 99;
-                    [self.contentView insertSubview:spriteKitView atIndex:0];
-                    
-                    SKScene *scene = [[SKScene alloc] init];
-                    scene.scaleMode = SKSceneScaleModeAspectFit;
-                    scene.backgroundColor = [UIColor clearColor];
-                    scene.size = spriteKitView.bounds.size;
-                    
-                    [spriteKitView presentScene:scene];
-                }
-                
-                SKEmitterNode *emitter = [NSKeyedUnarchiver unarchiveObjectWithFile:[[NSBundle mainBundle] pathForResource:@"SparkAnimation" ofType:@"sks"]];
-                emitter.position = CGPointMake(self.frame.size.width / 2 , self.followButton.center.y);
-                [spriteKitView.scene addChild:emitter];
             }
             else if ([self.followButton.status isEqualToString:ROOM_STATUS_BLOCKED]) {
                 // show alert maybe? --> ideally we don't even show the button.
@@ -230,31 +221,26 @@
     
     [[NSNotificationCenter defaultCenter] postNotificationName:@"RoomUpdated" object:self.room];
 }
-- (void)incrementMembersCount {
-    RoomCounts *counts = [[RoomCounts alloc] initWithDictionary:[self.room.attributes.summaries.counts toDictionary] error:nil];
-    counts.members = counts.members + 1;
-    self.room.attributes.summaries.counts = counts;
-    
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"RoomUpdated" object:self.room];
-}
-- (void)decrementMembersCount {
-    // only decrement if they were a member before! requests don't count.
-    RoomCounts *counts = [[RoomCounts alloc] initWithDictionary:[self.room.attributes.summaries.counts toDictionary] error:nil];
-    counts.members = counts.members > 0 ? counts.members - 1 : 0;
-    self.room.attributes.summaries.counts = counts;
-    
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"RoomUpdated" object:self.room];
-}
+//- (void)incrementMembersCount {
+//    RoomCounts *counts = [[RoomCounts alloc] initWithDictionary:[self.room.attributes.summaries.counts toDictionary] error:nil];
+//    counts.members = counts.members + 1;
+//    self.room.attributes.summaries.counts = counts;
+//
+//    [[NSNotificationCenter defaultCenter] postNotificationName:@"RoomUpdated" object:self.room];
+//}
+//- (void)decrementMembersCount {
+//    // only decrement if they were a member before! requests don't count.
+//    RoomCounts *counts = [[RoomCounts alloc] initWithDictionary:[self.room.attributes.summaries.counts toDictionary] error:nil];
+//    counts.members = counts.members > 0 ? counts.members - 1 : 0;
+//    self.room.attributes.summaries.counts = counts;
+//
+//    [[NSNotificationCenter defaultCenter] postNotificationName:@"RoomUpdated" object:self.room];
+//}
 - (void)leaveRoom {
-    [[Session sharedInstance] unfollowRoom:self.room.identifier completion:^(BOOL success, id responseObject) {
+    [BFAPI unfollowRoom:self.room completion:^(BOOL success, id responseObject) {
         if (success) {
-            if ([responseObject isKindOfClass:[RoomContext class]]) {
-                NSLog(@"update the room context!");
-                self.room.attributes.context = responseObject;
-                //[[NSNotificationCenter defaultCenter] postNotificationName:@"RoomUpdated" object:self.room];
+            if ([responseObject isKindOfClass:[Room class]]) {
             }
-
-            [[NSNotificationCenter defaultCenter] postNotificationName:@"refreshMyRooms" object:nil];
         }
     }];
     
@@ -310,14 +296,16 @@
         bottomY = self.descriptionLabel.frame.origin.y + self.descriptionLabel.frame.size.height;
     }
     
-    self.detailsLabel.frame = CGRectMake(self.textLabel.frame.origin.x, bottomY + (self.descriptionLabel.text.length > 0 ? ROOM_HEADER_DESCRIPTION_BOTTOM_PADDING : ROOM_HEADER_TAG_BOTTOM_PADDING) + ROOM_HEADER_DETAILS_EDGE_INSETS.top, self.textLabel.frame.size.width, self.detailsLabel.frame.size.height);
-    bottomY = self.detailsLabel.frame.origin.y + self.detailsLabel.frame.size.height;
+    if (!self.detailsCollectionView.isHidden) {
+        self.detailsCollectionView.frame = CGRectMake(ROOM_HEADER_EDGE_INSETS.left, bottomY + (self.descriptionLabel.text.length > 0 ? ROOM_HEADER_DESCRIPTION_BOTTOM_PADDING : ROOM_HEADER_TAG_BOTTOM_PADDING) + ROOM_HEADER_DETAILS_EDGE_INSETS.top, self.frame.size.width - (ROOM_HEADER_DETAILS_EDGE_INSETS.left + ROOM_HEADER_DETAILS_EDGE_INSETS.right), self.detailsCollectionView.contentSize.height);
+        bottomY = self.detailsCollectionView.frame.origin.y + self.detailsCollectionView.frame.size.height;
+    }
     
     self.followButton.frame = CGRectMake(ROOM_HEADER_EDGE_INSETS.left, bottomY + ROOM_HEADER_FOLLOW_BUTTON_TOP_PADDING, maxWidth, 36);
 }
 
 - (void)styleMemberProfilePictureView:(UIImageView *)imageView  {
-    BOOL circleProfilePictures = FBTweakValue(@"Post", @"General", @"Circle Profile Pictures", YES);
+    BOOL circleProfilePictures = YES;
     if (circleProfilePictures) {
         [self continuityRadiusForView:imageView withRadius:imageView.frame.size.height * .5];
     }
@@ -355,6 +343,7 @@
         }
         
         self.detailTextLabel.text = [NSString stringWithFormat:@"#%@", room.attributes.details.identifier];
+        self.detailTextLabel.textColor = [UIColor fromHex:room.attributes.details.color];
         
         if (room.attributes.details.theDescription.length > 0) {
             NSMutableAttributedString *attrString = [[NSMutableAttributedString  alloc] initWithString:room.attributes.details.theDescription];
@@ -374,7 +363,7 @@
         
         // set profile pictures
         
-        for (int i = 0; i < 6; i++) {
+        for (NSInteger i = 0; i < 6; i++) {
             BFAvatarView *avatarView;
             if (i == 0) { avatarView = self.member2; }
             else if (i == 1) { avatarView = self.member3; }
@@ -399,14 +388,19 @@
         }
         
         NSMutableArray *details = [[NSMutableArray alloc] init];
-        [details addObject:[BFDetailsLabel BFDetailWithType:(room.attributes.status.visibility.isPrivate ? BFDetailTypePrivacyPrivate : BFDetailTypePrivacyPublic) value:@"" action:nil]];
         
-        BOOL canViewMembers = ([self.room.attributes.context.status isEqualToString:ROOM_STATUS_MEMBER] ||
-                               !self.room.attributes.status.visibility.isPrivate);
-        [details addObject:[BFDetailsLabel BFDetailWithType:BFDetailTypeMembers value:[NSNumber numberWithInteger:room.attributes.summaries.counts.members] action:canViewMembers?^(NSString *tappedString) {
-            [[Launcher sharedInstance] openRoomMembersForRoom:room];
-        }:nil]];
-        self.detailsLabel.details = details;
+        BFDetailItem *visibility = [[BFDetailItem alloc] initWithType:(room.attributes.status.visibility.isPrivate ? BFDetailItemTypePrivacyPrivate : BFDetailItemTypePrivacyPublic) value:(room.attributes.status.visibility.isPrivate ? @"Private" : @"Public") action:nil];
+        [details addObject:visibility];
+        
+        BFDetailItem *members = [[BFDetailItem alloc] initWithType:BFDetailItemTypeMembers value:[NSString stringWithFormat:@"%ld", (long)room.attributes.summaries.counts.members] action:^{
+            [[Launcher sharedInstance] openRoomMembersForRoom:self.room];
+        }];
+        if (self.room.attributes.status.visibility.isPrivate && ![self.room.attributes.context.status isEqualToString:ROOM_STATUS_MEMBER]) {
+            members.selectable = false;
+        }
+        [details addObject:members];
+        
+        self.detailsCollectionView.details = [details copy];
     }
 }
 

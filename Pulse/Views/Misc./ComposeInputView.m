@@ -23,6 +23,9 @@
 #define headerHeight 58
 #define postButtonShrinkScale 0.9
 
+#define TEXT_VIEW_WITH_IMAGE_X 56
+#define TEXT_VIEW_WITHOUT_IMAGE_X 12
+
 #define UIViewParentController(__view) ({ \
     UIResponder *__responder = __view; \
     while ([__responder isKindOfClass:[UIView class]]) \
@@ -69,7 +72,7 @@
     [self addSubview:hairline];
     
     // text view
-    _textView = [[UITextView alloc] initWithFrame:CGRectMake(56, 6, self.frame.size.width - 56 - 12, 40)];
+    _textView = [[UITextView alloc] initWithFrame:CGRectMake(TEXT_VIEW_WITH_IMAGE_X, 6, self.frame.size.width - TEXT_VIEW_WITH_IMAGE_X - 12, 40)];
     _textView.editable = true;
     _textView.scrollEnabled = false;
     _textView.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightRegular];
@@ -98,8 +101,8 @@
     [self.textView addSubview:self.mediaLineSeparator];
     
     // Stack View
-    self.maxImages = 4; // we only allow 1 for replies
-    self.media = [[NSMutableArray alloc] init];
+    self.media = [[BFMedia alloc] init];
+    self.media.delegate = self;
     _mediaContainerView = [[UIStackView alloc] initWithFrame:CGRectMake(0, 0, _mediaScrollView.frame.size.width, _mediaScrollView.frame.size.height)];
     _mediaContainerView.backgroundColor = [UIColor whiteColor];
     _mediaContainerView.axis = UILayoutConstraintAxisHorizontal;
@@ -143,6 +146,7 @@
     [self.contentView addSubview:self.addMediaButton];
     
     self.postButton = [TappableButton buttonWithType:UIButtonTypeCustom];
+    self.postButton.padding = UIEdgeInsetsMake(5, 5, 5, 5);
     self.postButton.adjustsImageWhenHighlighted = false;
     self.postButton.frame = CGRectMake(self.frame.size.width - 12 - 32 - 4, _textView.frame.origin.y + 4, 32, 32);
     self.postButton.contentMode = UIViewContentModeCenter;
@@ -165,7 +169,7 @@
     
     [self.postButton bk_addEventHandler:^(id sender) {
         NSLog(@"cancel or drag exit");
-        if (self.textView.text.length > 0 || self.media.count > 0) {
+        if (self.textView.text.length > 0 || self.media.objects.count > 0) {
             [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
                 self.postButton.alpha = 1;
                 self.postButton.transform = CGAffineTransformMakeScale(1, 1);
@@ -190,7 +194,7 @@
     } forControlEvents:UIControlEventTouchDown];
     
     [self.expandButton bk_addEventHandler:^(id sender) {
-        if (self.textView.text.length == 0 && self.media.count == 0) {
+        if (self.textView.text.length == 0 && self.media.objects.count == 0) {
             [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
                 self.expandButton.alpha = 1;
                 self.expandButton.transform = CGAffineTransformMakeScale(1, 1);
@@ -203,21 +207,36 @@
     self.replyingToLabel = [UIButton buttonWithType:UIButtonTypeCustom];
     self.replyingToLabel.hidden = true;
     self.replyingToLabel.frame = CGRectMake(0, 0, self.frame.size.width, 40);
-    self.replyingToLabel.backgroundColor = [UIColor colorWithRed:0.94 green:0.95 blue:0.96 alpha:1.00];
+    self.replyingToLabel.backgroundColor = [UIColor colorWithRed:0.98 green:0.98 blue:0.99 alpha:1.0];
     self.replyingToLabel.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
-    self.replyingToLabel.contentEdgeInsets = UIEdgeInsetsMake(0, 12, 0, 12);
-    self.replyingToLabel.titleLabel.font = [UIFont systemFontOfSize:12.f weight:UIFontWeightBold];
-    [self.replyingToLabel setTitleColor:[UIColor colorWithRed:0.55 green:0.58 blue:0.59 alpha:1.00] forState:UIControlStateNormal];
+    self.replyingToLabel.contentEdgeInsets = UIEdgeInsetsMake(0, 37, 0, 12);
+    self.replyingToLabel.titleLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightMedium];
+    [self.replyingToLabel setTitleColor:[UIColor bonfireBlack] forState:UIControlStateNormal];
+    [self.replyingToLabel bk_whenTapped:^{
+        [self setReplyingTo:nil];
+    }];
     [self insertSubview:self.replyingToLabel belowSubview:self.contentView];
     
-    UIImageView *closeIcon = [[UIImageView alloc] initWithFrame:CGRectMake(self.replyingToLabel.frame.size.width - 36, 0, 36, self.replyingToLabel.frame.size.height)];
-    closeIcon.image = [UIImage imageNamed:@"cancelReplyingToIcon"];
+    UIImageView *closeIcon = [[UIImageView alloc] init];
+    closeIcon.image = [[UIImage imageNamed:@"cancelReplyingToIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+    closeIcon.frame = CGRectMake(self.replyingToLabel.frame.size.width - closeIcon.image.size.width - 12, self.replyingToLabel.frame.size.height / 2 - closeIcon.image.size.height / 2, closeIcon.image.size.width, closeIcon.image.size.height);
+    closeIcon.tintColor = [UIColor bonfireBlack];
     closeIcon.userInteractionEnabled = true;
     closeIcon.contentMode = UIViewContentModeCenter;
     [closeIcon bk_whenTapped:^{
         [self setReplyingTo:nil];
     }];
     [self.replyingToLabel addSubview:closeIcon];
+    
+    UIImageView *replyIcon = [[UIImageView alloc] initWithFrame:CGRectMake(12, self.replyingToLabel.frame.size.height / 2 - 7.5, 13, 15)];
+    replyIcon.image = [[UIImage imageNamed:@"postActionReply"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+    replyIcon.tintColor = [UIColor bonfireBlack];
+    replyIcon.contentMode = UIViewContentModeScaleAspectFill;
+    [self.replyingToLabel addSubview:replyIcon];
+    
+    UIView *lineSeparator_t = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.replyingToLabel.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+    lineSeparator_t.backgroundColor = [UIColor colorWithWhite:0 alpha:0.06];
+    [self.replyingToLabel addSubview:lineSeparator_t];
 }
 
 - (void)layoutSubviews
@@ -241,7 +260,7 @@
     NSString *message = self.textView.text;
     
     post.type = @"post";
-    post.tempId = [NSString stringWithFormat:@"%d", [[Session sharedInstance] getTempId]];
+    post.tempId = [NSString stringWithFormat:@"%d", [Session getTempId]];
     // TODO: Add support for images
     
     PostAttributes *attributes = [[PostAttributes alloc] init];
@@ -271,12 +290,29 @@
     return post;
 }
 
+- (void)setMediaTypes:(NSArray *)mediaTypes {
+    if (mediaTypes != _mediaTypes) {
+        _mediaTypes = mediaTypes;
+        
+        [self updateMediaAvailability];
+    }
+}
+
 - (void)updatePlaceholders {
     NSString *publicPostPlaceholder = @"Share with everyone...";
     
     defaultPlaceholder = @"";
     UIViewController *parentController = UIViewParentController(self);
-    if ([parentController isKindOfClass:[ProfileViewController class]]) {
+    if (self.replyingTo != nil) {
+        if ([self.replyingTo.attributes.details.creator.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
+            defaultPlaceholder = @"Add something new...";
+        }
+        else {
+            NSString *creatorIdentifier = self.replyingTo.attributes.details.creator.attributes.details.identifier;
+            defaultPlaceholder = creatorIdentifier ? [NSString stringWithFormat:@"Reply to @%@...", creatorIdentifier] : @"Add a reply...";
+        }
+    }
+    else if ([parentController isKindOfClass:[ProfileViewController class]]) {
         ProfileViewController *parentProfile = (ProfileViewController *)parentController;
         if ([parentProfile.user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
             // me
@@ -305,9 +341,9 @@
     }
     defaultPlaceholder = [self stringByDeletingWordsFromString:defaultPlaceholder toFit:CGRectMake(0, 0, self.textView.frame.size.width - 44 - 14 - 14, self.textView.frame.size.height - self.textView.contentInset.top - self.textView.contentInset.bottom) withInset:0 usingFont:self.textView.font];
     
-    mediaPlaceholder = @"Add caption or Post";
+    mediaPlaceholder = @"Add caption or Share";
     
-    if (self.media.count == 0) {
+    if (self.media.objects.count == 0) {
         self.textView.placeholder = defaultPlaceholder;
     }
     else {
@@ -474,48 +510,34 @@
     [picker dismissViewControllerAnimated:YES completion:nil];
 }
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary<NSString *,id> *)info {
-    // output image
-    __block NSData *data;
-    
+    // determine file type
     PHAsset *asset = info[UIImagePickerControllerPHAsset];
-    if (asset.playbackStyle == PHAssetPlaybackStyleImageAnimated) {
-        NSLog(@"aniamted image -- most likely a gif");
-        
-        PHImageRequestOptions *options = [[PHImageRequestOptions alloc] init];
-        [[PHImageManager defaultManager] requestImageDataForAsset:asset options:options resultHandler:^(NSData * _Nullable imageData, NSString * _Nullable dataUTI, UIImageOrientation orientation, NSDictionary * _Nullable info) {
-            data = imageData;
-            
-            NSLog(@"found data");
-            
-            [self addImageToMediaTray:data animated:YES];
-        }];
+    if (asset) {
+        [self.media addAsset:asset];
     }
     else {
-        NSLog(@"regular image");
-        
         UIImage *chosenImage = info[UIImagePickerControllerOriginalImage];
-        data = UIImageJPEGRepresentation(chosenImage, 1);
-        
-        [self addImageToMediaTray:data animated:NO];
+        [self.media addImage:chosenImage];
     }
     
     [picker dismissViewControllerAnimated:YES completion:nil];
     
     [_textView becomeFirstResponder];
 }
+
+- (void)mediaObjectAdded:(BFMediaObject *)object {
+    NSLog(@"media object added:: %@", object);
+    [self showMediaTray];
     
-- (void)addImageToMediaTray:(NSData *)data animated:(BOOL)animated {
-    if (self.media.count == 0) {
-        [self showMediaTray];
-    }
-    //View 1
+    NSData *data = object.data;
+    
     FLAnimatedImageView *view = [[FLAnimatedImageView alloc] init];
     view.userInteractionEnabled = true;
     view.backgroundColor = [UIColor blueColor];
     view.layer.cornerRadius = 14.f;
     view.layer.masksToBounds = true;
     view.contentMode = UIViewContentModeScaleAspectFill;
-    if (animated) {
+    if ([object.MIME isEqualToString:BFMediaObjectMIME_GIF]) {
         FLAnimatedImage *animatedImage = [FLAnimatedImage animatedImageWithGIFData:data];
         view.animatedImage = animatedImage;
         
@@ -532,7 +554,6 @@
     [_mediaContainerView addArrangedSubview:view];
     
     UIButton *removeImageButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, 30, 30)];
-    removeImageButton.backgroundColor = [UIColor whiteColor];
     [removeImageButton setImage:[UIImage imageNamed:@"composeRemoveImageIcon"] forState:UIControlStateNormal];
     removeImageButton.layer.cornerRadius = 15.f;
     removeImageButton.layer.shadowOffset = CGSizeMake(0, 0.5);
@@ -554,7 +575,7 @@
     [removeImageButton bk_addEventHandler:^(id sender) {
         [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
             removeImageButton.alpha = 0.8;
-            removeImageButton.transform = CGAffineTransformMakeScale(postButtonShrinkScale, postButtonShrinkScale);
+            removeImageButton.transform = CGAffineTransformMakeScale(0.6, 0.6);
         } completion:nil];
     } forControlEvents:UIControlEventTouchDown];
     [removeImageButton bk_addEventHandler:^(id sender) {
@@ -564,44 +585,84 @@
         } completion:nil];
     } forControlEvents:(UIControlEventTouchUpInside|UIControlEventTouchCancel|UIControlEventTouchDragExit)];
     
-    [self.media addObject:@{@"image": data, @"view": view}];
     [self updateMediaAvailability];
     
     [self.mediaScrollView setContentOffset:CGPointMake(self.mediaScrollView.contentSize.width - self.mediaScrollView.frame.size.width, 0)];
 }
-- (void)removeImageAtIndex:(NSInteger)index {
-    NSDictionary *item = [self.media objectAtIndex:index];
 
-    UIView *view = item[@"view"];
-    view.userInteractionEnabled = false;
-    
-    [self.media removeObject:item];
-    [self updateMediaAvailability];
-    if (self.media.count == 0) {
-        // no items left
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.15f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            [self hideMediaTray];
-        });
+- (void)removeImageAtIndex:(NSInteger)index {
+    if (self.media.objects.count > index) {
+        BFMediaObject *object = [self.media.objects objectAtIndex:index];
+        
+        [self.media removeObject:object];
     }
-    [UIView animateWithDuration:(self.media.count == 0 ? 0 : 0.2f) delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-        view.transform = CGAffineTransformMakeScale(0.6, 0.6);
-        view.alpha = 0;
-    } completion:^(BOOL finished) {
-        [view removeFromSuperview];
-     }];
+    
+    if (self.mediaContainerView.subviews.count > index) {
+        UIView *view = [self.mediaContainerView.subviews objectAtIndex:index];
+    
+        view.userInteractionEnabled = false;
+        
+        [self updateMediaAvailability];
+        if (self.media.objects.count == 0) {
+            // no items left
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.15f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                [self hideMediaTray];
+            });
+        }
+        [UIView animateWithDuration:0.2 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+            view.transform = CGAffineTransformMakeScale(0.6, 0.6);
+            view.alpha = 0.01;
+        } completion:^(BOOL finished) {
+        }];
+        [UIView animateWithDuration:0.4f delay:0.15 usingSpringWithDamping:0.8 initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
+            view.hidden = true;
+        } completion:^(BOOL finished) {
+            [view removeFromSuperview];
+        }];
+    }
 }
 
 - (void)updateMediaAvailability {
-    self.addMediaButton.enabled = (self.media.count < self.maxImages);
+    NSLog(@"self.media canAddImages? %@", [self.media canAddImage] ? @"YES" : @"NO");
+    NSLog(@"self.media canAddGIFs? %@", [self.media canAddGIF] ? @"YES" : @"NO");
+    NSLog(@"self.media canAddMedia? %@", [self.media canAddMedia] ? @"YES" : @"NO");
     
+    self.addMediaButton.hidden = false;
+    self.addMediaButton.enabled = [self.media canAddMedia];
     [UIView animateWithDuration:0.3f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
         self.addMediaButton.alpha = (self.addMediaButton.enabled ? 1 : 0.25);
     } completion:nil];
+    
+    /*
+    if ([self.mediaTypes containsObject:BFMediaTypeImage] ||
+        [self.mediaTypes containsObject:BFMediaTypeGIF]) {
+        // determine add media button
+        self.addMediaButton.hidden = false;
+        self.addMediaButton.enabled = (self.media.count < self.maxImages);
+        
+        [UIView animateWithDuration:0.3f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+            self.addMediaButton.alpha = (self.addMediaButton.enabled ? 1 : 0.25);
+        } completion:nil];
+        
+        if ([self.mediaTypes containsObject:BFMediaTypeText]) {
+            self.textView.frame = CGRectMake(TEXT_VIEW_WITH_IMAGE_X, self.textView.frame.origin.y, self.frame.size.width - TEXT_VIEW_WITH_IMAGE_X - 12, self.textView.frame.size.height);
+        }
+        else {
+            
+        }
+    }
+    else {
+        self.addMediaButton.hidden = true;
+        
+        self.textView.frame = CGRectMake(TEXT_VIEW_WITHOUT_IMAGE_X, self.textView.frame.origin.y, self.frame.size.width - TEXT_VIEW_WITHOUT_IMAGE_X - 12, self.textView.frame.size.height);
+    }*/
+    
+    [self resize:false];
 }
     
 - (void)showMediaTray {
     _textView.textContainerInset = UIEdgeInsetsMake(9 + 140, _textView.textContainerInset.left, _textView.textContainerInset.bottom, _textView.textContainerInset.right);
-    _textView.placeholder = @"Add caption or Post";
+    _textView.placeholder = @"Add caption or Share";
     
     [self resize:false];
     [self showPostButton];
@@ -633,24 +694,30 @@
     }];
     
     // remove all media views
-    for (NSDictionary *dictionary in self.media) {
-        UIView *view = dictionary[@"view"];
-        [view removeFromSuperview];
+    for (UIView *subview in self.mediaContainerView.subviews) {
+        [subview removeFromSuperview];
     }
 }
 
 - (void)setReplyingTo:(Post *)replyingTo {
-    NSLog(@"set replying to: %@", replyingTo);
     if (replyingTo != _replyingTo) {
         _replyingTo = replyingTo;
         
         if (_replyingTo) {
-            [_replyingToLabel setTitle:[NSString stringWithFormat:@"Replying to @%@", replyingTo.attributes.details.creator.attributes.details.identifier] forState:UIControlStateNormal];
+            if ([replyingTo.attributes.details.creator.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
+                [_replyingToLabel setTitle:@"Replying to yourself" forState:UIControlStateNormal];
+            }
+            else {
+                [_replyingToLabel setTitle:[NSString stringWithFormat:@"Replying to @%@", replyingTo.attributes.details.creator.attributes.details.identifier] forState:UIControlStateNormal];
+            }
             [self showReplyingTo];
         }
         else {
+            self.textView.text = @"";
             [self hideReplyingTo];
         }
+        
+        [self updatePlaceholders];
     }
 }
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event

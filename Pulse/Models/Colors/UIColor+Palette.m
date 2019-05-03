@@ -7,7 +7,6 @@
 //
 
 #import "UIColor+Palette.h"
-#import <Tweaks/FBTweakInline.h>
 
 @implementation UIColor (Palette)
 
@@ -82,13 +81,15 @@
 
 // Header background color -- Used in [Home -> Rooms]
 + (UIColor * _Nonnull) headerBackgroundColor {
-    UIColor *color = FBTweakValue(@"Camps", @"My Rooms", @"Header Background", [UIColor colorWithRed:0.97 green:0.97 blue:0.98 alpha:1.0]);
-    return color;
+    return [UIColor colorWithRed:0.98 green:0.98 blue:0.99 alpha:1.0];
 }
 
 + (UIColor * _Nonnull) separatorColor {
-    UIColor *color = [UIColor colorWithRed:0.86 green:0.86 blue:0.87 alpha:1.0];
-    return color;
+    return [UIColor colorWithRed:0.87 green:0.87 blue:0.89 alpha:1.0];
+}
+
++ (UIColor * _Nonnull) linkColor {
+    return [UIColor colorWithRed:0.16 green:0.42 blue:0.55 alpha:1.0];
 }
 
 // Gray
@@ -119,9 +120,14 @@
     }
 }
 + (UIColor * _Nonnull) bonfireBrand {
-    // return [UIColor colorWithRed:1.00 green:0.32 blue:0.24 alpha:1.0];
-    
     return [UIColor colorWithDisplayP3Red:1.00 green:0.38 blue:0.30 alpha:1.0];
+    
+    // friendlier pink/red version
+    // return [UIColor colorWithDisplayP3Red:1.00 green:0.17 blue:0.35 alpha:1.0];
+}
+
++ (UIColor * _Nonnull)bonfireBlack {
+    return [UIColor fromHex:@"31373D"];
 }
 
 // Gray
@@ -138,7 +144,7 @@
         case 400:
             return [UIColor fromHex:@"#bec4cc"];
         case 500:
-            return [UIColor fromHex:@"#abb3bd"];
+            return [UIColor fromHex:@"#A5A9B2"];
         case 600:
             return [UIColor fromHex:@"#96a0ad"];
         case 700:
@@ -528,11 +534,11 @@
 }
 
 + (UIColor * _Nonnull) bonfireTextFieldBackgroundOnWhite {
-    return [UIColor colorWithWhite:0 alpha:0.08f];
+    return [UIColor colorWithWhite:0 alpha:0.06f];
 }
 
 + (UIColor * _Nonnull) bonfireTextFieldBackgroundOnLight {
-    return [UIColor colorWithWhite:0 alpha:0.12f];
+    return [UIColor colorWithWhite:0 alpha:0.08f];
 }
 
 + (UIColor * _Nonnull) bonfireTextFieldBackgroundOnDark {

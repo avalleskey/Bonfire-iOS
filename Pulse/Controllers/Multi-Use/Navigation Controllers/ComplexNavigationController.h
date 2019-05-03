@@ -28,16 +28,16 @@ typedef enum {
 - (void)setLeftAction:(LNActionType)actionType;
 - (void)setRightAction:(LNActionType)actionType;
 
-@property (strong, nonatomic) SloppySwiper *swiper;
+@property (nonatomic, strong) SloppySwiper *swiper;
 
-@property (strong, nonatomic) UITableView *searchResultsTableView;
-@property (strong, nonatomic) BFSearchView *searchView;
+@property (nonatomic, strong) UITableView *searchResultsTableView;
+@property (nonatomic, strong) BFSearchView *searchView;
 
-@property (strong, nonatomic) UIButton *leftActionButton;
-@property (strong, nonatomic) UIButton *rightActionButton;
+@property (nonatomic, strong) UIButton *leftActionButton;
+@property (nonatomic, strong) UIButton *rightActionButton;
 
-@property (strong, nonatomic) UIView *shadowView;
-@property (strong, nonatomic) UIView *navigationBackgroundView;
+@property (nonatomic, strong) UIView *shadowView;
+@property (nonatomic, strong) UIView *navigationBackgroundView;
 
 - (void)goBack;
 
@@ -45,7 +45,7 @@ typedef enum {
 - (void)updateBarColor:(id)newColor withAnimation:(int)animationType statusBarUpdateDelay:(CGFloat)statusBarUpdateDelay;
 - (void)updateNavigationBarItemsWithAnimation:(BOOL)animated;
 
-@property (strong, nonatomic) UIColor *currentTheme;
+@property (nonatomic, strong) UIColor *currentTheme;
 
 @property (nonatomic) CGFloat currentKeyboardHeight;
     

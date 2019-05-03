@@ -93,7 +93,7 @@
     _membersView = [[UIView alloc] initWithFrame:CGRectMake(24, 0, self.frame.size.width - 48 - 69, 36)];
     
     float lastX = 2 * (_membersView.frame.size.height * .5) + _membersView.frame.size.height;
-    for (int i = 2; i >= 0; i--) {
+    for (NSInteger i = 2; i >= 0; i--) {
         UIImageView *userImage = [[UIImageView alloc] initWithFrame:CGRectMake(i * (_membersView.frame.size.height * 0.5), 0, _membersView.frame.size.height, _membersView.frame.size.height)];
         userImage.tag = i;
         userImage.backgroundColor = [UIColor whiteColor];

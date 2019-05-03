@@ -27,13 +27,13 @@ typedef enum {
 - (void)setLeftAction:(SNActionType)actionType;
 - (void)setRightAction:(SNActionType)actionType;
 
-- (void)setShadowVisibility:(BOOL)visible withAnimation:(BOOL)animation;
+- (void)setShadowVisibility:(BOOL)visible withAnimation:(BOOL)animated;
 - (void)hideBottomHairline;
 - (void)showBottomHairline;
 
 - (void)updateBarColor:(id)background;
 
-@property (strong, nonatomic) UIColor *currentTheme;
+@property (nonatomic, strong) UIColor *currentTheme;
 
 @end
 

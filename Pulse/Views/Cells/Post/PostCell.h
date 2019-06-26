@@ -10,11 +10,10 @@
 
 #import "Post.h"
 
-#import "PostContextView.h"
 #import "BFAvatarView.h"
 #import "PostTextView.h"
 #import "PostImagesView.h"
-// #import "PostURLPreviewView.h"
+#import "PostURLPreviewView.h"
 
 #import <BlocksKit/BlocksKit+UIKit.h>
 #import "NSDate+NVTimeAgo.h"
@@ -32,13 +31,12 @@
 @property BOOL loading;
 @property BOOL selectable;
 
-@property BOOL sparked;
+@property BOOL voted;
 
 // @property (strong) NSDictionary *theme;
 @property (nonatomic, strong) Post *post;
 
 // Views
-@property (nonatomic, strong) PostContextView *contextView;
 @property (nonatomic, strong) UILabel *nameLabel;
 @property (nonatomic, strong) UILabel *dateLabel;
 @property (nonatomic, strong) UIButton *moreButton;
@@ -46,12 +44,10 @@
 @property (nonatomic, strong) PostTextView *textView;
 @property (nonatomic, strong) BFAvatarView *profilePicture;
 @property (nonatomic, strong) PostImagesView *imagesView;
-// @property (nonatomic, strong) PostURLPreviewView *urlPreviewView;
+@property (nonatomic, strong) PostURLPreviewView *urlPreviewView;
 
 @property (nonatomic, strong) UIView *lineSeparator;
 
-+ (NSAttributedString *)attributedCreatorStringForPost:(Post *)post includeTimestamp:(BOOL)includeTimestamp includeContext:(BOOL)includeContext;
-
-- (void)openPostActions;
++ (NSAttributedString *)attributedCreatorStringForPost:(Post *)post includeTimestamp:(BOOL)includeTimestamp showCamptag:(BOOL)showCamptag;
 
 @end

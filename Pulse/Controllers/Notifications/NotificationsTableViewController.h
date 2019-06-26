@@ -12,6 +12,10 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface NotificationsTableViewController : UITableViewController
 
+enum {
+    MAX_CACHED_ACTIVITIES = 40
+};
+
 @end
 
 NS_ASSUME_NONNULL_END

@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import "Post.h"
-#import "Room.h"
+#import "Camp.h"
 #import "User.h"
 
 NS_ASSUME_NONNULL_BEGIN
@@ -25,16 +25,16 @@ NS_ASSUME_NONNULL_BEGIN
 + (void)subscribeToUser:(User *_Nonnull)user completion:(void (^_Nullable)(BOOL success, User *_Nullable user))handler;
 + (void)unsubscribeFromUser:(User *_Nonnull)user completion:(void (^_Nullable)(BOOL success, User *_Nullable user))handler;
 
-#pragma mark - Room
-+ (void)followRoom:(Room *_Nonnull)room completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
-+ (void)unfollowRoom:(Room *_Nonnull)room completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
+#pragma mark - Camp
++ (void)followCamp:(Camp *_Nonnull)camp completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
++ (void)unfollowCamp:(Camp *_Nonnull)camp completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
 
 #pragma mark - Post
-+ (void)createPost:(NSDictionary *)params postingIn:(Room * _Nullable)postingIn replyingTo:(Post * _Nullable)replyingTo;
++ (void)createPost:(NSDictionary *)params postingIn:(Camp * _Nullable)postingIn replyingTo:(Post * _Nullable)replyingTo;
 + (void)deletePost:(Post *_Nonnull)post completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
-+ (void)reportPost:(NSInteger)postId completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
-+ (void)sparkPost:(Post *_Nonnull)post completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
-+ (void)unsparkPost:(Post *_Nonnull)post completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
++ (void)reportPost:(NSString *)postId completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
++ (void)votePost:(Post *_Nonnull)post completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
++ (void)unvotePost:(Post *_Nonnull)post completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
 
 #pragma mark - Misc
 + (void)uploadImage:(BFMediaObject *)mediaObject copmletion:(void (^)(BOOL success, NSString *uploadedImageURL))handler;

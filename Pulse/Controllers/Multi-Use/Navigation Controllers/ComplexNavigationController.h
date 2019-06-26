@@ -10,7 +10,7 @@
 #import "SloppySwiper.h"
 #import "BFSearchView.h"
 #import "Session.h"
-#import "Room.h"
+#import "Camp.h"
 #import "Post.h"
 #import "User.h"
 
@@ -23,7 +23,8 @@ typedef enum {
     LNActionTypeInvite = 3,
     LNActionTypeMore = 4,
     LNActionTypeAdd = 5,
-    LNActionTypeBack = 6
+    LNActionTypeBack = 6,
+    LNActionTypeInfo = 7
 } LNActionType;
 - (void)setLeftAction:(LNActionType)actionType;
 - (void)setRightAction:(LNActionType)actionType;
@@ -42,13 +43,13 @@ typedef enum {
 - (void)goBack;
 
 - (void)setShadowVisibility:(BOOL)visible withAnimation:(BOOL)animation;
-- (void)updateBarColor:(id)newColor withAnimation:(int)animationType statusBarUpdateDelay:(CGFloat)statusBarUpdateDelay;
+
+- (void)updateBarColor:(id)background animated:(BOOL)animated;
+
 - (void)updateNavigationBarItemsWithAnimation:(BOOL)animated;
 
 @property (nonatomic, strong) UIColor *currentTheme;
 
 @property (nonatomic) CGFloat currentKeyboardHeight;
     
-@property (nonatomic) BOOL isCreatingPost;
-
 @end

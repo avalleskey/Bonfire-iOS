@@ -14,17 +14,44 @@
     return [JSONKeyMapper mapperForSnakeCase];
 }
 
++ (BOOL)propertyIsOptional:(NSString *)propertyName {
+    return TRUE;
+}
+
 @end
 
-@implementation DefaultsHome
+@implementation DefaultsKeywords
 
-+ (JSONKeyMapper *)keyMapper
-{
-    return [[JSONKeyMapper alloc] initWithModelToJSONDictionary:@{
-                                                                  @"feedPageTitle": @"page_titles.feed",
-                                                                  @"myRoomsPageTitle": @"page_titles.my_rooms",
-                                                                  @"discoverPageTitle": @"page_titles.discover"
-                                                                  }];
++ (JSONKeyMapper *)keyMapper {
+    return [JSONKeyMapper mapperForSnakeCase];
+}
+
++ (BOOL)propertyIsOptional:(NSString *)propertyName {
+    return TRUE;
+}
+
+@end
+
+@implementation DefaultsKeywordsGroupTitles
+
++ (JSONKeyMapper *)keyMapper {
+    return [JSONKeyMapper mapperForSnakeCase];
+}
+
++ (BOOL)propertyIsOptional:(NSString *)propertyName {
+    return TRUE;
+}
+
+@end
+
+@implementation DefaultsKeywordsViewTitles
+
++ (JSONKeyMapper *)keyMapper {
+    return [JSONKeyMapper mapperForSnakeCase];
+}
+
++ (BOOL)propertyIsOptional:(NSString *)propertyName {
+    return TRUE;
 }
 
 @end
@@ -35,6 +62,10 @@
     return [JSONKeyMapper mapperForSnakeCase];
 }
 
++ (BOOL)propertyIsOptional:(NSString *)propertyName {
+    return TRUE;
+}
+
 @end
 
 @implementation DefaultsPost
@@ -43,12 +74,20 @@
     return [JSONKeyMapper mapperForSnakeCase];
 }
 
++ (BOOL)propertyIsOptional:(NSString *)propertyName {
+    return TRUE;
+}
+
 @end
 
-@implementation DefaultsPostDisplayVote
+@implementation DefaultsPostMaxLength
 
 + (JSONKeyMapper *)keyMapper {
     return [JSONKeyMapper mapperForSnakeCase];
+}
+
++ (BOOL)propertyIsOptional:(NSString *)propertyName {
+    return TRUE;
 }
 
 @end
@@ -59,55 +98,84 @@
     return [JSONKeyMapper mapperForSnakeCase];
 }
 
++ (BOOL)propertyIsOptional:(NSString *)propertyName {
+    return TRUE;
+}
+
 @end
 
-@implementation DefaultsRoom
+@implementation DefaultsCamp
 
 + (JSONKeyMapper *)keyMapper {
     return [JSONKeyMapper mapperForSnakeCase];
 }
 
-@end
-
-@implementation DefaultsRoomMembersTitle
-
-+ (JSONKeyMapper *)keyMapper {
-    return [JSONKeyMapper mapperForSnakeCase];
++ (BOOL)propertyIsOptional:(NSString *)propertyName {
+    return TRUE;
 }
 
 @end
 
-@implementation DefaultsOnboarding
+@implementation DefaultsCampMembersTitle
 
 + (JSONKeyMapper *)keyMapper {
     return [JSONKeyMapper mapperForSnakeCase];
 }
-
-@end
-
-@implementation DefaultsOnboardingMyRooms
-
-+ (JSONKeyMapper *)keyMapper
-{
-    return [[JSONKeyMapper alloc] initWithModelToJSONDictionary:@{
-                                                                  @"theDescription": @"description"
-                                                                  }];
++ (BOOL)propertyIsOptional:(NSString *)propertyName {
+    return TRUE;
 }
 
 @end
 
 @implementation DefaultsLogging
 
++ (BOOL)propertyIsOptional:(NSString *)propertyName {
+    return TRUE;
+}
+
 @end
 
 @implementation DefaultsLoggingInsights
+
++ (BOOL)propertyIsOptional:(NSString *)propertyName {
+    return TRUE;
+}
 
 @end
 
 @implementation DefaultsLoggingInsightsImpressions
 
++ (BOOL)propertyIsOptional:(NSString *)propertyName {
+    return TRUE;
+}
+
 @end
 
 @implementation DefaultsLoggingInsightsImpressionsBatching
+
++ (JSONKeyMapper *)keyMapper {
+    return [JSONKeyMapper mapperForSnakeCase];
+}
+
++ (BOOL)propertyIsOptional:(NSString *)propertyName {
+    return TRUE;
+}
+
+@end
+
+@implementation DefaultsNotificationsFormat
+
+NSString * const ACTIVITY_ACTION_OBJECT_ACTIONER = @"actioner";
+NSString * const ACTIVITY_ACTION_OBJECT_POST = @"post";
+NSString * const ACTIVITY_ACTION_OBJECT_REPLY_POST = @"reply_post";
+NSString * const ACTIVITY_ACTION_OBJECT_CAMP = @"camp";
+
++ (JSONKeyMapper *)keyMapper {
+    return [JSONKeyMapper mapperForSnakeCase];
+}
+
++ (BOOL)propertyIsOptional:(NSString *)propertyName {
+    return TRUE;
+}
 
 @end

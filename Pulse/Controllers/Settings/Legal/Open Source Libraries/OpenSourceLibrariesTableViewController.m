@@ -117,7 +117,7 @@
         url = @"https://github.com/google/google-toolbox-for-mac/blob/master/LICENSE";
     }
     
-    [[Launcher sharedInstance] openURL:url];
+    [Launcher openURL:url];
 }
 
 @end

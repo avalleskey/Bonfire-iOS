@@ -41,7 +41,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
     
     self.tableView.backgroundColor = [UIColor headerBackgroundColor];
     self.tableView.separatorColor = [UIColor separatorColor];
-    self.tableView.separatorInset = UIEdgeInsetsMake(0, 68, 0, 0);
+    self.tableView.separatorInset = UIEdgeInsetsMake(0, 70, 0, 0);
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
     self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
     
@@ -72,7 +72,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
         
         [self.tableView reloadData];
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-        NSLog(@"RoomViewController / getRequests() - error: %@", error);
+        NSLog(@"CampViewController / getRequests() - error: %@", error);
         //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
     }];
 }
@@ -126,7 +126,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return 64;
+    return 68;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
@@ -202,7 +202,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
             User *user = [[User alloc] initWithDictionary:self.users[indexPath.row] error:&error];
             
              if (!error) {
-                 [[Launcher sharedInstance] openProfile:user];
+                 [Launcher openProfile:user];
              }
         }
     }

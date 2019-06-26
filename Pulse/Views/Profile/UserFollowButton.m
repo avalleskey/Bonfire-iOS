@@ -7,7 +7,6 @@
 //
 
 #import "UserFollowButton.h"
-#import "UserContext.h"
 #import "Session.h"
 #import "UIColor+Palette.h"
 
@@ -64,7 +63,7 @@
             self.tintColor = disabledColor;
         }
         else {
-            self.tintColor = [UIColor bonfireGrayWithLevel:900];
+            self.tintColor = [UIColor bonfireBlack];
         }
         [self setTitleColor:self.tintColor forState:UIControlStateNormal];
     }

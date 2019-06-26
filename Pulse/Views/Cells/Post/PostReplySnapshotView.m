@@ -77,22 +77,32 @@
         _replies = replies;
         
         NSInteger count = _replies.count;
+        
+        NSMutableSet *existingIds = [NSMutableSet set];
+        NSMutableArray <Post *> *filteredReplies = [NSMutableArray array];
+        for (Post *object in _replies) {
+            if (![existingIds containsObject:object.identifier]) {
+                [existingIds addObject:object.identifier];
+                [filteredReplies addObject:object];
+            }
+        }
+        NSInteger filteredCount = filteredReplies.count;
                 
         if (count == 0)
             return;
         
-        Post *firstReply = replies[0];
+        Post *firstReply = filteredReplies[0];
         
         self.firstAvatar.user = firstReply.attributes.details.creator;
         
-        self.secondAvatar.hidden = (count < 2); // TRUE
-        if (!self.secondAvatar.isHidden && self.secondAvatar.user != replies[1].attributes.details.creator) { // !TRUE -> FALSE
-            self.secondAvatar.user = replies[1].attributes.details.creator;
+        self.secondAvatar.hidden = (filteredCount < 2); // TRUE
+        if (!self.secondAvatar.isHidden && self.secondAvatar.user != filteredReplies[1].attributes.details.creator) { // !TRUE -> FALSE
+            self.secondAvatar.user = filteredReplies[1].attributes.details.creator;
         }
         
-        self.thirdAvatar.hidden = (count < 3);
-        if (!self.thirdAvatar.isHidden && self.thirdAvatar.user != replies[2].attributes.details.creator) {
-            self.thirdAvatar.user = replies[2].attributes.details.creator;
+        self.thirdAvatar.hidden = (filteredCount < 3);
+        if (!self.thirdAvatar.isHidden && self.thirdAvatar.user != filteredReplies[2].attributes.details.creator) {
+            self.thirdAvatar.user = filteredReplies[2].attributes.details.creator;
         }
         
         [self positionPostPreviewLabel];

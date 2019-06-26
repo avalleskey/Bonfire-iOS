@@ -15,7 +15,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.5</string>
+	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleURLSchemes</key>
 	<array>
 		<string>bonfireapp${BUNDLE_ID_SUFFIX}</string>
@@ -36,7 +36,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>69</string>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>Configuration</key>
 	<string>$(CONFIGURATION)</string>
 	<key>LSApplicationQueriesSchemes</key>
@@ -72,9 +72,8 @@
 	<string>We only use your Photo Library to attach photos and videos to your posts.</string>
 	<key>NSUserActivityTypes</key>
 	<array>
-		<string>com.Ingenious.bonfire.open-room-activity-type</string>
+		<string>com.Ingenious.bonfire.open-camp-activity-type</string>
 		<string>com.Ingenious.bonfire.open-feed-timeline</string>
-		<string>com.Ingenious.bonfire.open-feed-trending</string>
 	</array>
 	<key>SCSDKClientId</key>
 	<string>ab6bfe71-3708-45ec-bac6-30c6149a2a80</string>

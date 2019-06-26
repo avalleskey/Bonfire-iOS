@@ -16,7 +16,15 @@
 @class PostStreamPageMeta;
 @class PostStreamPageMetaPaging;
 
+@protocol PostStreamDelegate <NSObject>
+
+- (void)postStreamDidUpdate:(PostStream *)stream;
+
+@end
+
 @interface PostStream : NSObject <NSCoding>
+
+@property (nonatomic, weak) id <PostStreamDelegate> delegate;
 
 typedef enum {
     PostStreamOptionTempPostPositionTop = 0,
@@ -43,15 +51,18 @@ typedef enum {
 - (BOOL)clearSubRepliesForPost:(Post *)reply;
 - (BOOL)addSubReplies:(NSArray *)newSubReplies toPost:(Post *)post;
 
-- (Post *)postWithId:(NSInteger)postId;
+- (Post *)postWithId:(NSString *)postId;
 - (BOOL)updatePost:(Post *)post;
 - (void)removePost:(Post *)post;
-- (void)updateRoomObjects:(Room *)room;
+- (void)updateCampObjects:(Camp *)camp;
 - (void)updateUserObjects:(User *)user;
 
+@property (nonatomic) NSString *prevCursor;
+@property (nonatomic) NSString *nextCursor;
 
-@property (nonatomic) NSInteger topId;
-@property (nonatomic) NSInteger bottomId;
+@property (nonatomic, strong) NSMutableDictionary *cursorsLoaded;
+- (void)addLoadedCursor:(NSString *)cursor;
+- (BOOL)hasLoadedCursor:(NSString *)cursor;
 
 @end
 
@@ -59,9 +70,6 @@ typedef enum {
 
 @property (nonatomic) NSArray<Post *> *data;
 @property (nonatomic) PostStreamPageMeta <Optional> *meta;
-
-@property (nonatomic) NSInteger topId;
-@property (nonatomic) NSInteger bottomId;
 
 @end
 
@@ -73,7 +81,13 @@ typedef enum {
 
 @interface PostStreamPageMetaPaging : JSONModel
 
-@property (nonatomic) NSString <Optional> *next_cursor;
+typedef enum {
+    PostStreamPagingCursorTypeNone,
+    PostStreamPagingCursorTypePrevious,
+    PostStreamPagingCursorTypeNext
+} PostStreamPagingCursorType;
+@property (nonatomic) NSString <Optional> *prevCursor;
+@property (nonatomic) NSString <Optional> *nextCursor;
 @property (nonatomic) NSInteger remaining_results;
 
 @end

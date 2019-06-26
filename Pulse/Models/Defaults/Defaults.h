@@ -9,39 +9,55 @@
 #import "JSONModel.h"
 
 @class Defaults;
-@class DefaultsHome;
+@class DefaultsKeywords;
+@class DefaultsKeywordsGroupTitles;
+@class DefaultsKeywordsViewTitles;
 @class DefaultsProfile;
 @class DefaultsPost;
-@class DefaultsPostDisplayVote;
+@class DefaultsPostMaxLength;
 @class DefaultsSharing;
-@class DefaultsRoom;
-@class DefaultsRoomMembersTitle;
-@class DefaultsOnboarding;
-@class DefaultsOnboardingMyRooms;
+@class DefaultsCamp;
+@class DefaultsCampMembersTitle;
 @class DefaultsLogging;
 @class DefaultsLoggingInsights;
 @class DefaultsLoggingInsightsImpressions;
 @class DefaultsLoggingInsightsImpressionsBatching;
+@class DefaultsNotificationsFormat;
 
 NS_ASSUME_NONNULL_BEGIN
 
 @interface Defaults : JSONModel
 
-@property (nonatomic) DefaultsHome <Optional> *home;
-@property (nonatomic) DefaultsProfile <Optional> *profile;
-@property (nonatomic) DefaultsPost <Optional> *post;
-@property (nonatomic) DefaultsSharing <Optional> *sharing;
-@property (nonatomic) DefaultsRoom <Optional> *room;
-@property (nonatomic) DefaultsOnboarding <Optional> *onboarding;
+@property (nonatomic) DefaultsKeywords <Optional> *keywords;
 @property (nonatomic) DefaultsLogging <Optional> *logging;
+@property (nonatomic) NSDictionary <Optional> *notifications;
+@property (nonatomic) DefaultsPost <Optional> *post;
+@property (nonatomic) DefaultsProfile <Optional> *profile;
+@property (nonatomic) DefaultsCamp <Optional> *camp;
+@property (nonatomic) DefaultsSharing <Optional> *sharing;
 
 @end
 
-@interface DefaultsHome : JSONModel
+@interface DefaultsKeywords : JSONModel
 
-@property (nonatomic) NSString <Optional> *feedPageTitle;
-@property (nonatomic) NSString <Optional> *myRoomsPageTitle;
-@property (nonatomic) NSString <Optional> *discoverPageTitle;
+@property (nonatomic) DefaultsKeywordsGroupTitles <Optional> *groupTitles;
+@property (nonatomic) DefaultsKeywordsViewTitles <Optional> *viewTitles;
+
+@end
+
+@interface DefaultsKeywordsGroupTitles : JSONModel
+
+@property (nonatomic) NSString <Optional> *singular;
+@property (nonatomic) NSString <Optional> *plural;
+
+@end
+
+@interface DefaultsKeywordsViewTitles : JSONModel
+
+@property (nonatomic) NSString <Optional> *userStream;
+@property (nonatomic) NSString <Optional> *discover;
+@property (nonatomic) NSString <Optional> *notifications;
+@property (nonatomic) NSString <Optional> *myProfile;
 
 @end
 
@@ -54,55 +70,39 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface DefaultsPost : JSONModel
 
-@property (nonatomic) DefaultsPostDisplayVote <Optional> *displayVote;
 @property (nonatomic) NSInteger imgHeight;
-@property (nonatomic) NSInteger maxLength;
+@property (nonatomic) DefaultsPostMaxLength <Optional> *maxLength;
 @property (nonatomic) NSString <Optional> *composePrompt;
 
 @end
 
-@interface DefaultsPostDisplayVote : JSONModel
+@interface DefaultsPostMaxLength : JSONModel
 
-@property (nonatomic) NSString <Optional> *text;
-@property (nonatomic) NSString <Optional> *icon;
+@property (nonatomic) NSInteger hard;
+@property (nonatomic) NSInteger soft;
 
 @end
 
 @interface DefaultsSharing : JSONModel
 
 @property (nonatomic) NSString <Optional> *sharePost;
-@property (nonatomic) NSString <Optional> *shareRoom;
+@property (nonatomic) NSString <Optional> *shareCamp;
 
 @end
 
-@interface DefaultsRoom : JSONModel
+@interface DefaultsCamp : JSONModel
 
-@property (nonatomic) NSString <Optional> *createVerb;
 @property (nonatomic) NSString <Optional> *followVerb;
 @property (nonatomic) NSString <Optional> *followingVerb;
-@property (nonatomic) DefaultsRoomMembersTitle <Optional> *membersTitle;
+@property (nonatomic) DefaultsCampMembersTitle <Optional> *membersTitle;
 @property (nonatomic) NSInteger liveThreshold;
-@property (nonatomic) NSInteger activeThreshold;
 
 @end
 
-@interface DefaultsRoomMembersTitle : JSONModel
+@interface DefaultsCampMembersTitle : JSONModel
 
 @property (nonatomic) NSString <Optional> *singular;
 @property (nonatomic) NSString <Optional> *plural;
-
-@end
-
-@interface DefaultsOnboarding : JSONModel
-
-@property (nonatomic) DefaultsOnboardingMyRooms <Optional> *myRooms;
-
-@end
-
-@interface DefaultsOnboardingMyRooms : JSONModel
-
-@property (nonatomic) NSString <Optional> *title;
-@property (nonatomic) NSString <Optional> *theDescription;
 
 @end
 
@@ -126,8 +126,26 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface DefaultsLoggingInsightsImpressionsBatching : JSONModel
 
-@property (nonatomic) NSInteger max_timeframes;
-@property (nonatomic) NSInteger max_length_hrs;
+@property (nonatomic) NSInteger maxTimeframes;
+@property (nonatomic) NSInteger maxLengthHrs;
+
+@end
+
+// Used inside each notification
+// e.g.
+// defaults
+// -> notifications
+// -> -> 3
+// -> -> -> DefaultsNotificationsFormat
+@interface DefaultsNotificationsFormat : JSONModel
+
+extern NSString * const ACTIVITY_ACTION_OBJECT_ACTIONER;
+extern NSString * const ACTIVITY_ACTION_OBJECT_POST;
+extern NSString * const ACTIVITY_ACTION_OBJECT_REPLY_POST;
+extern NSString * const ACTIVITY_ACTION_OBJECT_CAMP;
+
+@property (nonatomic) NSArray <Optional> *stringParts;
+@property (nonatomic) NSString <Optional> *actionObject;
 
 @end
 

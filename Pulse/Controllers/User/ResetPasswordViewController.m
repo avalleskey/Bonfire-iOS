@@ -10,7 +10,7 @@
 #import <BlocksKit/BlocksKit+UIKit.h>
 #import <HapticHelper/HapticHelper.h>
 #import "Session.h"
-#import "Room.h"
+#import "Camp.h"
 #import "Launcher.h"
 #import "UIColor+Palette.h"
 #import "NSString+Validation.h"
@@ -81,7 +81,7 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
 }
 
 - (BOOL)hasExistingLookup {
-    return [Session sharedInstance].currentUser.attributes.email && [[Session sharedInstance].currentUser.attributes.email validateBonfireEmail] == BFValidationErrorNone;
+    return [Session sharedInstance].currentUser.attributes.details.email && [[Session sharedInstance].currentUser.attributes.details.email validateBonfireEmail] == BFValidationErrorNone;
 }
 
 - (void)addListeners {
@@ -159,7 +159,7 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
     self.steps = [[NSMutableArray alloc] init];
     
     [self.steps addObject:@{@"id": @"reset_lookup", @"skip": [NSNumber numberWithBool:false], @"next": @"Next", @"instruction": [self hasExistingLookup] ? @"Tap Next to send a password reset code to the email below" : @"Let’s reset your password!\nWhat’s your email or username?", @"placeholder": @"Email or username", @"sensitive": [NSNumber numberWithBool:false], @"keyboard": @"text", @"answer": [NSNull null], @"textField": [NSNull null], @"block": [NSNull null]}];
-    [self.steps addObject:@{@"id": @"reset_code", @"skip": [NSNumber numberWithBool:false], @"next": @"Next", @"instruction": @"Please enter the 6 digit code we sent to your email", @"placeholder":@"6 digit code", @"sensitive": [NSNumber numberWithBool:false], @"keyboard": @"number", @"answer": [NSNull null], @"textField": [NSNull null], @"block": [NSNull null]}];
+    [self.steps addObject:@{@"id": @"reset_code", @"skip": [NSNumber numberWithBool:false], @"next": @"Next", @"instruction": @"Please enter the 6 digit code\nwe sent to your email", @"placeholder":@"6 digit code", @"sensitive": [NSNumber numberWithBool:false], @"keyboard": @"number", @"answer": [NSNull null], @"textField": [NSNull null], @"block": [NSNull null]}];
     [self.steps addObject:@{@"id": @"reset_new_password", @"skip": [NSNumber numberWithBool:false], @"next": @"Next", @"instruction": [NSString stringWithFormat:@"Set a new password that’s at least %i characters", MIN_PASSWORD_LENGTH], @"placeholder":@"New Password", @"sensitive": [NSNumber numberWithBool:true], @"keyboard": @"text", @"answer": [NSNull null], @"textField": [NSNull null], @"block": [NSNull null]}];
     [self.steps addObject:@{@"id": @"reset_confirm_new_password", @"skip": [NSNumber numberWithBool:false], @"next": @"Confirm", @"instruction": @"Please confirm your\nnew password", @"placeholder":@"Confirm New Password", @"sensitive": [NSNumber numberWithBool:true], @"keyboard": @"text", @"answer": [NSNull null], @"textField": [NSNull null], @"block": [NSNull null]}];
     
@@ -179,12 +179,13 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
         UITextField *textField = [[UITextField alloc] initWithFrame:CGRectMake(24, 0, self.view.frame.size.width - (24 * 2), 56)];
         textField.textColor = [UIColor bonfireBlack];
         textField.backgroundColor = [UIColor colorWithWhite:1 alpha:1];
-        textField.layer.cornerRadius = 12.f;
+        textField.layer.cornerRadius = 14.f;
         textField.layer.masksToBounds = false;
         textField.layer.shadowRadius = 2.f;
         textField.layer.shadowOffset = CGSizeMake(0, 1);
         textField.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.1f].CGColor;
         textField.layer.shadowOpacity = 1.f;
+        textField.keyboardAppearance = UIKeyboardAppearanceLight;
         
         if ([mutatedStep[@"id"] isEqualToString:@"reset_lookup"]) {
             textField.tag = LOOKUP_FIELD;
@@ -195,7 +196,7 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
             
             // autofill with user email if already logged in
             if ([self hasExistingLookup]) {
-                textField.text = [Session sharedInstance].currentUser.attributes.email;
+                textField.text = [Session sharedInstance].currentUser.attributes.details.email;
                 textField.textColor = [UIColor bonfireGray];
                 textField.enabled = false;
                 
@@ -243,7 +244,7 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
             else if ([mutatedStep[@"id"] isEqualToString:@"reset_lookup"]) {
                 textField.autocapitalizationType = UITextAutocapitalizationTypeNone;
                 textField.autocorrectionType = UITextAutocorrectionTypeNo;
-                textField.keyboardType = UIKeyboardTypeASCIICapable;
+                textField.keyboardType = UIKeyboardTypeDefault;
             }
             else {
                 textField.autocapitalizationType = UITextAutocapitalizationTypeSentences;
@@ -479,7 +480,7 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
         if ([nextStep objectForKey:@"textField"] && ![nextStep[@"textField"] isEqual:[NSNull null]]) {
             UITextField *nextTextField = nextStep[@"textField"];
             
-            CGFloat delay = self.currentStep == -1 ? 0.4f : 0;
+            CGFloat delay = self.currentStep == -1 ? 0.01f : 0;
             
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                 [nextTextField becomeFirstResponder];
@@ -745,7 +746,7 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
         
         [self dismissViewControllerAnimated:YES completion:^{
             [HapticHelper generateFeedback:FeedbackType_Notification_Success];
-            [HUD showInView:[Launcher sharedInstance].activeViewController.view animated:YES];
+            [HUD showInView:[Launcher activeViewController].view animated:YES];
             [HUD dismissAfterDelay:1.5f];
         }];
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {

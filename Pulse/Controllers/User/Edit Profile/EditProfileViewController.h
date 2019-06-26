@@ -8,10 +8,11 @@
 
 #import <UIKit/UIKit.h>
 #import "ThemeSelectorCell.h"
+#import "User.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface EditProfileViewController : UITableViewController
+@interface EditProfileViewController : UITableViewController <ThemeSelectorDelegate>
 
 @property (strong, nonatomic) UIView *navigationBackgroundView;
 
@@ -20,7 +21,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (strong, nonatomic) UIColor *themeColor;
 
-- (void)updateBarColor:(id)newColor withAnimation:(int)animationType statusBarUpdateDelay:(CGFloat)statusBarUpdateDelay;
+@property (strong, nonatomic) User *user;
 
 @end
 

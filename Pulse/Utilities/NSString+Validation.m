@@ -7,6 +7,7 @@
 //
 
 #import "NSString+Validation.h"
+#import "GTMNSString+HTML.h"
 
 @implementation NSString (Validation)
 
@@ -29,8 +30,9 @@
 }
 
 - (BFValidationError)validateBonfireDisplayName {
-    if (self.length == 0) return BFValidationErrorTooShort;
+    if (self == nil || self.length == 0) return BFValidationErrorTooShort;
     if (self.length > MAX_USER_DISPLAY_NAME_LENGTH) return BFValidationErrorTooLong;
+    if (self.length == 0) return BFValidationErrorTooShort;
     
     // To protect our community, we maintain a list of words that cannot be used in display names
     NSArray *invalidWords = @[@"bonfire", @"admin", @"moderator", @"mod"];
@@ -46,28 +48,43 @@
 }
 
 - (BFValidationError)validateBonfireUsername {
+    NSLog(@"validateBonfireUsername");
     NSString *string = self;
     if ([string hasPrefix:@"@"] && [string length] > 1) {
         string = [string substringFromIndex:1];
     }
     
-    if (string.length < 3) return BFValidationErrorTooShort;
-    if (string.length > MAX_USER_USERNAME_LENGTH) return BFValidationErrorTooLong;
+    NSLog(@"string: %@", string);
+    
+    if (string.length < 3) {
+        NSLog(@"BFValidationErrorTooShort");
+        return BFValidationErrorTooShort;
+    }
+    if (string.length > MAX_USER_USERNAME_LENGTH) {
+        NSLog(@"BFValidationErrorTooLong");
+        return BFValidationErrorTooLong;
+    }
     
     NSString *regExPattern = @"^[A-Za-z0-9\\_]+$";
     BOOL matches = [string rx_matchesPattern:regExPattern];
-    if (!matches) return BFValidationErrorContainsInvalidCharacters;
+    if (!matches) {
+        NSLog(@"BFValidationErrorContainsInvalidCharacters");
+        return BFValidationErrorContainsInvalidCharacters;
+    }
     
     // To protect our community, we maintain a list of words that cannot be included be used as usernames
     // all usernames in this list must be lowercase
     NSArray *invalidUsernames = @[@"mod"];
-    if ([invalidUsernames containsObject:[string lowercaseString]])
+    if ([invalidUsernames containsObject:[string lowercaseString]]) {
+        NSLog(@"BFValidationErrorContainsInvalidWords 1");
         return BFValidationErrorContainsInvalidWords;
+    }
     
     // To protect our community, we maintain a list of words that cannot be included anywhere in a username
     NSArray *invalidWords = @[@"bonfire", @"admin", @"moderator"];
     for (NSString *invalidWord in invalidWords) {
         if ([[string lowercaseString] containsString:[invalidWord lowercaseString]]) {
+            NSLog(@"BFValidationErrorContainsInvalidWords 2");
             return BFValidationErrorContainsInvalidWords;
         }
     }
@@ -105,21 +122,24 @@
     return BFValidationErrorNone;
 }
 
-- (BFValidationError)validateBonfireRoomTitle {
+- (BFValidationError)validateBonfireCampTitle {
+    NSLog(@"soft length: %lu", (unsigned long)self.length);
+    NSLog(@"hard length: %lu", (unsigned long)[self gtm_stringByEscapingForAsciiHTML].length);
+    
     if (self.length < 1) return BFValidationErrorTooShort;
-    if (self.length > MAX_ROOM_TITLE_LENGTH) return BFValidationErrorTooShort;
+    if (self.length > MAX_CAMP_TITLE_SOFT_LENGTH || [self gtm_stringByEscapingForAsciiHTML].length > MAX_CAMP_TITLE_HARD_LENGTH) return BFValidationErrorTooLong;
     
     return BFValidationErrorNone;
 }
 
-- (BFValidationError)validateBonfireRoomTag {
+- (BFValidationError)validateBonfireCampTag {
     NSString *string = self;
     if ([string hasPrefix:@"#"] && [string length] > 1) {
         string = [string substringFromIndex:1];
     }
     
     if (string.length < 1) return BFValidationErrorTooShort; // at least 1 character long
-    if (string.length > MAX_ROOM_TAG_LENGTH) return BFValidationErrorTooLong;
+    if (string.length > MAX_CAMP_TAG_LENGTH) return BFValidationErrorTooLong;
     
     NSString *regExPattern = @"^[A-Za-z0-9\\_]+$";
     BOOL matches = [string rx_matchesPattern:regExPattern];
@@ -128,8 +148,8 @@
     return BFValidationErrorNone;
 }
 
-- (BFValidationError)validateBonfireRoomDescription {
-    if (self.length > MAX_ROOM_DESC_LENGTH) return BFValidationErrorTooLong;
+- (BFValidationError)validateBonfireCampDescription {
+    if (self.length > MAX_CAMP_DESC_SOFT_LENGTH || [self gtm_stringByEscapingForAsciiHTML].length > MAX_CAMP_DESC_HARD_LENGTH) return BFValidationErrorTooLong;
     
     return BFValidationErrorNone;
 }
@@ -145,9 +165,9 @@
     
     return [matchRanges copy];
 }
-- (NSArray *)rangesForRoomTagMatches {
+- (NSArray *)rangesForCampTagMatches {
     NSMutableArray *matchRanges = [[NSMutableArray alloc] init];
-    NSRegularExpression *regEx = [[NSRegularExpression alloc] initWithPattern:[NSString stringWithFormat:@"(?!\\b)#([A-Za-z0-9_]{1,%i})(?=\\s|\\W|$)(?!#)", MAX_ROOM_TAG_LENGTH] options:NSRegularExpressionCaseInsensitive error:nil];
+    NSRegularExpression *regEx = [[NSRegularExpression alloc] initWithPattern:[NSString stringWithFormat:@"(?!\\b)#([A-Za-z0-9_]{1,%i})(?=\\s|\\W|$)(?!#)", MAX_CAMP_TAG_LENGTH] options:NSRegularExpressionCaseInsensitive error:nil];
     [regEx enumerateMatchesInString:self options:0 range:NSMakeRange(0, self.length) usingBlock:^(NSTextCheckingResult * _Nullable result, NSMatchingFlags flags, BOOL * _Nonnull stop) {
         [matchRanges addObject:[NSValue valueWithRange:result.range]];
     }];

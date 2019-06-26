@@ -23,7 +23,7 @@
     (UIViewController *)__responder; \
     })
 
-#define expandedImageHeightDefault 180
+#define expandedImageHeightDefault 240
 
 #define expandedPostContentOffset UIEdgeInsetsMake(12, 12, 0, 12)
 #define expandedTextViewFont [UIFont systemFontOfSize:20.f weight:UIFontWeightRegular]
@@ -38,7 +38,7 @@
 @property (nonatomic, strong) ExpandedPostActionsView *actionsView;
 @property (nonatomic, strong) PostActivityView *activityView;
 
-- (void)setSparked:(BOOL)isSparked withAnimation:(BOOL)animated;
+- (void)setVoted:(BOOL)isVoted withAnimation:(BOOL)animated;
 
 + (CGFloat)heightForPost:(Post *)post;
 

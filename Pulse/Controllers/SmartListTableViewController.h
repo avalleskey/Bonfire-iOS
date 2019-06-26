@@ -21,6 +21,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)tableView:(UITableView *)tableView didSelectRowWithId:(NSString *)rowId;
 - (void)textFieldDidChange:(UITextField *)textField withRowId:(NSString *)rowId;
+- (void)toggleValueDidChange:(UISwitch *)toggle withRowId:(NSString *)rowId;
 
 @end
 

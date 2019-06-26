@@ -25,9 +25,6 @@
  */
 + (NSString *)mysqlDatetimeFormattedAsTimeAgo:(NSString *)mysqlDatetime withForm:(TimeAgoForm)form
 {
-    //http://stackoverflow.com/questions/10026714/ios-converting-a-date-received-from-a-mysql-server-into-users-local-time
-    //If this is not in UTC, we don't have any knowledge about
-    //which tz it is. MUST BE IN UTC.
     NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
     [formatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ssZ"];
     
@@ -63,7 +60,7 @@
   
     
     // Today = "x hours ago"
-    if([self isSameDayAs:now])
+    if(secondsSince < DAY)
         return [self formatAsToday:secondsSince withForm:form];
  
     

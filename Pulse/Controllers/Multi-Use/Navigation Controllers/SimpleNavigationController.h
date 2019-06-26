@@ -7,22 +7,25 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "BFAvatarView.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 @interface SimpleNavigationController : UINavigationController
 
 typedef enum {
-    SNActionTypeNone = 0,
-    SNActionTypeCancel = 1,
-    SNActionTypeCompose = 2,
-    SNActionTypeInvite = 3,
-    SNActionTypeMore = 4,
-    SNActionTypeAdd = 5,
-    SNActionTypeBack = 6,
-    SNActionTypeShare = 7,
-    SNActionTypeDone = 8,
-    SNActionTypeSettings = 9
+    SNActionTypeNone,
+    SNActionTypeProfile,
+    SNActionTypeCancel,
+    SNActionTypeCompose,
+    SNActionTypeInvite,
+    SNActionTypeMore,
+    SNActionTypeAdd,
+    SNActionTypeBack,
+    SNActionTypeShare,
+    SNActionTypeDone,
+    SNActionTypeSettings,
+    SNActionTypeSearch
 } SNActionType;
 - (void)setLeftAction:(SNActionType)actionType;
 - (void)setRightAction:(SNActionType)actionType;
@@ -31,9 +34,12 @@ typedef enum {
 - (void)hideBottomHairline;
 - (void)showBottomHairline;
 
-- (void)updateBarColor:(id)background;
+- (void)updateBarColor:(id)background animated:(BOOL)animated;
 
 @property (nonatomic, strong) UIColor *currentTheme;
+
+// custom navigation bar views
+@property (nonatomic, strong) UILabel *titleLabel;
 
 @end
 

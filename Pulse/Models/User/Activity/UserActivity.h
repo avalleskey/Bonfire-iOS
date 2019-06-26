@@ -8,53 +8,66 @@
 
 #import "JSONModel.h"
 #import "User.h"
-#import "Room.h"
+#import "Camp.h"
 #import "Post.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 @class UserActivity;
 @class UserActivityAttributes;
-@class UserActivityDetails;
-@class UserActivityStatus;
 
 @interface UserActivity : JSONModel
-
-extern NSString * const USER_ACTIVITY_TYPE_USER_FOLLOW;
-extern NSString * const USER_ACTIVITY_TYPE_USER_ACCEPTED_ACCESS;
-extern NSString * const USER_ACTIVITY_TYPE_ROOM_ACCESS_REQUEST;
-extern NSString * const USER_ACTIVITY_TYPE_POST_REPLY;
-extern NSString * const USER_ACTIVITY_TYPE_POST_SPARKED;
-extern NSString * const USER_ACTIVITY_TYPE_USER_POSTED;
 
 @property (nonatomic) NSString <Optional> *identifier;
 @property (nonatomic) NSString <Optional> *type;
 @property (nonatomic) UserActivityAttributes <Optional> *attributes;
 
+@property (nonatomic) NSString <Optional> *prevCursor;
+@property (nonatomic) NSString <Optional> *nextCursor;
+
+@property (nonatomic) BOOL unread;
+
 @end
 
 @interface UserActivityAttributes : JSONModel
 
-@property (nonatomic) UserActivityDetails <Optional> *details;
-@property (nonatomic) UserActivityStatus <Optional> *status;
+typedef enum {
+    USER_ACTIVITY_TYPE_UNKNOWN = 0,
+    
+    // Result of a user action
+    USER_ACTIVITY_TYPE_USER_FOLLOW = 1,
+    USER_ACTIVITY_TYPE_USER_ACCEPTED_ACCESS = 2,
+    USER_ACTIVITY_TYPE_USER_POSTED = 6,
+    USER_ACTIVITY_TYPE_USER_POSTED_CAMP = 9,
+    
+    // Result of an action in a joined camp
+    USER_ACTIVITY_TYPE_CAMP_ACCESS_REQUEST = 3,
+    USER_ACTIVITY_TYPE_CAMP_INVITE = 7,
+    
+    // Result of action on user's post
+    USER_ACTIVITY_TYPE_POST_REPLY = 4,
+    USER_ACTIVITY_TYPE_POST_VOTED = 5,
+    USER_ACTIVITY_TYPE_POST_MENTION = 8
+} USER_ACTIVITY_TYPE;
 
-@end
+@property (nonatomic) USER_ACTIVITY_TYPE type;
+@property (nonatomic) NSString <Optional> *createdAt;
 
-@interface UserActivityDetails : JSONModel
-
-@property (nonatomic) User <Optional> *actionedBy;
+@property (nonatomic) User <Optional> *actioner;
 
 @property (nonatomic) Post <Optional> *post;
 @property (nonatomic) Post <Optional> *replyPost;
 
-@property (nonatomic) Room <Optional> *room;
+@property (nonatomic) Camp <Optional> *camp;
+
+@property (nonatomic) Camp <Optional> *seenAt;
+
+// the NSAttributed string we create, using the JSON defaults format and information given to use during initWithDictionary
+@property (nonatomic) NSAttributedString <Optional> *attributedString;
 
 @end
 
-@interface UserActivityStatus : JSONModel
-
-@property (nonatomic) NSString *createdAt;
-
+@interface JSONValueTransformer (NSAttributedString)
 @end
 
 NS_ASSUME_NONNULL_END

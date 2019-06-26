@@ -11,7 +11,7 @@
 @implementation InsightsLoggerTimeframe
 
 // SeenIn: on post open
-NSString * const InsightSeenInRoomView =  @"room";
+NSString * const InsightSeenInCampView =  @"camp";
 NSString * const InsightSeenInPostView = @"post";
 NSString * const InsightSeenInProfileView = @"creator_profile";
 NSString * const InsightSeenInHomeView = @"/streams/me";

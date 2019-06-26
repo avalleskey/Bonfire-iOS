@@ -1,5 +1,5 @@
 //
-//  RoomHeaderCell.h
+//  CampHeaderCell.h
 //  Pulse
 //
 //  Created by Austin Valleskey on 10/2/18.
@@ -7,7 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "Room.h"
+#import "Camp.h"
 #import "BFAvatarView.h"
 
 NS_ASSUME_NONNULL_BEGIN

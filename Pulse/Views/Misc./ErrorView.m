@@ -68,54 +68,67 @@
 
 - (void)updateType:(ErrorViewType)newType {
     BOOL hideImageView = false;
+    BOOL allowRefresh = false;
     
     switch (newType) {
         case ErrorViewTypeGeneral:
             hideImageView = true;
+            allowRefresh = true;
             break;
         case ErrorViewTypeBlocked:
             self.imageView.image = [UIImage imageNamed:@"errorBlocked"];
             self.imageView.backgroundColor = [UIColor bonfireGray];
+            allowRefresh = false;
             break;
         case ErrorViewTypeNotFound:
             self.imageView.image = [UIImage imageNamed:@"errorNotFound"];
             self.imageView.backgroundColor = [UIColor bonfireGray];
+            allowRefresh = false;
             break;
         case ErrorViewTypeLocked:
             self.imageView.image = [UIImage imageNamed:@"errorPrivate"];
             self.imageView.backgroundColor = [UIColor bonfireGray];
+            allowRefresh = false;
             break;
         case ErrorViewTypeNoInternet:
             self.imageView.image = [UIImage imageNamed:@"errorNoInternet"];
             self.imageView.backgroundColor = [UIColor bonfireGray];
+            allowRefresh = true;
             break;
         case ErrorViewTypeHeart:
             self.imageView.image = [UIImage imageNamed:@"errorHeart"];
-            self.imageView.backgroundColor = [UIColor bonfireBrand];
+            self.imageView.backgroundColor = [UIColor bonfireGray];
+            allowRefresh = false;
             break;
         case ErrorViewTypeNoPosts:
             self.imageView.image = [UIImage imageNamed:@"errorFlower"];
             self.imageView.backgroundColor = [UIColor bonfireGray];
+            allowRefresh = true;
             break;
         case ErrorViewTypeNoNotifications:
             self.imageView.image = [UIImage imageNamed:@"errorNotifications"];
             self.imageView.backgroundColor = [UIColor bonfireGray];
+            allowRefresh = false;
             break;
         case ErrorViewTypeContactsDenied:
             self.imageView.image = [UIImage imageNamed:@"errorContacts"];
             self.imageView.backgroundColor = [UIColor bonfireGray];
+            allowRefresh = true;
             break;
         case ErrorViewTypeClock:
             self.imageView.image = [UIImage imageNamed:@"errorClock"];
             self.imageView.backgroundColor = [UIColor bonfireGray];
+            allowRefresh = true;
             break;
             
         default:
             self.imageView.image = [UIImage imageNamed:@"errorGeneral"];
             self.imageView.backgroundColor = [UIColor bonfireGray];
+            allowRefresh = true;
             break;
     }
 
+    self.userInteractionEnabled = allowRefresh;
     self.imageView.hidden = hideImageView;
     
     [self updateErrorTitleColor];

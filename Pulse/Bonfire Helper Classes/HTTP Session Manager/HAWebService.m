@@ -31,11 +31,15 @@ static HAWebService *manager;
         manager = [[HAWebService alloc] init];
     }
     
-    [manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", [Configuration API_KEY]] forHTTPHeaderField:@"Authorization"];
-    
-    if (contentType == nil) {
+    if (contentType == kCONTENT_TYPE_JSON) {
+        manager.requestSerializer = [AFJSONRequestSerializer serializer];
+    }
+    else {
+        manager.requestSerializer = [AFHTTPRequestSerializer serializer];
         contentType = kCONTENT_TYPE_URL_ENCODED;
     }
+    
+    [manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", [Configuration API_KEY]] forHTTPHeaderField:@"Authorization"];
     [manager.requestSerializer setValue:contentType forHTTPHeaderField:@"Content-Type"];
     
     return manager;
@@ -55,10 +59,10 @@ static HAWebService *manager;
         
         NSDictionary *infoDict = [[NSBundle mainBundle] infoDictionary];
         NSString *appVersion = [infoDict objectForKey:@"CFBundleShortVersionString"];
-        [self.requestSerializer setValue:[NSString stringWithFormat:@"%@", [NSString stringWithFormat:@"iosClient/%@", appVersion]] forHTTPHeaderField:@"x-rooms-client"];
+        [self.requestSerializer setValue:[NSString stringWithFormat:@"%@", [NSString stringWithFormat:@"iosClient/%@", appVersion]] forHTTPHeaderField:@"x-bonfire-client"];
         [self.requestSerializer setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
         [self.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", [Configuration API_KEY]] forHTTPHeaderField:@"Authorization"];
-        [self.requestSerializer setTimeoutInterval:10];
+        [self.requestSerializer setTimeoutInterval:15];
     }
     return self;
 }
@@ -68,11 +72,7 @@ static HAWebService *manager;
     manager = nil;
     [[NSNotificationCenter defaultCenter] removeObserver:manager];
     
-    NSLog(@"manager after being deleted: %@", manager);
-    
     manager = [[HAWebService alloc] init];
-    
-    NSLog(@"manager after being re-initialized: %@", manager);
 }
 
 - (NSURLSessionDataTask *)dataTaskWithRequest:(NSURLRequest *)request uploadProgress:(void (^)(NSProgress * _Nonnull))uploadProgressBlock downloadProgress:(void (^)(NSProgress * _Nonnull))downloadProgressBlock completionHandler:(void (^)(NSURLResponse * _Nonnull, id _Nullable, NSError * _Nullable))completionHandler {
@@ -80,13 +80,15 @@ static HAWebService *manager;
     void (^authFailBlock)(NSURLResponse *response, id responseObject, NSError *error) = ^(NSURLResponse *response, id responseObject, NSError *error)
     {
         NSInteger code = [responseObject[@"error"][@"code"] integerValue];
-        NSLog(@"code: %ld", (long)code);
+        if (code != 0) {
+            NSLog(@"code: %ld", (long)code);
+        }
         
         if (code == BAD_AUTHENTICATION || code == BAD_ACCESS_TOKEN) {
             // refresh the token!
             
             //since there was an error, call you refresh method and then redo the original task
-            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
+            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
                 
                 [[Session sharedInstance] getNewAccessToken:^(BOOL success, NSString * _Nonnull newToken) {
                     if (success) {
@@ -97,7 +99,7 @@ static HAWebService *manager;
                     else {
                         [[Session sharedInstance] signOut];
                         
-                        [[Launcher sharedInstance] openOnboarding];
+                        [Launcher openOnboarding];
                         
                         completionHandler(response, responseObject, error);
                     }
@@ -109,7 +111,7 @@ static HAWebService *manager;
             
             [[Session sharedInstance] signOut];
             
-            [[Launcher sharedInstance] openOnboarding];
+            [Launcher openOnboarding];
             
             completionHandler(response, responseObject, error);
         }
@@ -139,7 +141,7 @@ static HAWebService *manager;
         else {
             // logout
             [[Session sharedInstance] signOut];
-            [[Launcher sharedInstance] openOnboarding];
+            [Launcher openOnboarding];
         }
     }];
     

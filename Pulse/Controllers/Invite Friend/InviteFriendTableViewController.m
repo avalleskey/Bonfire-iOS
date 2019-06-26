@@ -48,8 +48,8 @@ static NSString * const contactCellIdentifier = @"ContactCell";
     
     self.title = @"Invite Friends";
     
-    if ([self.sender isKindOfClass:[Room class]] && ((Room *)self.sender).attributes.details.color != nil) {
-        self.view.tintColor = [UIColor fromHex:((Room *)self.sender).attributes.details.color];
+    if ([self.sender isKindOfClass:[Camp class]] && ((Camp *)self.sender).attributes.details.color != nil) {
+        self.view.tintColor = [UIColor fromHex:((Camp *)self.sender).attributes.details.color];
     }
     else {
         self.view.tintColor = [UIColor bonfireBrand];
@@ -116,15 +116,15 @@ static NSString * const contactCellIdentifier = @"ContactCell";
     
     [self.navigationController.navigationBar setTitleTextAttributes:
      @{NSForegroundColorAttributeName:[UIColor whiteColor],
-       NSFontAttributeName:[UIFont systemFontOfSize:17.f weight:UIFontWeightBold]}];
+       NSFontAttributeName:[UIFont systemFontOfSize:18.f weight:UIFontWeightBold]}];
     
     self.cancelButton = [[UIBarButtonItem alloc] initWithTitle:@"Cancel" style:UIBarButtonItemStylePlain target:self action:@selector(dismiss:)];
     [self.cancelButton setTintColor:[UIColor whiteColor]];
     [self.cancelButton setTitleTextAttributes:@{
-                                                NSFontAttributeName: [UIFont systemFontOfSize:17.f weight:UIFontWeightMedium]
+                                                NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightMedium]
                                                 } forState:UIControlStateNormal];
     [self.cancelButton setTitleTextAttributes:@{
-                                                NSFontAttributeName: [UIFont systemFontOfSize:17.f weight:UIFontWeightMedium]
+                                                NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightMedium]
                                                 } forState:UIControlStateHighlighted];
     self.navigationItem.leftBarButtonItem = self.cancelButton;
     
@@ -133,10 +133,10 @@ static NSString * const contactCellIdentifier = @"ContactCell";
     }];
     [self.saveButton setTintColor:[UIColor whiteColor]];
     [self.saveButton setTitleTextAttributes:@{
-                                              NSFontAttributeName: [UIFont systemFontOfSize:17.f weight:UIFontWeightBold]
+                                              NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightBold]
                                               } forState:UIControlStateNormal];
     [self.saveButton setTitleTextAttributes:@{
-                                              NSFontAttributeName: [UIFont systemFontOfSize:17.f weight:UIFontWeightBold]
+                                              NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightBold]
                                               } forState:UIControlStateHighlighted];
     self.navigationItem.rightBarButtonItem = self.saveButton;
 }
@@ -359,28 +359,10 @@ static NSString * const contactCellIdentifier = @"ContactCell";
     [FIRAnalytics logEventWithName:@"invite_friends_send"
                         parameters:@{@"friends_selected": [NSNumber numberWithInteger:self.selectedContacts.count]}];
     
-    UIAlertController *comingSoon = [UIAlertController alertControllerWithTitle:@"Feature Coming Soon" message:@"In the mean time, feel free to invite your friends to the beta, using the invite link below." preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertController *comingSoon = [UIAlertController alertControllerWithTitle:@"Feature Coming Soon" message:@"Until then, invite your friends to the Beta using the invite link below." preferredStyle:UIAlertControllerStyleAlert];
     
     UIAlertAction *copyShareLink = [UIAlertAction actionWithTitle:@"Copy Beta Invite Link" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-        [FIRAnalytics logEventWithName:@"copy_beta_invite_link"
-                            parameters:@{@"location": @"invite_friends"}];
-        
-        UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
-        pasteboard.string = @"http://testflight.com/bonfire-ios";
-        
-        JGProgressHUD *HUD = [JGProgressHUD progressHUDWithStyle:JGProgressHUDStyleExtraLight];
-        HUD.textLabel.text = @"Copied Beta Link!";
-        HUD.vibrancyEnabled = false;
-        HUD.animation = [[JGProgressHUDFadeZoomAnimation alloc] init];
-        HUD.textLabel.textColor = [UIColor colorWithWhite:0 alpha:0.6f];
-        HUD.backgroundColor = [UIColor colorWithWhite:0 alpha:0.1f];
-        HUD.indicatorView = [[JGProgressHUDSuccessIndicatorView alloc] init];
-        HUD.indicatorView.tintColor = HUD.textLabel.textColor;
-        
-        [HUD showInView:[Launcher sharedInstance].activeViewController.view animated:YES];
-        [HapticHelper generateFeedback:FeedbackType_Notification_Success];
-        
-        [HUD dismissAfterDelay:1.5f];
+        [Launcher copyBetaInviteLink];
         
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
             [self.navigationController dismissViewControllerAnimated:YES completion:nil];
@@ -453,9 +435,9 @@ static NSString * const contactCellIdentifier = @"ContactCell";
         }
         
         cell.tintColor = self.view.tintColor;
-        if ([self.sender isKindOfClass:[Room class]]) {
-            Room *room = (Room *)self.sender;
-            cell.member1.room = room;
+        if ([self.sender isKindOfClass:[Camp class]]) {
+            Camp *camp = (Camp *)self.sender;
+            cell.member1.camp = camp;
         }
         
         for (NSInteger i = 0; i < 7; i++) {
@@ -476,8 +458,8 @@ static NSString * const contactCellIdentifier = @"ContactCell";
             }
         }
         
-        if ([self.sender isKindOfClass:[Room class]] && ((Room *)self.sender).attributes.details.title != nil) {
-            cell.descriptionLabel.text = [NSString stringWithFormat:@"To join %@", ((Room *)self.sender).attributes.details.title];
+        if ([self.sender isKindOfClass:[Camp class]] && ((Camp *)self.sender).attributes.details.title != nil) {
+            cell.descriptionLabel.text = [NSString stringWithFormat:@"To join %@", ((Camp *)self.sender).attributes.details.title];
         }
         else {
             cell.descriptionLabel.text = @"Bonfire is more fun with friends!";

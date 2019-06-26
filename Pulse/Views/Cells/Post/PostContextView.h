@@ -14,16 +14,11 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface PostContextView : UIView
 
-typedef enum {
-    PostContextViewTypeRespark = 0,
-    PostContextViewTypeReply = 1, // this post is a reply to user's post
-    PostContextViewTypeReplied = 2 // user replied to this post
-} PostContextViewType;
-
-@property (nonatomic) PostContextViewType type;
-
 @property (nonatomic, strong) UILabel *contextLabel;
 @property (nonatomic, strong) UIImageView *contextIcon;
+
+@property (nonatomic) NSString *text;
+@property (nonatomic) UIImage *icon;
 
 @end
 

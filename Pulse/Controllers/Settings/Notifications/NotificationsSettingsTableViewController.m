@@ -33,7 +33,7 @@
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowWithId:(NSString *)rowId {
-    NSArray *comingSoonList = @[@"new_followers_off", @"post_replies_off", @"post_sparks_off", @"camp_trending_off", @"new_camp_members_off", @"camp_member_requests_off"];
+    NSArray *comingSoonList = @[@"new_followers_off", @"post_replies_off", @"post_votes_off", @"camp_trending_off", @"new_camp_members_off", @"camp_member_requests_off"];
     if ([comingSoonList containsObject:rowId]) {
         UIAlertController *comingSoon = [UIAlertController alertControllerWithTitle:@"Feature Coming Soon" message:@"We apologize for the inconvenience! The ability to turn off post notifications will be added in a future release." preferredStyle:UIAlertControllerStyleAlert];
         

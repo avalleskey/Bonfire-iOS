@@ -10,6 +10,7 @@
 #import "RSTableView.h"
 #import "User.h"
 #import "ThemedViewController.h"
+#import "ComposeInputView.h"
 
 @interface ProfileViewController : ThemedViewController <UITextViewDelegate, RSTableViewPaginationDelegate>
 
@@ -20,6 +21,8 @@
 @property (strong, nonatomic) RSTableView *tableView;
 
 @property (nonatomic) CGFloat currentKeyboardHeight;
+
+@property (nonatomic, strong) ComposeInputView *composeInputView;
 
 - (void)openProfileActions;
 

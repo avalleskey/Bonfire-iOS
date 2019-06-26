@@ -16,6 +16,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) BFSearchView *searchView;
 @property (nonatomic, strong) UIButton *cancelButton;
 
+@property (nonatomic) BOOL hideCancelOnBlur;
+
 @end
 
 NS_ASSUME_NONNULL_END

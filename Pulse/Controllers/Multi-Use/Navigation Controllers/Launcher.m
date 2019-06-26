@@ -8,15 +8,15 @@
 
 #import "Launcher.h"
 #import "SimpleNavigationController.h"
-#import "RoomViewController.h"
-#import "RoomMembersViewController.h"
+#import "CampViewController.h"
+#import "CampMembersViewController.h"
 #import "ProfileViewController.h"
 #import "ProfileCampsListViewController.h"
 #import "ProfileFollowingListViewController.h"
 #import "PostViewController.h"
-#import "StackedOnboardingViewController.h"
+#import "HelloViewController.h"
 #import "OnboardingViewController.h"
-#import "CreateRoomViewController.h"
+#import "CreateCampViewController.h"
 #import "EditProfileViewController.h"
 #import "UIColor+Palette.h"
 #import "AppDelegate.h"
@@ -26,12 +26,14 @@
 #import "SSWDirectionalPanGestureRecognizer.h"
 #import "InsightsLogger.h"
 #import "QuickReplyViewController.h"
+#import "KSPhotoBrowser.h"
 
 #import <SafariServices/SafariServices.h>
 #import <Messages/Messages.h>
 #import <MessageUI/MessageUI.h>
 #import <StoreKit/StoreKit.h>
 #import <JGProgressHUD.h>
+@import Firebase;
 
 #define UIViewParentController(__view) ({ \
     UIResponder *__responder = __view; \
@@ -60,38 +62,40 @@ static Launcher *launcher;
 }
 
 - (UIViewController *)parentViewController {
-    if ([self activeTabController]) {
-        return [self activeTabController];
+    if ([Launcher activeTabController]) {
+        return [Launcher activeTabController];
     }
-    else if ([self activeNavigationController]) {
-        return [self activeNavigationController];
+    else if ([Launcher activeNavigationController]) {
+        return [Launcher activeNavigationController];
     }
     else {
-        return [launcher activeViewController];
+        return [Launcher activeViewController];
     }
 }
 
-- (UINavigationController *)activeNavigationController {
-    UIViewController *activeViewController = [launcher activeViewController];
++ (UINavigationController *)activeNavigationController {
+    UIViewController *activeViewController = [Launcher activeViewController];
     if ([activeViewController isKindOfClass:[UINavigationController class]]) {
-        return (UINavigationController *)[launcher activeViewController];
+        return (UINavigationController *)[Launcher activeViewController];
     }
-    else if ([activeViewController isKindOfClass:[UITabBarController class]]) {
-        return (UINavigationController *)(((UITabBarController *)[launcher activeViewController]).selectedViewController);
+    else if ([activeViewController isKindOfClass:[UITabBarController class]] && [((UITabBarController *)[Launcher activeViewController]).selectedViewController isKindOfClass:[UINavigationController class]]) {
+        return (UINavigationController *)(((UITabBarController *)[Launcher activeViewController]).selectedViewController);
     }
-    else {
-        return [launcher activeViewController].navigationController;
+    else if ([Launcher activeViewController].navigationController) {
+        return [Launcher activeViewController].navigationController;
     }
+    
+    return nil;
 }
-- (TabController *)tabController {
++ (TabController *)tabController {
     if ([[UIApplication sharedApplication].delegate.window.rootViewController isKindOfClass:[TabController class]]) {
         return (TabController *)[UIApplication sharedApplication].delegate.window.rootViewController;
     }
     
     return nil;
 }
-- (UITabBarController *)activeTabController {
-    UIViewController *activeVC = [launcher activeViewController];
++ (UITabBarController *)activeTabController {
+    UIViewController *activeVC = [Launcher activeViewController];
     if ([activeVC isKindOfClass:[UITabBarController class]]) {
         return (UITabBarController *)activeVC;
     }
@@ -106,40 +110,72 @@ static Launcher *launcher;
     }
 }
 
-- (ComplexNavigationController *)activeLauncherNavigationController {
-    return [[launcher activeViewController] isKindOfClass:[ComplexNavigationController class]] ? (ComplexNavigationController *)[launcher activeViewController] : nil;
++ (ComplexNavigationController *)activeLauncherNavigationController {
+    return [[Launcher activeViewController] isKindOfClass:[ComplexNavigationController class]] ? (ComplexNavigationController *)[Launcher activeViewController] : nil;
 }
 
-- (Class)activeViewControllerClass {
++ (Class)activeViewControllerClass {
     return [[self activeViewController] class];
 }
-- (UIViewController *)activeViewController {
-    UIViewController *viewController = [UIApplication sharedApplication].keyWindow.rootViewController;
-    while (viewController.presentedViewController != NULL) {
-        viewController = viewController.presentedViewController;
++ (UIViewController *)activeViewController {
+    return [self topViewControllerWithRootViewController:[UIApplication sharedApplication].keyWindow.rootViewController];
+}
++ (UIViewController *)topMostViewController {
+    if ([self activeViewController].tabBarController) {
+        return [Launcher activeTabController];
+    }
+    else if ([self activeViewController].navigationController) {
+        return [Launcher activeNavigationController];
     }
     
-    return viewController;
+    return [self activeViewController];
+}
++ (UIViewController*)topViewControllerWithRootViewController:(UIViewController*)viewController {
+    if ([viewController isKindOfClass:[UITabBarController class]]) {
+        UITabBarController* tabBarController = (UITabBarController*)viewController;
+        return [self topViewControllerWithRootViewController:tabBarController.selectedViewController];
+    } else if ([viewController isKindOfClass:[UINavigationController class]]) {
+        UINavigationController* navContObj = (UINavigationController*)viewController;
+        return [self topViewControllerWithRootViewController:navContObj.visibleViewController];
+    } else if (viewController.presentedViewController && !viewController.presentedViewController.isBeingDismissed) {
+        UIViewController* presentedViewController = viewController.presentedViewController;
+        return [self topViewControllerWithRootViewController:presentedViewController];
+    }
+    else {
+        for (UIView *view in [viewController.view subviews])
+        {
+            id subViewController = [view nextResponder];
+            if ( subViewController && [subViewController isKindOfClass:[UIViewController class]])
+            {
+                if ([(UIViewController *)subViewController presentedViewController]  && ![subViewController presentedViewController].isBeingDismissed) {
+                    return [self topViewControllerWithRootViewController:[(UIViewController *)subViewController presentedViewController]];
+                }
+            }
+        }
+        return viewController;
+    }
 }
 
 - (BOOL)canPush {
-    return [[launcher activeViewController] isKindOfClass:[UINavigationController class]]; // alias
+    return [Launcher activeNavigationController]; // alias
 }
 
-- (void)launchLoggedIn:(BOOL)animated {
++ (void)launchLoggedIn:(BOOL)animated {
     dispatch_async(dispatch_get_main_queue(), ^{
-        if (![[launcher activeViewController] isKindOfClass:[TabController class]]) {
+        NSLog(@"tabController: %@", [Launcher tabController]);
+        if (![Launcher activeViewController].navigationController.tabBarController) {
             AppDelegate *ad = (AppDelegate *)[UIApplication sharedApplication].delegate;
             TabController *tbc = [[TabController alloc] init];
             tbc.delegate = ad;
-            tbc.transitioningDelegate = launcher;
+            tbc.transitioningDelegate = [Launcher sharedInstance];
+            tbc.modalPresentationStyle = UIModalPresentationFullScreen;
             
             UIViewController *presentingViewController;
-            if ([launcher activeViewController].parentViewController != nil) {
-                presentingViewController = [launcher activeViewController].parentViewController;
+            if ([Launcher activeViewController].parentViewController != nil) {
+                presentingViewController = [Launcher activeViewController].parentViewController;
             }
             else {
-                presentingViewController = [launcher activeViewController];
+                presentingViewController = [Launcher activeViewController];
             }
             [presentingViewController presentViewController:tbc animated:animated completion:^{
                 // [self setRootViewController:tbc];
@@ -148,70 +184,69 @@ static Launcher *launcher;
     });
 }
 
-- (void)openTimeline {
-    if ([[launcher activeViewController] isKindOfClass:[UINavigationController class]]) {
-        [launcher launchLoggedIn:false];
++ (void)openTimeline {
+    if ([[Launcher activeViewController] isKindOfClass:[UINavigationController class]]) {
+        [Launcher launchLoggedIn:false];
     }
 
-    if ([[launcher activeViewController] isKindOfClass:[UITabBarController class]]) {
-        UITabBarController *activeTabBarController = (UITabBarController *)[launcher activeViewController];
+    if ([[Launcher activeViewController] isKindOfClass:[UITabBarController class]]) {
+        UITabBarController *activeTabBarController = (UITabBarController *)[Launcher activeViewController];
         [activeTabBarController setSelectedIndex:0];
     }
 }
-- (void)openTrending {
-    if ([[launcher activeViewController] isKindOfClass:[UINavigationController class]]) {
-        [launcher launchLoggedIn:false];
++ (void)openTrending {
+    if ([[Launcher activeViewController] isKindOfClass:[UINavigationController class]]) {
+        [Launcher launchLoggedIn:false];
     }
 
-    if ([[launcher activeViewController] isKindOfClass:[UITabBarController class]]) {
-        UITabBarController *activeTabBarController = (UITabBarController *)[launcher activeViewController];
+    if ([[Launcher activeViewController] isKindOfClass:[UITabBarController class]]) {
+        UITabBarController *activeTabBarController = (UITabBarController *)[Launcher activeViewController];
         [activeTabBarController setSelectedIndex:0];
     }
 }
-- (void)openSearch {
-    if ([[launcher activeViewController] isKindOfClass:[UINavigationController class]]) {
-        [launcher launchLoggedIn:false];
-    }
++ (void)openSearch {
+    SearchTableViewController *searchController = [[SearchTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
+    searchController.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeNone;
+    searchController.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
     
-    if ([[launcher activeViewController] isKindOfClass:[UITabBarController class]]) {
-        UITabBarController *activeTabBarController = (UITabBarController *)[launcher activeViewController];
-        [activeTabBarController setSelectedIndex:1];
-    }
+    SearchNavigationController *searchNav = [[SearchNavigationController alloc] initWithRootViewController:searchController];
+    searchNav.searchView.openSearchControllerOntap = false;
+    
+    searchNav.searchView.textField.userInteractionEnabled = true;
+    [searchNav.searchView.textField becomeFirstResponder];
+    
+    [Launcher push:searchNav animated:YES];
 }
 
-- (void)openRoom:(Room *)room {
-    BOOL insideRoom = ([launcher activeNavigationController] &&
-                       [[[[launcher activeNavigationController] viewControllers] lastObject] isKindOfClass:[RoomViewController class]] &&
-                       [((RoomViewController *)[[[launcher activeNavigationController] viewControllers] lastObject]).room.identifier isEqualToString:room.identifier]);
-    if (insideRoom) {
++ (void)openCamp:(Camp *)camp {
+    BOOL insideCamp = ([Launcher activeNavigationController] &&
+                       [[[[Launcher activeNavigationController] viewControllers] lastObject] isKindOfClass:[CampViewController class]] &&
+                       ([((CampViewController *)[[[Launcher activeNavigationController] viewControllers] lastObject]).camp.identifier isEqualToString:camp.identifier] ||
+                        [[((CampViewController *)[[[Launcher activeNavigationController] viewControllers] lastObject]).camp.attributes.details.identifier lowercaseString] isEqualToString:[camp.attributes.details.identifier lowercaseString]]));
+    if (insideCamp) {
         [self shake];
         return;
     }
     
-    RoomViewController *r = [[RoomViewController alloc] init];
+    CampViewController *r = [[CampViewController alloc] init];
     
-    // set a fake permissions
-    RoomContextPermissions *permissions = [[RoomContextPermissions alloc] init];
-    permissions.post = @[BFMediaTypeText];
-    permissions.reply = @[BFMediaTypeText];
-    permissions.invite = true;
-    room.attributes.context.permissions = permissions;
-        
-    r.room = room;
-    r.theme = [UIColor fromHex:room.attributes.details.color.length == 6 ? room.attributes.details.color : @"7d8a99"];
+    r.camp = camp;
+    NSString *themeCSS = [camp.attributes.details.color lowercaseString];
+    r.theme = ([themeCSS isEqualToString:@"ffffff"] || themeCSS.length == 0) ? [UIColor bonfireGrayWithLevel:700] : [UIColor fromHex:themeCSS];
     
-    if (r.room.attributes.details.title) {
-        r.title = r.room.attributes.details.title;
+    if (r.camp.attributes.details.title) {
+        r.title = r.camp.attributes.details.title;
     }
-    else if (r.room.attributes.details.identifier) {
-        r.title = [NSString stringWithFormat:@"#%@", r.room.attributes.details.identifier];
+    else if (r.camp.attributes.details.identifier) {
+        r.title = [NSString stringWithFormat:@"#%@", r.camp.attributes.details.identifier];
     }
     else {
         r.title = @"Unknown Camp";
     }
     
-    ComplexNavigationController *activeLauncherNavVC = [launcher activeLauncherNavigationController];
-    if ([launcher activeTabController] != nil || activeLauncherNavVC == nil) {
+    /*
+    ComplexNavigationController *activeLauncherNavVC = [Launcher activeLauncherNavigationController];
+    if ([Launcher activeTabController] != nil || activeLauncherNavVC == nil) {
         if (activeLauncherNavVC != nil) {
             [activeLauncherNavVC.searchView updateSearchText:activeLauncherNavVC.topViewController.title];
         }
@@ -235,12 +270,18 @@ static Launcher *launcher;
             
             [activeLauncherNavVC updateNavigationBarItemsWithAnimation:YES];
         }
-    }
+    }*/
+    ComplexNavigationController *newLauncher = [[ComplexNavigationController alloc] initWithRootViewController:r];
+    [newLauncher.searchView updateSearchText:r.title];
+    [newLauncher updateBarColor:r.theme animated:false];
+    newLauncher.modalTransitionStyle = UIModalPresentationCustom;
+    [Launcher push:newLauncher animated:YES];
+    [newLauncher updateNavigationBarItemsWithAnimation:NO];
     
     // Register Siri intent
-    NSUserActivity *activity = [[NSUserActivity alloc] initWithActivityType:@"com.Ingenious.bonfire.open-room-activity-type"];
+    NSUserActivity *activity = [[NSUserActivity alloc] initWithActivityType:@"com.Ingenious.bonfire.open-camp-activity-type"];
     activity.title = [NSString stringWithFormat:@"Open %@", r.title];
-    activity.userInfo = @{@"room": [room toDictionary]};
+    activity.userInfo = @{@"camp": [camp toDictionary]};
     activity.eligibleForSearch = true;
     if (@available(iOS 12.0, *)) {
         activity.eligibleForPrediction = true;
@@ -248,23 +289,24 @@ static Launcher *launcher;
         // Fallback on earlier versions
     }
     if (@available(iOS 12.0, *)) {
-        activity.persistentIdentifier = @"com.Ingenious.bonfire.open-room-activity-type";
+        activity.persistentIdentifier = @"com.Ingenious.bonfire.open-camp-activity-type";
     } else {
         // Fallback on earlier versions
     }
     r.view.userActivity = activity;
     [activity becomeCurrent];
 }
-- (void)openRoomMembersForRoom:(Room *)room {
-    RoomMembersViewController *rm = [[RoomMembersViewController alloc] init];
++ (void)openCampMembersForCamp:(Camp *)camp {
+    CampMembersViewController *rm = [[CampMembersViewController alloc] init];
     
-    rm.room = room;
-    rm.theme = [UIColor fromHex:room.attributes.details.color.length == 6 ? room.attributes.details.color : @"7d8a99"];
+    rm.camp = camp;
+    NSString *themeCSS = [camp.attributes.details.color lowercaseString];
+    rm.theme = ([themeCSS isEqualToString:@"ffffff"] || themeCSS.length == 0) ? [UIColor bonfireGrayWithLevel:700] : [UIColor fromHex:themeCSS];
     
     rm.title = @"Members";
     
-    ComplexNavigationController *activeLauncherNavVC = [launcher activeLauncherNavigationController];
-    if ([launcher activeTabController] != nil || activeLauncherNavVC == nil) {
+    /*ComplexNavigationController *activeLauncherNavVC = [Launcher activeLauncherNavigationController];
+    if ([Launcher activeTabController] != nil || activeLauncherNavVC == nil) {
         if (activeLauncherNavVC != nil) {
             [activeLauncherNavVC.searchView updateSearchText:rm.title];
         }
@@ -272,7 +314,7 @@ static Launcher *launcher;
         ComplexNavigationController *newLauncher = [[ComplexNavigationController alloc] initWithRootViewController:rm];
         newLauncher.searchView.textField.text = rm.title;
         [newLauncher.searchView hideSearchIcon:false];
-        newLauncher.transitioningDelegate = self;
+        newLauncher.launcher;
         
         [newLauncher updateBarColor:rm.theme withAnimation:0 statusBarUpdateDelay:NO];
         
@@ -291,12 +333,23 @@ static Launcher *launcher;
             
             [activeLauncherNavVC updateNavigationBarItemsWithAnimation:YES];
         }
-    }
+    }*/
+    ComplexNavigationController *newLauncher = [[ComplexNavigationController alloc] initWithRootViewController:rm];
+    newLauncher.searchView.textField.text = rm.title;
+    [newLauncher.searchView hideSearchIcon:false];
+    newLauncher.transitioningDelegate = [Launcher sharedInstance];
+    
+    [newLauncher updateBarColor:rm.theme animated:false];
+    
+    [self present:newLauncher animated:YES];
+    
+    [newLauncher updateNavigationBarItemsWithAnimation:NO];
 }
-- (void)openProfile:(User *)user {
-    BOOL insideProfile = ([launcher activeNavigationController] &&
-                          [[[[launcher activeNavigationController] viewControllers] lastObject] isKindOfClass:[ProfileViewController class]] &&
-                          [((ProfileViewController *)[[[launcher activeNavigationController] viewControllers] lastObject]).user.identifier isEqualToString:user.identifier]);
++ (void)openProfile:(User *)user {
+    BOOL insideProfile = ([Launcher activeNavigationController] &&
+                          [[[[Launcher activeNavigationController] viewControllers] lastObject] isKindOfClass:[ProfileViewController class]] &&
+                          ([((ProfileViewController *)[[[Launcher activeNavigationController] viewControllers] lastObject]).user.identifier isEqualToString:user.identifier] ||
+                           [[((ProfileViewController *)[[[Launcher activeNavigationController] viewControllers] lastObject]).user.attributes.details.identifier lowercaseString] isEqualToString:[user.attributes.details.identifier lowercaseString]]));
     if (insideProfile) {
         [self shake];
         return;
@@ -304,8 +357,8 @@ static Launcher *launcher;
     
     ProfileViewController *p = [[ProfileViewController alloc] init];
     
-    NSString *themeCSS = user.attributes.details.color.length == 6 ? user.attributes.details.color : @"7d8a99";
-    p.theme = [UIColor fromHex:themeCSS];
+    NSString *themeCSS = [user.attributes.details.color lowercaseString];
+    p.theme = ([themeCSS isEqualToString:@"ffffff"] || themeCSS.length == 0) ? [UIColor bonfireGrayWithLevel:700] : [UIColor fromHex:themeCSS];
     
     p.user = user;
     
@@ -316,15 +369,16 @@ static Launcher *launcher;
     
     p.title = searchText;
     
-    ComplexNavigationController *activeLauncherNavVC = [launcher activeLauncherNavigationController];
-    if ([launcher activeTabController] != nil || activeLauncherNavVC == nil) {
+    /*
+    ComplexNavigationController *activeLauncherNavVC = [Launcher activeLauncherNavigationController];
+    if ([Launcher activeTabController] != nil || activeLauncherNavVC == nil) {
         if (activeLauncherNavVC != nil) {
             activeLauncherNavVC.searchView.textField.text = activeLauncherNavVC.topViewController.title;
         }
         
         ComplexNavigationController *newLauncher = [[ComplexNavigationController alloc] initWithRootViewController:p];
         [newLauncher.searchView updateSearchText:searchText];
-        newLauncher.transitioningDelegate = self;
+        newLauncher.launcher;
         
         [newLauncher updateBarColor:p.theme withAnimation:0 statusBarUpdateDelay:NO];
         
@@ -342,16 +396,25 @@ static Launcher *launcher;
             
             [activeLauncherNavVC updateNavigationBarItemsWithAnimation:YES];
         }
-    }
+    }*/
+    ComplexNavigationController *newLauncher = [[ComplexNavigationController alloc] initWithRootViewController:p];
+    [newLauncher.searchView updateSearchText:searchText];
+    newLauncher.transitioningDelegate = [Launcher sharedInstance];
+    
+    [newLauncher updateBarColor:p.theme animated:false];
+    
+    [self present:newLauncher animated:YES];
+    
+    [newLauncher updateNavigationBarItemsWithAnimation:NO];
 }
-- (void)shake {
++ (void)shake {
     CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"position"];
     [animation setDuration:0.16f];
     [animation setRepeatCount:0];
     [animation setAutoreverses:YES];
     [animation setTimingFunction:[CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseOut]];
     
-    UIViewController *activeViewController = [launcher activeViewController];
+    UIViewController *activeViewController = [Launcher activeViewController];
     if ([activeViewController isKindOfClass:[UITabBarController class]]) {
         activeViewController = ((UITabBarController *)activeViewController).selectedViewController;
     }
@@ -363,16 +426,18 @@ static Launcher *launcher;
                            CGPointMake(activeViewController.view.center.x - shakeDistance, activeViewController.view.center.y)]];
     [[activeViewController.view layer] addAnimation:animation forKey:@"position"];
 }
-- (void)openProfileCampsJoined:(User *)user {
++ (void)openProfileCampsJoined:(User *)user {
     ProfileCampsListViewController *pc = [[ProfileCampsListViewController alloc] initWithStyle:UITableViewStyleGrouped];
     
     pc.user = user;
-    pc.theme = [UIColor fromHex:user.attributes.details.color.length == 6 ? user.attributes.details.color : @"7d8a99"];
+    
+    NSString *themeCSS = [user.attributes.details.color lowercaseString];
+    pc.theme = ([themeCSS isEqualToString:@"ffffff"] || themeCSS.length == 0) ? [UIColor bonfireGrayWithLevel:700] : [UIColor fromHex:themeCSS];
     
     pc.title = [user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier] ? @"My Camps" : @"Camps Joined";
     
-    ComplexNavigationController *activeLauncherNavVC = [launcher activeLauncherNavigationController];
-    if ([launcher activeTabController] != nil || activeLauncherNavVC == nil) {
+    ComplexNavigationController *activeLauncherNavVC = [Launcher activeLauncherNavigationController];
+    if ([Launcher activeTabController] != nil || activeLauncherNavVC == nil) {
         if (activeLauncherNavVC != nil) {
             [activeLauncherNavVC.searchView updateSearchText:pc.title];
         }
@@ -380,9 +445,9 @@ static Launcher *launcher;
         ComplexNavigationController *newLauncher = [[ComplexNavigationController alloc] initWithRootViewController:pc];
         newLauncher.searchView.textField.text = pc.title;
         [newLauncher.searchView hideSearchIcon:false];
-        newLauncher.transitioningDelegate = self;
+        newLauncher.transitioningDelegate = [Launcher sharedInstance];
         
-        [newLauncher updateBarColor:pc.theme withAnimation:0 statusBarUpdateDelay:NO];
+        [newLauncher updateBarColor:pc.theme animated:false];
         
         [self present:newLauncher animated:YES];
         
@@ -393,7 +458,7 @@ static Launcher *launcher;
             activeLauncherNavVC.searchView.textField.text = pc.title;
             [activeLauncherNavVC.searchView hideSearchIcon:false];
             
-            [activeLauncherNavVC updateBarColor:pc.theme withAnimation:2 statusBarUpdateDelay:NO];
+            [activeLauncherNavVC updateBarColor:pc.theme animated:false];
             
             [self push:pc animated:YES];
             
@@ -401,16 +466,18 @@ static Launcher *launcher;
         }
     }
 }
-- (void)openProfileUsersFollowing:(User *)user {
++ (void)openProfileUsersFollowing:(User *)user {
     ProfileFollowingListViewController *pf = [[ProfileFollowingListViewController alloc] initWithStyle:UITableViewStyleGrouped];
     
     pf.user = user;
-    pf.theme = [UIColor fromHex:user.attributes.details.color.length == 6 ? user.attributes.details.color : @"7d8a99"];
+    
+    NSString *themeCSS = [user.attributes.details.color lowercaseString];
+    pf.theme = ([themeCSS isEqualToString:@"ffffff"] || themeCSS.length == 0) ? [UIColor bonfireGrayWithLevel:700] : [UIColor fromHex:themeCSS];
     
     pf.title = @"Following";
     
-    ComplexNavigationController *activeLauncherNavVC = [launcher activeLauncherNavigationController];
-    if ([launcher activeTabController] != nil || activeLauncherNavVC == nil) {
+    ComplexNavigationController *activeLauncherNavVC = [Launcher activeLauncherNavigationController];
+    if ([Launcher activeTabController] != nil || activeLauncherNavVC == nil) {
         if (activeLauncherNavVC != nil) {
             [activeLauncherNavVC.searchView updateSearchText:pf.title];
         }
@@ -418,9 +485,9 @@ static Launcher *launcher;
         ComplexNavigationController *newLauncher = [[ComplexNavigationController alloc] initWithRootViewController:pf];
         newLauncher.searchView.textField.text = pf.title;
         [newLauncher.searchView hideSearchIcon:false];
-        newLauncher.transitioningDelegate = self;
+        newLauncher.transitioningDelegate = [Launcher sharedInstance];
         
-        [newLauncher updateBarColor:pf.theme withAnimation:0 statusBarUpdateDelay:NO];
+        [newLauncher updateBarColor:pf.theme animated:false];
         
         [self present:newLauncher animated:YES];
         
@@ -431,7 +498,7 @@ static Launcher *launcher;
             activeLauncherNavVC.searchView.textField.text = pf.title;
             [activeLauncherNavVC.searchView hideSearchIcon:false];
             
-            [activeLauncherNavVC updateBarColor:pf.theme withAnimation:2 statusBarUpdateDelay:NO];
+            [activeLauncherNavVC updateBarColor:pf.theme animated:false];
             
             [self push:pf animated:YES];
             
@@ -439,7 +506,7 @@ static Launcher *launcher;
         }
     }
 }
-- (void)openPost:(Post *)post withKeyboard:(BOOL)withKeyboard {
++ (void)openPost:(Post *)post withKeyboard:(BOOL)withKeyboard {
     PostViewController *p = [[PostViewController alloc] init];
     p.showKeyboardOnOpen = withKeyboard;
     
@@ -448,6 +515,7 @@ static Launcher *launcher;
     // post.identifier = 7;
     
     p.post = post;
+    
     NSString *themeCSS;
     if (post.attributes.status.postedIn != nil) {
         NSLog(@"postedIn: %@", post.attributes.status.postedIn);
@@ -456,121 +524,114 @@ static Launcher *launcher;
     else {
         themeCSS = [post.attributes.details.creator.attributes.details.color lowercaseString];
     }
-    p.theme = [UIColor fromHex:[themeCSS isEqualToString:@"ffffff"]?@"222222":themeCSS];
+    p.theme = ([themeCSS isEqualToString:@"ffffff"] || themeCSS.length == 0) ? [UIColor bonfireGrayWithLevel:700] : [UIColor fromHex:themeCSS];
     p.title = @"Conversation";
     
-    ComplexNavigationController *activeLauncherNavVC = [launcher activeLauncherNavigationController];
-    if ([launcher activeTabController] != nil || activeLauncherNavVC == nil) {
-        if (activeLauncherNavVC != nil) {
-            [activeLauncherNavVC.searchView updateSearchText:activeLauncherNavVC.topViewController.title];
-        }
-        
-        ComplexNavigationController *newLauncher = [[ComplexNavigationController alloc] initWithRootViewController:p];
-        newLauncher.searchView.textField.text = p.title;
-        [newLauncher.searchView hideSearchIcon:false];
-        newLauncher.transitioningDelegate = launcher;
-        
-        [newLauncher updateBarColor:p.theme withAnimation:0 statusBarUpdateDelay:NO];
-        
-        [launcher push:newLauncher animated:YES];
-        
-        [newLauncher updateNavigationBarItemsWithAnimation:NO];
+    ComplexNavigationController *activeLauncherNavVC = [Launcher activeLauncherNavigationController];
+    if (activeLauncherNavVC != nil) {
+        [activeLauncherNavVC.searchView updateSearchText:activeLauncherNavVC.topViewController.title];
     }
-    else {
-        if (activeLauncherNavVC != nil) {
-            activeLauncherNavVC.searchView.textField.text = p.title;
-            [activeLauncherNavVC.searchView hideSearchIcon:false];
-            
-            [activeLauncherNavVC updateBarColor:p.theme withAnimation:2 statusBarUpdateDelay:NO];
-            
-            [launcher push:p animated:YES];
-            
-            [activeLauncherNavVC updateNavigationBarItemsWithAnimation:YES];
-        }
-    }
+    
+    ComplexNavigationController *newLauncher = [[ComplexNavigationController alloc] initWithRootViewController:p];
+    newLauncher.searchView.textField.text = p.title;
+    [newLauncher.searchView hideSearchIcon:false];
+    newLauncher.transitioningDelegate = [Launcher sharedInstance];
+    
+    [newLauncher updateBarColor:p.theme animated:false];
+    
+    [Launcher push:newLauncher animated:YES];
+    
+    [newLauncher updateNavigationBarItemsWithAnimation:NO];
 }
-- (void)openPostReply:(Post *)post sender:(UIView *)sender {
++ (void)openPostReply:(Post *)post sender:(UIView *)sender {
     QuickReplyViewController *quickReplyVC = [[QuickReplyViewController alloc] init];
     quickReplyVC.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
-    quickReplyVC.modalPresentationStyle = UIModalPresentationOverCurrentContext;
+    quickReplyVC.modalPresentationStyle = UIModalPresentationFullScreen;
     quickReplyVC.replyingTo = post;
     UIView *senderSuperView = sender.superview;
     quickReplyVC.fromCenter = [senderSuperView convertPoint:sender.center toView:senderSuperView.superview];
-    [[launcher activeViewController] presentViewController:quickReplyVC animated:NO completion:^{
+    [[Launcher activeViewController] presentViewController:quickReplyVC animated:NO completion:^{
         //[self setRootViewController:vc];
     }];
 }
-- (void)openCreateRoom {
-    CreateRoomViewController *c = [[CreateRoomViewController alloc] init];
-    c.transitioningDelegate = launcher;
++ (void)openCreateCamp {
+    CreateCampViewController *c = [[CreateCampViewController alloc] init];
+    c.transitioningDelegate = [Launcher sharedInstance];
     [self present:c animated:YES];
 }
 
-- (void)openComposePost:(Room * _Nullable)room inReplyTo:(Post * _Nullable)replyingTo withMessage:(NSString * _Nullable)message media:(NSArray * _Nullable)media {
++ (void)openComposePost:(Camp * _Nullable)camp inReplyTo:(Post * _Nullable)replyingTo withMessage:(NSString * _Nullable)message media:(NSArray * _Nullable)media {
     ComposeViewController *epvc = [[ComposeViewController alloc] init];
     epvc.view.tintColor = [UIColor bonfireBlack];
-    epvc.postingIn = room;
+    epvc.postingIn = camp;
     epvc.replyingTo = replyingTo;
     epvc.prefillMessage = message;
     //epvc.media = [[NSMutableArray alloc] initWithArray:media];
     
     SimpleNavigationController *newNavController = [[SimpleNavigationController alloc] initWithRootViewController:epvc];
-    newNavController.transitioningDelegate = self;
+    newNavController.transitioningDelegate = [Launcher sharedInstance];
     [newNavController setLeftAction:SNActionTypeCancel];
     [newNavController setRightAction:SNActionTypeShare];
     newNavController.view.tintColor = epvc.view.tintColor;
     newNavController.currentTheme = [UIColor whiteColor];
     [self present:newNavController animated:YES];
 }
-- (void)openEditProfile {
++ (void)openEditProfile {
     EditProfileViewController *epvc = [[EditProfileViewController alloc] initWithStyle:UITableViewStyleGrouped];
     epvc.view.tintColor = [UIColor bonfireBlack];
-    
-    UINavigationController *newNavController = [[UINavigationController alloc] initWithRootViewController:epvc];
-    newNavController.transitioningDelegate = self;
-    newNavController.navigationBar.barStyle = UIBarStyleBlack;
-    newNavController.navigationBar.translucent = false;
-    newNavController.navigationBar.barTintColor = [UIColor whiteColor];
-    [newNavController setNeedsStatusBarAppearanceUpdate];
+    epvc.themeColor = [UIColor fromHex:[[Session sharedInstance] currentUser].attributes.details.color];
+
+    SimpleNavigationController *newNavController = [[SimpleNavigationController alloc] initWithRootViewController:epvc];
+    newNavController.transitioningDelegate = [Launcher sharedInstance];
+    newNavController.modalPresentationStyle = UIModalPresentationFullScreen;
     
     [self present:newNavController animated:YES];
 }
 
-- (void)openInviteFriends:(id)sender {
++ (void)openInviteFriends:(id)sender {
+    if ([sender isKindOfClass:[Camp class]]) {
+        [self shareCamp:sender];
+    }
+    else {
+        [self shareOniMessage:[NSString stringWithFormat:@"Join me on Bonfire! 🔥 %@", APP_DOWNLOAD_LINK] image:nil];
+    }
+    
+    /*
     InviteFriendTableViewController *ifvc = [[InviteFriendTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
-    if ([sender isKindOfClass:[Room class]]) {
-        // attach room as object -> add context to message
+    if ([sender isKindOfClass:[Camp class]]) {
+        // attach camp as object -> add context to message
         ifvc.sender = sender;
     }
     
     UINavigationController *newNavController = [[UINavigationController alloc] initWithRootViewController:ifvc];
-    newNavController.transitioningDelegate = launcher;
+    newNavController.launcher;
     newNavController.navigationBar.barStyle = UIBarStyleBlack;
     newNavController.navigationBar.translucent = false;
     [newNavController setNeedsStatusBarAppearanceUpdate];
     
-    [launcher present:newNavController animated:YES];
+    [self present:newNavController animated:YES];*/
 }
 
-- (void)openOnboarding {
-    if (![[launcher activeViewController] isKindOfClass:[StackedOnboardingViewController class]] &&
-        ![[launcher activeViewController] isKindOfClass:[OnboardingViewController class]]) {
-        StackedOnboardingViewController *vc = [[StackedOnboardingViewController alloc] init];
-        vc.transitioningDelegate = self;
++ (void)openOnboarding {
+    if (![[Launcher activeViewController] isKindOfClass:[HelloViewController class]] &&
+        ![[Launcher activeViewController] isKindOfClass:[OnboardingViewController class]]) {
+        HelloViewController *vc = [[HelloViewController alloc] init];
+        vc.transitioningDelegate = [Launcher sharedInstance];
+        vc.modalPresentationStyle = UIModalPresentationFullScreen;
         
-        [[launcher activeViewController] presentViewController:vc animated:YES completion:^{
+        [[Launcher activeViewController] presentViewController:vc animated:YES completion:^{
             //[self setRootViewController:vc];
         }];
     }
 }
-- (void)setRootViewController:(UIViewController *)rootViewController {
++ (void)setRootViewController:(UIViewController *)rootViewController {
     AppDelegate *ad = (AppDelegate *)[UIApplication sharedApplication].delegate;
     // dismiss presented view controllers before switch rootViewController to avoid messed up view hierarchy, or even crash
-    UIViewController *presentedViewController = [self findPresentedViewControllerStartingFrom:ad.window.rootViewController];
+    UIViewController *presentedViewController = [Launcher findPresentedViewControllerStartingFrom:ad.window.rootViewController];
     [ad.window setRootViewController:rootViewController];
     [self dismissPresentedViewController:presentedViewController completionBlock:nil];
 }
-- (void)dismissPresentedViewController:(UIViewController *)vc completionBlock:(void(^)(void))completionBlock {
++ (void)dismissPresentedViewController:(UIViewController *)vc completionBlock:(void(^)(void))completionBlock {
     // if vc is presented by other view controller, dismiss it.
     if ([vc presentingViewController]) {
         __block UIViewController* nextVC = vc.presentingViewController;
@@ -590,7 +651,7 @@ static Launcher *launcher;
         }
     }
 }
-- (UIViewController *)findPresentedViewControllerStartingFrom:(UIViewController *)start {
++ (UIViewController *)findPresentedViewControllerStartingFrom:(UIViewController *)start {
     if ([start isKindOfClass:[UINavigationController class]]) {
         return [self findPresentedViewControllerStartingFrom:[(UINavigationController *)start topViewController]];
     }
@@ -606,52 +667,96 @@ static Launcher *launcher;
     return [self findPresentedViewControllerStartingFrom:start.presentedViewController];
 }
 
-- (void)openSettings {
++ (void)openSettings {
     SettingsTableViewController *settingsVC = [[SettingsTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
     
     SimpleNavigationController *simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:settingsVC];
     simpleNav.transitioningDelegate = [Launcher sharedInstance];
     [simpleNav setRightAction:SNActionTypeDone];
-    [launcher present:simpleNav animated:YES];
+    [Launcher present:simpleNav animated:YES];
 }
 
-- (void)openURL:(NSString *)urlString {
++ (void)openURL:(NSString *)urlString {
     NSURL *url = [[NSURL alloc] initWithString:urlString];
     if ([[UIApplication sharedApplication] canOpenURL:url]) {
-        self.safariVC = [[SFSafariViewController alloc] initWithURL:url];
-        self.safariVC.delegate = self;
-        self.safariVC.navigationController.navigationBar.tintColor = [UIColor bonfireBrand];
-        [[launcher activeViewController] presentViewController:self.safariVC animated:YES completion:nil];
+        launcher.safariVC = [[SFSafariViewController alloc] initWithURL:url];
+        launcher.safariVC.delegate = launcher;
+        launcher.safariVC.navigationController.navigationBar.tintColor = [UIColor bonfireBrand];
+        launcher.safariVC.modalPresentationStyle = UIModalPresentationFullScreen;
+        launcher.safariVC.preferredBarTintColor = [UIColor bonfireBlack];
+        launcher.safariVC.preferredControlTintColor = [UIColor whiteColor];
+        //self.safariVC.preferredStatusBarStyle = UIStatusBarStyleDarkContent;
+        [[Launcher activeViewController] presentViewController:launcher.safariVC animated:YES completion:nil];
     }
 }
-- (void)safariViewControllerDidFinish:(SFSafariViewController *)controller {
-    if ([[launcher activeViewController] isKindOfClass:[UINavigationController class]]) {
-        [[launcher activeViewController] setNeedsStatusBarAppearanceUpdate];
++ (void)safariViewControllerDidFinish:(SFSafariViewController *)controller {
+    if ([[Launcher activeViewController] isKindOfClass:[UINavigationController class]]) {
+        [[Launcher activeViewController] setNeedsStatusBarAppearanceUpdate];
     }
-    else if ([launcher activeViewController].navigationController) {
-        [[launcher activeViewController].navigationController setNeedsStatusBarAppearanceUpdate];
+    else if ([Launcher activeViewController].navigationController) {
+        [[Launcher activeViewController].navigationController setNeedsStatusBarAppearanceUpdate];
     }
 }
 
-- (void)openActionsForPost:(Post *)post {
++ (void)openDebugView:(id)object {
+    UIViewController *viewController = [[UIViewController alloc] init];
+    viewController.title = NSStringFromClass([object class]);
+    viewController.view.backgroundColor = [UIColor whiteColor];
+    UITextView *textView = [[UITextView alloc] initWithFrame:viewController.view.bounds];
+    textView.font = [UIFont systemFontOfSize:12.f];
+    textView.text = [NSString stringWithFormat:@"%@", object];
+    textView.textColor = [UIColor bonfireBlack];
+    textView.editable = false;
+    textView.backgroundColor = [UIColor whiteColor];
+    [viewController.view addSubview:textView];
+    
+    SimpleNavigationController *navController = [[SimpleNavigationController alloc] initWithRootViewController:viewController];
+    [navController setRightAction:SNActionTypeDone];
+    
+    [Launcher present:navController animated:YES];
+}
+
++ (void)copyBetaInviteLink {
+    [FIRAnalytics logEventWithName:@"copy_beta_invite_link"
+                        parameters:@{@"location": @"trending_header"}];
+    
+    UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
+    pasteboard.string = APP_DOWNLOAD_LINK;
+    
+    JGProgressHUD *HUD = [JGProgressHUD progressHUDWithStyle:JGProgressHUDStyleExtraLight];
+    HUD.textLabel.text = @"Copied Beta Link!";
+    HUD.vibrancyEnabled = false;
+    HUD.animation = [[JGProgressHUDFadeZoomAnimation alloc] init];
+    HUD.textLabel.textColor = [UIColor colorWithWhite:0 alpha:0.6f];
+    HUD.backgroundColor = [UIColor colorWithWhite:0 alpha:0.1f];
+    HUD.indicatorView = [[JGProgressHUDSuccessIndicatorView alloc] init];
+    
+    [HUD showInView:[Launcher topMostViewController].view animated:YES];
+    [HapticHelper generateFeedback:FeedbackType_Notification_Success];
+    
+    [HUD dismissAfterDelay:1.5f];
+}
+
++ (void)openActionsForPost:(Post *)post {
     // Three Categories of Post Actions
     // 1) Any user
     // 2) Creator
     // 3) Admin
     BOOL isCreator = ([post.attributes.details.creator.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]);
-    BOOL isRoomAdmin = false;
+    BOOL canDelete = isCreator || [post.attributes.context.post.permissions canDelete];
+    NSLog(@"context: %@", post.attributes.status.postedIn);
     
     // Page action can be shown on
     // A) Any page
-    // B) Inside Room
+    // B) Inside Camp
     
     UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:nil message:nil preferredStyle:UIAlertControllerStyleActionSheet];
     
-    // 1.B.* -- Any user, outside room, any following state
+    // 1.B.* -- Any user, outside camp, any following state
     if (post.attributes.status.postedIn == nil) {
-        BOOL insideProfile = ([launcher activeNavigationController] &&
-                              [[[[launcher activeNavigationController] viewControllers] lastObject] isKindOfClass:[ProfileViewController class]] &&
-                              [((ProfileViewController *)[[[launcher activeNavigationController] viewControllers] lastObject]).user.identifier isEqualToString:post.attributes.details.creator.identifier]);
+        BOOL insideProfile = ([Launcher activeNavigationController] &&
+                              [[[[Launcher activeNavigationController] viewControllers] lastObject] isKindOfClass:[ProfileViewController class]] &&
+                              [((ProfileViewController *)[[[Launcher activeNavigationController] viewControllers] lastObject]).user.identifier isEqualToString:post.attributes.details.creator.identifier]);
         if (!insideProfile && ![post.attributes.details.creator.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
             UIAlertAction *openProfile = [UIAlertAction actionWithTitle:[NSString stringWithFormat:@"View @%@'s Profile", post.attributes.details.creator.attributes.details.identifier] style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
                 NSLog(@"open camp");
@@ -659,25 +764,25 @@ static Launcher *launcher;
                 NSError *error;
                 User *user = [[User alloc] initWithDictionary:[post.attributes.details.creator toDictionary] error:&error];
                 
-                [[Launcher sharedInstance] openProfile:user];
+                [Launcher openProfile:user];
             }];
             [actionSheet addAction:openProfile];
         }
     }
     else {
-        BOOL insideRoom = ([launcher activeNavigationController] &&
-                              [[[[launcher activeNavigationController] viewControllers] lastObject] isKindOfClass:[RoomViewController class]] &&
-                              [((RoomViewController *)[[[launcher activeNavigationController] viewControllers] lastObject]).room.identifier isEqualToString:post.attributes.status.postedIn.identifier]);
-        if (!insideRoom) {
-            UIAlertAction *openRoom = [UIAlertAction actionWithTitle:@"Open Camp" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        BOOL insideCamp = ([Launcher activeNavigationController] &&
+                              [[[[Launcher activeNavigationController] viewControllers] lastObject] isKindOfClass:[CampViewController class]] &&
+                              [((CampViewController *)[[[Launcher activeNavigationController] viewControllers] lastObject]).camp.identifier isEqualToString:post.attributes.status.postedIn.identifier]);
+        if (!insideCamp) {
+            UIAlertAction *openCamp = [UIAlertAction actionWithTitle:@"Open Camp" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
                 NSLog(@"open camp");
                 
                 NSError *error;
-                Room *room = [[Room alloc] initWithDictionary:[post.attributes.status.postedIn toDictionary] error:&error];
+                Camp *camp = [[Camp alloc] initWithDictionary:[post.attributes.status.postedIn toDictionary] error:&error];
                 
-                [[Launcher sharedInstance] openRoom:room];
+                [Launcher openCamp:camp];
             }];
-            [actionSheet addAction:openRoom];
+            [actionSheet addAction:openCamp];
         }
     }
     
@@ -685,15 +790,7 @@ static Launcher *launcher;
     BOOL hasiMessage = [MFMessageComposeViewController canSendText];
     if (hasiMessage) {
         UIAlertAction *shareOniMessage = [UIAlertAction actionWithTitle:@"Share on iMessage" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-            NSString *url;
-            if (post.attributes.status.postedIn != nil) {
-                // posted in a room
-                url = [NSString stringWithFormat:@"https://bonfire.camp/c/%@/post/%ld", post.attributes.status.postedIn.attributes.details.identifier, (long)post.identifier];
-            }
-            else {
-                // posted on a profile
-                url = [NSString stringWithFormat:@"https://bonfire.camp/u/%@/post/%ld", post.attributes.details.creator.attributes.details.identifier, (long)post.identifier];
-            }
+            NSString *url = [NSString stringWithFormat:@"https://bonfire.camp/p/%@", post.identifier];
             
             NSString *message;
             if (post.attributes.details.message.length > 0) {
@@ -703,7 +800,7 @@ static Launcher *launcher;
                 message = url;
             }
             
-            [[Launcher sharedInstance] shareOniMessage:message image:nil];
+            [Launcher shareOniMessage:message image:nil];
         }];
         [actionSheet addAction:shareOniMessage];
     }
@@ -712,39 +809,38 @@ static Launcher *launcher;
     UIAlertAction *sharePost = [UIAlertAction actionWithTitle:@"Share via..." style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         NSLog(@"share post");
         
-        [launcher sharePost:post];
+        [Launcher sharePost:post];
     }];
     [actionSheet addAction:sharePost];
     
     // !2.A.* -- Not Creator, any page, any following state
     if (!isCreator) {
-        UIAlertAction *reportPost = [UIAlertAction actionWithTitle:@"Report Post" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        UIAlertAction *reportPost = [UIAlertAction actionWithTitle:@"Report" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
             NSLog(@"report post");
             // confirm action
-            UIAlertController *confirmDeletePostActionSheet = [UIAlertController alertControllerWithTitle:@"Report Post" message:@"Are you sure you want to report this post?" preferredStyle:UIAlertControllerStyleAlert];
+            UIAlertController *confirmReportPostActionSheet = [UIAlertController alertControllerWithTitle:@"Report Post" message:@"Are you sure you want to report this post?" preferredStyle:UIAlertControllerStyleAlert];
             
-            UIAlertAction *confirmDeletePost = [UIAlertAction actionWithTitle:@"Report" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+            UIAlertAction *confirmReportPost = [UIAlertAction actionWithTitle:@"Report" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
                 NSLog(@"confirm report post");
                 [BFAPI reportPost:post.identifier completion:^(BOOL success, id responseObject) {
                     NSLog(@"reported post!");
                 }];
             }];
-            [confirmDeletePostActionSheet addAction:confirmDeletePost];
+            [confirmReportPostActionSheet addAction:confirmReportPost];
             
             UIAlertAction *cancelDeletePost = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
                 NSLog(@"cancel report post");
             }];
-            [confirmDeletePostActionSheet addAction:cancelDeletePost];
+            [confirmReportPostActionSheet addAction:cancelDeletePost];
             
-            [[launcher activeViewController] presentViewController:confirmDeletePostActionSheet animated:YES completion:nil];
+            [[Launcher activeViewController] presentViewController:confirmReportPostActionSheet animated:YES completion:nil];
         }];
         [actionSheet addAction:reportPost];
     }
     
-    // 2|3.A.* -- Creator or room admin, any page, any following state
-    if (isCreator || isRoomAdmin) {
+    // 2|3.A.* -- Creator or camp admin, any page, any following state
+    if (canDelete) {
         UIAlertAction *deletePost = [UIAlertAction actionWithTitle:@"Delete" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-            [actionSheet dismissViewControllerAnimated:YES completion:nil];
             NSLog(@"delete post");
             // confirm action
             UIAlertController *confirmDeletePostActionSheet = [UIAlertController alertControllerWithTitle:@"Delete Post" message:@"Are you sure you want to delete this post?" preferredStyle:UIAlertControllerStyleAlert];
@@ -755,35 +851,31 @@ static Launcher *launcher;
                 HUD.vibrancyEnabled = false;
                 HUD.textLabel.textColor = [UIColor colorWithWhite:0 alpha:0.6f];
                 HUD.backgroundColor = [UIColor colorWithWhite:0 alpha:0.1f];
-                [HUD showInView:[launcher activeViewController].view animated:YES];
+                [HUD showInView:[Launcher topMostViewController].view animated:YES];
                 
                 NSLog(@"confirm delete post");
                 [BFAPI deletePost:post completion:^(BOOL success, id responseObject) {
                     if (success) {
                         NSLog(@"deleted post!");
                         
-                        // update room object
-                        Room *postedInRoom = post.attributes.status.postedIn;
-                        if (postedInRoom) {
-                            postedInRoom.attributes.summaries.counts.posts = postedInRoom.attributes.summaries.counts.posts - 1;
-                            [[NSNotificationCenter defaultCenter] postNotificationName:@"RoomUpdated" object:postedInRoom];
-                            // update post object
-                            post.attributes.status.postedIn = postedInRoom;
-                        }
-                        
                         // success
                         [HUD dismissAfterDelay:0];
                         
                         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.2f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                            if ([launcher activeNavigationController] && [launcher activeNavigationController].viewControllers.count > 1) {
-                                [[launcher activeNavigationController] popViewControllerAnimated:YES];
-                                
-                                if ([[launcher activeNavigationController] isKindOfClass:[ComplexNavigationController class]]) {
-                                    [(ComplexNavigationController *)[launcher activeNavigationController] goBack];
+                            if ([[Launcher activeViewController] isKindOfClass:[PostViewController class]]) {
+                                PostViewController *postVC = (PostViewController *)[Launcher activeViewController];
+                                if ([postVC.post.identifier isEqualToString:post.identifier] || [postVC.post.attributes.details.parentId isEqualToString:post.identifier]) {
+                                    if ([Launcher activeNavigationController] && [Launcher activeNavigationController].viewControllers.count > 1) {
+                                        [[Launcher activeNavigationController] popViewControllerAnimated:YES];
+                                        
+                                        if ([[Launcher activeNavigationController] isKindOfClass:[ComplexNavigationController class]]) {
+                                            [(ComplexNavigationController *)[Launcher activeNavigationController] goBack];
+                                        }
+                                    }
+                                    else {
+                                        [[Launcher activeViewController] dismissViewControllerAnimated:YES completion:nil];
+                                    }
                                 }
-                            }
-                            else {
-                                [[launcher activeViewController] dismissViewControllerAnimated:YES completion:nil];
                             }
                         });
                     }
@@ -802,7 +894,7 @@ static Launcher *launcher;
             }];
             [confirmDeletePostActionSheet addAction:cancelDeletePost];
             
-            [[launcher activeViewController] presentViewController:confirmDeletePostActionSheet animated:YES completion:nil];
+            [[Launcher activeViewController] presentViewController:confirmDeletePostActionSheet animated:YES completion:nil];
         }];
         [actionSheet addAction:deletePost];
     }
@@ -812,18 +904,10 @@ static Launcher *launcher;
     }];
     [actionSheet addAction:cancel];
     
-    [[launcher activeViewController] presentViewController:actionSheet animated:YES completion:nil];
+    [[Launcher activeViewController] presentViewController:actionSheet animated:YES completion:nil];
 }
-- (void)sharePost:(Post *)post {
-    NSString *url;
-    if (post.attributes.status.postedIn != nil) {
-        // posted in a room
-        url = [NSString stringWithFormat:@"https://bonfire.camp/c/%@/post/%ld", post.attributes.status.postedIn.attributes.details.identifier, (long)post.identifier];
-    }
-    else {
-        // posted on a profile
-        url = [NSString stringWithFormat:@"https://bonfire.camp/u/%@/post/%ld", post.attributes.details.creator.attributes.details.identifier, (long)post.identifier];
-    }
++ (void)sharePost:(Post *)post {
+    NSString *url = [NSString stringWithFormat:@"https://bonfire.camp/p/%@", post.identifier];
     
     NSString *message;
     if (post.attributes.details.message.length > 0) {
@@ -834,30 +918,30 @@ static Launcher *launcher;
     }
     
     UIActivityViewController *controller = [[UIActivityViewController alloc]initWithActivityItems:@[message] applicationActivities:nil];
-    controller.modalPresentationStyle = UIModalPresentationPopover;
+    controller.modalPresentationStyle = UIModalPresentationFullScreen;
     
-    [[launcher activeViewController] presentViewController:controller animated:YES completion:nil];
+    [[Launcher activeViewController] presentViewController:controller animated:YES completion:nil];
 }
-- (void)shareUser:(User *)user {
++ (void)shareUser:(User *)user {
     UIActivityViewController *controller = [[UIActivityViewController alloc]initWithActivityItems:@[[NSString stringWithFormat:@"https://bonfire.camp/u/%@", user.attributes.details.identifier]] applicationActivities:nil];
     controller.modalPresentationStyle = UIModalPresentationPopover;
     
-    [[launcher activeViewController] presentViewController:controller animated:YES completion:nil];
+    [[Launcher activeViewController] presentViewController:controller animated:YES completion:nil];
 }
-- (void)shareRoom:(Room *)room {
-    UIActivityViewController *controller = [[UIActivityViewController alloc]initWithActivityItems:@[[NSString stringWithFormat:@"https://bonfire.camp/c/%@", room.attributes.details.identifier]] applicationActivities:nil];
++ (void)shareCamp:(Camp *)camp {
+    UIActivityViewController *controller = [[UIActivityViewController alloc]initWithActivityItems:@[[NSString stringWithFormat:@"https://bonfire.camp/c/%@", camp.attributes.details.identifier]] applicationActivities:nil];
     controller.modalPresentationStyle = UIModalPresentationPopover;
     
-    [[launcher activeViewController] presentViewController:controller animated:YES completion:nil];
+    [[Launcher activeViewController] presentViewController:controller animated:YES completion:nil];
 }
-- (void)shareOniMessage:(NSString *)message image:(UIImage * _Nullable)image {
++ (void)shareOniMessage:(NSString *)message image:(UIImage * _Nullable)image {
     BOOL hasiMessage = [MFMessageComposeViewController canSendText];
     
     if (hasiMessage) {
         // confirm action
         MFMessageComposeViewController *messageController = [[MFMessageComposeViewController alloc] init]; // Create message VC
-        messageController.messageComposeDelegate = self; // Set delegate to current instance
-        messageController.transitioningDelegate = [Launcher sharedInstance];
+        messageController.messageComposeDelegate = launcher; // Set delegate to current instance
+        messageController.modalPresentationStyle = UIModalPresentationFullScreen;
         
         messageController.body = message; // Set initial text to example message
         
@@ -866,9 +950,87 @@ static Launcher *launcher;
             [messageController addAttachmentData:dataImg typeIdentifier:@"public.data" filename:@"Image.png"];
         }
         
-        [[launcher activeViewController] presentViewController:messageController animated:YES completion:nil];
+        [[Launcher activeViewController] presentViewController:messageController animated:YES completion:nil];
     }
 }
+
++ (void)expandImageView:(UIImageView *)imageView {
+    NSMutableArray *items = @[].mutableCopy;
+    
+    KSPhotoItem *item = [KSPhotoItem itemWithSourceView:imageView image:imageView.image];
+    [items addObject:item];
+    
+    KSPhotoBrowser *browser = [KSPhotoBrowser browserWithPhotoItems:items selectedIndex:0];
+    browser.bounces = true;
+    browser.backgroundStyle = KSPhotoBrowserBackgroundStyleBlack;
+    browser.dismissalStyle = KSPhotoBrowserInteractiveDismissalStyleSlide;
+    browser.modalPresentationCapturesStatusBarAppearance = true;
+    [browser showFromViewController:[Launcher topMostViewController]];
+}
+
++ (void)exapndImageView:(UIImageView *)imageView media:(NSArray *)media imageViews:(NSArray <UIImageView *> *)imageViews selectedIndex:(NSInteger)selectedIndex {
+    NSMutableArray *items = @[].mutableCopy;
+    
+    for (int i = 0; i < media.count; i++) {
+        KSPhotoItem *item;
+        
+        if ([media[i] isKindOfClass:[UIImage class]]) {
+            UIImage *image = (UIImage *)media[i];
+            item = [KSPhotoItem itemWithSourceView:imageViews[i] image:image];
+        }
+        else if ([media[i] isKindOfClass:[PostAttachmentsMedia class]]) {
+            PostAttachmentsMedia *attachmentMedia = (PostAttachmentsMedia *)media[i];
+            NSLog(@"media type: %u", attachmentMedia.attributes.type);
+            if (!(attachmentMedia.attributes.type == PostAttachmentMediaTypeImage || attachmentMedia.attributes.type == PostAttachmentMediaTypeGIF || attachmentMedia.attributes.type == PostAttachmentMediaTypeVideo)) {
+                continue;
+            }
+            
+            if ([self imageViewHasImage:imageViews[i]]) {
+                item = [KSPhotoItem itemWithSourceView:imageViews[i] image:imageViews[i].image];
+            }
+            else {
+                item = [KSPhotoItem itemWithSourceView:imageViews[i] imageUrl:[NSURL URLWithString:attachmentMedia.attributes.hostedVersions.suggested.url]];
+            }
+        }
+        
+        [items addObject:item];
+    }
+    
+    if (items.count > 0) {
+        KSPhotoBrowser *browser = [KSPhotoBrowser browserWithPhotoItems:items selectedIndex:(selectedIndex < items.count ? selectedIndex : 0)];
+        browser.bounces = true;
+        browser.backgroundStyle = KSPhotoBrowserBackgroundStyleBlack;
+        browser.dismissalStyle = KSPhotoBrowserInteractiveDismissalStyleSlide;
+        browser.modalPresentationCapturesStatusBarAppearance = true;
+        [browser showFromViewController:[Launcher topMostViewController]];
+    }
+}
++ (BOOL)imageViewHasImage:(UIImageView *)imageView {
+    return !CGSizeEqualToSize(imageView.image.size, CGSizeZero);
+}
+
++ (void)requestAppStoreRating {
+    if (@available(iOS 10.3, *)) {
+        [SKStoreReviewController requestReview];
+    }
+}
+
++ (void)present:(UIViewController *)viewController animated:(BOOL)animated {
+    viewController.transitioningDelegate = [Launcher sharedInstance];
+    viewController.modalPresentationStyle = UIModalPresentationFullScreen;
+    
+    [[Launcher activeViewController] presentViewController:viewController animated:YES completion:nil];
+}
++ (void)push:(UIViewController *)viewController animated:(BOOL)animated {
+    if ([launcher canPush] && ![viewController isKindOfClass:[UINavigationController class]]) {
+        [[Launcher activeNavigationController] pushViewController:viewController animated:YES];
+    }
+    else {
+        [self present:viewController animated:YES];
+    }
+}
+
+#pragma mark - MFMessageComposeViewControllerDelegate
 - (void)messageComposeViewController:(MFMessageComposeViewController *)controller didFinishWithResult:(MessageComposeResult)result {
     NSLog(@"did finish with result: %ld", (long)result);
     if (result == MessageComposeResultSent) {
@@ -881,76 +1043,13 @@ static Launcher *launcher;
         NSLog(@"cancelled");
     }
     [controller dismissViewControllerAnimated:YES completion:^{
-        if ([[launcher activeViewController] isKindOfClass:[UINavigationController class]]) {
-            [[launcher activeViewController] setNeedsStatusBarAppearanceUpdate];
+        if ([[Launcher activeViewController] isKindOfClass:[UINavigationController class]]) {
+            [[Launcher activeViewController] setNeedsStatusBarAppearanceUpdate];
         }
-        else if ([launcher activeViewController].navigationController) {
-            [[launcher activeViewController].navigationController setNeedsStatusBarAppearanceUpdate];
+        else if ([Launcher activeViewController].navigationController) {
+            [[Launcher activeViewController].navigationController setNeedsStatusBarAppearanceUpdate];
         }
     }];
-}
-
-- (void)expandImageView:(UIImageView *)imageView {
-    // Create image info
-    JTSImageInfo *imageInfo = [[JTSImageInfo alloc] init];
-    imageInfo.image = imageView.image;
-    imageInfo.referenceRect = imageView.frame;
-    imageInfo.referenceView = imageView.superview;
-    
-    // Setup view controller
-    JTSImageViewController *imageViewer = [[JTSImageViewController alloc]
-                                           initWithImageInfo:imageInfo
-                                           mode:JTSImageViewControllerMode_Image
-                                           backgroundStyle:JTSImageViewControllerBackgroundOption_None];
-    UILongPressGestureRecognizer *longPressToSave = [[UILongPressGestureRecognizer alloc] bk_initWithHandler:^(UIGestureRecognizer *sender, UIGestureRecognizerState state, CGPoint location) {
-        UIAlertController *shareOptions = [UIAlertController alertControllerWithTitle:nil message:nil preferredStyle:UIAlertControllerStyleActionSheet];
-        UIAlertAction *saveAction = [UIAlertAction actionWithTitle:@"Save" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-            UIImageWriteToSavedPhotosAlbum(imageViewer.image, nil, nil, nil);
-        }];
-        UIAlertAction *shareViaAction = [UIAlertAction actionWithTitle:@"Share via..." style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-            [shareOptions dismissViewControllerAnimated:YES completion:nil];
-            
-            //create a message
-            NSArray *items = @[imageViewer.image];
-            
-            // build an activity view controller
-            UIActivityViewController *controller = [[UIActivityViewController alloc]initWithActivityItems:items applicationActivities:nil];
-            
-            // and present it
-            controller.modalPresentationStyle = UIModalPresentationPopover;
-            [imageViewer presentViewController:controller animated:YES completion:nil];
-        }];
-        UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-        }];
-        [shareOptions addAction:saveAction];
-        [shareOptions addAction:shareViaAction];
-        [shareOptions addAction:cancelAction];
-        [imageViewer presentViewController:shareOptions animated:YES completion:nil];
-    }];
-    [imageViewer.view addGestureRecognizer:longPressToSave];
-    
-    // Present the view controller.
-    [imageViewer showFromViewController:[launcher activeViewController] transition:JTSImageViewControllerTransition_FromOriginalPosition];
-}
-
-- (void)requestAppStoreRating {
-    if (@available(iOS 10.3, *)) {
-        [SKStoreReviewController requestReview];
-    }
-}
-
-- (void)present:(UIViewController *)viewController animated:(BOOL)animated {
-    viewController.transitioningDelegate = self;
-    
-    [[launcher activeViewController] presentViewController:viewController animated:YES completion:nil];
-}
-- (void)push:(UIViewController *)viewController animated:(BOOL)animated {
-    if ([launcher canPush] && ![viewController isKindOfClass:[UINavigationController class]]) {
-        [(UINavigationController *)[launcher activeViewController] pushViewController:viewController animated:YES];
-    }
-    else {
-        [self present:viewController animated:YES];
-    }
 }
 
 #pragma mark - UIViewControllerTransitioningDelegate
@@ -961,6 +1060,8 @@ static Launcher *launcher;
     sourceController:(UIViewController *)source
 {
     id<UIViewControllerAnimatedTransitioning> animationController;
+    
+    NSLog(@"presented dis ish: %@", presented);
     
     launcher.animator.appearing = YES;
     launcher.animator.duration = 0.3;

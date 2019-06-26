@@ -11,8 +11,9 @@
 #import <BlocksKit/BlocksKit.h>
 #import <BlocksKit/BlocksKit+UIKit.h>
 #import <SDWebImage/UIImageView+WebCache.h>
-#import <FLAnimatedImage/FLAnimatedImage.h>
+#import <SDWebImage/SDAnimatedImageView+WebCache.h>
 #import "UIColor+Palette.h"
+#import "UITextView+Placeholder.h"
 #import "Launcher.h"
 
 @implementation ComposeTextViewCell
@@ -28,9 +29,10 @@
     if (self) {        
         self.selectionStyle = UITableViewCellSelectionStyleNone;
         
+        self.contentView.backgroundColor = [UIColor whiteColor];
         self.tintColor = [UIColor bonfireBrand];
         
-        self.textView = [[UITextView alloc] initWithFrame:CGRectMake(72, 12, self.frame.size.width - 72 - 12, self.frame.size.height)];
+        self.textView = [[UITextView alloc] initWithFrame:CGRectMake(70, 12, self.frame.size.width - 70 - 12, self.frame.size.height)];
         self.textView.clipsToBounds = false;
         self.textView.scrollEnabled = false;
         self.textView.backgroundColor = [UIColor clearColor];
@@ -41,6 +43,8 @@
         self.textView.textContainerInset = UIEdgeInsetsMake(12, 0, 12, 0);
         self.textView.placeholder = @"Share with everyone...";
         self.textView.keyboardType = UIKeyboardTypeTwitter;
+        self.textView.keyboardAppearance = UIKeyboardAppearanceLight;
+        self.textView.placeholderColor = [UIColor colorWithRed:0.24 green:0.24 blue:0.26 alpha:0.3];
         [self.contentView addSubview:self.textView];
         
         self.creatorAvatar = [[BFAvatarView alloc] initWithFrame:CGRectMake(12, 12, 48, 48)];
@@ -105,10 +109,10 @@
             UIAlertAction *cancelActionSheet = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
             [confirmActionSheet addAction:cancelActionSheet];
             
-            [[Launcher sharedInstance].activeViewController presentViewController:confirmActionSheet animated:YES completion:nil];
+            [[Launcher activeViewController] presentViewController:confirmActionSheet animated:YES completion:nil];
         }
         else {
-            [[Launcher sharedInstance] openURL:self.url.absoluteString];
+            [Launcher openURL:self.url.absoluteString];
         }
     }];
     [self.contentView addSubview:self.urlPreviewView];
@@ -134,10 +138,17 @@
 
 - (void)resizeTextView {
     NSString *text = self.textView.text.length > 0 ? self.textView.text : self.textView.placeholder;
-    CGSize textViewSize = [text boundingRectWithSize:CGSizeMake(self.frame.size.width - 72 - 12, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:self.textView.font} context:nil].size;
+    CGSize textViewSize = [text boundingRectWithSize:CGSizeMake(self.frame.size.width - 70 - 12, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:self.textView.font} context:nil].size;
+    NSInteger numLines = textViewSize.height / self.textView.font.lineHeight;
+    if (numLines > 1) {
+        self.textView.textContainerInset = UIEdgeInsetsMake(8, 0, 12, 0);
+    }
+    else {
+        self.textView.textContainerInset = UIEdgeInsetsMake(12, 0, 12, 0);
+    }
     
     CGRect textViewFrame = self.textView.frame;
-    textViewFrame.size.width = self.frame.size.width - 72 - 12;
+    textViewFrame.size.width = self.frame.size.width - 70 - 12;
     textViewFrame.size.height = textViewSize.height + self.textView.textContainerInset.top + self.textView.textContainerInset.bottom;
     self.textView.frame = textViewFrame;
 }
@@ -183,15 +194,15 @@
     
     NSData *data = object.data;
     
-    FLAnimatedImageView *view = [[FLAnimatedImageView alloc] init];
+    SDAnimatedImageView *view = [[SDAnimatedImageView alloc] init];
     view.userInteractionEnabled = true;
     view.backgroundColor = [UIColor bonfireGray];
     view.layer.cornerRadius = 12.f;
     view.layer.masksToBounds = true;
     view.contentMode = UIViewContentModeScaleAspectFill;
     if ([object.MIME isEqualToString:BFMediaObjectMIME_GIF]) {
-        FLAnimatedImage *animatedImage = [FLAnimatedImage animatedImageWithGIFData:data];
-        view.animatedImage = animatedImage;
+        SDAnimatedImage *animatedImage = [SDAnimatedImage imageWithData:data];
+        view.image = animatedImage;
         
         UIImage *image = [UIImage imageWithData:data];
         [view.widthAnchor constraintEqualToAnchor:view.heightAnchor multiplier:(image.size.width/image.size.height)].active = true;
@@ -204,7 +215,7 @@
     view.layer.borderWidth = 1.f;
     view.layer.borderColor = [UIColor colorWithWhite:0 alpha:0.04f].CGColor;
     [view bk_whenTapped:^{
-        [[Launcher sharedInstance] expandImageView:view];
+        [Launcher expandImageView:view];
     }];
     [_mediaContainerView addArrangedSubview:view];
     
@@ -281,7 +292,7 @@
 - (CGFloat)height {
     float minHeight = 48 + 12 + 12;
     
-    float height = 12; // top padding
+    float height = self.textView.textContainerInset.top; // top padding
     float textViewHeight = self.textView.frame.size.height;
     height = height + textViewHeight;
     

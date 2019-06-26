@@ -120,7 +120,7 @@
         [self postMessage];
     }];
     [self.composeInputView.expandButton bk_whenTapped:^{
-        //[[Launcher sharedInstance] openComposePost:self.room inReplyTo:nil withMessage:self.composeInputView.textView.text media:self.composeInputView.media];
+        //[[Launcher sharedInstance] openComposePost:self.camp inReplyTo:nil withMessage:self.composeInputView.textView.text media:self.composeInputView.media];
     }];
     
     [self.view addSubview:self.composeInputView];
@@ -158,12 +158,12 @@
     
     if ([params objectForKey:@"message"] || [params objectForKey:@"images"]) {
         // meets min. requirements
-        // [[Session sharedInstance] createPost:params postingIn:self.room replyingTo:nil];
+        // [[Session sharedInstance] createPost:params postingIn:self.camp replyingTo:nil];
         
         self.composeInputView.textView.text = @"";
         [self.composeInputView hidePostButton];
         [self.composeInputView.textView resignFirstResponder];
-        self.composeInputView.media = [[BFMedia alloc] init];
+        [self.composeInputView.media flush];
         [self.composeInputView hideMediaTray];
         [self.composeInputView setReplyingTo:nil];
     }

@@ -12,8 +12,10 @@
 #import <BlocksKit/BlocksKit+UIKit.h>
 #import <HapticHelper/HapticHelper.h>
 #import "EditProfileViewController.h"
-#import "EditRoomViewController.h"
+#import "EditCampViewController.h"
 #import "UIColor+Palette.h"
+#import "BFColorPickerViewController.h"
+#import "Launcher.h"
 
 #define UIViewParentController(__view) ({ \
     UIResponder *__responder = __view; \
@@ -41,7 +43,7 @@
         self.selectorLabel.textColor = [UIColor colorWithWhite:0.47f alpha:1];
         [self.contentView addSubview:self.selectorLabel];
         
-        NSArray *colorList = @[[UIColor bonfireBlueWithLevel:500],  // 0
+        NSArray *colorList = @[[UIColor bonfireBlue],  // 0
                                [UIColor bonfireViolet],  // 1
                                [UIColor fromHex:@"F5498B"],  // 3
                                [UIColor bonfireRed],  // 2
@@ -54,13 +56,43 @@
                                [UIColor bonfireGrayWithLevel:900]]; // 8
         
         self.scrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, 98)];
-        self.scrollView.contentInset = UIEdgeInsetsMake(0, 16, 0, 16);
+        self.scrollView.contentInset = UIEdgeInsetsMake(0, 12, 0, 12);
         self.scrollView.showsHorizontalScrollIndicator = false;
         self.scrollView.showsVerticalScrollIndicator = false;
         [self.contentView addSubview:self.scrollView];
         
         CGFloat buttonSize = 40;
         CGFloat buttonSpacing = 8;
+        
+        CGFloat baselineX = 0;
+        if (self.canSetCustomColor) {
+            self.customColorView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 42, buttonSize, buttonSize)];
+            self.customColorView.layer.cornerRadius = self.customColorView.frame.size.height / 2;
+            self.customColorView.userInteractionEnabled = true;
+            self.customColorView.layer.masksToBounds = true;
+            self.customColorView.image = [UIImage imageNamed:@"customColorGradient"];
+            [self.customColorView bk_whenTapped:^{
+                // open custom color picker view
+                BFColorPickerViewController *epvc = [[BFColorPickerViewController alloc] initWithColor:self.selectedColor];
+                epvc.view.tintColor = [UIColor bonfireBlack];
+                
+                UINavigationController *newNavController = [[UINavigationController alloc] initWithRootViewController:epvc];
+                newNavController.transitioningDelegate = [Launcher sharedInstance];
+                newNavController.navigationBar.translucent = false;
+                newNavController.navigationBar.barTintColor = [UIColor whiteColor];
+                [newNavController setNeedsStatusBarAppearanceUpdate];
+                
+                [Launcher present:newNavController animated:YES];
+            }];
+            [self.scrollView addSubview:self.customColorView];
+            
+            UIView *customLineSeparator = [[UIView alloc] initWithFrame:CGRectMake(self.customColorView.frame.origin.x + self.customColorView.frame.size.width + buttonSpacing, self.customColorView.frame.origin.y + (self.customColorView.frame.size.height / 2) - 12, 2, 24)];
+            customLineSeparator.backgroundColor = [UIColor colorWithWhite:0.92 alpha:1];
+            customLineSeparator.layer.cornerRadius = customLineSeparator.frame.size.width / 2;
+            [self.scrollView addSubview:customLineSeparator];
+            
+            baselineX = customLineSeparator.frame.origin.x + customLineSeparator.frame.size.width + buttonSpacing;
+        }
         
         self.colors = [[NSMutableArray alloc] init];
         for (NSInteger i = 0; i < [colorList count]; i++) {
@@ -69,7 +101,7 @@
             [colorDict setObject:colorList[i] forKey:@"color"];
             
             // create view
-            UIView *colorOption = [[UIView alloc] initWithFrame:CGRectMake(i * (buttonSize + buttonSpacing), 42, buttonSize, buttonSize)];
+            UIView *colorOption = [[UIView alloc] initWithFrame:CGRectMake(baselineX + i * (buttonSize + buttonSpacing), 42, buttonSize, buttonSize)];
             colorOption.layer.cornerRadius = colorOption.frame.size.height / 2;
             colorOption.backgroundColor = colorList[i];
             colorOption.tag = i;
@@ -90,7 +122,7 @@
             self.selectedColor = [Session sharedInstance].currentUser.attributes.details.color;
         }
         
-        self.scrollView.contentSize = CGSizeMake((colorList.count * (buttonSize + buttonSpacing)) - buttonSpacing, self.scrollView.frame.size.height);
+        self.scrollView.contentSize = CGSizeMake(baselineX + (colorList.count * (buttonSize + buttonSpacing)) - buttonSpacing, self.scrollView.frame.size.height);
     }
     
     return self;
@@ -100,7 +132,7 @@
 - (void)layoutSubviews {
     [super layoutSubviews];
     
-    self.selectorLabel.frame = CGRectMake(16, 12, self.frame.size.width - 32, 24);
+    self.selectorLabel.frame = CGRectMake(12, 12, self.frame.size.width - 24, 24);
     self.scrollView.frame = CGRectMake(0, 0, self.frame.size.width, self.frame.size.height);
 }
 
@@ -127,26 +159,15 @@
         checkView.image = [UIImage imageNamed:@"selectedColorCheck_small"];
         checkView.tag = 999;
         checkView.layer.cornerRadius = checkView.frame.size.height / 2;
-        checkView.layer.borderColor = sender.backgroundColor.CGColor;
-        checkView.layer.borderWidth = 2.f;
+        checkView.layer.borderColor = [sender.backgroundColor colorWithAlphaComponent:0.25].CGColor;
+        checkView.layer.borderWidth = 5.f;
         checkView.backgroundColor = [UIColor clearColor];
         [sender addSubview:checkView];
         
-        checkView.transform = CGAffineTransformMakeScale(0.8, 0.8);
+        checkView.transform = CGAffineTransformMakeScale(0.7, 0.7);
         checkView.alpha = 0;
         
-        // call delegate method
-        if ([UIViewParentController(self) isKindOfClass:[EditProfileViewController class]]) {
-            EditProfileViewController *parentVC = (EditProfileViewController *)UIViewParentController(self);
-            [parentVC updateBarColor:color[@"color"] withAnimation:2 statusBarUpdateDelay:0];
-        }
-        else if ([UIViewParentController(self) isKindOfClass:[EditRoomViewController class]]) {
-            EditRoomViewController *parentVC = (EditRoomViewController *)UIViewParentController(self);
-            [parentVC updateBarColor:color[@"color"] withAnimation:2 statusBarUpdateDelay:0];
-        }
-        
         [UIView animateWithDuration:animated?0.6f:0 delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-            
             checkView.transform = CGAffineTransformMakeScale(1, 1);
             checkView.alpha = 1;
         } completion:nil];
@@ -158,11 +179,23 @@
     if (![selectedColor isEqualToString:_selectedColor]) {
         _selectedColor = selectedColor;
         
+        BOOL isCustomColor = true;
         for (NSInteger i = 0; i < self.colors.count; i++) {
             if ([self.selectedColor isEqualToString:[UIColor toHex:self.colors[i][@"color"]]]) {
                 [self setColor:self.colors[i][@"view"] withAnimation:false];
+                isCustomColor = false;
             }
         }
+        if (isCustomColor) {
+            self.customColorView.image = nil;
+            self.customColorView.backgroundColor = [UIColor fromHex:self.selectedColor];
+            [self setColor:self.customColorView withAnimation:false];
+        }
+        else {
+            self.customColorView.image = [UIImage imageNamed:@"customColorGradient"];
+        }
+        
+        [self.delegate themeSelectionDidChange:self.selectedColor];
     }
 }
 

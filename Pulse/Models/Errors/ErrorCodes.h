@@ -34,7 +34,7 @@ extern const NSInteger RESOURCE_ACTION_FAILURE;
 extern const NSInteger MISSING_PARAMETER;
 extern const NSInteger INVALID_PARAMETER;
 extern const NSInteger INVALID_MEDIA;
-extern const NSInteger ROOM_MIN_MEMBERS_VIOLATION;
+extern const NSInteger CAMP_MIN_MEMBERS_VIOLATION;
 extern const NSInteger IDENTIFIER_TAKEN;
 extern const NSInteger NO_CHANGE_OCCURRED;
 extern const NSInteger BAD_MEDIA_COMBINATION;
@@ -43,15 +43,15 @@ extern const NSInteger BAD_MEDIA_COMBINATION;
  * Errors 700-799: Resource failure
  */
 extern const NSInteger RESOURCE_VALIDITY_FAILURE;
-extern const NSInteger ROOM_NOT_EXISTS;
+extern const NSInteger CAMP_NOT_EXISTS;
 extern const NSInteger USER_NOT_EXISTS;
 extern const NSInteger POST_NOT_EXISTS;
-extern const NSInteger ROOM_INACCESSIBLE_BLOCKED;
+extern const NSInteger CAMP_INACCESSIBLE_BLOCKED;
 extern const NSInteger USER_INACCESSIBLE_BLOCKED;
 extern const NSInteger POST_INACCESSIBLE;
 extern const NSInteger SEARCH_TOO_COMPLEX;
 extern const NSInteger RESOURCE_OWNERSHIP_FAILURE;
-extern const NSInteger ROOM_INACCESSIBLE_BLOCKS_THEM;
+extern const NSInteger CAMP_INACCESSIBLE_BLOCKS_THEM;
 
 /**
  * Errors 800-899: User information failure

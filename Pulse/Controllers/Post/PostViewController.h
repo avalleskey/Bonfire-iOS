@@ -14,6 +14,7 @@
 #import <MessageUI/MessageUI.h>
 #import "ThemedViewController.h"
 #import "PostStream.h"
+#import "TappableView.h"
 
 #define CONVERSATION_ADD_REPLY_CELL_HEIGHT 48
 
@@ -22,13 +23,10 @@
 @property (nonatomic, strong) Post *parentPost;
 @property (nonatomic, strong) Post *post;
 
-@property (nonatomic, strong) UILabel *navTitle;
-
-@property (nonatomic, strong) UIScrollView *scrollView;
 @property (nonatomic, strong) UITableView *tableView;
 @property (nonatomic, strong) PostStream *stream;
 @property (nonatomic, strong) ComposeInputView *composeInputView;
-@property (nonatomic, strong) UIImageView *parentPostScrollIndicator;
+@property (nonatomic, strong) TappableView *parentPostScrollIndicator;
 
 @property (nonatomic) CGFloat currentKeyboardHeight;
 

@@ -53,7 +53,7 @@ static InsightsLogger *logger;
      queuedBatches =>
         add: newBatch
      */
-    NSInteger MAX_LENGTH_HRS = [Session sharedInstance].defaults.logging.insights.impressions.batching.max_length_hrs;
+    NSInteger MAX_LENGTH_HRS = [Session sharedInstance].defaults.logging.insights.impressions.batching.maxLengthHrs;
     
     // NSLog(@"completed timeframes count (before): %ld", (long)[self completedTimeframesCount]);
     
@@ -92,35 +92,29 @@ static InsightsLogger *logger;
     }
 }
 
-- (nullable InsightsLoggerTimeframe *)activeTimeframeForPostId:(NSInteger)postId {
-    NSString *idString = [self stringifyId:postId];
-    if ([logger.activeTimeframes objectForKey:idString]) {
-        return logger.activeTimeframes[idString];
+- (nullable InsightsLoggerTimeframe *)activeTimeframeForPostId:(NSString *)postId {
+    if ([logger.activeTimeframes objectForKey:postId]) {
+        return logger.activeTimeframes[postId];
     }
     
     return nil;
 }
-- (NSInteger)completedTimeframeCountForPostId:(NSInteger)postId {
-    NSString *idString = [self stringifyId:postId];
-    if ([logger.completedTimeframes objectForKey:idString]) {
-        return ((NSArray *)logger.completedTimeframes[idString]).count;
+- (NSInteger)completedTimeframeCountForPostId:(NSString *)postId {
+    if ([logger.completedTimeframes objectForKey:postId]) {
+        return ((NSArray *)logger.completedTimeframes[postId]).count;
     }
     
     return 0;
 }
-- (NSArray *)completedTimeframesForPostId:(NSInteger)postId {
-    NSString *idString = [self stringifyId:postId];
-    if ([logger.completedTimeframes objectForKey:idString]) {
-        return ((NSArray *)logger.completedTimeframes[idString]);
+- (NSArray *)completedTimeframesForPostId:(NSString *)postId {
+    if ([logger.completedTimeframes objectForKey:postId]) {
+        return ((NSArray *)logger.completedTimeframes[postId]);
     }
     
     return @[];
 }
-- (NSString *)stringifyId:(NSInteger)postId {
-    return [NSString stringWithFormat:@"%ld", (long)postId];
-}
 
-- (void)openPostInsight:(NSInteger)postId seenIn:(NSString *)seenIn {
+- (void)openPostInsight:(NSString *)postId seenIn:(NSString *)seenIn {
     // don't open post insight if one is already open
     if ([self activeTimeframeForPostId:postId]) {
         return;
@@ -132,41 +126,38 @@ static InsightsLogger *logger;
     
     // NSLog(@"✳️ openPostInsight(%li) seenIn(%@)", postId, seenIn);
     
-    [logger.activeTimeframes setObject:newTimeframe forKey:[self stringifyId:postId]];
+    [logger.activeTimeframes setObject:newTimeframe forKey:postId];
 }
 - (void)openAllVisiblePostInsightsInTableView:(UITableView *)tableView seenIn:(NSString *)seenIn {
     // NSLog(@"openAllVisiblePostInsightsInTableView()");
     NSArray *visibleCells = [tableView visibleCells];
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        for (UITableViewCell *cell in visibleCells) {
-            Post *post;
-            if ([cell isKindOfClass:[PostCell class]]) {
-                PostCell *postCell = (PostCell *)cell;
-                post = postCell.post;
-            } else if ([cell isKindOfClass:[ExpandedPostCell class]]) {
-                ExpandedPostCell *PostCell = (ExpandedPostCell *)cell;
-                post = PostCell.post;
-            }
-            else {
-                continue;
-            }
-            
-            // skip logging if invalid post identifier (most likely due to a loading cell)
-            if (!post.identifier) continue;
-            
-            [logger openPostInsight:post.identifier seenIn:seenIn];
+    for (UITableViewCell *cell in visibleCells) {
+        Post *post;
+        if ([cell isKindOfClass:[PostCell class]]) {
+            PostCell *postCell = (PostCell *)cell;
+            post = postCell.post;
+        } else if ([cell isKindOfClass:[ExpandedPostCell class]]) {
+            ExpandedPostCell *PostCell = (ExpandedPostCell *)cell;
+            post = PostCell.post;
         }
-    });
+        else {
+            continue;
+        }
+        
+        // skip logging if invalid post identifier (most likely due to a loading cell)
+        if (!post.identifier) continue;
+        
+        [logger openPostInsight:post.identifier seenIn:seenIn];
+    }
 }
 
-- (void)closePostInsight:(NSInteger)postId action:(NSString * _Nullable)action {
-    NSString *idString = [self stringifyId:postId];
-    if (![logger.activeTimeframes objectForKey:idString]) {
+- (void)closePostInsight:(NSString *)postId action:(NSString * _Nullable)action {
+    if (![logger.activeTimeframes objectForKey:postId]) {
         // NSLog(@"attempted to close non-existent post insight (%ld)", (long)postId);
         return;
     }
     
-    InsightsLoggerTimeframe *timeframe = logger.activeTimeframes[idString];
+    InsightsLoggerTimeframe *timeframe = logger.activeTimeframes[postId];
     timeframe.ts_end = [NSDate new];
     
     // NSLog(@"❌ closePostInsight(%li) action(%@)", postId, action);
@@ -175,7 +166,7 @@ static InsightsLogger *logger;
     }
     
     // -- remove timeframe from activeTimeframes
-    [logger.activeTimeframes removeObjectForKey:idString];
+    [logger.activeTimeframes removeObjectForKey:postId];
     
     // min of 1s on screen
     if ([timeframe.ts_end timeIntervalSinceDate:timeframe.ts_start] >= 1) {
@@ -184,7 +175,7 @@ static InsightsLogger *logger;
         // -- add timeframe to completedTimeframes
         NSMutableArray *mutableCompletedTimeframes = [[NSMutableArray alloc] initWithArray:[self completedTimeframesForPostId:postId]];
         [mutableCompletedTimeframes addObject:timeframe];
-        [logger.completedTimeframes setObject:mutableCompletedTimeframes forKey:idString];
+        [logger.completedTimeframes setObject:mutableCompletedTimeframes forKey:postId];
         [self updateCompletedDefaults];
         
         // determine if completed timeframes meets criteria to upload
@@ -199,7 +190,7 @@ static InsightsLogger *logger;
     // NSLog(@"closeAllPostInsights()");
     
     for (NSString *key in [logger.activeTimeframes allKeys]) {
-        [self closePostInsight:[key integerValue] action:nil];
+        [self closePostInsight:key action:nil];
     }
 }
 - (void)closeAllVisiblePostInsightsInTableView:(UITableView *)tableView {
@@ -230,7 +221,7 @@ static InsightsLogger *logger;
 - (void)sync {
     BOOL createBatch = false;
     
-    NSInteger MAX_TIMEFRAMES = [Session sharedInstance].defaults.logging.insights.impressions.batching.max_timeframes;
+    NSInteger MAX_TIMEFRAMES = [Session sharedInstance].defaults.logging.insights.impressions.batching.maxTimeframes;
     
     // NSLog(@"%ld out of %ld", (long)[self completedTimeframesCount], (long)MAX_TIMEFRAMES);
     
@@ -259,48 +250,46 @@ static InsightsLogger *logger;
     [self addCurrentBatchToQueue];
 }
 - (void)uploadBatches {
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
-        NSMutableArray *queuedBatchesCopy = [[NSMutableArray alloc] initWithArray:logger.queuedBatches];
-        for (NSDictionary *batch in logger.queuedBatches) {
-            // simulate a POST request finishing successfully
-            
-            // remove object from queued batches to avoid duplicates
-            [queuedBatchesCopy removeObject:batch];
-            
-            [Session authenticate:^(BOOL success, NSString *token) {
-                HAWebService *insightsManager = [[HAWebService alloc] init];
-                
-                NSLog(@"set up the manager");
-                
-                [insightsManager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
-                insightsManager.requestSerializer.HTTPMethodsEncodingParametersInURI = [NSSet setWithObjects:@"GET", @"HEAD", nil];
-                
-                NSDictionary *normalizedBatch = [self normalizeBatch:batch];
-                [insightsManager POST:@"insights/impressions" parameters:@{@"impressions": normalizedBatch} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                    // success
-                    NSLog(@"successfully uploaded batch");
-                    NSLog(@"response: %@", responseObject);
-                    [self sync];
-                } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                    NSLog(@"failed to uploaded batch");
-                    NSLog(@"error:");
-                    NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-                    NSLog(@"%@", ErrorResponse);
-                    
-                    NSHTTPURLResponse *httpResponse = error.userInfo[AFNetworkingOperationFailingURLResponseErrorKey];
-                    NSInteger statusCode = httpResponse.statusCode;
-                    if (statusCode != 401) {
-                        if (![logger.queuedBatches containsObject:batch]) {
-                            [logger.queuedBatches addObject:batch];
-                            [logger updateQueuedDefaults];
-                        }
-                    }
-                }];
-            }];
-        }
+    NSMutableArray *queuedBatchesCopy = [[NSMutableArray alloc] initWithArray:logger.queuedBatches];
+    for (NSDictionary *batch in logger.queuedBatches) {
+        // simulate a POST request finishing successfully
         
-        logger.queuedBatches = queuedBatchesCopy;
-    });
+        // remove object from queued batches to avoid duplicates
+        [queuedBatchesCopy removeObject:batch];
+        
+        [Session authenticate:^(BOOL success, NSString *token) {
+            HAWebService *insightsManager = [[HAWebService alloc] init];
+            
+            NSLog(@"set up the manager");
+            
+            [insightsManager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
+            insightsManager.requestSerializer.HTTPMethodsEncodingParametersInURI = [NSSet setWithObjects:@"GET", @"HEAD", nil];
+            
+            NSDictionary *normalizedBatch = [self normalizeBatch:batch];
+            [insightsManager POST:@"insights/impressions" parameters:@{@"impressions": normalizedBatch} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+                // success
+                NSLog(@"successfully uploaded batch");
+                NSLog(@"response: %@", responseObject);
+                [self sync];
+            } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+                NSLog(@"failed to uploaded batch");
+                NSLog(@"error:");
+                NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+                NSLog(@"%@", ErrorResponse);
+                
+                NSHTTPURLResponse *httpResponse = error.userInfo[AFNetworkingOperationFailingURLResponseErrorKey];
+                NSInteger statusCode = httpResponse.statusCode;
+                if (statusCode != 401) {
+                    if (![logger.queuedBatches containsObject:batch]) {
+                        [logger.queuedBatches addObject:batch];
+                        [logger updateQueuedDefaults];
+                    }
+                }
+            }];
+        }];
+    }
+    
+    logger.queuedBatches = queuedBatchesCopy;
 }
 - (NSDictionary *)normalizeBatch:(NSDictionary *)batch {
     NSMutableDictionary *mutableBatch = [[NSMutableDictionary alloc] init];

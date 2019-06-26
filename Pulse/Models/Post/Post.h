@@ -6,14 +6,16 @@
 #import <UIKit/UIKit.h>
 #import <Foundation/Foundation.h>
 #import <JSONModel/JSONModel.h>
-#import "Room.h"
+#import "Camp.h"
 #import "BFMedia.h"
 #import "BFHostedVersions.h"
+#import "BFContext.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 @protocol Post;
 @protocol PostAttachmentsMedia;
+@protocol PostEntity;
 
 @class Post;
 @class PostAttributes;
@@ -23,17 +25,15 @@ NS_ASSUME_NONNULL_BEGIN
 @class PostSummaries;
 @class PostDetails;
 @class PostDetails;
-@class PostContext;
-@class PostContextReplies;
-@class PostContextVote;
 @class PostAttachments;
 @class PostAttachmentsMedia;
 @class PostAttachmentsMediaAtributes;
 @class PostAttachmentsMediaAtributesRawMedia;
+@class PostEntity;
 
 @interface Post : JSONModel
 
-@property (nonatomic) NSInteger identifier;
+@property (nonatomic) NSString *identifier;
 
 // Used when creating a post
 @property (nonatomic) NSString <Optional> *tempId;
@@ -42,9 +42,12 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic) PostAttributes <Optional> *attributes;
 
 - (BOOL)requiresURLPreview;
-- (void)createTempWithMessage:(NSString *)message media:(BFMedia *)media postedIn:(Room * _Nullable)postedIn parentId:(NSInteger)parentId;
+- (void)createTempWithMessage:(NSString *)message media:(BFMedia *)media postedIn:(Camp * _Nullable)postedIn parentId:(NSString *)parentId;
 + (NSString *_Nullable)trimString:(NSString *_Nullable)string;
 - (BOOL)isEmojiPost;
+
+@property (nonatomic) NSString <Optional> *prevCursor;
+@property (nonatomic) NSString <Optional> *nextCursor;
 
 @end
 
@@ -53,7 +56,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic) PostDetails <Optional> *details;
 @property (nonatomic) PostStatus <Optional> *status;
 @property (nonatomic) PostSummaries <Optional> *summaries;
-@property (nonatomic) PostContext <Optional> *context;
+@property (nonatomic) BFContext <Optional> *context;
 
 @end
 
@@ -61,12 +64,13 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic) NSString <Optional> *message;
 @property (nonatomic) PostAttachments <Optional> *attachments;
+@property (nonatomic) NSArray <PostEntity *> <PostEntity, Optional> *entities;
 @property (nonatomic) NSString <Optional> *url;
 @property (nonatomic) BOOL hasMedia;
 @property (nonatomic) NSArray <Optional> *media;
 @property (nonatomic) User <Optional> *creator;
 // parent post ID --> used for Post replies
-@property (nonatomic) NSInteger parentId;
+@property (nonatomic) NSString <Optional> *parentId;
 @property (nonatomic) NSString <Optional> *parentUsername;
 @property (nonatomic) NSArray <Post *> <Post, Optional> * _Nullable replies;
 
@@ -78,7 +82,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface PostStatus : JSONModel
 
-@property (nonatomic) Room <Optional> *postedIn;
+@property (nonatomic) Camp <Optional> *postedIn;
 @property (nonatomic) NSString <Optional> *createdAt;
 @property (nonatomic) PostStatusDisplay <Optional> *display;
 
@@ -86,6 +90,11 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface PostStatusDisplay : JSONModel
 
+extern NSString * const POST_CHOSEN_RECENT;
+extern NSString * const POST_CHOSEN_POPULAR;
+extern NSString * const POST_CHOSEN_FOLLOWED;
+extern NSString * const POST_CHOSEN_SUGGESTED;
+extern NSString * const POST_CHOSEN_SPONSORED;
 @property (nonatomic) NSString <Optional> *reason;
 
 @end
@@ -101,25 +110,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic) NSArray <Post *> <Post, Optional> *replies;
 @property (nonatomic) PostCounts <Optional> *counts;
-
-@end
-
-@interface PostContext : JSONModel
-
-@property (nonatomic) PostContextReplies <Optional> *replies;
-@property (nonatomic) PostContextVote <Optional> *vote;
-
-@end
-
-@interface PostContextReplies : JSONModel
-
-@property (nonatomic) NSInteger count;
-
-@end
-
-@interface PostContextVote : JSONModel
-
-@property (nonatomic) NSString *createdAt;
 
 @end
 
@@ -159,6 +149,20 @@ typedef enum {
 @interface PostAttachmentsMediaAtributesRawMedia : JSONModel
 
 @property (nonatomic) NSString <Optional> *value;
+
+@end
+
+@interface PostEntity : JSONModel
+
+extern NSString * const POST_ENTITY_TYPE_PROFILE;
+extern NSString * const POST_ENTITY_TYPE_CAMP;
+extern NSString * const POST_ENTITY_TYPE_URL;
+@property (nonatomic) NSString <Optional> *type;
+
+@property (nonatomic) NSString <Optional> *displayText;
+@property (nonatomic) NSString <Optional> *expandedUrl;
+@property (nonatomic) NSString <Optional> *actionUrl;
+@property (nonatomic) NSArray <Optional> *indices;
 
 @end
 

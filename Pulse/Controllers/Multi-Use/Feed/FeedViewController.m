@@ -15,6 +15,7 @@
 #import <PINCache/PINCache.h>
 #import "TabController.h"
 #import "HAWebService.h"
+#import "MiniAvatarListCell.h"
 @import Firebase;
 
 #define tv ((RSTableView *)self.tableView)
@@ -31,49 +32,33 @@
 @property CGFloat maxHeaderHeight;
 @property (nonatomic, strong) NSMutableArray *posts;
 
+@property (nonatomic, strong) NSMutableArray *users;
+@property (nonatomic) BOOL loadingUsers;
+@property (nonatomic) BOOL errorLoadingUsers;
+
 @end
 
 @implementation FeedViewController
 
 static NSString * const reuseIdentifier = @"Post";
-static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
 
 - (id)initWithFeedType:(FeedType)feedType {
-    self = [super init];
+    self = [super initWithStyle:UITableViewStyleGrouped];
     if (self) {
         self.feedType = feedType;
-        [self setupTableView];
-        [self setupErrorView];
     }
     
     return self;
-}
-- (void)setupTableView {
-    self.tableView = [[RSTableView alloc] initWithFrame:self.view.bounds style:UITableViewStyleGrouped];
-    tv.separatorColor = [UIColor separatorColor];
-    tv.separatorInset = UIEdgeInsetsZero;
-    tv.dataType = RSTableViewTypeFeed;
-    tv.dataSubType = (self.feedType == FeedTypeTimeline ? RSTableViewSubTypeHome : RSTableViewSubTypeTrending);
-    tv.loading = true;
-    tv.loadingMore = false;
-    tv.paginationDelegate = self;
-    self.tableView.refreshControl = [[UIRefreshControl alloc] init];
-    [self.tableView sendSubviewToBack:self.tableView.refreshControl];
-    [self.tableView.refreshControl addTarget:self action:@selector(refresh) forControlEvents:UIControlEventValueChanged];
-    
-    self.tableView.scrollIndicatorInsets = UIEdgeInsetsZero;
-    
-    [self setupContent];
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     
-    self.view.backgroundColor = [UIColor colorWithWhite:1 alpha:1];
-    self.navigationItem.hidesBackButton = true;
+    [self setupTableView];
+    [self setupErrorView];
     
-    [self setupNavigationBar];
+    self.view.backgroundColor = [UIColor whiteColor];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userUpdated:) name:@"UserUpdated" object:nil];
     
@@ -82,6 +67,8 @@ static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(newPostFailed:) name:@"NewPostFailed" object:nil];
     
     if (self.feedType == FeedTypeTimeline) {
+        //tv.parentObject = nil; // in the future set this to @[] or the users following cache
+        
         // Google Analytics
         [FIRAnalytics setScreenName:@"Home" screenClass:nil];
         
@@ -91,6 +78,25 @@ static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
         // Google Analytics
         [FIRAnalytics setScreenName:@"Trending" screenClass:nil];
     }
+}
+
+- (void)setupTableView {
+    self.tableView = [[RSTableView alloc] initWithFrame:self.view.bounds style:UITableViewStyleGrouped];
+    tv.separatorColor = [UIColor separatorColor];
+    tv.dataType = RSTableViewTypeFeed;
+    tv.tableViewStyle = RSTableViewStyleDefault;
+    tv.dataSubType = (self.feedType == FeedTypeTimeline ? RSTableViewSubTypeHome : RSTableViewSubTypeTrending);
+    tv.loading = true;
+    tv.loadingMore = false;
+    tv.paginationDelegate = self;
+    tv.showsVerticalScrollIndicator = false;
+    self.tableView.refreshControl = [[UIRefreshControl alloc] init];
+    [self.tableView sendSubviewToBack:self.tableView.refreshControl];
+    [self.tableView.refreshControl addTarget:self action:@selector(refresh) forControlEvents:UIControlEventValueChanged];
+    
+    self.tableView.scrollIndicatorInsets = UIEdgeInsetsZero;
+    
+    [self setupContent];
 }
 
 - (void)userUpdated:(NSNotification *)notification {
@@ -110,9 +116,18 @@ static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
     if (tempPost != nil && tempPost.attributes.details.parentId == 0) {
         // TODO: Check for image as well
         self.errorView.hidden = true;
-        [tv.stream addTempPost:tempPost];
 
-        [tv reloadData];
+        [tv beginUpdates];
+        if (tv.stream.tempPostPosition == PostStreamOptionTempPostPositionBottom) {
+            // bottom
+            [tv insertSections:[NSIndexSet indexSetWithIndex:[tv numberOfSections]] withRowAnimation:UITableViewRowAnimationNone];
+        }
+        else {
+            // top
+            [tv insertSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationNone];
+        }
+        [tv.stream addTempPost:tempPost];
+        [tv endUpdates];
     }
 }
 - (void)newPostCompleted:(NSNotification *)notification {
@@ -126,11 +141,10 @@ static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
         // TODO: Check for image as well
         self.errorView.hidden = true;
         
-        [tv.stream updateTempPost:tempId withFinalPost:post];
-        [tv refresh];
+        BOOL removedTempPost = [tv.stream removeTempPost:tempId];
         
-        if (tv.contentOffset.y > 100 && self.morePostsIndicator.tag != 1) {
-            [self showMorePostsIndicator:YES];
+        if (removedTempPost) {
+            [self fetchNewPosts];
         }
     }
 }
@@ -169,38 +183,41 @@ static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
     else {
         self.view.tag = 1;
         
+        self.tableView.backgroundColor = [UIColor whiteColor];
+        
         self.morePostsIndicator = [UIButton buttonWithType:UIButtonTypeCustom];
-        self.morePostsIndicator.frame = CGRectMake(self.view.frame.size.width / 2 - (134 / 2), self.navigationController.navigationBar.frame.origin.y + self.navigationController.navigationBar.frame.size.height + 12, 134, 34);
+        self.morePostsIndicator.frame = CGRectMake(self.view.frame.size.width / 2 - (156 / 2), self.navigationController.navigationBar.frame.origin.y + self.navigationController.navigationBar.frame.size.height + 12, 156, 40);
         self.morePostsIndicator.layer.masksToBounds = false;
         self.morePostsIndicator.layer.shadowOffset = CGSizeMake(0, 1);
-        self.morePostsIndicator.layer.shadowColor = [UIColor blackColor].CGColor;
-        self.morePostsIndicator.layer.shadowOpacity = 0.1;
+        self.morePostsIndicator.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.12f].CGColor;
+        self.morePostsIndicator.layer.shadowOpacity = 1.f;
         self.morePostsIndicator.layer.shadowRadius = 2.f;
         self.morePostsIndicator.tag = 0; // inactive
         self.morePostsIndicator.layer.cornerRadius = self.morePostsIndicator.frame.size.height / 2;
-        self.morePostsIndicator.backgroundColor = [UIColor colorWithWhite:1 alpha:0.98];
+        self.morePostsIndicator.backgroundColor = [UIColor colorWithWhite:1 alpha:0.96];
         [self.morePostsIndicator setTitle:@"See new Posts" forState:UIControlStateNormal];
         [self.morePostsIndicator setTitleColor:[UIColor bonfireBlack] forState:UIControlStateNormal];
-        self.morePostsIndicator.titleLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightSemibold];
+        self.morePostsIndicator.titleLabel.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightBold];
+        self.morePostsIndicator.layer.shouldRasterize = true;
+        self.morePostsIndicator.layer.rasterizationScale = [UIScreen mainScreen].scale;
+        CGFloat intrinsticWidth = self.morePostsIndicator.intrinsicContentSize.width + (18*2);
+        self.morePostsIndicator.frame = CGRectMake(self.view.frame.size.width / 2 - intrinsticWidth / 2, self.morePostsIndicator.frame.origin.y, intrinsticWidth, self.morePostsIndicator.frame.size.height);
+        
         [self.navigationController.view insertSubview:self.morePostsIndicator belowSubview:self.navigationController.navigationBar];
         
         [self.morePostsIndicator bk_addEventHandler:^(id sender) {
-            [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+            [UIView animateWithDuration:0.25f delay:0 usingSpringWithDamping:0.8f initialSpringVelocity:0.4f options:UIViewAnimationOptionCurveEaseOut animations:^{
                 self.morePostsIndicator.transform = CGAffineTransformMakeScale(0.9, 0.9);
             } completion:nil];
         } forControlEvents:UIControlEventTouchDown];
         
         [self.morePostsIndicator bk_addEventHandler:^(id sender) {
-            [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+            [UIView animateWithDuration:0.25f delay:0 usingSpringWithDamping:0.9f initialSpringVelocity:0.4f options:UIViewAnimationOptionCurveEaseOut animations:^{
                 self.morePostsIndicator.transform = CGAffineTransformMakeScale(1, 1);
             } completion:nil];
-        } forControlEvents:(UIControlEventTouchCancel|UIControlEventTouchDragExit)];
+        } forControlEvents:(UIControlEventTouchUpInside|UIControlEventTouchCancel|UIControlEventTouchDragExit)];
         
         [self.morePostsIndicator bk_whenTapped:^{
-            [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-                self.morePostsIndicator.transform = CGAffineTransformMakeScale(1, 1);
-            } completion:nil];
-            
             [self hideMorePostsIndicator:YES];
             
             [tv scrollToTop];
@@ -208,10 +225,10 @@ static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
         
         [self hideMorePostsIndicator:false];
         
-        [self loadCache];
+        tv.tableViewStyle = RSTableViewStyleDefault;
     }
     
-    [self styleOnAppear];
+    self.errorView.center = CGPointMake(self.view.frame.size.width / 2, self.tableView.frame.size.height / 2 - self.navigationController.navigationBar.frame.size.height - self.navigationController.navigationBar.frame.origin.y);
 }
 
 - (void)hideMorePostsIndicator:(BOOL)animated {
@@ -246,6 +263,8 @@ static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     
+    self.errorView.center = CGPointMake(self.view.frame.size.width / 2, self.tableView.frame.size.height / 2 - self.navigationController.navigationBar.frame.size.height - self.navigationController.navigationBar.frame.origin.y);
+    
     // Register Siri intent
     NSString *activityTypeString = [NSString stringWithFormat:@"com.Ingenious.bonfire.open-feed-%@", self.feedType == FeedTypeTrending ? @"trending" : @"timeline"];
     NSUserActivity *activity = [[NSUserActivity alloc] initWithActivityType:activityTypeString];
@@ -267,12 +286,8 @@ static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
     [activity becomeCurrent];
 }
 
-- (void)styleOnAppear {
-    self.errorView.center = CGPointMake(self.view.frame.size.width / 2, self.tableView.frame.size.height / 2 - self.navigationController.navigationBar.frame.size.height - self.navigationController.navigationBar.frame.origin.y);
-}
-
 - (void)setupErrorView {
-    self.errorView = [[ErrorView alloc] initWithFrame:CGRectMake(16, 0, self.view.frame.size.width - 32, 100) title:@"Room Not Found" description:@"We couldn’t find the Room you were looking for" type:ErrorViewTypeNotFound];
+    self.errorView = [[ErrorView alloc] initWithFrame:CGRectMake(16, 0, self.view.frame.size.width - 32, 100) title:@"Error Loading" description:@"Check your network settings and tap here to try again" type:ErrorViewTypeNotFound];
     self.errorView.center = self.tableView.center;
     self.errorView.hidden = true;
     [self.tableView addSubview:self.errorView];
@@ -284,18 +299,22 @@ static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
         tv.loadingMore = false;
         [self.tableView reloadData];
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            [self getPostsWithSinceId:0 maxId:0];
+            tv.stream = [[PostStream alloc] init];
+            tv.stream.delegate = self;
+            [self getPostsWithCursor:PostStreamPagingCursorTypeNone];
         });
     }];
 }
 
 - (void)setupContent {
     tv.stream = [[PostStream alloc] init];
+    tv.stream.delegate = self;
     
+    [self loadCache];
     [self fetchNewPosts];
 }
 
-- (void)loadCache {
+- (void)loadCache {    
     NSArray *cache = @[];
     if (self.feedType == FeedTypeTimeline) {
         cache = [[PINCache sharedCache] objectForKey:@"home_feed_cache"];
@@ -304,47 +323,71 @@ static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
         cache = [[PINCache sharedCache] objectForKey:@"trending_feed_cache"];
     }
     
+//    NSLog(@"home feed cache:");
+//    NSLog(@"%@", [[PINCache sharedCache] objectForKey:@"home_feed_cache"]);
+    
     if (cache.count > 0) {
-        NSLog(@"cache count: %ld", cache.count);
+        tv.stream = [[PostStream alloc] init];
+        tv.stream.delegate = self;
         
-        tv.stream.posts = @[];
-        tv.stream.pages = [[NSMutableArray alloc] init];
+        for (NSDictionary *pageDict in cache) {
+            PostStreamPage *page = [[PostStreamPage alloc] initWithDictionary:pageDict error:nil];
+            [tv.stream appendPage:page];
+        }
         
-        PostStreamPage *page = [[PostStreamPage alloc] initWithDictionary:@{@"data": cache} error:nil];
-        [tv.stream appendPage:page];
-        
-        NSLog(@"add cache'd page with top id: %ld", (long)page.topId);
-        
-        [tv refresh];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [tv refresh];
+        });
     }
     else {
         tv.stream = [[PostStream alloc] init];
+        tv.stream.delegate = self;
     }
+}
+- (void)saveCache {
+    NSString *cacheKey;
+    if (self.feedType == FeedTypeTimeline) {
+        cacheKey = @"home_feed_cache";
+    }
+    if (self.feedType == FeedTypeTrending) {
+        cacheKey = @"trending_feed_cache";
+    }
+    
+    if (cacheKey) {
+        NSMutableArray *newCache = [[NSMutableArray alloc] init];
+
+        NSInteger postsCount = 0;
+        for (NSInteger i = 0; i < tv.stream.pages.count && postsCount < MAX_FEED_CACHED_POSTS; i++) {
+            postsCount =+ tv.stream.pages[i].data.count;
+            [newCache addObject:[tv.stream.pages[i] toDictionary]];
+        }
+        
+        [[PINCache sharedCache] setObject:[newCache copy] forKey:cacheKey];
+    }
+}
+- (void)postStreamDidUpdate:(PostStream *)stream {
+    [self saveCache];
 }
 
 - (void)fetchNewPosts {
-    NSLog(@"fetchNewPosts()");
     lastFetch = [NSDate new];
-    [self getPostsWithSinceId:tv.stream.topId maxId:0];
-}
-
-- (void)setupNavigationBar {
-    self.navigationController.navigationBar.barStyle = UIBarStyleDefault;
-    [self setNeedsStatusBarAppearanceUpdate];
+    [self getPostsWithCursor:PostStreamPagingCursorTypePrevious];
 }
 
 - (void)tableViewDidScroll:(UITableView *)tableView {
-    if (tableView.contentOffset.y <= 100 && self.morePostsIndicator.tag == 1) {
-        NSLog(@"hide that post indicator");
+    CGFloat normalizedScrollViewContentOffsetY = tableView.contentOffset.y + tableView.adjustedContentInset.top;
+    
+    if (normalizedScrollViewContentOffsetY <= 100 && self.morePostsIndicator.tag == 1) {
         [self hideMorePostsIndicator:YES];
     }
 }
 
 - (void)tableView:(id)tableView didRequestNextPageWithMaxId:(NSInteger)maxId {
-    if (tv.stream.posts.count > 0) {
-        Post *lastPost = [tv.stream.posts lastObject];
-        
-        [self getPostsWithSinceId:0 maxId:lastPost.identifier];
+    NSLog(@"has loaded cursor (%@):::: %@", tv.stream.nextCursor, [tv.stream hasLoadedCursor:tv.stream.nextCursor] ? @"true" : @"false");
+    
+    if (tv.stream.nextCursor.length > 0 && ![tv.stream hasLoadedCursor:tv.stream.nextCursor]) {
+        NSLog(@"get next cursor:: %@", tv.stream.nextCursor);
+        [self getPostsWithCursor:PostStreamPagingCursorTypeNext];
     }
 }
 
@@ -352,7 +395,7 @@ static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
     self.userDidRefresh = true;
     [self fetchNewPosts];
 }
-- (void)getPostsWithSinceId:(NSInteger)sinceId maxId:(NSInteger)maxId {
+- (void)getPostsWithCursor:(PostStreamPagingCursorType)cursorType {
     self.tableView.hidden = false;
     if ([self.tableView isKindOfClass:[RSTableView class]] && tv.stream.posts.count == 0) {
         self.errorView.hidden = true;
@@ -369,46 +412,35 @@ static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
     }
     
     NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
-    if (sinceId != 0 || maxId == 0) {
-        [params setObject:[NSNumber numberWithInteger:sinceId] forKey:@"since_id"];
+    if (cursorType == PostStreamPagingCursorTypeNext) {
+        [params setObject:tv.stream.nextCursor forKey:@"cursor"];
     }
-    if (maxId != 0) {
-        [params setObject:[NSNumber numberWithInteger:maxId-1] forKey:@"max_id"];
+    else if (tv.stream.prevCursor.length > 0) {
+        [params setObject:tv.stream.prevCursor forKey:@"cursor"];
+    }
+    if ([params objectForKey:@"cursor"]) {
+        [tv.stream addLoadedCursor:params[@"cursor"]];
     }
     
     NSLog(@"GET -> %@", url);
     NSLog(@"params: %@", params);
     
     [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        NSInteger postsBefore = tv.stream.posts.count;
+        
         PostStreamPage *page = [[PostStreamPage alloc] initWithDictionary:responseObject error:nil];
         if (page.data.count > 0) {
-            if (sinceId != 0) {
+            if (cursorType == PostStreamPagingCursorTypeNone || cursorType == PostStreamPagingCursorTypePrevious) {
                 [tv.stream prependPage:page];
             }
-            else {
+            else if (cursorType == PostStreamPagingCursorTypeNext) {
                 [tv.stream appendPage:page];
             }
             
-            NSLog(@"responseObject: %@", responseObject);
-            
-            // save cache
-            NSString *cacheKey;
-            if (self.feedType == FeedTypeTimeline) {
-                cacheKey = @"home_feed_cache";
-            }
-            if (self.feedType == FeedTypeTrending) {
-                cacheKey = @"trending_feed_cache";
-            }
-            
-            if (cacheKey) {
-                NSArray *newCache = tv.stream.posts;
-                if (newCache.count > MAX_FEED_CACHED_POSTS) {
-                    newCache = [newCache subarrayWithRange:NSMakeRange(0, MAX_FEED_CACHED_POSTS)];
-                }
-                
-                [[PINCache sharedCache] setObject:newCache forKey:cacheKey];
-            }
+            [self saveCache];
         }
+        
+        NSInteger postsAfter = tv.stream.posts.count;
         
         if (tv.stream.posts.count == 0 && self.feedType == FeedTypeTimeline) {
             // Error: No posts yet!
@@ -423,9 +455,12 @@ static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
         }
         
         self.loading = false;
-        
         tv.loading = false;
-        tv.loadingMore = false;
+        if (cursorType == PostStreamPagingCursorTypeNext) {
+            tv.loadingMore = false;
+        }
+        
+        NSLog(@"new posts: %ld", postsAfter - postsBefore);
         
         [tv refresh];
         
@@ -433,14 +468,10 @@ static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
             self.userDidRefresh = false;
         }
         else {
-            /* DEBUG
-             NSLog(@"posts count: %ld", tv.stream.posts.count);
-             NSLog(@"posts count: %ld", page.data.count);
-             NSLog(@"posts count: %f", self.tableView.contentOffset.y);
-             */
+            // DEBUG
+            CGFloat normalizedScrollViewContentOffsetY = tv.contentOffset.y + tv.adjustedContentInset.top;
             
-            if (tv.stream.posts.count > 0 && page.data.count > 0 && self.tableView.contentOffset.y > 100 && sinceId != 0) {
-                NSLog(@"show more posts indicator");
+            if (postsAfter > postsBefore && normalizedScrollViewContentOffsetY > 100 && cursorType == PostStreamPagingCursorTypePrevious) {
                 [self showMorePostsIndicator:YES];
             }
         }
@@ -469,15 +500,12 @@ static NSString * const suggestionsCellIdentifier = @"ChannelSuggestionsCell";
         
         self.loading = false;
         tv.loading = false;
-        tv.loadingMore = false;
+        if (cursorType == PostStreamPagingCursorTypeNext) {
+            tv.loadingMore = false;
+        }
         self.tableView.userInteractionEnabled = true;
         [tv refresh];
     }];
-}
-
-- (UIStatusBarStyle)preferredStatusBarStyle
-{
-    return UIStatusBarStyleLightContent;
 }
 
 @end

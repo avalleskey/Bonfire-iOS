@@ -37,21 +37,21 @@
         self.selectable = true;
         
         self.selectionStyle = UITableViewCellSelectionStyleNone;
-        self.backgroundColor = [UIColor whiteColor];
         self.layer.masksToBounds = true;
         self.tintColor = self.superview.tintColor;
+        self.contentView.clipsToBounds = true;
+        
+        self.backgroundColor = [UIColor contentBackgroundColor];
+        self.contentView.backgroundColor = [UIColor clearColor];
         
         self.post = [[Post alloc] init];
         
-        self.contextView = [[PostContextView alloc] init];
-        [self.contentView addSubview:self.contextView];
-        
-        self.profilePicture = [[BFAvatarView alloc] initWithFrame:CGRectMake(12, 12, 56, 56)];
+        self.profilePicture = [[BFAvatarView alloc] initWithFrame:CGRectMake(12, 12, 48, 48)];
         self.profilePicture.openOnTap = false;
         self.profilePicture.dimsViewOnTap = true;
         self.profilePicture.allowOnlineDot = true;
         [self.profilePicture bk_whenTapped:^{
-            [[Launcher sharedInstance] openProfile:self.post.attributes.details.creator];
+            [Launcher openProfile:self.post.attributes.details.creator];
         }];
         [self.contentView addSubview:self.profilePicture];
         
@@ -76,7 +76,7 @@
         self.moreButton.frame = CGRectMake(0, self.dateLabel.frame.origin.y, self.moreButton.currentImage.size.width, self.dateLabel.frame.size.height);
         self.moreButton.adjustsImageWhenHighlighted = false;
         [self.moreButton bk_whenTapped:^{
-            [[Launcher sharedInstance] openActionsForPost:self.post];
+            [Launcher openActionsForPost:self.post];
         }];
         [self.contentView addSubview:self.moreButton];
         
@@ -88,11 +88,21 @@
         [self.contentView addSubview:self.textView];
         
         [self initImagesView];
-        //[self initURLPreviewView];
+        [self initURLPreviewView];
         
         self.lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, (1 / [UIScreen mainScreen].scale))];
         self.lineSeparator.backgroundColor = [UIColor separatorColor];
         [self addSubview:self.lineSeparator];
+        
+        #ifdef DEBUG
+        UILongPressGestureRecognizer *longPress = [[UILongPressGestureRecognizer alloc] bk_initWithHandler:^(UIGestureRecognizer *sender, UIGestureRecognizerState state, CGPoint location) {
+            if (state == UIGestureRecognizerStateBegan) {
+                // recognized long press
+                [Launcher openDebugView:self.post];
+            }
+        }];
+        [self addGestureRecognizer:longPress];
+        #endif
     }
     
     return self;
@@ -104,105 +114,21 @@
     [self.contentView addSubview:self.imagesView];
 }
 
-- (void)openPostActions {
-    // Three Categories of Post Actions
-    // 1) Any user
-    // 2) Creator
-    // 3) Admin
-    BOOL isCreator     = ([self.post.attributes.details.creator.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]);
-    BOOL isRoomAdmin   = false;
-    
-    // Page action can be shown on
-    // A) Any page
-    // B) Inside Room
-    // BOOL insideRoom    = true; // compare ID of post room and active room
-    
-    UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:nil message:nil preferredStyle:UIAlertControllerStyleActionSheet];
-    
-    if (self.post.attributes.details.message.length > 0) {
-        UIAlertAction *copyPost = [UIAlertAction actionWithTitle:@"Copy" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-            UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
-            pasteboard.string = [NSString stringWithFormat:@"\"%@\" - @%@ on Bonfire. Download here: %@", self.post.attributes.details.message, self.post.attributes.details.creator.attributes.details.identifier, @"http://testflight.com/bonfire-ios"];
-            
-            JGProgressHUD *HUD = [JGProgressHUD progressHUDWithStyle:JGProgressHUDStyleExtraLight];
-            HUD.textLabel.text = @"Copied!";
-            HUD.vibrancyEnabled = false;
-            HUD.animation = [[JGProgressHUDFadeZoomAnimation alloc] init];
-            HUD.tintColor = [UIColor colorWithWhite:0 alpha:0.6f];
-            HUD.textLabel.textColor = HUD.tintColor;
-            HUD.backgroundColor = [UIColor colorWithWhite:0 alpha:0.1f];
-            HUD.indicatorView = [[JGProgressHUDSuccessIndicatorView alloc] init];
-            
-            [HUD showInView:[Launcher sharedInstance].activeViewController.view animated:YES];
-            [HapticHelper generateFeedback:FeedbackType_Notification_Success];
-            
-            [HUD dismissAfterDelay:1.5f];
-        }];
-        [actionSheet addAction:copyPost];
-    }
-    
-    // !2.A.* -- Not Creator, any page, any following state
-    if (!isCreator) {
-        UIAlertAction *reportPost = [UIAlertAction actionWithTitle:@"Report Post" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-            // confirm action
-            UIAlertController *confirmDeletePostActionSheet = [UIAlertController alertControllerWithTitle:@"Report Post" message:@"Are you sure you want to report this post?" preferredStyle:UIAlertControllerStyleAlert];
-            
-            UIAlertAction *confirmDeletePost = [UIAlertAction actionWithTitle:@"Report" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
-                [BFAPI reportPost:self.post.identifier completion:^(BOOL success, id responseObject) {
-                    // NSLog(@"reported post!");
-                }];
-            }];
-            [confirmDeletePostActionSheet addAction:confirmDeletePost];
-            
-            UIAlertAction *cancelDeletePost = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
-            [confirmDeletePostActionSheet addAction:cancelDeletePost];
-            
-            [UIViewParentController(self) presentViewController:confirmDeletePostActionSheet animated:YES completion:nil];
-        }];
-        [actionSheet addAction:reportPost];
-    }
-    
-    // 2|3.A.* -- Creator or room admin, any page, any following state
-    if (isCreator || isRoomAdmin) {
-        UIAlertAction *deletePost = [UIAlertAction actionWithTitle:@"Delete" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
-            [actionSheet dismissViewControllerAnimated:YES completion:nil];
-            // confirm action
-            UIAlertController *confirmDeletePostActionSheet = [UIAlertController alertControllerWithTitle:@"Delete Post" message:@"Are you sure you want to delete this post?" preferredStyle:UIAlertControllerStyleAlert];
-            
-            UIAlertAction *confirmDeletePost = [UIAlertAction actionWithTitle:@"Delete" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
-                NSLog(@"delete post");
-                // confirm action
-                [BFAPI deletePost:self.post completion:^(BOOL success, id responseObject) {
-                    if (success) {
-                        
-                    }
-                }];
-            }];
-            [confirmDeletePostActionSheet addAction:confirmDeletePost];
-            
-            UIAlertAction *cancelDeletePost = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
-            [confirmDeletePostActionSheet addAction:cancelDeletePost];
-            
-            [UIViewParentController(self) presentViewController:confirmDeletePostActionSheet animated:YES completion:nil];
-        }];
-        [actionSheet addAction:deletePost];
-    }
-    
-    UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
-    [actionSheet addAction:cancel];
-    
-    [[Launcher.sharedInstance activeViewController] presentViewController:actionSheet animated:YES completion:nil];
+- (void)initURLPreviewView {
+    // url preview view
+    self.urlPreviewView = [[PostURLPreviewView alloc] initWithFrame:CGRectMake(self.textView.frame.origin.x, 56, self.textView.frame.size.width, [PostImagesView streamImageHeight])];
+    [self.contentView addSubview:self.imagesView];
 }
 
-+ (NSAttributedString *)attributedCreatorStringForPost:(Post *)post includeTimestamp:(BOOL)includeTimestamp includeContext:(BOOL)includeContext {
-    // set display name + room name combo
++ (NSAttributedString *)attributedCreatorStringForPost:(Post *)post includeTimestamp:(BOOL)includeTimestamp showCamptag:(BOOL)showCamptag {
+    // set display name + camp name combo
     NSString *username = post.attributes.details.creator.attributes.details.identifier != nil ? [NSString stringWithFormat:@"@%@", post.attributes.details.creator.attributes.details.identifier] : @"anonymous";
     
     UIFont *font = [UIFont systemFontOfSize:15.f weight:UIFontWeightRegular];
     
     NSMutableAttributedString *creatorString = [[NSMutableAttributedString alloc] initWithString:username];
     PatternTapResponder creatorTapResponder = ^(NSString *string) {
-        [[Launcher sharedInstance] openProfile:post.attributes.details.creator];
+        [Launcher openProfile:post.attributes.details.creator];
     };
     [creatorString addAttribute:RLTapResponderAttributeName value:creatorTapResponder range:NSMakeRange(0, creatorString.length)];
     [creatorString addAttribute:NSForegroundColorAttributeName value:[UIColor bonfireBlack] range:NSMakeRange(0, creatorString.length)];
@@ -221,12 +147,12 @@
         NSTextAttachment *attachment = [[NSTextAttachment alloc] init];
         attachment.image = [UIImage imageNamed:@"verifiedIcon_small"];
         [attachment setBounds:CGRectMake(0, roundf(font.capHeight - attachment.image.size.height)/2.f, attachment.image.size.width, attachment.image.size.height)];
-        
+     
         NSAttributedString *attachmentString = [NSAttributedString attributedStringWithAttachment:attachment];
         [creatorString appendAttributedString:attachmentString];
     }*/
     
-    BOOL isReply = post.attributes.details.parentId != 0;
+    BOOL isReply = post.attributes.details.parentId.length > 0  ;
     
     if (includeTimestamp) {
         NSMutableAttributedString *connector = [[NSMutableAttributedString alloc] initWithString:@"  "];
@@ -242,37 +168,41 @@
             [creatorString appendAttributedString:timeAgoString];
         }
     }
-    else if (includeContext) {
-        if (isReply || (post.attributes.status.postedIn != 0)) {
-            NSMutableAttributedString *spacer = [[NSMutableAttributedString alloc] initWithString:@" "];
-            [spacer addAttribute:NSFontAttributeName value:font range:NSMakeRange(0, spacer.length)];
+    else if (showCamptag && post.attributes.status.postedIn != 0) {
+        // create spacer
+        NSMutableAttributedString *spacer = [[NSMutableAttributedString alloc] initWithString:@" "];
+        [spacer addAttribute:NSFontAttributeName value:font range:NSMakeRange(0, spacer.length)];
+        
+        // spacer
+        [creatorString appendAttributedString:spacer];
+        
+        NSTextAttachment *attachment = [[NSTextAttachment alloc] init];
+        attachment.image = [UIImage imageNamed:@"postedInTriangleIcon-1"];
+        [attachment setBounds:CGRectMake(0, roundf(font.capHeight - attachment.image.size.height)/2.f, attachment.image.size.width, attachment.image.size.height)];
+        
+        NSAttributedString *attachmentString = [NSAttributedString attributedStringWithAttachment:attachment];
+        [creatorString appendAttributedString:attachmentString];
+        
+        // spacer
+        [creatorString appendAttributedString:spacer];
+        
+        NSString *campTitle = [NSString stringWithFormat:@"#%@", post.attributes.status.postedIn.attributes.details.identifier];
+        NSMutableAttributedString *campTitleString = [[NSMutableAttributedString alloc] initWithString:campTitle];
+        [campTitleString addAttribute:NSForegroundColorAttributeName value:[UIColor bonfireGray] range:NSMakeRange(0, campTitleString.length)];
+        [campTitleString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:font.pointSize weight:UIFontWeightSemibold] range:NSMakeRange(0, campTitleString.length)];
+        
+        [creatorString appendAttributedString:campTitleString];
+        
+        if ([post.attributes.status.postedIn.attributes.status.visibility isPrivate]) {
+            // spacer
             [creatorString appendAttributedString:spacer];
             
-            NSTextAttachment *attachment = [[NSTextAttachment alloc] init];
-            attachment.image = [UIImage imageNamed:@"postedInTriangleIcon-1"];
-            [attachment setBounds:CGRectMake(0, roundf(font.capHeight - attachment.image.size.height)/2.f, attachment.image.size.width, attachment.image.size.height)];
+            NSTextAttachment *lockAttachment = [[NSTextAttachment alloc] init];
+            lockAttachment.image = [UIImage imageNamed:@"inlinePostLockIcon"];
+            [lockAttachment setBounds:CGRectMake(0, roundf(font.capHeight - lockAttachment.image.size.height)/2.f, lockAttachment.image.size.width, lockAttachment.image.size.height)];
             
-            NSAttributedString *attachmentString = [NSAttributedString attributedStringWithAttachment:attachment];
-            [creatorString appendAttributedString:attachmentString];
-            
-            [creatorString appendAttributedString:spacer];
-            
-            if (isReply) {
-                NSString *roomTitle = [NSString stringWithFormat:@"@%@'s post", post.attributes.details.parentUsername];
-                NSMutableAttributedString *roomTitleString = [[NSMutableAttributedString alloc] initWithString:roomTitle];
-                [roomTitleString addAttribute:NSForegroundColorAttributeName value:[UIColor bonfireGray] range:NSMakeRange(0, roomTitleString.length)];
-                [roomTitleString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:font.pointSize weight:UIFontWeightMedium] range:NSMakeRange(0, roomTitleString.length)];
-                
-                [creatorString appendAttributedString:roomTitleString];
-            }
-            else {
-                NSString *roomTitle = [NSString stringWithFormat:@"#%@", post.attributes.status.postedIn.attributes.details.identifier];
-                NSMutableAttributedString *roomTitleString = [[NSMutableAttributedString alloc] initWithString:roomTitle];
-                [roomTitleString addAttribute:NSForegroundColorAttributeName value:[UIColor bonfireGray] range:NSMakeRange(0, roomTitleString.length)];
-                [roomTitleString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:font.pointSize weight:UIFontWeightMedium] range:NSMakeRange(0, roomTitleString.length)];
-                
-                [creatorString appendAttributedString:roomTitleString];
-            }
+            NSAttributedString *lockAttachmentString = [NSAttributedString attributedStringWithAttachment:lockAttachment];
+            [creatorString appendAttributedString:lockAttachmentString];
         }
     }
     

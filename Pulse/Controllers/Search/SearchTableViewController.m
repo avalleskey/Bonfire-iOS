@@ -60,18 +60,6 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
 
 - (void)viewDidDisappear:(BOOL)animated {
     [super viewDidDisappear:animated];
-        
-    if (self.navigationController.viewControllers.count > 2) {
-        NSMutableArray *navigationArray = [[NSMutableArray alloc] initWithArray: self.navigationController.viewControllers];
-        
-        for (NSInteger i = navigationArray.count-2; i >= 0; i--) {
-            if ([navigationArray[i] isKindOfClass:[SearchTableViewController class]]) {
-                [navigationArray removeObjectAtIndex:i];
-            }
-        }
-    
-        self.navigationController.viewControllers = navigationArray;
-    }
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -94,7 +82,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     self.tableView.backgroundColor = [UIColor headerBackgroundColor];
     //self.tableView.contentInset = UIEdgeInsetsMake(self.navigationController.navigationBar.frame.origin.y + self.navigationController.navigationBar.frame.size.height, 0, 0, 0);
     self.tableView.separatorStyle = UITableViewCellSeparatorStyleSingleLine;
-    self.tableView.separatorInset = UIEdgeInsetsMake(0, 68, 0, 0);
+    self.tableView.separatorInset = UIEdgeInsetsMake(0, 70, 0, 0);
     self.tableView.separatorColor = [UIColor separatorColor];
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
     
@@ -140,8 +128,8 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
             case BFSearchResultsTypeTop:
                 url = [url stringByAppendingString:@"/top"];
                 break;
-            case BFSearchResultsTypeRooms:
-                url = [url stringByAppendingString:@"/rooms"];
+            case BFSearchResultsTypeCamps:
+                url = [url stringByAppendingString:@"/camps"];
                 break;
             case BFSearchResultsTypeUsers:
                 url = [url stringByAppendingString:@"/users"];
@@ -169,7 +157,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
             self.searchResults = [[NSMutableArray alloc] init];
             [self populateSearchResults:responseData];
             
-            if (self.searchResults.count == 0 && [searchText validateBonfireUsername] != BFValidationErrorNone) {
+            if (self.searchResults.count == 0 && !([self showRecents] &&  self.recentSearchResults.count == 0) && [searchText validateBonfireUsername] != BFValidationErrorNone && [searchText validateBonfireCampTag] != BFValidationErrorNone) {
                 // Error: No posts yet!
                 self.errorView.hidden = false;
                 
@@ -180,6 +168,12 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
             }
             
             NSLog(@"self.searchResults: %@", self.searchResults);
+            if (self.searchResults.count == 0) {
+                self.tableView.separatorInset = UIEdgeInsetsMake(0, 12, 0, 0);
+            }
+            else {
+                self.tableView.separatorInset = UIEdgeInsetsMake(0, 70, 0, 0);
+            }
             
             [self.tableView reloadData];
         } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
@@ -191,7 +185,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     }
 }
 - (void)populateSearchResults:(NSDictionary *)responseData {
-    [self.searchResults addObjectsFromArray:responseData[@"results"][@"rooms"]];
+    [self.searchResults addObjectsFromArray:responseData[@"results"][@"camps"]];
     [self.searchResults addObjectsFromArray:responseData[@"results"][@"users"]];
 }
 
@@ -224,7 +218,14 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
             searchText = ((ComplexNavigationController *)self.navigationController).searchView.textField.text;
         }
         
-        cell.buttonLabel.text = [NSString stringWithFormat:@"Go to @%@", searchText];
+        if (indexPath.row == 0 && [searchText validateBonfireCampTag] == BFValidationErrorNone) {
+            // camp
+            cell.buttonLabel.text = [NSString stringWithFormat:@"Go to #%@", searchText];
+        }
+        else {
+            // user
+            cell.buttonLabel.text = [NSString stringWithFormat:@"Go to @%@", searchText];
+        }
         cell.buttonLabel.textColor = [UIColor bonfireBlack];
         
         return cell;
@@ -248,7 +249,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
             json = self.searchResults[indexPath.row];
         }
         if (json[@"type"]) {
-            if ([json[@"type"] isEqualToString:@"room"]) {
+            if ([json[@"type"] isEqualToString:@"camp"]) {
                 type = 1;
             }
             else if ([json[@"type"] isEqualToString:@"user"]) {
@@ -258,25 +259,26 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
         cell.type = type;
         
         if (type == 0) {
-            // 0 = page inside Home (e.g. Timeline, My Rooms, Trending)
+            // 0 = page inside Home (e.g. Timeline, My Camps, Trending)
             cell.textLabel.text = @"Page";
             cell.imageView.image = [UIImage new];
             cell.imageView.backgroundColor = [UIColor blueColor];
         }
         else if (type == 1) {
             NSError *error;
-            Room *room = [[Room alloc] initWithDictionary:json error:&error];
-            if (error) { NSLog(@"room error: %@", error); };
+            Camp *camp = [[Camp alloc] initWithDictionary:json error:&error];
+            if (error) { NSLog(@"camp error: %@", error); };
             
-            // 1 = Room
-            cell.profilePicture.room = room;
-            cell.textLabel.text = room.attributes.details.title;
+            // 1 = Camp
+            cell.profilePicture.camp = camp;
+            cell.textLabel.text = camp.attributes.details.title;
             
-            NSString *detailText = [NSString stringWithFormat:@"#%@ · %ld %@", room.attributes.details.identifier, (long)room.attributes.summaries.counts.members, (room.attributes.summaries.counts.members == 1 ? [Session sharedInstance].defaults.room.membersTitle.singular : [Session sharedInstance].defaults.room.membersTitle.plural)];
-            BOOL useLiveCount = room.attributes.summaries.counts.live > [Session sharedInstance].defaults.room.liveThreshold;
+            NSString *detailText = [NSString stringWithFormat:@"#%@ · %ld %@", camp.attributes.details.identifier, (long)camp.attributes.summaries.counts.members, (camp.attributes.summaries.counts.members == 1 ? [Session sharedInstance].defaults.camp.membersTitle.singular : [Session sharedInstance].defaults.camp.membersTitle.plural)];
+            /*BOOL useLiveCount = camp.attributes.summaries.counts.live > [Session sharedInstance].defaults.camp.liveThreshold;
             if (useLiveCount) {
-                cell.detailTextLabel.text = [NSString stringWithFormat:@"%@ · %li LIVE", detailText, (long)room.attributes.summaries.counts.live];
-            }
+                cell.detailTextLabel.text = [NSString stringWithFormat:@"%@ · %li LIVE", detailText, (long)camp.attributes.summaries.counts.live];
+            }*/
+            
             cell.detailTextLabel.text = detailText;
         }
         else {
@@ -308,7 +310,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
         return 52;
     }
     
-    return 64;
+    return 68;
 }
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     return 2;
@@ -335,16 +337,31 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     if (indexPath.section == 1 &&
         searchText.length > 0 &&
         self.searchResults.count == 0) {
-        // Go to @{username}
-        User *user = [[User alloc] init];
-        user.type = @"user";
-        UserAttributes *attributes = [[UserAttributes alloc] init];
-        UserDetails *details = [[UserDetails alloc] init];
-        details.identifier = [searchText stringByReplacingOccurrencesOfString:@"@" withString:@""];
-        attributes.details = details;
-        user.attributes = attributes;
-        
-        [[Launcher sharedInstance] openProfile:user];
+        if (indexPath.row == 0 && [searchText validateBonfireCampTag] == BFValidationErrorNone) {
+            // Go to #{camptag}
+            Camp *camp = [[Camp alloc] init];
+            camp.type = @"camp";
+            CampAttributes *attributes = [[CampAttributes alloc] init];
+            CampDetails *details = [[CampDetails alloc] init];
+            details.identifier = [searchText stringByReplacingOccurrencesOfString:@"#" withString:@""];
+            attributes.details = details;
+            camp.attributes = attributes;
+            
+            [Launcher openCamp:camp];
+        }
+        else {
+            // user
+            // Go to @{username}
+            User *user = [[User alloc] init];
+            user.type = @"user";
+            UserAttributes *attributes = [[UserAttributes alloc] init];
+            UserDetails *details = [[UserDetails alloc] init];
+            details.identifier = [searchText stringByReplacingOccurrencesOfString:@"@" withString:@""];
+            attributes.details = details;
+            user.attributes = attributes;
+            
+            [Launcher openProfile:user];
+        }
     }
     else {
         NSDictionary *json;
@@ -356,33 +373,18 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
             json = self.searchResults[indexPath.row];
         }
         if (json[@"type"]) {
-            if ([json[@"type"] isEqualToString:@"room"]) {
-                Room *room = [[Room alloc] initWithDictionary:json error:nil];
+            if ([json[@"type"] isEqualToString:@"camp"]) {
+                Camp *camp = [[Camp alloc] initWithDictionary:json error:nil];
                 
-                [[Launcher sharedInstance] openRoom:room];
+                [Launcher openCamp:camp];
             }
             else if ([json[@"type"] isEqualToString:@"user"]) {
                 User *user = [[User alloc] initWithDictionary:json error:nil];
                 
-                [[Launcher sharedInstance] openProfile:user];
+                [Launcher openProfile:user];
             }
         }
     }
-    
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.4f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        BFSearchView *searchView;
-        if ([self.navigationController isKindOfClass:[SearchNavigationController class]]) {
-            searchView = ((SearchNavigationController *)self.navigationController).searchView;
-            [self.navigationController popToRootViewControllerAnimated:NO];
-            [searchView updateSearchText:@""];
-        }
-        else if ([self.navigationController isKindOfClass:[ComplexNavigationController class]]) {
-            searchView = ((ComplexNavigationController *)self.navigationController).searchView;
-        }
-        if (searchView && searchView.textField.text.length == 0) {
-            [self.tableView reloadData];
-        }
-    });
     
     [searchView.textField resignFirstResponder];
 }
@@ -406,11 +408,15 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
         
         if (searchText.length > 0) {
             if (self.searchResults.count == 0) {
+                CGFloat rows = 0;
+                if ([searchText validateBonfireCampTag] == BFValidationErrorNone) {
+                    rows++;
+                }
                 if ([searchText validateBonfireUsername] == BFValidationErrorNone) {
-                    return 1;
+                    rows++;
                 }
                 
-                return 0;
+                return rows;
             }
             else {
                 return self.searchResults.count;
@@ -575,8 +581,8 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
         [self tableView:self.tableView didSelectRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
     }
     else {
-        if (self.searchResults && [self.searchResults objectForKey:@"results"] && [[self.searchResults objectForKey:@"results"] objectForKey:@"rooms"] && [self.searchResults[@"results"][@"rooms"] count] > 0) {
-            // has at least one room
+        if (self.searchResults && [self.searchResults objectForKey:@"results"] && [[self.searchResults objectForKey:@"results"] objectForKey:@"camps"] && [self.searchResults[@"results"][@"camps"] count] > 0) {
+            // has at least one camp
             [self tableView:self.tableView didSelectRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:1]];
         }
         else if (self.searchResults && [self.searchResults objectForKey:@"results"] && [[self.searchResults objectForKey:@"results"] objectForKey:@"users"] && [self.searchResults[@"results"][@"users"] count] > 0) {

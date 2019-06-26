@@ -42,6 +42,11 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (BOOL)useWhiteForegroundForColor:(UIColor*)backgroundColor;
 
+
++ (UIColor * _Nonnull) contentBackgroundColor;
+
++ (UIColor * _Nonnull) contentHighlightedColor;
+
 /**
  *  Header background color
  *

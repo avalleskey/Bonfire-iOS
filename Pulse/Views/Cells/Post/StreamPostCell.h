@@ -8,17 +8,22 @@
 
 #import "PostCell.h"
 #import "PostActionsView.h"
+#import "PostContextView.h"
 
-#define postContentOffset UIEdgeInsetsMake(10, 80, 10, 12)
+#define postContentOffset UIEdgeInsetsMake(10, 70, 10, 12)
 
 @interface StreamPostCell : PostCell <UITextFieldDelegate, PostTextViewDelegate>
 
-@property (nonatomic) BOOL includeContext;
+@property (nonatomic, strong) PostContextView *contextView;
+
+@property (nonatomic) BOOL showContext;
+@property (nonatomic) BOOL showCamptag;
 
 @property (nonatomic, strong) PostActionsView *actionsView;
+@property (nonatomic, strong) UIView *bottomLine;
 
-- (void)setSparked:(BOOL)isSparked animated:(BOOL)animated;
+- (void)setVoted:(BOOL)isVoted animated:(BOOL)animated;
 
-+ (CGFloat)heightForPost:(Post *)post;
++ (CGFloat)heightForPost:(Post *)post showContext:(BOOL)showContext;
 
 @end

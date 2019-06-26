@@ -11,6 +11,7 @@
 #import <SafariServices/SafariServices.h>
 #import "NSDate+NVTimeAgo.h"
 #import "StreamPostCell.h"
+#import "UIColor+Palette.h"
 
 @implementation LoadingCell
 
@@ -27,32 +28,33 @@
         self.backgroundColor = [UIColor whiteColor];
         
         self.shimmerContainer = [[FBShimmeringView alloc] init];
-        self.shimmerContainer.shimmeringSpeed = 600;
+        self.shimmerContainer.shimmeringSpeed = 800;
         [self addSubview:self.shimmerContainer];
         
         self.shimmerContentView = [[UIView alloc] init];
         
         self.profilePicture.imageView.image = [UIImage new];
-        self.profilePicture.imageView.backgroundColor = [UIColor colorWithWhite:0.94f alpha:1];
+        self.profilePicture.imageView.backgroundColor = [[UIColor separatorColor] colorWithAlphaComponent:0.5];
+        self.profilePicture.allowOnlineDot = false;
         [self.profilePicture removeFromSuperview];
         [self.shimmerContentView addSubview:self.profilePicture];
         
         self.nameLabel.textColor = [UIColor clearColor];
         self.nameLabel.layer.cornerRadius = 8.f;
         self.nameLabel.layer.masksToBounds = true;
-        self.nameLabel.backgroundColor = [UIColor colorWithWhite:0.94f alpha:1];
+        self.nameLabel.backgroundColor = [[UIColor separatorColor] colorWithAlphaComponent:0.5];
         [self.nameLabel removeFromSuperview];
         [self.shimmerContentView addSubview:self.nameLabel];
         
         // text view
-        self.textView.backgroundColor = [UIColor colorWithWhite:0.94f alpha:1];
+        self.textView.backgroundColor = [[UIColor separatorColor] colorWithAlphaComponent:0.5];
         self.textView.layer.cornerRadius = 8.f;
         self.textView.layer.masksToBounds = true;
         [self.textView removeFromSuperview];
         [self.shimmerContentView addSubview:self.textView];
                 
         // image view
-        self.imagesView.backgroundColor = [UIColor colorWithWhite:0.94f alpha:1];
+        self.imagesView.backgroundColor = [[UIColor separatorColor] colorWithAlphaComponent:0.5];
         // self.imagesView.image = nil;
         [self.imagesView removeFromSuperview];
         [self.shimmerContentView addSubview:self.imagesView];

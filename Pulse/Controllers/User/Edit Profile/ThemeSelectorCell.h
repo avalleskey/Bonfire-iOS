@@ -10,6 +10,12 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+@protocol ThemeSelectorDelegate <NSObject>
+
+- (void)themeSelectionDidChange:(NSString *)newHex;
+
+@end
+
 @interface ThemeSelectorCell : UITableViewCell
 
 @property (strong, nonatomic) UIScrollView *scrollView;
@@ -17,6 +23,11 @@ NS_ASSUME_NONNULL_BEGIN
 @property (strong, nonatomic) NSString *selectedColor;
 
 @property (strong, nonatomic) UILabel *selectorLabel;
+
+@property (nonatomic) BOOL canSetCustomColor;
+@property (strong, nonatomic) UIImageView *customColorView;
+
+@property (nonatomic, weak) id <ThemeSelectorDelegate> delegate;
 
 @end
 

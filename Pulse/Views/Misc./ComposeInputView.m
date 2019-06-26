@@ -13,12 +13,13 @@
 #import "UIColor+Palette.h"
 #import "Launcher.h"
 #import <SDWebImage/UIImageView+WebCache.h>
-#import <FLAnimatedImage/FLAnimatedImage.h>
+#import <SDWebImage/SDAnimatedImageView+WebCache.h>
 #import <Photos/Photos.h>
 
 #import "PostViewController.h"
-#import "RoomViewController.h"
+#import "CampViewController.h"
 #import "ProfileViewController.h"
+#import <HapticHelper/HapticHelper.h>
 
 #define headerHeight 58
 #define postButtonShrinkScale 0.9
@@ -62,7 +63,7 @@
     self.frame = CGRectMake(0, self.frame.origin.y, screenWidth, self.frame.size.height);
     
     self.contentView = [[UIView alloc] initWithFrame:self.bounds];
-    self.contentView.backgroundColor = [UIColor whiteColor];
+    self.contentView.backgroundColor = [UIColor contentBackgroundColor];
     [self addSubview:self.contentView];
     
     self.layer.masksToBounds = false;
@@ -80,12 +81,14 @@
     _textView.contentInset = UIEdgeInsetsZero;
     _textView.textContainerInset = UIEdgeInsetsMake(9, 12, 9, 44);
     _textView.textContainer.lineBreakMode = NSLineBreakByWordWrapping;
-    _textView.textColor = [UIColor colorWithWhite:0.07f alpha:1];
+    _textView.textColor = [UIColor bonfireBlack];
     _textView.layer.cornerRadius = 20.f;
     _textView.backgroundColor = [[UIColor fromHex:@"9FA6AD"] colorWithAlphaComponent:0.1];
     _textView.layer.borderWidth = (1 / [UIScreen mainScreen].scale);
     _textView.layer.borderColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.06f].CGColor;
     _textView.placeholder = defaultPlaceholder;
+    _textView.placeholderColor = [UIColor bonfireGray];
+    _textView.keyboardAppearance = UIKeyboardAppearanceLight;
     [self.contentView addSubview:_textView];
     
     _mediaScrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 8, _textView.frame.size.width, 140 - 16)];
@@ -161,7 +164,7 @@
     self.postButton.layer.shadowRadius = 3.f;
     self.postButton.transform = CGAffineTransformMakeScale(postButtonShrinkScale, postButtonShrinkScale);
     [self.postButton bk_addEventHandler:^(id sender) {
-        [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+        [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:(UIViewAnimationOptionCurveEaseOut|UIViewAnimationOptionAllowUserInteraction) animations:^{
             self.postButton.alpha = 0.8;
             self.postButton.transform = CGAffineTransformMakeScale(postButtonShrinkScale, postButtonShrinkScale);
         } completion:nil];
@@ -170,7 +173,7 @@
     [self.postButton bk_addEventHandler:^(id sender) {
         NSLog(@"cancel or drag exit");
         if (self.textView.text.length > 0 || self.media.objects.count > 0) {
-            [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+            [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:(UIViewAnimationOptionCurveEaseOut|UIViewAnimationOptionAllowUserInteraction) animations:^{
                 self.postButton.alpha = 1;
                 self.postButton.transform = CGAffineTransformMakeScale(1, 1);
             } completion:nil];
@@ -314,7 +317,7 @@
     }
     else if ([parentController isKindOfClass:[ProfileViewController class]]) {
         ProfileViewController *parentProfile = (ProfileViewController *)parentController;
-        if ([parentProfile.user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
+        if ([parentProfile.user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier] || [self.textView isFirstResponder]) {
             // me
             defaultPlaceholder = publicPostPlaceholder;
         }
@@ -322,17 +325,17 @@
             defaultPlaceholder = [NSString stringWithFormat:@"Share with @%@", parentProfile.user.attributes.details.identifier];
         }
     }
-    else if ([parentController isKindOfClass:[RoomViewController class]]) {
-        RoomViewController *parentRoom = (RoomViewController *)parentController;
-        if (parentRoom.room == nil) {
+    else if ([parentController isKindOfClass:[CampViewController class]]) {
+        CampViewController *parentCamp = (CampViewController *)parentController;
+        if (parentCamp.camp == nil) {
             defaultPlaceholder = publicPostPlaceholder;
         }
         else {
-            if (parentRoom.room.attributes.details.title == nil) {
+            if (parentCamp.camp.attributes.details.title == nil) {
                 defaultPlaceholder = @"Share something...";
             }
             else {
-                defaultPlaceholder = [[Session sharedInstance].defaults.post.composePrompt stringByReplacingOccurrencesOfString:@"{group_name}" withString:parentRoom.room.attributes.details.title];
+                defaultPlaceholder = [[Session sharedInstance].defaults.post.composePrompt stringByReplacingOccurrencesOfString:@"{group_name}" withString:parentCamp.camp.attributes.details.title];
             }
         }
     }
@@ -386,6 +389,16 @@
     }
     
     return result;
+}
+
+- (void)reset {
+    self.textView.text = @"";
+    [self hidePostButton];
+    [self.textView resignFirstResponder];
+    [self.media flush];
+    [self hideMediaTray];
+    [self setReplyingTo:nil];
+    [self updateMediaAvailability];
 }
 
 - (void)setActive:(BOOL)isActive {
@@ -510,12 +523,15 @@
     [picker dismissViewControllerAnimated:YES completion:nil];
 }
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary<NSString *,id> *)info {
+    NSLog(@"didFinishPickingMediaWithInfo");
     // determine file type
     PHAsset *asset = info[UIImagePickerControllerPHAsset];
     if (asset) {
+        NSLog(@"asset:D");
         [self.media addAsset:asset];
     }
     else {
+        NSLog(@"image:D");
         UIImage *chosenImage = info[UIImagePickerControllerOriginalImage];
         [self.media addImage:chosenImage];
     }
@@ -531,15 +547,15 @@
     
     NSData *data = object.data;
     
-    FLAnimatedImageView *view = [[FLAnimatedImageView alloc] init];
+    SDAnimatedImageView *view = [[SDAnimatedImageView alloc] init];
     view.userInteractionEnabled = true;
     view.backgroundColor = [UIColor blueColor];
     view.layer.cornerRadius = 14.f;
     view.layer.masksToBounds = true;
     view.contentMode = UIViewContentModeScaleAspectFill;
     if ([object.MIME isEqualToString:BFMediaObjectMIME_GIF]) {
-        FLAnimatedImage *animatedImage = [FLAnimatedImage animatedImageWithGIFData:data];
-        view.animatedImage = animatedImage;
+        SDAnimatedImage *animatedImage = [SDAnimatedImage imageWithData:data];
+        view.image = animatedImage;
         
         UIImage *image = [UIImage imageWithData:data];
         [view.widthAnchor constraintEqualToAnchor:view.heightAnchor multiplier:(image.size.width/image.size.height)].active = true;

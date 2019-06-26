@@ -9,6 +9,8 @@
 #ifndef BFMacros_h
 #define BFMacros_h
 
+#define APP_DOWNLOAD_LINK @"https://testflight.apple.com/join/dvJgSQhf"
+
 //////////////////////////////////////////////////////////////////
 // CGRect
 //////////////////////////////////////////////////////////////////
@@ -45,5 +47,11 @@
 #define IS_IPHONE_XR ([[UIScreen mainScreen] bounds].size.height==896)
 #define IS_IPHONE_5 ([[UIScreen mainScreen] bounds].size.height == 568.0)
 #define HAS_ROUNDED_CORNERS (IS_IPHONE_X || IS_IPHONE_MAX || IS_IPHONE_XR)
+
+#define SYSTEM_VERSION_EQUAL_TO(v)                  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedSame)
+#define SYSTEM_VERSION_GREATER_THAN(v)              ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedDescending)
+#define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v)  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
+#define SYSTEM_VERSION_LESS_THAN(v)                 ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedAscending)
+#define SYSTEM_VERSION_LESS_THAN_OR_EQUAL_TO(v)     ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedDescending)
 
 #endif /* BFMacros_h */

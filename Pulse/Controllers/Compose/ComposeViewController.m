@@ -49,7 +49,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     self.view.backgroundColor = [UIColor whiteColor];
     self.navigationController.navigationBar.tintColor = [UIColor bonfireBlack];
     
-    maxLength = [Session sharedInstance].defaults.post.maxLength;
+    maxLength = [Session sharedInstance].defaults.post.maxLength.soft;
     
     if (self.replyingTo) {
         // strip snapshot from post replying to
@@ -118,14 +118,12 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         }
         else if (self.postingIn) {
             [self updateTitleText:self.postingIn.attributes.details.title];
-            self.titleLabel.alpha = 1;
             [self updatePlaceholder];
-            self.titleAvatar.room = self.postingIn;
+            self.titleAvatar.camp = self.postingIn;
         }
         else {
-            [self updateTitleText:@"Select a Camp"];
-            self.titleLabel.alpha = 0.75;
-            self.titleAvatar.room = nil;
+            [self updateTitleText:@"My Profile"];
+            self.titleAvatar.user = [[Session sharedInstance] currentUser];
         }
         
         [self updateTintColor];
@@ -175,10 +173,13 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     
     self.titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 26, 102, 13)];
     self.titleLabel.font = [UIFont systemFontOfSize:11.f weight:UIFontWeightMedium];
+    self.titleLabel.textColor = [UIColor bonfireBlack];
     [self.titleView addSubview:self.titleLabel];
 
-    self.titleCaret = [[UIImageView alloc] initWithFrame:CGRectMake(0, self.titleLabel.frame.origin.y + 1, 7, 12)];
-    self.titleCaret.image = [UIImage imageNamed:@"navCaretIcon"];
+    UIImage *caretImage = [[UIImage imageNamed:@"navCaretIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+    self.titleCaret = [[UIImageView alloc] initWithFrame:CGRectMake(0, self.titleLabel.frame.origin.y + (self.titleLabel.frame.size.height / 2) - (caretImage.size.height / 2) + 1, caretImage.size.width, caretImage.size.height)];
+    self.titleCaret.image = caretImage;
+    self.titleCaret.tintColor = [UIColor bonfireBlack];
     self.titleCaret.contentMode = UIViewContentModeCenter;
     [self.titleView addSubview:self.titleCaret];
     
@@ -199,28 +200,26 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         self.titleAvatar.center = CGPointMake(self.titleView.frame.size.width / 2, self.titleAvatar.center.y);
     }
 }
-- (void)privacySelectionDidChange:(Room * _Nullable)selection {
+- (void)privacySelectionDidChange:(Camp * _Nullable)selection {
     self.postingIn = selection;
     
     if (self.postingIn) {
         [self updateTitleText:self.postingIn.attributes.details.title];
-        self.titleLabel.alpha = 1;
-        self.titleAvatar.room = self.postingIn;
+        self.titleAvatar.camp = self.postingIn;
     }
     else {
-        [self updateTitleText:@"Select a Camp"];
-        self.titleLabel.alpha = 0.75;
-        self.titleAvatar.room = nil;
+        [self updateTitleText:@"My Profile"];
+        self.titleAvatar.user = [[Session sharedInstance] currentUser];
     }
     [self updatePlaceholder];
     [self updateTintColor];
 }
 - (void)updateTintColor {
-    Room *room;
+    Camp *camp;
     User *user;
     if (self.replyingTo) {
         if (self.replyingTo.attributes.status.postedIn) {
-            room = self.replyingTo.attributes.status.postedIn;
+            camp = self.replyingTo.attributes.status.postedIn;
         }
         else {
             user = self.replyingTo.attributes.details.creator;
@@ -228,15 +227,15 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     }
     else {
         if (self.postingIn) {
-            room = self.postingIn;
+            camp = self.postingIn;
         }
         else {
             user = [Session sharedInstance].currentUser;
         }
     }
     
-    if (room) {
-        self.view.tintColor = [UIColor fromHex:room.attributes.details.color];
+    if (camp) {
+        self.view.tintColor = [UIColor fromHex:camp.attributes.details.color];
     }
     else if (user) {
         self.view.tintColor = [UIColor fromHex:user.attributes.details.color];
@@ -277,7 +276,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     
     self.toolbarView = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleLight]];
     self.toolbarView.frame = CGRectMake(0, self.view.frame.size.height - toolbarHeight, self.view.frame.size.width, toolbarHeight);
-    self.toolbarView.backgroundColor = [UIColor colorWithRed:0.98 green:0.98 blue:0.99 alpha:0.8];
+    self.toolbarView.backgroundColor = [UIColor colorWithRed:1 green:1 blue:1 alpha:0.8];
     self.toolbarView.layer.masksToBounds = true;
     [self.view addSubview:self.toolbarView];
     
@@ -331,8 +330,6 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 
 - (void)textViewDidChange:(UITextView *)textView {
     if (textViewCell && [textView isEqual:textViewCell.textView]) {
-        NSLog(@"textViewDidChange");
-        
         [self checkRequirements];
         
         NSString *text = textViewCell.textView.text;
@@ -351,24 +348,24 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         // detect usernames, camptags, and links
         [self detectEntities];
         
-        if (textViewCell.url.absoluteString.length == 0 && [text hasSuffix:@" "]) {
-            NSDataDetector *detector = [NSDataDetector dataDetectorWithTypes:NSTextCheckingTypeLink error:nil];
-            if ([detector numberOfMatchesInString:text options:0 range:NSMakeRange(0, text.length)] > 0) {
-                NSArray *matches = [detector matchesInString:text options:0 range:NSMakeRange(0, text.length)];
-                for (NSTextCheckingResult *match in matches) {
-                    if ([match resultType] == NSTextCheckingTypeLink) {
-                        NSURL *url = [match URL];
-                        
-                        textViewCell.url = url;
-                        [self updateToolbarAvailability];
-                        [self.tableView beginUpdates];
-                        [self.tableView endUpdates];
-                        
-                        break;
-                    }
-                }
-            }
-        }
+//        if (textViewCell.url.absoluteString.length == 0 && [text hasSuffix:@" "]) {
+//            NSDataDetector *detector = [NSDataDetector dataDetectorWithTypes:NSTextCheckingTypeLink error:nil];
+//            if ([detector numberOfMatchesInString:text options:0 range:NSMakeRange(0, text.length)] > 0) {
+//                NSArray *matches = [detector matchesInString:text options:0 range:NSMakeRange(0, text.length)];
+//                for (NSTextCheckingResult *match in matches) {
+//                    if ([match resultType] == NSTextCheckingTypeLink) {
+//                        NSURL *url = [match URL];
+//                        
+//                        textViewCell.url = url;
+//                        [self updateToolbarAvailability];
+//                        [self.tableView beginUpdates];
+//                        [self.tableView endUpdates];
+//                        
+//                        break;
+//                    }
+//                }
+//            }
+//        }
         
         [textViewCell layoutSubviews];
         
@@ -378,15 +375,14 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 }
 - (void)detectEntities {
     NSUInteger s_loc = textViewCell.textView.selectedRange.location;
-    NSLog(@"current location: %lu", (unsigned long)s_loc);
     
     BOOL insideUsername = false;
-    BOOL insideRoomTag = false;
+    BOOL insideCampTag = false;
     
     NSMutableAttributedString *attributedText = [[NSMutableAttributedString alloc] initWithString:textViewCell.textView.text attributes:@{NSFontAttributeName: textViewCell.textView.font, NSForegroundColorAttributeName:[UIColor bonfireBlack]}];
     NSArray *usernameRanges = [textViewCell.textView.text rangesForUsernameMatches];
-    NSArray *roomTagRanges = [textViewCell.textView.text rangesForRoomTagMatches];
-    NSArray *urlRanges = [textViewCell.textView.text rangesForLinkMatches];
+    NSArray *campTagRanges = [textViewCell.textView.text rangesForCampTagMatches];
+    //NSArray *urlRanges = [textViewCell.textView.text rangesForLinkMatches];
     if (usernameRanges.count > 0) {
         NSLog(@"usernameRanges: %@", usernameRanges);
         for (NSValue *value in usernameRanges) {
@@ -401,32 +397,34 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             }
         }
     }
-    if (roomTagRanges.count > 0) {
-        NSLog(@"roomTagRanges: %@", roomTagRanges);
-        for (NSValue *value in roomTagRanges) {
+    if (campTagRanges.count > 0) {
+        NSLog(@"campTagRanges: %@", campTagRanges);
+        for (NSValue *value in campTagRanges) {
             NSRange range = [value rangeValue];
             [attributedText addAttribute:NSForegroundColorAttributeName value:self.view.tintColor range:range];
             
-            // NSLog(@"ROOM TAG. (%lu > %lu && %lu <= %lu + %lu)", s_loc, range.location, s_loc, range.location, range.length);
+            // NSLog(@"CAMP TAG. (%lu > %lu && %lu <= %lu + %lu)", s_loc, range.location, s_loc, range.location, range.length);
             if (s_loc > range.location && s_loc <= range.location + range.length) {
-                insideRoomTag = true;
+                insideCampTag = true;
                 self.activeTagRange = range;
                 break;
             }
         }
     }
+    /*
+     disable link previews for now
     if (urlRanges.count > 0) {
         NSLog(@"urlRanges: %@", urlRanges);
-        for (NSValue *value in roomTagRanges) {
+        for (NSValue *value in campTagRanges) {
             [attributedText addAttribute:NSForegroundColorAttributeName value:self.view.tintColor range:[value rangeValue]];
         }
-    }
+    }*/
     textViewCell.textView.attributedText = attributedText;
     
     if (insideUsername) NSLog(@"insideUsername ==> true");
-    if (insideRoomTag) NSLog(@"insideRoomTag ==> true");
+    if (insideCampTag) NSLog(@"insideCampTag ==> true");
     
-    if (insideUsername || insideRoomTag) {
+    if (insideUsername || insideCampTag) {
         [self getAutoCompleteResults:[textViewCell.textView.text substringWithRange:self.activeTagRange]];
     }
     else {
@@ -542,17 +540,27 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 
 // adjust the y position of the toolbar when keyboard frame changes
 - (void)keyboardWillChangeFrame:(NSNotification *)notification {
+    NSLog(@"keyboardWillChangeFrame");
+    
     NSDictionary* keyboardInfo = [notification userInfo];
     NSValue* keyboardFrameBegin = [keyboardInfo valueForKey:UIKeyboardFrameEndUserInfoKey];
     CGRect keyboardFrameBeginRect = [keyboardFrameBegin CGRectValue];
     _currentKeyboardHeight = keyboardFrameBeginRect.size.height;
     
     UIWindow *window = UIApplication.sharedApplication.delegate.window;
+    CGFloat topPadding = window.safeAreaInsets.top;
     CGFloat bottomPadding = window.safeAreaInsets.bottom;
     
-    CGFloat newToolbarY = self.tableView.frame.size.height - self.currentKeyboardHeight - self.toolbarView.frame.size.height + bottomPadding - (self.navigationController.navigationBar.frame.origin.y + self.navigationController.navigationBar.frame.size.height);
+    CGFloat newToolbarY = self.tableView.frame.size.height - self.currentKeyboardHeight - self.toolbarView.frame.size.height + bottomPadding - (topPadding + 44);
+    
+    NSLog(@"self.tableview.frame.size.height: %f", self.tableView.frame.size.height);
+    NSLog(@"self.currentKeyboardHeight: %f", self.currentKeyboardHeight);
+    NSLog(@"self.toolbarView.frame.size.height + bottomPadding: %f", self.toolbarView.frame.size.height + bottomPadding);
+    NSLog(@"bottomPadding: %f", bottomPadding);
+    NSLog(@"(topPadding + navigationBar.frame.size.height): %f", (topPadding + 44));
     
     self.toolbarView.frame = CGRectMake(self.toolbarView.frame.origin.x, newToolbarY, self.toolbarView.frame.size.width, self.toolbarView.frame.size.height);
+    
     
     CGFloat contentInset = (self.tableView.frame.size.height - self.toolbarView.frame.origin.y) - bottomPadding;
     self.tableView.contentInset = UIEdgeInsetsMake(0, 0, contentInset, 0);
@@ -560,6 +568,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 }
 
 - (void)keyboardWillDismiss:(NSNotification *)notification {
+    NSLog(@"keyboardWillDismiss");
     _currentKeyboardHeight = 0;
     
     NSNumber *duration = [notification.userInfo objectForKey:UIKeyboardAnimationDurationUserInfoKey];
@@ -584,11 +593,13 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             case PHAuthorizationStatusAuthorized: {
                 NSLog(@"PHAuthorizationStatusAuthorized");
                 
-                UIImagePickerController *picker = [[UIImagePickerController alloc] init];
-                picker.delegate = self;
-                picker.allowsEditing = NO;
-                picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
-                [self.navigationController presentViewController:picker animated:YES completion:nil];
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    UIImagePickerController *picker = [[UIImagePickerController alloc] init];
+                    picker.delegate = self;
+                    picker.allowsEditing = NO;
+                    picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+                    [self.navigationController presentViewController:picker animated:YES completion:nil];
+                });
                 
                 break;
             }
@@ -615,6 +626,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     // determine file type
     PHAsset *asset = info[UIImagePickerControllerPHAsset];
     if (asset) {
+        NSLog(@"ph asset");
         NSLog(@"asset: %@", asset);
         [textViewCell.media addAsset:asset];
     }
@@ -683,6 +695,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     
     SimpleNavigationController *simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:sitvc];
     simpleNav.transitioningDelegate = [Launcher sharedInstance];
+    simpleNav.modalPresentationStyle = UIModalPresentationFullScreen;
     [self.navigationController presentViewController:simpleNav animated:YES completion:nil];
 }
 
@@ -690,13 +703,13 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     NSString *q = tag;
     NSLog(@"getAutoCompleteResults(%@)", q);
     BOOL isUser = [q hasPrefix:@"@"];
-    BOOL isRoom = [q hasPrefix:@"#"];
-    if (!isUser && !isRoom) return;
+    BOOL isCamp = [q hasPrefix:@"#"];
+    if (!isUser && !isCamp) return;
     
     if (isUser) {
         q = [q stringByReplacingOccurrencesOfString:@"@" withString:@""];
     }
-    else if (isRoom) {
+    else if (isCamp) {
         q = [q stringByReplacingOccurrencesOfString:@"#" withString:@""];
     }
     
@@ -705,22 +718,18 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     if (isUser) {
         url = [url stringByAppendingString:@"/users"];
     }
-    else if (isRoom) {
-        url = [url stringByAppendingString:@"/rooms"];
+    else if (isCamp) {
+        url = [url stringByAppendingString:@"/camps"];
     }
     
     [[HAWebService authenticatedManager] GET:url parameters:@{@"q": q} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSDictionary *responseData = (NSDictionary *)responseObject[@"data"];
-        
-        NSLog(@"responseObject: %@", responseObject);
-        
-        NSLog(@"/results/users: %@", responseData[@"results"][@"users"]);
-        
+                
         if (isUser) {
             self.autoCompleteResults = [[NSMutableArray alloc] initWithArray:responseData[@"results"][@"users"]];
         }
-        else if (isRoom) {
-            self.autoCompleteResults = [[NSMutableArray alloc] initWithArray:responseData[@"results"][@"rooms"]];
+        else if (isCamp) {
+            self.autoCompleteResults = [[NSMutableArray alloc] initWithArray:responseData[@"results"][@"camps"]];
         }
         
         if (self.autoCompleteResults.count > 0 && self.activeTagRange.location != NSNotFound && self.autoCompleteTableView.alpha != 1) {
@@ -805,6 +814,12 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             [cell.textView becomeFirstResponder];
             [self updatePlaceholder];
             
+            if (cell.tag != 1) {
+                cell.tag = 1;
+                cell.textView.text = self.prefillMessage;
+                [self textViewDidChange:cell.textView];
+            }
+            
             return cell;
         }
         else if (indexPath.section == 1 && indexPath.row == 0 && self.replyingTo) {
@@ -821,6 +836,9 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             cell.lineSeparator.hidden = true;
             cell.selectable = false;
             cell.moreButton.hidden = true;
+            
+            cell.showContext = false;
+            cell.showCamptag = true;
             
             return cell;
         }
@@ -854,7 +872,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             json = self.autoCompleteResults[indexPath.row];
         }
         if (json[@"type"]) {
-            if ([json[@"type"] isEqualToString:@"room"]) {
+            if ([json[@"type"] isEqualToString:@"camp"]) {
                 type = 1;
             }
             else if ([json[@"type"] isEqualToString:@"user"]) {
@@ -867,18 +885,18 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             
             if (type == 1) {
                 NSError *error;
-                Room *room = [[Room alloc] initWithDictionary:json error:&error];
-                if (error) { NSLog(@"room error: %@", error); };
+                Camp *camp = [[Camp alloc] initWithDictionary:json error:&error];
+                if (error) { NSLog(@"camp error: %@", error); };
                 
-                // 1 = Room
-                cell.profilePicture.room = room;
-                cell.textLabel.text = room.attributes.details.title;
+                // 1 = Camp
+                cell.profilePicture.camp = camp;
+                cell.textLabel.text = camp.attributes.details.title;
                 
-                NSString *detailText = [NSString stringWithFormat:@"#%@ · %ld %@", room.attributes.details.identifier, (long)room.attributes.summaries.counts.members, (room.attributes.summaries.counts.members == 1 ? [Session sharedInstance].defaults.room.membersTitle.singular : [Session sharedInstance].defaults.room.membersTitle.plural)];
-                BOOL useLiveCount = room.attributes.summaries.counts.live > [Session sharedInstance].defaults.room.liveThreshold;
+                NSString *detailText = [NSString stringWithFormat:@"#%@ · %ld %@", camp.attributes.details.identifier, (long)camp.attributes.summaries.counts.members, (camp.attributes.summaries.counts.members == 1 ? [Session sharedInstance].defaults.camp.membersTitle.singular : [Session sharedInstance].defaults.camp.membersTitle.plural)];
+                /*BOOL useLiveCount = camp.attributes.summaries.counts.live > [Session sharedInstance].defaults.camp.liveThreshold;
                 if (useLiveCount) {
-                    cell.detailTextLabel.text = [NSString stringWithFormat:@"%@ · %li LIVE", detailText, (long)room.attributes.summaries.counts.live];
-                }
+                    cell.detailTextLabel.text = [NSString stringWithFormat:@"%@ · %li LIVE", detailText, (long)camp.attributes.summaries.counts.live];
+                }*/
                 cell.detailTextLabel.text = detailText;
             }
             else {
@@ -908,7 +926,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             return [textViewCell height];
         }
         else if (indexPath.section == 1 && indexPath.row == 0 && self.replyingTo) {
-            float height = [StreamPostCell heightForPost:self.replyingTo] - (POST_ACTIONS_VIEW_HEIGHT + 8); // removed action bar (32pt + 8pt)
+            float height = [StreamPostCell heightForPost:self.replyingTo showContext:false] - (POST_ACTIONS_VIEW_HEIGHT + 8); // removed action bar (32pt + 8pt)
             float minHeight = 48 + (postContentOffset.top + postContentOffset.bottom); // 48 = avatar height
             if (height < minHeight) {
                 height = minHeight;
@@ -918,7 +936,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         }
     }
     else if (tableView == self.autoCompleteTableView) {
-        return 64;
+        return 68;
     }
     
     return 0;
@@ -1007,12 +1025,12 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                         changes = true;
                     }
                 }
-                else if (cell.type == SearchResultCellTypeRoom) {
-                    Room *roomSelected = [[Room alloc] initWithDictionary:self.autoCompleteResults[indexPath.row] error:nil];
-                    NSString *roomTagSelected = roomSelected.attributes.details.identifier;
+                else if (cell.type == SearchResultCellTypeCamp) {
+                    Camp *campSelected = [[Camp alloc] initWithDictionary:self.autoCompleteResults[indexPath.row] error:nil];
+                    NSString *campTagSelected = campSelected.attributes.details.identifier;
                     
-                    if (roomTagSelected.length > 0) {
-                        finalString = [textViewCell.textView.text stringByReplacingCharactersInRange:self.activeTagRange withString:[NSString stringWithFormat:@"#%@ ", roomTagSelected]];
+                    if (campTagSelected.length > 0) {
+                        finalString = [textViewCell.textView.text stringByReplacingCharactersInRange:self.activeTagRange withString:[NSString stringWithFormat:@"#%@ ", campTagSelected]];
                         changes = true;
                     }
                 }

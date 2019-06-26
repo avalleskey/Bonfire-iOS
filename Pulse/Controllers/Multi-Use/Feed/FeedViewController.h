@@ -9,11 +9,11 @@
 #import "ComposeInputView.h"
 #import "Session.h"
 #import "ComposeInputView.h"
-#import "Room.h"
+#import "Camp.h"
 #import "ErrorView.h"
 #import "RSTableView.h"
 
-@interface FeedViewController : UITableViewController <RSTableViewPaginationDelegate>
+@interface FeedViewController : UITableViewController <RSTableViewPaginationDelegate, PostStreamDelegate>
 
 typedef enum {
     FeedTypeTimeline = 0,
@@ -21,13 +21,13 @@ typedef enum {
 } FeedType;
 
 enum {
-    MAX_FEED_CACHED_POSTS = 100
+    MAX_FEED_CACHED_POSTS = 100,
+    MAX_FEED_CACHED_PAGES = 2
 };
 
 - (id)initWithFeedType:(FeedType)feedType;
 
 @property (nonatomic, strong) UIScrollView *scrollView;
-@property (nonatomic, strong) Room *room;
 @property (nonatomic, strong) ErrorView *errorView;
 
 @property (nonatomic) FeedType feedType;

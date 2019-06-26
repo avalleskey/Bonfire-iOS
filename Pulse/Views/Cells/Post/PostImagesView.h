@@ -7,11 +7,11 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "UIImageView+WebCache.h"
+#import <SDAnimatedImageView+WebCache.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface PostImagesView : UIView
+@interface PostImagesView : UIView <SDWebImageManagerDelegate>
 
 @property (nonatomic, strong) NSMutableArray *imageViews;
 

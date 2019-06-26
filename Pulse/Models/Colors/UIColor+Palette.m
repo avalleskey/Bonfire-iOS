@@ -79,17 +79,44 @@
     return true;
 }
 
-// Header background color -- Used in [Home -> Rooms]
++ (UIColor * _Nonnull) contentBackgroundColor {
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"dark_mode"]) {
+        return [UIColor blackColor];
+    }
+    else {
+        return [UIColor whiteColor];
+    }
+}
+
++ (UIColor * _Nonnull) contentHighlightedColor {
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"dark_mode"]) {
+        return [UIColor colorWithWhite:0.04 alpha:1];
+    }
+    else {
+        return [UIColor colorWithWhite:0.97 alpha:1];
+    }
+}
+
 + (UIColor * _Nonnull) headerBackgroundColor {
-    return [UIColor colorWithRed:0.98 green:0.98 blue:0.99 alpha:1.0];
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"dark_mode"]) {
+        return [UIColor colorWithRed:0.01 green:0.01 blue:0.015 alpha:1];
+    }
+    else {
+        return [UIColor colorWithRed:0.96 green:0.96 blue:0.97 alpha:1.0];
+    }
 }
 
 + (UIColor * _Nonnull) separatorColor {
-    return [UIColor colorWithRed:0.87 green:0.87 blue:0.89 alpha:1.0];
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"dark_mode"]) {
+        return [UIColor colorWithRed:0.11f green:0.11f blue:0.13f alpha:1];
+    }
+    else {
+        return [UIColor colorWithRed:0.88 green:0.88 blue:0.89 alpha:1.0];
+    }
 }
 
 + (UIColor * _Nonnull) linkColor {
-    return [UIColor colorWithRed:0.16 green:0.42 blue:0.55 alpha:1.0];
+    return [UIColor colorWithDisplayP3Red:0.16f green:0.42f blue:0.6f alpha:1]; //[UIColor colorWithRed:0.16 green:0.42 blue:0.55 alpha:1.0];
 }
 
 // Gray
@@ -120,10 +147,7 @@
     }
 }
 + (UIColor * _Nonnull) bonfireBrand {
-    return [UIColor colorWithDisplayP3Red:1.00 green:0.38 blue:0.30 alpha:1.0];
-    
-    // friendlier pink/red version
-    // return [UIColor colorWithDisplayP3Red:1.00 green:0.17 blue:0.35 alpha:1.0];
+    return [UIColor colorWithDisplayP3Red:1.00 green:0.36 blue:0.29 alpha:1.0];
 }
 
 + (UIColor * _Nonnull)bonfireBlack {
@@ -175,7 +199,7 @@
         case 400:
             return [UIColor fromHex:@"#4b9fff"];
         case 500:
-            return [UIColor fromHex:@"#0076ff"];
+            return [UIColor fromHex:@"#00A0FF"];
         case 600:
             return [UIColor fromHex:@"#006be6"];
         case 700:
@@ -189,7 +213,7 @@
     }
 }
 + (UIColor * _Nonnull) bonfireBlue {
-    return [UIColor colorWithDisplayP3Red:0.00 green:0.47 blue:1.00 alpha:1.00];
+    return [UIColor bonfireBlueWithLevel:500];
 }
 
 // Indigo

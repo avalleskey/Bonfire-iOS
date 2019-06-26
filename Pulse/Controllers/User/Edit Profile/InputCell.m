@@ -21,6 +21,7 @@
     
     if (self) {
         self.selectionStyle = UITableViewCellSelectionStyleNone;
+        self.contentView.backgroundColor = [UIColor whiteColor];
         
         self.inputLabel = [[UILabel alloc] init];
         self.inputLabel.text = @"Input Label";
@@ -41,19 +42,27 @@
         self.textView.textContainerInset = INPUT_CELL_TEXTVIEW_INSETS;
         self.textView.textContainer.lineFragmentPadding = 0;
         self.textView.hidden = true;
+        self.textView.keyboardAppearance = UIKeyboardAppearanceLight;
+        self.textView.placeholderColor = [UIColor colorWithRed:0.24 green:0.24 blue:0.26 alpha:0.3];
         [self.contentView addSubview:self.textView];
         
-        UIView *paddingView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 16, 26)];
+        UIView *paddingView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 12, 26)];
         self.input.leftView = paddingView;
         self.input.leftViewMode = UITextFieldViewModeAlways;
         self.input.rightView = paddingView;
         self.input.rightViewMode = UITextFieldViewModeAlways;
+        self.input.keyboardAppearance = UIKeyboardAppearanceLight;
         
         self.charactersRemainingLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.textView.frame.size.width, 12)];
         self.charactersRemainingLabel.textAlignment = NSTextAlignmentRight;
         self.charactersRemainingLabel.textColor = [UIColor bonfireGray];
         self.charactersRemainingLabel.font = [UIFont systemFontOfSize:12.f weight:UIFontWeightMedium];
         [self.contentView addSubview:self.charactersRemainingLabel];
+        
+        self.lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, self.frame.size.height, self.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+        self.lineSeparator.hidden = true;
+        self.lineSeparator.backgroundColor = [UIColor separatorColor];
+        [self.contentView addSubview:self.lineSeparator];
     }
     
     return self;
@@ -72,6 +81,10 @@
         self.input.frame = CGRectMake(self.inputLabel.frame.origin.x + self.inputLabel.frame.size.width, 0, self.frame.size.width - (self.inputLabel.frame.origin.x + self.inputLabel.frame.size.width), self.frame.size.height);
         self.textView.frame = CGRectMake(self.inputLabel.frame.origin.x + self.inputLabel.frame.size.width, 0, self.frame.size.width - (self.inputLabel.frame.origin.x + self.inputLabel.frame.size.width), self.frame.size.height);
         self.charactersRemainingLabel.frame = CGRectMake(self.textView.frame.origin.x + INPUT_CELL_TEXTVIEW_INSETS.left, self.frame.size.height - INPUT_CELL_TEXTVIEW_INSETS.bottom - 12, self.textView.frame.size.width - (INPUT_CELL_TEXTVIEW_INSETS.left + INPUT_CELL_TEXTVIEW_INSETS.right), 12);
+    }
+    
+    if (![self.lineSeparator isHidden]) {
+        self.lineSeparator.frame = CGRectMake(0, self.frame.size.height - self.lineSeparator.frame.size.height, self.frame.size.width, self.lineSeparator.frame.size.height);
     }
 }
 

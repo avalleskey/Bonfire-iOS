@@ -8,6 +8,7 @@
 
 #import "EditProfileViewController.h"
 #import "Session.h"
+#import "SimpleNavigationController.h"
 
 #import "Launcher.h"
 #import "ProfilePictureCell.h"
@@ -18,18 +19,21 @@
 #import "HAWebService.h"
 #import "UIColor+Palette.h"
 #import "NSString+Validation.h"
+#import "BFHeaderView.h"
 
 #import "ErrorCodes.h"
-#import "EmojiUtilities.h"
+#import <NSString+EMOEmoji.h>
 
 #import <RSKImageCropper/RSKImageCropper.h>
 #import <BlocksKit/BlocksKit.h>
 #import <BlocksKit/BlocksKit+UIKit.h>
+#import "UIImage+WithColor.h"
 #import <JGProgressHUD/JGProgressHUD.h>
 @import Firebase;
 
 @interface EditProfileViewController () <UITextFieldDelegate, UITextViewDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate, RSKImageCropViewControllerDelegate, RSKImageCropViewControllerDataSource> {
     UIImage *newAvatar;
+    NSString *userBio;
 }
 
 @end
@@ -55,13 +59,17 @@ static int const EMAIL_FIELD = 206;
     
     self.title = @"Edit Profile";
     
+    [self setNeedsStatusBarAppearanceUpdate];
+    
+    self.user = [Session sharedInstance].currentUser;
+    
     self.cancelButton = [[UIBarButtonItem alloc] initWithTitle:@"Cancel" style:UIBarButtonItemStylePlain target:self action:@selector(dismiss:)];
     [self.cancelButton setTintColor:[UIColor whiteColor]];
     [self.cancelButton setTitleTextAttributes:@{
-                                         NSFontAttributeName: [UIFont systemFontOfSize:17.f weight:UIFontWeightMedium]
+                                         NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightMedium]
                                          } forState:UIControlStateNormal];
     [self.cancelButton setTitleTextAttributes:@{
-                                              NSFontAttributeName: [UIFont systemFontOfSize:17.f weight:UIFontWeightMedium]
+                                              NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightMedium]
                                               } forState:UIControlStateHighlighted];
     self.navigationItem.leftBarButtonItem = self.cancelButton;
     
@@ -70,13 +78,12 @@ static int const EMAIL_FIELD = 206;
     }];
     [self.saveButton setTintColor:[UIColor whiteColor]];
     [self.saveButton setTitleTextAttributes:@{
-                                           NSFontAttributeName: [UIFont systemFontOfSize:17.f weight:UIFontWeightBold]
+                                           NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightBold]
                                            } forState:UIControlStateNormal];
     [self.saveButton setTitleTextAttributes:@{
-                                              NSFontAttributeName: [UIFont systemFontOfSize:17.f weight:UIFontWeightBold]
+                                              NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightBold]
                                               } forState:UIControlStateHighlighted];
     self.navigationItem.rightBarButtonItem = self.saveButton;
-    
     
     self.tableView.backgroundColor = [UIColor headerBackgroundColor];
     self.tableView.separatorInset = UIEdgeInsetsMake(0, 16, 0, 0);
@@ -85,13 +92,11 @@ static int const EMAIL_FIELD = 206;
     self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 48, 0);
     
     self.themeColor = [UIColor fromHex:[[Session sharedInstance] currentUser].attributes.details.color];
+    [(SimpleNavigationController *)self.navigationController updateBarColor:self.themeColor animated:false];
     
-    // add background color view
-    self.navigationBackgroundView = [[UIView alloc] init];
-    self.navigationBackgroundView.backgroundColor = self.themeColor;
-    self.navigationBackgroundView.layer.masksToBounds = true;
     // remove hairline
-    [self.navigationController.navigationBar setBackgroundImage:[UIImage new] forBarMetrics:UIBarMetricsDefault];
+    self.navigationController.navigationBar.backgroundColor = [UIColor clearColor];
+    // [self.navigationController.navigationBar setBackgroundImage:[UIImage imageWithColor:[UIColor clearColor]] forBarMetrics:UIBarMetricsDefault];
     [self.navigationController.navigationBar setShadowImage:[UIImage new]];
     
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:blankReuseIdentifier];
@@ -101,16 +106,32 @@ static int const EMAIL_FIELD = 206;
     [self.tableView registerClass:[InputCell class] forCellReuseIdentifier:inputReuseIdentifier];
     [self.tableView registerClass:[ButtonCell class] forCellReuseIdentifier:buttonReuseIdentifier];
     
+    userBio = [[Session sharedInstance] currentUser].attributes.details.bio;
+    
     // Google Analytics
     [FIRAnalytics setScreenName:@"Edit Profile" screenClass:nil];
 }
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     
-    self.navigationBackgroundView.frame = CGRectMake(0, self.navigationController.navigationBar.frame.size.height - (self.navigationController.navigationBar.frame.size.height + 50), self.view.frame.size.width, self.navigationController.navigationBar.frame.size.height + 50);
-    [self.navigationController.navigationBar insertSubview:self.navigationBackgroundView atIndex:1];
+    if (self.view.tag != 1) {
+        self.view.tag = 1;
+        
+        [(SimpleNavigationController *)self.navigationController updateBarColor:self.themeColor animated:false];
+        
+        self.view.tintColor = self.themeColor;
+        
+        [self.tableView reloadData];
+    }
+}
+
+- (void)themeSelectionDidChange:(NSString *)newHex {
+    self.themeColor = [UIColor fromHex:newHex];
+    [(SimpleNavigationController *)self.navigationController updateBarColor:self.themeColor animated:true];
     
-    [self updateBarColor:self.themeColor withAnimation:0 statusBarUpdateDelay:0];
+    self.view.tintColor = self.themeColor;
+    
+    [self.tableView reloadData];
 }
 
 - (void)saveChanges {
@@ -120,7 +141,10 @@ static int const EMAIL_FIELD = 206;
     NSDictionary *changes = [self changes];
     NSLog(@"changes: %@", changes);
     
-    if (changes != false && changes.count > 0) {
+    if ([changes objectForKey:@"error"])
+        return;
+    
+    if (changes && [changes allKeys].count > 0) {
         // requirements have been met and there's more than one change to save
         
         JGProgressHUD *HUD = [JGProgressHUD progressHUDWithStyle:JGProgressHUDStyleExtraLight];
@@ -130,29 +154,27 @@ static int const EMAIL_FIELD = 206;
         HUD.backgroundColor = [UIColor colorWithWhite:0 alpha:0.1f];
         [HUD showInView:self.navigationController.view animated:YES];
         
-        
-        
-        
         // new
         void (^errorSaving)(void) = ^() {
             HUD.indicatorView = [[JGProgressHUDErrorIndicatorView alloc] init];
             HUD.textLabel.text = @"Error Saving";
-            
             [HUD dismissAfterDelay:1.f];
         };
         
         void (^saveUser)(NSString *uploadedImage) = ^(NSString *uploadedImage) {
             NSMutableDictionary *params = [[NSMutableDictionary alloc] initWithDictionary:changes];
-            if ([params objectForKey:@"profile_pic"]) {
+            if ([params objectForKey:@"user_avatar"]) {
                 if (uploadedImage) {
-                    [params setObject:uploadedImage forKey:@"profile_pic"];
+                    [params setObject:uploadedImage forKey:@"user_avatar"];
                 }
                 else {
-                    [params removeObjectForKey:@"profile_pic"];
+                    [params removeObjectForKey:@"user_avatar"];
                 }
             }
             
-            [[HAWebService authenticatedManager] PUT:@"users/me" parameters:changes success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+            NSLog(@"params: %@", params);
+            
+            [[HAWebService authenticatedManager] PUT:@"users/me" parameters:params success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 NSLog(@"response object: %@", responseObject);
                 
                 // success
@@ -166,14 +188,16 @@ static int const EMAIL_FIELD = 206;
                 [[Session sharedInstance] updateUser:user]; // TODO: Swap out for new user object
                 
                 [self.navigationController dismissViewControllerAnimated:YES completion:nil];
-                
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
                 NSLog(@"error saving user prefs");
                 NSLog(@"error:");
                 
+                NSHTTPURLResponse *httpResponse = error.userInfo[AFNetworkingOperationFailingURLResponseErrorKey];
+                NSInteger httpCode = httpResponse.statusCode;
                 NSInteger code = 0;
                 
                 NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+                NSLog(@"erorr repsonse: %@", ErrorResponse);
                 NSData *errorData = [ErrorResponse dataUsingEncoding:NSUTF8StringEncoding];
                 NSDictionary *errorDict = [NSJSONSerialization JSONObjectWithData:errorData options:0 error:nil];
                 if ([errorDict objectForKey:@"error"]) {
@@ -182,7 +206,10 @@ static int const EMAIL_FIELD = 206;
                     }
                 }
                 
-                if (code == USER_EMAIL_TAKEN) {
+                if (code == NO_CHANGE_OCCURRED || httpCode == 304) {
+                    [self.navigationController dismissViewControllerAnimated:YES completion:nil];
+                }
+                else if (code == USER_EMAIL_TAKEN) {
                     HUD.indicatorView = [[JGProgressHUDErrorIndicatorView alloc] init];
                     HUD.textLabel.text = @"Email Already Taken";
                 }
@@ -200,7 +227,7 @@ static int const EMAIL_FIELD = 206;
             }];
         };
         
-        if ([changes objectForKey:@"profile_pic"]) {
+        if ([changes objectForKey:@"user_avatar"]) {
             // upload avatar
             BFMediaObject *avatarObject = [[BFMediaObject alloc] initWithImage:newAvatar];
             [BFAPI uploadImage:avatarObject copmletion:^(BOOL success, NSString * _Nonnull uploadedImageURL) {
@@ -224,13 +251,13 @@ static int const EMAIL_FIELD = 206;
     NSMutableDictionary *changes = [[NSMutableDictionary alloc] init];
     
     if (newAvatar) {
-        [changes setObject:newAvatar forKey:@"profile_pic"];
+        [changes setObject:newAvatar forKey:@"user_avatar"];
     }
     
     InputCell *displayNameCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:1 inSection:0]];
     NSString *displayName = displayNameCell.input.text;
     
-    if (![displayName isEqualToString:[Session sharedInstance].currentUser.attributes.details.displayName]) {
+    if (![displayName isEqualToString:self.user.attributes.details.displayName]) {
         BFValidationError error = [displayName validateBonfireDisplayName];
         if (error == BFValidationErrorNone) {
             // good to go!
@@ -261,14 +288,14 @@ static int const EMAIL_FIELD = 206;
             
             [self alertWithTitle:title message:message];
             
-            return false;
+            return @{@"error": @"display_name"};
         }
     }
     
     InputCell *usernameCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:2 inSection:0]];
     NSString *username = [usernameCell.input.text stringByReplacingOccurrencesOfString:@"@" withString:@""];
     
-    if (![username isEqualToString:[Session sharedInstance].currentUser.attributes.details.identifier]) {
+    if (![username isEqualToString:self.user.attributes.details.identifier]) {
         BFValidationError error = [username validateBonfireUsername];
         if (error == BFValidationErrorNone) {
             // good to go!
@@ -303,7 +330,7 @@ static int const EMAIL_FIELD = 206;
             
             [self alertWithTitle:title message:message];
             
-            return false;
+            return @{@"error": @"username"};
         }
     }
     
@@ -311,7 +338,7 @@ static int const EMAIL_FIELD = 206;
     InputCell *bioCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:3 inSection:0]];
     NSString *bio = bioCell.textView.text;
     
-    if (![bio isEqualToString:[Session sharedInstance].currentUser.attributes.details.bio]) {
+    if (![bio isEqualToString:self.user.attributes.details.bio]) {
         BFValidationError error = [displayName validateBonfireBio];
         if (error == BFValidationErrorNone) {
             // good to go!
@@ -334,7 +361,7 @@ static int const EMAIL_FIELD = 206;
             
             [self alertWithTitle:title message:message];
             
-            return false;
+            return @{@"error": @"bio"};
         }
     }
     
@@ -342,7 +369,7 @@ static int const EMAIL_FIELD = 206;
     InputCell *locationCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:4 inSection:0]];
     NSString *location = locationCell.input.text;
     
-    NSString *currentLocation = [Session sharedInstance].currentUser.attributes.details.location.value;
+    NSString *currentLocation = self.user.attributes.details.location.value;
     if (!currentLocation) currentLocation = @"";
     
     if (![location isEqualToString:currentLocation]) {
@@ -368,7 +395,7 @@ static int const EMAIL_FIELD = 206;
             
             [self alertWithTitle:title message:message];
             
-            return false;
+            return @{@"error": @"location"};
         }
     }
     
@@ -376,7 +403,7 @@ static int const EMAIL_FIELD = 206;
     InputCell *websiteCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:5 inSection:0]];
     NSString *website = websiteCell.input.text;
     
-    NSString *currentWebsite = [Session sharedInstance].currentUser.attributes.details.website.value;
+    NSString *currentWebsite = self.user.attributes.details.website.value;
     if (!currentWebsite) currentWebsite = @"";
     
     if (![website isEqualToString:currentWebsite]) {
@@ -413,18 +440,18 @@ static int const EMAIL_FIELD = 206;
             
             [self alertWithTitle:title message:message];
             
-            return false;
+            return @{@"error": @"website"};
         }
     }
     
     ThemeSelectorCell *themeColorCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:6 inSection:0]];
     NSString *themeColor = themeColorCell.selectedColor;
     
-    if (![[themeColor lowercaseString] isEqualToString:[[Session sharedInstance].currentUser.attributes.details.color lowercaseString]]) {
+    if (![[themeColor lowercaseString] isEqualToString:[self.user.attributes.details.color lowercaseString]]) {
         if (themeColor.length != 6) {
             [self alertWithTitle:@"Couldn't Save Color" message:@"Please ensure you've selected a theme color from the list and try again."];
             
-            return false;
+            return @{@"error": @"color"};
         }
         else {
             // good to go!
@@ -435,7 +462,7 @@ static int const EMAIL_FIELD = 206;
     InputCell *emailCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:1]];
     NSString *email = emailCell.input.text;
     
-    if (![email isEqualToString:[Session sharedInstance].currentUser.attributes.email]) {
+    if (![email isEqualToString:self.user.attributes.details.email]) {
         BFValidationError error = [email validateBonfireEmail];
         if (error == BFValidationErrorNone) {
             // good to go!
@@ -462,7 +489,7 @@ static int const EMAIL_FIELD = 206;
             
             [self alertWithTitle:title message:message];
             
-            return false;
+            return @{@"error": @"email"};
         }
     }
     
@@ -471,7 +498,7 @@ static int const EMAIL_FIELD = 206;
 - (void)alertWithTitle:(NSString *)title message:(NSString *)message {
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:title message:message preferredStyle:UIAlertControllerStyleAlert];
     
-    UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"Got it" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+    UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"Okay" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         [alert dismissViewControllerAnimated:YES completion:nil];
     }];
     [alert addAction:okAction];
@@ -498,10 +525,17 @@ static int const EMAIL_FIELD = 206;
         if (indexPath.row == 0) {
             ProfilePictureCell *cell = [tableView dequeueReusableCellWithIdentifier:profilePictureReuseIdentifier forIndexPath:indexPath];
             
-            cell.editPictureImageView.tintColor = self.themeColor;
-            
             if (newAvatar) {
                 cell.profilePicture.imageView.image = newAvatar;
+            }
+            else {
+                cell.profilePicture.user = self.user;
+                
+                if ([UIColor fromHex:self.user.attributes.details.color] != cell.profilePicture.imageView.backgroundColor) {
+                    [UIView animateWithDuration:0.5f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+                        cell.profilePicture.imageView.backgroundColor = [UIColor fromHex:self.user.attributes.details.color];
+                    } completion:nil];
+                }
             }
             
             return cell;
@@ -513,7 +547,7 @@ static int const EMAIL_FIELD = 206;
             if (indexPath.row == 1) {
                 cell.type = InputCellTypeTextField;
                 cell.inputLabel.text = @"Name";
-                cell.input.text = [Session sharedInstance].currentUser.attributes.details.displayName;
+                cell.input.text = self.user.attributes.details.displayName;
                 cell.input.placeholder = @"Name";
                 cell.input.tag = DISPLAY_NAME_FIELD;
                 cell.input.autocapitalizationType = UITextAutocapitalizationTypeWords;
@@ -524,18 +558,18 @@ static int const EMAIL_FIELD = 206;
             else if (indexPath.row == 2) {
                 cell.type = InputCellTypeTextField;
                 cell.inputLabel.text = @"Username";
-                cell.input.text = [NSString stringWithFormat:@"@%@", [Session sharedInstance].currentUser.attributes.details.identifier];
+                cell.input.text = [NSString stringWithFormat:@"@%@", self.user.attributes.details.identifier];
                 cell.input.placeholder = @"@username";
                 cell.input.tag = USERNAME_FIELD;
                 cell.input.autocapitalizationType = UITextAutocapitalizationTypeNone;
                 cell.input.autocorrectionType = UITextAutocorrectionTypeNo;
-                cell.input.keyboardType = UIKeyboardTypeASCIICapable;
-                cell.input.textContentType = 0;
+                cell.input.keyboardType = UIKeyboardTypeDefault;
+                cell.input.textContentType = UITextContentTypeUsername;
             }
             else if (indexPath.row == 3) {
                 cell.type = InputCellTypeTextView;
                 cell.inputLabel.text = @"Bio";
-                cell.textView.text = [Session sharedInstance].currentUser.attributes.details.bio;
+                cell.textView.text = self.user.attributes.details.bio;
                 cell.textView.placeholder = @"A little bit about me...";
                 cell.textView.tag = BIO_FIELD;
                 cell.textView.autocapitalizationType = UITextAutocapitalizationTypeSentences;
@@ -546,7 +580,7 @@ static int const EMAIL_FIELD = 206;
             else if (indexPath.row == 4) {
                 cell.type = InputCellTypeTextField;
                 cell.inputLabel.text = @"Location";
-                cell.input.text = [Session sharedInstance].currentUser.attributes.details.location.value;
+                cell.input.text = self.user.attributes.details.location.value;
                 cell.input.placeholder = @"Location";
                 cell.input.tag = LOCATION_FIELD;
                 cell.input.autocapitalizationType = UITextAutocapitalizationTypeWords;
@@ -557,7 +591,7 @@ static int const EMAIL_FIELD = 206;
             else if (indexPath.row == 5) {
                 cell.type = InputCellTypeTextField;
                 cell.inputLabel.text = @"Website";
-                cell.input.text = [Session sharedInstance].currentUser.attributes.details.website.value;
+                cell.input.text = self.user.attributes.details.website.value;
                 cell.input.placeholder = @"Website";
                 cell.input.tag = WEBSITE_FIELD;
                 cell.input.autocapitalizationType = UITextAutocapitalizationTypeNone;
@@ -577,6 +611,7 @@ static int const EMAIL_FIELD = 206;
             ThemeSelectorCell *cell = [tableView dequeueReusableCellWithIdentifier:themeSelectorReuseIdentifier forIndexPath:indexPath];
             
             // Configure the cell...
+            cell.delegate = self;
             
             return cell;
         }
@@ -585,7 +620,7 @@ static int const EMAIL_FIELD = 206;
         InputCell *cell = [tableView dequeueReusableCellWithIdentifier:inputReuseIdentifier forIndexPath:indexPath];
         
         cell.inputLabel.text = @"Email";
-        cell.input.text = [Session sharedInstance].currentUser.attributes.email;
+        cell.input.text = self.user.attributes.details.email;
         cell.input.placeholder = @"Email";
         cell.input.tag = 201;
         cell.input.autocapitalizationType = UITextAutocapitalizationTypeNone;
@@ -628,10 +663,11 @@ static int const EMAIL_FIELD = 206;
         }
         
         // prevent emojis
-        if ([EmojiUtilities containsEmoji:newStr]) {
+        if ([newStr emo_containsEmoji]) {
             return NO;
         }
         
+        NSLog(@"newStr.length <= %d", MAX_USER_USERNAME_LENGTH);
         return newStr.length <= MAX_USER_USERNAME_LENGTH ? YES : NO;
     }
     if (textField.tag == LOCATION_FIELD) {
@@ -664,6 +700,8 @@ static int const EMAIL_FIELD = 206;
         
         InputCell *cell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:3 inSection:0]];
         cell.charactersRemainingLabel.text = [NSString stringWithFormat:@"%i", (int)(MAX_USER_BIO_LENGTH - textView.text.length)];
+        
+        userBio = cell.textView.text;
     }
 }
 
@@ -677,25 +715,14 @@ static int const EMAIL_FIELD = 206;
         }
         else if (indexPath.row == 3) {
             // profile bio -- auto resizing
-            InputCell *cell = [self.tableView cellForRowAtIndexPath:indexPath];
-            
-            NSString *text;
-            if (cell) {
-                text = cell.textView.text;
-            }
-            else {
-                text = [Session sharedInstance].currentUser.attributes.details.bio;
-                if (text.length == 0) text = @" ";
-            }
+            NSString *text = userBio ? userBio : self.user.attributes.details.bio;
+            if (text.length == 0) text = @" ";
             
             CGSize boundingSize = CGSizeMake(self.view.frame.size.width - (INPUT_CELL_LABEL_LEFT_PADDING + INPUT_CELL_TEXTVIEW_INSETS.left + INPUT_CELL_TEXTVIEW_INSETS.right) - INPUT_CELL_LABEL_WIDTH, CGFLOAT_MAX);
             
             CGSize prfoileBioSize = [text boundingRectWithSize:boundingSize options:(NSStringDrawingUsesFontLeading | NSStringDrawingUsesLineFragmentOrigin) attributes:@{NSFontAttributeName: INPUT_CELL_FONT} context:nil].size;
             
             CGFloat cellHeight = INPUT_CELL_TEXTVIEW_INSETS.top + ceilf(prfoileBioSize.height) + 24 + INPUT_CELL_TEXTVIEW_INSETS.bottom;
-            
-            cell.textView.frame = CGRectMake(cell.textView.frame.origin.x, cell.textView.frame.origin.y, cell.textView.frame.size.width, cellHeight);
-            cell.charactersRemainingLabel.frame = CGRectMake(cell.textView.frame.origin.x + INPUT_CELL_TEXTVIEW_INSETS.left, cell.frame.size.height - INPUT_CELL_TEXTVIEW_INSETS.bottom - 12, cell.textView.frame.size.width - (INPUT_CELL_TEXTVIEW_INSETS.left + INPUT_CELL_TEXTVIEW_INSETS.right), 12);
             
             return cellHeight;
         }
@@ -712,7 +739,7 @@ static int const EMAIL_FIELD = 206;
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
     if (section == 1) {
-        return 56;
+        return [BFHeaderView height];
     }
     
     return 0;
@@ -720,14 +747,9 @@ static int const EMAIL_FIELD = 206;
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
     if (section != 1) return nil;
     
-    UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 56)];
-    
-    UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(12, 30, self.view.frame.size.width - 24, 18)];
-    title.textAlignment = NSTextAlignmentLeft;
-    title.font = [UIFont systemFontOfSize:13.f weight:UIFontWeightSemibold];
-    title.textColor = [UIColor bonfireGray];
-    title.text = @"PRIVATE INFORMATION";
-    [header addSubview:title];
+    BFHeaderView *header = [[BFHeaderView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, [BFHeaderView height])];
+    header.title = @"Private Information";
+    header.separator = false;
     
     return header;
 }
@@ -738,87 +760,6 @@ static int const EMAIL_FIELD = 206;
     return nil;
 }
 
-- (void)updateBarColor:(id)newColor withAnimation:(int)animationType statusBarUpdateDelay:(CGFloat)statusBarUpdateDelay {
-    if ([newColor isKindOfClass:[NSString class]]) {
-        newColor = [UIColor fromHex:newColor];
-    }
-    self.themeColor = newColor;
-    self.view.tintColor = self.themeColor;
-    
-    ProfilePictureCell *cell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
-    cell.profilePicture.imageView.backgroundColor = newColor;
-    cell.editPictureImageView.tintColor = newColor;
-    if ([UIColor useWhiteForegroundForColor:newColor]) {
-        // dark enough
-        cell.profilePicture.imageView.tintColor = [UIColor lighterColorForColor:newColor amount:BFAvatarViewIconContrast];
-    }
-    else {
-        cell.profilePicture.imageView.tintColor = [UIColor darkerColorForColor:newColor amount:BFAvatarViewIconContrast];
-    }
-    if (newAvatar) {
-        cell.profilePicture.imageView.image = newAvatar;
-    }
-    
-    UIView *newColorView = [[UIView alloc] init];
-    if (animationType == 1) {
-        // fade
-        newColorView.frame = CGRectMake(0, 0, self.navigationBackgroundView.frame.size.width, self.navigationBackgroundView.frame.size.height);;
-        newColorView.layer.cornerRadius = 0;
-        newColorView.alpha = 0;
-    }
-    else {
-        // bubble burst
-        newColorView.frame = CGRectMake(self.navigationBackgroundView.frame.size.width / 2 - 5, self.navigationBackgroundView.frame.size.height + 40, 10, 10);
-        newColorView.layer.cornerRadius = 5.f;
-    }
-    newColorView.layer.masksToBounds = true;
-    newColorView.backgroundColor = newColor;
-    [self.navigationBackgroundView addSubview:newColorView];
-    
-    [UIView animateWithDuration:(animationType != 0 ? 0.25f : 0) delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
-        if (animationType == 1) {
-            // fade
-            newColorView.alpha = 1;
-        }
-        else {
-            // bubble burst
-            newColorView.transform = CGAffineTransformMakeScale(self.navigationBackgroundView.frame.size.width / 10, self.navigationBackgroundView.frame.size.width / 10);
-        }
-        
-        if ([UIColor useWhiteForegroundForColor:newColor]) {
-            [self.navigationController.navigationBar setTitleTextAttributes:
-             @{NSForegroundColorAttributeName:[UIColor whiteColor],
-               NSFontAttributeName:[UIFont systemFontOfSize:17.f weight:UIFontWeightBold]}];
-            self.cancelButton.tintColor = [UIColor whiteColor];
-            self.saveButton.tintColor = [UIColor whiteColor];
-        }
-        else {
-            [self.navigationController.navigationBar setTitleTextAttributes:
-             @{NSForegroundColorAttributeName:[UIColor colorWithWhite:0.07f alpha:1],
-               NSFontAttributeName:[UIFont systemFontOfSize:17.f weight:UIFontWeightBold]}];
-            
-            self.cancelButton.tintColor = [UIColor colorWithWhite:0.07f alpha:1];
-            self.saveButton.tintColor = [UIColor colorWithWhite:0.07f alpha:1];
-        }
-    } completion:^(BOOL finished) {
-        [newColorView removeFromSuperview];
-        self.navigationBackgroundView.backgroundColor = newColor;
-    }];
-    
-    // status bar update
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(statusBarUpdateDelay?statusBarUpdateDelay:0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        [UIView animateWithDuration:(animationType != 0 ? 0.4f :0) delay:0 options:UIViewAnimationOptionCurveLinear animations:^{
-            if ([UIColor useWhiteForegroundForColor:newColor]) {
-                self.navigationController.navigationBar.barStyle = UIBarStyleBlack;
-            }
-            else {
-                self.navigationController.navigationBar.barStyle = UIBarStyleDefault;
-            }
-            
-            [self setNeedsStatusBarAppearanceUpdate];
-        } completion:nil];
-    });
-}
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.section == 0) {

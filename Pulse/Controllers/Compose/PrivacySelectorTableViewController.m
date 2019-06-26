@@ -9,16 +9,17 @@
 #import "PrivacySelectorTableViewController.h"
 #import "HAWebService.h"
 #import "SearchResultCell.h"
-#import "Room.h"
+#import "Camp.h"
 #import "Session.h"
 #import "NSArray+Clean.h"
 #import "BFAvatarView.h"
 #import "UIColor+Palette.h"
+#import "BFHeaderView.h"
 @import Firebase;
 
 @interface PrivacySelectorTableViewController ()
 
-@property (nonatomic, strong) NSMutableArray *rooms;
+@property (nonatomic, strong) NSMutableArray *camps;
 @property (nonatomic) BOOL loading;
 
 @end
@@ -28,7 +29,7 @@
 static NSString * const blankReuseIdentifier = @"BlankCell";
 static NSString * const myProfileCellReuseIdentifier = @"MyProfileCell";
 
-static NSString * const roomCellIdentifier = @"RoomCell";
+static NSString * const campCellIdentifier = @"CampCell";
 static NSString * const loadingCellIdentifier = @"LoadingCell";
 
 - (void)viewDidLoad {
@@ -36,18 +37,18 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
     
     self.title = @"Share in...";
     
-    self.rooms = [[NSMutableArray alloc] initWithArray:[[NSUserDefaults standardUserDefaults] arrayForKey:@"my_rooms_cache"]];
-    for (NSInteger i = 0; i < self.rooms.count; i++) {
-        if ([self.rooms[i] isKindOfClass:[Room class]]) {
-            [self.rooms replaceObjectAtIndex:i withObject:[((Room *)self.rooms[i]) toDictionary]];
+    self.camps = [[NSMutableArray alloc] initWithArray:[[NSUserDefaults standardUserDefaults] arrayForKey:@"my_camps_cache"]];
+    for (NSInteger i = 0; i < self.camps.count; i++) {
+        if ([self.camps[i] isKindOfClass:[Camp class]]) {
+            [self.camps replaceObjectAtIndex:i withObject:[((Camp *)self.camps[i]) toDictionary]];
         }
     }
     
     self.view.tintColor = [UIColor bonfireBlack];
 
-    if (self.rooms.count == 0) {
+    if (self.camps.count == 0) {
         self.loading = true;
-        [self getRooms];
+        [self getCamps];
     }
     
     [self setupNavigationBar];
@@ -65,66 +66,67 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
     self.cancelButton = [[UIBarButtonItem alloc] initWithTitle:@"Cancel" style:UIBarButtonItemStylePlain target:self action:@selector(dismiss:)];
     [self.cancelButton setTintColor:[UIColor bonfireBlack]];
     [self.cancelButton setTitleTextAttributes:@{
-                                                NSFontAttributeName: [UIFont systemFontOfSize:17.f weight:UIFontWeightMedium]
+                                                NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightMedium]
                                                 } forState:UIControlStateNormal];
     [self.cancelButton setTitleTextAttributes:@{
-                                                NSFontAttributeName: [UIFont systemFontOfSize:17.f weight:UIFontWeightMedium]
+                                                NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightMedium]
                                                 } forState:UIControlStateHighlighted];
     self.navigationItem.leftBarButtonItem = self.cancelButton;
 }
 - (void)setupTableView {
     self.tableView.backgroundColor = [UIColor headerBackgroundColor];
+    self.tableView.separatorStyle = UITableViewCellSeparatorStyleSingleLine;
     self.tableView.separatorColor = [UIColor separatorColor];
-    self.tableView.separatorInset = UIEdgeInsetsMake(0, 68, 0, 0);
+    self.tableView.separatorInset = UIEdgeInsetsMake(0, 70, 0, 0);
     
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:loadingCellIdentifier];
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:blankReuseIdentifier];
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:myProfileCellReuseIdentifier];
-    [self.tableView registerClass:[SearchResultCell class] forCellReuseIdentifier:roomCellIdentifier];
+    [self.tableView registerClass:[SearchResultCell class] forCellReuseIdentifier:campCellIdentifier];
 }
 
-- (void)getRooms {
-    [[HAWebService authenticatedManager] GET:@"users/me/rooms" parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+- (void)getCamps {
+    [[HAWebService authenticatedManager] GET:@"users/me/camps" parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSArray *responseData = responseObject[@"data"];
         
         if (responseData.count > 0) {
-            self.rooms = [[NSMutableArray alloc] initWithArray:responseData];
-            if (self.rooms.count > 1) [self sortRooms];
+            self.camps = [[NSMutableArray alloc] initWithArray:responseData];
+            if (self.camps.count > 1) [self sortCamps];
         }
         else {
-            self.rooms = [[NSMutableArray alloc] init];
+            self.camps = [[NSMutableArray alloc] init];
         }
         
         self.loading = false;
         
         [self.tableView reloadData];
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-        NSLog(@"MyRoomsViewController / getRooms() - error: %@", error);
+        NSLog(@"MyCampsViewController / getCamps() - error: %@", error);
         //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
         
         [self.tableView reloadData];
     }];
 }
-- (void)sortRooms {
-    if (!self.rooms || self.rooms.count == 0) return;
+- (void)sortCamps {
+    if (!self.camps || self.camps.count == 0) return;
     
-    NSDictionary *opens = [[NSUserDefaults standardUserDefaults] dictionaryForKey:@"room_opens"];
+    NSDictionary *opens = [[NSUserDefaults standardUserDefaults] dictionaryForKey:@"camp_opens"];
     
-    for (NSInteger i = 0; i < self.rooms.count; i++) {
-        if ([self.rooms[i] isKindOfClass:[NSDictionary class]] && [self.rooms[i] objectForKey:@"id"]) {
-            NSMutableDictionary *mutableRoom = [[NSMutableDictionary alloc] initWithDictionary:self.rooms[i]];
-            NSString *roomId = mutableRoom[@"id"];
-            NSInteger roomOpens = [opens objectForKey:roomId] ? [opens[roomId] integerValue] : 0;
-            [mutableRoom setObject:[NSNumber numberWithInteger:roomOpens] forKey:@"opens"];
-            [self.rooms replaceObjectAtIndex:i withObject:mutableRoom];
+    for (NSInteger i = 0; i < self.camps.count; i++) {
+        if ([self.camps[i] isKindOfClass:[NSDictionary class]] && [self.camps[i] objectForKey:@"id"]) {
+            NSMutableDictionary *mutableCamp = [[NSMutableDictionary alloc] initWithDictionary:self.camps[i]];
+            NSString *campId = mutableCamp[@"id"];
+            NSInteger campOpens = [opens objectForKey:campId] ? [opens[campId] integerValue] : 0;
+            [mutableCamp setObject:[NSNumber numberWithInteger:campOpens] forKey:@"opens"];
+            [self.camps replaceObjectAtIndex:i withObject:mutableCamp];
         }
     }
     NSSortDescriptor *sortByName = [NSSortDescriptor sortDescriptorWithKey:@"opens"
                                                                  ascending:NO];
     NSArray *sortDescriptors = [NSArray arrayWithObject:sortByName];
-    NSArray *sortedArray = [self.rooms sortedArrayUsingDescriptors:sortDescriptors];
+    NSArray *sortedArray = [self.camps sortedArrayUsingDescriptors:sortDescriptors];
     
-    self.rooms = [[NSMutableArray alloc] initWithArray:sortedArray];
+    self.camps = [[NSMutableArray alloc] initWithArray:sortedArray];
 }
 
 - (void)dismiss:(id)sender {
@@ -142,7 +144,7 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
     if (section == 1) {
         if (self.loading) return 1;
         
-        return self.rooms.count;
+        return self.camps.count;
     }
     
     return 0;
@@ -157,18 +159,19 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
         UILabel *label = [cell viewWithTag:10];
         UIImageView *checkIcon = [cell viewWithTag:11];
         if (!label) {
-            label = [[UILabel alloc] initWithFrame:CGRectMake(68, 0, self.view.frame.size.width - 68 - 16 - 32, cell.frame.size.height)];
+            cell.contentView.backgroundColor = [UIColor whiteColor];
+            
+            label = [[UILabel alloc] initWithFrame:CGRectMake(70, 0, self.view.frame.size.width - 70 - 16 - 32, cell.frame.size.height)];
             label.tag = 10;
             label.textAlignment = NSTextAlignmentLeft;
-            label.font = [UIFont systemFontOfSize:15.f weight:UIFontWeightBold];
+            label.font = [UIFont systemFontOfSize:15.f weight:UIFontWeightSemibold];
             label.textColor = [UIColor bonfireBlack];
             label.text = @"My Profile";
             [cell.contentView addSubview:label];
             
             // image view
-            
             BFAvatarView *imageView = [[BFAvatarView alloc] init];
-            imageView.frame = CGRectMake(12, cell.frame.size.height / 2 - 21, 42, 42);
+            imageView.frame = CGRectMake(12, cell.frame.size.height / 2 - 24, 48, 48);
             imageView.user = [Session sharedInstance].currentUser;
             [cell.contentView addSubview:imageView];
             
@@ -198,29 +201,29 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
             return cell;
         }
         else {
-            SearchResultCell *cell = [tableView dequeueReusableCellWithIdentifier:roomCellIdentifier forIndexPath:indexPath];
+            SearchResultCell *cell = [tableView dequeueReusableCellWithIdentifier:campCellIdentifier forIndexPath:indexPath];
             
             if (cell == nil) {
-                cell = [[SearchResultCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:roomCellIdentifier];
+                cell = [[SearchResultCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:campCellIdentifier];
             }
             
             // Configure the cell...
             cell.type = 1;
             
-            Room *room = [[Room alloc] initWithDictionary:self.rooms[indexPath.row] error:nil];
+            Camp *camp = [[Camp alloc] initWithDictionary:self.camps[indexPath.row] error:nil];
             
-            cell.textLabel.text = room.attributes.details.title;
-            cell.profilePicture.room = room;
+            cell.textLabel.text = camp.attributes.details.title;
+            cell.profilePicture.camp = camp;
             
-            NSString *detailText = [NSString stringWithFormat:@"%ld %@", (long)room.attributes.summaries.counts.members, (room.attributes.summaries.counts.members == 1 ? @"member" : @"members")];
-            BOOL useLiveCount = room.attributes.summaries.counts.live > [Session sharedInstance].defaults.room.liveThreshold;
+            NSString *detailText = [NSString stringWithFormat:@"%ld %@", (long)camp.attributes.summaries.counts.members, (camp.attributes.summaries.counts.members == 1 ? [Session sharedInstance].defaults.camp.membersTitle.singular : [Session sharedInstance].defaults.camp.membersTitle.plural)];
+            /*BOOL useLiveCount = camp.attributes.summaries.counts.live > [Session sharedInstance].defaults.camp.liveThreshold;
             if (useLiveCount) {
-                cell.detailTextLabel.text = [NSString stringWithFormat:@"%@ · %li LIVE", detailText, (long)room.attributes.summaries.counts.live];
-            }
+                cell.detailTextLabel.text = [NSString stringWithFormat:@"%@ · %li LIVE", detailText, (long)camp.attributes.summaries.counts.live];
+            }*/
             cell.detailTextLabel.text = detailText;
             
             cell.tintColor = self.view.tintColor;
-            cell.checkIcon.hidden = ![room.identifier isEqualToString:self.currentSelection.identifier];
+            cell.checkIcon.hidden = ![camp.identifier isEqualToString:self.currentSelection.identifier];
             cell.checkIcon.tintColor = self.view.tintColor;
             
             return cell;
@@ -234,7 +237,7 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
     if (indexPath.section == 0) {
         UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
         [UIView animateWithDuration:0.2f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-            cell.contentView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.04f];
+            cell.contentView.backgroundColor = [[UIColor contentBackgroundColor] colorWithAlphaComponent:0.97];
         } completion:nil];
     }
 }
@@ -242,20 +245,19 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
     if (indexPath.section == 0) {
         UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
         [UIView animateWithDuration:0.2f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-            cell.contentView.backgroundColor = [UIColor clearColor];
+            cell.contentView.backgroundColor = [UIColor contentBackgroundColor];
         } completion:nil];
     }
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return 64;
+    return 68;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
     if (section == 0) return 0;
     
-    CGFloat headerHeight = 56;
-    if (section == 1) return headerHeight;
+    if (section == 1) return [BFHeaderView height];
     
     return 0;
 }
@@ -264,17 +266,14 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
     if (section == 0) return nil;
     
     if (section == 1) {
-        UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 64)];
+        BFHeaderView *header = [[BFHeaderView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, [BFHeaderView height])];
         
-        UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(12, 30, self.view.frame.size.width - 24, 18)];
-        title.textAlignment = NSTextAlignmentLeft;
-        title.font = [UIFont systemFontOfSize:13.f weight:UIFontWeightSemibold];
-        title.textColor = [UIColor bonfireGray];
+        header.separator = false;
+        
         if (section == 1) {
-            if (self.loading || self.rooms.count > 0) title.text = @"MY CAMPS";
-            else title.text = @"";
+            if (self.loading || self.camps.count > 0) header.title = @"My Camps";
+            else header.title = @"";
         }
-        [header addSubview:title];
         
         return header;
     }
@@ -294,9 +293,9 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
         [self.delegate privacySelectionDidChange:nil];
     }
     else if (indexPath.section == 1) {
-        // room
-        Room *room = [[Room alloc] initWithDictionary:self.rooms[indexPath.row] error:nil];
-        [self.delegate privacySelectionDidChange:room];
+        // camp
+        Camp *camp = [[Camp alloc] initWithDictionary:self.camps[indexPath.row] error:nil];
+        [self.delegate privacySelectionDidChange:camp];
     }
     
     [self.navigationController dismissViewControllerAnimated:YES completion:nil];

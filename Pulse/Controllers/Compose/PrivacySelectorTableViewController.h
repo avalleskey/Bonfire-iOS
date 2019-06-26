@@ -7,19 +7,19 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "Room.h"
+#import "Camp.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 @protocol PrivacySelectorDelegate <NSObject>
 
-- (void)privacySelectionDidChange:(Room * _Nullable)selection;
+- (void)privacySelectionDidChange:(Camp * _Nullable)selection;
 
 @end
 
 @interface PrivacySelectorTableViewController : UITableViewController
 
-@property (nonatomic, strong) Room *currentSelection;
+@property (nonatomic, strong) Camp *currentSelection;
 @property (nonatomic, strong) UIBarButtonItem *cancelButton;
 @property (nonatomic, weak) id <PrivacySelectorDelegate> delegate;
 

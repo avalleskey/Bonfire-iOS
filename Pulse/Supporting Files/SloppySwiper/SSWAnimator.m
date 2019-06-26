@@ -5,6 +5,7 @@
 //
 
 #import "SSWAnimator.h"
+#import "UIColor+Palette.h"
 
 UIViewAnimationOptions const SSWNavigationTransitionCurve = 7 << 16;
 
@@ -18,7 +19,8 @@ UIViewAnimationOptions const SSWNavigationTransitionCurve = 7 << 16;
     CGRect shadowRect = CGRectMake(-shadowWidth, shadowVerticalPadding, shadowWidth, shadowHeight);
     UIBezierPath *shadowPath = [UIBezierPath bezierPathWithRect:shadowRect];
     self.layer.shadowPath = [shadowPath CGPath];
-    self.layer.shadowOpacity = 0.12f;
+    self.layer.shadowRadius = 2;
+    self.layer.shadowOpacity = 0.4;
 }
 @end
 
@@ -36,10 +38,10 @@ UIViewAnimationOptions const SSWNavigationTransitionCurve = 7 << 16;
     UIViewController *fromViewController = [transitionContext viewControllerForKey:UITransitionContextFromViewControllerKey];
     
     if ([fromViewController isKindOfClass:[UINavigationController class]]) {
-        return [transitionContext isInteractive] ? 0.3 : 0.7;
+        return [transitionContext transitionWasCancelled] ? 1.f : 0.3f;
     }
     else {
-        return [transitionContext isInteractive] ? 0.25f : 0.5f;
+        return [transitionContext transitionWasCancelled] ? 1.f : 0.5f;
     }
 }
 
@@ -51,61 +53,57 @@ UIViewAnimationOptions const SSWNavigationTransitionCurve = 7 << 16;
     
     UIView *fromView = fromViewController.view;
     UIView *toView = toViewController.view;
-    fromView.layer.masksToBounds = true;
-    toView.layer.masksToBounds = true;
+    fromView.layer.masksToBounds = false;
     
     [[transitionContext containerView] insertSubview:toViewController.view belowSubview:fromViewController.view];
     
     if ([fromViewController isKindOfClass:[UINavigationController class]]) {
         UIView *containerView = [transitionContext containerView];
-        containerView.backgroundColor = [UIColor colorWithWhite:0.07f alpha:1];
+        containerView.backgroundColor = [UIColor colorWithWhite:0.05f alpha:1];
         
-        toView.alpha = 0;
-        toView.transform = CGAffineTransformMakeScale(0.9, 0.9);
-        toView.layer.cornerRadius = HAS_ROUNDED_CORNERS ? 32.f : 8.f;
+        toView.alpha = 0.6;
+        toView.transform = CGAffineTransformMakeTranslation(-.25 * containerView.frame.size.width, 0);
         
         fromView.alpha = 1;
-        fromView.layer.cornerRadius = toView.layer.cornerRadius;
+        [fromView addLeftSideShadowWithFading];
         
-        CGFloat animationDuration = 0.56;
-        CGFloat animationDamping = 0.75;
+        CGFloat animationDuration = 0.5;
+        CGFloat animationDamping = 0.9;
         
         if ([transitionContext isInteractive]) {
             [UIView animateWithDuration:[self transitionDuration:transitionContext] delay:0 options:UIViewAnimationOptionTransitionNone | UIViewAnimationOptionCurveLinear animations:^{
                 toView.alpha = 1;
-                toView.transform = CGAffineTransformMakeScale(1, 1);
-                fromView.center = CGPointMake(containerView.frame.size.width * 1.5, containerView.frame.size.height / 2);
+                toView.transform = CGAffineTransformMakeTranslation(0, 0);
+                
+                fromView.center = CGPointMake(containerView.frame.size.width * 1.5, fromView.center.y);
+                
+                fromView.layer.shadowOpacity = 0;
             } completion:^(BOOL finished) {
                 if ([transitionContext transitionWasCancelled]) {
                     [toView removeFromSuperview];
-                    toView.userInteractionEnabled = FALSE;
+                    
+                    [transitionContext completeTransition:![transitionContext transitionWasCancelled]];
                 }
                 else {
                     [fromView removeFromSuperview];
                     toView.userInteractionEnabled = YES;
+                    
+                    [transitionContext completeTransition:![transitionContext transitionWasCancelled]];
                 }
-                fromView.layer.cornerRadius =
-                toView.layer.cornerRadius = 0;
-                [transitionContext completeTransition:![transitionContext transitionWasCancelled]];
             }];
         }
         else {
             [UIView animateWithDuration:animationDuration delay:0 usingSpringWithDamping:animationDamping initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseInOut animations:^{
                 toView.alpha = 1;
-                toView.transform = CGAffineTransformMakeScale(1, 1);
+                toView.transform = CGAffineTransformMakeTranslation(0, 0);
                 
-                fromView.center = CGPointMake(containerView.frame.size.width * 1.5, containerView.frame.size.height / 2);
+                fromView.center = CGPointMake(containerView.frame.size.width * 1.5, fromView.center.y);
+                
+                fromView.layer.shadowOpacity = 0;
             } completion:^(BOOL finished) {
-                if ([transitionContext transitionWasCancelled]) {
-                    [toView removeFromSuperview];
-                    toView.userInteractionEnabled = FALSE;
-                }
-                else {
-                    [fromView removeFromSuperview];
-                    toView.userInteractionEnabled = YES;
-                }
-                fromView.layer.cornerRadius =
-                toView.layer.cornerRadius = 0;
+                [fromView removeFromSuperview];
+                toView.userInteractionEnabled = YES;
+                
                 [transitionContext completeTransition:![transitionContext transitionWasCancelled]];
             }];
         }
@@ -127,7 +125,6 @@ UIViewAnimationOptions const SSWNavigationTransitionCurve = 7 << 16;
         toViewController.view.transform = CGAffineTransformMakeTranslation(toViewControllerXTranslation, 0);
         
         // add a shadow on the left side of the frontmost view controller
-        [fromViewController.view addLeftSideShadowWithFading];
         BOOL previousClipsToBounds = fromViewController.view.clipsToBounds;
         fromViewController.view.clipsToBounds = NO;
         

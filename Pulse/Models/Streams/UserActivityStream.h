@@ -24,12 +24,16 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)prependPage:(UserActivityStreamPage *)page;
 - (void)appendPage:(UserActivityStreamPage *)page;
 
+@property (nonatomic) NSString *prevCursor;
+@property (nonatomic) NSString *nextCursor;
+
 @end
 
 @interface UserActivityStreamPage : JSONModel
 
-@property (nonatomic) NSArray<UserActivity *> *data;
+@property (nonatomic) NSArray <UserActivity *> *data;
 @property (nonatomic) UserActivityStreamPageMeta <Optional> *meta;
+@property (nonatomic) BOOL replaceCache;
 
 @end
 
@@ -41,8 +45,15 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface UserActivityStreamPageMetaPaging : JSONModel
 
-@property (nonatomic) NSString <Optional> *next_cursor;
-@property (nonatomic) NSInteger remaining_results;
+typedef enum {
+    UserActivityStreamPagingCursorTypeNone,
+    UserActivityStreamPagingCursorTypePrevious,
+    UserActivityStreamPagingCursorTypeNext
+} UserActivityStreamPagingCursorType;
+
+@property (nonatomic) NSString <Optional> *prevCursor;
+@property (nonatomic) NSString <Optional> *nextCursor;
+@property (nonatomic) NSInteger remainingResults;
 
 @end
 

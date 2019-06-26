@@ -8,6 +8,7 @@
 
 #import "BFMedia.h"
 #import "Launcher.h"
+#import "UIImage+fixOrientation.m"
 @import MobileCoreServices.UTType;
 
 @implementation BFMedia
@@ -15,10 +16,7 @@
 - (id)init {
     self = [super init];
     if (self) {
-        self.objects = [[NSMutableArray alloc] init];
-        self.images = [[NSMutableArray alloc] init];
-        self.GIFs = [[NSMutableArray alloc] init];
-        
+        [self flush];
         [self initDefaults];
     }
     return self;
@@ -27,6 +25,12 @@
 - (void)initDefaults {
     self.maxImages = 4;
     self.maxGIFs = 1;
+}
+
+- (void)flush {
+    self.objects = [[NSMutableArray alloc] init];
+    self.images = [[NSMutableArray alloc] init];
+    self.GIFs = [[NSMutableArray alloc] init];
 }
 
 - (NSArray *)toDataArray {
@@ -132,24 +136,23 @@ NSString * const BFMediaObjectMIME_GIF = @"image/gif";
     self = [self init];
     if (self) {
         if (asset) {
-            self.MIME = [self MIMETypeFromFileName:[NSString stringWithFormat:@"%@", [asset valueForKey:@"filename"]]];
-            NSLog(@"self.MIME: %@", self.MIME);
-            
-            
             PHImageRequestOptions * imageRequestOptions = [[PHImageRequestOptions alloc] init];
             imageRequestOptions.synchronous = YES;
             [[PHImageManager defaultManager] requestImageDataForAsset:asset options:imageRequestOptions resultHandler:^(NSData *imageData, NSString *dataUTI, UIImageOrientation orientation, NSDictionary *info)
              {
                  NSLog(@"info = %@", info);
                  NSLog(@"data uti: %@", dataUTI);
-                 NSLog(@"path extension: %@", [[asset valueForKey:@"filename"] pathExtension]);
+                 NSString *MIME = (__bridge NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)dataUTI, kUTTagClassMIMEType);
+                 self.MIME = MIME;
 
-                 if ([self.MIME isEqualToString:BFMediaObjectMIME_JPEG] || [self.MIME isEqualToString:BFMediaObjectMIME_PNG]) {
+                 if ([self.MIME isEqualToString:BFMediaObjectMIME_JPEG] || [self.MIME isEqualToString:BFMediaObjectMIME_PNG] || [self.MIME isEqualToString:BFMediaObjectMIME_GIF]) {
                      self.data = imageData;
                  }
                  else {
                      NSData *data = imageData;
                      UIImage *imageFromData = [UIImage imageWithData:data];
+                     imageFromData = [imageFromData fixOrientation];
+                     
                      NSData *jpgData = UIImageJPEGRepresentation(imageFromData, 1.0);
                      
                      self.MIME = BFMediaObjectMIME_JPEG;
@@ -166,6 +169,8 @@ NSString * const BFMediaObjectMIME_GIF = @"image/gif";
 - (id)initWithImage:(UIImage *)image {
     self = [self init];
     if (self) {
+        image = [image fixOrientation];
+        
         self.MIME = BFMediaObjectMIME_JPEG;
         self.data = UIImageJPEGRepresentation(image, 1.0);
     }

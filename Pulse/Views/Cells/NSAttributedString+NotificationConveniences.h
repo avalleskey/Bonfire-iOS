@@ -7,8 +7,8 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "NotificationCell.h"
-#import "Room.h"
+#import "ActivityCell.h"
+#import "Camp.h"
 #import "User.h"
 #import "UserActivity.h"
 

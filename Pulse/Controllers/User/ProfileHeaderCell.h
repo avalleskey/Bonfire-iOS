@@ -11,6 +11,7 @@
 #import "User.h"
 #import "BFAvatarView.h"
 #import "BFDetailsCollectionView.h"
+#import <TTTAttributedLabel/TTTAttributedLabel.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -22,20 +23,20 @@ NS_ASSUME_NONNULL_BEGIN
 #define PROFILE_HEADER_AVATAR_SIZE 96
 #define PROFILE_HEADER_AVATAR_BOTTOM_PADDING 12
 // display name macros
-#define PROFILE_HEADER_DISPLAY_NAME_FONT [UIFont systemFontOfSize:30.f weight:UIFontWeightHeavy]
+#define PROFILE_HEADER_DISPLAY_NAME_FONT [UIFont systemFontOfSize:24.f weight:UIFontWeightHeavy]
 #define PROFILE_HEADER_DISPLAY_NAME_BOTTOM_PADDING 4
 // username macros
-#define PROFILE_HEADER_USERNAME_FONT [UIFont systemFontOfSize:16.f weight:UIFontWeightHeavy]
+#define PROFILE_HEADER_USERNAME_FONT [UIFont systemFontOfSize:16.f weight:UIFontWeightBold]
 #define PROFILE_HEADER_USERNAME_BOTTOM_PADDING 10
 // bio macros
-#define PROFILE_HEADER_BIO_FONT [UIFont systemFontOfSize:15.f weight:UIFontWeightMedium]
+#define PROFILE_HEADER_BIO_FONT [UIFont systemFontOfSize:16.f weight:UIFontWeightMedium]
 #define PROFILE_HEADER_BIO_BOTTOM_PADDING 0
 // details macros
 #define PROFILE_HEADER_DETAILS_EDGE_INSETS UIEdgeInsetsMake(10, 24, 10, 24)
 // follow button macros
 #define PROFILE_HEADER_FOLLOW_BUTTON_TOP_PADDING 16
 
-@interface ProfileHeaderCell : UITableViewCell
+@interface ProfileHeaderCell : UITableViewCell <TTTAttributedLabelDelegate>
 
 @property (strong, nonatomic) User *user;
 
@@ -47,7 +48,7 @@ NS_ASSUME_NONNULL_BEGIN
 // @property (strong, nonatomic) UILabel *textLabel
 // @property (strong, nonatomic) UILabel *detailTextLabel
 
-@property (strong, nonatomic) UILabel *bioLabel;
+@property (strong, nonatomic) TTTAttributedLabel *bioLabel;
 @property (strong, nonatomic) BFDetailsCollectionView *detailsCollectionView;
 
 @property (strong, nonatomic) UserFollowButton *followButton;

@@ -1,9 +1,14 @@
 {
-    "home": {
-        "page_titles": {
-            "feed": "Home",
-            "my_rooms": "Camps",
-            "discover": "Trending"
+    "keywords": {
+        "group_titles": {
+            "singular": "Camp",
+            "plural": "Camps"
+        },
+        "view_titles": {
+            "user_stream": "Home",
+            "discover": "Discover",
+            "notifications": "Notifications",
+            "my_profile": "My Profile"
         }
     },
     "profile": {
@@ -11,34 +16,25 @@
         "following_verb": "Following"
     },
     "post": {
-        "display_vote": {
-            "text": "Spark",
-            "icon": "lightning"
+        "img_height": 200,
+        "max_length": {
+            "hard": 500,
+            "soft": 300
         },
-        "img_height": 140,
-        "max_length": 300,
         "compose_prompt": "Share in {group_name}..."
     },
     "sharing": {
         "share_post": "{uri}",
-        "share_room": "{uri}"
+        "share_camp": "{uri}"
     },
-    "room": {
-        "create_verb": "New",
+    "camp": {
         "follow_verb": "Join",
         "following_verb": "Joined",
         "members_title": {
             "singular": "member",
             "plural": "members"
         },
-        "live_threshold": 60,
-        "active_threshold": 3
-    },
-    "onboarding": {
-        "my_rooms": {
-            "title": "My Rooms",
-            "description": "Everything you care about, in one place. Discover new Camps to follow by swiping right or searching above."
-        }
+        "live_threshold": 60
     },
     "logging": {
         "insights": {
@@ -48,6 +44,80 @@
                     "max_length_hrs": 24
                 }
             }
+        }
+    },
+    "notifications": {
+        "1": {
+            "string_parts": [
+                "$actioner.username",
+                " started following you."
+            ],
+            "action_object": "actioner"
+        },
+        "2": {
+            "string_parts": [
+                "$actioner.username",
+                " approved your request to join ",
+                "$camp.title",
+                "."
+            ],
+            "action_object": "camp"
+        },
+        "3": {
+            "string_parts": [
+                "$actioner.username",
+                " requested to join ",
+                "$camp.title",
+                "."
+            ],
+            "action_object": "camp"
+        },
+        "4": {
+            "string_parts": [
+                "$actioner.username",
+                " replied to your post."
+            ],
+            "action_object": "reply_post"
+        },
+        "5": {
+            "string_parts": [
+                "$actioner.username",
+                " sparked your post."
+            ],
+            "action_object": "post"
+        },
+        "6": {
+            "string_parts": [
+                "New post by ",
+                "$actioner.username",
+                "."
+            ],
+            "action_object": "post"
+        },
+        "7": {
+            "string_parts": [
+                "$actioner.username",
+                " invited you to join ",
+                "$camp.title",
+                "."
+            ],
+            "action_object": "camp"
+        },
+        "8": {
+            "string_parts": [
+                "$actioner.username",
+                " mentioned you in their post."
+            ],
+            "action_object": "post"
+        },
+        "9": {
+            "string_parts": [
+                "$actioner.username",
+                " posted in ",
+                "$camp.title",
+                "."
+            ],
+            "action_object": "post"
         }
     }
 }

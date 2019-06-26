@@ -17,7 +17,7 @@
 @implementation BFAvatarView
 
 @synthesize user = _user;
-@synthesize room = _room;
+@synthesize camp = _camp;
 
 - (id)init {
     self = [super init];
@@ -56,7 +56,7 @@
     self.highlightView.alpha = 0;
     [self.imageView addSubview:self.highlightView];
         
-    CGFloat onlineDotViewDiameter = 16;
+    CGFloat onlineDotViewDiameter = roundf(self.frame.size.width / 3);;
     self.onlineDotView = [[UIImageView alloc] initWithFrame:CGRectMake(self.frame.size.width - onlineDotViewDiameter + 1, self.frame.size.height - onlineDotViewDiameter + 1, onlineDotViewDiameter, onlineDotViewDiameter)];
     self.onlineDotView.image = [UIImage imageNamed:@"onlineDot"];
     [self addSubview:self.onlineDotView];
@@ -87,7 +87,7 @@
     }
 }
 - (void)openUser:(UITapGestureRecognizer *)sender {
-    [[Launcher sharedInstance] openProfile:self.user];
+    [Launcher openProfile:self.user];
 }
 
 - (void)setFrame:(CGRect)frame {
@@ -95,6 +95,9 @@
     
     self.imageView.frame = self.bounds;
     [self updateCornerRadius];
+    
+    CGFloat onlineDotViewDiameter = roundf(self.frame.size.width / 3);
+    self.onlineDotView.frame = CGRectMake(self.frame.size.width - onlineDotViewDiameter + 1, self.frame.size.height - onlineDotViewDiameter + 1, onlineDotViewDiameter, onlineDotViewDiameter);
 }
 
 - (void)updateCornerRadius {
@@ -126,33 +129,36 @@
             }
         }
         else {
-            if (_user.attributes.details.media.userAvatar.suggested.url && _user.attributes.details.media.userAvatar.suggested.url.length > 0) {
-                if (diff(self.imageView.backgroundColor, [UIColor whiteColor]))
-                    self.imageView.backgroundColor = [UIColor whiteColor];
-                
-                if (diff(self.imageView.layer.borderWidth, 1))
-                    self.imageView.layer.borderWidth = 1;
-                
-                [self.imageView sd_setImageWithURL:[NSURL URLWithString:_user.attributes.details.media.userAvatar.suggested.url] placeholderImage:[[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
+            self.imageView.layer.borderWidth = 0;
+            
+            self.imageView.image = [[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+            
+            if (diff(self.imageView.backgroundColor, [UIColor fromHex:_user.attributes.details.color]))
+                self.imageView.backgroundColor = [UIColor fromHex:_user.attributes.details.color];
+            
+            UIColor *tintColor;
+            if ([UIColor useWhiteForegroundForColor:[UIColor fromHex:_user.attributes.details.color]]) {
+                // dark enough
+                tintColor = [UIColor whiteColor];
             }
             else {
-                self.imageView.layer.borderWidth = 0;
+                tintColor = [UIColor blackColor];
+            }
+            if (diff(self.imageView.tintColor, tintColor))
+                self.imageView.tintColor = tintColor;
+            
+            if (_user.attributes.details.media.userAvatar.suggested.url && _user.attributes.details.media.userAvatar.suggested.url.length > 0) {
+                self.imageView.backgroundColor = [UIColor bonfireGrayWithLevel:100];
                 
-                self.imageView.image = [[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-                
-                if (diff(self.imageView.backgroundColor, [UIColor fromHex:_user.attributes.details.color]))
-                    self.imageView.backgroundColor = [UIColor fromHex:_user.attributes.details.color];
-                
-                UIColor *tintColor;
-                if ([UIColor useWhiteForegroundForColor:[UIColor fromHex:_user.attributes.details.color]]) {
-                    // dark enough
-                    tintColor = [UIColor lighterColorForColor:[UIColor fromHex:_user.attributes.details.color] amount:BFAvatarViewIconContrast];
-                }
-                else {
-                    tintColor = [UIColor darkerColorForColor:[UIColor fromHex:_user.attributes.details.color] amount:BFAvatarViewIconContrast];
-                }
-                if (diff(self.imageView.tintColor, tintColor))
-                    self.imageView.tintColor = tintColor;
+                [self.imageView sd_setImageWithURL:[NSURL URLWithString:_user.attributes.details.media.userAvatar.suggested.url] completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
+                    self.imageView.image = image;
+                    
+                    if (diff(self.imageView.backgroundColor, [UIColor whiteColor]))
+                        self.imageView.backgroundColor = [UIColor whiteColor];
+                    
+                    if (diff(self.imageView.layer.borderWidth, 1))
+                        self.imageView.layer.borderWidth = 1;
+                }];
             }
         }
     }
@@ -160,40 +166,47 @@
 - (User *)user {
     return _user;
 }
-- (void)setRoom:(Room *)room {
-    if (room == nil || room != _room) {
-        _room = room;
+- (void)setCamp:(Camp *)camp {
+    if (camp == nil || camp != _camp || ![camp.attributes.details.color isEqualToString:_camp.attributes.details.color]) {
+        _camp = camp;
         
-        if (room == nil) {
+        if (camp == nil) {
             self.imageView.image = [[UIImage imageNamed:@"anonymousGroup"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
             self.imageView.tintColor = [UIColor whiteColor];
             self.imageView.backgroundColor = [UIColor bonfireGray];
         }
         else {
-            if (_room.attributes.details.media.roomAvatar.suggested.url && _room.attributes.details.media.roomAvatar.suggested.url.length > 0) {
-                self.imageView.backgroundColor = [UIColor whiteColor];
-                self.imageView.layer.borderColor = [UIColor colorWithWhite:0 alpha:0.04f].CGColor;
-                
-                [self.imageView sd_setImageWithURL:[NSURL URLWithString:_room.attributes.details.media.roomAvatar.suggested.url] placeholderImage:[[UIImage imageNamed:@"anonymousGroup"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
+            self.imageView.layer.borderWidth = 0;
+            
+            self.imageView.image = [[UIImage imageNamed:@"anonymousGroup"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+            self.imageView.backgroundColor = [UIColor fromHex:_camp.attributes.details.color];
+            
+            if ([UIColor useWhiteForegroundForColor:[UIColor fromHex:_camp.attributes.details.color]]) {
+                // dark enough
+                self.imageView.tintColor = [UIColor whiteColor]; // [UIColor lighterColorForColor:[UIColor fromHex:_camp.attributes.details.color] amount:BFAvatarViewIconContrast];
             }
             else {
-                self.imageView.layer.borderColor = [UIColor clearColor].CGColor;
+                self.imageView.tintColor = [UIColor blackColor]; // [UIColor darkerColorForColor:[UIColor fromHex:_camp.attributes.details.color] amount:BFAvatarViewIconContrast];
+            }
+            
+            if (_camp.attributes.details.media.campAvatar.suggested.url && _camp.attributes.details.media.campAvatar.suggested.url.length > 0) {
+                self.imageView.backgroundColor = [UIColor bonfireGrayWithLevel:100];
                 
-                self.imageView.image = [[UIImage imageNamed:@"anonymousGroup"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-                self.imageView.backgroundColor = [UIColor fromHex:_room.attributes.details.color];
-                if ([UIColor useWhiteForegroundForColor:[UIColor fromHex:_room.attributes.details.color]]) {
-                    // dark enough
-                    self.imageView.tintColor = [UIColor whiteColor]; // [UIColor lighterColorForColor:[UIColor fromHex:_room.attributes.details.color] amount:BFAvatarViewIconContrast];
-                }
-                else {
-                    self.imageView.tintColor = [UIColor blackColor]; // [UIColor darkerColorForColor:[UIColor fromHex:_room.attributes.details.color] amount:BFAvatarViewIconContrast];
-                }
+                [self.imageView sd_setImageWithURL:[NSURL URLWithString:_camp.attributes.details.media.campAvatar.suggested.url] completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
+                    self.imageView.image = image;
+                    
+                    if (diff(self.imageView.backgroundColor, [UIColor whiteColor]))
+                        self.imageView.backgroundColor = [UIColor whiteColor];
+                    
+                    if (diff(self.imageView.layer.borderWidth, 1))
+                        self.imageView.layer.borderWidth = 1;
+                }];
             }
         }
     }
 }
-- (Room *)room {
-    return _room;
+- (Camp *)camp {
+    return _camp;
 }
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
@@ -247,6 +260,10 @@
     else {
         self.onlineDotView.hidden = true;
     }
+}
+
+- (void)userUpdated:(NSNotification *)notification {
+    self.user = [Session sharedInstance].currentUser;
 }
 
 @end

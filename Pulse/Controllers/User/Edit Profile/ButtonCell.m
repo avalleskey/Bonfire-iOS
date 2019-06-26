@@ -21,7 +21,11 @@
     self = [super initWithStyle:UITableViewCellStyleValue2 reuseIdentifier:reuseIdentifier];
     
     if (self) {
+        self.gutterPadding = 12;
+        
         self.selectionStyle = UITableViewCellSelectionStyleNone;
+        self.contentView.backgroundColor = [UIColor clearColor];
+        self.backgroundColor = [UIColor whiteColor];
         
         self.kButtonColorDefault = [UIColor bonfireBlack];
         self.kButtonColorDestructive = [UIColor colorWithDisplayP3Red:0.82 green:0.01 blue:0.11 alpha:1.0];
@@ -32,7 +36,7 @@
         
         self.buttonLabel = [[UILabel alloc] init];
         self.buttonLabel.text = @"";
-        self.buttonLabel.font = [UIFont systemFontOfSize:17.f weight:UIFontWeightSemibold];
+        self.buttonLabel.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightMedium];
         self.buttonLabel.textColor = [UIColor bonfireBlack];
         [self.contentView addSubview:self.buttonLabel];
         
@@ -57,14 +61,14 @@
         self.detailTextLabel.textAlignment = NSTextAlignmentRight;
         self.detailTextLabel.font = [UIFont systemFontOfSize:15.f weight:UIFontWeightRegular];
         
-        self.buttonLabel.frame = CGRectMake(16, 0, self.detailTextLabel.frame.origin.x - 16 - 8, self.frame.size.height);
+        self.buttonLabel.frame = CGRectMake(self.gutterPadding, 0, self.detailTextLabel.frame.origin.x - self.gutterPadding - 8, self.frame.size.height);
     }
     else if (!self.checkIcon.isHidden) {
         self.checkIcon.frame = CGRectMake(self.frame.size.width - 16 - self.checkIcon.frame.size.width, self.frame.size.height / 2 - self.checkIcon.frame.size.height / 2, self.checkIcon.frame.size.width, self.checkIcon.frame.size.height);
-        self.buttonLabel.frame = CGRectMake(16, 0, self.checkIcon.frame.origin.x - 32, self.frame.size.height);
+        self.buttonLabel.frame = CGRectMake(self.gutterPadding, 0, self.checkIcon.frame.origin.x - (self.gutterPadding * 2), self.frame.size.height);
     }
     else {
-        self.buttonLabel.frame = CGRectMake(16, 0, self.frame.size.width - 32, self.frame.size.height);
+        self.buttonLabel.frame = CGRectMake(self.gutterPadding, 0, self.frame.size.width - (self.gutterPadding * 2), self.frame.size.height);
     }
 }
 
@@ -73,14 +77,14 @@
     [super setHighlighted:highlighted animated:animated];
     
     if (highlighted) {
-        [UIView animateWithDuration:0.2f animations:^{
-            self.backgroundColor = [UIColor colorWithDisplayP3Red:0.92 green:0.92 blue:0.92 alpha:1.00];
-        }];
+        [UIView animateWithDuration:0.2f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+            self.backgroundColor = [UIColor contentHighlightedColor];
+        } completion:nil];
     }
     else {
-        [UIView animateWithDuration:0.2f animations:^{
-            self.backgroundColor = [UIColor whiteColor];
-        }];
+        [UIView animateWithDuration:0.2f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+            self.backgroundColor = [UIColor contentBackgroundColor];
+        } completion:nil];
     }
 }
 

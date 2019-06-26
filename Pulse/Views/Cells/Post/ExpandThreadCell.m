@@ -33,8 +33,8 @@
         
         self.lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, self.frame.size.height - (1 / [UIScreen mainScreen].scale), self.frame.size.width, (1 / [UIScreen mainScreen].scale))];
         self.lineSeparator.backgroundColor = [UIColor separatorColor];
-        [self addSubview:self.lineSeparator];
         self.lineSeparator.hidden = true;
+        [self addSubview:self.lineSeparator];
     }
     
     return self;
@@ -53,12 +53,12 @@
 - (void)setHighlighted:(BOOL)highlighted animated:(BOOL)animated {
     if (highlighted) {
         [UIView animateWithDuration:0.2f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-            self.contentView.backgroundColor = [UIColor colorWithWhite:0.97 alpha:1];
+            self.contentView.backgroundColor = [UIColor contentHighlightedColor];
         } completion:nil];
     }
     else {
         [UIView animateWithDuration:0.2f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-            self.contentView.backgroundColor = [UIColor clearColor];
+            self.contentView.backgroundColor = [UIColor contentBackgroundColor];
         } completion:nil];
     }
 }

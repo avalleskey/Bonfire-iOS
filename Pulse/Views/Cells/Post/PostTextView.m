@@ -12,6 +12,7 @@
 #import "JGProgressHUD.h"
 #import <HapticHelper/HapticHelper.h>
 #import "UIColor+Palette.h"
+#import "NSString+Validation.h"
 
 #define TWUValidUsername                @"[@][a-z0-9_]{1,20}"
 #define TWUValidCampDisplayId           @"[#][a-z0-9_]{1,30}"
@@ -36,7 +37,6 @@
         _messageLabel.backgroundColor = [UIColor clearColor];
         _messageLabel.numberOfLines = 0;
         _messageLabel.lineBreakMode = NSLineBreakByWordWrapping;
-        _messageLabel.enabledTextCheckingTypes = (NSTextCheckingTypeLink);
         _messageLabel.delegate = self;
         
         NSMutableDictionary *mutableActiveLinkAttributes = [NSMutableDictionary dictionary];
@@ -83,7 +83,7 @@
         }
         else {
             // extern url
-            [[Launcher sharedInstance] openURL:url.absoluteString];
+            [Launcher openURL:url.absoluteString];
         }
     }
 }
@@ -110,7 +110,7 @@
         HUD.backgroundColor = [UIColor colorWithWhite:0 alpha:0.1f];
         HUD.indicatorView = [[JGProgressHUDSuccessIndicatorView alloc] init];
         
-        [HUD showInView:[[Launcher sharedInstance] activeViewController].view animated:YES];
+        [HUD showInView:[Launcher activeViewController].view animated:YES];
         [HapticHelper generateFeedback:FeedbackType_Notification_Success];
         
         [HUD dismissAfterDelay:1.5f];
@@ -120,7 +120,7 @@
     UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
     [alertController addAction:cancel];
     
-    [[[Launcher sharedInstance] activeViewController] presentViewController:alertController animated:YES completion:nil];
+    [[Launcher activeViewController] presentViewController:alertController animated:YES completion:nil];
 }
 
 - (void)update {
@@ -130,29 +130,58 @@
     CGFloat width = (UIEdgeInsetsEqualToEdgeInsets(UIEdgeInsetsZero, self.edgeInsets) ? self.frame.size.width : messageSize.width + self.edgeInsets.left + self.edgeInsets.right);
     self.frame = CGRectMake(self.frame.origin.x, self.frame.origin.y, width, messageSize.height + self.edgeInsets.top + self.edgeInsets.bottom);
     _messageLabel.translatesAutoresizingMaskIntoConstraints = YES;
-    self.messageLabel.frame = CGRectMake(self.edgeInsets.left, self.edgeInsets.top, messageSize.width, messageSize.height);
+    self.messageLabel.frame = CGRectMake(0, 0, self.frame.size.width, self.frame.size.height);
 }
 
-- (void)setMessage:(NSString *)message {
-    if (message != _message) {
+- (void)setMessage:(NSString *)message entities:(NSArray<PostEntity *><PostEntity> *)entities {
+    if (![message isEqualToString:_message]) {
         _message = message;
+    }
+    if (entities != _entities) {
+        _entities = entities;
+    }
+    
+    [self.messageLabel setText:message];
+    [self updateEntities];
+}
+- (void)updateEntities {
+    if (self.message.length == 0 || !self.entities || self.entities.count == 0) return;
+    
+    NSLog(@"self.entities:: %@", self.entities);
+    
+    for (PostEntity *entity in self.entities) {
+        NSLog(@"entity type:: %@", entity.type);
         
-        self.messageLabel.text = message;
-        
-        NSRegularExpression *usernameRegex = [[NSRegularExpression alloc] initWithPattern:TWUValidUsername options:NSRegularExpressionCaseInsensitive error:nil];
-        if ([usernameRegex numberOfMatchesInString:self.message options:0 range:NSMakeRange(0, [self.message length])] > 0) {
-            for (NSTextCheckingResult* match in [usernameRegex matchesInString:self.message options:0 range:NSMakeRange(0, [self.message length])]) {
-                NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://user?username=%@", LOCAL_APP_URI, [[self.message substringWithRange:match.range] stringByReplacingOccurrencesOfString:@"@" withString:@""]]];
-                [self.messageLabel addLinkToURL:url withRange:match.range];
+        if ([entity.type isEqualToString:POST_ENTITY_TYPE_PROFILE]) {
+            NSArray *usernameRanges = [self.message rangesForUsernameMatches];
+            for (NSValue *value in usernameRanges) {
+                NSRange range = [value rangeValue];
+                NSLog(@"username match: %lu / %lu", (unsigned long)range.location, (unsigned long)range.length);
+                NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://user?username=%@", LOCAL_APP_URI, [[self.message substringWithRange:range] stringByReplacingOccurrencesOfString:@"@" withString:@""]]];
+                [self.messageLabel addLinkToURL:url withRange:range];
             }
+            
+            continue;
         }
         
-        NSRegularExpression *campRegex = [[NSRegularExpression alloc] initWithPattern:TWUValidCampDisplayId options:NSRegularExpressionCaseInsensitive error:nil];
-        if ([campRegex numberOfMatchesInString:self.message options:0 range:NSMakeRange(0, [self.message length])] > 0) {
-            for (NSTextCheckingResult* match in [campRegex matchesInString:self.message options:0 range:NSMakeRange(0, [self.message length])]) {
-                NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://camp?display_id=%@", LOCAL_APP_URI, [[self.message substringWithRange:match.range] stringByReplacingOccurrencesOfString:@"#" withString:@""]]];
-                [self.messageLabel addLinkToURL:url withRange:match.range];
+        if ([entity.type isEqualToString:POST_ENTITY_TYPE_CAMP]) {
+            NSLog(@"sort through the camp tag entities:::");
+            NSArray *campRanges = [self.message rangesForCampTagMatches];
+            NSLog(@"camp ranges:: %@", campRanges);
+            for (NSValue *value in campRanges) {
+                NSRange range = [value rangeValue];
+                NSLog(@"username match: %lu / %lu", (unsigned long)range.location, (unsigned long)range.length);
+                NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://camp?display_id=%@", LOCAL_APP_URI, [[self.message substringWithRange:range] stringByReplacingOccurrencesOfString:@"#" withString:@""]]];
+                [self.messageLabel addLinkToURL:url withRange:range];
             }
+            
+            continue;
+        }
+        
+        if ([entity.type isEqualToString:POST_ENTITY_TYPE_URL] && entity.indices.count >= 2) {
+            [self.messageLabel addLinkToURL:[NSURL URLWithString:entity.actionUrl] withRange:NSMakeRange([entity.indices[0] integerValue], [entity.indices[1] integerValue] - [entity.indices[0] integerValue])];
+            
+            continue;
         }
     }
 }

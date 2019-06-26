@@ -76,7 +76,7 @@
             if (valueString.length == 0) {
                 valueString = @"0";
             }
-            DefaultsRoomMembersTitle *membersTitle = [Session sharedInstance].defaults.room.membersTitle;
+            DefaultsCampMembersTitle *membersTitle = [Session sharedInstance].defaults.camp.membersTitle;
             valueString = [valueString stringByAppendingString:[NSString stringWithFormat:@" %@", ([valueString isEqualToString:@"1"] ? [membersTitle.singular lowercaseString] : [membersTitle.plural lowercaseString])]];
         }
         else if (type == BFDetailTypeLocation) {

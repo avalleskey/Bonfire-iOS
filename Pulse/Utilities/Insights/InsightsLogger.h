@@ -25,14 +25,14 @@ NS_ASSUME_NONNULL_BEGIN
 // Queued batches
 @property (nonatomic, strong) NSMutableArray *queuedBatches;
 
-- (nullable InsightsLoggerTimeframe *)activeTimeframeForPostId:(NSInteger)postId;
-- (NSInteger)completedTimeframeCountForPostId:(NSInteger)postId;
+- (nullable InsightsLoggerTimeframe *)activeTimeframeForPostId:(NSString *)postId;
+- (NSInteger)completedTimeframeCountForPostId:(NSString *)postId;
 
 - (void)openAllVisiblePostInsightsInTableView:(UITableView *)tableView seenIn:(NSString *)seenIn;
 
-- (void)openPostInsight:(NSInteger)postId seenIn:(NSString *)seenIn;
+- (void)openPostInsight:(NSString *)postId seenIn:(NSString *)seenIn;
 
-- (void)closePostInsight:(NSInteger)postId action:(NSString * _Nullable)action;
+- (void)closePostInsight:(NSString *)postId action:(NSString * _Nullable)action;
 - (void)closeAllPostInsights;
 - (void)closeAllVisiblePostInsightsInTableView:(UITableView *)tableView;
 

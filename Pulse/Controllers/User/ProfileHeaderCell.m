@@ -14,6 +14,7 @@
 #import "Session.h"
 #import "Launcher.h"
 #import "UIColor+Palette.h"
+#import "NSString+Validation.h"
 
 @implementation ProfileHeaderCell
 
@@ -26,7 +27,13 @@
         self.selectionStyle = UITableViewCellSelectionStyleNone;
         
         self.profilePicture = [[BFAvatarView alloc] initWithFrame:CGRectMake(0, PROFILE_HEADER_EDGE_INSETS.top, PROFILE_HEADER_AVATAR_SIZE, PROFILE_HEADER_AVATAR_SIZE)];
+        self.profilePicture.dimsViewOnTap = true;
         self.profilePicture.center = CGPointMake(self.contentView.frame.size.width / 2, self.profilePicture.center.y);
+        [self.profilePicture bk_whenTapped:^{
+            if (self.profilePicture.user.attributes.details.media.userAvatar.suggested.url.length > 0) {
+                [Launcher expandImageView:self.profilePicture.imageView];
+            }
+        }];
         [self.contentView addSubview:self.profilePicture];
 
         self.followingButton = [UIButton buttonWithType:UIButtonTypeSystem];
@@ -39,7 +46,7 @@
         [self.followingButton setTitle:@"0\nfollowing" forState:UIControlStateNormal];
         [self.followingButton bk_whenTapped:^{
             if (self.user.attributes.summaries.counts.following > 0) {
-                [[Launcher sharedInstance] openProfileUsersFollowing:self.user];
+                [Launcher openProfileUsersFollowing:self.user];
             }
         }];
         [self.contentView addSubview:self.followingButton];
@@ -53,8 +60,8 @@
         self.campsButton.titleLabel.textAlignment = NSTextAlignmentCenter;
         [self.campsButton setTitle:@"0\ncamps" forState:UIControlStateNormal];
         [self.campsButton bk_whenTapped:^{
-            if (self.user.attributes.summaries.counts.rooms > 0) {
-                [[Launcher sharedInstance] openProfileCampsJoined:self.user];
+            if (self.user.attributes.summaries.counts.camps > 0) {
+                [Launcher openProfileCampsJoined:self.user];
             }
         }];
         [self.contentView addSubview:self.campsButton];
@@ -67,8 +74,8 @@
         self.textLabel.backgroundColor = [UIColor clearColor];
         
         // username
-        UIFont *heavyItalicFont = [UIFont fontWithDescriptor:[[[UIFont systemFontOfSize:PROFILE_HEADER_USERNAME_FONT.pointSize weight:UIFontWeightHeavy] fontDescriptor] fontDescriptorWithSymbolicTraits:UIFontDescriptorTraitItalic] size:PROFILE_HEADER_USERNAME_FONT.pointSize];
-        self.detailTextLabel.font = heavyItalicFont;
+        //UIFont *heavyItalicFont = [UIFont fontWithDescriptor:[[[UIFont systemFontOfSize:PROFILE_HEADER_USERNAME_FONT.pointSize weight:UIFontWeightHeavy] fontDescriptor] fontDescriptorWithSymbolicTraits:UIFontDescriptorTraitItalic] size:PROFILE_HEADER_USERNAME_FONT.pointSize];
+        self.detailTextLabel.font = [UIFont systemFontOfSize:PROFILE_HEADER_USERNAME_FONT.pointSize weight:UIFontWeightHeavy];
         self.detailTextLabel.textAlignment = NSTextAlignmentCenter;
         self.detailTextLabel.textColor = [UIColor colorWithWhite:0.47f alpha:1];
         self.detailTextLabel.numberOfLines = 0;
@@ -76,11 +83,29 @@
         self.detailTextLabel.backgroundColor = [UIColor clearColor];
         
         // bio
-        self.bioLabel = [[UILabel alloc] initWithFrame:CGRectMake(24, 0, self.frame.size.width - 48, 18)];
+        self.bioLabel = [[TTTAttributedLabel alloc] initWithFrame:CGRectMake(24, 0, self.frame.size.width - 48, 18)];
+        self.bioLabel.extendsLinkTouchArea = false;
+        self.bioLabel.userInteractionEnabled = true;
         self.bioLabel.font = PROFILE_HEADER_BIO_FONT;
+        self.bioLabel.textAlignment = NSTextAlignmentCenter;
         self.bioLabel.textColor = [UIColor colorWithWhite:0.33f alpha:1];
         self.bioLabel.numberOfLines = 0;
         self.bioLabel.lineBreakMode = NSLineBreakByWordWrapping;
+        self.bioLabel.delegate = self;
+        
+        // bio link styling
+        NSMutableDictionary *mutableActiveLinkAttributes = [NSMutableDictionary dictionary];
+        [mutableActiveLinkAttributes setValue:[NSNumber numberWithBool:NO] forKey:(NSString *)kCTUnderlineStyleAttributeName];
+        [mutableActiveLinkAttributes setValue:(__bridge id)[[UIColor colorWithRed:0.0f green:0.0f blue:0.0f alpha:0.1f] CGColor] forKey:(NSString *)kTTTBackgroundFillColorAttributeName];
+        [mutableActiveLinkAttributes setValue:[NSNumber numberWithFloat:4.0f] forKey:(NSString *)kTTTBackgroundCornerRadiusAttributeName];
+        [mutableActiveLinkAttributes setValue:[NSNumber numberWithFloat:0] forKey:(NSString *)kTTTBackgroundLineWidthAttributeName];
+        self.bioLabel.activeLinkAttributes = mutableActiveLinkAttributes;
+        
+        // update tint color
+        NSMutableDictionary *mutableLinkAttributes = [NSMutableDictionary dictionary];
+        [mutableLinkAttributes setObject:[UIColor linkColor] forKey:(__bridge NSString *)kCTForegroundColorAttributeName];
+        self.bioLabel.linkAttributes = mutableLinkAttributes;
+        
         [self.contentView addSubview:self.bioLabel];
         
         self.detailsCollectionView = [[BFDetailsCollectionView alloc] initWithFrame:CGRectMake(PROFILE_HEADER_EDGE_INSETS.left, 0, [UIScreen mainScreen].bounds.size.width - PROFILE_HEADER_EDGE_INSETS.left - PROFILE_HEADER_EDGE_INSETS.right, 16)];
@@ -91,7 +116,7 @@
         [self.followButton bk_whenTapped:^{
             // update state if possible
             if ([self.followButton.status isEqualToString:USER_STATUS_ME]) {
-                [[Launcher sharedInstance] openEditProfile];
+                [Launcher openEditProfile];
             }
             else if ([self.followButton.status isEqualToString:USER_STATUS_FOLLOWS] ||
                      [self.followButton.status isEqualToString:USER_STATUS_FOLLOW_BOTH]) {
@@ -143,14 +168,41 @@
         
         self.lineSeparator = [[UIView alloc] init];
         self.lineSeparator.backgroundColor = [UIColor separatorColor];
-        [self.contentView addSubview:self.lineSeparator];
+        //[self.contentView addSubview:self.lineSeparator];
+        
+        #ifdef DEBUG
+        UILongPressGestureRecognizer *longPress = [[UILongPressGestureRecognizer alloc] bk_initWithHandler:^(UIGestureRecognizer *sender, UIGestureRecognizerState state, CGPoint location) {
+            if (state == UIGestureRecognizerStateBegan) {
+                // recognized long press
+                [Launcher openDebugView:self.user];
+            }
+        }];
+        [self addGestureRecognizer:longPress];
+        #endif
     }
     return self;
 }
 
+- (void)attributedLabel:(TTTAttributedLabel *)label
+   didSelectLinkWithURL:(NSURL *)url {
+    NSLog(@"did select link with url: %@", url);
+    if ([[UIApplication sharedApplication] canOpenURL:url]) {
+        if ([url.scheme isEqualToString:LOCAL_APP_URI]) {
+            // local url
+            [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:^(BOOL success) {
+                NSLog(@"opened url!");
+            }];
+        }
+        else {
+            // extern url
+            [Launcher openURL:url.absoluteString];
+        }
+    }
+}
+
 - (void)updateUserStatus {
-    UserContext *context = [[UserContext alloc] initWithDictionary:[self.user.attributes.context toDictionary] error:nil];
-    context.status = self.followButton.status;
+    BFContext *context = [[BFContext alloc] initWithDictionary:[self.user.attributes.context toDictionary] error:nil];
+    context.me.status = self.followButton.status;
     self.user.attributes.context = context;
     
     [[NSNotificationCenter defaultCenter] postNotificationName:@"UserContextUpdated" object:self.user];
@@ -186,7 +238,7 @@
     self.campsButton.frame = campsStatRect;
     
     // text label
-    CGRect textLabelRect = [self.textLabel.text boundingRectWithSize:CGSizeMake(maxWidth, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:PROFILE_HEADER_DISPLAY_NAME_FONT} context:nil];
+    CGRect textLabelRect = [self.textLabel.attributedText boundingRectWithSize:CGSizeMake(maxWidth, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) context:nil];
     self.textLabel.frame = CGRectMake(PROFILE_HEADER_EDGE_INSETS.left, bottomY + PROFILE_HEADER_AVATAR_BOTTOM_PADDING, maxWidth, ceilf(textLabelRect.size.height));
     bottomY = self.textLabel.frame.origin.y + self.textLabel.frame.size.height;
     
@@ -237,17 +289,16 @@
         else {
             displayName = [NSString stringWithFormat:@"@%@", user.attributes.details.identifier];
         }
-        NSMutableAttributedString *displayNameAttributedString = [[NSMutableAttributedString alloc] initWithString:displayName attributes:@{NSFontAttributeName: PROFILE_HEADER_DISPLAY_NAME_FONT, NSForegroundColorAttributeName: self.textLabel.textColor}];
-        BOOL isVerified = [user isVerified];
-        if (isVerified) {
+        NSMutableAttributedString *displayNameAttributedString = [[NSMutableAttributedString alloc] initWithString:displayName attributes:@{NSFontAttributeName:PROFILE_HEADER_DISPLAY_NAME_FONT}];
+        if ([user isVerified]) {
             NSMutableAttributedString *spacer = [[NSMutableAttributedString alloc] initWithString:@" "];
-            [spacer addAttribute:NSFontAttributeName value:self.textLabel.font range:NSMakeRange(0, spacer.length)];
+            [spacer addAttribute:NSFontAttributeName value:PROFILE_HEADER_DISPLAY_NAME_FONT range:NSMakeRange(0, spacer.length)];
             [displayNameAttributedString appendAttributedString:spacer];
             
             // verified icon ☑️
             NSTextAttachment *attachment = [[NSTextAttachment alloc] init];
             attachment.image = [UIImage imageNamed:@"verifiedIcon_large"];
-            [attachment setBounds:CGRectMake(0, roundf(self.textLabel.font.capHeight - attachment.image.size.height)/2.f-1, attachment.image.size.width, attachment.image.size.height)];
+            [attachment setBounds:CGRectMake(0, roundf(PROFILE_HEADER_DISPLAY_NAME_FONT.capHeight - attachment.image.size.height)/2.f-1, attachment.image.size.width, attachment.image.size.height)];
             
             NSAttributedString *attachmentString = [NSAttributedString attributedStringWithAttachment:attachment];
             [displayNameAttributedString appendAttributedString:attachmentString];
@@ -269,6 +320,20 @@
             [attrString addAttribute:NSFontAttributeName value:PROFILE_HEADER_BIO_FONT range:NSMakeRange(0, attrString.length)];
             [attrString addAttribute:NSForegroundColorAttributeName value:self.bioLabel.textColor range:NSMakeRange(0, attrString.length)];
             self.bioLabel.attributedText = attrString;
+            
+            NSArray *usernameRanges = [self.user.attributes.details.bio rangesForUsernameMatches];
+            for (NSValue *value in usernameRanges) {
+                NSRange range = [value rangeValue];
+                NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://user?username=%@", LOCAL_APP_URI, [[self.user.attributes.details.bio substringWithRange:range] stringByReplacingOccurrencesOfString:@"@" withString:@""]]];
+                [self.bioLabel addLinkToURL:url withRange:range];
+            }
+        
+            NSArray *campRanges = [self.user.attributes.details.bio rangesForCampTagMatches];
+            for (NSValue *value in campRanges) {
+                NSRange range = [value rangeValue];
+                NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://camp?display_id=%@", LOCAL_APP_URI, [[self.user.attributes.details.bio substringWithRange:range] stringByReplacingOccurrencesOfString:@"#" withString:@""]]];
+                [self.bioLabel addLinkToURL:url withRange:range];
+            }
         }
         else {
             self.bioLabel.text = @"";
@@ -295,8 +360,8 @@
         NSString *statLabel = @"following";
         
         NSInteger camps;
-        if (user.attributes.summaries.counts.rooms) {
-            camps = user.attributes.summaries.counts.rooms;
+        if (user.attributes.summaries.counts.camps) {
+            camps = user.attributes.summaries.counts.camps;
         }
         else {
             camps = 0;
@@ -342,9 +407,8 @@
     else {
         displayName = [NSString stringWithFormat:@"@%@", user.attributes.details.identifier];
     }
-    NSMutableAttributedString *displayNameAttributedString = [[NSMutableAttributedString alloc] initWithString:displayName attributes:@{NSFontAttributeName: PROFILE_HEADER_DISPLAY_NAME_FONT}];
-    BOOL isVerified = [user isVerified];
-    if (isVerified) {
+    NSMutableAttributedString *displayNameAttributedString = [[NSMutableAttributedString alloc] initWithString:displayName attributes:@{NSFontAttributeName:PROFILE_HEADER_DISPLAY_NAME_FONT}];
+    if ([user isVerified]) {
         NSMutableAttributedString *spacer = [[NSMutableAttributedString alloc] initWithString:@" "];
         [spacer addAttribute:NSFontAttributeName value:PROFILE_HEADER_DISPLAY_NAME_FONT range:NSMakeRange(0, spacer.length)];
         [displayNameAttributedString appendAttributedString:spacer];
@@ -357,7 +421,7 @@
         NSAttributedString *attachmentString = [NSAttributedString attributedStringWithAttachment:attachment];
         [displayNameAttributedString appendAttributedString:attachmentString];
     }
-    NSLog(@"max width:::::: %f", maxWidth);
+
     CGRect textLabelRect = [displayNameAttributedString boundingRectWithSize:CGSizeMake(maxWidth, CGFLOAT_MAX) options:(NSStringDrawingUsesFontLeading|NSStringDrawingUsesLineFragmentOrigin) context:nil];
     CGFloat userDisplayNameHeight = ceilf(textLabelRect.size.height);
     height = height + userDisplayNameHeight;
@@ -391,15 +455,12 @@
             BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeWebsite value:user.attributes.details.website.value action:nil];
             [details addObject:item];
         }
-        NSLog(@"details: %@", details);
         
         if (details.count > 0) {
             BFDetailsCollectionView *detailCollectionView = [[BFDetailsCollectionView alloc] initWithFrame:CGRectMake(PROFILE_HEADER_EDGE_INSETS.left, 0, [UIScreen mainScreen].bounds.size.width - PROFILE_HEADER_EDGE_INSETS.left - PROFILE_HEADER_EDGE_INSETS.right, 16)];
             detailCollectionView.delegate = detailCollectionView;
             detailCollectionView.dataSource = detailCollectionView;
             [detailCollectionView setDetails:details];
-            NSLog(@"detail collection view: %@", detailCollectionView);
-            NSLog(@"detail collection view height: %f", detailCollectionView.collectionViewLayout.collectionViewContentSize.height);
             
             height = height + (user.attributes.details.bio.length > 0 ? PROFILE_HEADER_BIO_BOTTOM_PADDING : PROFILE_HEADER_USERNAME_BOTTOM_PADDING) +  PROFILE_HEADER_DETAILS_EDGE_INSETS.top + detailCollectionView.collectionViewLayout.collectionViewContentSize.height;
         }

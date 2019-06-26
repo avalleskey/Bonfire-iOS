@@ -7,6 +7,9 @@
 #import <JSONModel/JSONModel.h>
 #import "UserAttributes.h"
 
+@protocol User
+@end
+
 @interface User : JSONModel
 
 @property (nonatomic) NSString <Optional> *identifier;

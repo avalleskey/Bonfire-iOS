@@ -11,7 +11,7 @@
 @interface ExpandedPostActionsView : UIView
 
 @property (nonatomic, strong) UIButton *replyButton;
-@property (nonatomic, strong) UIButton *sparkButton;
+@property (nonatomic, strong) UIButton *voteButton;
 @property (nonatomic, strong) UIButton *shareButton;
 
 @property (nonatomic, strong) UIView *middleSeparator;

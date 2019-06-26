@@ -20,7 +20,7 @@
         self.titleLabel.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightBold];
         self.adjustsImageWhenHighlighted = false;
         self.backgroundColor = [UIColor bonfireBlack];
-        self.layer.cornerRadius = 10.f;
+        self.layer.cornerRadius = 12.f;
         self.layer.masksToBounds = false;
         self.layer.borderColor = [UIColor colorWithWhite:0 alpha:0.06f].CGColor;
         self.layer.borderWidth = 0;

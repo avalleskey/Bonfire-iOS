@@ -78,7 +78,7 @@ NSString * const LOCAL_APP_URI = @"bonfireapp";
         
         self.variables = configurations[@"environments"][self.development?ConfigurationDEVELOPMENT:ConfigurationPRODUCTION];
         
-        NSLog(@"self.variables: %@", self.variables);
+        // NSLog(@"self.variables: %@", self.variables);
     }
     
     return self;
@@ -189,9 +189,7 @@ NSString * const LOCAL_APP_URI = @"bonfireapp";
             sharedConfiguration.variables = configurations[@"environments"][ConfigurationDEVELOPMENT];
         }
     }
-    
-    NSLog(@"shared configuration is now: %@", sharedConfiguration);
-    
+        
     [HAWebService reset];
     #endif
 }

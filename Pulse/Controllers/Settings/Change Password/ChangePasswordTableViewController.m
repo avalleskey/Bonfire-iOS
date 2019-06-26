@@ -46,13 +46,16 @@
         [self saveChanges];
     }];
     [self.saveButton setTitleTextAttributes:@{
-                                              NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightBold]
+                                              NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightBold],
+                                              NSForegroundColorAttributeName: [UIColor bonfireBlack]
                                               } forState:UIControlStateNormal];
     [self.saveButton setTitleTextAttributes:@{
-                                              NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightBold]
+                                              NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightBold],
+                                              NSForegroundColorAttributeName: [UIColor bonfireBlack]
                                               } forState:UIControlStateHighlighted];
     [self.saveButton setTitleTextAttributes:@{
-                                              NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightBold]
+                                              NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightBold],
+                                              NSForegroundColorAttributeName: [UIColor bonfireGray]
                                               } forState:UIControlStateDisabled];
     self.navigationItem.rightBarButtonItem = self.saveButton;
     self.saveButton.enabled = false;
@@ -116,7 +119,7 @@
     if ([rowId isEqualToString:@"reset_password"]) {
         ResetPasswordViewController *resetPasswordVC = [[ResetPasswordViewController alloc] init];
         resetPasswordVC.transitioningDelegate = [Launcher sharedInstance];
-        [[Launcher sharedInstance] present:resetPasswordVC animated:YES];
+        [Launcher present:resetPasswordVC animated:YES];
     }
 }
 

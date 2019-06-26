@@ -8,6 +8,7 @@
 
 #import "ProfilePictureCell.h"
 #import "Session.h"
+#import "UIColor+Palette.h"
 
 @implementation ProfilePictureCell
 
@@ -35,6 +36,7 @@
         self.editPictureImageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 32, 32)];
         self.editPictureImageView.frame = CGRectMake(4, 4, 32, 32);
         self.editPictureImageView.image = [[UIImage imageNamed:@"editProfilePictureIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+        self.editPictureImageView.tintColor = [UIColor bonfireBlack];
         [self.editPictureImageViewContainer addSubview:self.editPictureImageView];
     }
     

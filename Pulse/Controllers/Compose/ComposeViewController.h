@@ -17,7 +17,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface ComposeViewController : UIViewController <UITextViewDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate, PrivacySelectorDelegate, UIScrollViewDelegate, UITableViewDelegate, UITableViewDataSource, ComposeTextViewCellDelegate>
 
-@property (nonatomic, strong) Room *postingIn;
+@property (nonatomic, strong) Camp *postingIn;
 @property (nonatomic, strong) Post *replyingTo;
 @property (nonatomic, strong) NSString *prefillMessage;
 

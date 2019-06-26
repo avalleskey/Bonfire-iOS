@@ -16,7 +16,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 typedef enum {
     BFSearchResultsTypeTop = 0,
-    BFSearchResultsTypeRooms = 1,
+    BFSearchResultsTypeCamps = 1,
     BFSearchResultsTypeUsers = 2,
     BFSearchResultsTypeFeeds = 3,
     BFSearchResultsTypeTopPosts = 4,

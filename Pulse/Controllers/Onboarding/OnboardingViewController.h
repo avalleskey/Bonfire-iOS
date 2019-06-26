@@ -21,8 +21,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) UILabel *nextBlockerInfoLabel;
 @property (nonatomic, strong) UIButton *legalDisclosureLabel;
 
-@property (nonatomic) BOOL loadingRoomSuggestions;
-@property (nonatomic, strong) UICollectionView *roomSuggestionsCollectionView;
+@property (nonatomic) BOOL loadingCampSuggestions;
+@property (nonatomic, strong) UICollectionView *campSuggestionsCollectionView;
 
 @property (nonatomic) BOOL signInLikely;
 

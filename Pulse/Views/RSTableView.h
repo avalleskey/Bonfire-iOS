@@ -19,7 +19,7 @@
 
 typedef enum {
     RSTableViewTypeFeed = 1,
-    RSTableViewTypeRoom = 2,
+    RSTableViewTypeCamp = 2,
     RSTableViewTypeProfile = 3
 } RSTableViewType;
 
@@ -46,10 +46,10 @@ NS_ASSUME_NONNULL_BEGIN
 @interface RSTableView : UITableView <UITableViewDataSource, UITableViewDelegate, UIGestureRecognizerDelegate>
 
 typedef enum {
-    PostDisplayTypeSimple = 0,
-    PostDisplayTypeThreaded = 1,
-    PostDisplayTypePreview = 2
-} PostDisplayType;
+    RSTableViewStyleDefault = 0,
+    RSTableViewStyleGrouped = 1
+} RSTableViewStyle;
+@property (nonatomic) RSTableViewStyle tableViewStyle;
 
 @property (nonatomic, strong) id parentObject;
 @property (nonatomic) RSTableViewType dataType;

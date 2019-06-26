@@ -36,14 +36,14 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowWithId:(NSString *)rowId {
     if ([rowId isEqualToString:@"terms_and_conditions"]) {
-        [[Launcher sharedInstance] openURL:@"https://bonfire.camp/terms"];
+        [Launcher openURL:@"https://bonfire.camp/terms"];
     }
     if ([rowId isEqualToString:@"privacy_policy"]) {
-        [[Launcher sharedInstance] openURL:@"https://bonfire.camp/privacy"];
+        [Launcher openURL:@"https://bonfire.camp/privacy"];
     }
     if ([rowId isEqualToString:@"open_source_libraries"]) {
         OpenSourceLibrariesTableViewController *openSourceLibrariesTableVC = [[OpenSourceLibrariesTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
-        [[Launcher sharedInstance] push:openSourceLibrariesTableVC animated:YES];
+        [Launcher push:openSourceLibrariesTableVC animated:YES];
     }
 }
 

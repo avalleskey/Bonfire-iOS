@@ -35,17 +35,17 @@
             ]
         },
         {
-            "id": "post_sparks",
-            "title": "Post Sparks",
+            "id": "post_likes",
+            "title": "Sparks",
             "footer": "@hugo sparked your post! ⚡️",
             "rows": [
                 {
-                    "id": "post_sparks_on",
+                    "id": "post_votes_on",
                     "title": "On",
                     "radio": true
                 },
                 {
-                    "id": "post_sparks_off",
+                    "id": "post_votes_off",
                     "title": "Off",
                     "radio": true
                 }

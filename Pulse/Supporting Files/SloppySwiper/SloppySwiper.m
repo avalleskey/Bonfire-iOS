@@ -10,7 +10,7 @@
 #import "UIColor+Palette.h"
 
 @interface SloppySwiper() <UIGestureRecognizerDelegate, SSWAnimatorDelegate>
-@property (weak, readwrite, nonatomic) UIPanGestureRecognizer *panRecognizer;
+//@property (weak, readwrite, nonatomic) UIPanGestureRecognizer *panRecognizer;
 @property (weak, readwrite, nonatomic) UIPanGestureRecognizer *dismissRecognizer;
 @property (weak, nonatomic) IBOutlet UINavigationController *navigationController;
 @property (strong, nonatomic) SSWAnimator *animator;
@@ -25,8 +25,8 @@
 
 - (void)dealloc
 {
-    [_panRecognizer removeTarget:self action:@selector(pan:)];
-    [_navigationController.view removeGestureRecognizer:_panRecognizer];
+    //[_panRecognizer removeTarget:self action:@selector(pan:)];
+    //[_navigationController.view removeGestureRecognizer:_panRecognizer];
     
     [_dismissRecognizer removeTarget:self action:@selector(pan:)];
     [_navigationController.view removeGestureRecognizer:_dismissRecognizer];
@@ -53,12 +53,11 @@
 
 - (void)commonInit
 {
-    SSWDirectionalPanGestureRecognizer *panRecognizer = [[SSWDirectionalPanGestureRecognizer alloc] initWithTarget:self action:@selector(pan:)];
+    /*SSWDirectionalPanGestureRecognizer *panRecognizer = [[SSWDirectionalPanGestureRecognizer alloc] initWithTarget:self action:@selector(pan:)];
     panRecognizer.direction = SSWPanDirectionRight;
     panRecognizer.maximumNumberOfTouches = 1;
     panRecognizer.delegate = self;
-    [_navigationController.view addGestureRecognizer:panRecognizer];
-    _panRecognizer = panRecognizer;
+    _panRecognizer = panRecognizer;*/
     
     SSWDirectionalPanGestureRecognizer *dismissRecognizer = [[SSWDirectionalPanGestureRecognizer alloc] initWithTarget:self action:@selector(pan:)];
     dismissRecognizer.direction = SSWPanDirectionRight; // SSWPanDirectionDown;
@@ -95,33 +94,7 @@
 {
     UIView *view = self.navigationController.view;
     
-    if (recognizer == self.panRecognizer) {
-        if (recognizer.state == UIGestureRecognizerStateBegan) {
-            if (self.navigationController.viewControllers.count > 1 && !self.duringAnimation) {
-                self.interactionController = [[UIPercentDrivenInteractiveTransition alloc] init];
-                self.interactionController.completionCurve = UIViewAnimationCurveEaseOut;
-                
-                [self.navigationController popViewControllerAnimated:YES];
-            }
-        } else if (recognizer.state == UIGestureRecognizerStateChanged) {
-            CGPoint translation = [recognizer translationInView:view];
-            // Cumulative translation.x can be less than zero because user can pan slightly to the right and then back to the left.
-            CGFloat d = translation.x > 0 ? translation.x / CGRectGetWidth(view.bounds) : 0;
-            [self.interactionController updateInteractiveTransition:d];
-        } else if (recognizer.state == UIGestureRecognizerStateEnded || recognizer.state == UIGestureRecognizerStateCancelled) {
-            if ([recognizer velocityInView:view].x > 0) {
-                [self.delegate didFinishSwiping];
-                
-                [self.interactionController finishInteractiveTransition];
-            } else {
-                [self.interactionController cancelInteractiveTransition];
-                // When the transition is cancelled, `navigationController:didShowViewController:animated:` isn't called, so we have to maintain `duringAnimation`'s state here too.
-                self.duringAnimation = NO;
-            }
-            self.interactionController = nil;
-        }
-    }
-    else if (recognizer == self.dismissRecognizer) {
+    if (recognizer == self.dismissRecognizer) {
         if (recognizer.state == UIGestureRecognizerStateBegan) {
             if (self.navigationController.presentingViewController && !self.duringAnimation) {
                 self.interactionController = [[UIPercentDrivenInteractiveTransition alloc] init];
@@ -146,13 +119,41 @@
             self.interactionController = nil;
         }
     }
+    /*
+     else if (recognizer == self.panRecognizer) {
+     if (recognizer.state == UIGestureRecognizerStateBegan) {
+     if (self.navigationController.viewControllers.count > 1 && !self.duringAnimation) {
+     self.interactionController = [[UIPercentDrivenInteractiveTransition alloc] init];
+     self.interactionController.completionCurve = UIViewAnimationCurveEaseOut;
+     
+     [self.navigationController popViewControllerAnimated:YES];
+     }
+     } else if (recognizer.state == UIGestureRecognizerStateChanged) {
+     CGPoint translation = [recognizer translationInView:view];
+     // Cumulative translation.x can be less than zero because user can pan slightly to the right and then back to the left.
+     CGFloat d = translation.x > 0 ? translation.x / CGRectGetWidth(view.bounds) : 0;
+     [self.interactionController updateInteractiveTransition:d];
+     } else if (recognizer.state == UIGestureRecognizerStateEnded || recognizer.state == UIGestureRecognizerStateCancelled) {
+     if ([recognizer velocityInView:view].x > 0) {
+     [self.delegate didFinishSwiping];
+     
+     [self.interactionController finishInteractiveTransition];
+     } else {
+     [self.interactionController cancelInteractiveTransition];
+     // When the transition is cancelled, `navigationController:didShowViewController:animated:` isn't called, so we have to maintain `duringAnimation`'s state here too.
+     self.duringAnimation = NO;
+     }
+     self.interactionController = nil;
+     }
+     }
+     */
 }
 
 #pragma mark - UIGestureRecognizerDelegate
 
 -(BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer {
-    if (gestureRecognizer == _panRecognizer)
-        return self.navigationController.viewControllers.count > 1;
+    //if (gestureRecognizer == _panRecognizer)
+     //   return self.navigationController.viewControllers.count > 1;
     
     if (gestureRecognizer == _dismissRecognizer)
         return self.navigationController.presentingViewController;
@@ -188,31 +189,9 @@
     self.duringAnimation = NO;
     
     navigationController.transitioningDelegate = self;
-    /*
-    if (navigationController.viewControllers.count == 1) {
-        UITableView *tableView;
-        if ([viewController isKindOfClass:[UITableViewController class]]) {
-            tableView = ((UITableViewController *)viewController).tableView;
-        }
-        else if ([viewController isKindOfClass:[UIViewController class]]) {
-            for (UITableView *view in viewController.view.subviews) {
-                if ([view isKindOfClass:[UITableView class]]) {
-                    tableView = view;
-                    break;
-                }
-            }
-        }
-        
-        NSLog(@"tableView: %@", tableView);
-        
-        if (tableView != nil) {
-            NSLog(@"here's our tableView: %@", tableView);
-            tableView.bounces = false;
-        }
-    }*/
     
-    self.panRecognizer.enabled = (navigationController.viewControllers.count > 1);
-    self.dismissRecognizer.enabled = !self.panRecognizer.enabled;
+    //self.panRecognizer.enabled = (navigationController.viewControllers.count > 1);
+    self.dismissRecognizer.enabled = (navigationController.viewControllers.count == 1);
 }
 
 - (id<UIViewControllerAnimatedTransitioning>)animationControllerForDismissedController:(UIViewController *)dismissed

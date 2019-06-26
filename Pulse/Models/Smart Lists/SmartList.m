@@ -46,9 +46,7 @@
 
 + (BOOL)propertyIsOptional:(NSString*)propertyName
 {
-    NSArray *optionalProperties = @[@"destructive", @"push", @"present", @"radio"];
-    if ([optionalProperties containsObject:propertyName]) return YES;
-    return NO;
+    return YES;
 }
 
 @end
@@ -59,8 +57,8 @@ NSString * const SmartListInputEmailValidation = @"email";
 NSString * const SmartListInputUsernameValidation = @"username";
 NSString * const SmartListInputDisplayNameValidation = @"display_name";
 NSString * const SmartListInputPasswordValidation = @"password";
-NSString * const SmartListInputRoomNameValidation = @"room_name";
-NSString * const SmartListInputRoomDescriptionValidation = @"room_description";
+NSString * const SmartListInputCampTitleValidation = @"camp_title";
+NSString * const SmartListInputCampDescriptionValidation = @"camp_description";
 
 NSString * const SmartListInputDefaultKeyboard = @"default";
 NSString * const SmartListInputEmailKeyboard = @"email";

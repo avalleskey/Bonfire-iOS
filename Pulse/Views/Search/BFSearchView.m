@@ -21,19 +21,21 @@
 - (id)initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
     if (self) {
-        self.layer.cornerRadius = 8.f;
+        self.layer.cornerRadius = 12.f;
         self.layer.masksToBounds = true;
         
         self.resultsType = BFSearchResultsTypeTop;
         
         self.textField = [[UITextField alloc] initWithFrame:CGRectMake(0, 0, frame.size.width, frame.size.height)];
-        self.textField.placeholder = @"Search Camps & People";
+        self.textField.placeholder = @"Camps & People";
         self.textField.textAlignment = NSTextAlignmentLeft;
         self.textField.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
-        self.textField.font = [UIFont systemFontOfSize:17.f weight:UIFontWeightSemibold];
+        self.textField.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightBold];
         self.textField.returnKeyType = UIReturnKeyGo;
         self.textField.autocorrectionType = UITextAutocorrectionTypeNo;
         self.textField.userInteractionEnabled = false;
+        self.textField.keyboardAppearance = UIKeyboardAppearanceLight;
+        self.textField.clearButtonMode = UITextFieldViewModeWhileEditing;
         [self addSubview:self.textField];
         
         self.searchIcon = [[UIImageView alloc] initWithFrame:CGRectMake(0, self.textField.frame.size.height / 2 - 7, 14, 14)];
@@ -46,34 +48,32 @@
         [self setPosition:BFSearchTextPositionCenter];
         
         [self bk_whenTapped:^{
-            if (self.openSearchControllerOntap) {
-                NSLog(@"-- hey!");
-                if ([[Launcher sharedInstance].activeViewController isKindOfClass:[ComplexNavigationController class]]) {
+            if (self.openSearchControllerOntap && ![[Launcher activeViewController] isKindOfClass:[SearchTableViewController class]]) {
+                if ([[Launcher activeNavigationController] isKindOfClass:[ComplexNavigationController class]]) {
                     SearchTableViewController *viewController = [[SearchTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
                     viewController.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeNone;
                     viewController.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
                     viewController.resultsType = self.resultsType;
                     
-                    NSLog(@"active view controller: %@", [Launcher sharedInstance].activeViewController);
-                    
-                    ComplexNavigationController *complexController = (ComplexNavigationController *)[Launcher sharedInstance].activeViewController;
+                    ComplexNavigationController *complexController = (ComplexNavigationController *)[Launcher activeNavigationController];
                     [complexController.searchView updateSearchText:@""];
                     [complexController pushViewController:viewController animated:NO];
-                    [complexController updateBarColor:[UIColor whiteColor] withAnimation:1 statusBarUpdateDelay:0];
+                    [complexController updateBarColor:[UIColor whiteColor] animated:YES];
                     
                     complexController.searchView.textField.userInteractionEnabled = true;
                     [complexController.searchView.textField becomeFirstResponder];
                     [complexController updateNavigationBarItemsWithAnimation:YES];
                 }
-                if ([[Launcher sharedInstance].activeViewController isKindOfClass:[TabController class]] &&
-                    [((TabController *)[Launcher sharedInstance].activeViewController).selectedViewController isKindOfClass:[SearchNavigationController class]]) {
+                if ([[Launcher activeViewController].navigationController.tabBarController isKindOfClass:[TabController class]] &&
+                    [((TabController *)[Launcher tabController]).selectedViewController isKindOfClass:[SearchNavigationController class]]) {
                     if (self.textField.text.length == 0) {
                         SearchTableViewController *viewController = [[SearchTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
                         viewController.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeNone;
                         viewController.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
                         viewController.resultsType = self.resultsType;
                                                 
-                        SearchNavigationController *searchController = ((TabController *)[Launcher sharedInstance].activeViewController).selectedViewController;
+                        SearchNavigationController *searchController = ((TabController *)[Launcher tabController]).selectedViewController;
+                        searchController.hideCancelOnBlur = true;
                         [searchController pushViewController:viewController animated:NO];
                         
                         searchController.searchView.textField.userInteractionEnabled = true;
@@ -164,8 +164,7 @@
     UIView *leftPaddingView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 0, 1)];
     self.textField.leftView = leftPaddingView;
     
-    CGRect textLabelRect = [self textFieldRect];
-    self.textField.frame = CGRectMake((self.originalFrame.size.width / 2) - ((textLabelRect.size.width + self.textField.leftView.frame.size.width) / 2), self.textField.frame.origin.y, textLabelRect.size.width + self.textField.leftView.frame.size.width, self.textField.frame.size.height);
+    [self updateTextFieldRect];
     
     self.backgroundColor = [UIColor clearColor];
 }
@@ -179,13 +178,21 @@
     self.textField.leftView = leftView;
     self.textField.leftViewMode = UITextFieldViewModeAlways;
     
-    CGRect textLabelRect = [self textFieldRect];
-    self.textField.frame = CGRectMake((self.originalFrame.size.width / 2) - ((textLabelRect.size.width + self.textField.leftView.frame.size.width) / 2), self.textField.frame.origin.y, textLabelRect.size.width + self.textField.leftView.frame.size.width, self.textField.frame.size.height);
+    [self updateTextFieldRect];
 }
 - (void)updateSearchText:(NSString *)newSearchText {
-    [self showSearchIcon:false];
-    
-    self.textField.text = newSearchText;
+    if (![self.textField.text isEqualToString:newSearchText]) {
+        [self showSearchIcon:false];
+        
+        self.textField.text = newSearchText;
+        
+        [self updateTextFieldRect];
+        
+        [self.textField layoutIfNeeded];
+    }
+}
+
+- (void)updateTextFieldRect {
     CGRect textLabelRect = [self textFieldRect];
     
     self.textField.frame = CGRectMake((self.originalFrame.size.width / 2) - ((textLabelRect.size.width + self.textField.leftView.frame.size.width) / 2), self.textField.frame.origin.y, textLabelRect.size.width + self.textField.leftView.frame.size.width, self.textField.frame.size.height);
@@ -210,8 +217,8 @@
 - (CGRect)textFieldRect {
     NSString *text = self.textField.text.length > 0 ? self.textField.text : self.textField.placeholder;
     
-    CGRect rect = [text boundingRectWithSize:CGSizeMake(self.originalFrame.size.width - self.textField.leftView.frame.size.width - self.textField.rightView.frame.size.width, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:self.textField.font} context:nil];
-    return CGRectMake(self.originalFrame.size.width / 2 - rect.size.width / 2, self.textField.frame.origin.y, ceilf(rect.size.width), self.textField.frame.size.height);
+    CGRect rect = [text boundingRectWithSize:CGSizeMake((self.originalFrame.size.width - 24) - self.textField.leftView.frame.size.width - self.textField.rightView.frame.size.width, self.textField.frame.size.height) options:(NSStringDrawingTruncatesLastVisibleLine) attributes:@{NSFontAttributeName:self.textField.font} context:nil];
+    return CGRectMake(self.originalFrame.size.width / 2 - ceilf(rect.size.width) / 2, self.textField.frame.origin.y, ceilf(rect.size.width), self.textField.frame.size.height);
 }
 
 - (void)setTheme:(BFTextFieldTheme)theme {

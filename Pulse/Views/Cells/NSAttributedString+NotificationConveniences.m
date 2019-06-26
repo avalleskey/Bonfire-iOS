@@ -10,71 +10,75 @@
 #import "NSDate+NVTimeAgo.h"
 #import "Session.h"
 #import "UIColor+Palette.h"
-#import "NSDate+NVTimeAgo.h"
 
 @implementation NSAttributedString (NotificationConveniences)
 
 + (NSAttributedString *)attributedStringForActivity:(UserActivity *)activity {
-    User *user = [Session sharedInstance].currentUser;
-    NSString *message;
-    NSString *timeStamp = [NSDate mysqlDatetimeFormattedAsTimeAgo:activity.attributes.status.createdAt withForm:TimeAgoShortForm];
+    NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] init];
     
-    /*
-    if (activity.type == USER_ACTIVITY_TYPE_USER_FOLLOW) {
-        user = activity.attributes.details.followedBy;
-        message = @"started following you";
-    }
-    else if (activity.type == USER_ACTIVITY_TYPE_USER_ACCEPTED_ACCESS) {
-        user = activity.attributes.details.acceptedBy;
-        NSString *roomName = activity.attributes.details.room.attributes.details.title;
-        message = [NSString stringWithFormat:@"approved your request to join %@", roomName];
-    }
-    else if (activity.type == USER_ACTIVITY_TYPE_ROOM_ACCESS_REQUEST) {
-        user = activity.attributes.details.requestedBy;
-        NSString *roomName = activity.attributes.details.room.attributes.details.title;
-        message = [NSString stringWithFormat:@"requested to join %@", roomName];
-    }
-    else if (activity.type == USER_ACTIVITY_TYPE_POST_REPLY) {
-        user = activity.attributes.details.repliedBy;
-        message = @"replied to your post";
-    }
-    else if (activity.type == USER_ACTIVITY_TYPE_POST_SPARKED) {
-        user = activity.attributes.details.sparkedBy;
-        message = @"sparked your post";
-        // message = [NSString stringWithFormat:@"and %ld %@ sparked your post", (long)sparks, (sparks == 1 ? @"other" : @"others")];
-    }
-    else if (activity.type == USER_ACTIVITY_TYPE_USER_POSTED) {
-        // TODO: Create user posted icon/color combo
-    }
-    else {
-        // unknown
-        message = @"";
-        timeStamp = @"";
-    }
-     */
+    CGFloat fontSize = 15.f;
     
-    /*case NotificationTypeRoomNewMember: {
-        NSString *roomName = @"WA Alums";
-        message = [NSString stringWithFormat:@"joined %@", roomName];
-        timeStamp = @"1h";
-        break;
-    }*/
+    // available variables
+    NSMutableDictionary *variables = [[NSMutableDictionary alloc] init];
+    if (activity.attributes.actioner.attributes.details.identifier) {
+        [variables setObject:[NSString stringWithFormat:@"@%@", activity.attributes.actioner.attributes.details.identifier] forKey:@"$actioner.username"];
+    }
+    if (activity.attributes.actioner.attributes.details.displayName) {
+        [variables setObject:activity.attributes.actioner.attributes.details.displayName forKey:@"$actioner.displayName"];
+    }
+    if (activity.attributes.actioner.attributes.details.bio) {
+        [variables setObject:activity.attributes.actioner.attributes.details.bio forKey:@"$actioner.bio"];
+    }
+    if (activity.attributes.camp.attributes.details.title) {
+        [variables setObject:activity.attributes.camp.attributes.details.title forKey:@"$camp.title"];
+    }
+    if (activity.attributes.camp.attributes.details.theDescription) {
+        [variables setObject:activity.attributes.camp.attributes.details.theDescription forKey:@"$camp.description"];
+    }
+    if (activity.attributes.camp.attributes.details.identifier) {
+        [variables setObject:[NSString stringWithFormat:@"#%@", activity.attributes.camp.attributes.details.identifier] forKey:@"$camp.identifier"];
+    }
+    if (activity.attributes.post.attributes.details.message) {
+        [variables setObject:activity.attributes.post.attributes.details.message forKey:@"$post.message"];
+    }
     
-    NSString *username = user.attributes.details.identifier == nil ? @"anonymous" : [NSString stringWithFormat:@"@%@", user.attributes.details.identifier];
+    NSArray *stringParts = @[];
+
+    NSDictionary *formats = [Session sharedInstance].defaults.notifications;
     
-    NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:username];
-    // UIFont *heavyItalicFont = [UIFont fontWithDescriptor:[[[UIFont systemFontOfSize:15.f weight:UIFontWeightHeavy] fontDescriptor] fontDescriptorWithSymbolicTraits:UIFontDescriptorTraitItalic] size:15.f];
-    [attributedString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:15.f weight:UIFontWeightSemibold] range:NSMakeRange(0, attributedString.length)];
-    [attributedString addAttribute:NSForegroundColorAttributeName value:[UIColor bonfireBlack] range:NSMakeRange(0, attributedString.length)];
+    NSString *key = [NSString stringWithFormat:@"%u", activity.attributes.type];
     
-    NSString *baseString = [NSString stringWithFormat:@" %@. %@", message, timeStamp];
+    if ([[formats allKeys] containsObject:key]) {
+        NSError *error;
+        DefaultsNotificationsFormat *notificationFormat = [[DefaultsNotificationsFormat alloc] initWithDictionary:formats[key] error:&error];
+        if (!error) {
+            stringParts = notificationFormat.stringParts;
+        }
+    }
     
-    NSMutableAttributedString *detailsString = [[NSMutableAttributedString alloc] initWithString:baseString];
-    [detailsString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:15.f weight:UIFontWeightRegular] range:NSMakeRange(0, detailsString.length)];
-    [detailsString addAttribute:NSForegroundColorAttributeName value:[UIColor bonfireBlack] range:NSMakeRange(0, detailsString.length - timeStamp.length)];
-    [detailsString addAttribute:NSForegroundColorAttributeName value:[UIColor bonfireGray] range:NSMakeRange(baseString.length - timeStamp.length, timeStamp.length)];
+    for (NSString *part in stringParts) {
+        NSMutableAttributedString *attributedPart;
+        if ([[variables allKeys] containsObject:part]) {
+            attributedPart = [[NSMutableAttributedString alloc] initWithString:[variables objectForKey:part] attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:fontSize weight:UIFontWeightSemibold], NSForegroundColorAttributeName: [UIColor bonfireBlack]}];
+            
+            /*
+            [attributedString addAttribute:NSLinkAttributeName
+                                     value:@"username://marcelofabri_"
+                                     range:[[attributedString string] rangeOfString:@"@marcelofabri_"]];*/
+        }
+        else {
+            attributedPart = [[NSMutableAttributedString alloc] initWithString:part attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:fontSize weight:UIFontWeightRegular], NSForegroundColorAttributeName: [UIColor bonfireBlack]}];
+        }
+        
+        [attributedString appendAttributedString:attributedPart];
+    }
     
-    [attributedString appendAttributedString:detailsString];
+    NSString *timeStamp = [NSDate mysqlDatetimeFormattedAsTimeAgo:activity.attributes.createdAt withForm:TimeAgoShortForm];
+    
+    NSMutableAttributedString *timeStampString = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@" %@", timeStamp]];
+    [timeStampString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:fontSize weight:UIFontWeightRegular] range:NSMakeRange(0, timeStampString.length)];
+    [timeStampString addAttribute:NSForegroundColorAttributeName value:[UIColor bonfireGray] range:NSMakeRange(0, timeStampString.length)];
+    [attributedString appendAttributedString:timeStampString];
     
     return attributedString;
 }

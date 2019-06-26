@@ -7,6 +7,7 @@
 //
 
 #import "AddManagerCell.h"
+#import "UIColor+Palette.h"
 
 @implementation AddManagerCell
 
@@ -20,7 +21,8 @@
     
     if (self) {
         self.imageView.image = [[UIImage imageNamed:@"tableRowAddMemberIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-        self.imageView.frame = CGRectMake(12, 0, 42, 42);
+        self.imageView.frame = CGRectMake(12, 0, 48, 48);
+        self.imageView.contentMode = UIViewContentModeScaleAspectFill;
         
         self.textLabel.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightBold];
         self.textLabel.textColor = self.superview.tintColor;
@@ -37,18 +39,18 @@
     [super layoutSubviews];
     
     self.imageView.center = CGPointMake(self.imageView.center.x, self.frame.size.height / 2);
-    self.textLabel.frame = CGRectMake(68, 0, self.frame.size.width - 68 - 12, self.contentView.bounds.size.height);
+    self.textLabel.frame = CGRectMake(70, 0, self.frame.size.width - 70 - 12, self.contentView.bounds.size.height);
 }
 
 - (void)setHighlighted:(BOOL)highlighted animated:(BOOL)animated {
     if (highlighted) {
         [UIView animateWithDuration:0.2f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-            self.contentView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.04f];
+            self.contentView.backgroundColor = [UIColor contentHighlightedColor];
         } completion:nil];
     }
     else {
         [UIView animateWithDuration:0.2f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-            self.contentView.backgroundColor = [UIColor clearColor];
+            self.contentView.backgroundColor = [UIColor contentBackgroundColor];
         } completion:nil];
     }
 }

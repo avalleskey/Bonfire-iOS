@@ -46,7 +46,7 @@
     return false;*/
 }
 
-- (void)createTempWithMessage:(NSString *)message media:(BFMedia *)media postedIn:(Room * _Nullable)postedIn parentId:(NSInteger)parentId {
+- (void)createTempWithMessage:(NSString *)message media:(BFMedia *)media postedIn:(Camp * _Nullable)postedIn parentId:(NSString *)parentId {
     self.type = @"post";
     self.tempId = [NSString stringWithFormat:@"%d", [Session getTempId]];
     // TODO: Add support for images
@@ -59,7 +59,7 @@
         details.message = message;
     }
     if (parentId) {
-        NSLog(@"set parent id! %ld", (long)parentId);
+        NSLog(@"set parent id! %@", parentId);
         details.parentId = parentId;
     }
     if (media && media.objects.count > 0) {
@@ -116,6 +116,12 @@
 @end
 
 @implementation PostStatusDisplay
+
+NSString * const POST_CHOSEN_RECENT = @"recent";
+NSString * const POST_CHOSEN_POPULAR = @"popular";
+NSString * const POST_CHOSEN_FOLLOWED = @"followed";
+NSString * const POST_CHOSEN_SUGGESTED = @"suggested";
+NSString * const POST_CHOSEN_SPONSORED = @"sponsored";
 
 + (JSONKeyMapper *)keyMapper
 {
@@ -206,33 +212,6 @@
 
 @end
 
-@implementation PostContext
-
-+ (BOOL)propertyIsOptional:(NSString*)propertyName
-{
-    return YES;
-}
-
-@end
-
-@implementation PostContextReplies
-
-+ (BOOL)propertyIsOptional:(NSString*)propertyName
-{
-    return YES;
-}
-
-@end
-
-@implementation PostContextVote
-
-+ (JSONKeyMapper *)keyMapper
-{
-    return [JSONKeyMapper mapperForSnakeCase];
-}
-
-@end
-
 @implementation PostAttachments
 
 + (JSONKeyMapper *)keyMapper
@@ -266,6 +245,19 @@
 @end
 
 @implementation PostAttachmentsMediaAtributesRawMedia
+
++ (JSONKeyMapper *)keyMapper
+{
+    return [JSONKeyMapper mapperForSnakeCase];
+}
+
+@end
+
+@implementation PostEntity
+
+NSString * const POST_ENTITY_TYPE_PROFILE = @"profile";
+NSString * const POST_ENTITY_TYPE_CAMP = @"camp";
+NSString * const POST_ENTITY_TYPE_URL = @"url";
 
 + (JSONKeyMapper *)keyMapper
 {

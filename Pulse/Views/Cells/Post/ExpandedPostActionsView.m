@@ -18,7 +18,6 @@
 - (id)initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
     if (self) {
-        // self.backgroundColor = [UIColor colorWithRed:0.98 green:0.98 blue:0.99 alpha:1.00];
         /*self.layer.cornerRadius = 10.f;
         self.layer.masksToBounds = true;
         self.backgroundColor = [UIColor whiteColor];
@@ -35,6 +34,7 @@
         _replyButton.frame = CGRectMake(0, 0, 48, 48);
         [_replyButton setImage:[[UIImage imageNamed:@"replyIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
         _replyButton.adjustsImageWhenHighlighted = false;
+        _replyButton.adjustsImageWhenDisabled = false;
         [self addTapHandlersToAction:_replyButton];
         [self addSubview:_replyButton];
         
@@ -45,12 +45,12 @@
         [self addTapHandlersToAction:_shareButton];
         [self addSubview:_shareButton];
         
-        _sparkButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        _sparkButton.frame = CGRectMake(_shareButton.frame.origin.x + _shareButton.frame.size.width + 10, 0, 48, 48);
-        [_sparkButton setImage:[[UIImage imageNamed:@"boltIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
-        _sparkButton.adjustsImageWhenHighlighted = false;
-        [self addTapHandlersToAction:_sparkButton];
-        [self addSubview:_sparkButton];
+        _voteButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        _voteButton.frame = CGRectMake(_shareButton.frame.origin.x + _shareButton.frame.size.width + 10, 0, 48, 48);
+        [_voteButton setImage:[[UIImage imageNamed:@"boltIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+        _voteButton.adjustsImageWhenHighlighted = false;
+        [self addTapHandlersToAction:_voteButton];
+        [self addSubview:_voteButton];
         
         _topSeparator = [[UIView alloc] initWithFrame:CGRectMake(self.frame.size.width / 2 - .5, 0, 1, (1 / [UIScreen mainScreen].scale))];
         _topSeparator.backgroundColor = [UIColor colorWithWhite:0 alpha:0.08];
@@ -83,7 +83,7 @@
     
     CGFloat buttonWidth = self.frame.size.width / 3;
     _replyButton.frame = CGRectMake(0, 0, buttonWidth, self.frame.size.height);
-    _sparkButton.frame = CGRectMake(_replyButton.frame.origin.x + _replyButton.frame.size.width, 0, buttonWidth, self.frame.size.height);
+    _voteButton.frame = CGRectMake(_replyButton.frame.origin.x + _replyButton.frame.size.width, 0, buttonWidth, self.frame.size.height);
     _shareButton.frame = CGRectMake(self.frame.size.width - buttonWidth, 0, buttonWidth, self.frame.size.height);
     
     

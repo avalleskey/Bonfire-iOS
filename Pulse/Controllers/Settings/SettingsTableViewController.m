@@ -29,12 +29,18 @@
     
     // Google Analytics
     [FIRAnalytics setScreenName:@"Settings" screenClass:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userUpdated:) name:@"UserUpdated" object:nil];
+}
+
+- (void)userUpdated:(NSNotification *)notification {
+    [self.tableView reloadData];
 }
 
 - (void)setup {
     self.title = @"Settings";
-    self.navigationController.navigationBar.prefersLargeTitles = true;
-    self.navigationItem.largeTitleDisplayMode = UINavigationItemLargeTitleDisplayModeAutomatic;
+    //self.navigationController.navigationBar.prefersLargeTitles = true;
+    //self.navigationItem.largeTitleDisplayMode = UINavigationItemLargeTitleDisplayModeAutomatic;
     self.smartListDelegate = self;
     
     [self setJsonFile:@"SettingsModel"];
@@ -55,39 +61,39 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowWithId:(NSString *)rowId {
     if ([rowId isEqualToString:@"edit_profile"]) {
-        [[Launcher sharedInstance] openEditProfile];
+        [Launcher openEditProfile];
     }
     if ([rowId isEqualToString:@"change_password"]) {
         // push change password
         ChangePasswordTableViewController *changePasswordTableVC = [[ChangePasswordTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
-        [[Launcher sharedInstance] push:changePasswordTableVC animated:YES];
+        [Launcher push:changePasswordTableVC animated:YES];
     }
     if ([rowId isEqualToString:@"notifications"]) {
         // push notifications settings
         NotificationsSettingsTableViewController *notificationsTableVC = [[NotificationsSettingsTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
-        [[Launcher sharedInstance] push:notificationsTableVC animated:YES];
+        [Launcher push:notificationsTableVC animated:YES];
     }
     if ([rowId isEqualToString:@"get_help"]) {
-        Room *room = [[Room alloc] init];
-        room.identifier = @"-Rd3XgvQN0zQj";
-        [[Launcher sharedInstance] openRoom:room];
+        Camp *camp = [[Camp alloc] init];
+        camp.identifier = @"-5Orj2GW2ywG3";
+        [Launcher openCamp:camp];
     }
     if ([rowId isEqualToString:@"give_feedback"]) {
-        Room *room = [[Room alloc] init];
-        room.identifier = @"-YPQ10Pr62xZl";
-        [[Launcher sharedInstance] openRoom:room];
+        Camp *camp = [[Camp alloc] init];
+        camp.identifier = @"-mb4egjBg9vYK";
+        [Launcher openCamp:camp];
     }
     if ([rowId isEqualToString:@"rate_app_store"]) {
-        [[Launcher sharedInstance] requestAppStoreRating];
+        [Launcher requestAppStoreRating];
     }
     if ([rowId isEqualToString:@"community_guidelines"]) {
         // push community guidelines
-        [[Launcher sharedInstance] openURL:@"https://bonfire.camp/community"];
+        [Launcher openURL:@"https://bonfire.camp/community"];
     }
     if ([rowId isEqualToString:@"legal"]) {
         // push legal
         LegalTableViewController *legalTableVC = [[LegalTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
-        [[Launcher sharedInstance] push:legalTableVC animated:YES];
+        [Launcher push:legalTableVC animated:YES];
     }
     if ([rowId isEqualToString:@"sign_out"]) {
         // sign out
@@ -99,39 +105,30 @@
         [areYouSure addAction:cancel];
         
         UIAlertAction *confirm = [UIAlertAction actionWithTitle:@"Sign Out" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
-            [[Session sharedInstance] signOut];
+            JGProgressHUD *HUD = [JGProgressHUD progressHUDWithStyle:JGProgressHUDStyleExtraLight];
+            HUD.textLabel.text = @"Signing out...";
+            HUD.vibrancyEnabled = false;
+            HUD.animation = [[JGProgressHUDFadeZoomAnimation alloc] init];
+            HUD.textLabel.textColor = [UIColor colorWithWhite:0 alpha:0.6f];
+            HUD.backgroundColor = [UIColor colorWithWhite:0 alpha:0.1f];
+            HUD.indicatorView = [[JGProgressHUDIndeterminateIndicatorView alloc] init];
+            HUD.indicatorView.tintColor = HUD.textLabel.textColor;
             
-            [[Launcher sharedInstance] openOnboarding];
+            [HUD showInView:self.navigationController.view animated:YES];
+            
+            [[Session sharedInstance] signOut];
         }];
         [areYouSure addAction:confirm];
         
         [self.navigationController presentViewController:areYouSure animated:YES completion:nil];
     }
     if ([rowId isEqualToString:@"invite_friends_beta"]) {
-        [FIRAnalytics logEventWithName:@"copy_beta_invite_link"
-                            parameters:@{@"location": @"settings"}];
-        
-        UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
-        pasteboard.string = @"http://testflight.com/bonfire-ios";
-        
-        JGProgressHUD *HUD = [JGProgressHUD progressHUDWithStyle:JGProgressHUDStyleExtraLight];
-        HUD.textLabel.text = @"Copied Beta Link!";
-        HUD.vibrancyEnabled = false;
-        HUD.animation = [[JGProgressHUDFadeZoomAnimation alloc] init];
-        HUD.textLabel.textColor = [UIColor colorWithWhite:0 alpha:0.6f];
-        HUD.backgroundColor = [UIColor colorWithWhite:0 alpha:0.1f];
-        HUD.indicatorView = [[JGProgressHUDSuccessIndicatorView alloc] init];
-        HUD.indicatorView.tintColor = HUD.textLabel.textColor;
-        
-        [HUD showInView:self.navigationController.view animated:YES];
-        [HapticHelper generateFeedback:FeedbackType_Notification_Success];
-        
-        [HUD dismissAfterDelay:1.5f];
+        [Launcher copyBetaInviteLink];
     }
     if ([rowId isEqualToString:@"report_bug"]) {
-        Room *room = [[Room alloc] init];
-        room.identifier = @"-Rd3XgvQN0zQj";
-        [[Launcher sharedInstance] openRoom:room];
+        Camp *camp = [[Camp alloc] init];
+        camp.identifier = @"-wWoxVq1VBA6R";
+        [Launcher openCamp:camp];
     }
 }
 

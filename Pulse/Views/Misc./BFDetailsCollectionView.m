@@ -61,9 +61,12 @@
         
         // reload collection view with new details
         [self reloadData];
+        [self setNeedsLayout];
+        [self layoutSubviews];
         
         // resize to fit
-        self.frame = CGRectMake(self.frame.origin.x, self.frame.origin.y, self.frame.size.width, self.collectionViewLayout.collectionViewContentSize.height);
+        CGFloat heightDifference = self.collectionViewLayout.collectionViewContentSize.height - self.frame.size.height;
+        self.frame = CGRectMake(self.frame.origin.x, self.frame.origin.y - heightDifference, self.frame.size.width, self.collectionViewLayout.collectionViewContentSize.height);
     }
 }
 
@@ -80,6 +83,8 @@
     if (cell.tag != 1) {
         cell.tag = 1;
         cell.contentView.backgroundColor = [UIColor colorWithRed:0.98 green:0.98 blue:0.985 alpha:1];
+        /*cell.contentView.layer.borderColor = [[UIColor separatorColor] colorWithAlphaComponent:0.5].CGColor;
+        cell.contentView.layer.borderWidth = 1.f;*/
         cell.contentView.layer.cornerRadius = cell.frame.size.height / 2;
         
         UIImageView *iconView = [[UIImageView alloc] initWithFrame:CGRectMake(BFDetail_PADDING_INSETS.left, BFDetail_PADDING_INSETS.top, 16, 16)];
@@ -112,7 +117,7 @@
     else if (item.type == BFDetailItemTypeWebsite) {
         iconView.image = [[UIImage imageNamed:@"details_label_link"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
     }
-    iconView.tintColor = [UIColor grayColor];
+    iconView.tintColor = [UIColor bonfireGray];
     
     UILabel *valueLabel = [cell.contentView viewWithTag:20];
     valueLabel.text = [item prettyValue];
@@ -147,7 +152,7 @@
     if (item.selectable) {
         UICollectionViewCell *cell = [collectionView cellForItemAtIndexPath:indexPath];
         [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-            cell.contentView.backgroundColor = [UIColor colorWithWhite:0.95 alpha:1];
+            cell.contentView.backgroundColor = [UIColor colorWithRed:0.85 green:0.85 blue:0.86 alpha:1];
         } completion:nil];
     }
 }
@@ -158,7 +163,7 @@
     if (item.selectable) {
         UICollectionViewCell *cell = [collectionView cellForItemAtIndexPath:indexPath];
         [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-            cell.contentView.backgroundColor = [UIColor colorWithWhite:0.98 alpha:1];
+            cell.contentView.backgroundColor = [UIColor colorWithRed:0.98 green:0.98 blue:0.985 alpha:1];
         } completion:nil];
     }
 }
@@ -177,7 +182,7 @@
             
             if (link.length == 0) return;
             
-            [[Launcher sharedInstance] openURL:item.value];
+            [Launcher openURL:item.value];
             return;
         }
     }
@@ -212,7 +217,7 @@
             prettyValue = @"0";
         }
         
-        DefaultsRoomMembersTitle *membersTitle = [Session sharedInstance].defaults.room.membersTitle;
+        DefaultsCampMembersTitle *membersTitle = [Session sharedInstance].defaults.camp.membersTitle;
         prettyValue = [prettyValue stringByAppendingString:[NSString stringWithFormat:@" %@", ([prettyValue isEqualToString:@"1"] ? [membersTitle.singular lowercaseString] : [membersTitle.plural lowercaseString])]];
         
         return prettyValue;

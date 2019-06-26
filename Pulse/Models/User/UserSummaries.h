@@ -20,7 +20,7 @@
 @interface UserSummariesCounts : JSONModel
 
 @property (nonatomic) NSInteger posts;
-@property (nonatomic) NSInteger rooms;
+@property (nonatomic) NSInteger camps;
 @property (nonatomic) NSInteger following;
 
 @end

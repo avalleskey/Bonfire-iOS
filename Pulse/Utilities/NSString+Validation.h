@@ -24,9 +24,11 @@ enum
     MAX_USER_BIO_LENGTH = 150,
     MAX_USER_LOCATION_LENGTH = 30,
     MAX_USER_WEBSITE_LENGTH = 100,
-    MAX_ROOM_TITLE_LENGTH = 30,
-    MAX_ROOM_TAG_LENGTH = 30,
-    MAX_ROOM_DESC_LENGTH = 150
+    MAX_CAMP_TITLE_SOFT_LENGTH = 30,
+    MAX_CAMP_TITLE_HARD_LENGTH = 255,
+    MAX_CAMP_TAG_LENGTH = 30,
+    MAX_CAMP_DESC_SOFT_LENGTH = 150,
+    MAX_CAMP_DESC_HARD_LENGTH = 255,
 };
 
 typedef enum {
@@ -53,12 +55,12 @@ typedef enum {
 - (BFValidationError)validateBonfireLocation;
 - (BFValidationError)validateBonfireWebsite;
 
-- (BFValidationError)validateBonfireRoomTitle;
-- (BFValidationError)validateBonfireRoomTag;
-- (BFValidationError)validateBonfireRoomDescription;
+- (BFValidationError)validateBonfireCampTitle;
+- (BFValidationError)validateBonfireCampTag;
+- (BFValidationError)validateBonfireCampDescription;
 
 - (NSArray *)rangesForUsernameMatches;
-- (NSArray *)rangesForRoomTagMatches;
+- (NSArray *)rangesForCampTagMatches;
 - (NSArray *)rangesForLinkMatches;
 
 @end

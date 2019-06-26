@@ -66,6 +66,7 @@
         },
         {
             "id": "sign_out",
+            "title": "",
             "rows": [
                 {
                     "id": "sign_out",

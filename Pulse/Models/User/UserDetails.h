@@ -20,6 +20,7 @@
 @property (nonatomic) NSString <Optional> *dob;
 @property (nonatomic) NSString <Optional> *color;
 @property (nonatomic) UserMedia <Optional> *media;
+@property (nonatomic) NSString <Optional> *email;
 
 @end
 

@@ -30,6 +30,7 @@
 @property CGFloat minHeaderHeight;
 @property CGFloat maxHeaderHeight;
 
+@property (nonatomic, strong) ComplexNavigationController *launchNavVC;
 @property (strong, nonatomic) ErrorView *errorView;
 @property (nonatomic) BOOL userDidRefresh;
 
@@ -42,20 +43,20 @@
     // Do any additional setup after loading the view.
     self.view.tintColor = self.theme;
     
-    if ([self isCurrentUser] && [self.navigationController isKindOfClass:[SimpleNavigationController class]]) {
-
-    }
-    else {
-        self.title = self.user.attributes.details.displayName;
-    }
-    self.view.backgroundColor = [UIColor whiteColor];
-    self.navigationItem.hidesBackButton = true;
+    self.launchNavVC = (ComplexNavigationController *)self.navigationController;
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] init];
+    
+    self.view.backgroundColor = [UIColor headerBackgroundColor];
     
     [self setupTableView];
     [self setupErrorView];
+    
+    [self setupComposeInputView];
+    
+    self.loading = true;
+    [self loadUser];
+    
     if ([self isCurrentUser]) {
-        //[self setupComposeInputView];
-        
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userUpdated:) name:@"UserUpdated" object:nil];
         
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(newPostBegan:) name:@"NewPostBegan" object:nil];
@@ -66,16 +67,14 @@
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userContextUpdated:) name:@"UserContextUpdated" object:nil];
     }
     
-    self.loading = true;
-    
-    [self loadUser];
-    
     // Google Analytics
     [FIRAnalytics setScreenName:@"Profile" screenClass:nil];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
+    
+    [self styleOnAppear];
     
     if (self.view.tag == 1) {
         [InsightsLogger.sharedInstance openAllVisiblePostInsightsInTableView:self.tableView seenIn:InsightSeenInProfileView];
@@ -84,13 +83,17 @@
         self.view.tag = 1;
     }
     
-    [self styleOnAppear];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillChangeFrame:) name:UIKeyboardWillChangeFrameNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillDismiss:) name:UIKeyboardWillHideNotification object:nil];
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
     
     [InsightsLogger.sharedInstance closeAllVisiblePostInsightsInTableView:self.tableView];
+    
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillChangeFrameNotification object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillHideNotification object:nil];
 }
 
 - (void)newPostBegan:(NSNotification *)notification {
@@ -111,9 +114,9 @@
     if (post != nil) {
         // TODO: Check for image as well
         self.errorView.hidden = true;
-        [self.tableView.stream updateTempPost:tempId withFinalPost:post];
+        [self.tableView.stream removeTempPost:tempId];
         
-        [self.tableView refresh];
+        [self getPostsWithCursor:PostStreamPagingCursorTypePrevious];
     }
 }
 // TODO: Allow tap to retry for posts
@@ -140,6 +143,8 @@
             [self updateTheme];
             
             [self.tableView refresh];
+            
+            [self positionErrorView];
         }
     }
 }
@@ -176,16 +181,256 @@
     return true;
 }
 
+- (void)setupComposeInputView {
+    CGFloat bottomPadding = [[[UIApplication sharedApplication] delegate] window].safeAreaInsets.bottom;
+    CGFloat collapsed_inputViewHeight = ((self.composeInputView.textView.frame.origin.y * 2) + self.composeInputView.textView.frame.size.height) + bottomPadding;
+    
+    self.composeInputView = [[ComposeInputView alloc] initWithFrame:CGRectMake(0, self.view.bounds.size.height - collapsed_inputViewHeight, self.view.frame.size.width, collapsed_inputViewHeight)];
+    self.composeInputView.hidden = true;
+    
+    self.composeInputView.parentViewController = self;
+    self.composeInputView.postButton.backgroundColor = [self.theme isEqual:[UIColor whiteColor]] ? [UIColor bonfireBlack] : self.theme;
+    self.composeInputView.addMediaButton.tintColor = self.composeInputView.postButton.backgroundColor;
+    self.composeInputView.textView.tintColor = self.composeInputView.postButton.backgroundColor;
+    
+    [self.composeInputView bk_whenTapped:^{
+        if (![self.composeInputView isActive]) {
+            [self.composeInputView setActive:true];
+        }
+    }];
+    [self.composeInputView.postButton bk_whenTapped:^{
+        [self postMessage];
+    }];
+    [self.composeInputView.expandButton bk_whenTapped:^{
+        NSString *message = self.composeInputView.textView.text;
+        if (message.length == 0 && ![self isCurrentUser]) {
+            message = [NSString stringWithFormat:@"@%@ ", self.user.attributes.details.identifier];
+        }
+        [Launcher openComposePost:nil inReplyTo:nil withMessage:message media:nil];
+    }];
+    
+    [self.view addSubview:self.composeInputView];
+    
+    self.composeInputView.textView.delegate = self;
+    self.composeInputView.tintColor = self.view.tintColor;
+    
+    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, self.composeInputView.frame.size.height - [UIApplication sharedApplication].delegate.window.safeAreaInsets.bottom, 0);
+    self.tableView.scrollIndicatorInsets = self.tableView.contentInset;
+    self.tableView.inputView = self.composeInputView;
+}
+- (void)textViewDidChange:(UITextView *)textView {
+    if ([textView isEqual:self.composeInputView.textView]) {
+        [self.composeInputView resize:false];
+        
+        UIWindow *window = UIApplication.sharedApplication.keyWindow;
+        CGFloat bottomPadding = window.safeAreaInsets.bottom;
+        
+        self.composeInputView.frame = CGRectMake(self.composeInputView.frame.origin.x, self.view.frame.size.height - self.currentKeyboardHeight - self.composeInputView.frame.size.height + bottomPadding, self.composeInputView.frame.size.width, self.composeInputView.frame.size.height);
+        
+        if (textView.text.length > 0) {
+            [self.composeInputView showPostButton];
+        }
+        else {
+            [self.composeInputView hidePostButton];
+        }
+    }
+}
+- (void)updateComposeInputView {
+    if ([self canViewPosts]) {
+        [self showComposeInputView];
+        [self.composeInputView updatePlaceholders];
+    }
+    else {
+        [self hideComposeInputView];
+    }
+}
+- (void)showComposeInputView {
+    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, self.composeInputView.frame.size.height - [UIApplication sharedApplication].delegate.window.safeAreaInsets.bottom, 0);
+    self.tableView.scrollIndicatorInsets = self.tableView.contentInset;
+    
+    if (self.composeInputView.isHidden) {
+        self.composeInputView.transform = CGAffineTransformMakeTranslation(0, self.composeInputView.frame.size.height);
+        self.composeInputView.hidden = false;
+        
+        [UIView animateWithDuration:0.3f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+            self.composeInputView.transform = CGAffineTransformIdentity;
+        } completion:nil];
+    }
+}
+- (void)hideComposeInputView {
+    self.tableView.contentInset = UIEdgeInsetsMake(self.tableView.contentInset.top, self.tableView.contentInset.left, 0, self.tableView.contentInset.right);
+    self.tableView.scrollIndicatorInsets = self.tableView.contentInset;
+    
+    if (!self.composeInputView.isHidden) {
+        [UIView animateWithDuration:0.3f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+            self.composeInputView.transform = CGAffineTransformMakeTranslation(0, self.composeInputView.frame.size.height);
+        } completion:^(BOOL finished) {
+            self.composeInputView.hidden = true;
+        }];
+    }
+}
+- (BOOL)textViewShouldBeginEditing:(UITextView *)textView {
+    if (![self isCurrentUser] && self.composeInputView.textView.text.length == 0) {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(CGFLOAT_MIN * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            self.composeInputView.textView.text = [NSString stringWithFormat:@"@%@ ", self.user.attributes.details.identifier];
+            
+            self.composeInputView.textView.selectedRange = NSMakeRange(self.composeInputView.textView.text.length, 0);
+            
+            [self.composeInputView updatePlaceholders];
+        });
+    }
+    
+    UIView *tapToDismissView = [self.view viewWithTag:888];
+    if (!tapToDismissView) {
+        tapToDismissView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.tableView.frame.size.width, self.tableView.frame.size.height)];
+        tapToDismissView.tag = 888;
+        tapToDismissView.alpha = 0;
+        tapToDismissView.backgroundColor = [UIColor colorWithWhite:1 alpha:0.75];
+        
+        [self.view insertSubview:tapToDismissView aboveSubview:self.tableView];
+    }
+    
+    self.tableView.scrollEnabled = false;
+    [UIView animateWithDuration:0.3f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        tapToDismissView.alpha = 1;
+    } completion:nil];
+    
+    
+    [tapToDismissView bk_whenTapped:^{
+        [textView resignFirstResponder];
+    }];
+    UISwipeGestureRecognizer *swipeDownGesture = [[UISwipeGestureRecognizer alloc] bk_initWithHandler:^(UIGestureRecognizer *sender, UIGestureRecognizerState state, CGPoint location) {
+        [textView resignFirstResponder];
+    }];
+    swipeDownGesture.direction = UISwipeGestureRecognizerDirectionDown;
+    [tapToDismissView addGestureRecognizer:swipeDownGesture];
+    
+    return true;
+}
+- (BOOL)textViewShouldEndEditing:(UITextView *)textView {
+    if (![self isCurrentUser] && (self.composeInputView.textView.text.length == 0 || [[self stringByRemovingLeadingAndTrailingWhiteSpaces:self.composeInputView.textView.text] isEqualToString:[@"@" stringByAppendingString:self.user.attributes.details.identifier]])) {
+        self.composeInputView.textView.text = @"";
+        
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(CGFLOAT_MIN * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [self.composeInputView updatePlaceholders];
+        });
+    }
+    
+    UIView *tapToDismissView = [self.view viewWithTag:888];
+    
+    if (self.loading) {
+        self.tableView.scrollEnabled = false;
+    }
+    else {
+        self.tableView.scrollEnabled = true;
+    }
+    
+    [UIView animateWithDuration:0.3f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        tapToDismissView.alpha = 0;
+    } completion:^(BOOL finished) {
+        [tapToDismissView removeFromSuperview];
+    }];
+    
+    return true;
+}
+- (NSString*)stringByRemovingLeadingAndTrailingWhiteSpaces:(NSString*)string {
+    NSArray * components = [string componentsSeparatedByString:@" "];
+    
+    if([components count] == 1) {
+        return string;
+    }
+    
+    NSUInteger originalLength = [string length];
+    unichar buffer[originalLength+1];
+    [string getCharacters:buffer range:NSMakeRange(0, originalLength)];
+    
+    NSMutableString * newStringNoLeadingSpace = [NSMutableString string];
+    BOOL goToStripTrailing = NO;
+    for(int i = 0; i < originalLength; i++) {
+        NSLog(@"%C", buffer[i]);
+        NSString * newCharString = [NSString stringWithFormat:@"%c", buffer[i]];
+        if(goToStripTrailing == NO && [newCharString isEqualToString:@" "]) continue;
+        goToStripTrailing = YES;
+        [newStringNoLeadingSpace appendString:newCharString];
+    }
+    
+    NSUInteger newLength = [newStringNoLeadingSpace length];
+    NSMutableString * newString = [NSMutableString string];
+    unichar bufferSecondPass[newLength+1];
+    [newStringNoLeadingSpace getCharacters:bufferSecondPass range:NSMakeRange(0, newLength)];
+    
+    int locationOfLastCharacter = (int)newLength;
+    for(int i = (int)newLength - 1; i >= 0; i--) {
+        NSLog(@"%C", bufferSecondPass[i]);
+        NSString * newCharString = [NSString stringWithFormat:@"%c", bufferSecondPass[i]];
+        locationOfLastCharacter = i+1;
+        if(![newCharString isEqualToString:@" "]) break;
+    }
+    
+    NSRange range = NSMakeRange(0, locationOfLastCharacter);
+    
+    newString = [[NSString stringWithString:[newStringNoLeadingSpace substringWithRange:range]] copy];
+    
+    return newString;
+}
+
+- (void)keyboardWillChangeFrame:(NSNotification *)notification {
+    NSDictionary* keyboardInfo = [notification userInfo];
+    NSValue* keyboardFrameBegin = [keyboardInfo valueForKey:UIKeyboardFrameEndUserInfoKey];
+    CGRect keyboardFrameBeginRect = [keyboardFrameBegin CGRectValue];
+    _currentKeyboardHeight = keyboardFrameBeginRect.size.height;
+    
+    UIWindow *window = UIApplication.sharedApplication.keyWindow;
+    CGFloat bottomPadding = window.safeAreaInsets.bottom;
+    
+    CGFloat newComposeInputViewY = self.view.frame.size.height - self.currentKeyboardHeight - self.composeInputView.frame.size.height + bottomPadding;
+    
+    self.composeInputView.frame = CGRectMake(self.composeInputView.frame.origin.x, newComposeInputViewY, self.composeInputView.frame.size.width, self.composeInputView.frame.size.height);
+}
+
+- (void)keyboardWillDismiss:(NSNotification *)notification {
+    _currentKeyboardHeight = 0;
+    
+    NSNumber *duration = [notification.userInfo objectForKey:UIKeyboardAnimationDurationUserInfoKey];
+    [UIView animateWithDuration:[duration floatValue] delay:0 options:[[notification.userInfo objectForKey:UIKeyboardAnimationCurveUserInfoKey] intValue] << 16 animations:^{
+        [self.composeInputView resize:false];
+        
+        self.composeInputView.frame = CGRectMake(self.composeInputView.frame.origin.x, self.view.frame.size.height - self.composeInputView.frame.size.height, self.composeInputView.frame.size.width, self.composeInputView.frame.size.height);
+    } completion:nil];
+}
+
+- (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
+    return textView.text.length + (text.length - range.length) <= [Session sharedInstance].defaults.post.maxLength.soft;
+}
+
+- (void)postMessage {
+    NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
+    NSString *message = self.composeInputView.textView.text;
+    if (message.length > 0) {
+        [params setObject:[Post trimString:message] forKey:@"message"];
+    }
+    if (self.composeInputView.media.objects.count > 0) {
+        [params setObject:self.composeInputView.media forKey:@"media"];
+    }
+    
+    if ([params objectForKey:@"message"] || [params objectForKey:@"media"]) {
+        // meets min. requirements
+        [BFAPI createPost:params postingIn:nil replyingTo:nil];
+        
+        [self.composeInputView reset];
+    }
+}
+
 - (void)openProfileActions {
-    BOOL userIsBlocked = [self isCurrentUser] ? false : [self.user.attributes.context.status isEqualToString:USER_STATUS_BLOCKS];
+    BOOL userIsBlocked = [self isCurrentUser] ? false : [self.user.attributes.context.me.status isEqualToString:USER_STATUS_BLOCKS];
     
     UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"\n\n\n\n\n\n" message:nil preferredStyle:UIAlertControllerStyleActionSheet];
     
     CGFloat margin = 8.0f;
     UIView *customView = [[UIView alloc] initWithFrame:CGRectMake(margin, 0, actionSheet.view.bounds.size.width - margin * 4, 140.f)];
-    BFAvatarView *roomAvatar = [[BFAvatarView alloc] initWithFrame:CGRectMake(customView.frame.size.width / 2 - 32, 24, 64, 64)];
-    roomAvatar.user = self.user;
-    [customView addSubview:roomAvatar];
+    BFAvatarView *userAvatar = [[BFAvatarView alloc] initWithFrame:CGRectMake(customView.frame.size.width / 2 - 32, 24, 64, 64)];
+    userAvatar.user = self.user;
+    [customView addSubview:userAvatar];
     UILabel *nameLabel = [[UILabel alloc] initWithFrame:CGRectMake(16, 96, customView.frame.size.width - 32, 20)];
     nameLabel.textAlignment = NSTextAlignmentCenter;
     nameLabel.font = [UIFont systemFontOfSize:17.f weight:UIFontWeightSemibold];
@@ -194,12 +439,19 @@
     [customView addSubview:nameLabel];
     [actionSheet.view addSubview:customView];
     
-    if (![self isCurrentUser] && ([self.user.attributes.context.status isEqualToString:USER_STATUS_FOLLOWS] || [self.user.attributes.context.status isEqualToString:USER_STATUS_FOLLOW_BOTH])) {
-        BOOL userPostNotificationsOn = self.user.attributes.context.follow.me.subscription != nil;
+    if (![self isCurrentUser]) {
+        UIAlertAction *mention = [UIAlertAction actionWithTitle:[NSString stringWithFormat:@"Mention @%@", self.user.attributes.details.identifier] style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            [Launcher openComposePost:nil inReplyTo:nil withMessage:[NSString stringWithFormat:@"@%@ ", self.user.attributes.details.identifier] media:nil];
+        }];
+        [actionSheet addAction:mention];
+    }
+    
+    if (![self isCurrentUser] && ([self.user.attributes.context.me.status isEqualToString:USER_STATUS_FOLLOWS] || [self.user.attributes.context.me.status isEqualToString:USER_STATUS_FOLLOW_BOTH])) {
+        BOOL userPostNotificationsOn = self.user.attributes.context.me.follow.me.subscription != nil;
         UIAlertAction *togglePostNotifications = [UIAlertAction actionWithTitle:[NSString stringWithFormat:@"Turn %@ Post Notifications", userPostNotificationsOn ? @"Off" : @"On"] style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
             NSLog(@"toggle post notifications");
             // confirm action
-            if ([Session sharedInstance].deviceToken != nil) {
+            if ([Session sharedInstance].deviceToken.length > 0) {
                 if (userPostNotificationsOn) {
                     [BFAPI unsubscribeFromUser:self.user completion:^(BOOL success, User *_Nullable user) {
                         if (success && user) {
@@ -219,7 +471,7 @@
             }
             else {
                 // confirm action
-                UIAlertController *notificationsNotice = [UIAlertController alertControllerWithTitle:@"Notications Not Enabled" message:@"In order to enable Post Notifications, you must turn on notifications for Bonfire in the iOS Settings" preferredStyle:UIAlertControllerStyleAlert];
+                UIAlertController *notificationsNotice = [UIAlertController alertControllerWithTitle:@"Notifications Not Enabled" message:@"In order to enable Post Notifications, you must turn on notifications for Bonfire in the iOS Settings" preferredStyle:UIAlertControllerStyleAlert];
                 
                 UIAlertAction *alertCancel = [UIAlertAction actionWithTitle:@"Okay" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
                 }];
@@ -235,7 +487,7 @@
     UIAlertAction *shareUser = [UIAlertAction actionWithTitle:[NSString stringWithFormat:@"Share %@ via...", [self isCurrentUser] ? @"your profile" : [NSString stringWithFormat:@"@%@", self.user.attributes.details.identifier]] style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         NSLog(@"share user");
         
-        [[Launcher sharedInstance] shareUser:self.user];
+        [Launcher shareUser:self.user];
     }];
     [actionSheet addAction:shareUser];
     
@@ -305,6 +557,13 @@
         [actionSheet addAction:reportUsername];
     }
     
+    if ([self isCurrentUser]) {
+        UIAlertAction *openSettings = [UIAlertAction actionWithTitle:@"Settings" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            [Launcher openSettings];
+        }];
+        [actionSheet addAction:openSettings];
+    }
+    
     UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
         NSLog(@"cancel");
     }];
@@ -328,7 +587,7 @@
         
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
             if (self.user.identifier != nil && self.user.attributes.context != nil) {
-                [self getPostsWithMaxId:0];
+                [self getPostsWithCursor:PostStreamPagingCursorTypeNone];
             }
             else {
                 [self loadUser];
@@ -345,51 +604,63 @@
 
 - (void)styleOnAppear {
     self.tableView.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height);
+    
+    UIWindow *window = UIApplication.sharedApplication.keyWindow;
+    CGFloat bottomPadding = window.safeAreaInsets.bottom;
+    
+    CGFloat collapsed_inputViewHeight = ((self.composeInputView.textView.frame.origin.y * 2) + self.composeInputView.textView.frame.size.height) + bottomPadding;
+    
+    self.composeInputView.frame = CGRectMake(0, self.view.bounds.size.height - collapsed_inputViewHeight, self.view.bounds.size.width, collapsed_inputViewHeight);
 }
 
 - (void)loadUser {
-    self.tableView.parentObject = self.user;
-    [self.tableView refresh];
-    
-    if (self.user.identifier == nil) {
-        [self hideMoreButton];
+    if (self.user.identifier.length > 0 || self.user.attributes.details.identifier.length > 0) {
+        self.tableView.parentObject = self.user;
+        [self.tableView refresh];
+        
+        NSLog(@"self.user.identifier:: %@", self.user.identifier);
+        
+        if (!self.user.identifier || self.user.identifier.length == 0) {
+            // no user identifier yet, don't show the ••• icon just yet
+            [self hideMoreButton];
+        }
+        
+        // load camp info before loading posts
+        self.errorView.hidden = true;
+        [self getUserInfo];
     }
     else {
-        [self showMoreButton];
+        // camp not found
+        self.tableView.hidden = true;
+        self.errorView.hidden = false;
+        
+        [self.errorView updateTitle:@"User Not Found"];
+        [self.errorView updateDescription:@"We couldn’t find the User\nyou were looking for"];
+        [self.errorView updateType:ErrorViewTypeNotFound];
+        
+        [self hideMoreButton];
     }
-    
-    // always fetch user info
-    [self getUserInfo];
 }
 
 - (void)getUserInfo {
-    NSString *url = [NSString stringWithFormat:@"users/%@", [self userIdentifier]];
+    NSString *url = [NSString stringWithFormat:@"users/%@", [self isCurrentUser] ? @"me" : [self userIdentifier]]; // sample data
     
     [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:@{} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSDictionary *responseData = (NSDictionary *)responseObject[@"data"];
         
         NSLog(@"response data:: user:: %@", responseData);
         
-        // this must go before we set self.room to the new Room object
+        // this must go before we set self.camp to the new Camp object
         NSString *colorBefore = self.user.attributes.details.color;
         BOOL requiresColorUpdate = (colorBefore == nil || colorBefore.length == 0);
         
         // first page
         self.user = [[User alloc] initWithDictionary:responseData error:nil];
         if (![self isCurrentUser]) [[Session sharedInstance] addToRecents:self.user];
-        [self showMoreButton];
         
         if ([self isCurrentUser]) {
             // if current user -> update Session current user object
             [[Session sharedInstance] updateUser:self.user];
-        }
-        
-        // update the theme color (in case we didn't know the room's color before
-        if (!([self isCurrentUser] && [self.navigationController isKindOfClass:[SimpleNavigationController class]])) {
-            self.title = self.user.attributes.details.displayName;
-            if ([self.navigationController isKindOfClass:[ComplexNavigationController class]]) {
-                [((ComplexNavigationController *)self.navigationController).searchView updateSearchText:self.title];
-            }
         }
         
         if (![colorBefore isEqualToString:self.user.attributes.details.color]) requiresColorUpdate = true;
@@ -397,12 +668,26 @@
             [self updateTheme];
         }
         
+        if (!([self isCurrentUser] && [self.navigationController isKindOfClass:[SimpleNavigationController class]])) {
+            self.title = self.user.attributes.details.displayName;
+            if ([self.navigationController isKindOfClass:[ComplexNavigationController class]]) {
+                [((ComplexNavigationController *)self.navigationController).searchView updateSearchText:self.title];
+            }
+        }
+        
+        [self updateComposeInputView];
+        
         self.tableView.parentObject = self.user;
+        
+        [self positionErrorView];
+        
         [self.tableView refresh];
         
-        // Now that the VC's Room object is complete,
-        // Go on to load the room content
+        // Now that the VC's Camp object is complete,
+        // Go on to load the camp content
         [self loadUserContent];
+        
+        [self showMoreButton];
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         NSLog(@"ProfileViewController / getUserInfo() - error: %@", error);
         //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
@@ -415,6 +700,8 @@
             [self.errorView updateTitle:@"User Not Found"];
             [self.errorView updateDescription:@"We couldn’t find the User\nyou were looking for"];
             [self.errorView updateType:ErrorViewTypeNotFound];
+            
+            [self hideMoreButton];
         }
         else {
             if ([HAWebService hasInternet]) {
@@ -443,14 +730,19 @@
     
     if (self.navigationController.topViewController == self) {
         if ([self.navigationController isKindOfClass:[ComplexNavigationController class]]) {
-            [(ComplexNavigationController *)self.navigationController updateBarColor:theme withAnimation:1 statusBarUpdateDelay:0];
+            [(ComplexNavigationController *)self.navigationController updateBarColor:theme animated:true];
         }
         else if ([self.navigationController isKindOfClass:[SimpleNavigationController class]]) {
-            [(SimpleNavigationController *)self.navigationController updateBarColor:theme];
+            [(SimpleNavigationController *)self.navigationController updateBarColor:theme animated:true];
         }
     }
     
-    [self.navigationController setNeedsStatusBarAppearanceUpdate];
+    [UIView animateWithDuration:0.25f delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
+        self.composeInputView.textView.tintColor = theme;
+        self.composeInputView.postButton.backgroundColor = theme;
+        self.composeInputView.addMediaButton.tintColor = theme;
+    } completion:^(BOOL finished) {
+    }];
     
     self.theme = theme;
     self.view.tintColor = self.theme;
@@ -458,9 +750,13 @@
 
 - (void)loadUserContent {
     if ([self canViewPosts]) {
-        [self getPostsWithMaxId:0];
+        [self showComposeInputView];
+        
+        [self getPostsWithCursor:PostStreamPagingCursorTypeNone];
     }
     else {
+        [self hideComposeInputView];
+        
         self.errorView.hidden = false;
         
         self.loading = false;
@@ -477,7 +773,7 @@
             [self.errorView updateType:ErrorViewTypeLocked];
         }
         else if (isPrivate) { // not blocked, not follower
-            // private room but not a member yet
+            // private camp but not a member yet
             [self.errorView updateTitle:@"Private User"];
             [self.errorView updateDescription:[NSString stringWithFormat:@"Only confirmed followers have access to @%@'s posts and complete profile", self.user.attributes.details.identifier]];
             [self.errorView updateType:ErrorViewTypeLocked];
@@ -495,23 +791,40 @@
 }
 
 - (void)hideMoreButton {
-    self.navigationController.navigationItem.rightBarButtonItem.customView.alpha = 0;
+    [UIView animateWithDuration:0.25f delay:0 usingSpringWithDamping:0.72f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        self.launchNavVC.rightActionButton.alpha = 0;
+    } completion:^(BOOL finished) {
+    }];
 }
 - (void)showMoreButton {
-    self.navigationController.navigationItem.rightBarButtonItem.customView.alpha = 1;
+    [UIView animateWithDuration:0.25f delay:0 usingSpringWithDamping:0.72f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        self.launchNavVC.rightActionButton.alpha = 1;
+    } completion:^(BOOL finished) {
+    }];
 }
 
-- (void)getPostsWithMaxId:(NSInteger)maxId {
+- (void)getPostsWithCursor:(PostStreamPagingCursorType)cursorType {
     if ([self userIdentifier] != nil) { 
         self.errorView.hidden = true;
         self.tableView.hidden = false;
-                
+        
+        NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
+        if (cursorType == PostStreamPagingCursorTypeNext) {
+            [params setObject:self.tableView.stream.nextCursor forKey:@"cursor"];
+            [self.tableView.stream addLoadedCursor:self.tableView.stream.nextCursor];
+        }
+        else if (self.tableView.stream.prevCursor) {
+            [params setObject:self.tableView.stream.prevCursor forKey:@"cursor"];
+        }
+        if ([params objectForKey:@"cursor"]) {
+            [self.tableView.stream addLoadedCursor:params[@"cursor"]];
+        }
+        NSLog(@"params: %@", params);
+        
         NSString *url = [NSString stringWithFormat:@"users/%@/posts", [self userIdentifier]]; // sample data
         
-        NSDictionary *params = maxId != 0 ? @{@"max_id": [NSNumber numberWithInteger:maxId]} : @{};
-        // NSLog(@"params to getPostsWith:::: %@", params);
-        
         [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+            
             self.tableView.scrollEnabled = true;
             
             if (self.userDidRefresh) {
@@ -521,15 +834,17 @@
             }
             
             PostStreamPage *page = [[PostStreamPage alloc] initWithDictionary:responseObject error:nil];
-            if (page.data.count == 0) {
-                self.tableView.reachedBottom = true;
-            }
-            else {
-                [self.tableView.stream appendPage:page];
+            if (page.data.count > 0) {
+                if (cursorType == PostStreamPagingCursorTypeNone || cursorType == PostStreamPagingCursorTypePrevious) {
+                    [self.tableView.stream prependPage:page];
+                }
+                else if (cursorType == PostStreamPagingCursorTypeNext) {
+                    [self.tableView.stream appendPage:page];
+                }
             }
             
             if (self.tableView.stream.posts.count == 0) {
-                // Error: No posts yet!
+                // Error: No sparks yet!
                 self.errorView.hidden = false;
                 
                 ProfileHeaderCell *headerCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
@@ -539,7 +854,7 @@
                 [self.errorView updateTitle:@"No Posts Yet"];
                 [self.errorView updateDescription:@""];
                 
-                self.errorView.frame = CGRectMake(self.errorView.frame.origin.x, heightOfHeader + 72, self.errorView.frame.size.width, self.errorView.frame.size.height);
+                self.errorView.frame = CGRectMake(self.errorView.frame.origin.x, heightOfHeader + 70, self.errorView.frame.size.width, self.errorView.frame.size.height);
             }
             else {
                 self.errorView.hidden = true;
@@ -591,12 +906,17 @@
 }
 
 - (void)tableView:(id)tableView didRequestNextPageWithMaxId:(NSInteger)maxId {
-    [self getPostsWithMaxId:maxId];
+    NSLog(@"has loaded cursor:::: %@", [self.tableView.stream hasLoadedCursor:self. tableView.stream.nextCursor] ? @"true" : @"false");
+    if (self.tableView.stream.nextCursor.length > 0 && ![self.tableView.stream hasLoadedCursor:self. tableView.stream.nextCursor]) {
+        NSLog(@"load page using next cursor: %@", self.tableView.stream.nextCursor);
+        [self getPostsWithCursor:PostStreamPagingCursorTypeNext];
+    }
 }
 
 - (void)setupTableView {
     self.tableView = [[RSTableView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - self.navigationController.navigationBar.frame.origin.y - self.navigationController.navigationBar.frame.size.height) style:UITableViewStyleGrouped];
     self.tableView.dataType = RSTableViewTypeProfile;
+    self.tableView.tableViewStyle = RSTableViewStyleGrouped;
     self.tableView.parentObject = self.user;
     self.tableView.loading = true;
     self.tableView.paginationDelegate = self;
@@ -614,7 +934,6 @@
 - (void)refresh {
     NSLog(@"refresh profile view controller");
     self.userDidRefresh = true;
-    self.tableView.reachedBottom = false;
     [self loadUser];
 }
 

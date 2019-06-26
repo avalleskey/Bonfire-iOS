@@ -20,6 +20,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (strong, nonatomic) UILabel *buttonLabel;
 @property (strong, nonatomic) UIImageView *checkIcon;
 
+@property (nonatomic) NSInteger gutterPadding; // default: 12
+
 @end
 
 NS_ASSUME_NONNULL_END

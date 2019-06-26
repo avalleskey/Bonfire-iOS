@@ -55,6 +55,7 @@ typedef enum {
 @property (nonatomic) BOOL push; // optional
 @property (nonatomic) BOOL present; // optional
 @property (nonatomic) BOOL radio; // optional
+@property (nonatomic) BOOL toggle; // optional
 
 @end
 
@@ -64,8 +65,8 @@ extern NSString * const SmartListInputEmailValidation;
 extern NSString * const SmartListInputUsernameValidation;
 extern NSString * const SmartListInputDisplayNameValidation;
 extern NSString * const SmartListInputPasswordValidation;
-extern NSString * const SmartListInputRoomNameValidation;
-extern NSString * const SmartListInputRoomDescriptionValidation;
+extern NSString * const SmartListInputCampTitleValidation;
+extern NSString * const SmartListInputCampDescriptionValidation;
 
 extern NSString * const SmartListInputDefaultKeyboard;
 extern NSString * const SmartListInputEmailKeyboard;

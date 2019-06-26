@@ -18,19 +18,48 @@
     BOOL active;
 }
 
+@property (nonatomic, strong) UILabel *dateLabel;
+@property (nonatomic, strong) UILabel *firstToReplyLabel;
+@property (nonatomic, strong) UIButton *liveCountButton;
+
+typedef enum {
+    PostActivityViewTagDate,
+    PostActivityViewTagAddReply,
+    PostActivityViewTagLive
+} PostActivityViewTag;
+
 @end
 
 @implementation PostActivityView
 
+- (id)init {
+    self = [super init];
+    if (self) {
+        [self setup];
+    }
+    return self;
+}
+- (id)initWithCoder:(NSCoder *)aDecoder {
+    self = [super initWithCoder:aDecoder];
+    if (self) {
+        [self setup];
+    }
+    return self;
+}
 - (id)initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
     if (self) {
-        self.backgroundColor = [UIColor colorWithRed:0.98 green:0.98 blue:0.99 alpha:1.00];
-        self.tintColor = self.superview.tintColor;
-        
-        self.clipsToBounds = true;
+        [self setup];
     }
     return self;
+}
+
+- (void)setup {
+    self.backgroundColor = [UIColor headerBackgroundColor];
+    self.tintColor = self.superview.tintColor;
+    
+    self.clipsToBounds = true;
+    [self initViews];
 }
 
 - (void)layoutSubviews {
@@ -41,38 +70,47 @@
     }
 }
 
-- (void)initViewsWithPost:(Post *)post {
-    if (self.views == nil) {
-        self.views = [[NSMutableArray alloc] init];
+- (void)initViews {
+    self.views = [[NSMutableArray alloc] init];
+    
+    [self addSubview:[self createDateLabel]];
+    [self addSubview:[self createFirstToReplyLabel]];
+    [self addSubview:[self createLiveCountButton]];
+}
+
+- (void)setPost:(Post *)post {
+    if (post != _post) {
+        _post = post;
         
-        [self.views addObject:[self dateLabelForPost:post]];
-        if (post.attributes.summaries.counts.replies == 0) {
-            [self.views addObject:[self firstToReplyLabelForPost:post]];
-        }
-        if (post.attributes.summaries.counts.live > 0) {
-            [self.views addObject:[self liveCountButtonForPost:post]];
-        }
-        
-        for (NSInteger i = 0; i < self.views.count; i++) {
-            UIView *view = self.views[i];
-            if (i != 0) {
-                view.transform = CGAffineTransformMakeTranslation(0, self.frame.size.height);
-                view.alpha = 0;
-            }
-            
-            [self addSubview:view];
-        }
+        [self updateViews];
     }
 }
 
-- (UILabel *)dateLabelForPost:(Post *)post {
-    UILabel *dateLabel = [[UILabel alloc] initWithFrame:self.bounds];
-    dateLabel.textColor = postActivityTextColor;
-    dateLabel.textAlignment = NSTextAlignmentCenter;
+- (void)updateViews {
+    [self updateDateLabelText];
+    [self updateFirstToReplyLabel];
+    [self updateLiveCountText];
+}
+
+- (UILabel *)createDateLabel {
+    if (!self.dateLabel) {
+        self.dateLabel = [[UILabel alloc] initWithFrame:self.bounds];
+        self.dateLabel.textColor = self.tintColor;
+        self.dateLabel.textAlignment = NSTextAlignmentCenter;
+        
+        [self updateDateLabelText];
+    }
+    
+    return self.dateLabel;
+}
+- (void)updateDateLabelText {
+    if (![self.views containsObject:self.dateLabel]) {
+        [self.views addObject:self.dateLabel];
+    }
     
     NSDateFormatter *inputFormatter = [[NSDateFormatter alloc] init];
     [inputFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ssZ"];
-    NSDate *date = [inputFormatter dateFromString:post.attributes.status.createdAt];
+    NSDate *date = [inputFormatter dateFromString:self.post.attributes.status.createdAt];
     if (date) {
         // iMessage like date
         NSDateFormatter *outputFormatter_part1 = [[NSDateFormatter alloc] init];
@@ -80,44 +118,78 @@
         NSDateFormatter *outputFormatter_part2 = [[NSDateFormatter alloc] init];
         [outputFormatter_part2 setDateFormat:@" h:mm a"];
         NSMutableAttributedString *dateString = [[NSMutableAttributedString alloc] initWithString:[outputFormatter_part1 stringFromDate:date]];
-        [dateString addAttribute:NSForegroundColorAttributeName value:dateLabel.textColor range:NSMakeRange(0, dateString.length)];
+        [dateString addAttribute:NSForegroundColorAttributeName value:self.dateLabel.textColor range:NSMakeRange(0, dateString.length)];
         [dateString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:postActivityFontSize weight:UIFontWeightSemibold] range:NSMakeRange(0, dateString.length)];
         NSMutableAttributedString *timeString = [[NSMutableAttributedString alloc] initWithString:[outputFormatter_part2 stringFromDate:date]];
         [timeString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:postActivityFontSize weight:UIFontWeightRegular] range:NSMakeRange(0, timeString.length)];
         [dateString appendAttributedString:timeString];
-        [dateString addAttribute:NSForegroundColorAttributeName value:dateLabel.textColor range:NSMakeRange(0, dateString.length)];
-        dateLabel.attributedText = dateString;
+        [dateString addAttribute:NSForegroundColorAttributeName value:self.dateLabel.textColor range:NSMakeRange(0, dateString.length)];
+        self.dateLabel.attributedText = dateString;
     }
     else {
-        dateLabel.text = @"";
+        self.dateLabel.text = @"";
+    }
+}
+- (UILabel *)createFirstToReplyLabel {
+    self.firstToReplyLabel = [[UILabel alloc] initWithFrame:self.bounds];
+    self.firstToReplyLabel.tag = PostActivityViewTagAddReply;
+    self.firstToReplyLabel.text = @"Be the first to reply!";
+    self.firstToReplyLabel.textColor = self.tintColor;
+    self.firstToReplyLabel.textAlignment = NSTextAlignmentCenter;
+    self.firstToReplyLabel.font = [UIFont systemFontOfSize:postActivityFontSize weight:UIFontWeightSemibold];
+    
+    self.firstToReplyLabel.transform = CGAffineTransformMakeTranslation(0, self.frame.size.height);
+    self.firstToReplyLabel.alpha = 0;
+    
+    return self.firstToReplyLabel;
+}
+- (void)updateFirstToReplyLabel {
+    if (self.post.attributes.summaries.counts.replies > 0) {
+        [self.views removeObject:self.firstToReplyLabel];
+        
+        return;
+    }
+    else {
+        if (![self.views containsObject:self.firstToReplyLabel]) {
+            [self.views addObject:self.firstToReplyLabel];
+            return;
+        }
+    }
+}
+- (UIButton *)createLiveCountButton {
+    if (!self.liveCountButton) {
+        self.liveCountButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        
+        [self updateLiveCountText];
     }
     
-    return dateLabel;
+    self.liveCountButton.transform = CGAffineTransformMakeTranslation(0, self.frame.size.height);
+    self.liveCountButton.alpha = 0;
+
+    return self.liveCountButton;
 }
-- (UILabel *)firstToReplyLabelForPost:(Post *)post {
-    UILabel *label = [[UILabel alloc] initWithFrame:self.bounds];
-    label.text = @"Be the first to reply!";
-    label.textColor = postActivityTextColor;
-    label.textAlignment = NSTextAlignmentCenter;
-    label.font = [UIFont systemFontOfSize:postActivityFontSize weight:UIFontWeightSemibold];
+- (void)updateLiveCountText {
+    if (self.post.attributes.summaries.counts.live == 0) {
+        [self.views removeObject:self.liveCountButton];
+        return;
+    }
+    else {
+        if (![self.views containsObject:self.liveCountButton]) {
+            [self.views addObject:self.liveCountButton];
+            return;
+        }
+    }
     
-    return label;
-}
-- (UIButton *)liveCountButtonForPost:(Post *)post {
     // use button so we can easily add the live dot to the left
-    NSLog(@"calculate live count for button with post:");
-    NSLog(@"%@", post);
+    NSInteger liveCount = self.post.attributes.summaries.counts.live;
     
-    NSInteger liveCount = post.attributes.summaries.counts.live; // fake it til we make it
-    
-    UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
     if (liveCount == 0) {
-        [button setTitle:@"Spark this post to help it go viral!" forState:UIControlStateNormal];
-        [button.titleLabel setFont:[UIFont systemFontOfSize:postActivityFontSize weight:UIFontWeightSemibold]];
-        [button setTitleColor:postActivityTextColor forState:UIControlStateNormal];
+        [self.liveCountButton setTitle:@"Spark this post to help it go viral!" forState:UIControlStateNormal];
+        [self.liveCountButton.titleLabel setFont:[UIFont systemFontOfSize:postActivityFontSize weight:UIFontWeightSemibold]];
+        [self.liveCountButton setTitleColor:postActivityTextColor forState:UIControlStateNormal];
     }
     else {
-        [button setImage:[UIImage imageNamed:@"postLiveDot"] forState:UIControlStateNormal];
+        [self.liveCountButton setImage:[UIImage imageNamed:@"postLiveDot"] forState:UIControlStateNormal];
         
         CABasicAnimation *pulseAnimation;
         pulseAnimation=[CABasicAnimation animationWithKeyPath:@"opacity"];
@@ -126,27 +198,23 @@
         pulseAnimation.autoreverses = YES;
         pulseAnimation.fromValue=[NSNumber numberWithFloat:1.0];
         pulseAnimation.toValue=[NSNumber numberWithFloat:0.6];
-        [button.imageView.layer addAnimation:pulseAnimation forKey:@"animateOpacity"];
+        [self.liveCountButton.imageView.layer addAnimation:pulseAnimation forKey:@"animateOpacity"];
         
-        [button setTitleEdgeInsets:UIEdgeInsetsMake(0, 6, 0, 0)];
-        [button setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 6)];
+        [self.liveCountButton setTitleEdgeInsets:UIEdgeInsetsMake(0, 6, 0, 0)];
+        [self.liveCountButton setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 6)];
         NSMutableAttributedString *liveString = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"%ld LIVE", (long)liveCount]];
         [liveString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:postActivityFontSize weight:UIFontWeightSemibold] range:NSMakeRange(0, liveString.length)];
         NSMutableAttributedString *timeString = [[NSMutableAttributedString alloc] initWithString:@" in the last 24hr"];
         [timeString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:postActivityFontSize weight:UIFontWeightRegular] range:NSMakeRange(0, timeString.length)];
         [liveString appendAttributedString:timeString];
         [liveString addAttribute:NSForegroundColorAttributeName value:[UIColor bonfireRed] range:NSMakeRange(0, liveString.length)];
-        [button setAttributedTitle:liveString forState:UIControlStateNormal];
+        [self.liveCountButton setAttributedTitle:liveString forState:UIControlStateNormal];
     }
-    
-    return button;
 }
 
 - (void)start {
     if (!active) {
         active = true;
-        
-        step = 0;
         
         [self stop];
         if (self.views.count > 1) {
@@ -158,12 +226,18 @@
     }
 }
 - (void)stop {
-    timer = nil;
+    active = false;
+    
     [timer invalidate];
+    timer = nil;
 }
 
 - (void)next {
-    if (self.views.count <= 1) return;
+    if (self.views.count <= 1) {
+        [self stop];
+        
+        return;
+    }
     
     UIView *currentView = self.views[step];
     
@@ -174,27 +248,44 @@
     UIView *nextView = self.views[step];
     
     // animate current one out
-    [UIView animateWithDuration:1.f delay:0 usingSpringWithDamping:0.8 initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
-        currentView.alpha = 0;
-        currentView.transform = CGAffineTransformMakeTranslation(0, -self.frame.size.height);
-    } completion:^(BOOL finished) {
-        currentView.transform = CGAffineTransformMakeTranslation(0, self.frame.size.height);
-    }];
-    
-    // animate next one in
-    [UIView animateWithDuration:1.f delay:0.2f usingSpringWithDamping:0.8 initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
-        nextView.alpha = 1;
-        nextView.transform = CGAffineTransformMakeTranslation(0, 0);
-    } completion:^(BOOL finished) {
+    if (currentView != nextView) {
+        [UIView animateWithDuration:1.f delay:0 usingSpringWithDamping:0.8 initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
+            currentView.alpha = 0;
+            currentView.transform = CGAffineTransformMakeTranslation(0, -self.frame.size.height);
+        } completion:^(BOOL finished) {
+            currentView.transform = CGAffineTransformMakeTranslation(0, self.frame.size.height);
+        }];
         
-    }];
+        // animate next one in
+        nextView.transform = CGAffineTransformMakeTranslation(0, self.frame.size.height);
+        [UIView animateWithDuration:1.f delay:0.2f usingSpringWithDamping:0.8 initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
+            nextView.alpha = 1;
+            nextView.transform = CGAffineTransformIdentity;
+        } completion:^(BOOL finished) {
+            
+        }];
+    }
     
     // start timer
     [timer invalidate];
+    timer = nil;
     timer = [NSTimer scheduledTimerWithTimeInterval:8.f
                                              target: self
                                            selector:@selector(next)
                                            userInfo: nil repeats:NO];
+}
+
+- (void)setTintColor:(UIColor *)tintColor {
+    [super setTintColor:tintColor];
+    
+    for (UIView *view in self.views) {
+        if ([view isKindOfClass:[UIButton class]]) {
+            view.tintColor = self.tintColor;
+        }
+        else if ([view isKindOfClass:[UILabel class]]) {
+            ((UILabel *)view).textColor = self.tintColor;
+        }
+    }
 }
 
 

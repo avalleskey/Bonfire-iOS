@@ -1,5 +1,5 @@
 //
-//  RoomHeaderCell.m
+//  CampHeaderCell.m
 //  Pulse
 //
 //  Created by Austin Valleskey on 10/1/18.
@@ -13,7 +13,7 @@
 #import <BlocksKit/BlocksKit+UIKit.h>
 #import "Session.h"
 #import "Defaults.h"
-#import "RoomViewController.h"
+#import "CampViewController.h"
 #import "UIColor+Palette.h"
 
 #define UIViewParentController(__view) ({ \

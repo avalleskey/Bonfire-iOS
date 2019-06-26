@@ -7,21 +7,103 @@
 //
 
 #import "UserActivity.h"
+#import "Session.h"
+#import "UIColor+Palette.h"
+#import "NSDate+NVTimeAgo.h"
 
 @implementation UserActivity
-
-NSString * const USER_ACTIVITY_TYPE_USER_FOLLOW = @"TYPE_USER_FOLLOW";
-NSString * const USER_ACTIVITY_TYPE_USER_ACCEPTED_ACCESS = @"TYPE_USER_ACCEPTED_ACCESS";
-NSString * const USER_ACTIVITY_TYPE_ROOM_ACCESS_REQUEST = @"TYPE_ROOM_ACCESS_REQUEST";
-NSString * const USER_ACTIVITY_TYPE_POST_REPLY = @"TYPE_POST_REPLY";
-NSString * const USER_ACTIVITY_TYPE_POST_SPARKED = @"TYPE_POST_SPARKED";
-NSString * const USER_ACTIVITY_TYPE_USER_POSTED = @"TYPE_USER_POSTED";
 
 + (JSONKeyMapper *)keyMapper
 {
     return [[JSONKeyMapper alloc] initWithModelToJSONDictionary:@{
                                                                   @"identifier": @"id"
                                                                   }];
+}
+
+- (instancetype)initWithDictionary:(NSDictionary *)dict error:(NSError **)err {
+    UserActivity *instance = [super initWithDictionary:dict error:err];
+    instance.attributes.attributedString = [instance createAttributedString];
+        
+    return instance;
+}
+
+- (NSAttributedString *)createAttributedString {
+    NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] init];
+    
+    CGFloat fontSize = 15.f;
+    
+    // available variables
+    NSMutableDictionary *variables = [[NSMutableDictionary alloc] init];
+    if (self.attributes.actioner.attributes.details.identifier) {
+        [variables setObject:[NSString stringWithFormat:@"@%@", self.attributes.actioner.attributes.details.identifier] forKey:@"$actioner.username"];
+    }
+    if (self.attributes.actioner.attributes.details.displayName) {
+        [variables setObject:self.attributes.actioner.attributes.details.displayName forKey:@"$actioner.displayName"];
+    }
+    if (self.attributes.actioner.attributes.details.bio) {
+        [variables setObject:self.attributes.actioner.attributes.details.bio forKey:@"$actioner.bio"];
+    }
+    if (self.attributes.camp.attributes.details.title) {
+        [variables setObject:self.attributes.camp.attributes.details.title forKey:@"$camp.title"];
+    }
+    if (self.attributes.camp.attributes.details.theDescription) {
+        [variables setObject:self.attributes.camp.attributes.details.theDescription forKey:@"$camp.description"];
+    }
+    if (self.attributes.camp.attributes.details.identifier) {
+        [variables setObject:[NSString stringWithFormat:@"#%@", self.attributes.camp.attributes.details.identifier] forKey:@"$camp.identifier"];
+    }
+    if (self.attributes.post.attributes.details.message) {
+        [variables setObject:self.attributes.post.attributes.details.message forKey:@"$post.message"];
+    }
+    
+    NSArray *stringParts = @[];
+    
+    NSDictionary *formats = [Session sharedInstance].defaults.notifications;
+    
+    NSString *key = [NSString stringWithFormat:@"%u", self.attributes.type];
+    
+    if ([[formats allKeys] containsObject:key]) {
+        NSError *error;
+        DefaultsNotificationsFormat *notificationFormat = [[DefaultsNotificationsFormat alloc] initWithDictionary:formats[key] error:&error];
+        if (!error) {
+            stringParts = notificationFormat.stringParts;
+        }
+    }
+    
+    for (NSString *part in stringParts) {
+        NSMutableAttributedString *attributedPart;
+        if ([[variables allKeys] containsObject:part]) {
+            attributedPart = [[NSMutableAttributedString alloc] initWithString:[variables objectForKey:part] attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:fontSize weight:UIFontWeightSemibold], NSForegroundColorAttributeName: [UIColor bonfireBlack]}];
+            
+            /*
+             [attributedString addAttribute:NSLinkAttributeName
+             value:@"username://marcelofabri_"
+             range:[[attributedString string] rangeOfString:@"@marcelofabri_"]];*/
+        }
+        else {
+            attributedPart = [[NSMutableAttributedString alloc] initWithString:part attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:fontSize weight:UIFontWeightRegular], NSForegroundColorAttributeName: [UIColor bonfireBlack]}];
+        }
+        
+        [attributedString appendAttributedString:attributedPart];
+    }
+    
+    NSString *timeStamp = [NSDate mysqlDatetimeFormattedAsTimeAgo:self.attributes.createdAt withForm:TimeAgoShortForm];
+    
+    NSMutableAttributedString *timeStampString = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@" %@", timeStamp]];
+    [timeStampString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:fontSize weight:UIFontWeightRegular] range:NSMakeRange(0, timeStampString.length)];
+    [timeStampString addAttribute:NSForegroundColorAttributeName value:[UIColor bonfireGray] range:NSMakeRange(0, timeStampString.length)];
+    [attributedString appendAttributedString:timeStampString];
+    
+    return attributedString;
+}
+
+- (void)updateAttributedString {
+    self.attributes.attributedString = [self createAttributedString];
+}
+
++ (BOOL)propertyIsOptional:(NSString*)propertyName
+{
+    return YES;
 }
 
 @end
@@ -35,20 +117,22 @@ NSString * const USER_ACTIVITY_TYPE_USER_POSTED = @"TYPE_USER_POSTED";
 
 @end
 
-@implementation UserActivityDetails
+@implementation JSONValueTransformer (NSAttributedString)
 
-+ (JSONKeyMapper *)keyMapper
-{
-    return [JSONKeyMapper mapperForSnakeCase];
+- (NSAttributedString *)NSAttributedStringFromNSString:(NSString *)string {
+    NSData* data = [string dataUsingEncoding:NSUTF8StringEncoding];
+    
+    NSAttributedString *attrString = [NSKeyedUnarchiver unarchiveObjectWithData:data];
+        
+    return attrString; // transformed object
 }
 
-@end
+- (NSString *)JSONObjectFromNSAttributedString:(NSAttributedString *)string {
+    NSData *data = [NSKeyedArchiver archivedDataWithRootObject:string];
 
-@implementation UserActivityStatus
-
-+ (JSONKeyMapper *)keyMapper
-{
-    return [JSONKeyMapper mapperForSnakeCase];
+    NSString *convertedStr = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+    
+    return convertedStr; // transformed object
 }
 
 @end

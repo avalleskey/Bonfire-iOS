@@ -13,6 +13,8 @@
 #import "Session.h"
 #import "ButtonCell.h"
 #import "NSString+Validation.h"
+#import "ToggleCell.h"
+#import "BFHeaderView.h"
 
 #define section(section) self.list.sections[section]
 #define row(indexPath) section(indexPath.section).rows[indexPath.row]
@@ -20,11 +22,13 @@
 #define DEFAULT_ROW_HEIGHT 52
 #define RADIO_ROW_HEIGHT 64
 #define INPUT_ROW_HEIGHT 52
+#define TOGGLE_ROW_HEIGHT 52
 
 @implementation SmartListTableViewController
 
 static NSString * const inputReuseIdentifier = @"InputCell";
 static NSString * const buttonReuseIdentifier = @"ButtonCell";
+static NSString * const toggleReuseIdentifier = @"ToggleCell";
 static NSString * const blankReuseIdentifier = @"BlankCell";
 
 - (void)viewDidLoad {
@@ -35,7 +39,7 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
 
 - (void)initDefaults {
     self.view.tintColor = [UIColor bonfireBrand];
-    self.navigationItem.largeTitleDisplayMode = UINavigationItemLargeTitleDisplayModeNever;
+    //self.navigationItem.largeTitleDisplayMode = UINavigationItemLargeTitleDisplayModeNever;
     
     [self setupTableView];
 }
@@ -44,6 +48,7 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
     self.tableView.delegate = self;
     self.tableView.dataSource = self;
     self.tableView.backgroundColor = [UIColor headerBackgroundColor];
+    self.tableView.separatorStyle = UITableViewCellSeparatorStyleSingleLine;
     self.tableView.separatorInset = UIEdgeInsetsMake(0, 16, 0, 0);
     self.tableView.separatorColor = [UIColor separatorColor];
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
@@ -52,6 +57,7 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
     // register classes
     [self.tableView registerClass:[InputCell class] forCellReuseIdentifier:inputReuseIdentifier];
     [self.tableView registerClass:[ButtonCell class] forCellReuseIdentifier:buttonReuseIdentifier];
+    [self.tableView registerClass:[ToggleCell class] forCellReuseIdentifier:toggleReuseIdentifier];
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:blankReuseIdentifier];
 }
 
@@ -115,6 +121,18 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
         return cell;
     }
     
+    if (row.toggle) {
+        ToggleCell *cell = [tableView dequeueReusableCellWithIdentifier:toggleReuseIdentifier forIndexPath:indexPath];
+        
+        if (row.title) {
+            cell.textLabel.text = row.title;
+        }
+        
+        [cell.toggle addTarget:self action:@selector(toggleValueDidChange:) forControlEvents:UIControlEventValueChanged];
+        
+        return cell;
+    }
+    
     if (row.title) {
         ButtonCell *cell = [tableView dequeueReusableCellWithIdentifier:buttonReuseIdentifier forIndexPath:indexPath];
         
@@ -141,7 +159,8 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
             cell.buttonLabel.textColor = cell.kButtonColorDestructive;
         }
         else {
-            cell.buttonLabel.textColor = cell.kButtonColorBonfire;
+            // cell.buttonLabel.textColor = cell.kButtonColorBonfire;
+            cell.buttonLabel.textColor = cell.kButtonColorDefault;
         }
         
         if (row.radio) {
@@ -171,6 +190,9 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
     if (row.title) {
         return DEFAULT_ROW_HEIGHT;
     }
+    if (row.toggle) {
+        return TOGGLE_ROW_HEIGHT;
+    }
     
     return 0;
 }
@@ -178,11 +200,11 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
     SmartListSection *s = section(section);
     
-    CGFloat headerHeight = 56;
+    CGFloat headerHeight = [BFHeaderView height];
     
     if (s.title) return headerHeight;
     
-    return 16;
+    return section == 0 ? 0 : 16;
 }
 
 - (nullable UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
@@ -190,14 +212,9 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
     
     if (!s.title) return nil;
     
-    UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 56)];
-    
-    UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(16, 30, self.view.frame.size.width - 32, 18)];
-    title.textAlignment = NSTextAlignmentLeft;
-    title.font = [UIFont systemFontOfSize:13.f weight:UIFontWeightSemibold];
-    title.textColor = [UIColor bonfireGray];
-    title.text = [[self parse:s.title] uppercaseString];
-    [header addSubview:title];
+    BFHeaderView *header = [[BFHeaderView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, [BFHeaderView height])];
+    header.title = [self parse:s.title];
+    header.separator = false;
 
     return header;
 }
@@ -218,10 +235,10 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
     if (s.footer) {
         UIView *footer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 90)];
         
-        UILabel *descriptionLabel = [[UILabel alloc] initWithFrame:CGRectMake(16, 12, footer.frame.size.width - 32, 42)];
+        UILabel *descriptionLabel = [[UILabel alloc] initWithFrame:CGRectMake(12, 12, footer.frame.size.width - 24, 42)];
         descriptionLabel.text = [self parse:s.footer];
         descriptionLabel.textColor = [UIColor bonfireGray];
-        descriptionLabel.font = [UIFont systemFontOfSize:12.f weight:UIFontWeightRegular];
+        descriptionLabel.font = [UIFont systemFontOfSize:13.f weight:UIFontWeightRegular];
         descriptionLabel.textAlignment = NSTextAlignmentLeft;
         descriptionLabel.numberOfLines = 0;
         descriptionLabel.lineBreakMode = NSLineBreakByWordWrapping;
@@ -267,6 +284,15 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
     
     [self.smartListDelegate textFieldDidChange:textField withRowId:r.identifier];
 }
+
+- (void)toggleValueDidChange:(UISwitch *)toggle {
+    CGPoint switchPosition = [toggle convertPoint:CGPointZero toView:self.tableView];
+    NSIndexPath *indexPath = [self.tableView indexPathForRowAtPoint:switchPosition];
+    SmartListSectionRow *r = row(indexPath);
+    
+    //[self.smartListDelegate toggleValueDidChange:toggle withRowId:r.identifier];
+}
+
 #pragma mark - UITextField Delegate Methods
 - (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string {
     CGPoint textFieldPosition = [textField convertPoint:CGPointZero toView:self.tableView];

@@ -22,7 +22,7 @@ extern NSString * const InsightActionTypeProfileOpen;
 extern NSString * const InsightActionTypeDetailExpand;
 extern NSString * const InsightActionTypeLinkOpen;
 
-extern NSString * const InsightSeenInRoomView;
+extern NSString * const InsightSeenInCampView;
 extern NSString * const InsightSeenInPostView;
 extern NSString * const InsightSeenInProfileView;
 extern NSString * const InsightSeenInHomeView; // /streams/me

@@ -22,8 +22,7 @@
         self.toggle = [[UISwitch alloc] init];
         [self.contentView addSubview:self.toggle];
         
-        self.separatorInset = UIEdgeInsetsMake(0, 16, 0, 0);
-        self.textLabel.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightMedium];
+        self.textLabel.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightMedium];
         self.textLabel.textColor = [UIColor bonfireBlack];
         
         self.accessoryType = UITableViewCellAccessoryNone;
@@ -37,8 +36,8 @@
 {
     [super layoutSubviews];
     
-    self.toggle.frame = CGRectMake(self.contentView.bounds.size.width - 51 - 16, self.contentView.bounds.size.height / 2 - (31 / 2), 51, 31);
-    self.textLabel.frame = CGRectMake(16, 0, self.frame.size.width - 32, self.contentView.bounds.size.height);
+    self.toggle.frame = CGRectMake(self.contentView.bounds.size.width - 51 - 12, self.contentView.bounds.size.height / 2 - (31 / 2), 51, 31);
+    self.textLabel.frame = CGRectMake(12, 0, self.frame.size.width - 24, self.contentView.bounds.size.height);
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated {

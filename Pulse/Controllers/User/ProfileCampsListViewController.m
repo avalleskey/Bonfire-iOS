@@ -41,7 +41,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
     
     self.tableView.backgroundColor = [UIColor headerBackgroundColor];
     self.tableView.separatorColor = [UIColor separatorColor];
-    self.tableView.separatorInset = UIEdgeInsetsMake(0, 68, 0, 0);
+    self.tableView.separatorInset = UIEdgeInsetsMake(0, 70, 0, 0);
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
     self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
     
@@ -55,7 +55,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
     
     // load in cache
     if ([[Session sharedInstance].currentUser.identifier isEqualToString:self.user.identifier]) {
-        self.camps = [[NSMutableArray alloc] initWithArray:[[NSUserDefaults standardUserDefaults] arrayForKey:@"my_rooms_cache"]];
+        self.camps = [[NSMutableArray alloc] initWithArray:[[NSUserDefaults standardUserDefaults] arrayForKey:@"my_camps_cache"]];
         if (self.camps.count > 0) {
             self.loadingCamps = false;
             [self.tableView reloadData];
@@ -68,7 +68,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
 }
 
 - (void)getCampsList {
-    NSString *url = [NSString stringWithFormat:@"users/%@/rooms", self.user.identifier];
+    NSString *url = [NSString stringWithFormat:@"users/%@/camps", self.user.identifier];
     
     [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSArray *responseData = (NSArray *)responseObject[@"data"];
@@ -81,7 +81,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
         
         [self.tableView reloadData];
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-        NSLog(@"RoomViewController / getRequests() - error: %@", error);
+        NSLog(@"CampViewController / getRequests() - error: %@", error);
         //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
     }];
 }
@@ -107,7 +107,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
         }
         
         // Configure the cell...
-        cell.type = SearchResultCellTypeRoom;
+        cell.type = SearchResultCellTypeCamp;
         
         if (self.loadingCamps) {
             cell.profilePicture.imageView.backgroundColor = [UIColor colorWithWhite:0.9f alpha:1];
@@ -117,19 +117,19 @@ static NSString * const memberCellIdentifier = @"MemberCell";
         }
         else {
             NSError *error;
-            Room *room = [[Room alloc] initWithDictionary:self.camps[indexPath.row] error:&error];
-            if (error) { NSLog(@"room error: %@", error); };
+            Camp *camp = [[Camp alloc] initWithDictionary:self.camps[indexPath.row] error:&error];
+            if (error) { NSLog(@"camp error: %@", error); };
             
-            // 1 = Room
-            cell.profilePicture.room = room;
-            cell.textLabel.text = room.attributes.details.title;
+            // 1 = Camp
+            cell.profilePicture.camp = camp;
+            cell.textLabel.text = camp.attributes.details.title;
             cell.textLabel.alpha = 1;
             
-            NSString *detailText = [NSString stringWithFormat:@"%ld %@", (long)room.attributes.summaries.counts.members, (room.attributes.summaries.counts.members == 1 ? [Session sharedInstance].defaults.room.membersTitle.singular : [Session sharedInstance].defaults.room.membersTitle.plural)];
-            BOOL useLiveCount = room.attributes.summaries.counts.live > [Session sharedInstance].defaults.room.liveThreshold;
+            NSString *detailText = [NSString stringWithFormat:@"%ld %@", (long)camp.attributes.summaries.counts.members, (camp.attributes.summaries.counts.members == 1 ? [Session sharedInstance].defaults.camp.membersTitle.singular : [Session sharedInstance].defaults.camp.membersTitle.plural)];
+            /*BOOL useLiveCount = camp.attributes.summaries.counts.live > [Session sharedInstance].defaults.camp.liveThreshold;
             if (useLiveCount) {
-                cell.detailTextLabel.text = [NSString stringWithFormat:@"%@ · %li LIVE", detailText, (long)room.attributes.summaries.counts.live];
-            }
+                cell.detailTextLabel.text = [NSString stringWithFormat:@"%@ · %li LIVE", detailText, (long)camp.attributes.summaries.counts.live];
+            }*/
             cell.detailTextLabel.text = detailText;
         }
         
@@ -141,7 +141,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return 64;
+    return 68;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
@@ -200,10 +200,10 @@ static NSString * const memberCellIdentifier = @"MemberCell";
     if (indexPath.section == 0) {
         if (indexPath.row < self.camps.count) {
             NSError *error;
-            Room *room = [[Room alloc] initWithDictionary:self.camps[indexPath.row] error:&error];
+            Camp *camp = [[Camp alloc] initWithDictionary:self.camps[indexPath.row] error:&error];
             
              if (!error) {
-                 [[Launcher sharedInstance] openRoom:room];
+                 [Launcher openCamp:camp];
              }
         }
     }

@@ -11,8 +11,8 @@
 #import "Post.h"
 #import "UITextView+Placeholder.h"
 #import "TappableButton.h"
-#import <FLAnimatedImage/FLAnimatedImageView.h>
 #import "BFMedia.h"
+#import <HapticHelper/HapticHelper.h>
 
 @interface ComposeInputView : UIView <UITextViewDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, BFMediaDelegate> {
     BOOL _active;
@@ -40,6 +40,8 @@
 @property (nonatomic, strong) UIButton *replyingToLabel;
 
 @property (nonatomic, strong) NSArray *mediaTypes;
+
+- (void)reset;
 
 - (void)setActive:(BOOL)isActive;
 - (BOOL)isActive;

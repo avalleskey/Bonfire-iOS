@@ -30,6 +30,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic) NSInteger maxGIFs;
 
 #pragma mark - Methods
+- (void)flush;
 - (void)addAsset:(PHAsset *)asset;
 - (void)addImage:(UIImage *)image;
 - (void)removeObject:(BFMediaObject *)object;

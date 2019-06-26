@@ -17,14 +17,14 @@ NS_ASSUME_NONNULL_BEGIN
 @interface PostActionsView : UIView
 
 @property (nonatomic, strong) UIButton *replyButton;
-@property (nonatomic, strong) UIButton *sparkButton;
+@property (nonatomic, strong) UIButton *voteButton;
 
 @property (nonatomic, strong) UIView *repliesSnaphotView;
 
-- (void)updateWithSummaries:(PostSummaries *)summaries;
+@property (nonatomic, strong) PostSummaries *summaries;
 
-@property BOOL sparked;
-- (void)setSparked:(BOOL)isSparked animated:(BOOL)animated;
+@property BOOL voted;
+- (void)setVoted:(BOOL)isVoted animated:(BOOL)animated;
 
 @end
 

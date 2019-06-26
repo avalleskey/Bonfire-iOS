@@ -11,10 +11,10 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-#define INPUT_CELL_FONT [UIFont systemFontOfSize:16.f weight:UIFontWeightSemibold]
-#define INPUT_CELL_LABEL_LEFT_PADDING 16
+#define INPUT_CELL_FONT [UIFont systemFontOfSize:16.f weight:UIFontWeightMedium]
+#define INPUT_CELL_LABEL_LEFT_PADDING 12
 #define INPUT_CELL_LABEL_WIDTH 88
-#define INPUT_CELL_TEXTVIEW_INSETS UIEdgeInsetsMake(14, 16, 14, INPUT_CELL_LABEL_LEFT_PADDING)
+#define INPUT_CELL_TEXTVIEW_INSETS UIEdgeInsetsMake(14, 12, 14, INPUT_CELL_LABEL_LEFT_PADDING)
 
 @interface InputCell : UITableViewCell
 
@@ -28,6 +28,8 @@ typedef enum {
 @property (strong, nonatomic) UITextView *textView;
 
 @property (strong, nonatomic) UILabel *charactersRemainingLabel;
+
+@property (strong, nonatomic) UIView *lineSeparator;
 
 @property (nonatomic) InputCellType type;
 

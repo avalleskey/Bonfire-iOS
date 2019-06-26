@@ -10,6 +10,9 @@
 #import "Session.h"
 #import "BFMedia.h"
 #import "BFTipsManager.h"
+#import "BFNotificationManager.h"
+#import "Launcher.h"
+#import "UIImage+fixOrientation.h"
 @import Firebase;
 
 @interface BFAPI ()
@@ -51,8 +54,6 @@
         User *user = [[User alloc] initWithDictionary:responseObject[@"data"] error:&error];
         if (error) { NSLog(@"GET -> /users/me; User error: %@", error); }
         
-        NSLog(@"fetched new user");
-        
         [[Session sharedInstance] updateUser:user];
         
         handler(TRUE);
@@ -78,12 +79,12 @@
         NSLog(@"--------");
         
         // refresh user object
-        // [[NSNotificationCenter defaultCenter] postNotificationName:@"refreshMyRooms" object:nil];
+        // [[NSNotificationCenter defaultCenter] postNotificationName:@"refreshMyCamps" object:nil];
         
         //NSError *error;
-        //RoomContext *roomContextResponse = [[RoomContext alloc] initWithDictionary:responseObject[@"data"] error:&error];
+        //CampContext *campContextResponse = [[CampContext alloc] initWithDictionary:responseObject[@"data"] error:&error];
         
-        //if (!error) { NSLog(@"room context reponse:"); NSLog(@"%@", roomContextResponse); };
+        //if (!error) { NSLog(@"camp context reponse:"); NSLog(@"%@", campContextResponse); };
         
         [[NSNotificationCenter defaultCenter] postNotificationName:@"FetchNewTimelinePosts" object:nil];
         
@@ -107,14 +108,6 @@
         NSLog(@"success: unfollowUser");
         NSLog(@"--------");
         
-        // refresh user object
-        // [[NSNotificationCenter defaultCenter] postNotificationName:@"refreshMyRooms" object:nil];
-        
-        //NSError *error;
-        //RoomContext *roomContextResponse = [[RoomContext alloc] initWithDictionary:responseObject[@"data"] error:&error];
-        
-        //if (!error) { NSLog(@"room context reponse:"); NSLog(@"%@", roomContextResponse); };
-        
         handler(true, @{@"following": @false});
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         NSLog(@"error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);
@@ -135,14 +128,6 @@
         NSLog(@"success: blockUser");
         NSLog(@"--------");
         
-        // refresh user object
-        // [[NSNotificationCenter defaultCenter] postNotificationName:@"refreshMyRooms" object:nil];
-        
-        //NSError *error;
-        //RoomContext *roomContextResponse = [[RoomContext alloc] initWithDictionary:responseObject[@"data"] error:&error];
-        
-        //if (!error) { NSLog(@"room context reponse:"); NSLog(@"%@", roomContextResponse); };
-        
         handler(true, @{@"blocked": @false});
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         NSLog(@"error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);
@@ -162,15 +147,7 @@
         NSLog(@"--------");
         NSLog(@"success: unblockUser");
         NSLog(@"--------");
-        
-        // refresh user object
-        // [[NSNotificationCenter defaultCenter] postNotificationName:@"refreshMyRooms" object:nil];
-        
-        //NSError *error;
-        //RoomContext *roomContextResponse = [[RoomContext alloc] initWithDictionary:responseObject[@"data"] error:&error];
-        
-        //if (!error) { NSLog(@"room context reponse:"); NSLog(@"%@", roomContextResponse); };
-        
+                
         handler(true, @{@"blocked": @false});
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         NSLog(@"error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);
@@ -192,13 +169,6 @@
         NSLog(@"--------");
         NSLog(@"success: reportUser");
         NSLog(@"--------");
-        
-        // refresh user object
-        
-        //NSError *error;
-        //RoomContext *roomContextResponse = [[RoomContext alloc] initWithDictionary:responseObject[@"data"] error:&error];
-        
-        //if (!error) { NSLog(@"room context reponse:"); NSLog(@"%@", roomContextResponse); };
         
         handler(true, @{@"reported": @true});
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
@@ -227,8 +197,8 @@
         NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
         [dateFormatter setDateFormat:@"yyyy-MM-dd HH:mm:ss"];
         NSString *created_at = [dateFormatter stringFromDate:date];
-        UserContextFollowSubscription *subscription = [[UserContextFollowSubscription alloc] initWithDictionary:@{@"created_at": created_at} error:nil];
-        user.attributes.context.follow.me.subscription = subscription;
+        BFContextMeFollowMeSubscription *subscription = [[BFContextMeFollowMeSubscription alloc] initWithDictionary:@{@"created_at": created_at} error:nil];
+        user.attributes.context.me.follow.me.subscription = subscription;
         
         handler(true, user);
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
@@ -253,7 +223,7 @@
         NSLog(@"responseObject: %@", responseObject);
         
         // update object
-        user.attributes.context.follow.me.subscription = nil;
+        user.attributes.context.me.follow.me.subscription = nil;
         
         handler(true, user);
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
@@ -266,38 +236,45 @@
 }
 
 
-#pragma mark - Room
-+ (void)followRoom:(Room *)room completion:(void (^ _Nullable)(BOOL success, id responseObject))handler {
-    [FIRAnalytics logEventWithName:@"join_room"
+#pragma mark - Camp
++ (void)followCamp:(Camp *)camp completion:(void (^ _Nullable)(BOOL success, id responseObject))handler {
+    [FIRAnalytics logEventWithName:@"join_camp"
                         parameters:@{}];
     
-    Room *r = [room copy];
+    Camp *r = [camp copy];
     
-    NSString *url = [NSString stringWithFormat:@"rooms/%@/members", r.identifier];
+    NSString *url = [NSString stringWithFormat:@"camps/%@/members", r.identifier];
     NSDictionary *params = @{};
     
     [[HAWebService authenticatedManager] POST:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSLog(@"--------");
-        NSLog(@"success: followRoom");
+        NSLog(@"success: followCamp");
         NSLog(@"--------");
         
         NSLog(@"response object: %@", responseObject);
         
-        // refresh my rooms
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"refreshMyRooms" object:nil];
+        // refresh my camps
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"refreshMyCamps" object:nil];
         
         NSError *error;
-        RoomContext *roomContextResponse = [[RoomContext alloc] initWithDictionary:responseObject[@"data"][@"context"] error:&error];
+        BFContextCamp *campContextResponse = [[BFContextCamp alloc] initWithDictionary:responseObject[@"data"][@"context"] error:&error];
         
         if (!error) {
-            r.attributes.context = roomContextResponse;
+            r.attributes.context.camp = campContextResponse;
+            
+            if ([r.attributes.context.camp.status isEqualToString:CAMP_STATUS_MEMBER]) {
+                r.attributes.summaries.counts.members = r.attributes.summaries.counts.members + 1;
+            }
+            
+            if (r.attributes.summaries.members.count < 6) {
+                // add yourself as a user, so we can update the canvas pic!
+                NSMutableArray <User *><User, Optional> *mutableSummariesMembersArray = [r.attributes.summaries.members mutableCopy];
+                [mutableSummariesMembersArray addObject:[Session sharedInstance].currentUser];
+                r.attributes.summaries.members = mutableSummariesMembersArray;
+            }
         }
         
-        if (!r.attributes.status.visibility.isPrivate) {
-            r.attributes.summaries.counts.members = r.attributes.summaries.counts.members + 1;
-        }
-        
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"RoomUpdated" object:r];
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"CampUpdated" object:r];
         [[NSNotificationCenter defaultCenter] postNotificationName:@"FetchNewTimelinePosts" object:nil];
         
         handler(true, r);
@@ -309,33 +286,33 @@
         handler(false, @{@"error": ErrorResponse});
     }];
 }
-+ (void)unfollowRoom:(Room *)room completion:(void (^ _Nullable)(BOOL success, id responseObject))handler {
-    [FIRAnalytics logEventWithName:@"leave_room"
++ (void)unfollowCamp:(Camp *)camp completion:(void (^ _Nullable)(BOOL success, id responseObject))handler {
+    [FIRAnalytics logEventWithName:@"leave_camp"
                         parameters:@{}];
     
-    Room *r = [room copy];
+    Camp *r = [camp copy];
     
-    NSString *url = [NSString stringWithFormat:@"rooms/%@/members", r.identifier];
+    NSString *url = [NSString stringWithFormat:@"camps/%@/members", r.identifier];
     NSDictionary *params = @{};
     
     [[HAWebService authenticatedManager] DELETE:url parameters:params success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSLog(@"--------");
-        NSLog(@"success: unfollowRoom");
+        NSLog(@"success: unfollowCamp");
         NSLog(@"--------");
         
-        // refresh my rooms
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"refreshMyRooms" object:nil];
+        NSLog(@"response object:: %@", responseObject);
+        
+        // refresh my camps
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"refreshMyCamps" object:nil];
         
         NSError *error;
-        RoomContext *roomContextResponse = [[RoomContext alloc] initWithDictionary:responseObject[@"data"][@"context"] error:&error];
+        BFContextCamp *campContextResponse = [[BFContextCamp alloc] initWithDictionary:responseObject[@"data"][@"context"] error:&error];
         
         if (!error) {
-            r.attributes.context = roomContextResponse;
+            r.attributes.context.camp = campContextResponse;
         }
-        
-        r.attributes.summaries.counts.members = r.attributes.summaries.counts.members - 1;
-        
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"RoomUpdated" object:r];
+                
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"CampUpdated" object:r];
         
         handler(true, r);
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
@@ -345,13 +322,31 @@
         
         handler(false, @{@"error": ErrorResponse});
     }];
+    
+    // update it instantly
+    if ([r.attributes.context.camp.status isEqualToString:CAMP_STATUS_MEMBER]) {
+        r.attributes.summaries.counts.members = r.attributes.summaries.counts.members - 1;
+        
+        // remove the user from the summaries (if needed)
+        NSMutableArray <User *> *mutableSummariesMembersArray = [NSMutableArray array];
+        NSString *userIdentifier = [Session sharedInstance].currentUser.identifier;
+        for (User *user in r.attributes.summaries.members) {
+            if (![user.identifier isEqualToString:userIdentifier]) {
+                [mutableSummariesMembersArray addObject:user];
+            }
+        }
+        r.attributes.summaries.members = [mutableSummariesMembersArray copy];
+    }
+    r.attributes.context.camp.permissions.post = @[];
+    
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"CampUpdated" object:r];
 }
 
 #pragma mark - Post
-+ (void)createPost:(NSDictionary *)params postingIn:(Room * _Nullable)postingIn replyingTo:(Post * _Nullable)replyingTo {
++ (void)createPost:(NSDictionary *)params postingIn:(Camp * _Nullable)postingIn replyingTo:(Post * _Nullable)replyingTo {
     [FIRAnalytics logEventWithName:@"create_post"
                         parameters:@{
-                                     @"posted_to": (postingIn != nil) ? @"room" : @"profile",
+                                     @"posted_to": (postingIn != nil) ? @"camp" : @"profile",
                                      @"is_reply": (replyingTo != nil) ? @"YES" : @"NO"
                                      }];
     
@@ -366,39 +361,35 @@
         if (imageSuccess) {
             NSLog(@"image success");
             NSString *url;
-            if ([postingIn isKindOfClass:[Room class]]) {
-                // post in Room
-                Room *room = postingIn;
-                if (replyingTo) {
-                    url = [NSString stringWithFormat:@"rooms/%@/posts/%ld/replies", room.identifier, replyingTo.identifier];
-                }
-                else {
-                    url = [NSString stringWithFormat:@"rooms/%@/posts", room.identifier];
-                }
+            if (replyingTo) {
+                url = [NSString stringWithFormat:@"posts/%@/replies", replyingTo.identifier];
+            }
+            else if ([postingIn isKindOfClass:[Camp class]]) {
+                // post in Camp
+                Camp *camp = postingIn;
+                url = [NSString stringWithFormat:@"camps/%@/posts", camp.identifier];
             }
             else {
                 // post to user profile
-                if (replyingTo) {
-                    User *user = replyingTo.attributes.details.creator;
-                    NSLog(@"reply to @%@", user.attributes.details.identifier);
-                    url = [NSString stringWithFormat:@"users/%@/posts/%ld/replies", user.identifier, replyingTo.identifier];
-                }
-                else {
-                    url = @"users/me/posts";
-                }
+                url = @"users/me/posts";
             }
             
             NSLog(@"images we've received: %@", images);
             NSMutableDictionary *mutableParams = [[NSMutableDictionary alloc] initWithDictionary:params];
             [mutableParams removeObjectForKey:@"media"];
             
+            NSMutableDictionary *attachments = [[NSMutableDictionary alloc] init];
             if (images.count > 0) {
-                NSMutableDictionary *attachments = [[NSMutableDictionary alloc] init];
                 [attachments setObject:images forKey:@"media"];
-                
+            }
+            if (params[@"url"]) {
+                [attachments setObject:mutableParams[@"url"] forKey:@"link"];
+                [mutableParams removeObjectForKey:@"url"];
+            }
+            
+            if ([attachments allKeys].count > 0) {
                 [mutableParams setObject:attachments forKey:@"attachments"];
             }
-            NSLog(@"mutableParams: %@", mutableParams);
             
             [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] POST:url parameters:mutableParams progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 // NSLog(@"CommonTableViewController / getPosts() success! ✅");
@@ -413,28 +404,38 @@
                 NSLog(@"Session / createPost() - error: %@", error);
                 // NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
                 
-                [[NSNotificationCenter defaultCenter] postNotificationName:@"NewPostFailed" object:tempPost];
+                [BFAPI createPost_failed:params postingIn:postingIn replyingTo:replyingTo tempPost:tempPost];
             }];
         }
         else {
             NSLog(@"image failure");
-            [[NSNotificationCenter defaultCenter] postNotificationName:@"NewPostFailed" object:tempPost];
+            [BFAPI createPost_failed:params postingIn:postingIn replyingTo:replyingTo tempPost:tempPost];
         }
     }];
+}
++ (void)createPost_failed:(NSDictionary *)params postingIn:(Camp * _Nullable)postingIn replyingTo:(Post * _Nullable)replyingTo tempPost:(Post *)tempPost {
+    // confirm action
+    UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"Issue Creating Post" message:@"Check your network settings and tap the button below to try again" preferredStyle:UIAlertControllerStyleAlert];
+    
+    UIAlertAction *tryAgain = [UIAlertAction actionWithTitle:@"Try Again" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"NewPostFailed" object:tempPost];
+        [BFAPI createPost:params postingIn:postingIn replyingTo:replyingTo];
+    }];
+    [actionSheet addAction:tryAgain];
+    
+    UIAlertAction *cancelActionSheet = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"NewPostFailed" object:tempPost];
+    }];
+    [actionSheet addAction:cancelActionSheet];
+    
+    [[Launcher topMostViewController] presentViewController:actionSheet animated:YES completion:nil];
+
 }
 + (void)deletePost:(Post *)post completion:(void (^ _Nullable)(BOOL success, id responseObject))handler {
     [FIRAnalytics logEventWithName:@"delete_post"
                         parameters:@{}];
     
-    NSString *url;
-    if (post.attributes.status.postedIn) {
-        // posted in a room
-        url = [NSString stringWithFormat:@"rooms/%@/posts/%ld", post.attributes.status.postedIn.identifier, (long)post.identifier];
-    }
-    else {
-        // posted on a profile
-        url = [NSString stringWithFormat:@"users/%@/posts/%ld", post.attributes.details.creator.attributes.details.identifier, (long)post.identifier];
-    }
+    NSString *url = [NSString stringWithFormat:@"posts/%@", post.identifier];
     NSDictionary *params = @{};
     
     NSLog(@"url:: %@", url);
@@ -454,22 +455,14 @@
     
     [[NSNotificationCenter defaultCenter] postNotificationName:@"PostDeleted" object:post];
 }
-+ (void)reportPost:(NSInteger)postId completion:(void (^ _Nullable)(BOOL success, id responseObject))handler {
++ (void)reportPost:(NSString *)postId completion:(void (^ _Nullable)(BOOL success, id responseObject))handler {
     handler(true, @{});
 }
-+ (void)sparkPost:(Post *)post completion:(void (^ _Nullable)(BOOL success, id responseObject))handler {
-    [FIRAnalytics logEventWithName:@"spark_post"
++ (void)votePost:(Post *)post completion:(void (^ _Nullable)(BOOL success, id responseObject))handler {
+    [FIRAnalytics logEventWithName:@"post_vote"
                         parameters:@{}];
     
-    NSString *url;
-    if (post.attributes.status.postedIn) {
-        // posted in a room
-        url = [NSString stringWithFormat:@"rooms/%@/posts/%ld/votes", post.attributes.status.postedIn.identifier, (long)post.identifier];
-    }
-    else {
-        // posted on a profile
-        url = [NSString stringWithFormat:@"users/%@/posts/%ld/votes", post.attributes.details.creator.attributes.details.identifier, (long)post.identifier];
-    }
+    NSString *url = [NSString stringWithFormat:@"posts/%@/votes", post.identifier];
     
     NSDictionary *params = @{};
     
@@ -494,32 +487,38 @@
     gmtDateFormatter.dateFormat = @"yyyy-MM-dd'T'HH:mm:ssZ";
     NSString *dateString = [gmtDateFormatter stringFromDate:[NSDate new]];
     
-    PostContextVote *voteDict = [[PostContextVote alloc] initWithDictionary:@{@"created_at": dateString} error:nil];
-    post.attributes.context.vote = voteDict;
+    BFContext *context = [[BFContext alloc] initWithDictionary:[post.attributes.context toDictionary] error:nil];
+    BFContextPostVote *voteDict = [[BFContextPostVote alloc] initWithDictionary:@{@"created_at": dateString} error:nil];
+    context.post.vote = voteDict;
+    post.attributes.context = context;
+    
+    NSLog(@"post updated: %@", post);
     
     [[NSNotificationCenter defaultCenter] postNotificationName:@"PostUpdated" object:post];
     
+    /* test sending a notif
+    BFNotificationObject *notificationObject = [BFNotificationObject notificationWithActivityType:USER_ACTIVITY_TYPE_USER_FOLLOW title:@"@hugo followed you" text:@"Tap to view Hugo Pakula's profile" action:^{
+        NSLog(@"notification tapped");
+    }];
+    [[BFNotificationManager manager] presentNotification:notificationObject completion:^{
+        NSLog(@"presentNotification() completion");
+    }];*/
+    
     // create tip
-    BFTipObject *tipObject = [BFTipObject tipWithCreatorType:BFTipCreatorTypeBonfireTip creator:nil title:@"Sparks help posts go viral 🚀" text:@"Sparks anonymously invite more people to join the conversation. Only the creator will see how man sparks a post has." action:^{
-        NSLog(@"tip tapped");
-    }];
-    [[BFTipsManager manager] presentTip:tipObject completion:^{
-        NSLog(@"presentTip() completion");
-    }];
+    if ([BFTipsManager hasSeenTip:@"about_vote_post"] == false && [Launcher activeTabController]) {
+        BFTipObject *tipObject = [BFTipObject tipWithCreatorType:BFTipCreatorTypeBonfireTip creator:nil title:@"Sparks help posts go viral 🚀" text:@"Sparks invite more people to join the conversation. Only the creator will see how many sparks a post has." action:^{
+            NSLog(@"tip tapped");
+        }];
+        [[BFTipsManager manager] presentTip:tipObject completion:^{
+            NSLog(@"presentTip() completion");
+        }];
+    }
 }
-+ (void)unsparkPost:(Post *)post completion:(void (^ _Nullable)(BOOL success, id responseObject))handler {
-    [FIRAnalytics logEventWithName:@"unspark_post"
++ (void)unvotePost:(Post *)post completion:(void (^ _Nullable)(BOOL success, id responseObject))handler {
+    [FIRAnalytics logEventWithName:@"post_unvote"
                         parameters:@{}];
     
-    NSString *url;
-    if (post.attributes.status.postedIn) {
-        // posted in a room
-        url = [NSString stringWithFormat:@"rooms/%@/posts/%ld/votes", post.attributes.status.postedIn.identifier, (long)post.identifier];
-    }
-    else {
-        // posted on a profile
-        url = [NSString stringWithFormat:@"users/%@/posts/%ld/votes", post.attributes.details.creator.attributes.details.identifier, (long)post.identifier];
-    }
+    NSString *url = [NSString stringWithFormat:@"posts/%@/votes", post.identifier];
     NSDictionary *params = @{};
     
     [[HAWebService authenticatedManager] DELETE:url parameters:params success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
@@ -536,89 +535,82 @@
     }];
     
     // update the UI
-    NSMutableDictionary *contextDict = [[NSMutableDictionary alloc] initWithDictionary:[post.attributes.context toDictionary]];
-    [contextDict removeObjectForKey:@"vote"];
-    PostContext *newContext = [[PostContext alloc] initWithDictionary:contextDict error:nil];
-    post.attributes.context = newContext;
+    post.attributes.context.post.vote = nil;
     
     [[NSNotificationCenter defaultCenter] postNotificationName:@"PostUpdated" object:post];
 }
 
 #pragma mark - Misc.
 + (void)uploadImage:(BFMediaObject *)mediaObject copmletion:(void (^)(BOOL success, NSString *uploadedImageURL))handler {
-    NSData *imageData = mediaObject.data;
-    
-    NSLog(@"data class: %@", [imageData class]);
-    
-    if (imageData && [imageData isKindOfClass:[NSData class]]) {
-        // has images
-        NSLog(@"has image to upload -> upload them then continue");
+    [self compressData:mediaObject.data completion:^(NSData *imageData) {
+        NSLog(@"data class: %@", [imageData class]);
         
-        [[HAWebService authenticatedManager].requestSerializer setValue:@"" forHTTPHeaderField:@"Content-Type"];
-        [[HAWebService authenticatedManager] POST:kIMAGE_UPLOAD_URL parameters:nil constructingBodyWithBlock:^(id<AFMultipartFormData>  _Nonnull formData) {
-            NSLog(@"MIME: %@", mediaObject.MIME);
-            if ([mediaObject.MIME isEqualToString:@"image/jpeg"]) {
-                NSLog(@"jpeg");
-                [formData appendPartWithFileData:imageData name:@"media" fileName:@"image.jpg" mimeType:mediaObject.MIME];
-            }
-            else if ([mediaObject.MIME isEqualToString:@"image/gif"]) {
-                NSLog(@"gif");
-                [formData appendPartWithFileData:imageData name:@"media" fileName:@"image.gif" mimeType:mediaObject.MIME];
-            }
-            else if ([mediaObject.MIME isEqualToString:@"image/png"]) {
-                NSLog(@"png");
-                [formData appendPartWithFileData:imageData name:@"media" fileName:@"image.png" mimeType:mediaObject.MIME];
-            }
+        if (imageData && [imageData isKindOfClass:[NSData class]]) {
+            // has images
+            NSLog(@"has image to upload -> upload them then continue");
             
-            NSLog(@"MIME type: %@", mediaObject.MIME);
-        } progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-            NSLog(@"--------");
-            NSLog(@"response object:");
-            NSLog(@"%@", responseObject);
-            NSLog(@"--------");
-            
-            if (responseObject[@"data"] && responseObject[@"data"] != [NSNull null] && [responseObject[@"data"] count] > 0) {
-                // successfully uploaded image -> pass completion info
-                handler(true, responseObject[@"data"][0][@"id"]);
-            }
-            else {
+            [[HAWebService authenticatedManager].requestSerializer setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+            [[HAWebService authenticatedManager] POST:kIMAGE_UPLOAD_URL parameters:nil constructingBodyWithBlock:^(id<AFMultipartFormData>  _Nonnull formData) {
+                if ([mediaObject.MIME isEqualToString:@"image/jpeg"]) {
+                    [formData appendPartWithFileData:imageData name:@"media" fileName:@"media.jpg" mimeType:mediaObject.MIME];
+                }
+                else if ([mediaObject.MIME isEqualToString:@"image/gif"]) {
+                    [formData appendPartWithFileData:imageData name:@"media" fileName:@"media.gif" mimeType:mediaObject.MIME];
+                }
+                else if ([mediaObject.MIME isEqualToString:@"image/png"]) {
+                    [formData appendPartWithFileData:imageData name:@"media" fileName:@"media.png" mimeType:mediaObject.MIME];
+                }
+                
+                NSLog(@"MIME type: %@", mediaObject.MIME);
+            } progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+                NSLog(@"--------");
+                NSLog(@"response object: %@", responseObject);
+                NSLog(@"--------");
+                
+                if (responseObject[@"data"] && responseObject[@"data"] != [NSNull null] && [responseObject[@"data"] count] > 0) {
+                    // successfully uploaded image -> pass completion info
+                    handler(true, responseObject[@"data"][0][@"id"]);
+                }
+                else {
+                    handler(false, nil);
+                }
+            } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+                NSLog(@"error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);
+                NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+                NSLog(@"%@",ErrorResponse);
+                NSLog(@"%@", error);
+                NSLog(@"idk: %@", task.response);
+                
                 handler(false, nil);
-            }
-        } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-            NSLog(@"error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);
-            NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-            NSLog(@"%@",ErrorResponse);
-            NSLog(@"%@", error);
-            NSLog(@"idk: %@", task.response);
-            
+            }];
+        }
+        else {
             handler(false, nil);
-        }];
-    }
-    else {
-        handler(false, nil);
-    }
+        }
+    }];
 }
 
 + (void)uploadImages:(BFMedia *)media copmletion:(void (^)(BOOL success, NSArray *uploadedImages))handler {
     __block NSUInteger remaining = media.objects.count;
-    NSMutableArray *uploadedImages = [[NSMutableArray alloc] init];
-    
+    NSMutableArray *uploadedImages = [[NSMutableArray alloc] initWithArray:media.objects];
+
     if (remaining == 0) {
         handler(true, nil);
     }
-    
+
     for (NSInteger i = 0; i < remaining; i++) {
+        NSInteger localIndex = i;
         BFMediaObject *mediaObject = media.objects[i];
-        
+
         [self uploadImage:mediaObject copmletion:^(BOOL success, NSString *uploadedImageURL) {
-            NSLog(@"upload image %li...", i + 1);
+            NSLog(@"upload image %li...", localIndex + 1);
             if (success) {
                 if (uploadedImageURL && uploadedImageURL.length > 0) {
-                    [uploadedImages addObject:uploadedImageURL];
+                    [uploadedImages replaceObjectAtIndex:localIndex withObject:uploadedImageURL];
                 }
-                
+
                 remaining = remaining - 1;
-                
+
                 if (remaining == 0) {
                     handler(true, uploadedImages);
                 }
@@ -627,40 +619,70 @@
                 if (remaining == 0) {
                     handler(true, uploadedImages);
                 }
-                
+
                 handler(false, nil);
             }
         }];
     }
 }
 
-
-
-+ (NSData *)compressAndEncodeToData:(UIImage *)image
-{
-    //Scale Image to some width (xFinal)
-    float ratio = image.size.width/image.size.height;
-    float xFinal = image.size.width;
-    if (image.size.width > 1125) {
-        xFinal = 1125; //Desired max image width
-    }
-    float yFinal = xFinal/ratio;
-    UIImage *scaledImage = [self imageWithImage:image scaledToSize:CGSizeMake(xFinal, yFinal)];
++ (void)compressData:(NSData *)data completion:(void (^ _Nullable)(NSData *imageData))handler {
+    __block NSData *imageData = data;
     
-    //Compress the image iteratively until either the maximum compression threshold (maxCompression) is reached or the maximum file size requirement is satisfied (maxSize)
-    CGFloat compression = 1.0f;
-    CGFloat maxCompression = 0.1f;
-    float maxSize = 2*1024*1024; //specified in bytes
-    
-    NSData *imageData = UIImageJPEGRepresentation(scaledImage, compression);
-    while ([imageData length] > maxSize && compression > maxCompression) {
-        compression -= 0.10;
-        imageData = UIImageJPEGRepresentation(scaledImage, compression);
-        NSLog(@"Compressed to: %.2f MB with Factor: %.2f",(float)imageData.length/1024.0f/1024.0f, compression);
-    }
-    NSLog(@"Final Image Size: %.2f MB",(float)imageData.length/1024.0f/1024.0f);
-    return imageData;
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        // run in the background
+        UIImage *image = [UIImage imageWithData:imageData];
+        NSLog(@"image orientation 1:: %ld", (long)image.imageOrientation);
+        NSString *mimeType = [self mimeTypeForData:imageData];
+        
+        //Compress the image iteratively until either the maximum compression threshold (maxCompression) is reached or the maximum file size requirement is satisfied (maxSize)
+        CGFloat compression = 1.0f;
+        CGFloat maxCompression = 0.1f;
+        float maxSize = 5*1024*1024; //specified in bytes
+        
+        NSLog(@"Actual Image Size: %.2f MB",(float)imageData.length/1024.0f/1024.0f);
+        
+        if ([mimeType isEqualToString:@"image/jpeg"]) {
+            NSLog(@"jpeg");
+            
+            imageData = UIImageJPEGRepresentation(image, compression);
+            
+            UIImage *scaledImage = [UIImage imageWithData:imageData];
+            NSLog(@"image orientation 2:: %ld", (long)scaledImage.imageOrientation);
+            
+            while ([imageData length] > maxSize && compression > maxCompression) {
+                compression -= 0.10;
+                imageData = UIImageJPEGRepresentation(image, compression);
+                NSLog(@"Compressed to: %.2f MB with Factor: %.2f",(float)imageData.length/1024.0f/1024.0f, compression);
+            }
+            
+            UIImage *imageAfterCompression = [UIImage imageWithData:imageData];
+            imageAfterCompression = [imageAfterCompression fixOrientation];
+            
+        }
+        else if ([mimeType isEqualToString:@"image/png"]) {
+            NSLog(@"png");
+            
+            imageData = UIImagePNGRepresentation(image);
+            CGFloat scale = 1.0;
+            UIImage *updatedImage = [image fixOrientation];
+            while ([imageData length] > maxSize && compression > maxCompression) {
+                scale -= 0.10;
+                updatedImage = [self imageWithImage:image scaledToSize:CGSizeMake(image.size.width*scale, image.size.height*scale)];
+                [updatedImage fixOrientation];
+                imageData = UIImagePNGRepresentation(updatedImage);
+                NSLog(@"Compressed to: %.2f MB with Scale: %.2f",(float)imageData.length/1024.0f/1024.0f, scale);
+            }
+        }
+        else if ([mimeType isEqualToString:@"image/gif"]) {
+            NSLog(@"it's a gif we can't do anything about it.....");
+        }
+        
+        NSLog(@"Final Image Size: %.2f MB",(float)imageData.length/1024.0f/1024.0f);
+        handler(imageData);
+    });
 }
+
 + (NSString *)mimeTypeForData:(NSData *)data {
     uint8_t c;
     [data getBytes:&c length:1];

@@ -256,7 +256,6 @@
     }
     
     BOOL hasDetails = self.detailsCollectionView.details.count > 0;
-    NSLog(@"hasDetails? %@", hasDetails ? @"YES" : @"NO");
     self.detailsCollectionView.hidden = !hasDetails;
     if (hasDetails) {
         self.detailsCollectionView.frame = CGRectMake(PROFILE_HEADER_EDGE_INSETS.left, bottomY + (hasBio ? PROFILE_HEADER_BIO_BOTTOM_PADDING : PROFILE_HEADER_USERNAME_BOTTOM_PADDING) + PROFILE_HEADER_DETAILS_EDGE_INSETS.top, self.frame.size.width - (PROFILE_HEADER_EDGE_INSETS.left + PROFILE_HEADER_EDGE_INSETS.right), self.detailsCollectionView.collectionViewLayout.collectionViewContentSize.height);
@@ -464,10 +463,12 @@
             
             height = height + (user.attributes.details.bio.length > 0 ? PROFILE_HEADER_BIO_BOTTOM_PADDING : PROFILE_HEADER_USERNAME_BOTTOM_PADDING) +  PROFILE_HEADER_DETAILS_EDGE_INSETS.top + detailCollectionView.collectionViewLayout.collectionViewContentSize.height;
         }
-        
-        CGFloat userPrimaryActionHeight = (user.identifier.length > 0 || loading ? PROFILE_HEADER_FOLLOW_BUTTON_TOP_PADDING + 36 : 0);
-        height = height + userPrimaryActionHeight;
     }
+    
+    BOOL isCurrentUser = [user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier];
+    
+    CGFloat userPrimaryActionHeight = (!loading && user.attributes.context == nil && !isCurrentUser) ? 0 : PROFILE_HEADER_FOLLOW_BUTTON_TOP_PADDING + 36;
+    height = height + userPrimaryActionHeight;
     
     // add bottom padding and line separator
     height = height + PROFILE_HEADER_EDGE_INSETS.bottom + (1 / [UIScreen mainScreen].scale);

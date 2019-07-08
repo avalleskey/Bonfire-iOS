@@ -21,6 +21,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) Post *replyingTo;
 @property (nonatomic, strong) NSString *prefillMessage;
 
+@property (nonatomic) BOOL replyingToIcebreaker;
+
 @property (nonatomic, strong) UITableView *tableView;
 
 @property (nonatomic) CGFloat currentKeyboardHeight;

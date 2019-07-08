@@ -29,12 +29,14 @@
         
         self.morePostsIcon = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"showMorePostsIcon"]];
         self.morePostsIcon.contentMode = UIViewContentModeCenter;
-        //[self.contentView addSubview:self.morePostsIcon];
+        [self.contentView addSubview:self.morePostsIcon];
         
         self.lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, self.frame.size.height - (1 / [UIScreen mainScreen].scale), self.frame.size.width, (1 / [UIScreen mainScreen].scale))];
         self.lineSeparator.backgroundColor = [UIColor separatorColor];
         self.lineSeparator.hidden = true;
         [self addSubview:self.lineSeparator];
+        
+        // [self createLineView];
     }
     
     return self;
@@ -46,7 +48,7 @@
     self.lineSeparator.frame = CGRectMake(0, self.frame.size.height - (1 / [UIScreen mainScreen].scale), self.frame.size.width, (1 / [UIScreen mainScreen].scale));
     
     CGFloat profilePictureWidth = 32;
-    self.textLabel.frame = CGRectMake(postContentOffset.left, 0, self.frame.size.width - postContentOffset.left - postContentOffset.right, self.frame.size.height);
+    self.textLabel.frame = CGRectMake(replyContentOffset.left, 0, self.frame.size.width - replyContentOffset.left - replyContentOffset.right, self.frame.size.height);
     self.morePostsIcon.frame = CGRectMake(postContentOffset.left, self.textLabel.frame.origin.y, profilePictureWidth, self.textLabel.frame.size.height);
 }
 
@@ -61,6 +63,32 @@
             self.contentView.backgroundColor = [UIColor contentBackgroundColor];
         } completion:nil];
     }
+}
+
+- (void)createLineView {
+    CGFloat lineWidth = 3;
+    CGFloat x = 12 + (48 / 2) - (lineWidth / 2);
+    
+    CGFloat dotSpacing = 3;
+    UIView *stackedDotView = [[UIView alloc] initWithFrame:CGRectMake(x, 0, lineWidth, lineWidth * 3 + (dotSpacing * 2))];
+    for (NSInteger i = 0; i < 3; i++) {
+        UIView *dot = [[UIView alloc] initWithFrame:CGRectMake(0, i * lineWidth + (dotSpacing * i), lineWidth, lineWidth)];
+        dot.backgroundColor = [UIColor threadLineColor];
+        dot.layer.cornerRadius = lineWidth / 2;
+        [stackedDotView addSubview:dot];
+    }
+    stackedDotView.center = CGPointMake(stackedDotView.center.x, CONVERSATION_EXPAND_CELL_HEIGHT / 2);
+    [self.contentView addSubview:stackedDotView];
+    
+    UIView *topLine = [[UIView alloc] initWithFrame:CGRectMake(x, -2, lineWidth, stackedDotView.frame.origin.y - 4 + 2)];
+    topLine.layer.cornerRadius = lineWidth / 2;
+    topLine.backgroundColor = [UIColor threadLineColor];
+    [self.contentView addSubview:topLine];
+    
+    UIView *bottomLine = [[UIView alloc] initWithFrame:CGRectMake(x, stackedDotView.frame.origin.y + stackedDotView.frame.size.height + 4, lineWidth, stackedDotView.frame.origin.y - 4 + 2)];
+    bottomLine.layer.cornerRadius = lineWidth / 2;
+    bottomLine.backgroundColor = [UIColor threadLineColor];
+    [self.contentView addSubview:bottomLine];
 }
 
 @end

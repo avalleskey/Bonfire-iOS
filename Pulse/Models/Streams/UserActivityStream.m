@@ -35,8 +35,6 @@
     NSMutableArray *mutableArray = [[NSMutableArray alloc] init];
     
     for (UserActivityStreamPage *page in self.pages) {
-        NSLog(@"page.paging: %@", page.meta.paging);
-        
         NSDictionary *pageDict = [page toDictionary];
         NSArray *pageActivities = [pageDict objectForKey:@"data"] ? pageDict[@"data"] : @[];
         
@@ -46,11 +44,9 @@
         {
             if (x == 0 && page.meta.paging.prevCursor.length > 0) {
                 activity.prevCursor = page.meta.paging.prevCursor;
-                NSLog(@"found a prev cursor:: %@", page.meta.paging.prevCursor);
             }
             if (x == mutablePageActivities.count - 1 && page.meta.paging.nextCursor.length > 0) {
                 activity.nextCursor = page.meta.paging.nextCursor;
-                NSLog(@"found a next cursor:: %@", page.meta.paging.nextCursor);
             }
             [mutablePageActivities replaceObjectAtIndex:x withObject:activity];
         }];
@@ -164,6 +160,11 @@
 + (JSONKeyMapper *)keyMapper
 {
     return [JSONKeyMapper mapperForSnakeCase];
+}
+
++ (BOOL)propertyIsOptional:(NSString*)propertyName
+{
+    return YES; // all are optional
 }
 
 @end

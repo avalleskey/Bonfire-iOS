@@ -46,14 +46,14 @@
         
         self.post = [[Post alloc] init];
         
-        self.profilePicture = [[BFAvatarView alloc] initWithFrame:CGRectMake(12, 12, 48, 48)];
-        self.profilePicture.openOnTap = false;
-        self.profilePicture.dimsViewOnTap = true;
-        self.profilePicture.allowOnlineDot = true;
-        [self.profilePicture bk_whenTapped:^{
+        self.primaryAvatarView = [[BFAvatarView alloc] initWithFrame:CGRectMake(12, 12, 48, 48)];
+        self.primaryAvatarView.openOnTap = false;
+        self.primaryAvatarView.dimsViewOnTap = true;
+        self.primaryAvatarView.allowOnlineDot = true;
+        [self.primaryAvatarView bk_whenTapped:^{
             [Launcher openProfile:self.post.attributes.details.creator];
         }];
-        [self.contentView addSubview:self.profilePicture];
+        [self.contentView addSubview:self.primaryAvatarView];
         
         self.nameLabel = [[UILabel alloc] initWithFrame:CGRectMake(12, 12, self.contentView.frame.size.width - 12 - 12, 15)];
         self.nameLabel.text = @"Display Name";
@@ -72,7 +72,7 @@
         self.moreButton = [UIButton buttonWithType:UIButtonTypeCustom];
         self.moreButton.contentMode = UIViewContentModeCenter;
         [self.moreButton setImage:[UIImage imageNamed:@"postActionMore"] forState:UIControlStateNormal];
-        self.moreButton.imageEdgeInsets = UIEdgeInsetsMake(2, 0, 0, 0);
+        self.moreButton.imageEdgeInsets = UIEdgeInsetsMake(0, 0, 0, 0);
         self.moreButton.frame = CGRectMake(0, self.dateLabel.frame.origin.y, self.moreButton.currentImage.size.width, self.dateLabel.frame.size.height);
         self.moreButton.adjustsImageWhenHighlighted = false;
         [self.moreButton bk_whenTapped:^{
@@ -151,9 +151,7 @@
         NSAttributedString *attachmentString = [NSAttributedString attributedStringWithAttachment:attachment];
         [creatorString appendAttributedString:attachmentString];
     }*/
-    
-    BOOL isReply = post.attributes.details.parentId.length > 0  ;
-    
+        
     if (includeTimestamp) {
         NSMutableAttributedString *connector = [[NSMutableAttributedString alloc] initWithString:@"  "];
         [connector addAttribute:NSFontAttributeName value:font range:NSMakeRange(0, connector.length)];

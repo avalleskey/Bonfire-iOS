@@ -26,7 +26,7 @@
 #include <stdlib.h>
 
 @import Firebase;
-@import FirebasePerformance;
+//@import FirebasePerformance;
 
 #define UIViewParentController(__view) ({ \
     UIResponder *__responder = __view; \
@@ -46,7 +46,7 @@
 @property (strong, nonatomic) ComplexNavigationController *launchNavVC;
 @property (nonatomic) CGFloat currentKeyboardHeight;
 @property (strong, nonatomic) NSMutableArray *similarCamps;
-@property (nonatomic) FIRTrace *createTrace;
+//@property (nonatomic) FIRTrace *createTrace;
 
 @end
 
@@ -75,7 +75,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     
     // Google Analytics
     [FIRAnalytics setScreenName:@"Create Camp" screenClass:nil];
-    self.createTrace = [FIRPerformance startTraceWithName:@"Create Camp"];
+    //self.createTrace = [FIRPerformance startTraceWithName:@"Create Camp"];
 }
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
@@ -905,7 +905,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                                          @"public": (visibility) ? @"YES" : @"NO",
                                          @"color": campColor
                                          }];
-        [self.createTrace stop];
+        //[self.createTrace stop];
         
         for (UIGestureRecognizer *recognizer in self.nextButton.gestureRecognizers) {
             [self.nextButton removeGestureRecognizer:recognizer];

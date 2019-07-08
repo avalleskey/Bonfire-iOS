@@ -19,10 +19,14 @@
         NSScanner *scanner = [NSScanner scannerWithString:hex];
         [scanner setScanLocation:0]; // bypass '#' character
         [scanner scanHexInt:&rgbValue];
-        return [UIColor colorWithRed:((rgbValue & 0xFF0000) >> 16)/255.0 green:((rgbValue & 0xFF00) >> 8)/255.0 blue:(rgbValue & 0xFF)/255.0 alpha:1.0];
+
+        // bonfire brand -> p3
+        return ([hex isEqualToString:@"FF513C"] || [hex isEqualToString:@"#FF513C"])
+            ? [UIColor colorWithDisplayP3Red:((rgbValue & 0xFF0000) >> 16)/255.0 green:((rgbValue & 0xFF00) >> 8)/255.0 blue:(rgbValue & 0xFF)/255.0 alpha:1.0]
+            : [UIColor colorWithRed:((rgbValue & 0xFF0000) >> 16)/255.0 green:((rgbValue & 0xFF00) >> 8)/255.0 blue:(rgbValue & 0xFF)/255.0 alpha:1.0];
     }
     else {
-        return [UIColor bonfireGrayWithLevel:700];
+        return [UIColor bonfireGrayWithLevel:800];
     }
 }
 + (UIColor *)lighterColorForColor:(UIColor *)c amount:(CGFloat)amount {
@@ -116,7 +120,11 @@
 }
 
 + (UIColor * _Nonnull) linkColor {
-    return [UIColor colorWithDisplayP3Red:0.16f green:0.42f blue:0.6f alpha:1]; //[UIColor colorWithRed:0.16 green:0.42 blue:0.55 alpha:1.0];
+    return [UIColor colorWithDisplayP3Red:0.16f green:0.42f blue:0.6f alpha:1];
+}
+
++ (UIColor * _Nonnull) threadLineColor {
+    return [UIColor colorWithRed:0.95 green:0.95 blue:0.96 alpha:1.0];
 }
 
 // Gray

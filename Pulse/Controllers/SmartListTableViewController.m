@@ -286,9 +286,9 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
 }
 
 - (void)toggleValueDidChange:(UISwitch *)toggle {
-    CGPoint switchPosition = [toggle convertPoint:CGPointZero toView:self.tableView];
-    NSIndexPath *indexPath = [self.tableView indexPathForRowAtPoint:switchPosition];
-    SmartListSectionRow *r = row(indexPath);
+    //CGPoint switchPosition = [toggle convertPoint:CGPointZero toView:self.tableView];
+    //NSIndexPath *indexPath = [self.tableView indexPathForRowAtPoint:switchPosition];
+    //SmartListSectionRow *r = row(indexPath);
     
     //[self.smartListDelegate toggleValueDidChange:toggle withRowId:r.identifier];
 }

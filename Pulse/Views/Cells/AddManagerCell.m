@@ -38,7 +38,7 @@
 {
     [super layoutSubviews];
     
-    self.imageView.center = CGPointMake(self.imageView.center.x, self.frame.size.height / 2);
+    self.imageView.center = CGPointMake(12 + self.imageView.frame.size.width / 2, self.frame.size.height / 2);
     self.textLabel.frame = CGRectMake(70, 0, self.frame.size.width - 70 - 12, self.contentView.bounds.size.height);
 }
 

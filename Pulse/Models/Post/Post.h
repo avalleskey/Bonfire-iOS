@@ -21,6 +21,7 @@ NS_ASSUME_NONNULL_BEGIN
 @class PostAttributes;
 @class PostStatus;
 @class PostStatusDisplay;
+@class PostStatusDisplayFormat;
 @class PostCounts;
 @class PostSummaries;
 @class PostDetails;
@@ -90,12 +91,17 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface PostStatusDisplay : JSONModel
 
-extern NSString * const POST_CHOSEN_RECENT;
-extern NSString * const POST_CHOSEN_POPULAR;
-extern NSString * const POST_CHOSEN_FOLLOWED;
-extern NSString * const POST_CHOSEN_SUGGESTED;
-extern NSString * const POST_CHOSEN_SPONSORED;
-@property (nonatomic) NSString <Optional> *reason;
+extern NSString * const POST_DISPLAY_CREATOR_CAMP;
+extern NSString * const POST_DISPLAY_CREATOR_USER;
+@property (nonatomic) NSString <Optional> *creator;
+@property (nonatomic) PostStatusDisplayFormat <Optional> *format;
+
+@end
+
+@interface PostStatusDisplayFormat : JSONModel
+
+extern NSString * const POST_DISPLAY_FORMAT_ICEBREAKER;
+@property (nonatomic) NSString <Optional> *type;
 
 @end
 

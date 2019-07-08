@@ -117,11 +117,19 @@
 
 @implementation PostStatusDisplay
 
-NSString * const POST_CHOSEN_RECENT = @"recent";
-NSString * const POST_CHOSEN_POPULAR = @"popular";
-NSString * const POST_CHOSEN_FOLLOWED = @"followed";
-NSString * const POST_CHOSEN_SUGGESTED = @"suggested";
-NSString * const POST_CHOSEN_SPONSORED = @"sponsored";
+NSString * const POST_DISPLAY_CREATOR_CAMP = @"camp";
+NSString * const POST_DISPLAY_CREATOR_USER = @"user";
+
++ (JSONKeyMapper *)keyMapper
+{
+    return [JSONKeyMapper mapperForSnakeCase];
+}
+
+@end
+
+@implementation PostStatusDisplayFormat
+
+NSString * const POST_DISPLAY_FORMAT_ICEBREAKER = @"icebreaker";
 
 + (JSONKeyMapper *)keyMapper
 {

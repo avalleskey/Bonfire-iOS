@@ -58,6 +58,8 @@ typedef enum {
 @property (nonatomic) NSString *title;
 @property (nonatomic) NSString *text;
 
+@property (nonatomic, copy) void (^action)(void);
+
 @end
 
 NS_ASSUME_NONNULL_END

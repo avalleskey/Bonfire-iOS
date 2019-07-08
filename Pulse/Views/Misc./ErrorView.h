@@ -30,6 +30,9 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) UIImageView *imageView;
 @property (nonatomic, strong) UILabel *errorTitle;
 @property (nonatomic, strong) UILabel *errorDescription;
+@property (nonatomic, strong) UIButton *actionButton;
+
+- (void)updateType:(ErrorViewType)type title:(nullable NSString *)newTitle description:(nullable NSString *)newDescription actionTitle:(nullable NSString *)actionTitle actionBlock:(void (^ __nullable)(void))actionHandler;
 
 - (void)updateType:(ErrorViewType)newType;
 - (void)updateTitle:(nullable NSString *)newTitle;

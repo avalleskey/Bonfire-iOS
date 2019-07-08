@@ -13,24 +13,16 @@
 #import "ErrorView.h"
 #import "RSTableView.h"
 
-@interface FeedViewController : UITableViewController <RSTableViewPaginationDelegate, PostStreamDelegate>
-
-typedef enum {
-    FeedTypeTimeline = 0,
-    FeedTypeTrending = 1
-} FeedType;
+@interface HomeViewController : UITableViewController <RSTableViewDelegate, PostStreamDelegate>
 
 enum {
     MAX_FEED_CACHED_POSTS = 100,
     MAX_FEED_CACHED_PAGES = 2
 };
 
-- (id)initWithFeedType:(FeedType)feedType;
-
 @property (nonatomic, strong) UIScrollView *scrollView;
 @property (nonatomic, strong) ErrorView *errorView;
 
-@property (nonatomic) FeedType feedType;
 @property (nonatomic) int previousScrollOffset;
 @property (nonatomic) CGFloat currentKeyboardHeight;
 

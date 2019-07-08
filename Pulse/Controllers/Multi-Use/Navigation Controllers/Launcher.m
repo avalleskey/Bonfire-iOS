@@ -216,6 +216,22 @@ static Launcher *launcher;
     [searchNav.searchView.textField becomeFirstResponder];
     
     [Launcher push:searchNav animated:YES];
+    
+    /* cross dissolve
+     SearchTableViewController *searchController = [[SearchTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
+     searchController.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeNone;
+     
+     SearchNavigationController *searchNav = [[SearchNavigationController alloc] initWithRootViewController:searchController];
+     searchNav.searchView.openSearchControllerOntap = false;
+     searchNav.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
+     
+     searchNav.searchView.textField.userInteractionEnabled = true;
+     [searchNav.searchView.textField becomeFirstResponder];
+     
+     searchNav.modalPresentationStyle = uimodalpresent;
+     
+     [[Launcher activeViewController] presentViewController:searchNav animated:YES completion:nil];
+     */
 }
 
 + (void)openCamp:(Camp *)camp {
@@ -232,7 +248,7 @@ static Launcher *launcher;
     
     r.camp = camp;
     NSString *themeCSS = [camp.attributes.details.color lowercaseString];
-    r.theme = ([themeCSS isEqualToString:@"ffffff"] || themeCSS.length == 0) ? [UIColor bonfireGrayWithLevel:700] : [UIColor fromHex:themeCSS];
+    r.theme = ([themeCSS isEqualToString:@"ffffff"] || themeCSS.length == 0) ? [UIColor bonfireGrayWithLevel:800] : [UIColor fromHex:themeCSS];
     
     if (r.camp.attributes.details.title) {
         r.title = r.camp.attributes.details.title;
@@ -301,7 +317,7 @@ static Launcher *launcher;
     
     rm.camp = camp;
     NSString *themeCSS = [camp.attributes.details.color lowercaseString];
-    rm.theme = ([themeCSS isEqualToString:@"ffffff"] || themeCSS.length == 0) ? [UIColor bonfireGrayWithLevel:700] : [UIColor fromHex:themeCSS];
+    rm.theme = ([themeCSS isEqualToString:@"ffffff"] || themeCSS.length == 0) ? [UIColor bonfireGrayWithLevel:800] : [UIColor fromHex:themeCSS];
     
     rm.title = @"Members";
     
@@ -358,7 +374,7 @@ static Launcher *launcher;
     ProfileViewController *p = [[ProfileViewController alloc] init];
     
     NSString *themeCSS = [user.attributes.details.color lowercaseString];
-    p.theme = ([themeCSS isEqualToString:@"ffffff"] || themeCSS.length == 0) ? [UIColor bonfireGrayWithLevel:700] : [UIColor fromHex:themeCSS];
+    p.theme = ([themeCSS isEqualToString:@"ffffff"] || themeCSS.length == 0) ? [UIColor bonfireGrayWithLevel:800] : [UIColor fromHex:themeCSS];
     
     p.user = user;
     
@@ -432,7 +448,7 @@ static Launcher *launcher;
     pc.user = user;
     
     NSString *themeCSS = [user.attributes.details.color lowercaseString];
-    pc.theme = ([themeCSS isEqualToString:@"ffffff"] || themeCSS.length == 0) ? [UIColor bonfireGrayWithLevel:700] : [UIColor fromHex:themeCSS];
+    pc.theme = ([themeCSS isEqualToString:@"ffffff"] || themeCSS.length == 0) ? [UIColor bonfireGrayWithLevel:800] : [UIColor fromHex:themeCSS];
     
     pc.title = [user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier] ? @"My Camps" : @"Camps Joined";
     
@@ -472,7 +488,7 @@ static Launcher *launcher;
     pf.user = user;
     
     NSString *themeCSS = [user.attributes.details.color lowercaseString];
-    pf.theme = ([themeCSS isEqualToString:@"ffffff"] || themeCSS.length == 0) ? [UIColor bonfireGrayWithLevel:700] : [UIColor fromHex:themeCSS];
+    pf.theme = ([themeCSS isEqualToString:@"ffffff"] || themeCSS.length == 0) ? [UIColor bonfireGrayWithLevel:800] : [UIColor fromHex:themeCSS];
     
     pf.title = @"Following";
     
@@ -524,7 +540,7 @@ static Launcher *launcher;
     else {
         themeCSS = [post.attributes.details.creator.attributes.details.color lowercaseString];
     }
-    p.theme = ([themeCSS isEqualToString:@"ffffff"] || themeCSS.length == 0) ? [UIColor bonfireGrayWithLevel:700] : [UIColor fromHex:themeCSS];
+    p.theme = ([themeCSS isEqualToString:@"ffffff"] || themeCSS.length == 0) ? [UIColor bonfireGrayWithLevel:800] : [UIColor fromHex:themeCSS];
     p.title = @"Conversation";
     
     ComplexNavigationController *activeLauncherNavVC = [Launcher activeLauncherNavigationController];
@@ -744,7 +760,9 @@ static Launcher *launcher;
     // 3) Admin
     BOOL isCreator = ([post.attributes.details.creator.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]);
     BOOL canDelete = isCreator || [post.attributes.context.post.permissions canDelete];
-    NSLog(@"context: %@", post.attributes.status.postedIn);
+    BOOL insideCamp = ([Launcher activeNavigationController] &&
+                       [[[[Launcher activeNavigationController] viewControllers] lastObject] isKindOfClass:[CampViewController class]] &&
+                       [((CampViewController *)[[[Launcher activeNavigationController] viewControllers] lastObject]).camp.identifier isEqualToString:post.attributes.status.postedIn.identifier]);
     
     // Page action can be shown on
     // A) Any page
@@ -770,9 +788,6 @@ static Launcher *launcher;
         }
     }
     else {
-        BOOL insideCamp = ([Launcher activeNavigationController] &&
-                              [[[[Launcher activeNavigationController] viewControllers] lastObject] isKindOfClass:[CampViewController class]] &&
-                              [((CampViewController *)[[[Launcher activeNavigationController] viewControllers] lastObject]).camp.identifier isEqualToString:post.attributes.status.postedIn.identifier]);
         if (!insideCamp) {
             UIAlertAction *openCamp = [UIAlertAction actionWithTitle:@"Open Camp" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
                 NSLog(@"open camp");
@@ -1060,9 +1075,7 @@ static Launcher *launcher;
     sourceController:(UIViewController *)source
 {
     id<UIViewControllerAnimatedTransitioning> animationController;
-    
-    NSLog(@"presented dis ish: %@", presented);
-    
+        
     launcher.animator.appearing = YES;
     launcher.animator.duration = 0.3;
     if ([presented isKindOfClass:[ComplexNavigationController class]]) {

@@ -74,11 +74,6 @@
         NSMutableAttributedString *attributedPart;
         if ([[variables allKeys] containsObject:part]) {
             attributedPart = [[NSMutableAttributedString alloc] initWithString:[variables objectForKey:part] attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:fontSize weight:UIFontWeightSemibold], NSForegroundColorAttributeName: [UIColor bonfireBlack]}];
-            
-            /*
-             [attributedString addAttribute:NSLinkAttributeName
-             value:@"username://marcelofabri_"
-             range:[[attributedString string] rangeOfString:@"@marcelofabri_"]];*/
         }
         else {
             attributedPart = [[NSMutableAttributedString alloc] initWithString:part attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:fontSize weight:UIFontWeightRegular], NSForegroundColorAttributeName: [UIColor bonfireBlack]}];
@@ -91,8 +86,24 @@
     
     NSMutableAttributedString *timeStampString = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@" %@", timeStamp]];
     [timeStampString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:fontSize weight:UIFontWeightRegular] range:NSMakeRange(0, timeStampString.length)];
-    [timeStampString addAttribute:NSForegroundColorAttributeName value:[UIColor bonfireGray] range:NSMakeRange(0, timeStampString.length)];
+    [timeStampString addAttribute:NSForegroundColorAttributeName value:[UIColor bonfireGrayWithLevel:700] range:NSMakeRange(0, timeStampString.length)];
     [attributedString appendAttributedString:timeStampString];
+    
+    if ((self.attributes.post.attributes.details.message && !self.attributes.replyPost) || self.attributes.replyPost.attributes.details.message) {
+        NSString *message = self.attributes.replyPost.attributes.details.message ? self.attributes.replyPost.attributes.details.message : self.attributes.post.attributes.details.message;
+        message = (message.length > 35) ? [[message substringToIndex:35] stringByAppendingString:@"..."] : message;
+        
+        NSMutableAttributedString *messageString = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"\n%@", message]];
+        [messageString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:fontSize-1.f weight:UIFontWeightRegular] range:NSMakeRange(0, messageString.length)];
+        [messageString addAttribute:NSForegroundColorAttributeName value:[UIColor bonfireGray] range:NSMakeRange(0, messageString.length)];
+        [attributedString appendAttributedString:messageString];
+    }
+    
+    NSMutableParagraphStyle *style = [[NSMutableParagraphStyle alloc] init];
+    [style setLineSpacing:3.5];
+    [attributedString addAttribute:NSParagraphStyleAttributeName
+                             value:style
+                             range:NSMakeRange(0, attributedString.string.length)];
     
     return attributedString;
 }

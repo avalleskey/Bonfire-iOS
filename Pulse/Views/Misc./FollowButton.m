@@ -16,7 +16,6 @@
     self = [super initWithFrame:frame];
     if (self) {
         self.imageEdgeInsets = UIEdgeInsetsMake(0, 0, 0, 6);
-        self.titleEdgeInsets = UIEdgeInsetsMake(0, 6, 0, 0);
         self.titleLabel.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightBold];
         self.adjustsImageWhenHighlighted = false;
         self.backgroundColor = [UIColor bonfireBlack];
@@ -28,8 +27,34 @@
     return self;
 }
 
+- (void)setImage:(UIImage *)image forState:(UIControlState)state {
+    [super setImage:image forState:state];
+    
+    if (image) {
+        self.titleEdgeInsets = UIEdgeInsetsMake(0, self.imageEdgeInsets.right, 0, 0);
+    }
+    else {
+        self.titleEdgeInsets = UIEdgeInsetsZero;
+    }
+}
+
 - (void)layoutSubviews {
     [super layoutSubviews];
+}
+
+- (void)setHighlighted:(BOOL)highlighted {
+    [super setHighlighted:highlighted];
+    
+    if (highlighted) {
+        [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+            self.transform = CGAffineTransformMakeScale(0.92, 0.92);
+        } completion:nil];
+    }
+    else {
+        [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+            self.transform = CGAffineTransformIdentity;
+        } completion:nil];
+    }
 }
 
 @end

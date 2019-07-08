@@ -53,7 +53,7 @@
 - (void)viewDidLayoutSubviews {
     [super viewDidLayoutSubviews];
     
-    if (self.signUpButton == nil) {
+    if (self.signInButton == nil) {
         [self setupFunEmojis];
         [self setupSignUpButton];
         [self setupSplash];
@@ -76,8 +76,8 @@
     // prepare for animations
     if (self.view.tag != 1) {
         self.view.tag = 1;
-        self.signInButton.alpha = 0;
         self.signUpButton.alpha = 0;
+        self.signInButton.alpha = 0;
         
         // perform animations
         [UIView animateWithDuration:0.9f delay:0.5f usingSpringWithDamping:0.75f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
@@ -100,7 +100,7 @@
             self.welcomeLabel.transform = CGAffineTransformMakeTranslation(0, 10);
             
             CGFloat wchYPoint = self.middleView.frame.origin.y + self.middleView.frame.size.height;
-            wchYPoint = wchYPoint + ((self.signInButton.frame.origin.y - wchYPoint) / 2) - (self.whereConversationsHappenLabel.frame.size.height / 2);
+            wchYPoint = wchYPoint + ((self.signUpButton.frame.origin.y - wchYPoint) / 2) - (self.whereConversationsHappenLabel.frame.size.height / 2);
             self.whereConversationsHappenLabel.frame = CGRectMake(self.whereConversationsHappenLabel.frame.origin.x, wchYPoint, self.whereConversationsHappenLabel.frame.size.width, self.whereConversationsHappenLabel.frame.size.height);
             self.whereConversationsHappenLabel.transform = CGAffineTransformMakeTranslation(0, 10);
             
@@ -110,8 +110,8 @@
                 self.welcomeLabel.transform = CGAffineTransformIdentity;
                 self.welcomeLabel.alpha = 1;
                 
-                self.signInButton.alpha = 1;
                 self.signUpButton.alpha = 1;
+                self.signInButton.alpha = 1;
                 
                 self.middleView.backgroundColor = [UIColor headerBackgroundColor];
                 self.middleViewImage.frame = CGRectMake(0, 0, self.middleViewContainer.frame.size.width, self.middleViewContainer.frame.size.height);
@@ -218,13 +218,44 @@
 }
 
 - (void)setupSignUpButton {
-    self.signUpButton = [UIButton buttonWithType:UIButtonTypeSystem];
-    self.signUpButton.frame = CGRectMake(24, self.view.frame.size.height - UIApplication.sharedApplication.keyWindow.safeAreaInsets.bottom - 64, self.view.frame.size.width - 48, 64);
-    self.signUpButton.titleLabel.textAlignment = NSTextAlignmentCenter;
+    self.signInButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    self.signInButton.frame = CGRectMake(24, self.view.frame.size.height - UIApplication.sharedApplication.keyWindow.safeAreaInsets.bottom - 64, self.view.frame.size.width - 48, 64);
+    self.signInButton.titleLabel.textAlignment = NSTextAlignmentCenter;
     
-    NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:@"Are you new? Join Bonfire" attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:14.f weight:UIFontWeightRegular], NSForegroundColorAttributeName: [UIColor colorWithWhite:0.47 alpha:1]}];
-    [attributedString addAttributes:@{NSFontAttributeName: [UIFont systemFontOfSize:14.f weight:UIFontWeightSemibold]} range:[attributedString.string rangeOfString:@"Join Bonfire"]];
-    [self.signUpButton setAttributedTitle:attributedString forState:UIControlStateNormal];
+    NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:@"Already have an account? Sign In" attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:14.f weight:UIFontWeightRegular], NSForegroundColorAttributeName: [UIColor colorWithWhite:0.47 alpha:1]}];
+    [attributedString addAttributes:@{NSFontAttributeName: [UIFont systemFontOfSize:14.f weight:UIFontWeightSemibold]} range:[attributedString.string rangeOfString:@"Sign In"]];
+    [self.signInButton setAttributedTitle:attributedString forState:UIControlStateNormal];
+    
+    [self.signInButton bk_whenTapped:^{
+        OnboardingViewController *obvc = [[OnboardingViewController alloc] init];
+        obvc.transitioningDelegate = [Launcher sharedInstance];
+        obvc.modalPresentationStyle = UIModalPresentationFullScreen;
+        obvc.signInLikely = true;
+        
+        [self presentViewController:obvc animated:YES completion:nil];
+    }];
+    
+    [self.view addSubview:self.signInButton];
+    
+    self.signUpButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    self.signUpButton.frame = CGRectMake(24, self.signInButton.frame.origin.y - 48, self.view.frame.size.width - 48, 48);
+    self.signUpButton.layer.masksToBounds = true;
+    self.signUpButton.layer.cornerRadius = 14.f;
+    self.signUpButton.backgroundColor = [UIColor bonfireBrand];
+    [self.signUpButton setTitle:@"Sign Up" forState:UIControlStateNormal];
+    [self.signUpButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    self.signUpButton.titleLabel.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightSemibold];
+    self.signUpButton.adjustsImageWhenHighlighted = false;
+    [self.signUpButton bk_addEventHandler:^(id sender) {
+        [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+            self.signUpButton.transform = CGAffineTransformMakeScale(0.92, 0.92);
+        } completion:nil];
+    } forControlEvents:UIControlEventTouchDown];
+    [self.signUpButton bk_addEventHandler:^(id sender) {
+        [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+            self.signUpButton.transform = CGAffineTransformIdentity;
+        } completion:nil];
+    } forControlEvents:(UIControlEventTouchUpInside|UIControlEventTouchCancel|UIControlEventTouchDragExit)];
     
     [self.signUpButton bk_whenTapped:^{
         OnboardingViewController *obvc = [[OnboardingViewController alloc] init];
@@ -235,46 +266,7 @@
         [self presentViewController:obvc animated:YES completion:nil];
     }];
     
-    [self.view addSubview:self.signUpButton];
-    
-    self.signInButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    self.signInButton.frame = CGRectMake(24, self.signUpButton.frame.origin.y - 48, self.view.frame.size.width - 48, 48);
-    self.signInButton.layer.masksToBounds = true;
-    self.signInButton.layer.cornerRadius = 14.f;
-    self.signInButton.backgroundColor = [UIColor bonfireBrand];
-    [self.signInButton setTitle:@"Log In" forState:UIControlStateNormal];
-    [self.signInButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    self.signInButton.titleLabel.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightSemibold];
-    self.signInButton.adjustsImageWhenHighlighted = false;
-    [self.signInButton bk_addEventHandler:^(id sender) {
-        [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-            self.signInButton.transform = CGAffineTransformMakeScale(0.92, 0.92);
-        } completion:nil];
-    } forControlEvents:UIControlEventTouchDown];
-    [self.signInButton bk_addEventHandler:^(id sender) {
-        [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-            self.signInButton.transform = CGAffineTransformIdentity;
-        } completion:nil];
-    } forControlEvents:(UIControlEventTouchUpInside|UIControlEventTouchCancel|UIControlEventTouchDragExit)];
-    
-    [self.signInButton bk_whenTapped:^{
-        OnboardingViewController *obvc = [[OnboardingViewController alloc] init];
-        obvc.transitioningDelegate = [Launcher sharedInstance];
-        obvc.modalPresentationStyle = UIModalPresentationFullScreen;
-        obvc.signInLikely = true;
-        
-        [self presentViewController:obvc animated:YES completion:nil];
-        
-        /*
-        if ([self checkRequirements]) {
-            [self attemptSignIn];
-        }
-        else {
-            [self shakeSignInButton];
-        }*/
-    }];
-    
-    UIImageView *signInButtonBg = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, self.signInButton.frame.size.width, self.signInButton.frame.size.width * 3)];
+    UIImageView *signInButtonBg = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, self.signUpButton.frame.size.width, self.signUpButton.frame.size.width * 3)];
     signInButtonBg.image = [UIImage imageNamed:@"gradient"];
     signInButtonBg.contentMode = UIViewContentModeScaleToFill;
     CGPoint oldCenter = signInButtonBg.center;
@@ -286,7 +278,7 @@
     
     //[self.signInButton insertSubview:signInButtonBg atIndex:0];
     
-    [self.view addSubview:self.signInButton];
+    [self.view addSubview:self.signUpButton];
 }
 
 - (void)setupSplash {
@@ -381,10 +373,10 @@
     [animation setRepeatCount:4];
     [animation setAutoreverses:YES];
     [animation setFromValue:[NSValue valueWithCGPoint:
-                             CGPointMake([self.signInButton center].x - 8.f, [self.signInButton center].y)]];
+                             CGPointMake([self.signUpButton center].x - 8.f, [self.signUpButton center].y)]];
     [animation setToValue:[NSValue valueWithCGPoint:
-                           CGPointMake([self.signInButton center].x + 8.f, [self.signInButton center].y)]];
-    [[self.signInButton layer] addAnimation:animation forKey:@"position"];
+                           CGPointMake([self.signUpButton center].x + 8.f, [self.signUpButton center].y)]];
+    [[self.signUpButton layer] addAnimation:animation forKey:@"position"];
 }
 /*
 - (void)attemptSignIn {

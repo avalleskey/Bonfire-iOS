@@ -21,7 +21,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic, strong) Camp *camp;
 
-@property (nonatomic, strong) UIView *themeLine;
 @property (nonatomic, strong) BFAvatarView *profilePicture;
 
 @property (nonatomic, strong) UILabel *campTitleLabel;

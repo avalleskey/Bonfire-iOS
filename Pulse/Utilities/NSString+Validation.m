@@ -178,6 +178,7 @@
     NSMutableArray *matchRanges = [[NSMutableArray alloc] init];
     NSRegularExpression *regEx = [[NSRegularExpression alloc] initWithPattern:@"((https|http)?:\\/\\/|)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&//=]*)" options:NSRegularExpressionCaseInsensitive error:nil];
     [regEx enumerateMatchesInString:self options:0 range:NSMakeRange(0, self.length) usingBlock:^(NSTextCheckingResult * _Nullable result, NSMatchingFlags flags, BOOL * _Nonnull stop) {
+        NSLog(@"result.range:: %lu / %lu", (unsigned long)result.range.location, (unsigned long)result.range.length);
         [matchRanges addObject:[NSValue valueWithRange:result.range]];
     }];
     

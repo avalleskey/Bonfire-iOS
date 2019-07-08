@@ -181,7 +181,7 @@ static int const EMAIL_FIELD = 206;
                 HUD.indicatorView = [[JGProgressHUDSuccessIndicatorView alloc] init];
                 HUD.textLabel.text = @"Success!";
                 
-                [HUD dismissAfterDelay:0.3f];
+                [HUD dismissAfterDelay:1.f];
                 
                 // save user
                 User *user = [[User alloc] initWithDictionary:responseObject[@"data"] error:nil];
@@ -799,11 +799,48 @@ static int const EMAIL_FIELD = 206;
     [self presentViewController:picker animated:YES completion:nil];
 }
 - (void)chooseFromLibraryForProfilePicture:(id)sender {
-    UIImagePickerController *picker = [[UIImagePickerController alloc] init];
-    picker.delegate = self;
-    picker.allowsEditing = NO;
-    picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
-    [self presentViewController:picker animated:YES completion:nil];
+    [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
+        switch (status) {
+            case PHAuthorizationStatusAuthorized: {
+                NSLog(@"PHAuthorizationStatusAuthorized");
+                
+                UIImagePickerController *picker = [[UIImagePickerController alloc] init];
+                picker.delegate = self;
+                picker.allowsEditing = NO;
+                picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [[Launcher topMostViewController] presentViewController:picker animated:YES completion:nil];
+                });
+                
+                break;
+            }
+            case PHAuthorizationStatusDenied:
+            case PHAuthorizationStatusNotDetermined:
+            {
+                NSLog(@"PHAuthorizationStatusDenied");
+                // confirm action
+                UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"Allow Bonfire to access your phtoos" message:@"To allow Bonfire to access your photos, go to Settings > Privacy > Set Bonfire to ON" preferredStyle:UIAlertControllerStyleAlert];
+
+                UIAlertAction *openSettingsAction = [UIAlertAction actionWithTitle:@"Open Settings" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString] options:@{} completionHandler:nil];
+                }];
+                [actionSheet addAction:openSettingsAction];
+                
+                UIAlertAction *closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleCancel handler:nil];
+                [actionSheet addAction:closeAction];
+                
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [[Launcher topMostViewController] presentViewController:actionSheet animated:YES completion:nil];
+                });
+                
+                break;
+            }
+            case PHAuthorizationStatusRestricted: {
+                NSLog(@"PHAuthorizationStatusRestricted");
+                break;
+            }
+        }
+    }];
 }
 
 // Crop image has been canceled.

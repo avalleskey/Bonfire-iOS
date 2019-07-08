@@ -79,18 +79,14 @@ static Session *session;
     // only fetch new defaults if logged in
     if ([session getAccessTokenWithVerification:true] != nil && session.currentUser.identifier != nil) {
         // get new defaults!!
-        NSLog(@"get new defaullltss");
         NSString *url = @"clients/defaults.json";
         [[HAWebService authenticatedManager] GET:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
             NSError *error;
-            NSLog(@"response object: %@", responseObject);
             
             Defaults *newDefaults = [[Defaults alloc] initWithDictionary:responseObject error:&error];
             
-            NSLog(@"error: %@", error);
-            
             if (!error) {
-                NSLog(@"set new defaults because there weren't any errors");
+                // NSLog(@"set new defaults because there weren't any errors");
                 session.defaults = newDefaults;
                 
                 // save to local file
@@ -105,9 +101,6 @@ static Session *session;
             NSLog(@"errorResponse: %@", ErrorResponse);
             NSLog(@"---------");
         }];
-    }
-    else {
-        NSLog(@"don't init defaults");
     }
 }
 - (void)updateDefaultsJSON:(NSDictionary *)json {
@@ -135,18 +128,16 @@ static Session *session;
         }];
     }
     else {
-        NSLog(@"sync device token didn't qualify");
+        // NSLog(@"No need to update device token");
     }
 }
 
 // User
 - (void)updateUser:(User *)newUser {
-    NSLog(@"updateUser: %@", newUser);
     [[NSUserDefaults standardUserDefaults] setObject:[newUser toJSONData] forKey:@"user"];
     
     session.currentUser = newUser;
     
-    NSLog(@"session.currentUser: %@", session.currentUser);
     [[NSNotificationCenter defaultCenter] postNotificationName:@"UserUpdated" object:newUser];
 }
 
@@ -238,7 +229,7 @@ static Session *session;
     NSString *version = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
     [authTokenWithAppVersion setValue:version forKey:@"app_version"];
     
-    NSLog(@"set access token: %@", accessToken);
+    NSLog(@"🆕🔑 New access token : %@ (called via setAccessToken in Session.m)", accessToken);
     
     [Lockbox archiveObject:authTokenWithAppVersion forKey:@"access_token"];
 }
@@ -334,7 +325,6 @@ static Session *session;
     
     // load cache of user
     if (accessToken != nil) {
-        NSLog(@"access token: %@", accessToken[@"attributes"][@"access_token"]);
         handler(TRUE, accessToken[@"attributes"][@"access_token"]);
     }
     else {
@@ -350,15 +340,14 @@ static Session *session;
     
     NSDate *tokenExpiration = [formatter dateFromString:token[@"attributes"][@"expires_at"]];
     
-    NSCalendar *gregorian = [[NSCalendar alloc]
-                             initWithCalendarIdentifier:NSCalendarIdentifierGregorian];
-    NSDateComponents *comps = [gregorian components: NSCalendarUnitMinute
-                                           fromDate: [NSDate date]
-                                             toDate: tokenExpiration
-                                            options: 0];    
-    NSLog(@"minutes until token expiration:: %ld", (long)[comps minute]);
-    
-    NSLog(@"token app version: %@", token[@"app_version"]);
+//    NSCalendar *gregorian = [[NSCalendar alloc]
+//                             initWithCalendarIdentifier:NSCalendarIdentifierGregorian];
+//    NSDateComponents *comps = [gregorian components: NSCalendarUnitMinute
+//                                           fromDate: [NSDate date]
+//                                             toDate: tokenExpiration
+//                                            options: 0];
+//     NSLog(@"minutes until token expiration:: %ld", (long)[comps minute]);
+//     NSLog(@"token app version: %@", token[@"app_version"]);
     
     NSString *version = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
     if ([now compare:tokenExpiration] == NSOrderedDescending || ![token[@"app_version"] isEqualToString:version]) {
@@ -366,7 +355,7 @@ static Session *session;
         token = nil;
         
         if (![token[@"app_version"] isEqualToString:version]) {
-            NSLog(@"app version has changed (%@ -> %@)", token[@"app_version"], version);
+            // NSLog(@"app version has changed (%@ -> %@)", token[@"app_version"], version);
         }
     }
     
@@ -374,34 +363,30 @@ static Session *session;
 }
 
 - (void)getNewAccessToken:(void (^)(BOOL success, NSString *newToken))handler {
-    NSLog(@"->> getNewAccessToken");
+    NSLog(@"🆕🔑 getNewAccessToken:");
     
     // GET NEW ACCESS TOKEN
     NSDictionary *currentAccessToken = [[Session sharedInstance] getAccessTokenWithVerification:YES];
     if (currentAccessToken) {
         // access token is already valid -- must have already been refreshed
-        NSLog(@"access token is already valid! must have already been refreshed");
-        
         handler(true, currentAccessToken[@"attributes"][@"access_token"]);
     }
     else if ([[Session sharedInstance] refreshToken] != nil) {
         // has a seemingly valid refresh token, so we should attempt
         
         if (self.refreshTokenDispatchGroup) {
-            NSLog(@"already refreshing....");
-            
-            NSLog(@"please hold ??");
+            // NSLog(@"already refreshing....");
             dispatch_group_notify(self.refreshTokenDispatchGroup, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
-                NSLog(@"all requests finished!");
-                NSLog(@"done refreshing and the verdict is.....");
+                // NSLog(@"all requests finished!");
+                // NSLog(@"done refreshing and the verdict is.....");
                 NSDictionary *accessToken = [[Session sharedInstance] getAccessTokenWithVerification:true];
                 if (accessToken == nil) {
                     // original effort failed to get a new access token
-                    NSLog(@"original effort failed");
+                    // NSLog(@"original effort failed");
                     handler(false, nil);
                 }
                 else {
-                    NSLog(@"original effort SUCCEEDED WOOOOOO");
+                    // NSLog(@"original effort SUCCEEDED WOOOOOO");
                     handler(true, accessToken[@"attributes"][@"access_token"]);
                 }
             });
@@ -417,7 +402,7 @@ static Session *session;
             
             NSDictionary *params = @{@"grant_type": @"refresh_token", @"refresh_token": [[Session sharedInstance] refreshToken]};
             
-            NSLog(@"params: %@", params);
+            // NSLog(@"params: %@", params);
             [refreshTokenManager POST:@"oauth" parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable accessTokenResponse) {
                 NSLog(@"--------");
                 NSLog(@"success: getNewAccessToken");

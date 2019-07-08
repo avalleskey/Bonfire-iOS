@@ -37,8 +37,8 @@ target 'Pulse' do
   
   # analytics
   pod 'Firebase/Core'
-  pod 'Firebase/Performance'
-  pod 'Fabric', '~> 1.9.0'
+  pod 'Firebase/MLNLSmartReply'
+  
   pod 'Crashlytics', '~> 3.12.0'
   
   target 'PulseTests' do

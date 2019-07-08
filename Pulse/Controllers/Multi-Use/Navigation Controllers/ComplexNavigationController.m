@@ -25,7 +25,7 @@
 #import "OnboardingViewController.h"
 #import "EditProfileViewController.h"
 #import "DiscoverViewController.h"
-#import "FeedViewController.h"
+#import "HomeViewController.h"
 #import <UIImageView+WebCache.h>
 #import "UIColor+Palette.h"
 #import "UINavigationItem+Margin.h"
@@ -328,9 +328,7 @@
     }];
 }*/
 
-- (void)updateBarColor:(id)background animated:(BOOL)animated {
-    NSLog(@"update bar color:: animated? %@", animated ? @"YES" : @"NO");
-    
+- (void)updateBarColor:(id)background animated:(BOOL)animated {    
     if ([background isKindOfClass:[NSString class]]) {
         background = [UIColor fromHex:background];
     }
@@ -480,7 +478,7 @@
         }
     }
     else if ([self.topViewController isKindOfClass:[PostViewController class]]) {
-        [self setRightAction:LNActionTypeMore];
+        [self setRightAction:LNActionTypeNone];
     }
     else if ([self.topViewController isKindOfClass:[CampMembersViewController class]]) {
         [self setRightAction:LNActionTypeNone];

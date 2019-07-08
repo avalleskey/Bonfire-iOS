@@ -12,12 +12,15 @@
 #import "ProfilePictureCell.h"
 #import "InputCell.h"
 #import "ToggleCell.h"
+#import "ButtonCell.h"
 #import "AppDelegate.h"
 #import "HAWebService.h"
 #import "UIColor+Palette.h"
 #import "Launcher.h"
 #import "NSString+Validation.h"
 #import <NSString+EMOEmoji.h>
+#import "BFHeaderView.h"
+#import "ManageIcebreakersViewController.h"
 
 #import <RSKImageCropper/RSKImageCropper.h>
 #import <BlocksKit/BlocksKit.h>
@@ -45,6 +48,7 @@ static NSString * const profilePictureReuseIdentifier = @"ProfilePictureCell";
 static NSString * const themeSelectorReuseIdentifier = @"ThemeSelectorCell";
 static NSString * const inputReuseIdentifier = @"InputCell";
 static NSString * const toggleReuseIdentifier = @"ToggleCell";
+static NSString * const buttonReuseIdentifier = @"ButtonCell";
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -89,6 +93,7 @@ static NSString * const toggleReuseIdentifier = @"ToggleCell";
     [self.tableView registerClass:[ThemeSelectorCell class] forCellReuseIdentifier:themeSelectorReuseIdentifier];
     [self.tableView registerClass:[InputCell class] forCellReuseIdentifier:inputReuseIdentifier];
     [self.tableView registerClass:[ToggleCell class] forCellReuseIdentifier:toggleReuseIdentifier];
+    [self.tableView registerClass:[ButtonCell class] forCellReuseIdentifier:buttonReuseIdentifier];
     
     campDescription = self.camp.attributes.details.theDescription;
     
@@ -337,7 +342,7 @@ static NSString * const toggleReuseIdentifier = @"ToggleCell";
         }
     }
     
-    ToggleCell *visibilityCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:1]];
+    ToggleCell *visibilityCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:5 inSection:0]];
     BOOL isPrivate = visibilityCell.toggle.on;
     
     if (isPrivate != self.camp.attributes.status.visibility.isPrivate) {
@@ -365,7 +370,14 @@ static NSString * const toggleReuseIdentifier = @"ToggleCell";
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return section == 0 ? 5 : 1;
+    switch (section) {
+        case 0:
+            return 6;
+        case 1:
+            return 1;
+    }
+    
+    return 0;
 }
 
 - (void)dismiss:(id)sender {
@@ -439,37 +451,52 @@ static NSString * const toggleReuseIdentifier = @"ToggleCell";
             
             return cell;
         }
+        else if (indexPath.row == 5) {
+            ToggleCell *cell = [tableView dequeueReusableCellWithIdentifier:toggleReuseIdentifier forIndexPath:indexPath];
+            
+            // Configure the cell...
+            cell.textLabel.text = @"Private Camp";
+            cell.toggle.on = self.camp.attributes.status.visibility.isPrivate;
+            
+            if (cell.toggle.tag == 0) {
+                cell.toggle.tag = 1;
+                [cell.toggle bk_addEventHandler:^(id sender) {
+                    if (!cell.toggle.isOn && self.camp.attributes.status.visibility.isPrivate) {
+                        NSLog(@"toggle is now on");
+                        // confirm action
+                        UIAlertController *confirmActionSheet = [UIAlertController alertControllerWithTitle:@"Change Privacy?" message:@"When your Camp is public, everyone can see content posted inside your Camp. Also, any pending member requests will be automatically approved once you save." preferredStyle:UIAlertControllerStyleAlert];
+                        confirmActionSheet.view.tintColor = self.themeColor;
+                        
+                        UIAlertAction *cancelActionSheet = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                            [cell.toggle setOn:true animated:YES];
+                        }];
+                        [confirmActionSheet addAction:cancelActionSheet];
+                        
+                        UIAlertAction *confirmAction = [UIAlertAction actionWithTitle:@"Confirm" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                            
+                        }];
+                        [confirmActionSheet addAction:confirmAction];
+                        
+                        [self.navigationController presentViewController:confirmActionSheet animated:YES completion:nil];
+                    }
+                } forControlEvents:UIControlEventValueChanged];
+            }
+            
+            return cell;
+        }
     }
     else if (indexPath.section == 1) {
-        ToggleCell *cell = [tableView dequeueReusableCellWithIdentifier:toggleReuseIdentifier forIndexPath:indexPath];
+        ButtonCell *cell = [tableView dequeueReusableCellWithIdentifier:buttonReuseIdentifier forIndexPath:indexPath];
+        
+        if (cell == nil) {
+            cell = [[ButtonCell alloc] initWithStyle:UITableViewCellStyleValue2 reuseIdentifier:buttonReuseIdentifier];
+        }
+        
+        cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
         
         // Configure the cell...
-        cell.textLabel.text = @"Private Camp";
-        cell.toggle.on = self.camp.attributes.status.visibility.isPrivate;
-        
-        if (cell.toggle.tag == 0) {
-            cell.toggle.tag = 1;
-            [cell.toggle bk_addEventHandler:^(id sender) {
-                if (!cell.toggle.isOn && self.camp.attributes.status.visibility.isPrivate) {
-                    NSLog(@"toggle is now on");
-                    // confirm action
-                    UIAlertController *confirmActionSheet = [UIAlertController alertControllerWithTitle:@"Change Privacy?" message:@"When your Camp is public, everyone can see content posted inside your Camp. Also, any pending member requests will be automatically approved once you save." preferredStyle:UIAlertControllerStyleAlert];
-                    confirmActionSheet.view.tintColor = self.themeColor;
-                    
-                    UIAlertAction *cancelActionSheet = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-                        [cell.toggle setOn:true animated:YES];
-                    }];
-                    [confirmActionSheet addAction:cancelActionSheet];
-                    
-                    UIAlertAction *confirmAction = [UIAlertAction actionWithTitle:@"Confirm" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-                        
-                    }];
-                    [confirmActionSheet addAction:confirmAction];
-                    
-                    [self.navigationController presentViewController:confirmActionSheet animated:YES completion:nil];
-                }
-            } forControlEvents:UIControlEventValueChanged];
-        }
+        cell.buttonLabel.text = @"Manage Icebreaker";
+        cell.buttonLabel.textColor = cell.kButtonColorDefault;
         
         return cell;
     }
@@ -535,7 +562,7 @@ static NSString * const toggleReuseIdentifier = @"ToggleCell";
             return 148;
         }
         else if (indexPath.row == 1 || indexPath.row == 2) {
-            return 48;
+            return 52;
         }
         else if (indexPath.row == 3) {
             // profile bio -- auto resizing
@@ -556,9 +583,14 @@ static NSString * const toggleReuseIdentifier = @"ToggleCell";
         else if (indexPath.row == 4) {
             return 98;
         }
+        else if (indexPath.row == 5) {
+            return 52;
+        }
     }
     else if (indexPath.section == 1) {
-        return 48;
+        if (indexPath.row == 0) {
+            return 52;
+        }
     }
     
     return 0;
@@ -566,7 +598,7 @@ static NSString * const toggleReuseIdentifier = @"ToggleCell";
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
     if (section == 1) {
-        return 32;
+        return 30;
     }
     
     return 0;
@@ -575,7 +607,7 @@ static NSString * const toggleReuseIdentifier = @"ToggleCell";
     return nil;
 }
 - (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
-    if (section == 1) {
+    if (section == 0) {
         CGSize labelSize = [CAMP_PRIVATE_DESCRIPTION boundingRectWithSize:CGSizeMake(self.view.frame.size.width - 24, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:12.f weight:UIFontWeightRegular]} context:nil].size;
         
         return labelSize.height + (12 * 2); // 24 padding on top and bottom
@@ -584,7 +616,7 @@ static NSString * const toggleReuseIdentifier = @"ToggleCell";
     return CGFLOAT_MIN;
 }
 - (UIView *)tableView:(UITableView *)tableView viewForFooterInSection:(NSInteger)section {
-    if (section == 1) {
+    if (section == 0) {
         UIView *footer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 90)];
         
         UILabel *descriptionLabel = [[UILabel alloc] initWithFrame:CGRectMake(12, 12, footer.frame.size.width - 24, 42)];
@@ -614,10 +646,28 @@ static NSString * const toggleReuseIdentifier = @"ToggleCell";
             [self showImagePicker];
         }
     }
+    else if (indexPath.section == 1) {
+        if (indexPath.row == 0) {
+            ManageIcebreakersViewController *mibvc = [[ManageIcebreakersViewController alloc] initWithStyle:UITableViewStyleGrouped];
+            mibvc.view.tintColor = self.themeColor;
+            mibvc.camp = self.camp;
+
+            ComplexNavigationController *newLauncher = [[ComplexNavigationController alloc] initWithRootViewController:mibvc];
+            newLauncher.searchView.textField.text = @"Icebreaker";
+            [newLauncher.searchView hideSearchIcon:false];
+            newLauncher.transitioningDelegate = [Launcher sharedInstance];
+            
+            [newLauncher updateBarColor:self.themeColor animated:false];
+            
+            [Launcher push:newLauncher animated:YES];
+            
+            [newLauncher updateNavigationBarItemsWithAnimation:NO];
+        }
+    }
 }
 
 - (void)showImagePicker {
-    UIAlertController *imagePickerOptions = [UIAlertController alertControllerWithTitle:@"Set Profile Photo" message:nil preferredStyle:UIAlertControllerStyleActionSheet];
+    UIAlertController *imagePickerOptions = [UIAlertController alertControllerWithTitle:@"Set Camp Photo" message:nil preferredStyle:UIAlertControllerStyleActionSheet];
     
     UIAlertAction *takePhoto = [UIAlertAction actionWithTitle:@"Take Photo" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         [self takePhotoForProfilePicture:nil];
@@ -645,11 +695,48 @@ static NSString * const toggleReuseIdentifier = @"ToggleCell";
     [self presentViewController:picker animated:YES completion:nil];
 }
 - (void)chooseFromLibraryForProfilePicture:(id)sender {
-    UIImagePickerController *picker = [[UIImagePickerController alloc] init];
-    picker.delegate = self;
-    picker.allowsEditing = NO;
-    picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
-    [self presentViewController:picker animated:YES completion:nil];
+    [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
+        switch (status) {
+            case PHAuthorizationStatusAuthorized: {
+                NSLog(@"PHAuthorizationStatusAuthorized");
+                
+                UIImagePickerController *picker = [[UIImagePickerController alloc] init];
+                picker.delegate = self;
+                picker.allowsEditing = NO;
+                picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [[Launcher topMostViewController] presentViewController:picker animated:YES completion:nil];
+                });
+                
+                break;
+            }
+            case PHAuthorizationStatusDenied:
+            case PHAuthorizationStatusNotDetermined:
+            {
+                NSLog(@"PHAuthorizationStatusDenied");
+                // confirm action
+                UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"Allow Bonfire to access your phtoos" message:@"To allow Bonfire to access your photos, go to Settings > Privacy > Set Bonfire to ON" preferredStyle:UIAlertControllerStyleAlert];
+
+                UIAlertAction *openSettingsAction = [UIAlertAction actionWithTitle:@"Open Settings" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString] options:@{} completionHandler:nil];
+                }];
+                [actionSheet addAction:openSettingsAction];
+                
+                UIAlertAction *closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleCancel handler:nil];
+                [actionSheet addAction:closeAction];
+                
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [[Launcher topMostViewController] presentViewController:actionSheet animated:YES completion:nil];
+                });
+                
+                break;
+            }
+            case PHAuthorizationStatusRestricted: {
+                NSLog(@"PHAuthorizationStatusRestricted");
+                break;
+            }
+        }
+    }];
 }
 
 // Crop image has been canceled.

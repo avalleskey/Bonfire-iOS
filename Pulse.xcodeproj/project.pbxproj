@@ -96,6 +96,9 @@
 		D95EE37C2295A491006E4D8E /* BFHeaderView.m in Sources */ = {isa = PBXBuildFile; fileRef = D95EE37B2295A491006E4D8E /* BFHeaderView.m */; };
 		D95EE38D229C47CE006E4D8E /* BFNotificationView.m in Sources */ = {isa = PBXBuildFile; fileRef = D95EE389229C47CE006E4D8E /* BFNotificationView.m */; };
 		D95EE38E229C47CE006E4D8E /* BFNotificationManager.m in Sources */ = {isa = PBXBuildFile; fileRef = D95EE38B229C47CE006E4D8E /* BFNotificationManager.m */; };
+		D9679E4A22CAA67200253CCA /* ManageIcebreakersViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9679E4922CAA67200253CCA /* ManageIcebreakersViewController.m */; };
+		D9679E4E22CBDD8000253CCA /* SetAnIcebreakerViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9679E4D22CBDD8000253CCA /* SetAnIcebreakerViewController.m */; };
+		D9684D2522C402BE0035DEF8 /* AddReplyCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D9684D2422C402BE0035DEF8 /* AddReplyCell.m */; };
 		D96A06EE223CBED100406C81 /* HelloViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D96A06ED223CBED100406C81 /* HelloViewController.m */; };
 		D96A06F12241E45E00406C81 /* ComposeTextViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D96A06F02241E45E00406C81 /* ComposeTextViewCell.m */; };
 		D96AD7922180DA3D00849F6B /* EditProfileViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D96AD7912180DA3D00849F6B /* EditProfileViewController.m */; };
@@ -144,7 +147,7 @@
 		D9C0393E215A9D8600B30A41 /* SOLBaseTransitionAnimator.m in Sources */ = {isa = PBXBuildFile; fileRef = D9C0393C215A9D8500B30A41 /* SOLBaseTransitionAnimator.m */; };
 		D9C03941215AD4AC00B30A41 /* ComposeInputView.m in Sources */ = {isa = PBXBuildFile; fileRef = D9C03940215AD4AC00B30A41 /* ComposeInputView.m */; };
 		D9C03944215D6F1900B30A41 /* ComplexNavigationController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9C03943215D6F1900B30A41 /* ComplexNavigationController.m */; };
-		D9C0394D215DF17000B30A41 /* FeedViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9C0394C215DF17000B30A41 /* FeedViewController.m */; };
+		D9C0394D215DF17000B30A41 /* HomeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9C0394C215DF17000B30A41 /* HomeViewController.m */; };
 		D9C8B558219F5A3600A9A282 /* TabController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9C8B557219F5A3600A9A282 /* TabController.m */; };
 		D9C8B55B219F5BAB00A9A282 /* TabBar.m in Sources */ = {isa = PBXBuildFile; fileRef = D9C8B559219F5BAA00A9A282 /* TabBar.m */; };
 		D9C8B55E219F5D3300A9A282 /* Launcher.m in Sources */ = {isa = PBXBuildFile; fileRef = D9C8B55D219F5D3300A9A282 /* Launcher.m */; };
@@ -188,7 +191,6 @@
 		D9FFFB61227E5E08004E3779 /* KSPhotoItem.m in Sources */ = {isa = PBXBuildFile; fileRef = D9FFFB59227E5E08004E3779 /* KSPhotoItem.m */; };
 		D9FFFB62227E5E08004E3779 /* KSProgressLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = D9FFFB5A227E5E08004E3779 /* KSProgressLayer.m */; };
 		D9FFFB63227E5E08004E3779 /* KSPhotoBrowser.m in Sources */ = {isa = PBXBuildFile; fileRef = D9FFFB5D227E5E08004E3779 /* KSPhotoBrowser.m */; };
-		D9FFFB67227F4B13004E3779 /* UIImageView+Details.m in Sources */ = {isa = PBXBuildFile; fileRef = D9FFFB66227F4B13004E3779 /* UIImageView+Details.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -381,6 +383,12 @@
 		D95EE38A229C47CE006E4D8E /* BFNotificationManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BFNotificationManager.h; sourceTree = "<group>"; };
 		D95EE38B229C47CE006E4D8E /* BFNotificationManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BFNotificationManager.m; sourceTree = "<group>"; };
 		D95EE38C229C47CE006E4D8E /* BFNotificationView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BFNotificationView.h; sourceTree = "<group>"; };
+		D9679E4822CAA67200253CCA /* ManageIcebreakersViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ManageIcebreakersViewController.h; sourceTree = "<group>"; };
+		D9679E4922CAA67200253CCA /* ManageIcebreakersViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ManageIcebreakersViewController.m; sourceTree = "<group>"; };
+		D9679E4C22CBDD8000253CCA /* SetAnIcebreakerViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SetAnIcebreakerViewController.h; sourceTree = "<group>"; };
+		D9679E4D22CBDD8000253CCA /* SetAnIcebreakerViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SetAnIcebreakerViewController.m; sourceTree = "<group>"; };
+		D9684D2322C402BE0035DEF8 /* AddReplyCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AddReplyCell.h; sourceTree = "<group>"; };
+		D9684D2422C402BE0035DEF8 /* AddReplyCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AddReplyCell.m; sourceTree = "<group>"; };
 		D96A06EC223CBED100406C81 /* HelloViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HelloViewController.h; sourceTree = "<group>"; };
 		D96A06ED223CBED100406C81 /* HelloViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HelloViewController.m; sourceTree = "<group>"; };
 		D96A06EF2241E45E00406C81 /* ComposeTextViewCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ComposeTextViewCell.h; sourceTree = "<group>"; };
@@ -476,8 +484,8 @@
 		D9C03940215AD4AC00B30A41 /* ComposeInputView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ComposeInputView.m; sourceTree = "<group>"; };
 		D9C03942215D6F1900B30A41 /* ComplexNavigationController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ComplexNavigationController.h; sourceTree = "<group>"; };
 		D9C03943215D6F1900B30A41 /* ComplexNavigationController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ComplexNavigationController.m; sourceTree = "<group>"; };
-		D9C0394B215DF17000B30A41 /* FeedViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FeedViewController.h; sourceTree = "<group>"; };
-		D9C0394C215DF17000B30A41 /* FeedViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FeedViewController.m; sourceTree = "<group>"; };
+		D9C0394B215DF17000B30A41 /* HomeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HomeViewController.h; sourceTree = "<group>"; };
+		D9C0394C215DF17000B30A41 /* HomeViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = HomeViewController.m; sourceTree = "<group>"; };
 		D9C8B556219F5A3600A9A282 /* TabController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TabController.h; sourceTree = "<group>"; };
 		D9C8B557219F5A3600A9A282 /* TabController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TabController.m; sourceTree = "<group>"; };
 		D9C8B559219F5BAA00A9A282 /* TabBar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TabBar.m; sourceTree = "<group>"; };
@@ -561,8 +569,6 @@
 		D9FFFB5B227E5E08004E3779 /* UIImage+KS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+KS.h"; sourceTree = "<group>"; };
 		D9FFFB5C227E5E08004E3779 /* KSProgressLayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KSProgressLayer.h; sourceTree = "<group>"; };
 		D9FFFB5D227E5E08004E3779 /* KSPhotoBrowser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KSPhotoBrowser.m; sourceTree = "<group>"; };
-		D9FFFB65227F4B13004E3779 /* UIImageView+Details.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "UIImageView+Details.h"; sourceTree = "<group>"; };
-		D9FFFB66227F4B13004E3779 /* UIImageView+Details.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "UIImageView+Details.m"; sourceTree = "<group>"; };
 		EF9235BB2365A4834AE9B3E5 /* libPods-PulseTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-PulseTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -654,6 +660,7 @@
 		D907B07F214EEC5000A59712 /* Pulse */ = {
 			isa = PBXGroup;
 			children = (
+				D96C1FAB22D18E6A000DAF99 /* Styles */,
 				D9B2D57221ACAEBE007B3C0C /* Pulse.entitlements */,
 				D907B089214EEC5300A59712 /* Assets.xcassets */,
 				D971624221DC7D9700138BF9 /* Pulse-Prefix.pch */,
@@ -741,22 +748,23 @@
 			path = "HTTP Session Manager";
 			sourceTree = "<group>";
 		};
-		D9133B4E2266528C00B5D65C /* Edit Room */ = {
+		D9133B4E2266528C00B5D65C /* Edit Camp */ = {
 			isa = PBXGroup;
 			children = (
 				D9824234219CAA0C003626DA /* EditCampViewController.h */,
 				D9824235219CAA0D003626DA /* EditCampViewController.m */,
+				D9679E4B22CAA67800253CCA /* Manage Icebreakers */,
 			);
-			path = "Edit Room";
+			path = "Edit Camp";
 			sourceTree = "<group>";
 		};
-		D9133B4F2266529300B5D65C /* Create Room */ = {
+		D9133B4F2266529300B5D65C /* Create Camp */ = {
 			isa = PBXGroup;
 			children = (
 				D94FD19621685D6000B84E45 /* CreateCampViewController.h */,
 				D94FD19721685D6000B84E45 /* CreateCampViewController.m */,
 			);
-			path = "Create Room";
+			path = "Create Camp";
 			sourceTree = "<group>";
 		};
 		D9133B562267EBDB00B5D65C /* KTCenterFlowLayout */ = {
@@ -965,6 +973,17 @@
 			path = "In App Notifications";
 			sourceTree = "<group>";
 		};
+		D9679E4B22CAA67800253CCA /* Manage Icebreakers */ = {
+			isa = PBXGroup;
+			children = (
+				D9679E4C22CBDD8000253CCA /* SetAnIcebreakerViewController.h */,
+				D9679E4D22CBDD8000253CCA /* SetAnIcebreakerViewController.m */,
+				D9679E4822CAA67200253CCA /* ManageIcebreakersViewController.h */,
+				D9679E4922CAA67200253CCA /* ManageIcebreakersViewController.m */,
+			);
+			path = "Manage Icebreakers";
+			sourceTree = "<group>";
+		};
 		D96AD7932181028100849F6B /* Edit Profile */ = {
 			isa = PBXGroup;
 			children = (
@@ -980,6 +999,22 @@
 				D96AD79E218102C100849F6B /* ButtonCell.m */,
 			);
 			path = "Edit Profile";
+			sourceTree = "<group>";
+		};
+		D96C1FAA22D131C1000DAF99 /* Home */ = {
+			isa = PBXGroup;
+			children = (
+				D9C0394B215DF17000B30A41 /* HomeViewController.h */,
+				D9C0394C215DF17000B30A41 /* HomeViewController.m */,
+			);
+			path = Home;
+			sourceTree = "<group>";
+		};
+		D96C1FAB22D18E6A000DAF99 /* Styles */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Styles;
 			sourceTree = "<group>";
 		};
 		D971623E21DC3D3E00138BF9 /* Insights */ = {
@@ -1011,6 +1046,8 @@
 		D974B74221614B6D00C03269 /* Post */ = {
 			isa = PBXGroup;
 			children = (
+				D9684D2322C402BE0035DEF8 /* AddReplyCell.h */,
+				D9684D2422C402BE0035DEF8 /* AddReplyCell.m */,
 				D9AE329C220A3F6000334340 /* PostCell.h */,
 				D9AE329B220A3F6000334340 /* PostCell.m */,
 				D9504D31221F59AB00DD35B0 /* StreamPostCell.h */,
@@ -1049,8 +1086,8 @@
 				D902CD4D21993D390088F479 /* CampViewController.h */,
 				D902CD4E21993D390088F479 /* CampViewController.m */,
 				D912BD6F222C744D00F9F4EC /* Room Members */,
-				D9133B4E2266528C00B5D65C /* Edit Room */,
-				D9133B4F2266529300B5D65C /* Create Room */,
+				D9133B4E2266528C00B5D65C /* Edit Camp */,
+				D9133B4F2266529300B5D65C /* Create Camp */,
 			);
 			path = Camp;
 			sourceTree = "<group>";
@@ -1067,8 +1104,6 @@
 		D974B74621614BDA00C03269 /* Feed */ = {
 			isa = PBXGroup;
 			children = (
-				D9C0394B215DF17000B30A41 /* FeedViewController.h */,
-				D9C0394C215DF17000B30A41 /* FeedViewController.m */,
 			);
 			path = Feed;
 			sourceTree = "<group>";
@@ -1180,6 +1215,7 @@
 		D9C8B57121A5F15E00A9A282 /* Controllers */ = {
 			isa = PBXGroup;
 			children = (
+				D96C1FAA22D131C1000DAF99 /* Home */,
 				D95EE388229C47CE006E4D8E /* In App Notifications */,
 				D95EE383229A02DA006E4D8E /* Tab Controller */,
 				D9267C5E21D6ABAC00E21862 /* SmartListTableViewController.h */,
@@ -1424,8 +1460,8 @@
 		D9E8E87D21C2010000DDFEBA /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
-				D9FFFB47227BE2BC004E3779 /* BFMacros.h */,
 				D971623E21DC3D3E00138BF9 /* Insights */,
+				D9FFFB47227BE2BC004E3779 /* BFMacros.h */,
 				D907B1032150697400A59712 /* NSArray+Clean.h */,
 				D907B1012150697300A59712 /* NSArray+Clean.m */,
 				D907B1002150697300A59712 /* NSDictionary+Clean.h */,
@@ -1447,8 +1483,6 @@
 				D9A7A2BA2263E7FB0091B53C /* BFMedia.m */,
 				D9FFFB4E227DFC4E004E3779 /* UIImage+WithColor.h */,
 				D9FFFB4F227DFC4E004E3779 /* UIImage+WithColor.m */,
-				D9FFFB65227F4B13004E3779 /* UIImageView+Details.h */,
-				D9FFFB66227F4B13004E3779 /* UIImageView+Details.m */,
 				D98FD21F22B016C100F1D947 /* UIImage+fixOrientation.h */,
 				D98FD22022B016C100F1D947 /* UIImage+fixOrientation.m */,
 			);
@@ -1568,6 +1602,9 @@
 							com.apple.BackgroundModes = {
 								enabled = 1;
 							};
+							com.apple.Multipath = {
+								enabled = 0;
+							};
 							com.apple.Push = {
 								enabled = 1;
 							};
@@ -1658,11 +1695,13 @@
 			);
 			inputPaths = (
 				"${SRCROOT}/Pods/Target Support Files/Pods-Pulse/Pods-Pulse-resources.sh",
+				"${PODS_CONFIGURATION_BUILD_DIR}/FirebaseMLNLSmartReply/PredictOnDeviceResource.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/JGProgressHUD/JGProgressHUD.bundle",
 				"${PODS_ROOT}/RSKImageCropper/RSKImageCropper/RSKImageCropperStrings.bundle",
 			);
 			name = "[CP] Copy Pods Resources";
 			outputPaths = (
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/PredictOnDeviceResource.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/JGProgressHUD.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/RSKImageCropperStrings.bundle",
 			);
@@ -1750,7 +1789,6 @@
 				D9D9B18221CC494100B5003B /* MediumCampCardCell.m in Sources */,
 				D94FD19821685D6000B84E45 /* CreateCampViewController.m in Sources */,
 				D907B0FF215068BD00A59712 /* HAWebService.m in Sources */,
-				D9FFFB67227F4B13004E3779 /* UIImageView+Details.m in Sources */,
 				D907B0FC215068A900A59712 /* Session.m in Sources */,
 				D94FD1ED216D730300B84E45 /* CampDetails.m in Sources */,
 				D9D9B18821CECF0300B5003B /* MiniAvatarCell.m in Sources */,
@@ -1812,6 +1850,7 @@
 				D95EE38E229C47CE006E4D8E /* BFNotificationManager.m in Sources */,
 				D9133B522267C2D500B5D65C /* BFDetailsCollectionView.m in Sources */,
 				D921171121A6162500853F3F /* InviteFriendHeaderCell.m in Sources */,
+				D9679E4E22CBDD8000253CCA /* SetAnIcebreakerViewController.m in Sources */,
 				D9D9B18E21CF1BE700B5003B /* LargeCampCardCell.m in Sources */,
 				D94FD207216D730300B84E45 /* UserDetails.m in Sources */,
 				D9BD77172177DD1F00DAB9BE /* Defaults.m in Sources */,
@@ -1827,7 +1866,7 @@
 				D94FD1F5216D730300B84E45 /* Camp.m in Sources */,
 				D9164321216678A200523770 /* ProfileHeaderCell.m in Sources */,
 				D9FFFB5E227E5E08004E3779 /* KSSDImageManager.m in Sources */,
-				D9C0394D215DF17000B30A41 /* FeedViewController.m in Sources */,
+				D9C0394D215DF17000B30A41 /* HomeViewController.m in Sources */,
 				D94FD1FE216D730300B84E45 /* Post.m in Sources */,
 				D94F3317221A247A00331ADC /* ExpandThreadCell.m in Sources */,
 				D9164310216407C300523770 /* ProfileViewController.m in Sources */,
@@ -1835,6 +1874,7 @@
 				D9B2D58321B1DACB007B3C0C /* SearchTableViewController.m in Sources */,
 				D9C8B55B219F5BAB00A9A282 /* TabBar.m in Sources */,
 				D983D733216E5A5900F9D201 /* LoadingCell.m in Sources */,
+				D9679E4A22CAA67200253CCA /* ManageIcebreakersViewController.m in Sources */,
 				D9FFFB62227E5E08004E3779 /* KSProgressLayer.m in Sources */,
 				D9A1CC1221E52950006D377C /* PostContextView.m in Sources */,
 				D907B090214EEC5300A59712 /* main.m in Sources */,
@@ -1852,6 +1892,7 @@
 				D9133B552267EBD600B5D65C /* KTCenterFlowLayout.m in Sources */,
 				D907B082214EEC5000A59712 /* AppDelegate.m in Sources */,
 				D96AD799218102A200849F6B /* ThemeSelectorCell.m in Sources */,
+				D9684D2522C402BE0035DEF8 /* AddReplyCell.m in Sources */,
 				D94DE3332199203C00CA3E1F /* SloppySwiper.m in Sources */,
 				D9267C8221DAECED00E21862 /* OpenSourceLibrariesTableViewController.m in Sources */,
 				D93F7F18225904A200450D9E /* BFAlertController.m in Sources */,
@@ -2009,6 +2050,8 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "Ingenious.bonfire$(BUNDLE_ID_SUFFIX)";
+				PRODUCT_NAME = Bonfire;
 				SDKROOT = iphoneos;
 			};
 			name = Debug;
@@ -2061,6 +2104,8 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
+				PRODUCT_BUNDLE_IDENTIFIER = "Ingenious.bonfire$(BUNDLE_ID_SUFFIX)";
+				PRODUCT_NAME = Bonfire;
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -2076,7 +2121,7 @@
 				CODE_SIGN_ENTITLEMENTS = Pulse/Pulse.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 5;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 4WLQG965T9;
 				EXCLUDED_SOURCE_FILE_NAMES = "*.value";
@@ -2112,7 +2157,7 @@
 				CODE_SIGN_ENTITLEMENTS = Pulse/Pulse.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = 4WLQG965T9;
 				EXCLUDED_SOURCE_FILE_NAMES = "*.value";
 				FRAMEWORK_SEARCH_PATHS = (
@@ -2266,6 +2311,8 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
+				PRODUCT_BUNDLE_IDENTIFIER = "Ingenious.bonfire$(BUNDLE_ID_SUFFIX)";
+				PRODUCT_NAME = Bonfire;
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -2281,7 +2328,7 @@
 				CODE_SIGN_ENTITLEMENTS = Pulse/Pulse.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = 4WLQG965T9;
 				EXCLUDED_SOURCE_FILE_NAMES = "*.value";
 				FRAMEWORK_SEARCH_PATHS = (

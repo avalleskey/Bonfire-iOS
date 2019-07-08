@@ -30,6 +30,7 @@
         
         self.textLabel.numberOfLines = 0;
         self.textLabel.lineBreakMode = NSLineBreakByWordWrapping;
+        self.textLabel.backgroundColor = [UIColor clearColor];
         
         self.selectionStyle = UITableViewCellSelectionStyleNone;
         self.accessoryType = UITableViewCellAccessoryNone;
@@ -142,14 +143,14 @@
         self.textLabel.center = CGPointMake(self.textLabel.center.x, self.profilePicture.center.y);
     }
     else if (lineCount == 2) {
-        self.textLabel.frame = CGRectMake(70, 17, textLabelWidth, ceilf(textLabelRect.size.height));
+        self.textLabel.frame = CGRectMake(70, 15, textLabelWidth, ceilf(textLabelRect.size.height));
     }
     else {
         self.textLabel.frame = CGRectMake(70, 12, textLabelWidth, ceilf(textLabelRect.size.height));
     }
     
     if (![self.lineSeparator isHidden]) {
-        self.lineSeparator.frame = CGRectMake(self.textLabel.frame.origin.x, self.frame.size.height - self.lineSeparator.frame.size.height, self.frame.size.width - self.textLabel.frame.origin.x, self.lineSeparator.frame.size.height);
+        self.lineSeparator.frame = CGRectMake(0, self.frame.size.height - self.lineSeparator.frame.size.height, self.frame.size.width, self.lineSeparator.frame.size.height);
     }
 }
 
@@ -272,8 +273,18 @@
     
     CGFloat topPadding = 10;
     
-    CGFloat actionButtonWidth = 0; //(activity.attributes.type == USER_ACTIVITY_TYPE_USER_FOLLOW ? 96 + 6 : 0);
-    CGFloat textLabelWidth = [UIScreen mainScreen].bounds.size.width - 70 - actionButtonWidth - 12; // 36 = action button distance from right
+    BOOL hasImagePreview = false;
+    if (activity.attributes.replyPost &&
+        activity.attributes.replyPost.attributes.details.attachments.media.count > 0) {
+        hasImagePreview = true;
+    }
+    else if (!activity.attributes.replyPost &&
+             activity.attributes.post.attributes.details.attachments.media.count > 0) {
+        hasImagePreview = true;
+    }
+    CGFloat pictureWidth = hasImagePreview ? 44 + 8 : 0;
+    
+    CGFloat textLabelWidth = [UIScreen mainScreen].bounds.size.width - 70 - pictureWidth - 12; // 36 = action button distance from right
     CGRect textLabelRect = [activity.attributes.attributedString boundingRectWithSize:CGSizeMake(textLabelWidth, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) context:nil];
     CGFloat textLabelHeight = textLabelRect.size.height;
     
@@ -286,8 +297,8 @@
         topPadding = 12;
     }
     else {
-        // 18 from top
-        topPadding = 16;
+        // 17 from top
+        topPadding = 17;
     }
     CGFloat bottomPadding = topPadding;
     

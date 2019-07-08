@@ -11,6 +11,8 @@
 #import "PostCell.h"
 #import "Session.h"
 #import "HAWebService.h"
+#import "Launcher.h"
+#import "ErrorCodes.h"
 
 @implementation InsightsLogger
 
@@ -252,44 +254,35 @@ static InsightsLogger *logger;
 - (void)uploadBatches {
     NSMutableArray *queuedBatchesCopy = [[NSMutableArray alloc] initWithArray:logger.queuedBatches];
     for (NSDictionary *batch in logger.queuedBatches) {
-        // simulate a POST request finishing successfully
-        
         // remove object from queued batches to avoid duplicates
         [queuedBatchesCopy removeObject:batch];
         
-        [Session authenticate:^(BOOL success, NSString *token) {
-            HAWebService *insightsManager = [[HAWebService alloc] init];
+        NSDictionary *normalizedBatch = [self normalizeBatch:batch];
+        
+        [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] POST:@"insights/impressions" parameters:@{@"impressions": normalizedBatch} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+            // success
+            NSLog(@"successfully uploaded batch");
+            NSLog(@"response: %@", responseObject);
+            [self sync];
+        } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+            NSLog(@"failed to uploaded insights/impressions batch");
+            NSLog(@"error:");
+            NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+            NSLog(@"%@", ErrorResponse);
             
-            NSLog(@"set up the manager");
+            NSHTTPURLResponse *httpResponse = error.userInfo[AFNetworkingOperationFailingURLResponseErrorKey];
+            NSInteger statusCode = httpResponse.statusCode;
             
-            [insightsManager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
-            insightsManager.requestSerializer.HTTPMethodsEncodingParametersInURI = [NSSet setWithObjects:@"GET", @"HEAD", nil];
-            
-            NSDictionary *normalizedBatch = [self normalizeBatch:batch];
-            [insightsManager POST:@"insights/impressions" parameters:@{@"impressions": normalizedBatch} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                // success
-                NSLog(@"successfully uploaded batch");
-                NSLog(@"response: %@", responseObject);
-                [self sync];
-            } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                NSLog(@"failed to uploaded batch");
-                NSLog(@"error:");
-                NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-                NSLog(@"%@", ErrorResponse);
-                
-                NSHTTPURLResponse *httpResponse = error.userInfo[AFNetworkingOperationFailingURLResponseErrorKey];
-                NSInteger statusCode = httpResponse.statusCode;
-                if (statusCode != 401) {
-                    if (![logger.queuedBatches containsObject:batch]) {
-                        [logger.queuedBatches addObject:batch];
-                        [logger updateQueuedDefaults];
-                    }
-                }
-            }];
+            NSLog(@"status code:: %ld", (long)statusCode);
+            if (statusCode != 401 && statusCode != 0 && ![logger.queuedBatches containsObject:batch]) {
+                [logger.queuedBatches addObject:batch];
+                [logger updateQueuedDefaults];
+            }
         }];
     }
     
     logger.queuedBatches = queuedBatchesCopy;
+    [logger updateQueuedDefaults];
 }
 - (NSDictionary *)normalizeBatch:(NSDictionary *)batch {
     NSMutableDictionary *mutableBatch = [[NSMutableDictionary alloc] init];
@@ -305,7 +298,7 @@ static InsightsLogger *logger;
             if (!timeframe.ts_start || !timeframe.ts_end) continue;
             
             NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
-            [dateFormatter setDateFormat:@"yyyy-MM-dd HH:mm:ss"];
+            [dateFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ssZ"];
             [jsonTimeframe setObject:[dateFormatter stringFromDate:timeframe.ts_start] forKey:@"ts_start"];
             [jsonTimeframe setObject:[dateFormatter stringFromDate:timeframe.ts_end] forKey:@"ts_end"];
             

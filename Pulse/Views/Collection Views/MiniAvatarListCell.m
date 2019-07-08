@@ -12,6 +12,7 @@
 #import "MiniAvatarCell.h"
 #import "ComplexNavigationController.h"
 #import "UIColor+Palette.h"
+#import <UIImageView+WebCache.h>
 
 #define padding 24
 
@@ -92,16 +93,17 @@ static NSString * const reuseIdentifier = @"AvatarCell";
         cell.campAvatar.tintColor = [UIColor bonfireGrayWithLevel:100];
     }
     else {
-        NSInteger adjustedIndex = indexPath.row - ([self includeShowAllAction] ? 1 : 0);
+        NSInteger adjustedIndex = indexPath.item - ([self includeShowAllAction] ? 1 : 0);
         
         cell.loading = false;
         
-        if ([self includeShowAllAction] && indexPath.row == 0) {
-            cell.campAvatar.camp = nil;
-            
-            cell.campAvatar.imageView.backgroundColor = [UIColor clearColor];
+        if ([self includeShowAllAction] && indexPath.item == 0) {
+            [cell.campAvatar.imageView sd_setImageWithURL:nil];
+            cell.campAvatar.imageView.backgroundColor = [UIColor whiteColor];
             cell.campAvatar.imageView.image = [UIImage imageNamed:@"miniListShowAllIcon"];
-            cell.campTitleLabel.text = @"Show All";
+            cell.campTitleLabel.text = @"My Camps";
+            
+            cell.campAvatar.imageView.layer.borderWidth = 1;
         }
         else if (self.camps != nil) {
             Camp *camp = [[Camp alloc] initWithDictionary:self.camps[adjustedIndex] error:nil];
@@ -116,17 +118,6 @@ static NSString * const reuseIdentifier = @"AvatarCell";
             cell.campTitleLabel.text = [@"@" stringByAppendingString:user.attributes.details.identifier];
         }
     }
-    
-    /*
-    CGSize actualTitleSize = [cell.campTitleLabel.text boundingRectWithSize:CGSizeMake(cell.frame.size.width - (cell.campTitleLabel.frame.origin.x * 2), MAXFLOAT) options:(NSStringDrawingUsesLineFragmentOrigin) attributes:@{NSFontAttributeName:cell.campTitleLabel.font} context:nil].size;
-    CGSize constraintedTitleSize = [cell.campTitleLabel.text boundingRectWithSize:CGSizeMake(cell.frame.size.width - (cell.campTitleLabel.frame.origin.x * 2), cell.campTitleLabel.font.lineHeight*2) options:(NSStringDrawingUsesLineFragmentOrigin) attributes:@{NSFontAttributeName:cell.campTitleLabel.font} context:nil].size;
-    cell.campTitleLabel.frame = CGRectMake(cell.campTitleLabel.frame.origin.x, cell.campTitleLabel.frame.origin.y, cell.frame.size.width - (cell.campTitleLabel.frame.origin.x * 2), ceilf(constraintedTitleSize.height));
-    NSLog(@"actual:: %f // constrainted: %f", actualTitleSize.height, constraintedTitleSize.height);
-    if (actualTitleSize.height > constraintedTitleSize.height && cell.campTitleLabel.text.length > 3) {
-        cell.campTitleLabel.text = [NSString stringWithFormat:@"%@...", [cell.campTitleLabel.text substringToIndex:cell.campTitleLabel.text.length-2]];
-        NSLog(@"updated title: %@", cell.campTitleLabel.text);
-     }
-     */
     
     return cell;
 }

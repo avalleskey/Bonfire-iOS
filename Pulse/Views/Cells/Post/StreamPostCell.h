@@ -18,12 +18,13 @@
 
 @property (nonatomic) BOOL showContext;
 @property (nonatomic) BOOL showCamptag;
+@property (nonatomic) BOOL hideActions;
 
 @property (nonatomic, strong) PostActionsView *actionsView;
 @property (nonatomic, strong) UIView *bottomLine;
 
 - (void)setVoted:(BOOL)isVoted animated:(BOOL)animated;
 
-+ (CGFloat)heightForPost:(Post *)post showContext:(BOOL)showContext;
++ (CGFloat)heightForPost:(Post *)post showContext:(BOOL)showContext showActions:(BOOL)showActions;
 
 @end

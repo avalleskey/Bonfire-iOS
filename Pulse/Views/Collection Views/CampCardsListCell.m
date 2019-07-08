@@ -70,7 +70,7 @@ static NSString * const errorCampCellReuseIdentifier = @"ErrorCampCell";
     [_collectionView registerClass:[SmallCampCardCell class] forCellWithReuseIdentifier:smallCardReuseIdentifier];
     [_collectionView registerClass:[MediumCampCardCell class] forCellWithReuseIdentifier:mediumCardReuseIdentifier];
     [_collectionView registerClass:[LargeCampCardCell class] forCellWithReuseIdentifier:largeCardReuseIdentifier];
-        
+    
     [_collectionView registerClass:[UICollectionViewCell class] forCellWithReuseIdentifier:blankCellIdentifier];
     
     _collectionView.showsHorizontalScrollIndicator = false;

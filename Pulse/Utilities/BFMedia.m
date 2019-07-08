@@ -45,8 +45,6 @@
 }
 
 - (void)addAsset:(PHAsset *)asset {
-    NSLog(@"asset type: %ld", (long)[asset mediaType]);
-    NSLog(@"asset subtypes: %lu", (unsigned long)[asset mediaSubtypes]);
     BFMediaObject *mediaObject = [[BFMediaObject alloc] initWithAsset:asset];
     
     // validate
@@ -54,7 +52,6 @@
         return;
     }
     
-    NSLog(@"mediaObject.MIME: %@", mediaObject.MIME);
     if ([mediaObject.MIME isEqualToString:BFMediaObjectMIME_JPEG] || [mediaObject.MIME isEqualToString:BFMediaObjectMIME_PNG]) {
         if ([self canAddImage]) {
             [self.images addObject:mediaObject];
@@ -111,12 +108,10 @@
 }
 
 - (BOOL)canAddImage {
-    NSLog(@"self.images: %lu < self.maxImages: %ld", (unsigned long)self.images.count, (long)self.maxImages);
     return self.GIFs.count == 0 && self.images.count < self.maxImages;
 }
 
 - (BOOL)canAddGIF {
-    NSLog(@"self.GIFs: %lu < self.maxGIFs: %ld", (unsigned long)self.GIFs.count, (long)self.maxGIFs);
     return self.images.count == 0 && self.GIFs.count < self.maxGIFs;
 }
 
@@ -140,8 +135,8 @@ NSString * const BFMediaObjectMIME_GIF = @"image/gif";
             imageRequestOptions.synchronous = YES;
             [[PHImageManager defaultManager] requestImageDataForAsset:asset options:imageRequestOptions resultHandler:^(NSData *imageData, NSString *dataUTI, UIImageOrientation orientation, NSDictionary *info)
              {
-                 NSLog(@"info = %@", info);
-                 NSLog(@"data uti: %@", dataUTI);
+//                 NSLog(@"info = %@", info);
+//                 NSLog(@"data uti: %@", dataUTI);
                  NSString *MIME = (__bridge NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)dataUTI, kUTTagClassMIMEType);
                  self.MIME = MIME;
 
@@ -157,8 +152,6 @@ NSString * const BFMediaObjectMIME_GIF = @"image/gif";
                      
                      self.MIME = BFMediaObjectMIME_JPEG;
                      self.data = jpgData;
-                     
-                     NSLog(@"set the mime to jpeg and data to jpg");
                  }
              }];
         }

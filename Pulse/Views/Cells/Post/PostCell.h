@@ -42,7 +42,10 @@
 @property (nonatomic, strong) UIButton *moreButton;
 
 @property (nonatomic, strong) PostTextView *textView;
-@property (nonatomic, strong) BFAvatarView *profilePicture;
+
+@property (nonatomic, strong) BFAvatarView *primaryAvatarView;
+@property (nonatomic, strong) BFAvatarView *secondaryAvatarView;
+
 @property (nonatomic, strong) PostImagesView *imagesView;
 @property (nonatomic, strong) PostURLPreviewView *urlPreviewView;
 

@@ -308,7 +308,7 @@
     UIViewController *parentController = UIViewParentController(self);
     if (self.replyingTo != nil) {
         if ([self.replyingTo.attributes.details.creator.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
-            defaultPlaceholder = @"Add something new...";
+            defaultPlaceholder = @"Add a reply...";
         }
         else {
             NSString *creatorIdentifier = self.replyingTo.attributes.details.creator.attributes.details.identifier;
@@ -513,11 +513,48 @@
     [UIViewParentController(self) presentViewController:picker animated:YES completion:nil];
 }
 - (void)chooseFromLibraryForProfilePicture:(id)sender {
-    UIImagePickerController *picker = [[UIImagePickerController alloc] init];
-    picker.delegate = self;
-    picker.allowsEditing = NO;
-    picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
-    [UIViewParentController(self) presentViewController:picker animated:YES completion:nil];
+    [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
+        switch (status) {
+            case PHAuthorizationStatusAuthorized: {
+                NSLog(@"PHAuthorizationStatusAuthorized");
+                
+                UIImagePickerController *picker = [[UIImagePickerController alloc] init];
+                picker.delegate = self;
+                picker.allowsEditing = NO;
+                picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [[Launcher topMostViewController] presentViewController:picker animated:YES completion:nil];
+                });
+                
+                break;
+            }
+            case PHAuthorizationStatusDenied:
+            case PHAuthorizationStatusNotDetermined:
+            {
+                NSLog(@"PHAuthorizationStatusDenied");
+                // confirm action
+                UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"Allow Bonfire to access your phtoos" message:@"To allow Bonfire to access your photos, go to Settings > Privacy > Set Bonfire to ON" preferredStyle:UIAlertControllerStyleAlert];
+                
+                UIAlertAction *openSettingsAction = [UIAlertAction actionWithTitle:@"Open Settings" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString] options:@{} completionHandler:nil];
+                }];
+                [actionSheet addAction:openSettingsAction];
+                
+                UIAlertAction *closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleCancel handler:nil];
+                [actionSheet addAction:closeAction];
+                
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [[Launcher topMostViewController] presentViewController:actionSheet animated:YES completion:nil];
+                });
+                
+                break;
+            }
+            case PHAuthorizationStatusRestricted: {
+                NSLog(@"PHAuthorizationStatusRestricted");
+                break;
+            }
+        }
+    }];
 }
 - (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker {
     [picker dismissViewControllerAnimated:YES completion:nil];
@@ -549,7 +586,7 @@
     
     SDAnimatedImageView *view = [[SDAnimatedImageView alloc] init];
     view.userInteractionEnabled = true;
-    view.backgroundColor = [UIColor blueColor];
+    view.backgroundColor = [UIColor whiteColor];
     view.layer.cornerRadius = 14.f;
     view.layer.masksToBounds = true;
     view.contentMode = UIViewContentModeScaleAspectFill;
@@ -639,9 +676,9 @@
 }
 
 - (void)updateMediaAvailability {
-    NSLog(@"self.media canAddImages? %@", [self.media canAddImage] ? @"YES" : @"NO");
-    NSLog(@"self.media canAddGIFs? %@", [self.media canAddGIF] ? @"YES" : @"NO");
-    NSLog(@"self.media canAddMedia? %@", [self.media canAddMedia] ? @"YES" : @"NO");
+//    NSLog(@"self.media canAddImages? %@", [self.media canAddImage] ? @"YES" : @"NO");
+//    NSLog(@"self.media canAddGIFs? %@", [self.media canAddGIF] ? @"YES" : @"NO");
+//    NSLog(@"self.media canAddMedia? %@", [self.media canAddMedia] ? @"YES" : @"NO");
     
     self.addMediaButton.hidden = false;
     self.addMediaButton.enabled = [self.media canAddMedia];

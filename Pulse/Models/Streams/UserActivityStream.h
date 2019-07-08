@@ -33,7 +33,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic) NSArray <UserActivity *> *data;
 @property (nonatomic) UserActivityStreamPageMeta <Optional> *meta;
-@property (nonatomic) BOOL replaceCache;
 
 @end
 
@@ -53,7 +52,7 @@ typedef enum {
 
 @property (nonatomic) NSString <Optional> *prevCursor;
 @property (nonatomic) NSString <Optional> *nextCursor;
-@property (nonatomic) NSInteger remainingResults;
+@property (nonatomic) BOOL replaceCache;
 
 @end
 

@@ -69,6 +69,13 @@ NS_ASSUME_NONNULL_BEGIN
 + (UIColor * _Nonnull) linkColor;
 
 /**
+ *  Thread line color
+ *
+ *  @return UIColor representing the color that lines between threaded posts use.
+ */
++ (UIColor * _Nonnull) threadLineColor ;
+
+/**
  *  Bonfire brand color of the specified level
  *
  *  @param level The level of color from 50,100-900 (increment of 100)

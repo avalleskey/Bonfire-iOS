@@ -111,7 +111,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         }];
         
         textViewCell.media.maxImages = (self.replyingTo == nil ? 4 : 1);
-        if (self.replyingTo) {
+        if (self.replyingTo && !self.replyingToIcebreaker) {
             self.navigationItem.titleView = nil;
             self.title = @"Reply";
             [self updatePlaceholder];
@@ -186,15 +186,20 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     self.navigationItem.titleView = self.titleView;
 }
 - (void)updateTitleText:(NSString *)newTitleText {
-    if (!self.replyingTo) {
+    if (!self.replyingTo || self.replyingToIcebreaker) {
         self.title = @"";
         self.titleLabel.text = newTitleText;
+        
+        if (self.replyingToIcebreaker) {
+            SetWidth(self.titleCaret, 0);
+            self.titleView.userInteractionEnabled = false;
+        }
         
         CGSize titleSize = [newTitleText boundingRectWithSize:CGSizeMake(self.view.frame.size.width - (86 * 2) - 11, self.titleLabel.frame.size.height) options:(NSStringDrawingUsesFontLeading|NSStringDrawingUsesLineFragmentOrigin) attributes:@{NSFontAttributeName:self.titleLabel.font} context:nil].size;
         self.titleLabel.frame = CGRectMake(0, self.titleLabel.frame.origin.y, titleSize.width, self.titleLabel.frame.size.height);
         self.titleCaret.frame = CGRectMake(self.titleLabel.frame.origin.x + self.titleLabel.frame.size.width + 4, self.titleCaret.frame.origin.y, self.titleCaret.frame.size.width, self.titleCaret.frame.size.height);
         
-        self.titleView.frame = CGRectMake(0, 0, self.titleLabel.frame.origin.x + self.titleLabel.frame.size.width + 4, self.titleView.frame.size.height); // add the 6 at the end to visually balance the weight
+        self.titleView.frame = CGRectMake(0, 0, self.titleLabel.frame.origin.x + self.titleLabel.frame.size.width + (self.titleCaret.frame.size.width / 2), self.titleView.frame.size.height); // add the 4 at the end to visually balance the weight
         self.navigationItem.titleView = nil;
         self.navigationItem.titleView = self.titleView;
         self.titleAvatar.center = CGPointMake(self.titleView.frame.size.width / 2, self.titleAvatar.center.y);
@@ -348,24 +353,24 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         // detect usernames, camptags, and links
         [self detectEntities];
         
-//        if (textViewCell.url.absoluteString.length == 0 && [text hasSuffix:@" "]) {
-//            NSDataDetector *detector = [NSDataDetector dataDetectorWithTypes:NSTextCheckingTypeLink error:nil];
-//            if ([detector numberOfMatchesInString:text options:0 range:NSMakeRange(0, text.length)] > 0) {
-//                NSArray *matches = [detector matchesInString:text options:0 range:NSMakeRange(0, text.length)];
-//                for (NSTextCheckingResult *match in matches) {
-//                    if ([match resultType] == NSTextCheckingTypeLink) {
-//                        NSURL *url = [match URL];
-//                        
-//                        textViewCell.url = url;
-//                        [self updateToolbarAvailability];
-//                        [self.tableView beginUpdates];
-//                        [self.tableView endUpdates];
-//                        
-//                        break;
-//                    }
-//                }
-//            }
-//        }
+        if (textViewCell.url.absoluteString.length == 0 && [text hasSuffix:@" "]) {
+            NSDataDetector *detector = [NSDataDetector dataDetectorWithTypes:NSTextCheckingTypeLink error:nil];
+            if ([detector numberOfMatchesInString:text options:0 range:NSMakeRange(0, text.length)] > 0) {
+                NSArray *matches = [detector matchesInString:text options:0 range:NSMakeRange(0, text.length)];
+                for (NSTextCheckingResult *match in matches) {
+                    if ([match resultType] == NSTextCheckingTypeLink) {
+                        NSURL *url = [match URL];
+                        
+                        textViewCell.url = url;
+                        [self updateToolbarAvailability];
+                        [self.tableView beginUpdates];
+                        [self.tableView endUpdates];
+                        
+                        break;
+                    }
+                }
+            }
+        }
         
         [textViewCell layoutSubviews];
         
@@ -382,7 +387,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     NSMutableAttributedString *attributedText = [[NSMutableAttributedString alloc] initWithString:textViewCell.textView.text attributes:@{NSFontAttributeName: textViewCell.textView.font, NSForegroundColorAttributeName:[UIColor bonfireBlack]}];
     NSArray *usernameRanges = [textViewCell.textView.text rangesForUsernameMatches];
     NSArray *campTagRanges = [textViewCell.textView.text rangesForCampTagMatches];
-    //NSArray *urlRanges = [textViewCell.textView.text rangesForLinkMatches];
+    NSArray *urlRanges = [textViewCell.textView.text rangesForLinkMatches];
     if (usernameRanges.count > 0) {
         NSLog(@"usernameRanges: %@", usernameRanges);
         for (NSValue *value in usernameRanges) {
@@ -411,14 +416,13 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             }
         }
     }
-    /*
-     disable link previews for now
+    
     if (urlRanges.count > 0) {
         NSLog(@"urlRanges: %@", urlRanges);
         for (NSValue *value in campTagRanges) {
             [attributedText addAttribute:NSForegroundColorAttributeName value:self.view.tintColor range:[value rangeValue]];
         }
-    }*/
+    }
     textViewCell.textView.attributedText = attributedText;
     
     if (insideUsername) NSLog(@"insideUsername ==> true");
@@ -473,7 +477,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     defaultPlaceholder = @"";
     if (self.replyingTo != nil) {
         if ([self.replyingTo.attributes.details.creator.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
-            defaultPlaceholder = @"Add something new...";
+            defaultPlaceholder = @"Add a reply...";
         }
         else {
             NSString *creatorIdentifier = self.replyingTo.attributes.details.creator.attributes.details.identifier;
@@ -598,18 +602,29 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                     picker.delegate = self;
                     picker.allowsEditing = NO;
                     picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
-                    [self.navigationController presentViewController:picker animated:YES completion:nil];
+                    [[Launcher topMostViewController] presentViewController:picker animated:YES completion:nil];
                 });
                 
                 break;
             }
-                
-            case PHAuthorizationStatusDenied: {
+            case PHAuthorizationStatusDenied:
+            case PHAuthorizationStatusNotDetermined:
+            {
                 NSLog(@"PHAuthorizationStatusDenied");
-                break;
-            }
-            case PHAuthorizationStatusNotDetermined: {
-                NSLog(@"PHAuthorizationStatusNotDetermined");
+                // confirm action
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"Allow Bonfire to access your phtoos" message:@"To allow Bonfire to access your photos, go to Settings > Privacy > Set Bonfire to ON" preferredStyle:UIAlertControllerStyleAlert];
+
+                    UIAlertAction *openSettingsAction = [UIAlertAction actionWithTitle:@"Open Settings" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString] options:@{} completionHandler:nil];
+                    }];
+                    [actionSheet addAction:openSettingsAction];
+                
+                    UIAlertAction *closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleCancel handler:nil];
+                    [actionSheet addAction:closeAction];
+                    [[Launcher topMostViewController] presentViewController:actionSheet animated:YES completion:nil];
+                });
+
                 break;
             }
             case PHAuthorizationStatusRestricted: {
@@ -684,7 +699,11 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         // meets min. requirements
         [BFAPI createPost:params postingIn:self.postingIn replyingTo:self.replyingTo];
         
-        [self.navigationController dismissViewControllerAnimated:YES completion:nil];
+        [self.navigationController dismissViewControllerAnimated:YES completion:^{
+            if (self.replyingToIcebreaker) {
+                [Launcher openPost:self.replyingTo withKeyboard:nil];
+            }
+        }];
     }
 }
 
@@ -829,16 +848,15 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                 cell = [[StreamPostCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:streamPostReuseIdentifier];
             }
             
-            cell.post = self.replyingTo;
+            cell.showContext = false;
+            cell.showCamptag = true;
+            cell.hideActions = true;
             
-            cell.actionsView.hidden = true;
+            cell.post = self.replyingTo;
             
             cell.lineSeparator.hidden = true;
             cell.selectable = false;
             cell.moreButton.hidden = true;
-            
-            cell.showContext = false;
-            cell.showCamptag = true;
             
             return cell;
         }
@@ -926,7 +944,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             return [textViewCell height];
         }
         else if (indexPath.section == 1 && indexPath.row == 0 && self.replyingTo) {
-            float height = [StreamPostCell heightForPost:self.replyingTo showContext:false] - (POST_ACTIONS_VIEW_HEIGHT + 8); // removed action bar (32pt + 8pt)
+            float height = [StreamPostCell heightForPost:self.replyingTo showContext:false showActions:false] + 8; // removed action bar (32pt + 8pt)
             float minHeight = 48 + (postContentOffset.top + postContentOffset.bottom); // 48 = avatar height
             if (height < minHeight) {
                 height = minHeight;
@@ -964,42 +982,79 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
+    if (tableView == self.tableView && section == 0) {
+        if (self.replyingTo) {
+            return (self.replyingToIcebreaker ? 88 : 40);
+        }
+    }
     return (tableView == self.tableView && section == 0 && self.replyingTo ? 40 : CGFLOAT_MIN);
 }
 - (UIView * _Nullable)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
     if (tableView != self.tableView || section != 0 || !self.replyingTo) return nil;
     
-    UIView *replyingToView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 40)];
-    replyingToView.backgroundColor = [UIColor colorWithRed:0.98 green:0.98 blue:0.99 alpha:1.0];
-    
-    UIImageView *replyIcon = [[UIImageView alloc] initWithFrame:CGRectMake(12, replyingToView.frame.size.height / 2 - 7.5, 13, 15)];
-    replyIcon.image = [[UIImage imageNamed:@"postActionReply"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-    replyIcon.tintColor = [UIColor bonfireBlack];
-    replyIcon.contentMode = UIViewContentModeScaleAspectFill;
-    [replyingToView addSubview:replyIcon];
-    
-    UILabel *replyingToLabel = [[UILabel alloc] initWithFrame:CGRectMake(37, 0, replyingToView.frame.size.width - 37 - 12, replyingToView.frame.size.height)];
-    replyingToLabel.textColor = [UIColor bonfireBlack];
-    if ([self.replyingTo.attributes.details.creator.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
-        replyingToLabel.text = [NSString stringWithFormat:@"Replying to yourself"];
+    if (self.replyingToIcebreaker) {
+        UIView *replyingToView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 88)];
+        replyingToView.backgroundColor = [UIColor colorWithRed:0.98 green:0.98 blue:0.99 alpha:1.0];
+        
+        UILabel *welcomeLabel = [[UILabel alloc] initWithFrame:CGRectMake(12, 16, replyingToView.frame.size.width - 24, 19)];
+        welcomeLabel.textColor = [UIColor bonfireBlack];
+        welcomeLabel.text = @"Welcome to the Camp! 👋";
+        welcomeLabel.textAlignment = NSTextAlignmentCenter;
+        welcomeLabel.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightSemibold];
+        [replyingToView addSubview:welcomeLabel];
+        
+        UILabel *infoLabel = [[UILabel alloc] initWithFrame:CGRectMake(12, 40, replyingToView.frame.size.width - 24, 34)];
+        infoLabel.textColor = [UIColor bonfireGray];
+        infoLabel.text = @"Answer the Camp Icebreaker to help\nothers get to know you better";
+        infoLabel.textAlignment = NSTextAlignmentCenter;
+        infoLabel.numberOfLines = 0;
+        infoLabel.lineBreakMode = NSLineBreakByWordWrapping;
+        infoLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightMedium];
+        [replyingToView addSubview:infoLabel];
+        
+        UIView *lineSeparator_t = [[UIView alloc] initWithFrame:CGRectMake(0, 0, replyingToView.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+        lineSeparator_t.backgroundColor = [UIColor colorWithWhite:0 alpha:0.06];
+        [replyingToView addSubview:lineSeparator_t];
+        
+        UIView *lineSeparator_b = [[UIView alloc] initWithFrame:CGRectMake(0, replyingToView.frame.size.height - (1 / [UIScreen mainScreen].scale), replyingToView.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+        lineSeparator_b.backgroundColor = [UIColor colorWithWhite:0 alpha:0.06];
+        [replyingToView addSubview:lineSeparator_b];
+        
+        return replyingToView;
     }
     else {
-        replyingToLabel.text = [NSString stringWithFormat:@"Replying to @%@", self.replyingTo.attributes.details.creator.attributes.details.identifier];
+        UIView *replyingToView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 40)];
+        replyingToView.backgroundColor = [UIColor colorWithRed:0.98 green:0.98 blue:0.99 alpha:1.0];
+        
+        UIImageView *replyIcon = [[UIImageView alloc] initWithFrame:CGRectMake(12, replyingToView.frame.size.height / 2 - 7.5, 13, 15)];
+        replyIcon.image = [[UIImage imageNamed:@"postActionReply"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+        replyIcon.tintColor = [UIColor bonfireBlack];
+        replyIcon.contentMode = UIViewContentModeScaleAspectFill;
+        [replyingToView addSubview:replyIcon];
+        
+        UILabel *replyingToLabel = [[UILabel alloc] initWithFrame:CGRectMake(37, 0, replyingToView.frame.size.width - 37 - 12, replyingToView.frame.size.height)];
+        replyingToLabel.textColor = [UIColor bonfireBlack];
+        if ([self.replyingTo.attributes.details.creator.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
+            replyingToLabel.text = [NSString stringWithFormat:@"Replying to yourself"];
+        }
+        else {
+            replyingToLabel.text = [NSString stringWithFormat:@"Replying to @%@", self.replyingTo.attributes.details.creator.attributes.details.identifier];
+        }
+        replyingToLabel.textAlignment = NSTextAlignmentLeft;
+        replyingToLabel.lineBreakMode = NSLineBreakByTruncatingMiddle;
+        replyingToLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightMedium];
+        [replyingToView addSubview:replyingToLabel];
+        
+        UIView *lineSeparator_t = [[UIView alloc] initWithFrame:CGRectMake(0, 0, replyingToView.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+        lineSeparator_t.backgroundColor = [UIColor colorWithWhite:0 alpha:0.06];
+        [replyingToView addSubview:lineSeparator_t];
+        
+        UIView *lineSeparator_b = [[UIView alloc] initWithFrame:CGRectMake(0, replyingToView.frame.size.height - (1 / [UIScreen mainScreen].scale), replyingToView.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+        lineSeparator_b.backgroundColor = [UIColor colorWithWhite:0 alpha:0.06];
+        [replyingToView addSubview:lineSeparator_b];
+        
+        return replyingToView;
     }
-    replyingToLabel.textAlignment = NSTextAlignmentLeft;
-    replyingToLabel.lineBreakMode = NSLineBreakByTruncatingMiddle;
-    replyingToLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightMedium];
-    [replyingToView addSubview:replyingToLabel];
-    
-    UIView *lineSeparator_t = [[UIView alloc] initWithFrame:CGRectMake(0, 0, replyingToView.frame.size.width, (1 / [UIScreen mainScreen].scale))];
-    lineSeparator_t.backgroundColor = [UIColor colorWithWhite:0 alpha:0.06];
-    [replyingToView addSubview:lineSeparator_t];
-    
-    UIView *lineSeparator_b = [[UIView alloc] initWithFrame:CGRectMake(0, replyingToView.frame.size.height - (1 / [UIScreen mainScreen].scale), replyingToView.frame.size.width, (1 / [UIScreen mainScreen].scale))];
-    lineSeparator_b.backgroundColor = [UIColor colorWithWhite:0 alpha:0.06];
-    [replyingToView addSubview:lineSeparator_b];
-    
-    return replyingToView;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {

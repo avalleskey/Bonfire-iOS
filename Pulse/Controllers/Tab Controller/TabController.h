@@ -12,7 +12,7 @@
 #import "ComplexNavigationController.h"
 #import "SearchTableViewController.h"
 #import "DiscoverViewController.h"
-#import "FeedViewController.h"
+#import "HomeViewController.h"
 #import "ProfileViewController.h"
 #import "NotificationsTableViewController.h"
 #import "BFAvatarView.h"

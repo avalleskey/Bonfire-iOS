@@ -33,11 +33,11 @@
         
         self.shimmerContentView = [[UIView alloc] init];
         
-        self.profilePicture.imageView.image = [UIImage new];
-        self.profilePicture.imageView.backgroundColor = [[UIColor separatorColor] colorWithAlphaComponent:0.5];
-        self.profilePicture.allowOnlineDot = false;
-        [self.profilePicture removeFromSuperview];
-        [self.shimmerContentView addSubview:self.profilePicture];
+        self.primaryAvatarView.imageView.image = [UIImage new];
+        self.primaryAvatarView.imageView.backgroundColor = [[UIColor separatorColor] colorWithAlphaComponent:0.5];
+        self.primaryAvatarView.allowOnlineDot = false;
+        [self.primaryAvatarView removeFromSuperview];
+        [self.shimmerContentView addSubview:self.primaryAvatarView];
         
         self.nameLabel.textColor = [UIColor clearColor];
         self.nameLabel.layer.cornerRadius = 8.f;

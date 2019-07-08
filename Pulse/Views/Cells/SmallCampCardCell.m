@@ -14,8 +14,22 @@
 
 @implementation SmallCampCardCell
 
+- (id)init {
+    if (self = [super init]) {
+        [self setup];
+    }
+    return self;
+}
 - (id)initWithFrame:(CGRect)frame {
     if (self = [super initWithFrame:frame]) {
+        [self setup];
+        self.layer.shadowPath = [UIBezierPath bezierPathWithRoundedRect:self.bounds cornerRadius:self.layer.cornerRadius].CGPath;
+        self.contentView.layer.shadowPath = [UIBezierPath bezierPathWithRoundedRect:self.bounds cornerRadius:self.layer.cornerRadius].CGPath;
+    }
+    return self;
+}
+- (id)initWithCoder:(NSCoder *)coder {
+    if (self = [super initWithCoder:coder]) {
         [self setup];
     }
     return self;
@@ -33,16 +47,12 @@
     self.layer.shadowOpacity = 1.f;
     self.contentView.layer.cornerRadius = self.layer.cornerRadius;
     self.contentView.layer.masksToBounds = true;
+    self.layer.shouldRasterize = true;
+    self.layer.rasterizationScale = [UIScreen mainScreen].scale;
     
     self.profilePicture = [[BFAvatarView alloc] initWithFrame:CGRectMake(16, 12, 48, 48)];
     self.profilePicture.userInteractionEnabled = false;
     [self.contentView addSubview:self.profilePicture];
-    
-    self.themeLine = [[UIView alloc] initWithFrame:CGRectMake(self.profilePicture.frame.origin.x - 4, self.profilePicture.frame.origin.y - 4, self.profilePicture.frame.size.width + 8, self.profilePicture.frame.size.height + 8)];
-    self.themeLine.layer.cornerRadius = self.themeLine.frame.size.width / 2;
-    self.themeLine.layer.borderWidth = 2.f;
-    self.themeLine.layer.borderColor = [UIColor colorWithWhite:0.8 alpha:1].CGColor;
-    //[self.contentView addSubview:self.themeLine];
     
     self.member1 = [[BFAvatarView alloc] initWithFrame:CGRectMake(76, 70, 16, 16)];
     self.member1.tag = 0;
@@ -184,9 +194,7 @@
         _camp = camp;
         
         self.tintColor = [UIColor fromHex:self.camp.attributes.details.color];
-        
-        self.themeLine.layer.borderColor = [UIColor fromHex:self.camp.attributes.details.color].CGColor;
-        
+                
         self.campTitleLabel.text = _camp.attributes.details.title;
         self.campDescriptionLabel.text = _camp.attributes.details.theDescription;
         
@@ -221,8 +229,6 @@
         else {
             self.membersLabel.text = [NSString stringWithFormat:@"0 %@", [membersTitle.plural lowercaseString]];
         }
-        
-        [self setNeedsLayout];
     }
 }
 

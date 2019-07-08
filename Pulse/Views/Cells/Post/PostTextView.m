@@ -147,16 +147,13 @@
 - (void)updateEntities {
     if (self.message.length == 0 || !self.entities || self.entities.count == 0) return;
     
-    NSLog(@"self.entities:: %@", self.entities);
+    NSLog(@"message:: %@", self.message);
     
     for (PostEntity *entity in self.entities) {
-        NSLog(@"entity type:: %@", entity.type);
-        
         if ([entity.type isEqualToString:POST_ENTITY_TYPE_PROFILE]) {
             NSArray *usernameRanges = [self.message rangesForUsernameMatches];
             for (NSValue *value in usernameRanges) {
                 NSRange range = [value rangeValue];
-                NSLog(@"username match: %lu / %lu", (unsigned long)range.location, (unsigned long)range.length);
                 NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://user?username=%@", LOCAL_APP_URI, [[self.message substringWithRange:range] stringByReplacingOccurrencesOfString:@"@" withString:@""]]];
                 [self.messageLabel addLinkToURL:url withRange:range];
             }
@@ -165,12 +162,10 @@
         }
         
         if ([entity.type isEqualToString:POST_ENTITY_TYPE_CAMP]) {
-            NSLog(@"sort through the camp tag entities:::");
             NSArray *campRanges = [self.message rangesForCampTagMatches];
-            NSLog(@"camp ranges:: %@", campRanges);
+
             for (NSValue *value in campRanges) {
                 NSRange range = [value rangeValue];
-                NSLog(@"username match: %lu / %lu", (unsigned long)range.location, (unsigned long)range.length);
                 NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://camp?display_id=%@", LOCAL_APP_URI, [[self.message substringWithRange:range] stringByReplacingOccurrencesOfString:@"#" withString:@""]]];
                 [self.messageLabel addLinkToURL:url withRange:range];
             }
@@ -179,7 +174,13 @@
         }
         
         if ([entity.type isEqualToString:POST_ENTITY_TYPE_URL] && entity.indices.count >= 2) {
-            [self.messageLabel addLinkToURL:[NSURL URLWithString:entity.actionUrl] withRange:NSMakeRange([entity.indices[0] integerValue], [entity.indices[1] integerValue] - [entity.indices[0] integerValue])];
+            NSLog(@"entity indices:: %@", entity.indices);
+            NSLog(@"entity displayText: %@", entity.displayText);
+            NSInteger location = [entity.indices[0] integerValue];
+            NSInteger length = [entity.indices[1] integerValue] - [entity.indices[0] integerValue];
+            if (location + length <= self.message.length) {
+                [self.messageLabel addLinkToURL:[NSURL URLWithString:entity.actionUrl] withRange:NSMakeRange([entity.indices[0] integerValue], [entity.indices[1] integerValue] - [entity.indices[0] integerValue])];
+            }
             
             continue;
         }
@@ -190,7 +191,7 @@
 {
     if (UIGestureRecognizerStateEnded == tap.state)
     {
-        NSLog(@"single tap!");
+        // NSLog(@"single tap!");
     }
 }
 

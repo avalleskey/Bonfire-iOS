@@ -32,12 +32,22 @@ typedef enum {
 
 NS_ASSUME_NONNULL_BEGIN
 
-@protocol RSTableViewPaginationDelegate <NSObject>
+@protocol RSTableViewDelegate <NSObject>
 
 - (void)tableView:(id)tableView didRequestNextPageWithMaxId:(NSInteger)maxId;
 
 @optional
 - (void)tableViewDidScroll:(UITableView *)tableView;
+
+- (UITableViewCell *)cellForRowInFirstSection:(NSInteger)row;
+- (CGFloat)heightForRowInFirstSection:(NSInteger)row;
+- (CGFloat)numberOfRowsInFirstSection;
+
+- (UIView * _Nullable)viewForFirstSectionHeader;
+- (CGFloat)heightForFirstSectionHeader;
+
+- (UIView * _Nullable)viewForFirstSectionFooter;
+- (CGFloat)heightForFirstSectionFooter;
 
 @required
 
@@ -52,6 +62,8 @@ typedef enum {
 @property (nonatomic) RSTableViewStyle tableViewStyle;
 
 @property (nonatomic, strong) id parentObject;
+@property (nonatomic, copy) void (^headerView)(void);
+
 @property (nonatomic) RSTableViewType dataType;
 @property (nonatomic) RSTableViewSubType dataSubType;
 
@@ -69,7 +81,7 @@ typedef enum {
 
 @property (nonatomic) ComposeInputView *inputView;
 
-@property (nonatomic, weak) id <RSTableViewPaginationDelegate> paginationDelegate;
+@property (nonatomic, weak) id <RSTableViewDelegate> extendedDelegate;
 
 @end
 

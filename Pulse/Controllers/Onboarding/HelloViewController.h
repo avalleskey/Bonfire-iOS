@@ -16,8 +16,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic) BOOL fromLaunch;
 
-@property (nonatomic, strong) UIButton *signInButton;
 @property (nonatomic, strong) UIButton *signUpButton;
+@property (nonatomic, strong) UIButton *signInButton;
 
 @property (nonatomic, strong) UILabel *welcomeLabel;
 @property (nonatomic, strong) UILabel *whereConversationsHappenLabel;

@@ -56,6 +56,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
     // load in cache
     if ([[Session sharedInstance].currentUser.identifier isEqualToString:self.user.identifier]) {
         self.camps = [[NSMutableArray alloc] initWithArray:[[NSUserDefaults standardUserDefaults] arrayForKey:@"my_camps_cache"]];
+        [self sortCamps];
         if (self.camps.count > 0) {
             self.loadingCamps = false;
             [self.tableView reloadData];
@@ -76,6 +77,9 @@ static NSString * const memberCellIdentifier = @"MemberCell";
         NSLog(@"response data for requests: %@", responseData);
         
         self.camps = [[NSMutableArray alloc] initWithArray:responseData];
+        if ([self.user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
+            [self sortCamps];
+        }
         
         self.loadingCamps = false;
         
@@ -84,6 +88,28 @@ static NSString * const memberCellIdentifier = @"MemberCell";
         NSLog(@"CampViewController / getRequests() - error: %@", error);
         //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
     }];
+}
+- (void)sortCamps {
+    NSLog(@"sort that ish");
+    if (!self.camps || self.camps.count == 0) return;
+    
+    NSDictionary *opens = [[NSUserDefaults standardUserDefaults] dictionaryForKey:@"camp_opens"];
+    
+    for (NSInteger i = 0; i < self.camps.count; i++) {
+        if ([self.camps[i] isKindOfClass:[NSDictionary class]] && [self.camps[i] objectForKey:@"id"]) {
+            NSMutableDictionary *mutableCamp = [[NSMutableDictionary alloc] initWithDictionary:self.camps[i]];
+            NSString *campId = mutableCamp[@"id"];
+            NSInteger campOpens = [opens objectForKey:campId] ? [opens[campId] integerValue] : 0;
+            [mutableCamp setObject:[NSNumber numberWithInteger:campOpens] forKey:@"opens"];
+            [self.camps replaceObjectAtIndex:i withObject:mutableCamp];
+        }
+    }
+    NSSortDescriptor *sortByName = [NSSortDescriptor sortDescriptorWithKey:@"opens"
+                                                                 ascending:NO];
+    NSArray *sortDescriptors = [NSArray arrayWithObject:sortByName];
+    NSArray *sortedArray = [self.camps sortedArrayUsingDescriptors:sortDescriptors];
+    
+    self.camps = [[NSMutableArray alloc] initWithArray:sortedArray];
 }
 
 #pragma mark - Table view data source

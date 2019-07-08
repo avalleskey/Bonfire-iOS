@@ -37,8 +37,8 @@
         self.contextView = [[PostContextView alloc] init];
         [self.contentView addSubview:self.contextView];
         
-        self.profilePicture.openOnTap = false;
-        self.profilePicture.dimsViewOnTap = true;
+        self.primaryAvatarView.openOnTap = false;
+        self.primaryAvatarView.dimsViewOnTap = true;
         
         self.nameLabel.frame = CGRectMake(postContentOffset.left, postContentOffset.top, self.contentView.frame.size.width - postContentOffset.left - postContentOffset.right, 18);
         self.nameLabel.font = [UIFont systemFontOfSize:15.f weight:UIFontWeightSemibold];
@@ -82,12 +82,10 @@
         }];
         [self.contentView addSubview:self.actionsView];
         
-        /*
-         self.bottomLine = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 3, 0)];
-         self.bottomLine.backgroundColor = [UIColor colorWithRed:0.95 green:0.95 blue:0.96 alpha:1.0];
-         self.bottomLine.layer.cornerRadius = self.bottomLine.frame.size.width / 2;
-         [self.contentView addSubview:self.bottomLine];
-         */
+        self.bottomLine = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 3, 0)];
+        self.bottomLine.backgroundColor = [UIColor colorWithRed:0.95 green:0.95 blue:0.96 alpha:1.0];
+        self.bottomLine.layer.cornerRadius = self.bottomLine.frame.size.width / 2;
+        // [self.contentView addSubview:self.bottomLine];
         
         self.lineSeparator.hidden = true;// false;
     }
@@ -104,14 +102,14 @@
     CGFloat yBottom = offset.top;
     
     if (![self.contextView isHidden]) {
-        self.contextView.frame = CGRectMake(self.profilePicture.frame.origin.x, postContentOffset.top - 2, self.frame.size.width - (self.profilePicture.frame.origin.x + postContentOffset.right), postContextHeight);
+        self.contextView.frame = CGRectMake(self.primaryAvatarView.frame.origin.x, postContentOffset.top - 2, self.frame.size.width - (self.primaryAvatarView.frame.origin.x + postContentOffset.right), postContextHeight);
         yBottom = self.contextView.frame.origin.y + self.contextView.frame.size.height + 8;
     }
     
-    self.profilePicture.frame = CGRectMake(12, yBottom, self.profilePicture.frame.size.width, self.profilePicture.frame.size.height);
+    self.primaryAvatarView.frame = CGRectMake(12, yBottom, self.primaryAvatarView.frame.size.width, self.primaryAvatarView.frame.size.height);
     
     if (![self.moreButton isHidden]) {
-        CGFloat moreButtonPadding = 8;
+        CGFloat moreButtonPadding = 12;
         CGFloat moreButtonWidth = self.moreButton.currentImage.size.width + (moreButtonPadding * 2);
         self.moreButton.frame = CGRectMake(self.frame.size.width - moreButtonWidth - postContentOffset.right + moreButtonPadding, yBottom - moreButtonPadding, moreButtonWidth, self.nameLabel.frame.size.height + (moreButtonPadding * 2));
     }
@@ -146,12 +144,9 @@
         self.lineSeparator.frame = CGRectMake(0, self.frame.size.height - self.lineSeparator.frame.size.height, self.frame.size.width, self.lineSeparator.frame.size.height);
     }
     
-    /*
-     self.bottomLine.hidden = self.post.attributes.summaries.replies.count == 0;
      if (![self.bottomLine isHidden]) {
-     self.bottomLine.frame = CGRectMake(self.profilePicture.frame.origin.x + (self.profilePicture.frame.size.width / 2) - (self.bottomLine.frame.size.width / 2), self.profilePicture.frame.origin.y + self.profilePicture.frame.size.height + 4, 3, self.frame.size.height - (self.profilePicture.frame.origin.y + self.profilePicture.frame.size.height + 4) + 2);
+         self.bottomLine.frame = CGRectMake(self.primaryAvatarView.frame.origin.x + (self.primaryAvatarView.frame.size.width / 2) - (self.bottomLine.frame.size.width / 2), self.primaryAvatarView.frame.origin.y + self.primaryAvatarView.frame.size.height + 4, 3, self.frame.size.height - (self.primaryAvatarView.frame.origin.y + self.primaryAvatarView.frame.size.height + 4) + 2);
      }
-     */
 }
 
 // Setter method
@@ -231,17 +226,14 @@
                 
         self.userInteractionEnabled = (!_post.tempId);
         if (self.contentView.alpha != 1 && !_post.tempId) {
-            NSLog(@"post just finished !!");
             [UIView animateWithDuration:0.15f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-                self.actionsView.alpha = 1;
-                self.dateLabel.alpha = 1;
+                self.contentView.alpha = 1;
             } completion:^(BOOL finished) {
                 
             }];
         }
         else {
-            self.actionsView.alpha = (_post.tempId ? 0.5 : 1);
-            self.dateLabel.alpha = (_post.tempId ? 0 : 1);
+            self.contentView.alpha = (_post.tempId ? 0.5 : 1);
         }
         
         if (_post.tempId) {
@@ -261,13 +253,12 @@
         
         [self.textView setMessage:self.post.attributes.details.simpleMessage entities:self.post.attributes.details.entities];
         
-        if (self.profilePicture.user != _post.attributes.details.creator) {
-            self.profilePicture.user = _post.attributes.details.creator;
+        if (self.primaryAvatarView.user != _post.attributes.details.creator) {
+            self.primaryAvatarView.user = _post.attributes.details.creator;
         }
-        self.profilePicture.online = false;
+        self.primaryAvatarView.online = false;
         
         if (self.post.attributes.details.attachments.media.count > 0) {
-            NSLog(@"media objects:: %lu", (unsigned long)self.post.attributes.details.attachments.media.count);
             [self.imagesView setMedia:self.post.attributes.details.attachments.media];
         }
         else if (self.post.attributes.details.media.count > 0) {
@@ -277,14 +268,16 @@
             [self.imagesView setMedia:@[]];
         }
         
-        [self setVoted:(self.post.attributes.context.post.vote != nil) animated:false];
-        [self.actionsView setSummaries:post.attributes.summaries];
+        self.actionsView.hidden = self.hideActions;
+        if (![self.actionsView isHidden]) {
+            [self setVoted:(self.post.attributes.context.post.vote != nil) animated:false];
+            [self.actionsView setSummaries:post.attributes.summaries];
+            
+            self.actionsView.replyButton.alpha = [self.post.attributes.context.post.permissions canReply] || self.post.tempId.length > 0 ? 1 : 0.5;
+            self.actionsView.replyButton.userInteractionEnabled = [self.post.attributes.context.post.permissions canReply];
+        }
         
-        self.actionsView.replyButton.alpha = [self.post.attributes.context.post.permissions canReply] || self.post.tempId.length > 0 ? 1 : 0.5;
-        self.actionsView.replyButton.userInteractionEnabled = [self.post.attributes.context.post.permissions canReply];
-    }
-    else {
-        NSLog(@"no need mucahcho");
+        self.bottomLine.hidden = self.post.attributes.summaries.replies.count == 0;
     }
 }
 
@@ -293,7 +286,7 @@
     
     return (summariesCount > 0);
 }
-+ (CGFloat)heightForPost:(Post *)post showContext:(BOOL)showContext {
++ (CGFloat)heightForPost:(Post *)post showContext:(BOOL)showContext showActions:(BOOL)showActions {
     CGFloat height = postContentOffset.top;
     
      BOOL hasContext = (showContext && [self contextForPost:post]);
@@ -329,10 +322,12 @@
     }
     
     // details view
-    CGFloat detailsHeight = 8 + POST_ACTIONS_VIEW_HEIGHT; // 6 + 32; // 8 above
+    CGFloat detailsHeight = (showActions ? 8 + POST_ACTIONS_VIEW_HEIGHT : 0); // 6 + 32; // 8 above
     height = height + detailsHeight + postContentOffset.bottom;
     
-    return height;
+    CGFloat minHeight = postContentOffset.top + 48 + postContentOffset.bottom;
+    
+    return height > minHeight ? height : minHeight;
 }
 
 + (NSDictionary *)contextForPost:(Post *)post {
@@ -340,7 +335,12 @@
     UIImage *icon;
     
     if (post.attributes.details.parentUsername.length > 0) {
-        text = [NSString stringWithFormat:@"Replying to @%@", post.attributes.details.parentUsername];
+        if ([post.attributes.details.parentUsername isEqualToString:[Session sharedInstance].currentUser.attributes.details.identifier]) {
+            text = @"Replying to you";
+        }
+        else {
+            text = [NSString stringWithFormat:@"Replying to @%@", post.attributes.details.parentUsername];
+        }
         icon = [[UIImage imageNamed:@"postContextConversationIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
     }
     

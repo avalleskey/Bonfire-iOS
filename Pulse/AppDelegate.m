@@ -17,7 +17,7 @@
 #import "DiscoverViewController.h"
 #import "NotificationsTableViewController.h"
 #import "SearchTableViewController.h"
-#import "FeedViewController.h"
+#import "HomeViewController.h"
 #import "ProfileViewController.h"
 #import "CampCardsListCell.h"
 #import "MiniAvatarListCell.h"
@@ -49,15 +49,14 @@
     
     NSDictionary *accessToken = [self.session getAccessTokenWithVerification:true];
     NSString *refreshToken = self.session.refreshToken;
-    NSLog(@"––––– session –––––");
+    NSLog(@"––––– Session –––––");
     // NSLog(@"self.session.currentUser: %@", self.session.currentUser.identifier);
-    NSLog(@"user id: %@", [Session sharedInstance].currentUser.identifier);
-    NSLog(@"access token: %@", accessToken);
-    NSLog(@"refresh token:: %@", refreshToken);
+    NSLog(@"🙎‍♂️ @%@ (id: %@)", [Session sharedInstance].currentUser.attributes.details.identifier, [Session sharedInstance].currentUser.identifier);
+    NSLog(@"🔑 Access token  : %@", accessToken);
+    NSLog(@"🌀 Refresh token : %@", refreshToken);
+    NSLog(@"🔔 APNS token    : %@", [[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"]);
     NSLog(@"–––––––––––––––————");
-    NSLog(@"apns token:: %@", [[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"]);
-    NSLog(@"–––––––––––––––————");
-    
+        
     if ((accessToken != nil || refreshToken != nil) && self.session.currentUser.identifier != nil) {
         [self launchLoggedIn];
     }
@@ -68,13 +67,13 @@
 
     [self.window makeKeyAndVisible];
     
-    // Google Analytics
     [FIRApp configure];
-    
     #ifdef DEBUG
     NSLog(@"[DEBUG MODE]");
     #else
     NSLog(@"[RELEASE MODE]");
+    // Google Analytics
+    //[FIRApp configure];
     #endif
     
     [self setupRoundedCorners];
@@ -351,6 +350,12 @@
                     }
                 }
                 
+                if ([currentNavigationController.visibleViewController isKindOfClass:[HomeViewController class]]) {
+                    if ([[tableViewController.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]] isKindOfClass:[MiniAvatarListCell class]]) {
+                        MiniAvatarListCell *firstCell = [tableViewController.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
+                        [firstCell.collectionView setContentOffset:CGPointMake(-2, 0) animated:YES];
+                    }
+                }
                 if ([currentNavigationController.visibleViewController isKindOfClass:[DiscoverViewController class]]) {
                     DiscoverViewController *tableViewController = (DiscoverViewController *)currentNavigationController.visibleViewController;
                     
@@ -358,10 +363,6 @@
                         if ([[tableViewController.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:i]] isKindOfClass:[CampCardsListCell class]]) {
                             CampCardsListCell *firstCell = [tableViewController.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:i]];
                             [firstCell.collectionView setContentOffset:CGPointMake(-16, 0) animated:YES];
-                        }
-                        if ([[tableViewController.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:i]] isKindOfClass:[MiniAvatarListCell class]]) {
-                            MiniAvatarListCell *firstCell = [tableViewController.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:i]];
-                            [firstCell.collectionView setContentOffset:CGPointMake(-2, 0) animated:YES];
                         }
                     }
                 }
@@ -413,15 +414,7 @@
         
         if ([userActivity.userInfo objectForKey:@"feed"])
         {
-            FeedType type = [userActivity.userInfo[@"feed"] intValue];
-            if (type == FeedTypeTimeline) {
-                // timeline
-                [Launcher openTimeline];
-            }
-            else {
-                // trending
-                [Launcher openTrending];
-            }
+            [Launcher openTimeline];
             
             return true;
         }
@@ -541,7 +534,7 @@
             AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
         }
     }
-    
+        
     if(application.applicationState == UIApplicationStateActive) {
         // app is currently active, can update badges count here
         NSLog(@"UIApplicationStateActive: tapped notificaiton to open");

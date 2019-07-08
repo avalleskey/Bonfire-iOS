@@ -9,20 +9,18 @@
 #import "PostCell.h"
 #import "PostActionsView.h"
 
-#define replyContentOffset UIEdgeInsetsMake(8, 106, 8, 12)
+#define replyContentOffset UIEdgeInsetsMake(10, 114, 8, 12)
 #define replyTextViewFont [UIFont systemFontOfSize:textViewFont.pointSize weight:UIFontWeightRegular]
 
 @interface ReplyCell : PostCell <UITextFieldDelegate, PostTextViewDelegate>
 
-@property (nonatomic, strong) PostActionsView *actionsView;
+// @property (nonatomic, strong) PostActionsView *actionsView;
 
 @property (nonatomic, strong) UIView *topLine;
 @property (nonatomic, strong) UIView *bottomLine;
 
 @property (nonatomic) BOOL topCell;
 @property (nonatomic) BOOL bottomCell;
-
-- (void)setVoted:(BOOL)isVoted animated:(BOOL)animated;
 
 + (CGFloat)heightForPost:(Post *)post;
 

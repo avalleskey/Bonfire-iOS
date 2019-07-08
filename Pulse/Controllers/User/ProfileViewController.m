@@ -38,6 +38,8 @@
 
 @implementation ProfileViewController
 
+static NSString * const profileHeaderCellIdentifier = @"ProfileHeaderCell";
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
@@ -136,7 +138,6 @@
         User *user = notification.object;
         if ([user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
             self.user = [Session sharedInstance].currentUser;
-            self.tableView.parentObject = [Session sharedInstance].currentUser;
             
             [self.tableView.stream updateUserObjects:user];
             
@@ -152,7 +153,6 @@
     if ([notification.object isKindOfClass:[User class]]) {
         User *user = notification.object;
         self.user = user;
-        self.tableView.parentObject = self.user;
         
         [self.tableView.stream updateUserObjects:user];
         
@@ -573,12 +573,8 @@
 }
 
 - (void)setupErrorView {
-    self.errorView = [[ErrorView alloc] initWithFrame:CGRectMake(16, 0, self.view.frame.size.width - 32, 100) title:@"User Not Found" description:@"We couldn’t find the User\nyou were looking for" type:ErrorViewTypeNotFound];
-    self.errorView.center = self.tableView.center;
-    self.errorView.hidden = true;
-    [self.tableView addSubview:self.errorView];
-    
-    [self.errorView bk_whenTapped:^{
+    self.errorView = [[ErrorView alloc] initWithFrame:CGRectMake(16, 0, self.view.frame.size.width - 32, 100)];
+    [self.errorView updateType:ErrorViewTypeNotFound title:@"User Not Found" description:@"We couldn’t find the User\nyou were looking for" actionTitle:@"Refresh" actionBlock:^{
         self.errorView.hidden = true;
         
         self.tableView.loading = true;
@@ -594,8 +590,16 @@
             }
         });
     }];
+    [self positionErrorView];
+    self.errorView.hidden = true;
+    [self.tableView addSubview:self.errorView];
 }
 
+- (void)showErrorViewWithType:(ErrorViewType)type title:(NSString *)title description:(NSString *)description {
+    self.errorView.hidden = false;
+    [self.errorView updateType:type title:title description:description actionTitle:nil actionBlock:nil];
+    [self positionErrorView];
+}
 - (void)positionErrorView {
     ProfileHeaderCell *headerCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
     CGFloat heightOfHeader = headerCell.frame.size.height;
@@ -615,7 +619,6 @@
 
 - (void)loadUser {
     if (self.user.identifier.length > 0 || self.user.attributes.details.identifier.length > 0) {
-        self.tableView.parentObject = self.user;
         [self.tableView refresh];
         
         NSLog(@"self.user.identifier:: %@", self.user.identifier);
@@ -677,8 +680,6 @@
         
         [self updateComposeInputView];
         
-        self.tableView.parentObject = self.user;
-        
         [self positionErrorView];
         
         [self.tableView refresh];
@@ -692,28 +693,28 @@
         NSLog(@"ProfileViewController / getUserInfo() - error: %@", error);
         //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
         
-        self.errorView.hidden = false;
-        
         NSHTTPURLResponse *httpResponse = error.userInfo[AFNetworkingOperationFailingURLResponseErrorKey];
         NSInteger statusCode = httpResponse.statusCode;
         if (statusCode == 404) {
-            [self.errorView updateTitle:@"User Not Found"];
-            [self.errorView updateDescription:@"We couldn’t find the User\nyou were looking for"];
-            [self.errorView updateType:ErrorViewTypeNotFound];
+            [self showErrorViewWithType:ErrorViewTypeNotFound title:@"User Not Found" description:@"We couldn’t find the User\nyou were looking for"];
             
             [self hideMoreButton];
         }
         else {
+            self.errorView.hidden = false;
+            
             if ([HAWebService hasInternet]) {
-                [self.errorView updateType:ErrorViewTypeGeneral];
-                [self.errorView updateTitle:@"Error Loading"];
-                [self.errorView updateDescription:@"Check your network settings and tap here to try again"];
+                [self.errorView updateType:ErrorViewTypeGeneral title:@"Error Loading" description:@"Check your network settings and tap below to try again" actionTitle:@"Refresh" actionBlock:^{
+                    [self refresh];
+                }];
             }
             else {
-                [self.errorView updateType:ErrorViewTypeNoInternet];
-                [self.errorView updateTitle:@"No Internet"];
-                [self.errorView updateDescription:@"Check your network settings and tap here to try again"];
+                [self.errorView updateType:ErrorViewTypeNoInternet title:@"No Internet" description:@"Check your network settings and tap below to try again" actionTitle:@"Refresh" actionBlock:^{
+                    [self refresh];
+                }];
             }
+            
+            [self positionErrorView];
         }
         
         self.loading = false;
@@ -819,9 +820,11 @@
         if ([params objectForKey:@"cursor"]) {
             [self.tableView.stream addLoadedCursor:params[@"cursor"]];
         }
-        NSLog(@"params: %@", params);
         
         NSString *url = [NSString stringWithFormat:@"users/%@/posts", [self userIdentifier]]; // sample data
+        
+        NSLog(@"GET -> %@", url);
+        NSLog(@"params: %@", params);
         
         [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
             
@@ -847,14 +850,16 @@
                 // Error: No sparks yet!
                 self.errorView.hidden = false;
                 
-                ProfileHeaderCell *headerCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
-                CGFloat heightOfHeader = headerCell.frame.size.height;
+                if ([self isCurrentUser]) {
+                    [self.errorView updateType:ErrorViewTypeNoPosts title:@"No Posts Yet" description:nil actionTitle:@"Create your first" actionBlock:^{
+                        [Launcher openComposePost:nil inReplyTo:nil withMessage:nil media:nil];
+                    }];
+                }
+                else {
+                    [self.errorView updateType:ErrorViewTypeNoPosts title:@"No Posts Yet" description:nil actionTitle:nil actionBlock:nil];
+                }
                 
-                [self.errorView updateType:ErrorViewTypeNoPosts];
-                [self.errorView updateTitle:@"No Posts Yet"];
-                [self.errorView updateDescription:@""];
-                
-                self.errorView.frame = CGRectMake(self.errorView.frame.origin.x, heightOfHeader + 70, self.errorView.frame.size.width, self.errorView.frame.size.height);
+                [self positionErrorView];
             }
             else {
                 self.errorView.hidden = true;
@@ -874,14 +879,14 @@
                 self.errorView.hidden = false;
                 
                 if ([HAWebService hasInternet]) {
-                    [self.errorView updateType:ErrorViewTypeGeneral];
-                    [self.errorView updateTitle:@"Error Loading"];
-                    [self.errorView updateDescription:@"Check your network settings and tap here to try again"];
+                    [self.errorView updateType:ErrorViewTypeGeneral title:@"Error Loading" description:@"Check your network settings and tap below to try again" actionTitle:@"Refresh" actionBlock:^{
+                        [self refresh];
+                    }];
                 }
                 else {
-                    [self.errorView updateType:ErrorViewTypeNoInternet];
-                    [self.errorView updateTitle:@"No Internet"];
-                    [self.errorView updateDescription:@"Check your network settings and tap here to try again"];
+                    [self.errorView updateType:ErrorViewTypeNoInternet title:@"No Internet" description:@"Check your network settings and tap below to try again" actionTitle:@"Refresh" actionBlock:^{
+                        [self refresh];
+                    }];
                 }
                 
                 [self positionErrorView];
@@ -917,9 +922,9 @@
     self.tableView = [[RSTableView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - self.navigationController.navigationBar.frame.origin.y - self.navigationController.navigationBar.frame.size.height) style:UITableViewStyleGrouped];
     self.tableView.dataType = RSTableViewTypeProfile;
     self.tableView.tableViewStyle = RSTableViewStyleGrouped;
-    self.tableView.parentObject = self.user;
     self.tableView.loading = true;
-    self.tableView.paginationDelegate = self;
+    self.tableView.extendedDelegate = self;
+    [self.tableView registerClass:[ProfileHeaderCell class] forCellReuseIdentifier:profileHeaderCellIdentifier];
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
     self.tableView.tag = 101;
     [self.tableView.refreshControl addTarget:self
@@ -940,6 +945,51 @@
 - (UIStatusBarStyle)preferredStatusBarStyle
 {
     return UIStatusBarStyleLightContent;
+}
+
+#pragma mark - RSTableViewDelegate
+- (UITableViewCell *)cellForRowInFirstSection:(NSInteger)row {
+    ProfileHeaderCell *cell = [self.tableView dequeueReusableCellWithIdentifier:profileHeaderCellIdentifier forIndexPath:[NSIndexPath indexPathForRow:row inSection:0]];
+    
+    if (cell == nil) {
+        cell = [[ProfileHeaderCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:profileHeaderCellIdentifier];
+    }
+    
+    cell.user = self.user;
+    
+    BOOL hasValidIdentifier = (cell.user.attributes.details.identifier.length > 0 || cell.user.identifier.length > 0);
+    cell.followingButton.hidden =
+    cell.campsButton.hidden = !hasValidIdentifier || (!self.loading && cell.user.identifier.length == 0);
+    
+    BOOL isCurrentUser = [cell.user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier];
+    cell.followButton.hidden = (!self.loading && cell.user.attributes.context == nil && !isCurrentUser);
+    cell.detailsCollectionView.hidden = (!cell.user.identifier && !self.loading);
+    
+    cell.detailTextLabel.textColor = [UIColor fromHex:cell.user.attributes.details.color];
+    
+    if (!cell.followButton.isHidden) {
+        if ([cell.user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
+            [cell.followButton updateStatus:USER_STATUS_ME];
+        }
+        else if (self.loading && cell.user.attributes.context == nil) {
+            [cell.followButton updateStatus:USER_STATUS_LOADING];
+        }
+        else {
+            [cell.followButton updateStatus:cell.user.attributes.context.me.status];
+        }
+    }
+    
+    return cell;
+}
+- (CGFloat)heightForRowInFirstSection:(NSInteger)row {
+    if (row == 0) {
+        return [ProfileHeaderCell heightForUser:self.user isLoading:self.loading];
+    }
+    
+    return 0;
+}
+- (CGFloat)numberOfRowsInFirstSection {
+    return 1;
 }
 
 @end

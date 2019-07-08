@@ -8,6 +8,7 @@
 
 @interface CampCounts : JSONModel
 
+@property (nonatomic) NSInteger icebreakers;
 @property (nonatomic) NSInteger posts;
 @property (nonatomic) NSInteger members;
 @property (nonatomic) NSInteger live;

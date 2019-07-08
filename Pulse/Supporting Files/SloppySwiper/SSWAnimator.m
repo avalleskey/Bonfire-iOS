@@ -9,7 +9,6 @@
 
 UIViewAnimationOptions const SSWNavigationTransitionCurve = 7 << 16;
 
-
 @implementation UIView (TransitionShadow)
 - (void)addLeftSideShadowWithFading
 {
@@ -21,9 +20,9 @@ UIViewAnimationOptions const SSWNavigationTransitionCurve = 7 << 16;
     self.layer.shadowPath = [shadowPath CGPath];
     self.layer.shadowRadius = 2;
     self.layer.shadowOpacity = 0.4;
+    self.layer.shadowColor = [UIColor blackColor].CGColor;
 }
 @end
-
 
 @interface SSWAnimator()
 @property (weak, nonatomic) UIViewController *toViewController;
@@ -54,6 +53,7 @@ UIViewAnimationOptions const SSWNavigationTransitionCurve = 7 << 16;
     UIView *fromView = fromViewController.view;
     UIView *toView = toViewController.view;
     fromView.layer.masksToBounds = false;
+    toView.layer.masksToBounds = false;
     
     [[transitionContext containerView] insertSubview:toViewController.view belowSubview:fromViewController.view];
     
@@ -61,7 +61,7 @@ UIViewAnimationOptions const SSWNavigationTransitionCurve = 7 << 16;
         UIView *containerView = [transitionContext containerView];
         containerView.backgroundColor = [UIColor colorWithWhite:0.05f alpha:1];
         
-        toView.alpha = 0.6;
+        toView.alpha = 0.8;
         toView.transform = CGAffineTransformMakeTranslation(-.25 * containerView.frame.size.width, 0);
         
         fromView.alpha = 1;
@@ -73,7 +73,7 @@ UIViewAnimationOptions const SSWNavigationTransitionCurve = 7 << 16;
         if ([transitionContext isInteractive]) {
             [UIView animateWithDuration:[self transitionDuration:transitionContext] delay:0 options:UIViewAnimationOptionTransitionNone | UIViewAnimationOptionCurveLinear animations:^{
                 toView.alpha = 1;
-                toView.transform = CGAffineTransformMakeTranslation(0, 0);
+                toView.transform = CGAffineTransformIdentity;
                 
                 fromView.center = CGPointMake(containerView.frame.size.width * 1.5, fromView.center.y);
                 

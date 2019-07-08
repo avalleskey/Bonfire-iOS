@@ -190,9 +190,7 @@
     return item;
 }
 - (void)setLeftAction:(SNActionType)actionType {
-    NSLog(@"set left action !!");
     if (actionType != self.visibleViewController.navigationItem.leftBarButtonItem.customView.tag) {
-        NSLog(@"let's create it !");
         if (actionType == SNActionTypeNone) {
             self.visibleViewController.navigationItem.leftBarButtonItem = nil;
         }
@@ -279,11 +277,9 @@
 }
 
 - (void)updateBarColor:(id)background animated:(BOOL)animated {
-    NSLog(@"og background: %@", background);
     if ([background isKindOfClass:[NSString class]]) {
         background = [UIColor fromHex:background];
     }
-    NSLog(@"background after if: %@", background);
 
     UIColor *foreground;
     if (background == nil || background == [UIColor clearColor]) {

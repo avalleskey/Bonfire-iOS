@@ -72,14 +72,13 @@ static NSString * const contactCellIdentifier = @"ContactCell";
 }
 
 - (void)setupErrorView {
-    self.errorView = [[ErrorView alloc] initWithFrame:CGRectMake(12, 206 + 72, self.view.frame.size.width - 24, 100) title:@"Please allow Contacts" description:@"Open Settings, find Bonfire and allow Bonfire to view your Contacts" type:ErrorViewTypeContactsDenied];
-    self.errorView.frame = CGRectMake(self.errorView.frame.origin.x, 206 + 72, self.errorView.frame.size.width, self.errorView.frame.size.height);
-    self.errorView.hidden = true;
-    [self.tableView addSubview:self.errorView];
-    
-    [self.errorView bk_whenTapped:^{
+    self.errorView = [[ErrorView alloc] initWithFrame:CGRectMake(12, 206 + 72, self.view.frame.size.width - 24, 100)];
+    [self.errorView updateType:ErrorViewTypeContactsDenied title:@"Please allow Contacts" description:@"Open Settings, find Bonfire and allow Bonfire to view your Contacts" actionTitle:@"Try Again" actionBlock:^{
         [self checkAccess];
     }];
+    self.errorView.frame = CGRectMake(self.errorView.frame.origin.x, 206 + 48, self.errorView.frame.size.width, self.errorView.frame.size.height);
+    self.errorView.hidden = true;
+    [self.tableView addSubview:self.errorView];
 }
 
 - (void)setupSearchBar {

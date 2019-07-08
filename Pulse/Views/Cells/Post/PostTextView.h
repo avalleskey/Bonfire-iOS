@@ -11,7 +11,7 @@
 #import "Post.h"
 
 #define kDefaultBubbleBackgroundColor [UIColor colorWithRed:0.89 green:0.89 blue:0.92 alpha:1.00]
-#define textViewFont [UIFont systemFontOfSize:[UIFont preferredFontForTextStyle:UIFontTextStyleBody].pointSize+1.f weight:UIFontWeightRegular]
+#define textViewFont [UIFont systemFontOfSize:[UIFont preferredFontForTextStyle:UIFontTextStyleBody].pointSize+2.f weight:UIFontWeightRegular]
 #define postTextViewInset UIEdgeInsetsZero
 
 NS_ASSUME_NONNULL_BEGIN

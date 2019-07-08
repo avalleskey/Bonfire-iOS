@@ -98,11 +98,9 @@
 - (SimpleNavigationController *)simpleNavWithRootViewController:(NSString *)rootID {
     SimpleNavigationController *simpleNav;
     
-    if ([rootID isEqualToString:@"timeline"] || [rootID isEqualToString:@"trending"]) {
-        FeedType type = [rootID isEqualToString:@"trending"] ? FeedTypeTrending : FeedTypeTimeline;
-        FeedViewController *viewController = [[FeedViewController alloc] initWithFeedType:type];
-        viewController.title = [rootID isEqualToString:@"trending"] ?
-        @"" : [Session sharedInstance].defaults.keywords.viewTitles.userStream;
+    if ([rootID isEqualToString:@"timeline"]) {
+        HomeViewController *viewController = [[HomeViewController alloc] init];
+        viewController.title = [Session sharedInstance].defaults.keywords.viewTitles.userStream;
         
         simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:viewController];
         [simpleNav setLeftAction:SNActionTypeProfile];
@@ -119,7 +117,7 @@
         simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:viewController];
         simpleNav.currentTheme = [UIColor clearColor];
         [simpleNav setLeftAction:SNActionTypeProfile];
-        [simpleNav setRightAction:SNActionTypeSearch];
+        [simpleNav setRightAction:SNActionTypeCompose];
     }
     else if ([rootID isEqualToString:@"notifs"]) {
         NotificationsTableViewController *viewController = [[NotificationsTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
@@ -177,7 +175,7 @@
     
     self.blurView = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleLight]];
     self.blurView.frame = CGRectMake(0, 0, self.tabBar.frame.size.width, self.tabBar.frame.size.height + [UIApplication sharedApplication].delegate.window.safeAreaInsets.bottom);
-    self.blurView.backgroundColor = [UIColor colorWithWhite:1 alpha:0.6];
+    self.blurView.backgroundColor = [UIColor colorWithWhite:1 alpha:0.9];
     self.blurView.layer.masksToBounds = true;
     [self.tabBar insertSubview:self.blurView atIndex:0];
 

@@ -12,6 +12,7 @@
 #import "BFTipsManager.h"
 #import "BFNotificationManager.h"
 #import "Launcher.h"
+#import "ComposeViewController.h"
 #import "UIImage+fixOrientation.h"
 @import Firebase;
 
@@ -256,26 +257,50 @@
         // refresh my camps
         [[NSNotificationCenter defaultCenter] postNotificationName:@"refreshMyCamps" object:nil];
         
-        NSError *error;
-        BFContextCamp *campContextResponse = [[BFContextCamp alloc] initWithDictionary:responseObject[@"data"][@"context"] error:&error];
-        
-        if (!error) {
-            r.attributes.context.camp = campContextResponse;
-            
-            if ([r.attributes.context.camp.status isEqualToString:CAMP_STATUS_MEMBER]) {
-                r.attributes.summaries.counts.members = r.attributes.summaries.counts.members + 1;
+        if ([responseObject objectForKey:@"data"]) {
+            if ([responseObject[@"data"] objectForKey:@"context"]) {
+                NSError *error;
+                BFContextCamp *campContextResponse = [[BFContextCamp alloc] initWithDictionary:responseObject[@"data"][@"context"] error:&error];
+                
+                if (!error) {
+                    r.attributes.context.camp = campContextResponse;
+                    
+                    if ([r.attributes.context.camp.status isEqualToString:CAMP_STATUS_MEMBER]) {
+                        r.attributes.summaries.counts.members = r.attributes.summaries.counts.members + 1;
+                    }
+                    
+                    if (r.attributes.summaries.members.count < 6) {
+                        // add yourself as a user, so we can update the canvas pic!
+                        NSMutableArray <User *><User, Optional> *mutableSummariesMembersArray = [r.attributes.summaries.members mutableCopy];
+                        [mutableSummariesMembersArray addObject:[Session sharedInstance].currentUser];
+                        r.attributes.summaries.members = mutableSummariesMembersArray;
+                    }
+                }
+                
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"CampUpdated" object:r];
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"FetchNewTimelinePosts" object:nil];
             }
             
-            if (r.attributes.summaries.members.count < 6) {
-                // add yourself as a user, so we can update the canvas pic!
-                NSMutableArray <User *><User, Optional> *mutableSummariesMembersArray = [r.attributes.summaries.members mutableCopy];
-                [mutableSummariesMembersArray addObject:[Session sharedInstance].currentUser];
-                r.attributes.summaries.members = mutableSummariesMembersArray;
+            if ([responseObject[@"data"] objectForKey:@"prompt"]) {
+                // open icebreaker prompt if given one!
+                if ([responseObject[@"data"][@"prompt"] objectForKey:@"type"] && [[NSString stringWithFormat:@"%@", responseObject[@"data"][@"prompt"][@"type"]] isEqualToString:@"post"]) {
+                    Post *post = [[Post alloc] initWithDictionary:responseObject[@"data"][@"prompt"] error:nil];
+                    
+                    ComposeViewController *epvc = [[ComposeViewController alloc] init];
+                    epvc.postingIn = post.attributes.status.postedIn;
+                    epvc.replyingTo = post;
+                    epvc.replyingToIcebreaker = true;
+                    
+                    SimpleNavigationController *newNavController = [[SimpleNavigationController alloc] initWithRootViewController:epvc];
+                    newNavController.transitioningDelegate = [Launcher sharedInstance];
+                    [newNavController setLeftAction:SNActionTypeCancel];
+                    [newNavController setRightAction:SNActionTypeShare];
+                    newNavController.view.tintColor = epvc.view.tintColor;
+                    newNavController.currentTheme = [UIColor whiteColor];
+                    [Launcher present:newNavController animated:YES];
+                }
             }
         }
-        
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"CampUpdated" object:r];
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"FetchNewTimelinePosts" object:nil];
         
         handler(true, r);
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {

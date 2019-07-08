@@ -22,7 +22,7 @@
 
 @import UserNotifications;
 @import Firebase;
-@import FirebasePerformance;
+// @import FirebasePerformance;
 #import <RSKImageCropper/RSKImageCropper.h>
 
 #define UIViewParentController(__view) ({ \
@@ -48,8 +48,8 @@
 @property (nonatomic) CGFloat currentKeyboardHeight;
 @property (nonatomic, strong) NSMutableArray *campSuggestions;
 
-@property (nonatomic) FIRTrace *signInTrace;
-@property (nonatomic) FIRTrace *signUpTrace;
+//@property (nonatomic) FIRTrace *signInTrace;
+//@property (nonatomic) FIRTrace *signUpTrace;
 
 @end
 
@@ -74,8 +74,8 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     
     if (!self.signInLikely) {
         // track how long it takes to finish sign up flow
-        self.signInTrace = [FIRPerformance startTraceWithName:@"Sign In"];
-        self.signUpTrace = [FIRPerformance startTraceWithName:@"Sign Up"];
+        //self.signInTrace = [FIRPerformance startTraceWithName:@"Sign In"];
+        //self.signUpTrace = [FIRPerformance startTraceWithName:@"Sign Up"];
     }
     
     [UIApplication sharedApplication].applicationIconBadgeNumber = 0;
@@ -985,8 +985,8 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         [BFAPI getUser:^(BOOL success) {
             NSLog(@"success?>? %@", success ? @"YES" : @"NO");
             if (success) {
-                self.signUpTrace = nil;
-                [self.signInTrace stop];
+                //self.signUpTrace = nil;
+                //[self.signInTrace stop];
                 [FIRAnalytics logEventWithName:@"onboarding_signed_in"
                                     parameters:@{}];
                 
@@ -1179,8 +1179,8 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             [self nextStep:true];
             [self greyOutNextButton];
             
-            [self.signUpTrace stop];
-            self.signInTrace = nil;
+            //[self.signUpTrace stop];
+            //self.signInTrace = nil;
             [FIRAnalytics logEventWithName:@"onboarding_updated_user"
                                 parameters:@{@"color": color}];
             

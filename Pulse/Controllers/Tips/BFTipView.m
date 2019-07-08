@@ -200,14 +200,21 @@
         
         self.frame = CGRectMake(self.frame.origin.x, [UIScreen mainScreen].bounds.size.height, self.frame.size.width, self.textLabel.frame.origin.y + self.textLabel.frame.size.height + 12);
         self.blurView.frame = CGRectMake(0, 0, self.frame.size.width, self.frame.size.height);
+        
+        [self bk_removeAllBlockObservers];
+        if (object.action) {
+            [self bk_whenTapped:^{
+                [[BFTipsManager manager] hideAllTips];
+                
+                object.action();
+            }];
+        }
     }
 }
 
 - (void)layoutSubviews {
     [super layoutSubviews];
-    
-    NSLog(@"self.transform.a == %f", self.transform.a);
-    
+        
     if (self.transform.a == 1) {
         self.closeButton.frame = CGRectMake(self.frame.size.width - self.closeButton.frame.size.width - 16, self.creatorAvatarView.frame.origin.y + (self.creatorAvatarView.frame.size.height / 2) - (self.closeButton.frame.size.height / 2), self.closeButton.frame.size.width, self.closeButton.frame.size.height);
         self.creatorTitleLabel.frame = CGRectMake(self.creatorTitleLabel.frame.origin.x, self.creatorAvatarView.frame.origin.y, (self.closeButton.frame.origin.x - 6) - self.creatorTitleLabel.frame.origin.x, self.creatorAvatarView.frame.size.height);
@@ -239,6 +246,31 @@
         self.titleLabel.textColor = [UIColor blackColor];
         self.textLabel.textColor = [UIColor blackColor];
     }
+}
+
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    if (self.object.action) {
+        [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+            self.transform = CGAffineTransformMakeScale(0.95, 0.95);
+        } completion:nil];
+    }
+}
+
+- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+        self.transform = CGAffineTransformIdentity;
+        self.alpha = 1;
+    } completion:nil];
+}
+
+- (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+        self.transform = CGAffineTransformIdentity;
+        self.alpha = 1;
+    } completion:nil];
 }
 
 @end
@@ -304,6 +336,8 @@
     
     tipObject.title = title;
     tipObject.text = text;
+    
+    tipObject.action = actionHandler;
     
     return tipObject;
 }

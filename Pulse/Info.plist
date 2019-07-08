@@ -4,6 +4,8 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleDisplayName</key>
+	<string>$(PRODUCT_NAME)</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -18,7 +20,7 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleURLSchemes</key>
 	<array>
-		<string>bonfireapp${BUNDLE_ID_SUFFIX}</string>
+		<string>bonfireapp$(BUNDLE_ID_SUFFIX)</string>
 	</array>
 	<key>CFBundleURLTypes</key>
 	<array>

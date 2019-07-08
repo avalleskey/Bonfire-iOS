@@ -31,14 +31,14 @@
  
  @return A new image created from GIF, or nil when an error occurs.
  */
-+ (nullable UIImage *)ks_imageWithSmallGIFData:(NSData *)data scale:(CGFloat)scale;
++ (nullable UIImage *)ks_imageWithSmallGIFData:(NSData *_Nullable)data scale:(CGFloat)scale;
 
 /**
  Create and return a 1x1 point size image with the given color.
  
  @param color  The color.
  */
-+ (nullable UIImage *)ks_imageWithColor:(UIColor *)color;
++ (nullable UIImage *)ks_imageWithColor:(UIColor *_Nullable)color;
 
 /**
  Create and return a pure color image with the given color and size.
@@ -46,7 +46,7 @@
  @param color  The color.
  @param size   New image's type.
  */
-+ (nullable UIImage *)ks_imageWithColor:(UIColor *)color size:(CGSize)size;
++ (nullable UIImage *)ks_imageWithColor:(UIColor *_Nullable)color size:(CGSize)size;
 
 /**
  Create and return an image with custom draw code.
@@ -56,7 +56,7 @@
  
  @return The new image.
  */
-+ (nullable UIImage *)ks_imageWithSize:(CGSize)size drawBlock:(void (^)(CGContextRef context))drawBlock;
++ (nullable UIImage *)ks_imageWithSize:(CGSize)size drawBlock:(void (^_Nonnull)(CGContextRef _Nullable context))drawBlock;
 
 #pragma mark - Image Info
 ///=============================================================================
@@ -233,7 +233,7 @@
  
  @param color  The color.
  */
-- (nullable UIImage *)ks_imageByTintColor:(UIColor *)color;
+- (nullable UIImage *)ks_imageByTintColor:(UIColor *_Nullable)color;
 
 /**
  Returns a grayscaled image.
@@ -268,7 +268,7 @@
  
  @param tintColor  The tint color.
  */
-- (nullable UIImage *)ks_imageByBlurWithTint:(UIColor *)tintColor;
+- (nullable UIImage *)ks_imageByBlurWithTint:(UIColor *_Nullable)tintColor;
 
 /**
  Applies a blur, tint color, and saturation adjustment to this image,

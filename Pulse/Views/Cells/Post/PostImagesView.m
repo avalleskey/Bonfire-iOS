@@ -13,6 +13,7 @@
 #import <BlocksKit/BlocksKit+UIKit.h>
 #import "Post.h"
 #import "UIImage+WithColor.h"
+#import <SDWebImage/UIImageView+WebCache.h>
 
 @implementation PostImagesView
 
@@ -39,7 +40,7 @@
     self.layer.cornerRadius = 16.f;
     self.layer.masksToBounds = true;
     self.layer.borderWidth = (1 / [UIScreen mainScreen].scale);
-    self.layer.borderColor = [UIColor colorWithWhite:0.94 alpha:1].CGColor;
+    self.layer.borderColor = [UIColor colorWithWhite:0.9 alpha:1].CGColor;
     
     self.imageViews = [[NSMutableArray alloc] init];
     self.media = @[];
@@ -91,9 +92,7 @@
     
     // populate image views with corresponding media
     for (NSInteger i = 0; i < self.media.count; i++) {
-        // this should always be true, but we're including the conditional to make sure we never run into an out-of-index bug that crashes the app
-        NSLog(@"ok class: %@", [self.media[i] class]);
-        
+        // this should always be true, but we're including the conditional to make sure we never run into an out-of-index bug that crashes the app        
         if ([self.media[i] isKindOfClass:[PostAttachmentsMedia class]] ||
             ([self.media[i] isKindOfClass:[NSString class]] && ((NSString *)self.media[i]).length > 0)) {            
             NSString *imageURL;
@@ -213,7 +212,7 @@
     imageView.backgroundColor = [UIColor colorWithRed:0.93 green:0.93 blue:0.95 alpha:1.0];
     imageView.contentMode = UIViewContentModeScaleAspectFill;
     imageView.layer.borderWidth = (1 / [UIScreen mainScreen].scale);
-    imageView.layer.borderColor = [UIColor colorWithWhite:0 alpha:0.06f].CGColor;
+    imageView.layer.borderColor = [UIColor colorWithWhite:0 alpha:0.1f].CGColor;
     imageView.layer.masksToBounds = true;
     imageView.userInteractionEnabled = true;
     imageView.tag = self.imageViews.count;

@@ -15,7 +15,7 @@
 #import <MessageUI/MessageUI.h>
 #import "ThemedViewController.h"
 
-@interface CampViewController : ThemedViewController <UITextViewDelegate, RSTableViewPaginationDelegate, MFMessageComposeViewControllerDelegate>
+@interface CampViewController : ThemedViewController <UITextViewDelegate, RSTableViewDelegate, MFMessageComposeViewControllerDelegate>
 
 @property (nonatomic, strong) Camp *camp;
 

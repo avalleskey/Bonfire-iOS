@@ -37,8 +37,8 @@
         self.contentView.frame = CGRectMake(0, 0, screenWidth, 100);
         self.contentView.layer.masksToBounds = false;
         
-        self.profilePicture.frame = CGRectMake(12, 12, 48, 48);
-        self.profilePicture.openOnTap = true;
+        self.primaryAvatarView.frame = CGRectMake(12, 12, 48, 48);
+        self.primaryAvatarView.openOnTap = true;
         
         self.nameButton = [UIButton buttonWithType:UIButtonTypeSystem];
         self.nameButton.frame = CGRectMake(70, expandedPostContentOffset.top + 9, self.contentView.frame.size.width - 70 - 50, 16);
@@ -61,12 +61,11 @@
         [self.contentView addSubview:self.postedInButton];
         
         // text view
-        self.textView.frame = CGRectMake(expandedPostContentOffset.left, self.profilePicture.frame.origin.y + self.profilePicture.frame.size.height + 12, self.contentView.frame.size.width - expandedPostContentOffset.right - expandedPostContentOffset.left, 200);
+        self.textView.frame = CGRectMake(expandedPostContentOffset.left, self.primaryAvatarView.frame.origin.y + self.primaryAvatarView.frame.size.height + 12, self.contentView.frame.size.width - expandedPostContentOffset.right - expandedPostContentOffset.left, 200);
         self.textView.messageLabel.font = expandedTextViewFont;
         self.textView.delegate = self;
         
         self.dateLabel.hidden = true;
-        self.moreButton.hidden = true;
         
         self.activityView = [[PostActivityView alloc] initWithFrame:CGRectMake(0, self.textView.frame.origin.y + self.textView.frame.size.height, self.frame.size.width, 30)];
         [self.contentView addSubview:self.activityView];
@@ -125,7 +124,13 @@
     // -- text view
     self.textView.tintColor = self.tintColor;
     [self.textView update];
-    self.textView.frame = CGRectMake(expandedPostContentOffset.left, self.profilePicture.frame.origin.y + self.profilePicture.frame.size.height + 12, self.frame.size.width - (expandedPostContentOffset.left + expandedPostContentOffset.right), self.textView.frame.size.height);
+    self.textView.frame = CGRectMake(expandedPostContentOffset.left, self.primaryAvatarView.frame.origin.y + self.primaryAvatarView.frame.size.height + 12, self.frame.size.width - (expandedPostContentOffset.left + expandedPostContentOffset.right), self.textView.frame.size.height);
+    
+    if (![self.moreButton isHidden]) {
+        CGFloat moreButtonPadding = 12;
+        CGFloat moreButtonWidth = self.moreButton.currentImage.size.width + (moreButtonPadding * 2);
+        self.moreButton.frame = CGRectMake(self.frame.size.width - moreButtonWidth - expandedPostContentOffset.right + moreButtonPadding, (self.primaryAvatarView.frame.origin.y + self.primaryAvatarView.frame.size.height / 2) - 20 - moreButtonPadding, moreButtonWidth, 40 + (moreButtonPadding * 2));
+    }
     
     self.nameButton.frame = CGRectMake(self.nameButton.frame.origin.x, self.nameButton.frame.origin.y, self.frame.size.width - (self.nameButton.frame.origin.x + expandedPostContentOffset.right), self.nameButton.frame.size.height);
     self.postedInButton.frame = CGRectMake(self.nameButton.frame.origin.x, self.postedInButton.frame.origin.y, self.frame.size.width - self.nameButton.frame.origin.x - expandedPostContentOffset.right, self.postedInButton.frame.size.height);
@@ -289,10 +294,10 @@
         }
         [self.postedInButton setTitleColor:self.postedInButton.tintColor forState:UIControlStateNormal];
         
-        if (self.profilePicture.user != _post.attributes.details.creator) {
-            self.profilePicture.user = _post.attributes.details.creator;
+        if (self.primaryAvatarView.user != _post.attributes.details.creator) {
+            self.primaryAvatarView.user = _post.attributes.details.creator;
         }
-        self.profilePicture.online = false;
+        self.primaryAvatarView.online = false;
         
         NSArray *media;
         if (self.post.attributes.details.attachments.media.count > 0) {
@@ -305,7 +310,7 @@
             media = @[];
         }
         
-        UIColor *theme = [UIColor bonfireGrayWithLevel:700];
+        UIColor *theme = [UIColor bonfireGrayWithLevel:800];
         if (postedInCamp) {
             theme = [UIColor fromHex:self.post.attributes.status.postedIn.attributes.details.color];
         }

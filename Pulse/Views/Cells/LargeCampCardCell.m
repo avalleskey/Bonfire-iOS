@@ -22,8 +22,22 @@
 
 @implementation LargeCampCardCell
 
+- (id)init {
+    if (self = [super init]) {
+        [self setup];
+    }
+    return self;
+}
 - (id)initWithFrame:(CGRect)frame {
     if (self = [super initWithFrame:frame]) {
+        [self setup];
+        self.layer.shadowPath = [UIBezierPath bezierPathWithRoundedRect:self.bounds cornerRadius:self.layer.cornerRadius].CGPath;
+        self.contentView.layer.shadowPath = [UIBezierPath bezierPathWithRoundedRect:self.bounds cornerRadius:self.layer.cornerRadius].CGPath;
+    }
+    return self;
+}
+- (id)initWithCoder:(NSCoder *)coder {
+    if (self = [super initWithCoder:coder]) {
         [self setup];
     }
     return self;
@@ -41,6 +55,8 @@
     self.layer.shadowOpacity = 1.f;
     self.contentView.layer.cornerRadius = self.layer.cornerRadius;
     self.contentView.layer.masksToBounds = true;
+    self.layer.shouldRasterize = true;
+    self.layer.rasterizationScale = [UIScreen mainScreen].scale;
     
     self.campHeaderView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, 72)];
     self.campHeaderView.backgroundColor = [UIColor bonfireOrange];
@@ -368,8 +384,6 @@
         [self updateFollowButtonStatus];
         
         [self updateDetailsView];
-        
-        [self setNeedsLayout];
     }
 }
 

@@ -78,7 +78,7 @@
                     // confirm action
                     UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:nil message:nil preferredStyle:UIAlertControllerStyleActionSheet];
                     
-                    UIAlertAction *action1 = [UIAlertAction actionWithTitle:@"View Profile Picture" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                    UIAlertAction *action1 = [UIAlertAction actionWithTitle:@"View Camp Photo" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
                         [actionSheet dismissViewControllerAnimated:YES completion:nil];
                         
                         expandProfilePic();
@@ -116,24 +116,24 @@
         //[self.contentView addSubview:self.infoButton];
         
         self.member2 = [[BFAvatarView alloc] initWithFrame:CGRectMake(0, 0, 44, 44)];
-        self.member2.allowAddUserPlaceholder = true;
+        self.member2.placeholderAvatar = true;
         self.member2.tag = 0;
         self.member3 = [[BFAvatarView alloc] initWithFrame:CGRectMake(0, 0, 44, 44)];
-        self.member3.allowAddUserPlaceholder = true;
+        self.member3.placeholderAvatar = true;
         self.member3.tag = 1;
         
         self.member4 = [[BFAvatarView alloc] initWithFrame:CGRectMake(0, 0, 32, 32)];
-        self.member4.allowAddUserPlaceholder = true;
+        self.member4.placeholderAvatar = true;
         self.member4.tag = 2;
         self.member5 = [[BFAvatarView alloc] initWithFrame:CGRectMake(0, 0, 32, 32)];
-        self.member5.allowAddUserPlaceholder = true;
+        self.member5.placeholderAvatar = true;
         self.member5.tag = 3;
         
         self.member6 = [[BFAvatarView alloc] initWithFrame:CGRectMake(0, 0, 24, 24)];
-        self.member6.allowAddUserPlaceholder = true;
+        self.member6.placeholderAvatar = true;
         self.member6.tag = 4;
         self.member7 = [[BFAvatarView alloc] initWithFrame:CGRectMake(0, 0, 24, 24)];
-        self.member7.allowAddUserPlaceholder = true;
+        self.member7.placeholderAvatar = true;
         self.member7.tag = 5;
         
         [self.contentView addSubview:self.member2];
@@ -451,27 +451,33 @@
                 avatarView.dimsViewOnTap = true;
             }
             else {
-                avatarView.user = nil;
                 avatarView.dimsViewOnTap = false;
             }
         }
         
         NSMutableArray *details = [[NSMutableArray alloc] init];
-        
-        BFDetailItem *visibility = [[BFDetailItem alloc] initWithType:(camp.attributes.status.visibility.isPrivate ? BFDetailItemTypePrivacyPrivate : BFDetailItemTypePrivacyPublic) value:(camp.attributes.status.visibility.isPrivate ? @"Private" : @"Public") action:nil];
-        [details addObject:visibility];
-        
-        BFDetailItem *members = [[BFDetailItem alloc] initWithType:BFDetailItemTypeMembers value:[NSString stringWithFormat:@"%ld", (long)camp.attributes.summaries.counts.members] action:^{
-            [Launcher openCampMembersForCamp:self.camp];
-        }];
-        if (self.camp.attributes.status.visibility.isPrivate && ![self.camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_MEMBER]) {
-            members.selectable = false;
+        if (camp.attributes.details.identifier.length > 0 || camp.identifier.length > 0) {
+            if (self.camp.attributes.status.visibility != nil) {
+                BFDetailItem *visibility = [[BFDetailItem alloc] initWithType:(camp.attributes.status.visibility.isPrivate ? BFDetailItemTypePrivacyPrivate : BFDetailItemTypePrivacyPublic) value:(camp.attributes.status.visibility.isPrivate ? @"Private" : @"Public") action:nil];
+                [details addObject:visibility];
+            }
+            
+            if (self.camp.attributes.summaries.counts != nil) {
+                BFDetailItem *members = [[BFDetailItem alloc] initWithType:BFDetailItemTypeMembers value:[NSString stringWithFormat:@"%ld", (long)camp.attributes.summaries.counts.members] action:^{
+                    [Launcher openCampMembersForCamp:self.camp];
+                }];
+                if (self.camp.attributes.status.visibility.isPrivate && ![self.camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_MEMBER]) {
+                    members.selectable = false;
+                }
+                [details addObject:members];
+            }
         }
-        [details addObject:members];
         
-        self.detailsCollectionView.hidden = (details.count == 0 || self.camp.attributes.context.camp.status == nil);
+        self.detailsCollectionView.hidden = (details.count == 0);
         
-        self.detailsCollectionView.details = [details copy];
+        if (![self.detailsCollectionView isHidden]) {
+            self.detailsCollectionView.details = [details copy];
+        }
     }
 }
 
@@ -518,7 +524,7 @@
             [details addObject:members];
         }
                 
-        if (details.count > 0 && camp.attributes.context.camp.status != nil) {
+        if (details.count > 0) {
             BFDetailsCollectionView *detailCollectionView = [[BFDetailsCollectionView alloc] initWithFrame:CGRectMake(CAMP_HEADER_EDGE_INSETS.left, 0, [UIScreen mainScreen].bounds.size.width - CAMP_HEADER_EDGE_INSETS.left - CAMP_HEADER_EDGE_INSETS.right, 16)];
             detailCollectionView.delegate = detailCollectionView;
             detailCollectionView.dataSource = detailCollectionView;
@@ -527,11 +533,11 @@
             detailsHeight = CAMP_HEADER_DETAILS_EDGE_INSETS.top + detailCollectionView.collectionViewLayout.collectionViewContentSize.height;
             height = height + (camp.attributes.details.theDescription.length > 0 ? CAMP_HEADER_DESCRIPTION_BOTTOM_PADDING : CAMP_HEADER_TAG_BOTTOM_PADDING) + detailsHeight;
         }
-        
-        if (camp.identifier.length > 0 || loading) {
-            CGFloat userPrimaryActionHeight = CAMP_HEADER_FOLLOW_BUTTON_TOP_PADDING + 36;
-            height = height + userPrimaryActionHeight;
-        }
+    }
+    
+    if (camp.identifier.length > 0 || loading) {
+        CGFloat userPrimaryActionHeight = CAMP_HEADER_FOLLOW_BUTTON_TOP_PADDING + 36;
+        height = height + userPrimaryActionHeight;
     }
 
     // add bottom padding and line separator

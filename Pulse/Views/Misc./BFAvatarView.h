@@ -21,11 +21,11 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, nullable) Camp *camp;
 
 @property (nonatomic) BOOL online;
+@property (nonatomic) BOOL placeholderAvatar;
 
 @property (nonatomic) BOOL dimsViewOnTap;
 @property (nonatomic) BOOL openOnTap;
 @property (nonatomic) BOOL touchDown;
-@property (nonatomic) BOOL allowAddUserPlaceholder;
 @property (nonatomic) BOOL allowOnlineDot;
 
 @property (nonatomic, strong) UIView *highlightView;

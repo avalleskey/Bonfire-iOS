@@ -67,7 +67,6 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     // Do any additional setup after loading the view.
     
     self.simpleNav = (SimpleNavigationController *)self.navigationController;
-    //[self.simpleNav hideBottomHairline];
     
     self.view.backgroundColor = [UIColor whiteColor];
     
@@ -156,16 +155,13 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
 }
 
 - (void)setupErrorView {
-    self.errorView = [[ErrorView alloc] initWithFrame:CGRectMake(16, 0, self.view.frame.size.width - 32, 100) title:@"Error Loading" description:@"Check your network settings and tap here to try again" type:ErrorViewTypeNotFound];
+    self.errorView = [[ErrorView alloc] initWithFrame:CGRectMake(16, 0, self.view.frame.size.width - 32, 100)];
+    [self.errorView updateType:ErrorViewTypeNotFound title:@"Error Loading" description:@"Check your network settings and tap below to try again" actionTitle:@"Refresh" actionBlock:^{
+        [self refresh];
+    }];
     self.errorView.center = self.tableView.center;
     self.errorView.hidden = true;
     [self.tableView addSubview:self.errorView];
-    
-    [self.errorView bk_whenTapped:^{
-        [self getAll];
-        
-        [self refresh];
-    }];
 }
 - (void)getAll {
     [self getFeaturedCamps];
@@ -175,6 +171,11 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     [self.tableView reloadData];
 }
 - (void)refresh {
+    [self getAll];
+    
+    [self update];
+}
+- (void)update {
     [self.tableView reloadData];
     
     if ((!self.loadingFeaturedCamps && self.featuredCamps.count == 0) && (!self.loadingMyCamps && self.myCamps.count == 0) && (!self.loadingLists && self.lists.count == 0)) {
@@ -183,23 +184,33 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
             [self setupErrorView];
         }
         
-        self.errorView.center = CGPointMake(self.view.frame.size.width / 2, self.tableView.frame.size.height / 2 - self.navigationController.navigationBar.frame.size.height - self.navigationController.navigationBar.frame.origin.y);
         self.errorView.hidden = false;
         
         if ([HAWebService hasInternet]) {
-            [self.errorView updateType:ErrorViewTypeGeneral];
-            [self.errorView updateTitle:@"Error Loading"];
-            [self.errorView updateDescription:@"Check your network settings and tap here to try again"];
+            [self.errorView updateType:ErrorViewTypeGeneral title:@"Error Loading" description:@"Check your network settings and tap below to try again" actionTitle:@"Refresh" actionBlock:^{
+                [self refresh];
+            }];
         }
         else {
-            [self.errorView updateType:ErrorViewTypeNoInternet];
-            [self.errorView updateTitle:@"No Internet"];
-            [self.errorView updateDescription:@"Check your network settings and tap here to try again"];
+            [self.errorView updateType:ErrorViewTypeNoInternet title:@"No Internet" description:@"Check your network settings and tap below to try again" actionTitle:@"Refresh" actionBlock:^{
+                [self refresh];
+            }];
         }
+        
+        [self positionErrorView];
     }
     else {
         self.errorView.hidden = true;
     }
+}
+
+- (void)showErrorViewWithType:(ErrorViewType)type title:(NSString *)title description:(NSString *)description {
+    self.errorView.hidden = false;
+    [self.errorView updateType:type title:title description:description actionTitle:nil actionBlock:nil];
+    [self positionErrorView];
+}
+- (void)positionErrorView {
+    self.errorView.center = CGPointMake(self.tableView.frame.size.width / 2, self.tableView.frame.size.height / 2 - (self.tableView.adjustedContentInset.bottom / 2));
 }
 
 - (void)setupTableView {
@@ -220,7 +231,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
 
 - (void)setupSpinner {
     self.spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
-    self.spinner.center = CGPointMake(self.tableView.frame.size.width / 2, self.tableView.frame.size.height / 2 - (self.tableView.adjustedContentInset.bottom / 2));
+    self.spinner.center = CGPointMake(self.tableView.frame.size.width / 2, self.tableView.frame.size.height / 2 - self.navigationController.navigationBar.frame.size.height - self.navigationController.navigationBar.frame.origin.y);
     [self stopSpinner];
     [self.tableView addSubview:self.spinner];
 }
@@ -274,7 +285,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
         self.loadingLists = false;
         self.errorLoadingLists = false;
         
-        [self refresh];
+        [self update];
         
         if (!self.loadingLists && !self.loadingMyCamps) {
             [[self refreshControl] performSelector:@selector(endRefreshing) withObject:nil afterDelay:0.0];
@@ -286,7 +297,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
         self.loadingLists = false;
         self.errorLoadingLists = true;
         
-        [self refresh];
+        [self update];
         
         if (!self.loadingLists && !self.loadingMyCamps) {
             [[self refreshControl] performSelector:@selector(endRefreshing) withObject:nil afterDelay:0.0];
@@ -311,7 +322,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
         self.loadingFeaturedCamps = false;
         self.errorLoadingFeaturedCamps = false;
         
-        [self refresh];
+        [self update];
         
         if (!self.loadingLists && !self.loadingFeaturedCamps && !self.loadingMyCamps) {
             [[self refreshControl] performSelector:@selector(endRefreshing) withObject:nil afterDelay:0.0];
@@ -323,7 +334,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
         self.loadingFeaturedCamps = false;
         self.errorLoadingFeaturedCamps = true;
         
-        [self refresh];
+        [self update];
         
         if (!self.loadingLists && !self.loadingFeaturedCamps && !self.loadingMyCamps) {
             [[self refreshControl] performSelector:@selector(endRefreshing) withObject:nil afterDelay:0.0];
@@ -350,7 +361,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
         self.loadingMyCamps = false;
         self.errorLoadingMyCamps = false;
         
-        [self refresh];
+        [self update];
         
         if (!self.loadingLists && !self.loadingMyCamps) {
             [[self refreshControl] performSelector:@selector(endRefreshing) withObject:nil afterDelay:0.0];
@@ -362,7 +373,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
         self.loadingMyCamps = false;
         self.errorLoadingMyCamps = true;
         
-        [self refresh];
+        [self update];
         
         if (!self.loadingLists && !self.loadingMyCamps) {
             [[self refreshControl] performSelector:@selector(endRefreshing) withObject:nil afterDelay:0.0];
@@ -388,7 +399,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     // 4. Quick Links
 }
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    if (section == 0) return (self.loadingMyCamps || self.myCamps.count > 0) ? 1 : 0;
+    if (section == 0) return 0; // return (self.loadingMyCamps || self.myCamps.count > 0) ? 1 : 0;
     if (section == 1) {
         if (self.loadingFeaturedCamps || self.featuredCamps.count > 0) {
             return 1;
@@ -463,9 +474,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
                 campsList = self.lists[index][@"attributes"][@"camps"];
             }
         }
-        if (indexPath.section == 2) {
-            NSLog(@"camps list for beta:: %@", self.lists[indexPath.section-2][@"id"]);
-        }
+        
         cell.camps = [[NSMutableArray alloc] initWithArray:campsList];
         
         return cell;
@@ -517,14 +526,12 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
         }
         else if (indexPath.row == 1) {
             // get help
-            Camp *camp = [[Camp alloc] init];
-            camp.identifier = @"-5Orj2GW2ywG3";
+            Camp *camp = [[Camp alloc] initWithDictionary:@{@"id": @"-5Orj2GW2ywG3", @"attributes": @{@"details": @{@"identifier": @"BonfireSupport"}}} error:nil];
             [Launcher openCamp:camp];
         }
         else if (indexPath.row == 2) {
             // report a bug
-            Camp *camp = [[Camp alloc] init];
-            camp.identifier = @"-wWoxVq1VBA6R";
+            Camp *camp = [[Camp alloc] initWithDictionary:@{@"id": @"-wWoxVq1VBA6R", @"attributes": @{@"details": @{@"identifier": @"BonfireBugs"}}} error:nil];
             [Launcher openCamp:camp];
         }
     }
@@ -557,16 +564,46 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    if (section == 0) return 0;
+    if (section == 0) {
+        if (self.loadingLists || self.loadingFeaturedCamps) {
+            return CGFLOAT_MIN;
+        }
+        
+        return 52;
+    }
     
+    if (section == 0 && self.myCamps.count == 0 && !self.loadingMyCamps) return 0;
     if (section == 1 && self.featuredCamps.count == 0 && !self.loadingFeaturedCamps) return 0;
     
     return 60;
 }
 - (nullable UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
-    if (section == 0) return nil;
+    if (section == 0) {
+        if (self.loadingLists || self.loadingFeaturedCamps) {
+            return nil;
+        }
+        // search view
+        UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 52)];
+        header.backgroundColor = [UIColor whiteColor];
+        
+        BFSearchView *searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(12, 8, self.view.frame.size.width - (12 * 2), 36)];
+        [searchView.textField bk_removeAllBlockObservers];
+        searchView.textField.userInteractionEnabled = false;
+        for (UIGestureRecognizer *gestureRecognizer in searchView.gestureRecognizers) {
+            [searchView removeGestureRecognizer:gestureRecognizer];
+        }
+        [header bk_whenTapped:^{
+            [Launcher openSearch];
+        }];
+        [header addSubview:searchView];
+        
+        UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(0, header.frame.size.height - (1 / [UIScreen mainScreen].scale), self.view.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+        separator.backgroundColor = [UIColor separatorColor];
+        [header addSubview:separator];
+        
+        return header;
+    }
     
-    if (section == 0 && self.myCamps.count == 0 && !self.loadingMyCamps) return nil;
     if (section == 1 && self.featuredCamps.count == 0 && !self.loadingFeaturedCamps) return nil;
     
     UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 8, self.view.frame.size.width, 60)];
@@ -574,22 +611,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     NSString *bigTitle;
     NSString *title;
 
-    if (section == 0) {
-        if (header.gestureRecognizers.count == 0) {
-            [header bk_whenTapped:^{
-                if (self.myCamps.count > 0) {
-                    [Launcher openProfileCampsJoined:[Session sharedInstance].currentUser];
-                }
-            }];
-        }
-        if (self.myCamps.count > 0) {
-            UIImageView *detailDisclosureIcon = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"headerDetailDisclosureIcon"]];
-            detailDisclosureIcon.frame = CGRectMake(header.frame.size.width - detailDisclosureIcon.frame.size.width - 16, header.frame.size.height -  detailDisclosureIcon.frame.size.height - 19, detailDisclosureIcon.frame.size.width, detailDisclosureIcon.frame.size.height);
-            [header addSubview:detailDisclosureIcon];
-        }
-        title = @"My Camps";
-    }
-    else if (section == 1) {
+    if (section == 1) {
         /*UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(16, 0, self.view.frame.size.width - 32, (1 / [UIScreen mainScreen].scale))];
         separator.backgroundColor = [UIColor separatorColor];
         [header addSubview:separator];*/
@@ -648,20 +670,17 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     return header;
 }
 - (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {    
-    if (section == 0 && self.myCamps.count == 0 && !self.loadingMyCamps) return CGFLOAT_MIN;
+    if (section == 0) return CGFLOAT_MIN; //&& self.myCamps.count == 0 && !self.loadingMyCamps) return CGFLOAT_MIN;
     if (section == 1 && self.featuredCamps.count == 0 && !self.loadingFeaturedCamps) return CGFLOAT_MIN;
     
     if (section == 0) {
         return (1 / [UIScreen mainScreen].scale);
     }
-    else if (section == 1) {
-        return 24;
-    }
     
     return 16;
 }
 - (nullable UIView *)tableView:(UITableView *)tableView viewForFooterInSection:(NSInteger)section {
-    if (section == 0 && self.myCamps.count == 0 && !self.loadingMyCamps) return nil;
+    if (section == 0) return nil; //&& self.myCamps.count == 0 && !self.loadingMyCamps) return nil;
     if (section == 1 && self.featuredCamps.count == 0 && !self.loadingFeaturedCamps) return nil;
     
     // last second -> no line separator
@@ -672,7 +691,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
         footer.frame = CGRectMake(0, 0, self.view.frame.size.width, (1 / [UIScreen mainScreen].scale));
     }
     else if (section == 1) {
-        footer.frame = CGRectMake(0, 0, self.view.frame.size.width, 24);
+        footer.frame = CGRectMake(0, 0, self.view.frame.size.width, 16);
     }
     else {
         footer.frame = CGRectMake(0, 0, self.view.frame.size.width, 16);

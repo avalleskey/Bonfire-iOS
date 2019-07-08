@@ -16,8 +16,6 @@
 #import "PostStream.h"
 #import "TappableView.h"
 
-#define CONVERSATION_ADD_REPLY_CELL_HEIGHT 48
-
 @interface PostViewController : ThemedViewController <UITextViewDelegate, MFMessageComposeViewControllerDelegate, UITableViewDelegate, UITableViewDataSource>
 
 @property (nonatomic, strong) Post *parentPost;

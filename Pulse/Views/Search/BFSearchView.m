@@ -232,7 +232,6 @@
         self.searchIcon.alpha = 0.75;
     }
     else if (theme == BFTextFieldThemeDark) {
-        NSLog(@"::: dark");
         self.backgroundColor = [UIColor bonfireTextFieldBackgroundOnWhite];
         
         self.tintColor = [UIColor bonfireBlack];

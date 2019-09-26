@@ -78,7 +78,7 @@
     [self addSubview:self.creatorAvatarView];
     
     self.creatorTitleLabel = [[UILabel alloc] initWithFrame:CGRectMake(self.creatorAvatarView.frame.origin.x + self.creatorAvatarView.frame.size.width + 6, 10, 22, 22)];
-    self.creatorTitleLabel.textColor = [UIColor bonfireGray];
+    self.creatorTitleLabel.textColor = [UIColor bonfireSecondaryColor];
     self.creatorTitleLabel.font = [UIFont systemFontOfSize:12.f weight:UIFontWeightMedium];
     [self addSubview:self.creatorTitleLabel];
     
@@ -232,8 +232,8 @@
 - (void)setStyle:(BFTipViewStyle)style {
     if (style == BFTipViewStyleDark) {
         self.blurView.effect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleDark];
-        self.blurView.backgroundColor = [[UIColor bonfireGray] colorWithAlphaComponent:0.3];
-        self.closeButton.tintColor = [UIColor bonfireGray];
+        self.blurView.backgroundColor = [[UIColor bonfireSecondaryColor] colorWithAlphaComponent:0.3];
+        self.closeButton.tintColor = [UIColor bonfireSecondaryColor];
         
         self.titleLabel.textColor = [UIColor whiteColor];
         self.textLabel.textColor = [UIColor whiteColor];
@@ -241,7 +241,7 @@
     else {
         self.blurView.effect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleLight];
         self.blurView.backgroundColor = [UIColor colorWithWhite:1 alpha:0.5];
-        self.closeButton.tintColor = [UIColor bonfireGray];
+        self.closeButton.tintColor = [UIColor bonfireSecondaryColor];
         
         self.titleLabel.textColor = [UIColor blackColor];
         self.textLabel.textColor = [UIColor blackColor];

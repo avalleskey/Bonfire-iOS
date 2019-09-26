@@ -9,6 +9,8 @@
 #import <UIKit/UIKit.h>
 #import "BFAvatarView.h"
 #import "UserActivity.h"
+#import "BFCampAttachmentView.h"
+#import "BFUserAttachmentView.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -18,10 +20,11 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic, strong) BFAvatarView *profilePicture;
 @property (nonatomic, strong) UIImageView *typeIndicator;
-@property (nonatomic, strong) UIButton *actionButton;
-@property (nonatomic, strong) UIButton *moreButton;
 
 @property (nonatomic, strong) UIImageView *imagePreview;
+
+@property (nonatomic, strong) BFCampAttachmentView * _Nullable campPreviewView;
+@property (nonatomic, strong) BFUserAttachmentView * _Nullable userPreviewView;
 
 @property (nonatomic, strong) UIView *lineSeparator;
 

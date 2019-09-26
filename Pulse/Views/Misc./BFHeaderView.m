@@ -37,19 +37,20 @@
 
 - (void)setup {    
     self.titleLabel = [[UILabel alloc] init];
-    self.titleLabel.textColor = [UIColor bonfireGray];
+    self.titleLabel.textColor = [UIColor bonfirePrimaryColor];
     self.titleLabel.font = [UIFont systemFontOfSize:13.f weight:UIFontWeightSemibold];
+    self.titleLabel.alpha = 0.5;
     
     [self addSubview:self.titleLabel];
     
     self.topLineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, (1 / [UIScreen mainScreen].scale))];
-    self.topLineSeparator.backgroundColor = [UIColor separatorColor];
+    self.topLineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
     self.topLineSeparator.hidden = true;
     
     //[self addSubview:self.topLineSeparator];
     
     self.bottomLineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, self.frame.size.height - (1 / [UIScreen mainScreen].scale), self.frame.size.width, (1 / [UIScreen mainScreen].scale))];
-    self.bottomLineSeparator.backgroundColor = [UIColor separatorColor];
+    self.bottomLineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
     self.bottomLineSeparator.hidden = true;
     
     [self addSubview:self.bottomLineSeparator];

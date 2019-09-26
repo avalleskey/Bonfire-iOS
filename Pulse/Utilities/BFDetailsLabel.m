@@ -52,7 +52,7 @@
 
 + (NSAttributedString *)attributedStringForDetails:(NSArray *)details linkColor:(UIColor * _Nullable)linkColor {
     UIFont *font = [UIFont systemFontOfSize:13.f];
-    UIColor *color = [UIColor colorWithWhite:0.33f alpha:1];
+    UIColor *color = [UIColor bonfireSecondaryColor];
     
     NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] init];
     for (NSInteger i = 0; i < details.count; i++) {

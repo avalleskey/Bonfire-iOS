@@ -46,13 +46,15 @@
 - (void)setup {
     self.camp = [[Camp alloc] init];
     
-    self.backgroundColor = [UIColor whiteColor];
+    self.backgroundColor = [UIColor cardBackgroundColor];
     self.layer.cornerRadius = 12.f;
     self.layer.masksToBounds = false;
-    self.layer.shadowRadius = 2.f;
+    self.layer.shadowRadius = 1.f;
     self.layer.shadowOffset = CGSizeMake(0, 1);
-    self.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.1f].CGColor;
+    self.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.08f].CGColor;
     self.layer.shadowOpacity = 1.f;
+    self.layer.borderWidth = (1 / [UIScreen mainScreen].scale);
+    self.layer.borderColor = [UIColor colorWithWhite:0 alpha:0.1f].CGColor;
     self.contentView.layer.cornerRadius = self.layer.cornerRadius;
     self.contentView.layer.masksToBounds = true;
     self.layer.shouldRasterize = true;
@@ -64,7 +66,7 @@
     
     self.profilePictureContainerView = [[UIView alloc] initWithFrame:CGRectMake(20, 20, 80, 80)];
     self.profilePictureContainerView.userInteractionEnabled = false;
-    self.profilePictureContainerView.backgroundColor = [UIColor whiteColor];
+    self.profilePictureContainerView.backgroundColor = [UIColor contentBackgroundColor];
     self.profilePictureContainerView.layer.cornerRadius = self.profilePictureContainerView.frame.size.width / 2;
     self.profilePictureContainerView.layer.shadowOffset = CGSizeMake(0, 1);
     self.profilePictureContainerView.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.08].CGColor;
@@ -109,7 +111,7 @@
     self.campTagLabel.textAlignment = NSTextAlignmentCenter;
     self.campTagLabel.numberOfLines = 0;
     self.campTagLabel.lineBreakMode = NSLineBreakByWordWrapping;
-    self.campTagLabel.textColor = [UIColor bonfireBlack];
+    self.campTagLabel.textColor = [UIColor bonfirePrimaryColor];
     self.campTagLabel.text = @"#Camptag";
     [self.contentView addSubview:self.campTagLabel];
     
@@ -119,7 +121,7 @@
     self.campDescriptionLabel.numberOfLines = 0;
     self.campDescriptionLabel.lineBreakMode = NSLineBreakByWordWrapping;
     self.campDescriptionLabel.text = @"We just really like pinball machines, ok?";
-    self.campDescriptionLabel.textColor = [UIColor bonfireGray];
+    self.campDescriptionLabel.textColor = [UIColor bonfireSecondaryColor];
     [self.contentView addSubview:self.campDescriptionLabel];
     
     self.followButton = [CampFollowButton buttonWithType:UIButtonTypeCustom];
@@ -290,7 +292,7 @@
     
     CGFloat borderWidth = 3.f;
     UIView *borderVeiw = [[UIView alloc] initWithFrame:CGRectMake(imageView.frame.origin.x - borderWidth, imageView.frame.origin.y - borderWidth, imageView.frame.size.width + (borderWidth * 2), imageView.frame.size.height + (borderWidth * 2))];
-    borderVeiw.backgroundColor = [UIColor whiteColor];
+    borderVeiw.backgroundColor = [UIColor contentBackgroundColor];
     borderVeiw.layer.cornerRadius = borderVeiw.frame.size.height / 2;
     borderVeiw.layer.masksToBounds = true;
     [self.contentView insertSubview:borderVeiw belowSubview:imageView];
@@ -330,13 +332,13 @@
         self.member4.superview.hidden = true;
     }
     else {
-        self.campTitleLabel.textColor = [UIColor bonfireBlack];
+        self.campTitleLabel.textColor = [UIColor bonfirePrimaryColor];
         self.campTitleLabel.backgroundColor = [UIColor clearColor];
         self.campTitleLabel.layer.masksToBounds = false;
         self.campTitleLabel.layer.cornerRadius = 0;
         
         self.campDescriptionLabel.backgroundColor = [UIColor clearColor];
-        self.campDescriptionLabel.textColor = [UIColor bonfireGray];
+        self.campDescriptionLabel.textColor = [UIColor bonfireSecondaryColor];
         self.campDescriptionLabel.layer.masksToBounds = false;
         self.campDescriptionLabel.layer.cornerRadius = 0;
         

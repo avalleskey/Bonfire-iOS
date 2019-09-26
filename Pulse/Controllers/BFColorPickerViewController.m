@@ -56,13 +56,15 @@
     self.navigationItem.rightBarButtonItem = self.saveButton;
     
     [self.navigationController.navigationBar setTitleTextAttributes:
-     @{NSForegroundColorAttributeName:[UIColor bonfireBlack],
+     @{NSForegroundColorAttributeName:[UIColor bonfirePrimaryColor],
        NSFontAttributeName:[UIFont systemFontOfSize:18.f weight:UIFontWeightBold]}];
     
     [self setupPicker];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    
     // hide hairline
     [self.navigationController.navigationBar setBackgroundImage:[UIImage new] forBarMetrics:UIBarMetricsDefault];
     [self.navigationController.navigationBar setShadowImage:[UIImage new]];
@@ -93,7 +95,7 @@
     [self.view addSubview:self.colorPickerView];
     
     self.hexTextField = [[UITextField alloc] initWithFrame:CGRectMake(self.colorPickerView.frame.size.width / 2 - (156 / 2), 86, 156, 48)];
-    self.hexTextField.textColor = [UIColor bonfireBlack];
+    self.hexTextField.textColor = [UIColor bonfirePrimaryColor];
     self.hexTextField.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightMedium];
     self.hexTextField.textAlignment = NSTextAlignmentCenter;
     self.hexTextField.backgroundColor = [UIColor colorWithWhite:1 alpha:1];

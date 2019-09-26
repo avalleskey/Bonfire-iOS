@@ -13,7 +13,10 @@
 #import "BFAvatarView.h"
 #import "PostTextView.h"
 #import "PostImagesView.h"
-#import "PostURLPreviewView.h"
+#import "BFLinkAttachmentView.h"
+#import "BFCampAttachmentView.h"
+#import "BFUserAttachmentView.h"
+#import "BFSmartLinkAttachmentView.h"
 
 #import <BlocksKit/BlocksKit+UIKit.h>
 #import "NSDate+NVTimeAgo.h"
@@ -21,6 +24,7 @@
 #import <Messages/Messages.h>
 #import <MessageUI/MessageUI.h>
 #import <ResponsiveLabel/ResponsiveLabel.H>
+#import <UIFont+Poppins.h>
 
 #define POST_EMOJI_SIZE_MULTIPLIER 2
 
@@ -41,13 +45,29 @@
 @property (nonatomic, strong) UILabel *dateLabel;
 @property (nonatomic, strong) UIButton *moreButton;
 
+@property (nonatomic, strong) UILabel *titleLabel;
 @property (nonatomic, strong) PostTextView *textView;
 
 @property (nonatomic, strong) BFAvatarView *primaryAvatarView;
 @property (nonatomic, strong) BFAvatarView *secondaryAvatarView;
 
 @property (nonatomic, strong) PostImagesView *imagesView;
-@property (nonatomic, strong) PostURLPreviewView *urlPreviewView;
+
+@property (nonatomic, strong) BFLinkAttachmentView *linkAttachmentView;
+- (void)removeLinkAttachment;
+- (void)initLinkAttachment;
+
+@property (nonatomic, strong) BFSmartLinkAttachmentView *smartLinkAttachmentView;
+- (void)removeSmartLinkAttachment;
+- (void)initSmartLinkAttachment;
+
+@property (nonatomic, strong) BFUserAttachmentView *userAttachmentView;
+- (void)removeUserAttachment;
+- (void)initUserAttachment;
+
+@property (nonatomic, strong) BFCampAttachmentView *campAttachmentView;
+- (void)removeCampAttachment;
+- (void)initCampAttachment;
 
 @property (nonatomic, strong) UIView *lineSeparator;
 

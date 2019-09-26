@@ -85,7 +85,7 @@
         [self styleMemberProfilePictureView:self.member7];
         
         self.lineSeparator = [[UIView alloc] init];
-        self.lineSeparator.backgroundColor = [UIColor separatorColor];
+        self.lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
         [self.contentView addSubview:self.lineSeparator];
     }
     return self;
@@ -129,7 +129,7 @@
     
     imageView.image = [[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
     imageView.tintColor = [UIColor whiteColor];
-    imageView.backgroundColor = [UIColor bonfireGray];
+    imageView.backgroundColor = [UIColor bonfireSecondaryColor];
 }
 
 - (void)continuityRadiusForView:(UIView *)sender withRadius:(CGFloat)radius {

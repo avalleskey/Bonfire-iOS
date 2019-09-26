@@ -11,7 +11,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-#define MINI_CARD_HEIGHT 104
+#define MINI_CARD_HEIGHT 100
 
 @interface MiniAvatarCell : UICollectionViewCell
 

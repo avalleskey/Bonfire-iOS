@@ -18,7 +18,7 @@
 @import Firebase;
 @import UserNotifications;
 
-#define SLIDE_COLOR_1 [UIColor bonfireBlack] // orange
+#define SLIDE_COLOR_1 [UIColor bonfirePrimaryColor] // orange
 #define SLIDE_COLOR_2 [UIColor colorWithDisplayP3Red:0 green:0.46 blue:1.0 alpha:1] // blue
 #define SLIDE_COLOR_3 [UIColor colorWithDisplayP3Red:0.16 green:0.76 blue:0.31 alpha:1] // green
 
@@ -38,13 +38,10 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    self.view.backgroundColor = [UIColor whiteColor];
-    self.view.tintColor = [UIColor bonfireBlack];
+    self.view.backgroundColor = [UIColor contentBackgroundColor];
+    self.view.tintColor = [UIColor bonfirePrimaryColor];
     
     currentPage = 0;
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(receivedNotificationsUpdate:) name:@"NotificationsDidRegister" object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(receivedNotificationsUpdate:) name:@"NotificationsDidFailToRegister" object:nil];
     
     // Google Analytics
     [FIRAnalytics setScreenName:@"Hello" screenClass:nil];
@@ -64,10 +61,6 @@
     [super viewWillDisappear:animated];
     
     [self.view endEditing:YES];
-    
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillChangeFrameNotification object:nil];
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillShowNotification object:nil];
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillHideNotification object:nil];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -113,7 +106,7 @@
                 self.signUpButton.alpha = 1;
                 self.signInButton.alpha = 1;
                 
-                self.middleView.backgroundColor = [UIColor headerBackgroundColor];
+                self.middleView.backgroundColor = [UIColor tableViewBackgroundColor];
                 self.middleViewImage.frame = CGRectMake(0, 0, self.middleViewContainer.frame.size.width, self.middleViewContainer.frame.size.height);
                 
                 self.launchLogo.transform = CGAffineTransformMakeScale(0.2, 0.2);
@@ -147,29 +140,6 @@
             } completion:nil];
         }];
     }
-}
-
-- (void)receivedNotificationsUpdate:(NSNotification *)notificaiton {
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.4f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        [Launcher launchLoggedIn:true];
-    });
-}
-- (void)requestNotifications {
-    NSLog(@"request notifs");
-    [[UNUserNotificationCenter currentNotificationCenter] requestAuthorizationWithOptions:(UNAuthorizationOptionAlert|UNAuthorizationOptionSound|UNAuthorizationOptionBadge) completionHandler:^(BOOL granted, NSError * _Nullable error) {
-        // 1. check if permisisons granted
-        if (granted) {
-            NSLog(@"granted!");
-            dispatch_async(dispatch_get_main_queue(), ^{
-                // do work here
-                NSLog(@"a suh");
-                [[UIApplication sharedApplication] registerForRemoteNotifications];
-            });
-        }
-        else {
-            NSLog(@"not granted fam");
-        }
-    }];
 }
 
 - (UIStatusBarStyle)preferredStatusBarStyle
@@ -219,10 +189,14 @@
 
 - (void)setupSignUpButton {
     self.signInButton = [UIButton buttonWithType:UIButtonTypeSystem];
-    self.signInButton.frame = CGRectMake(24, self.view.frame.size.height - UIApplication.sharedApplication.keyWindow.safeAreaInsets.bottom - 64, self.view.frame.size.width - 48, 64);
+    
+    CGFloat buttonWidth = self.view.frame.size.width - 48;
+    buttonWidth = buttonWidth > IPAD_CONTENT_MAX_WIDTH ? IPAD_CONTENT_MAX_WIDTH : buttonWidth;
+    
+    self.signInButton.frame = CGRectMake(self.view.frame.size.width / 2 - buttonWidth / 2, self.view.frame.size.height - UIApplication.sharedApplication.keyWindow.safeAreaInsets.bottom - 64, buttonWidth, 64);
     self.signInButton.titleLabel.textAlignment = NSTextAlignmentCenter;
     
-    NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:@"Already have an account? Sign In" attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:14.f weight:UIFontWeightRegular], NSForegroundColorAttributeName: [UIColor colorWithWhite:0.47 alpha:1]}];
+    NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:@"Already have an account? Sign In" attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:14.f weight:UIFontWeightRegular], NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
     [attributedString addAttributes:@{NSFontAttributeName: [UIFont systemFontOfSize:14.f weight:UIFontWeightSemibold]} range:[attributedString.string rangeOfString:@"Sign In"]];
     [self.signInButton setAttributedTitle:attributedString forState:UIControlStateNormal];
     
@@ -238,7 +212,7 @@
     [self.view addSubview:self.signInButton];
     
     self.signUpButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    self.signUpButton.frame = CGRectMake(24, self.signInButton.frame.origin.y - 48, self.view.frame.size.width - 48, 48);
+    self.signUpButton.frame = CGRectMake(self.view.frame.size.width / 2 - buttonWidth / 2, self.signInButton.frame.origin.y - 48, buttonWidth, 48);
     self.signUpButton.layer.masksToBounds = true;
     self.signUpButton.layer.cornerRadius = 14.f;
     self.signUpButton.backgroundColor = [UIColor bonfireBrand];
@@ -283,7 +257,7 @@
 
 - (void)setupSplash {
     self.middleView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height)];
-    self.middleView.backgroundColor = [UIColor whiteColor];
+    self.middleView.backgroundColor = [UIColor contentBackgroundColor];
     self.middleView.layer.cornerRadius = HAS_ROUNDED_CORNERS ? 38.5 : 8.f;
     self.middleView.layer.shadowOpacity = 0;
     self.middleView.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.12].CGColor;
@@ -296,14 +270,14 @@
     self.middleViewContainer.layer.masksToBounds = true;
     [self.middleView addSubview:self.middleViewContainer];
     
-    self.launchLogo = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"bonfire_wordmark_black"]];
+    self.launchLogo = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"bonfire_wordmark"]];
     self.launchLogo.frame = CGRectMake(self.view.frame.size.width / 2 - 102, self.view.frame.size.height / 2 - 25, 204, 50);
     [self.middleViewContainer addSubview:self.launchLogo];
     
     self.middleViewImage = [[UIImageView alloc] initWithFrame:CGRectMake(0, self.middleViewContainer.frame.size.height, self.middleViewContainer.frame.size.width, self.middleViewContainer.frame.size.height)];
     self.middleViewImage.image = [UIImage imageNamed:@"onboardingMiddleImage"];
     self.middleViewImage.contentMode = UIViewContentModeScaleAspectFill;
-    self.middleViewImage.backgroundColor = [UIColor redColor];
+    self.middleViewImage.backgroundColor = [UIColor cardBackgroundColor];
     self.middleViewImage.layer.cornerRadius = self.middleViewContainer.layer.cornerRadius;
     self.middleViewImage.layer.masksToBounds = true;
     [self.middleViewContainer addSubview:self.middleViewImage];
@@ -311,7 +285,7 @@
     self.welcomeLabel = [[UILabel alloc] initWithFrame:CGRectMake(12, 114, self.view.frame.size.width - 24, 40)];
     self.welcomeLabel.textAlignment = NSTextAlignmentCenter;
     self.welcomeLabel.font = [UIFont systemFontOfSize:34.f weight:UIFontWeightMedium];
-    self.welcomeLabel.textColor = [UIColor bonfireBlack];
+    self.welcomeLabel.textColor = [UIColor bonfirePrimaryColor];
     self.welcomeLabel.text = @"Hello";
     self.welcomeLabel.alpha = 0;
     [self.view addSubview:self.welcomeLabel];
@@ -319,7 +293,7 @@
     self.whereConversationsHappenLabel = [[UILabel alloc] initWithFrame:CGRectMake(12, 576, self.view.frame.size.width - 24, 44)];
     self.whereConversationsHappenLabel.textAlignment = NSTextAlignmentCenter;
     self.whereConversationsHappenLabel.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightMedium];
-    self.whereConversationsHappenLabel.textColor = [UIColor bonfireBlack];
+    self.whereConversationsHappenLabel.textColor = [UIColor bonfirePrimaryColor];
     self.whereConversationsHappenLabel.text = @"Bonfire is where\nconversations happen";
     self.whereConversationsHappenLabel.alpha = 0;
     self.whereConversationsHappenLabel.lineBreakMode = NSLineBreakByWordWrapping;
@@ -331,7 +305,7 @@
     CGFloat secondaryScreenshotCornerRadius = HAS_ROUNDED_CORNERS?10.f:6.f;
     
     self.leftView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 106, 200)];
-    self.leftView.backgroundColor = [UIColor whiteColor];
+    self.leftView.backgroundColor = [UIColor cardBackgroundColor];
     self.leftView.layer.cornerRadius = secondaryScreenshotCornerRadius;
     self.leftView.layer.shadowOpacity = 1;
     self.leftView.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.12].CGColor;
@@ -349,7 +323,7 @@
     [self.view insertSubview:self.leftView belowSubview:self.middleView];
     
     self.rightView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 106, 200)];
-    self.rightView.backgroundColor = [UIColor whiteColor];
+    self.rightView.backgroundColor = [UIColor cardBackgroundColor];
     self.rightView.layer.cornerRadius = secondaryScreenshotCornerRadius;
     self.rightView.layer.shadowOpacity = 1;
     self.rightView.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.12].CGColor;
@@ -377,147 +351,6 @@
     [animation setToValue:[NSValue valueWithCGPoint:
                            CGPointMake([self.signUpButton center].x + 8.f, [self.signUpButton center].y)]];
     [[self.signUpButton layer] addAnimation:animation forKey:@"position"];
-}
-/*
-- (void)attemptSignIn {
-    [self.view endEditing:YES];
-    self.signInView.userInteractionEnabled = false;
-    
-    // run request
-    BOOL validEmail = [self.emailTextField.text validateBonfireEmail] == BFValidationErrorNone;
-    BOOL validUsername = [self.emailTextField.text validateBonfireUsername] == BFValidationErrorNone;
-    
-    NSDictionary *params;
-    if (validEmail) {
-        NSLog(@"valid email");
-        params = @{@"email": self.emailTextField.text , @"password": self.passwordTextField.text, @"grant_type": @"password"};
-    }
-    else if (validUsername) {
-        NSLog(@"valid username");
-        params = @{@"username": [self.emailTextField.text stringByReplacingOccurrencesOfString:@"@" withString:@""], @"password": self.passwordTextField.text, @"grant_type": @"password"};
-    }
-    else {
-        [self shakeSignInButton];
-        return;
-    }
-    
-    NSLog(@"self.manager.http headers: %@", self.manager.requestSerializer.HTTPRequestHeaders);
-    
-    NSString *url = @"oauth";
-    
-    NSLog(@"url: %@", url);
-    NSLog(@"params: %@", params);
-    NSLog(@"self.manager: %@", self.manager);
-    
-    [self.manager POST:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, NSDictionary *responseObject) {
-        [[Session sharedInstance] setAccessToken:responseObject[@"data"]];
-        
-        NSLog(@"lez get dat user now");
-        // TODO: Open LauncherNavigationViewController
-        [BFAPI getUser:^(BOOL success) {
-            if (success) {
-                [self requestNotifications];
-            }
-            else {
-                NSLog(@"hello");
-            }
-        }];
-    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-        NSLog(@"no can do");
-        NSLog(@"error: %@", ErrorResponse);
-        
-        // not long enough –> shake input block
-        [self shakeSignInButton];
-        
-        self.signInView.userInteractionEnabled = true;
-        [self.passwordTextField becomeFirstResponder];
-        
-        NSData *errorData = [ErrorResponse dataUsingEncoding:NSUTF8StringEncoding];
-        NSDictionary *errorDict = [NSJSONSerialization JSONObjectWithData:errorData options:0 error:nil];
-        
-        NSLog(@"error Dict: %@", errorDict);
-        
-        NSString *title = @"Uh oh!";
-        NSString *message = @"We encountered an error while signing you in. Please check your password and try again.";
-        
-        if ([errorDict objectForKey:@"error"]) {
-            if (errorDict[@"error"][@"code"] &&
-                [errorDict[@"error"][@"code"] integerValue] == 64) {
-                title = @"Couldn't Sign In";
-                message = @"The username and password you entered did not match our records. Please double-check and try again.";
-            }
-        }
-        
-        UIAlertController *alert = [UIAlertController alertControllerWithTitle:title message:message preferredStyle:UIAlertControllerStyleAlert];
-        UIAlertAction *gotItAction = [UIAlertAction actionWithTitle:@"Okay" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-            [alert dismissViewControllerAnimated:true completion:nil];
-        }];
-        [alert addAction:gotItAction];
-        [self presentViewController:alert animated:YES completion:nil];
-    }];
-}
-
-
-- (void)keyboardWillChangeFrame:(NSNotification *)notification {
-    NSDictionary* keyboardInfo = [notification userInfo];
-    NSValue* keyboardFrameBegin = [keyboardInfo valueForKey:UIKeyboardFrameEndUserInfoKey];
-    CGRect keyboardFrameBeginRect = [keyboardFrameBegin CGRectValue];
-    _currentKeyboardHeight = keyboardFrameBeginRect.size.height;
-    
-    // self.signUpButton.frame = CGRectMake(self.signUpButton.frame.origin.x, self.view.frame.size.height - _currentKeyboardHeight - self.signUpButton.frame.size.height - 24, self.signUpButton.frame.size.width, self.signUpButton.frame.size.height);
-}
-- (void)keyboardWillShow:(NSNotification *)notification {
-    NSDictionary* keyboardInfo = [notification userInfo];
-    NSValue* keyboardFrameBegin = [keyboardInfo valueForKey:UIKeyboardFrameEndUserInfoKey];
-    CGRect keyboardFrameBeginRect = [keyboardFrameBegin CGRectValue];
-    self.currentKeyboardHeight = keyboardFrameBeginRect.size.height;
-    
-    NSNumber *duration = [notification.userInfo objectForKey:UIKeyboardAnimationDurationUserInfoKey];
-    [UIView animateWithDuration:[duration floatValue] delay:0 options:[[notification.userInfo objectForKey:UIKeyboardAnimationCurveUserInfoKey] intValue] << 16 animations:^{
-        self.aboutScrollView.alpha = 0.8;
-    } completion:nil];
-    
-    [UIView animateWithDuration:0.6f delay:([duration floatValue]/2) usingSpringWithDamping:0.8f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
-        self.signInViewCloseButton.alpha = 1;
-        self.signInViewCloseButton.transform = CGAffineTransformMakeScale(1, 1);
-    } completion:nil];
-}
-- (void)keyboardWillDismiss:(NSNotification *)notification {
-    _currentKeyboardHeight = 0;
-    
-    NSNumber *duration = [notification.userInfo objectForKey:UIKeyboardAnimationDurationUserInfoKey];
-    [UIView animateWithDuration:[duration floatValue] delay:0 options:[[notification.userInfo objectForKey:UIKeyboardAnimationCurveUserInfoKey] intValue] << 16 animations:^{
-        self.aboutScrollView.alpha = 1;
-    } completion:nil];
-    
-    [UIView animateWithDuration:0.6f delay:0 usingSpringWithDamping:0.8f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
-        self.signInViewCloseButton.alpha = 0;
-        self.signInViewCloseButton.transform = CGAffineTransformMakeScale(0.2, 0.2);
-    } completion:nil];
-}
-*/
-- (void)createRoundedCornersForView:(UIView*)parentView tl:(BOOL)tl tr:(BOOL)tr br:(BOOL)br bl:(BOOL)bl {
-    parentView.layer.cornerRadius = 0;
-    CAShapeLayer * maskLayer = [CAShapeLayer layer];
-    UIRectCorner corners = 0;
-    if (bl) {
-        corners |= UIRectCornerBottomLeft;
-    }
-    if (br) {
-        corners |= UIRectCornerBottomRight;
-    }
-    if (tl) {
-        corners |= UIRectCornerTopLeft;
-    }
-    if (tr) {
-        corners |= UIRectCornerTopRight;
-    }
-    maskLayer.path = [UIBezierPath bezierPathWithRoundedRect:parentView.bounds
-                                           byRoundingCorners:corners
-                                                 cornerRadii:CGSizeMake(26, 26)].CGPath;
-    
-    parentView.layer.mask = maskLayer;
 }
 
 - (void)continuityRadiusForView:(UIView *)sender withRadius:(CGFloat)radius {

@@ -6,15 +6,13 @@
 //  Copyright © 2018 Austin Valleskey. All rights reserved.
 //
 
-#import "JSONModel.h"
 #import "Post.h"
+#import "GenericStream.h"
 
 #define STREAM_PAGE_SIZE 10
 
 @class PostStream;
 @class PostStreamPage;
-@class PostStreamPageMeta;
-@class PostStreamPageMetaPaging;
 
 @protocol PostStreamDelegate <NSObject>
 
@@ -22,7 +20,7 @@
 
 @end
 
-@interface PostStream : NSObject <NSCoding>
+@interface PostStream : GenericStream <NSCoding>
 
 @property (nonatomic, weak) id <PostStreamDelegate> delegate;
 
@@ -52,7 +50,7 @@ typedef enum {
 - (BOOL)addSubReplies:(NSArray *)newSubReplies toPost:(Post *)post;
 
 - (Post *)postWithId:(NSString *)postId;
-- (BOOL)updatePost:(Post *)post;
+- (BOOL)updatePost:(Post *)post removeDuplicates:(BOOL)removeDuplicates;
 - (void)removePost:(Post *)post;
 - (void)updateCampObjects:(Camp *)camp;
 - (void)updateUserObjects:(User *)user;
@@ -60,34 +58,11 @@ typedef enum {
 @property (nonatomic) NSString *prevCursor;
 @property (nonatomic) NSString *nextCursor;
 
-@property (nonatomic, strong) NSMutableDictionary *cursorsLoaded;
-- (void)addLoadedCursor:(NSString *)cursor;
-- (BOOL)hasLoadedCursor:(NSString *)cursor;
-
 @end
 
 @interface PostStreamPage : JSONModel
 
 @property (nonatomic) NSArray<Post *> *data;
-@property (nonatomic) PostStreamPageMeta <Optional> *meta;
-
-@end
-
-@interface PostStreamPageMeta : JSONModel
-
-@property (nonatomic) PostStreamPageMetaPaging <Optional> *paging;
-
-@end
-
-@interface PostStreamPageMetaPaging : JSONModel
-
-typedef enum {
-    PostStreamPagingCursorTypeNone,
-    PostStreamPagingCursorTypePrevious,
-    PostStreamPagingCursorTypeNext
-} PostStreamPagingCursorType;
-@property (nonatomic) NSString <Optional> *prevCursor;
-@property (nonatomic) NSString <Optional> *nextCursor;
-@property (nonatomic) NSInteger remaining_results;
+@property (nonatomic) GenericStreamPageMeta <Optional> *meta;
 
 @end

@@ -107,15 +107,18 @@ static HAWebService *manager;
             });
         }
         else if (code == BAD_REFRESH_TOKEN || code == BAD_REFRESH_LOGIN_REQ) {
-            NSLog(code == BAD_REFRESH_TOKEN ? @"bad refresh token" : @"BAD_REFRESH_LOGIN_REQ");
-            
             [[Session sharedInstance] signOut];
             
             [Launcher openOnboarding];
             
             completionHandler(response, responseObject, error);
         }
-        else{
+        else if (code == OUT_OF_DATE_CLIENT) {
+            [Launcher openOutOfDateClient];
+            
+            completionHandler(response, responseObject, error);
+        }
+        else {
             completionHandler(response, responseObject, error);
         }
     };

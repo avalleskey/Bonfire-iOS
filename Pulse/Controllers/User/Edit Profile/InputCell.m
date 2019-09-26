@@ -21,28 +21,29 @@
     
     if (self) {
         self.selectionStyle = UITableViewCellSelectionStyleNone;
-        self.contentView.backgroundColor = [UIColor whiteColor];
+        self.contentView.backgroundColor = [UIColor contentBackgroundColor];
         
         self.inputLabel = [[UILabel alloc] init];
         self.inputLabel.text = @"Input Label";
         self.inputLabel.font = [UIFont systemFontOfSize:INPUT_CELL_FONT.pointSize weight:UIFontWeightMedium];
-        self.inputLabel.textColor = [UIColor colorWithWhite:0.47f alpha:1];
+        self.inputLabel.textColor = [UIColor bonfireSecondaryColor];
         [self.contentView addSubview:self.inputLabel];
         
         self.input = [[UITextField alloc] init];
         self.input.font = INPUT_CELL_FONT;
-        self.input.textColor = [UIColor bonfireBlack];
+        self.input.textColor = [UIColor bonfirePrimaryColor];
         self.input.textAlignment = NSTextAlignmentLeft;
         [self.contentView addSubview:self.input];
         
         self.textView = [[UITextView alloc] init];
+        self.textView.backgroundColor = [UIColor clearColor];
         self.textView.font = INPUT_CELL_FONT;
         self.textView.textColor = self.input.textColor;
         self.textView.textAlignment = NSTextAlignmentLeft;
         self.textView.textContainerInset = INPUT_CELL_TEXTVIEW_INSETS;
         self.textView.textContainer.lineFragmentPadding = 0;
         self.textView.hidden = true;
-        self.textView.keyboardAppearance = UIKeyboardAppearanceLight;
+//        self.textView.keyboardAppearance = UIKeyboardAppearanceLight;
         self.textView.placeholderColor = [UIColor colorWithRed:0.24 green:0.24 blue:0.26 alpha:0.3];
         [self.contentView addSubview:self.textView];
         
@@ -51,17 +52,17 @@
         self.input.leftViewMode = UITextFieldViewModeAlways;
         self.input.rightView = paddingView;
         self.input.rightViewMode = UITextFieldViewModeAlways;
-        self.input.keyboardAppearance = UIKeyboardAppearanceLight;
+//        self.input.keyboardAppearance = UIKeyboardAppearanceLight;
         
         self.charactersRemainingLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.textView.frame.size.width, 12)];
         self.charactersRemainingLabel.textAlignment = NSTextAlignmentRight;
-        self.charactersRemainingLabel.textColor = [UIColor bonfireGray];
+        self.charactersRemainingLabel.textColor = [UIColor bonfireSecondaryColor];
         self.charactersRemainingLabel.font = [UIFont systemFontOfSize:12.f weight:UIFontWeightMedium];
         [self.contentView addSubview:self.charactersRemainingLabel];
         
         self.lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, self.frame.size.height, self.frame.size.width, (1 / [UIScreen mainScreen].scale))];
         self.lineSeparator.hidden = true;
-        self.lineSeparator.backgroundColor = [UIColor separatorColor];
+        self.lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
         [self.contentView addSubview:self.lineSeparator];
     }
     

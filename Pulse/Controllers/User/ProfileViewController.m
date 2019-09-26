@@ -32,7 +32,6 @@
 
 @property (nonatomic, strong) ComplexNavigationController *launchNavVC;
 @property (strong, nonatomic) ErrorView *errorView;
-@property (nonatomic) BOOL userDidRefresh;
 
 @end
 
@@ -46,14 +45,16 @@ static NSString * const profileHeaderCellIdentifier = @"ProfileHeaderCell";
     self.view.tintColor = self.theme;
     
     self.launchNavVC = (ComplexNavigationController *)self.navigationController;
-    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] init];
+    if ([self.navigationController isKindOfClass:[ComplexNavigationController class]]) {
+        self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] init];
+    }
     
-    self.view.backgroundColor = [UIColor headerBackgroundColor];
+    self.view.backgroundColor = [UIColor tableViewBackgroundColor];
     
     [self setupTableView];
     [self setupErrorView];
     
-    [self setupComposeInputView];
+    //[self setupComposeInputView];
     
     self.loading = true;
     [self loadUser];
@@ -118,7 +119,7 @@ static NSString * const profileHeaderCellIdentifier = @"ProfileHeaderCell";
         self.errorView.hidden = true;
         [self.tableView.stream removeTempPost:tempId];
         
-        [self getPostsWithCursor:PostStreamPagingCursorTypePrevious];
+        [self getPostsWithCursor:StreamPagingCursorTypePrevious];
     }
 }
 // TODO: Allow tap to retry for posts
@@ -186,10 +187,11 @@ static NSString * const profileHeaderCellIdentifier = @"ProfileHeaderCell";
     CGFloat collapsed_inputViewHeight = ((self.composeInputView.textView.frame.origin.y * 2) + self.composeInputView.textView.frame.size.height) + bottomPadding;
     
     self.composeInputView = [[ComposeInputView alloc] initWithFrame:CGRectMake(0, self.view.bounds.size.height - collapsed_inputViewHeight, self.view.frame.size.width, collapsed_inputViewHeight)];
+    self.composeInputView.delegate = self;
     self.composeInputView.hidden = true;
     
     self.composeInputView.parentViewController = self;
-    self.composeInputView.postButton.backgroundColor = [self.theme isEqual:[UIColor whiteColor]] ? [UIColor bonfireBlack] : self.theme;
+    self.composeInputView.postButton.backgroundColor = [self.theme isEqual:[UIColor whiteColor]] ? [UIColor bonfirePrimaryColor] : self.theme;
     self.composeInputView.addMediaButton.tintColor = self.composeInputView.postButton.backgroundColor;
     self.composeInputView.textView.tintColor = self.composeInputView.postButton.backgroundColor;
     
@@ -211,41 +213,23 @@ static NSString * const profileHeaderCellIdentifier = @"ProfileHeaderCell";
     
     [self.view addSubview:self.composeInputView];
     
-    self.composeInputView.textView.delegate = self;
     self.composeInputView.tintColor = self.view.tintColor;
     
-    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, self.composeInputView.frame.size.height - [UIApplication sharedApplication].delegate.window.safeAreaInsets.bottom, 0);
+    //self.tableView.contentInset = UIEdgeInsetsMake(0, 0, self.composeInputView.frame.size.height - [UIApplication sharedApplication].delegate.window.safeAreaInsets.bottom, 0);
     self.tableView.scrollIndicatorInsets = self.tableView.contentInset;
     self.tableView.inputView = self.composeInputView;
 }
-- (void)textViewDidChange:(UITextView *)textView {
-    if ([textView isEqual:self.composeInputView.textView]) {
-        [self.composeInputView resize:false];
-        
-        UIWindow *window = UIApplication.sharedApplication.keyWindow;
-        CGFloat bottomPadding = window.safeAreaInsets.bottom;
-        
-        self.composeInputView.frame = CGRectMake(self.composeInputView.frame.origin.x, self.view.frame.size.height - self.currentKeyboardHeight - self.composeInputView.frame.size.height + bottomPadding, self.composeInputView.frame.size.width, self.composeInputView.frame.size.height);
-        
-        if (textView.text.length > 0) {
-            [self.composeInputView showPostButton];
-        }
-        else {
-            [self.composeInputView hidePostButton];
-        }
-    }
-}
 - (void)updateComposeInputView {
     if ([self canViewPosts]) {
-        [self showComposeInputView];
+//        [self showComposeInputView];
         [self.composeInputView updatePlaceholders];
     }
     else {
-        [self hideComposeInputView];
+//        [self hideComposeInputView];
     }
 }
 - (void)showComposeInputView {
-    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, self.composeInputView.frame.size.height - [UIApplication sharedApplication].delegate.window.safeAreaInsets.bottom, 0);
+//    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, self.composeInputView.frame.size.height - [UIApplication sharedApplication].delegate.window.safeAreaInsets.bottom, 0);
     self.tableView.scrollIndicatorInsets = self.tableView.contentInset;
     
     if (self.composeInputView.isHidden) {
@@ -355,7 +339,6 @@ static NSString * const profileHeaderCellIdentifier = @"ProfileHeaderCell";
     }
     
     NSUInteger newLength = [newStringNoLeadingSpace length];
-    NSMutableString * newString = [NSMutableString string];
     unichar bufferSecondPass[newLength+1];
     [newStringNoLeadingSpace getCharacters:bufferSecondPass range:NSMakeRange(0, newLength)];
     
@@ -369,7 +352,7 @@ static NSString * const profileHeaderCellIdentifier = @"ProfileHeaderCell";
     
     NSRange range = NSMakeRange(0, locationOfLastCharacter);
     
-    newString = [[NSString stringWithString:[newStringNoLeadingSpace substringWithRange:range]] copy];
+    NSString *newString = [[NSString stringWithString:[newStringNoLeadingSpace substringWithRange:range]] copy];
     
     return newString;
 }
@@ -433,18 +416,11 @@ static NSString * const profileHeaderCellIdentifier = @"ProfileHeaderCell";
     [customView addSubview:userAvatar];
     UILabel *nameLabel = [[UILabel alloc] initWithFrame:CGRectMake(16, 96, customView.frame.size.width - 32, 20)];
     nameLabel.textAlignment = NSTextAlignmentCenter;
-    nameLabel.font = [UIFont systemFontOfSize:17.f weight:UIFontWeightSemibold];
-    nameLabel.textColor = [UIColor blackColor];
-    nameLabel.text = self.user.attributes.details.displayName;
+    nameLabel.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightBold];
+    nameLabel.textColor = [UIColor bonfirePrimaryColor];
+    nameLabel.text = [@"@" stringByAppendingString:self.user.attributes.details.identifier];
     [customView addSubview:nameLabel];
     [actionSheet.view addSubview:customView];
-    
-    if (![self isCurrentUser]) {
-        UIAlertAction *mention = [UIAlertAction actionWithTitle:[NSString stringWithFormat:@"Mention @%@", self.user.attributes.details.identifier] style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-            [Launcher openComposePost:nil inReplyTo:nil withMessage:[NSString stringWithFormat:@"@%@ ", self.user.attributes.details.identifier] media:nil];
-        }];
-        [actionSheet addAction:mention];
-    }
     
     if (![self isCurrentUser] && ([self.user.attributes.context.me.status isEqualToString:USER_STATUS_FOLLOWS] || [self.user.attributes.context.me.status isEqualToString:USER_STATUS_FOLLOW_BOTH])) {
         BOOL userPostNotificationsOn = self.user.attributes.context.me.follow.me.subscription != nil;
@@ -583,7 +559,7 @@ static NSString * const profileHeaderCellIdentifier = @"ProfileHeaderCell";
         
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
             if (self.user.identifier != nil && self.user.attributes.context != nil) {
-                [self getPostsWithCursor:PostStreamPagingCursorTypeNone];
+                [self getPostsWithCursor:StreamPagingCursorTypeNone];
             }
             else {
                 [self loadUser];
@@ -601,8 +577,10 @@ static NSString * const profileHeaderCellIdentifier = @"ProfileHeaderCell";
     [self positionErrorView];
 }
 - (void)positionErrorView {
+    UITableViewHeaderFooterView *headerView = [self.tableView headerViewForSection:0];
     ProfileHeaderCell *headerCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
-    CGFloat heightOfHeader = headerCell.frame.size.height;
+    
+    CGFloat heightOfHeader = headerView.frame.size.height + headerCell.frame.size.height;
     self.errorView.frame = CGRectMake(self.errorView.frame.origin.x, heightOfHeader + 64, self.errorView.frame.size.width, self.errorView.frame.size.height);
 }
 
@@ -621,8 +599,6 @@ static NSString * const profileHeaderCellIdentifier = @"ProfileHeaderCell";
     if (self.user.identifier.length > 0 || self.user.attributes.details.identifier.length > 0) {
         [self.tableView refresh];
         
-        NSLog(@"self.user.identifier:: %@", self.user.identifier);
-        
         if (!self.user.identifier || self.user.identifier.length == 0) {
             // no user identifier yet, don't show the ••• icon just yet
             [self hideMoreButton];
@@ -637,9 +613,7 @@ static NSString * const profileHeaderCellIdentifier = @"ProfileHeaderCell";
         self.tableView.hidden = true;
         self.errorView.hidden = false;
         
-        [self.errorView updateTitle:@"User Not Found"];
-        [self.errorView updateDescription:@"We couldn’t find the User\nyou were looking for"];
-        [self.errorView updateType:ErrorViewTypeNotFound];
+        [self.errorView updateType:ErrorViewTypeNotFound title:@"User Not Found" description:@"We couldn’t find the User\nyou were looking for" actionTitle:nil actionBlock:nil];
         
         [self hideMoreButton];
     }
@@ -678,7 +652,7 @@ static NSString * const profileHeaderCellIdentifier = @"ProfileHeaderCell";
             }
         }
         
-        [self updateComposeInputView];
+//        [self updateComposeInputView];
         
         [self positionErrorView];
         
@@ -727,7 +701,7 @@ static NSString * const profileHeaderCellIdentifier = @"ProfileHeaderCell";
 }
 
 - (void)updateTheme {
-    UIColor *theme = [UIColor fromHex:self.user.attributes.details.color];
+    UIColor *theme = [UIColor fromHex:self.user.attributes.details.color adjustForDarkMode:false];
     
     if (self.navigationController.topViewController == self) {
         if ([self.navigationController isKindOfClass:[ComplexNavigationController class]]) {
@@ -751,12 +725,12 @@ static NSString * const profileHeaderCellIdentifier = @"ProfileHeaderCell";
 
 - (void)loadUserContent {
     if ([self canViewPosts]) {
-        [self showComposeInputView];
+//        [self showComposeInputView];
         
-        [self getPostsWithCursor:PostStreamPagingCursorTypeNone];
+        [self getPostsWithCursor:StreamPagingCursorTypeNone];
     }
     else {
-        [self hideComposeInputView];
+//        [self hideComposeInputView];
         
         self.errorView.hidden = false;
         
@@ -792,25 +766,29 @@ static NSString * const profileHeaderCellIdentifier = @"ProfileHeaderCell";
 }
 
 - (void)hideMoreButton {
-    [UIView animateWithDuration:0.25f delay:0 usingSpringWithDamping:0.72f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        self.launchNavVC.rightActionButton.alpha = 0;
-    } completion:^(BOOL finished) {
-    }];
+    if ([self.navigationController isKindOfClass:[ComplexNavigationController class]]) {
+        [UIView animateWithDuration:0.25f delay:0 usingSpringWithDamping:0.72f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
+                self.launchNavVC.rightActionButton.alpha = 0;
+            } completion:^(BOOL finished) {
+        }];
+    }
 }
 - (void)showMoreButton {
-    [UIView animateWithDuration:0.25f delay:0 usingSpringWithDamping:0.72f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        self.launchNavVC.rightActionButton.alpha = 1;
-    } completion:^(BOOL finished) {
-    }];
+    if ([self.navigationController isKindOfClass:[ComplexNavigationController class]]) {
+        [UIView animateWithDuration:0.25f delay:0 usingSpringWithDamping:0.72f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
+            self.launchNavVC.rightActionButton.alpha = 1;
+        } completion:^(BOOL finished) {
+        }];
+    }
 }
 
-- (void)getPostsWithCursor:(PostStreamPagingCursorType)cursorType {
+- (void)getPostsWithCursor:(StreamPagingCursorType)cursorType {
     if ([self userIdentifier] != nil) { 
         self.errorView.hidden = true;
         self.tableView.hidden = false;
         
         NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
-        if (cursorType == PostStreamPagingCursorTypeNext) {
+        if (cursorType == StreamPagingCursorTypeNext) {
             [params setObject:self.tableView.stream.nextCursor forKey:@"cursor"];
             [self.tableView.stream addLoadedCursor:self.tableView.stream.nextCursor];
         }
@@ -827,21 +805,18 @@ static NSString * const profileHeaderCellIdentifier = @"ProfileHeaderCell";
         NSLog(@"params: %@", params);
         
         [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-            
             self.tableView.scrollEnabled = true;
-            
-            if (self.userDidRefresh) {
-                self.userDidRefresh = false;
-                self.tableView.stream.posts = @[];
-                self.tableView.stream.pages = [[NSMutableArray alloc] init];
-            }
             
             PostStreamPage *page = [[PostStreamPage alloc] initWithDictionary:responseObject error:nil];
             if (page.data.count > 0) {
-                if (cursorType == PostStreamPagingCursorTypeNone || cursorType == PostStreamPagingCursorTypePrevious) {
+                if (cursorType == StreamPagingCursorTypeNone) {
+                    self.tableView.stream.posts = @[];
+                    self.tableView.stream.pages = [[NSMutableArray alloc] init];
+                }
+                if (cursorType == StreamPagingCursorTypeNone || cursorType == StreamPagingCursorTypePrevious) {
                     [self.tableView.stream prependPage:page];
                 }
-                else if (cursorType == PostStreamPagingCursorTypeNext) {
+                else if (cursorType == StreamPagingCursorTypeNext) {
                     [self.tableView.stream appendPage:page];
                 }
             }
@@ -851,9 +826,7 @@ static NSString * const profileHeaderCellIdentifier = @"ProfileHeaderCell";
                 self.errorView.hidden = false;
                 
                 if ([self isCurrentUser]) {
-                    [self.errorView updateType:ErrorViewTypeNoPosts title:@"No Posts Yet" description:nil actionTitle:@"Create your first" actionBlock:^{
-                        [Launcher openComposePost:nil inReplyTo:nil withMessage:nil media:nil];
-                    }];
+                    [self.errorView updateType:ErrorViewTypeNoPosts title:@"No Posts Yet" description:nil actionTitle:nil actionBlock:nil];
                 }
                 else {
                     [self.errorView updateType:ErrorViewTypeNoPosts title:@"No Posts Yet" description:nil actionTitle:nil actionBlock:nil];
@@ -914,7 +887,7 @@ static NSString * const profileHeaderCellIdentifier = @"ProfileHeaderCell";
     NSLog(@"has loaded cursor:::: %@", [self.tableView.stream hasLoadedCursor:self. tableView.stream.nextCursor] ? @"true" : @"false");
     if (self.tableView.stream.nextCursor.length > 0 && ![self.tableView.stream hasLoadedCursor:self. tableView.stream.nextCursor]) {
         NSLog(@"load page using next cursor: %@", self.tableView.stream.nextCursor);
-        [self getPostsWithCursor:PostStreamPagingCursorTypeNext];
+        [self getPostsWithCursor:StreamPagingCursorTypeNext];
     }
 }
 
@@ -938,8 +911,8 @@ static NSString * const profileHeaderCellIdentifier = @"ProfileHeaderCell";
 }
 - (void)refresh {
     NSLog(@"refresh profile view controller");
-    self.userDidRefresh = true;
     [self loadUser];
+    [self getPostsWithCursor:StreamPagingCursorTypePrevious];
 }
 
 - (UIStatusBarStyle)preferredStatusBarStyle
@@ -948,7 +921,7 @@ static NSString * const profileHeaderCellIdentifier = @"ProfileHeaderCell";
 }
 
 #pragma mark - RSTableViewDelegate
-- (UITableViewCell *)cellForRowInFirstSection:(NSInteger)row {
+- (UITableViewCell * _Nullable)cellForRowInFirstSection:(NSInteger)row {
     ProfileHeaderCell *cell = [self.tableView dequeueReusableCellWithIdentifier:profileHeaderCellIdentifier forIndexPath:[NSIndexPath indexPathForRow:row inSection:0]];
     
     if (cell == nil) {

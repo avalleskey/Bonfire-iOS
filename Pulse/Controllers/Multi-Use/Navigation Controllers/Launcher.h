@@ -15,6 +15,8 @@
 #import "ComplexNavigationController.h"
 #import "TabController.h"
 
+#define VIEW_CONTROLLER_PUSH_TAG 99
+
 NS_ASSUME_NONNULL_BEGIN
 
 @interface Launcher : NSObject <UIViewControllerTransitioningDelegate>
@@ -23,14 +25,17 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) SOLOptionsTransitionAnimator *animator;
 
 + (void)launchLoggedIn:(BOOL)animated;
+@property (nonatomic, copy) void (^_Nullable launchAction)(void);
 
 + (void)openTimeline;
 + (void)openTrending;
 + (void)openSearch;
++ (void)openDiscover;
 
 + (void)openCamp:(Camp *)camp;
 + (void)openCampMembersForCamp:(Camp *)camp;
 + (void)openPost:(Post *)post withKeyboard:(BOOL)withKeyboard;
++ (void)openLinkConversations:(PostAttachmentsLink *)link withKeyboard:(BOOL)withKeyboard;
 + (void)openPostReply:(Post *)post sender:(UIView *)sender;
 + (void)openProfile:(User *)user;
 + (void)openProfileCampsJoined:(User *)user;
@@ -39,11 +44,14 @@ NS_ASSUME_NONNULL_BEGIN
 + (void)openComposePost:(Camp * _Nullable)camp inReplyTo:(Post * _Nullable)replyingTo withMessage:(NSString * _Nullable)message media:(NSArray * _Nullable)media;
 + (void)openEditProfile;
 + (void)openInviteFriends:(id)sender;
++ (void)openInviteToCamp:(Camp *)camp;
 + (void)openOnboarding;
 + (void)openSettings;
 
 + (void)openURL:(NSString *)urlString;
 + (void)openDebugView:(id)object;
+
++ (void)openOutOfDateClient;
 
 + (void)copyBetaInviteLink;
 

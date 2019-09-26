@@ -21,6 +21,7 @@
 	<key>CFBundleURLSchemes</key>
 	<array>
 		<string>bonfireapp$(BUNDLE_ID_SUFFIX)</string>
+		<string>fbbonfireapp$(BUNDLE_ID_SUFFIX)</string>
 	</array>
 	<key>CFBundleURLTypes</key>
 	<array>
@@ -30,10 +31,10 @@
 			<key>CFBundleURLIconFile</key>
 			<string>favicon_filled</string>
 			<key>CFBundleURLName</key>
-			<string>Ingenious.bonfire</string>
+			<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>bonfireapp${BUNDLE_ID_SUFFIX}</string>
+				<string>bonfireapp$(BUNDLE_ID_SUFFIX)</string>
 			</array>
 		</dict>
 	</array>
@@ -41,11 +42,21 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>Configuration</key>
 	<string>$(CONFIGURATION)</string>
+	<key>FacebookAppID</key>
+	<string>342022063368801</string>
+	<key>FacebookAutoLogAppEventsEnabled</key>
+	<false/>
+	<key>FacebookDisplayName</key>
+	<string>Bonfire</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
-		<string>instagram</string>
 		<string>twitter</string>
-		<string>snapchat</string>
+		<string>fbapi</string>
+		<string>fb-messenger-share-api</string>
+		<string>fbauth2</string>
+		<string>fbshareextension</string>
+		<string>instagram</string>
+		<string>instagram-stories</string>
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
@@ -80,7 +91,7 @@
 	<key>SCSDKClientId</key>
 	<string>ab6bfe71-3708-45ec-bac6-30c6149a2a80</string>
 	<key>SCSDKRedirectUrl</key>
-	<string>bonfireapp${BUNDLE_ID_SUFFIX}://app</string>
+	<string>bonfireapp$(BUNDLE_ID_SUFFIX)://app</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>

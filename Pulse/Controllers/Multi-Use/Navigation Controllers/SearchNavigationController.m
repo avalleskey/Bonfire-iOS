@@ -9,8 +9,9 @@
 #import "SearchNavigationController.h"
 #import <BlocksKit/BlocksKit.h>
 #import <BlocksKit/BlocksKit+UIKit.h>
-#import "UIColor+Palette.h"
 #import "SearchTableViewController.h"
+#import "UIColor+Palette.h"
+#import "Session.h"
 
 @interface SearchNavigationController ()
 
@@ -23,6 +24,7 @@
     
     self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] init];
     
+    self.view.tintColor = [UIColor bonfirePrimaryColor]; //[UIColor fromHex:[Session sharedInstance].currentUser.attributes.details.color];
     self.view.backgroundColor = [UIColor whiteColor];
     [self setupNavigationBar];
 }
@@ -42,13 +44,18 @@
        NSFontAttributeName:[UIFont systemFontOfSize:18.f]}];
     
     //
-    self.navigationBar.translucent = true;
-    self.navigationBar.tintColor = [UIColor bonfireBlack];
-    self.navigationBar.backgroundColor = [UIColor colorWithRed:0.99 green:0.99 blue:1.00 alpha:0.6f];
-    self.navigationBar.shadowImage = [self imageWithColor:[UIColor colorWithWhite:0 alpha:0.08f]];
-    self.navigationBar.barTintColor = [UIColor whiteColor];
+    self.navigationBar.translucent = false;
+    self.navigationBar.tintColor = self.view.tintColor;
+    self.navigationBar.barTintColor = [UIColor contentBackgroundColor];
+    self.navigationBar.shadowImage = [self imageWithColor:[UIColor clearColor]];
     
-    self.searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(16, 0, self.view.frame.size.width - (16 * 2), 34)];
+    self.bottomHairline = [[UIView alloc] initWithFrame:CGRectMake(0, self.navigationBar.frame.size.height, self.view.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+    self.bottomHairline.backgroundColor = [UIColor tableViewSeparatorColor];
+    self.bottomHairline.alpha = 0;
+    [self.navigationBar addSubview:self.bottomHairline];
+    
+    self.searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(12, 0, self.view.frame.size.width - (12 * 2), 34)];
+    self.searchView.theme = BFTextFieldThemeContent;
     self.searchView.textField.delegate = self;
     self.searchView.center = CGPointMake(self.navigationBar.frame.size.width / 2, self.navigationBar.frame.size.height / 2);
     [self.searchView.textField bk_addEventHandler:^(id sender) {
@@ -63,7 +70,7 @@
     self.cancelButton = [UIButton buttonWithType:UIButtonTypeSystem];
     self.cancelButton.frame = CGRectMake(self.navigationBar.frame.size.width, 0, 58 + (16 * 2), self.navigationBar.frame.size.height);
     self.cancelButton.titleLabel.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightSemibold];
-    [self.cancelButton setTitleColor:[UIColor bonfireBlack] forState:UIControlStateNormal];
+    [self.cancelButton setTitleColor:self.view.tintColor forState:UIControlStateNormal];
     [self.cancelButton setTitle:@"Cancel" forState:UIControlStateNormal];
     [self.cancelButton bk_whenTapped:^{
         [self.searchView.textField resignFirstResponder];
@@ -73,6 +80,26 @@
     [self.navigationBar addSubview:self.cancelButton];
     
     [self setNeedsStatusBarAppearanceUpdate];
+}
+
+- (void)setShadowVisibility:(BOOL)visible withAnimation:(BOOL)animated {
+    [UIView animateWithDuration:animated?(visible?0.2f:0.4f):0 animations:^{
+        if (visible) [self showBottomHairline];
+        else [self hideBottomHairline];
+    }];
+}
+- (void)hideBottomHairline {
+    if (self.bottomHairline.alpha == 1) {
+        [self.bottomHairline.layer removeAllAnimations];
+    }
+    self.bottomHairline.alpha = 0;
+}
+- (void)showBottomHairline {
+    // Show 1px hairline of translucent nav bar
+    if (self.bottomHairline.alpha != 1) {
+        [self.bottomHairline.layer removeAllAnimations];
+    }
+    self.bottomHairline.alpha = 1;
 }
 
 - (UIStatusBarStyle)preferredStatusBarStyle

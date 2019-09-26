@@ -22,7 +22,8 @@
 
 @interface Session ()
 
-@property (nonatomic, strong) dispatch_group_t refreshTokenDispatchGroup;
+@property (nonatomic) BOOL refreshingToken;
+
 
 @end
 
@@ -145,11 +146,36 @@ static Session *session;
     if ([object isKindOfClass:[Camp class]] ||
         [object isKindOfClass:[User class]]) {
         NSMutableArray *searchRecents = [[NSMutableArray alloc] initWithArray:[[NSUserDefaults standardUserDefaults] arrayForKey:@"recents_search"]];
+        if ([object isKindOfClass:[Camp class]]) {
+            NSMutableArray *campsRecents = [[NSMutableArray alloc] initWithArray:[[NSUserDefaults standardUserDefaults] arrayForKey:@"recents_camps"]];
+            NSMutableArray *campsToRemove = [NSMutableArray new];
+            for (id camp in campsRecents) {
+                if ([camp isKindOfClass:[Camp class]]) {
+                    if ([((Camp *)camp).identifier isEqualToString:((Camp *)object).identifier]) {
+                        [campsToRemove addObject:camp];
+                    }
+                }
+                else if ([Camp isKindOfClass:[NSDictionary class]]) {
+                    if ([((NSDictionary *)camp) objectForKey:@"id"] && [((NSDictionary *)camp)[@"id"] isEqualToString:((Camp *)object).identifier]) {
+                        [campsToRemove addObject:camp];
+                    }
+                }
+            }
+            [campsRecents removeObjectsInArray:campsToRemove];
+            [campsRecents insertObject:[object toDictionary] atIndex:0];
+            
+            if (campsRecents.count > 8) {
+                [campsRecents removeObjectsInRange:NSMakeRange(8, campsRecents.count - 8)];
+            }
+            
+            [[NSUserDefaults standardUserDefaults] setObject:campsRecents forKey:@"recents_camps"];
+        }
         
         NSDictionary *objJSON = [object toDictionary];
         
         if ([object isKindOfClass:[Camp class]]) {
             [self incrementOpensForCamp:(Camp *)object];
+            [self updateLastOpenedForCamp:(Camp *)object];
         }
         
         // add object or push to front if in recents
@@ -219,6 +245,14 @@ static Session *session;
     // save
     [[NSUserDefaults standardUserDefaults] setObject:opens forKey:@"camp_opens"];
 }
+- (void)updateLastOpenedForCamp:(Camp *)camp {
+    if (!camp || camp.identifier.length == 0) return;
+    
+    NSString *cache_key = @"camp_last_opens";
+    NSMutableDictionary *lastOpenedDictionary = [[NSMutableDictionary alloc] initWithDictionary:[[NSUserDefaults standardUserDefaults] dictionaryForKey:cache_key]];
+    [lastOpenedDictionary setObject:[NSDate new] forKey:camp.identifier];
+    [[NSUserDefaults standardUserDefaults] setObject:lastOpenedDictionary forKey:cache_key];
+}
 - (NSString *)convertToString:(id)object {
     return [NSString stringWithFormat:@"%@", object];
 }
@@ -286,6 +320,8 @@ static Session *session;
                     
                     NSLog(@"task: %@", task);
                     NSLog(@"logoutManager? %@", logoutManager);
+                    
+                    [Launcher openOnboarding];
                 }];
             }
         }];
@@ -362,6 +398,28 @@ static Session *session;
     return token;
 }
 
+- (void)setRefreshingToken:(BOOL)refreshingToken {
+    if (refreshingToken != _refreshingToken) {
+        if (_refreshingToken && !refreshingToken) {
+            // (refreshing is all done)
+            
+            // fire all outstanding blocks
+            NSLog(@"BOOM token isn't refreshing anymore");
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"BFTokenRefreshed" object:nil];
+        }
+        
+        _refreshingToken = refreshingToken;
+    }
+}
+
+- (void)fireOnRefreshingTokenCompletion:(void (^_Nullable)(void))handler {
+    NSLog(@"fire on refreshing token completion!");
+    [[NSNotificationCenter defaultCenter] addObserverForName:@"BFTokenRefreshed" object:nil queue:[NSOperationQueue currentQueue] usingBlock:^(NSNotification * _Nonnull note) {
+        NSLog(@"call that handler!");
+        handler();
+    }];
+}
+
 - (void)getNewAccessToken:(void (^)(BOOL success, NSString *newToken))handler {
     NSLog(@"🆕🔑 getNewAccessToken:");
     
@@ -369,14 +427,18 @@ static Session *session;
     NSDictionary *currentAccessToken = [[Session sharedInstance] getAccessTokenWithVerification:YES];
     if (currentAccessToken) {
         // access token is already valid -- must have already been refreshed
+        NSLog(@"🔑✅ getNewAccessToken: NO NEED");
+        
         handler(true, currentAccessToken[@"attributes"][@"access_token"]);
     }
     else if ([[Session sharedInstance] refreshToken] != nil) {
         // has a seemingly valid refresh token, so we should attempt
+        NSLog(@"🔑⏳ getNewAccessToken: REFRESH TOKEN AVAILABLE");
         
-        if (self.refreshTokenDispatchGroup) {
+        if ([self refreshingToken]) {
             // NSLog(@"already refreshing....");
-            dispatch_group_notify(self.refreshTokenDispatchGroup, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+            [self fireOnRefreshingTokenCompletion:^(void) {
+                NSLog(@"hello from the other side!! just received the completion handler for fire on refresh token completion");
                 // NSLog(@"all requests finished!");
                 // NSLog(@"done refreshing and the verdict is.....");
                 NSDictionary *accessToken = [[Session sharedInstance] getAccessTokenWithVerification:true];
@@ -389,11 +451,11 @@ static Session *session;
                     // NSLog(@"original effort SUCCEEDED WOOOOOO");
                     handler(true, accessToken[@"attributes"][@"access_token"]);
                 }
-            });
+            }];
         }
         else {
-            self.refreshTokenDispatchGroup = dispatch_group_create();
-            dispatch_group_enter(self.refreshTokenDispatchGroup);
+            NSLog(@"🔑🌀 getNewAccessToken: GET NEW TOKEN");
+            self.refreshingToken = true;
             
             // get new access token
             HAWebService *refreshTokenManager = [[HAWebService alloc] init];
@@ -413,10 +475,9 @@ static Session *session;
                 
                 [[Session sharedInstance] setAccessToken:cleanDictionary];
                 
-                dispatch_group_leave(self.refreshTokenDispatchGroup);
-                self.refreshTokenDispatchGroup = nil;
-                
                 handler(true, cleanDictionary[@"attributes"][@"access_token"]);
+                
+                self.refreshingToken = false;
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
                 NSLog(@"/oauth error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);
                 NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
@@ -424,9 +485,6 @@ static Session *session;
                 
                 // check if another access token was already retrieved in the mean time
                 // -> this happens when you have multiple requests attempting to use an expired token and consequently, multiple requests are made to renew the access token. the subsequent requests will fail with an error code 48, due to sending an invalid token (since it has already been used for a refresh)
-                
-                dispatch_group_leave(self.refreshTokenDispatchGroup);
-                self.refreshTokenDispatchGroup = nil;
                 
                 NSDictionary *accessToken = [[Session sharedInstance] getAccessTokenWithVerification:true];
                 if (accessToken != nil) {
@@ -437,6 +495,8 @@ static Session *session;
                 else {
                     handler(false, nil);
                 }
+                
+                self.refreshingToken = false;
             }];
         }
     }

@@ -13,7 +13,12 @@
 #import <BlocksKit/BlocksKit+UIKit.h>
 #import "Post.h"
 #import "UIImage+WithColor.h"
+#import "UIColor+Palette.h"
 #import <SDWebImage/UIImageView+WebCache.h>
+#import <SDWebImage/UIView+WebCache.h>
+
+#define SPINNER_TAG 11
+#define SPINNER_DOT_TAG 12
 
 @implementation PostImagesView
 
@@ -37,14 +42,17 @@
     self.layer.shouldRasterize = true;
     self.layer.rasterizationScale = [UIScreen mainScreen].scale;
     
-    self.layer.cornerRadius = 16.f;
+    self.layer.cornerRadius = 14.f;
     self.layer.masksToBounds = true;
-    self.layer.borderWidth = (1 / [UIScreen mainScreen].scale);
-    self.layer.borderColor = [UIColor colorWithWhite:0.9 alpha:1].CGColor;
+    self.layer.borderWidth = HALF_PIXEL;
+    
+    self.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.08f].CGColor;
+    self.layer.shadowOpacity = 1.f;
+    self.layer.shadowOffset = CGSizeMake(0, 1);
+    self.layer.shadowRadius = 1.f;
     
     self.imageViews = [[NSMutableArray alloc] init];
     self.media = @[];
-    
 }
 
 // Only override drawRect: if you perform custom drawing.
@@ -58,6 +66,8 @@
     
     // Lay things out again
     [self layoutImageViews];
+    
+    self.layer.borderColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.1f].CGColor;
 }
 
 - (void)setMedia:(NSArray *)media {
@@ -108,12 +118,18 @@
                 NSURL *url = [NSURL URLWithString:imageURL];
                 
                 SDAnimatedImageView *animatedImageView = [self animatedImageViewForIndex:i];
-                                
+                //[self showImageViewSpinner:animatedImageView];
+                
                 if ([[self MIMETypeFromFileName:imageURL] isEqualToString:@"image/gif"]) {
-                    [animatedImageView sd_setImageWithURL:url placeholderImage:nil options:(SDWebImageFromLoaderOnly)];
+                    [animatedImageView sd_setImageWithURL:url placeholderImage:nil options:SDWebImageFromLoaderOnly completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
+                        //[self hideImageViewSpinner:animatedImageView];
+                    }];
+                    
                 }
                 else {
-                    [animatedImageView sd_setImageWithURL:url];
+                    [animatedImageView sd_setImageWithURL:url placeholderImage:nil options:0 completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
+                        //[self hideImageViewSpinner:animatedImageView];
+                    }];
                 }
             }
             else {
@@ -122,20 +138,16 @@
         }
         else {
             if ([self.media[i] isKindOfClass:[UIImage class]]) {
-                if ([self.media[i] isKindOfClass:[SDAnimatedImage class]]) {
-                    SDAnimatedImageView *animatedImageView = [self animatedImageViewForIndex:i];
-                    [animatedImageView setImage:self.media[i]];
-                }
-                else {
-                    SDAnimatedImageView *animatedImageView = [self animatedImageViewForIndex:i];
-                    [animatedImageView setImage:self.media[i]];
-                }
+                SDAnimatedImageView *animatedImageView = [self animatedImageViewForIndex:i];
+                [animatedImageView setImage:self.media[i]];
+                
+                [self hideImageViewSpinner:animatedImageView];
             }
             else if ([self.media[i] isKindOfClass:[NSData class]]) {
-                NSLog(@"so yeah.... this happened");
-                
                 SDAnimatedImageView *animatedImageView = [self animatedImageViewForIndex:i];
                 [animatedImageView setImage:[UIImage imageWithData:self.media[i]]];
+                
+                [self hideImageViewSpinner:animatedImageView];
             }
             else {
                 // TODO: Show error image
@@ -192,12 +204,12 @@
     highlightButton.tag = 10;
     highlightButton.frame = imageView.bounds;
     [highlightButton bk_addEventHandler:^(id sender) {
-        [UIView animateWithDuration:0.2f animations:^{
-            highlightButton.backgroundColor = [UIColor colorWithWhite:0 alpha:0.3f];
+        [UIView animateWithDuration:0.15f animations:^{
+            highlightButton.backgroundColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.3];
         }];
     } forControlEvents:UIControlEventTouchDown];
     [highlightButton bk_addEventHandler:^(id sender) {
-        [UIView animateWithDuration:0.2f animations:^{
+        [UIView animateWithDuration:0.15f animations:^{
             highlightButton.backgroundColor = [UIColor clearColor];
         }];
     } forControlEvents:(UIControlEventTouchUpInside|UIControlEventTouchCancel|UIControlEventTouchDragExit)];
@@ -209,13 +221,75 @@
     return highlightButton;
 }
 - (void)setupImageView:(UIImageView *)imageView {
-    imageView.backgroundColor = [UIColor colorWithRed:0.93 green:0.93 blue:0.95 alpha:1.0];
+    imageView.backgroundColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.05f];
     imageView.contentMode = UIViewContentModeScaleAspectFill;
-    imageView.layer.borderWidth = (1 / [UIScreen mainScreen].scale);
-    imageView.layer.borderColor = [UIColor colorWithWhite:0 alpha:0.1f].CGColor;
+    //imageView.layer.borderWidth = (1 / [UIScreen mainScreen].scale);
+    //imageView.layer.borderColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.12f].CGColor;
     imageView.layer.masksToBounds = true;
     imageView.userInteractionEnabled = true;
     imageView.tag = self.imageViews.count;
+    imageView.sd_imageTransition = [SDWebImageTransition fadeTransition];
+    //[self addSpinnerToImageView:imageView];
+}
+- (void)addSpinnerToImageView:(UIImageView *)imageView {
+    if ([imageView viewWithTag:SPINNER_TAG])
+        return;
+    
+    UIView *spinner = [[UIView alloc] initWithFrame:CGRectMake(imageView.frame.size.width / 2 - 30, imageView.frame.size.height / 2 - 6, 60, 12)];
+    spinner.layer.cornerRadius = spinner.frame.size.height / 2;
+    spinner.layer.masksToBounds = false;
+    spinner.backgroundColor = [UIColor whiteColor];
+    //spinner.layer.borderWidth = (1 / [UIScreen mainScreen].scale);
+    //spinner.layer.borderColor = [UIColor tableViewSeparatorColor].CGColor;
+    spinner.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.08].CGColor;
+    spinner.layer.shadowRadius = 1.f;
+    spinner.layer.shadowOffset = CGSizeMake(0, 0.5);
+    spinner.layer.shadowOpacity = 1.5;
+    spinner.tag = SPINNER_TAG;
+    
+    UIView *spinnerDot = [[UIView alloc] initWithFrame:CGRectMake(3, 3, 16, spinner.frame.size.height - 6)];
+    spinnerDot.tag = SPINNER_DOT_TAG;
+    spinnerDot.backgroundColor = [UIColor tableViewSeparatorColor];
+    spinnerDot.layer.cornerRadius = spinnerDot.frame.size.height / 2;
+    [spinner addSubview:spinnerDot];
+    
+    [imageView addSubview:spinner];
+}
+- (void)showImageViewSpinner:(UIImageView *)imageView {
+    UIView *spinner = [imageView viewWithTag:SPINNER_TAG];
+    spinner.hidden = false;
+    
+    if (spinner) {
+        [self startSpinnerForImageView:imageView];
+    }
+}
+- (void)startSpinnerForImageView:(UIImageView *)imageView {
+    UIView *spinner = [imageView viewWithTag:SPINNER_TAG];
+    UIView *spinnerDot = [spinner viewWithTag:SPINNER_DOT_TAG];
+            
+    [spinner.layer removeAllAnimations];
+    [spinnerDot.layer removeAllAnimations];
+    
+    imageView.backgroundColor = [UIColor yellowColor];
+    
+    [UIView animateWithDuration:0.3f delay:0 options:UIViewAnimationOptionRepeat|UIViewAnimationOptionAutoreverse animations:^{
+        imageView.backgroundColor = [UIColor redColor];
+        
+        spinnerDot.frame = CGRectMake(spinner.frame.size.width - spinnerDot.frame.size.width - 3, spinnerDot.frame.origin.y, spinnerDot.frame.size.width, spinnerDot.frame.size.height);
+    } completion:^(BOOL finished) {
+        spinnerDot.frame = CGRectMake(3, 3, spinnerDot.frame.size.width, spinnerDot.frame.size.height);
+        imageView.backgroundColor = [UIColor greenColor];
+    }];
+}
+- (void)hideImageViewSpinner:(UIImageView *)imageView {
+    UIView *spinner = [imageView viewWithTag:SPINNER_TAG];
+    spinner.hidden = true;
+    
+    if (spinner) {
+        UIView *spinnerDot = [spinner viewWithTag:SPINNER_DOT_TAG];
+        [spinner.layer removeAllAnimations];
+        [spinnerDot.layer removeAllAnimations];
+    }
 }
 
 - (void)layoutImageViews {
@@ -226,7 +300,7 @@
         // full width
         UIImageView *onlyImageView = [self.imageViews firstObject];
         onlyImageView.frame = self.bounds;
-        [self resizeHighlightButtonForImageView:onlyImageView];
+        [self resizeInnerViewsForImageView:onlyImageView];
     }
     else {
         CGFloat halfWidth = (self.frame.size.width - 2) / 2;
@@ -234,34 +308,46 @@
         
         UIImageView *imageView1 = self.imageViews[0];
         imageView1.frame = CGRectMake(0, 0, halfWidth, self.imageViews.count > 3 ? halfHeight : self.frame.size.height);
-        [self resizeHighlightButtonForImageView:imageView1];
+        [self resizeInnerViewsForImageView:imageView1];
         
         if (self.imageViews.count > 1) {
             UIImageView *imageView2 = self.imageViews[1];
             imageView2.frame = CGRectMake(self.frame.size.width - halfWidth, 0, halfWidth, self.imageViews.count == 2 ? self.frame.size.height : halfHeight);
-            [self resizeHighlightButtonForImageView:imageView2];
+            [self resizeInnerViewsForImageView:imageView2];
         }
         if (self.imageViews.count > 2) {
             UIImageView *imageView3 = self.imageViews[2];
             imageView3.frame = CGRectMake(self.imageViews.count == 4 ? 0 : self.frame.size.width - halfWidth, self.frame.size.height - halfHeight, halfWidth, halfHeight);
-            [self resizeHighlightButtonForImageView:imageView3];
+            [self resizeInnerViewsForImageView:imageView3];
         }
         if (self.imageViews.count > 3) {
             UIImageView *imageView4 = self.imageViews[3];
             imageView4.frame = CGRectMake(self.frame.size.width - halfWidth, self.frame.size.height - halfHeight, halfWidth, halfHeight);
-            [self resizeHighlightButtonForImageView:imageView4];
+            [self resizeInnerViewsForImageView:imageView4];
         }
-        
     }
-}
-- (void)resizeHighlightButtonForImageView:(UIImageView *)imageView {
-    UIButton *highlightButton = [imageView viewWithTag:10];
     
+    //[self startSpinners];
+}
+- (void)resizeInnerViewsForImageView:(UIImageView *)imageView {
+    UIButton *highlightButton = [imageView viewWithTag:10];
     highlightButton.frame = imageView.bounds;
+    
+    UIView *spinner = [imageView viewWithTag:SPINNER_TAG];
+    spinner.center = CGPointMake(imageView.frame.size.width / 2, imageView.frame.size.height / 2);
 }
 
 + (CGFloat)streamImageHeight {
     return [Session sharedInstance].defaults.post.imgHeight;
+}
+
+- (void)startSpinners {
+    for (UIImageView *imageView in self.imageViews) {
+        UIView *spinner = [imageView viewWithTag:SPINNER_TAG];
+        if (![spinner isHidden]) {
+            [self startSpinnerForImageView:imageView];
+        }
+    }
 }
 
 - (NSString *)MIMETypeFromFileName:(NSString *)fileName {

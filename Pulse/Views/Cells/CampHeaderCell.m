@@ -31,13 +31,13 @@
     self = [super initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:reuseIdentifier];
     if (self) {
         //self.backgroundColor = [UIColor colorWithWhite:0.97 alpha:1];
-        self.backgroundColor = [UIColor whiteColor];
+        self.backgroundColor = [UIColor contentBackgroundColor];
         
         self.contentView.layer.masksToBounds = false;
         self.layer.masksToBounds = false;
         
         self.textLabel.font = CAMP_HEADER_NAME_FONT;
-        self.textLabel.textColor = [UIColor bonfireBlack];
+        self.textLabel.textColor = [UIColor bonfirePrimaryColor];
         self.textLabel.textAlignment = NSTextAlignmentCenter;
         self.textLabel.numberOfLines = 0;
         self.textLabel.lineBreakMode = NSLineBreakByWordWrapping;
@@ -46,7 +46,7 @@
         //UIFont *heavyItalicFont = [UIFont fontWithDescriptor:[[[UIFont systemFontOfSize:CAMP_HEADER_TAG_FONT.pointSize weight:UIFontWeightHeavy] fontDescriptor] fontDescriptorWithSymbolicTraits:UIFontDescriptorTraitItalic] size:CAMP_HEADER_TAG_FONT.pointSize];
         self.detailTextLabel.font = [UIFont systemFontOfSize:CAMP_HEADER_TAG_FONT.pointSize weight:UIFontWeightHeavy];
         self.detailTextLabel.textAlignment = NSTextAlignmentCenter;
-        self.detailTextLabel.textColor = [UIColor bonfireGray];
+        self.detailTextLabel.textColor = [UIColor bonfireSecondaryColor];
         self.detailTextLabel.numberOfLines = 0;
         self.detailTextLabel.lineBreakMode = NSLineBreakByWordWrapping;
         self.detailTextLabel.backgroundColor = [UIColor clearColor];
@@ -54,7 +54,7 @@
         self.descriptionLabel = [[UILabel alloc] init];
         self.descriptionLabel.font = CAMP_HEADER_DESCRIPTION_FONT;
         self.descriptionLabel.textAlignment = NSTextAlignmentCenter;
-        self.descriptionLabel.textColor = [UIColor bonfireBlack];
+        self.descriptionLabel.textColor = [UIColor bonfirePrimaryColor];
         self.descriptionLabel.numberOfLines = 0;
         self.descriptionLabel.lineBreakMode = NSLineBreakByWordWrapping;
         [self.contentView addSubview:self.descriptionLabel];
@@ -233,7 +233,7 @@
         [self.contentView addSubview:self.followButton];
         
         self.lineSeparator = [[UIView alloc] init];
-        self.lineSeparator.backgroundColor = [UIColor separatorColor];
+        self.lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
         //[self.contentView addSubview:self.lineSeparator];
         
         #ifdef DEBUG
@@ -432,7 +432,6 @@
         self.campPicture.camp = camp;
         
         // set profile pictures
-        
         for (NSInteger i = 0; i < 6; i++) {
             BFAvatarView *avatarView;
             if (i == 0) { avatarView = self.member2; }
@@ -534,8 +533,8 @@
             height = height + (camp.attributes.details.theDescription.length > 0 ? CAMP_HEADER_DESCRIPTION_BOTTOM_PADDING : CAMP_HEADER_TAG_BOTTOM_PADDING) + detailsHeight;
         }
     }
-    
-    if (camp.identifier.length > 0 || loading) {
+
+    if (camp.attributes.context != nil || loading) {
         CGFloat userPrimaryActionHeight = CAMP_HEADER_FOLLOW_BUTTON_TOP_PADDING + 36;
         height = height + userPrimaryActionHeight;
     }

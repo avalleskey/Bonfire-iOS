@@ -11,17 +11,24 @@
 #import "SimpleNavigationController.h"
 #import "ComplexNavigationController.h"
 #import "SearchTableViewController.h"
-#import "DiscoverViewController.h"
-#import "HomeViewController.h"
+#import "CampStoreTableViewController.h"
+#import "MyFeedViewController.h"
+#import "CombinedHomeViewController.h"
 #import "ProfileViewController.h"
 #import "NotificationsTableViewController.h"
 #import "BFAvatarView.h"
+#import "BFTabBar.h"
 
 @interface TabController : UITabBarController
 
+@property (nonatomic, strong) BFTabBar *bf_tabBar;
+
 @property (nonatomic, strong) SimpleNavigationController *myFeedNavVC;
+@property (nonatomic, strong) SimpleNavigationController *homeNavVC;
+
 @property (nonatomic, strong) SearchNavigationController *searchNavVC;
 @property (nonatomic, strong) SimpleNavigationController *discoverNavVC;
+@property (nonatomic, strong) SimpleNavigationController *storeNavVC;
 @property (nonatomic, strong) SimpleNavigationController *notificationsNavVC;
 @property (nonatomic, strong) SimpleNavigationController *myProfileNavVC;
 
@@ -31,7 +38,9 @@
 @property (nonatomic, strong) UILabel *notificationLabel;
 @property (nonatomic, strong) UIView *tabIndicator;
 @property (nonatomic, strong) UIVisualEffectView *blurView;
+
 - (void)setBadgeValue:(NSString *)badgeValue forItem:(UITabBarItem *)tabBarItem;
+@property (nonatomic, strong) NSMutableDictionary *badges;
 
 @property (nonatomic, strong) NSMutableDictionary *pills;
 

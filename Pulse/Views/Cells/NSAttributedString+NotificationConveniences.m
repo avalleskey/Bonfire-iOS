@@ -59,7 +59,7 @@
     for (NSString *part in stringParts) {
         NSMutableAttributedString *attributedPart;
         if ([[variables allKeys] containsObject:part]) {
-            attributedPart = [[NSMutableAttributedString alloc] initWithString:[variables objectForKey:part] attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:fontSize weight:UIFontWeightSemibold], NSForegroundColorAttributeName: [UIColor bonfireBlack]}];
+            attributedPart = [[NSMutableAttributedString alloc] initWithString:[variables objectForKey:part] attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:fontSize weight:UIFontWeightSemibold], NSForegroundColorAttributeName: [UIColor bonfirePrimaryColor]}];
             
             /*
             [attributedString addAttribute:NSLinkAttributeName
@@ -67,7 +67,7 @@
                                      range:[[attributedString string] rangeOfString:@"@marcelofabri_"]];*/
         }
         else {
-            attributedPart = [[NSMutableAttributedString alloc] initWithString:part attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:fontSize weight:UIFontWeightRegular], NSForegroundColorAttributeName: [UIColor bonfireBlack]}];
+            attributedPart = [[NSMutableAttributedString alloc] initWithString:part attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:fontSize weight:UIFontWeightRegular], NSForegroundColorAttributeName: [UIColor bonfirePrimaryColor]}];
         }
         
         [attributedString appendAttributedString:attributedPart];
@@ -77,7 +77,7 @@
     
     NSMutableAttributedString *timeStampString = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@" %@", timeStamp]];
     [timeStampString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:fontSize weight:UIFontWeightRegular] range:NSMakeRange(0, timeStampString.length)];
-    [timeStampString addAttribute:NSForegroundColorAttributeName value:[UIColor bonfireGray] range:NSMakeRange(0, timeStampString.length)];
+    [timeStampString addAttribute:NSForegroundColorAttributeName value:[UIColor bonfireSecondaryColor] range:NSMakeRange(0, timeStampString.length)];
     [attributedString appendAttributedString:timeStampString];
     
     return attributedString;

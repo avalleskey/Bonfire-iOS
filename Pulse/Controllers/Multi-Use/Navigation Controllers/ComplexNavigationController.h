@@ -42,7 +42,10 @@ typedef enum {
 
 - (void)goBack;
 
-- (void)setShadowVisibility:(BOOL)visible withAnimation:(BOOL)animation;
+- (void)setShadowVisibility:(BOOL)visible withAnimation:(BOOL)animated;
+- (void)hideBottomHairline;
+- (void)showBottomHairline;
+@property (nonatomic, strong) UIView *bottomHairline;
 
 - (void)updateBarColor:(id)background animated:(BOOL)animated;
 

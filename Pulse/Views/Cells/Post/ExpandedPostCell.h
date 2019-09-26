@@ -15,6 +15,7 @@
 #import "BFAvatarView.h"
 #import "PostActivityView.h"
 #import "ExpandedPostActionsView.h"
+#import "TappableView.h"
 
 #define UIViewParentController(__view) ({ \
     UIResponder *__responder = __view; \
@@ -32,14 +33,20 @@
 @interface ExpandedPostCell : PostCell <UITextFieldDelegate, PostTextViewDelegate>
 
 // Views
+@property (nonatomic, strong) TappableView *creatorView;
+@property (nonatomic, strong) UILabel *creatorTitleLabel;
+@property (nonatomic, strong) UILabel *creatorTagLabel;
+
+@property (nonatomic, strong) UIButton *replyingToButton;
+
+@property (nonatomic, strong) UIImageView *postedInArrow;
 @property (nonatomic, strong) UIButton *postedInButton;
-@property (nonatomic, strong) UIButton *nameButton;
 
 @property (nonatomic, strong) ExpandedPostActionsView *actionsView;
 @property (nonatomic, strong) PostActivityView *activityView;
 
 - (void)setVoted:(BOOL)isVoted withAnimation:(BOOL)animated;
 
-+ (CGFloat)heightForPost:(Post *)post;
++ (CGFloat)heightForPost:(Post *)post width:(CGFloat)contentWidth;
 
 @end

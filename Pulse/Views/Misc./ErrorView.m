@@ -48,8 +48,8 @@
     [self addSubview:self.imageView];
     
     self.errorTitle = [[UILabel alloc] initWithFrame:CGRectMake(0, self.imageView.frame.origin.y + self.imageView.frame.size.height + 12, self.frame.size.width, 30)];
-    self.errorTitle.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightHeavy];
-    self.errorTitle.textColor = [UIColor bonfireGray];
+    self.errorTitle.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightBold];
+    self.errorTitle.textColor = [UIColor bonfireSecondaryColor];
     self.errorTitle.textAlignment = NSTextAlignmentCenter;
     self.errorTitle.numberOfLines = 0;
     self.errorTitle.lineBreakMode = NSLineBreakByWordWrapping;
@@ -57,7 +57,7 @@
     
     self.errorDescription = [[UILabel alloc] initWithFrame:CGRectMake(self.frame.size.width * .1, self.errorTitle.frame.origin.y + self.errorTitle.frame.size.height + 6, self.frame.size.width * .8, 30)];
     self.errorDescription.font = [UIFont systemFontOfSize:15.f weight:UIFontWeightRegular];
-    self.errorDescription.textColor = [UIColor bonfireGray];
+    self.errorDescription.textColor = [UIColor bonfireSecondaryColor];
     self.errorDescription.textAlignment = NSTextAlignmentCenter;
     self.errorDescription.numberOfLines = 0;
     self.errorDescription.lineBreakMode = NSLineBreakByWordWrapping;
@@ -67,7 +67,7 @@
     self.actionButton.frame = CGRectMake(0, self.errorDescription.frame.origin.y + self.errorDescription.frame.size.height + 12, 143, 40);
     self.actionButton.layer.cornerRadius = 12.f;
     self.actionButton.layer.masksToBounds = true;
-    self.actionButton.backgroundColor = [UIColor bonfireBlack];
+    self.actionButton.backgroundColor = [UIColor bonfirePrimaryColor];
     self.actionButton.titleLabel.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightBold];
     [self.actionButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [self addSubview:self.actionButton];
@@ -95,7 +95,7 @@
     if (self.errorDescription.text.length > 0) {
         CGRect descriptionRect = [self.errorDescription.text boundingRectWithSize:CGSizeMake(self.frame.size.width * .8, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:self.errorDescription.font} context:nil];
         self.errorDescription.frame = CGRectMake(self.frame.size.width * .1, height + prevPadding, self.frame.size.width * .8, ceilf(descriptionRect.size.height));
-        prevPadding = 24;
+        // prevPadding = 24;
         
         height = self.errorDescription.frame.origin.y + self.errorDescription.frame.size.height;
     }
@@ -104,7 +104,7 @@
         CGRect buttonRect = [self.actionButton.currentTitle boundingRectWithSize:CGSizeMake(self.frame.size.width * .8, self.actionButton.titleLabel.font.lineHeight) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:self.actionButton.titleLabel.font} context:nil];
         CGFloat buttonWidth = buttonRect.size.width + (16 * 2); // 16 padding on the left/right
         self.actionButton.frame = CGRectMake(self.frame.size.width / 2 - buttonWidth / 2, height + 24, buttonWidth, self.actionButton.frame.size.height);
-        prevPadding = 0;
+        // prevPadding = 0;
         
         height = self.actionButton.frame.origin.y + self.actionButton.frame.size.height;
     }
@@ -123,44 +123,48 @@
             break;
         case ErrorViewTypeBlocked:
             self.imageView.image = [UIImage imageNamed:@"errorBlocked"];
-            self.imageView.backgroundColor = [UIColor bonfireGray];
+            self.imageView.backgroundColor = [UIColor bonfireSecondaryColor];
             break;
         case ErrorViewTypeNotFound:
             self.imageView.image = [UIImage imageNamed:@"errorNotFound"];
-            self.imageView.backgroundColor = [UIColor bonfireGray];
+            self.imageView.backgroundColor = [UIColor bonfireSecondaryColor];
             break;
         case ErrorViewTypeLocked:
             self.imageView.image = [UIImage imageNamed:@"errorPrivate"];
-            self.imageView.backgroundColor = [UIColor bonfireGray];
+            self.imageView.backgroundColor = [UIColor bonfireSecondaryColor];
             break;
         case ErrorViewTypeNoInternet:
             self.imageView.image = [UIImage imageNamed:@"errorNoInternet"];
-            self.imageView.backgroundColor = [UIColor bonfireGray];
+            self.imageView.backgroundColor = [UIColor bonfireSecondaryColor];
             break;
         case ErrorViewTypeHeart:
             self.imageView.image = [UIImage imageNamed:@"errorHeart"];
-            self.imageView.backgroundColor = [UIColor bonfireGray];
+            self.imageView.backgroundColor = [UIColor bonfireSecondaryColor];
             break;
         case ErrorViewTypeNoPosts:
             self.imageView.image = [UIImage imageNamed:@"errorFlower"];
-            self.imageView.backgroundColor = [UIColor bonfireGray];
+            self.imageView.backgroundColor = [UIColor bonfireSecondaryColor];
             break;
         case ErrorViewTypeNoNotifications:
             self.imageView.image = [UIImage imageNamed:@"errorNotifications"];
-            self.imageView.backgroundColor = [UIColor bonfireGray];
+            self.imageView.backgroundColor = [UIColor bonfireSecondaryColor];
             break;
         case ErrorViewTypeContactsDenied:
             self.imageView.image = [UIImage imageNamed:@"errorContacts"];
-            self.imageView.backgroundColor = [UIColor bonfireGray];
+            self.imageView.backgroundColor = [UIColor bonfireSecondaryColor];
             break;
         case ErrorViewTypeClock:
             self.imageView.image = [UIImage imageNamed:@"errorClock"];
-            self.imageView.backgroundColor = [UIColor bonfireGray];
+            self.imageView.backgroundColor = [UIColor bonfireSecondaryColor];
+            break;
+        case ErrorViewTypeSearch:
+            self.imageView.image = [UIImage imageNamed:@"errorSearch"];
+            self.imageView.backgroundColor = [UIColor bonfireSecondaryColor];
             break;
             
         default:
             self.imageView.image = [UIImage imageNamed:@"errorGeneral"];
-            self.imageView.backgroundColor = [UIColor bonfireGray];
+            self.imageView.backgroundColor = [UIColor bonfireSecondaryColor];
             break;
     }
 
@@ -215,13 +219,13 @@
 
 - (void)updateErrorTitleColor {
     if (self.errorDescription.text.length == 0) {
-        self.errorTitle.textColor = [UIColor bonfireGray];
+        self.errorTitle.textColor = [UIColor bonfireSecondaryColor];
     }
     else if (self.imageView.image == nil) {
-        self.errorTitle.textColor = [UIColor bonfireGray];
+        self.errorTitle.textColor = [UIColor bonfireSecondaryColor];
     }
     else {
-        self.errorTitle.textColor = [UIColor bonfireGray];
+        self.errorTitle.textColor = [UIColor bonfireSecondaryColor];
     }
 }
 

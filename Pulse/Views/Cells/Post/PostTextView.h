@@ -11,7 +11,7 @@
 #import "Post.h"
 
 #define kDefaultBubbleBackgroundColor [UIColor colorWithRed:0.89 green:0.89 blue:0.92 alpha:1.00]
-#define textViewFont [UIFont systemFontOfSize:[UIFont preferredFontForTextStyle:UIFontTextStyleBody].pointSize+2.f weight:UIFontWeightRegular]
+#define textViewFont [UIFont systemFontOfSize:18.f weight:UIFontWeightRegular]
 #define postTextViewInset UIEdgeInsetsZero
 
 NS_ASSUME_NONNULL_BEGIN
@@ -37,9 +37,15 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic) UIEdgeInsets edgeInsets;
 
+@property (nonatomic, strong) NSString *postId;
+
+@property (nonatomic, assign) NSInteger maxCharacters;
+@property (nonatomic, assign) NSInteger entityBasedMaxCharacters;
++ (NSInteger)entityBasedMaxCharactersForMessage:(NSString *)message maxCharacters:(NSInteger)maxCharacters entities:(NSArray <PostEntity *> <PostEntity> *)entities;
+
 - (void)update;
 
-+ (CGSize)sizeOfBubbleWithMessage:(NSString *)text withConstraints:(CGSize)constraints font:(UIFont *)font;
++ (CGSize)sizeOfBubbleWithMessage:(NSString *)message withConstraints:(CGSize)constraints font:(UIFont *)font maxCharacters:(CGFloat)maxCharacters;
 
 @property (nonatomic, weak, nullable) id <PostTextViewDelegate> delegate;
 

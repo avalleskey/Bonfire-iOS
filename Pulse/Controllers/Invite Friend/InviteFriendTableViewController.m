@@ -103,7 +103,7 @@ static NSString * const contactCellIdentifier = @"ContactCell";
     } forControlEvents:UIControlEventEditingChanged];
     
     UIView *lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, self.searchBar.frame.size.height - (1 / [UIScreen mainScreen].scale), self.view.frame.size.width, (1 / [UIScreen mainScreen].scale))];
-    lineSeparator.backgroundColor = [UIColor separatorColor];
+    lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
     [self.searchBar.contentView addSubview:lineSeparator];
 }
 
@@ -141,7 +141,7 @@ static NSString * const contactCellIdentifier = @"ContactCell";
 }
 
 - (void)setupTableView {
-    self.tableView.backgroundColor = [UIColor headerBackgroundColor];
+    self.tableView.backgroundColor = [UIColor tableViewBackgroundColor];
     self.tableView.separatorInset = UIEdgeInsetsZero;
     self.tableView.separatorColor = [UIColor clearColor];
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
@@ -494,7 +494,7 @@ static NSString * const contactCellIdentifier = @"ContactCell";
         else {
             [cell.imageView setImage:[[UIImage imageNamed:@"anonymous"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
             cell.imageView.tintColor = [UIColor whiteColor];
-            cell.imageView.backgroundColor = [UIColor bonfireGray];
+            cell.imageView.backgroundColor = [UIColor bonfireSecondaryColor];
         }
         
         if ([self isSelectedContact:contact.recordID]) {
@@ -509,11 +509,11 @@ static NSString * const contactCellIdentifier = @"ContactCell";
         
         if (indexPath.row == (self.contacts.count - 1)) {
             // last row
-            cell.lineSeparator.backgroundColor = [UIColor separatorColor];
+            cell.lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
             cell.lineSeparator.frame = CGRectMake(0, cell.frame.size.height - cell.lineSeparator.frame.size.height, cell.frame.size.width, cell.lineSeparator.frame.size.height);
         }
         else {
-            cell.lineSeparator.backgroundColor = [UIColor separatorColor];
+            cell.lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
             cell.lineSeparator.frame = CGRectMake(cell.textLabel.frame.origin.x, cell.frame.size.height - cell.lineSeparator.frame.size.height, cell.frame.size.width - cell.textLabel.frame.origin.x, cell.lineSeparator.frame.size.height);
         }
         
@@ -533,7 +533,7 @@ static NSString * const contactCellIdentifier = @"ContactCell";
             // remove it
             [self removeSelectedContactWithRecordID:selectedContact.recordID];
             
-            cell.textLabel.textColor = [UIColor bonfireBlack];
+            cell.textLabel.textColor = [UIColor bonfirePrimaryColor];
             cell.checkIcon.hidden = true;
         }
         else {
@@ -586,10 +586,10 @@ static NSString * const contactCellIdentifier = @"ContactCell";
     UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 56)];
     [headerContainer addSubview:header];
     
-    header.backgroundColor = [UIColor headerBackgroundColor];
+    header.backgroundColor = [UIColor tableViewBackgroundColor];
     
     UIView *lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, header.frame.size.height - (1 / [UIScreen mainScreen].scale), self.view.frame.size.width, (1 / [UIScreen mainScreen].scale))];
-    lineSeparator.backgroundColor = [UIColor separatorColor];
+    lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
     [header addSubview:lineSeparator];
     
     UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(12, 28, self.view.frame.size.width - 24, 24)];
@@ -612,7 +612,7 @@ static NSString * const contactCellIdentifier = @"ContactCell";
             lineSeparator.hidden = false;
         }
     }
-    title.textColor = [UIColor bonfireGray];
+    title.textColor = [UIColor bonfireSecondaryColor];
     
     [header addSubview:title];
     

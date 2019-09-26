@@ -8,6 +8,8 @@
 
 #import "PostContextView.h"
 #import "UIColor+Palette.h"
+#import <BlocksKit/BlocksKit.h>
+#import <BlocksKit/BlocksKit+UIKit.h>
 
 @implementation PostContextView
 
@@ -34,28 +36,46 @@
 }
 
 - (void)setup {
-    // self.backgroundColor = [UIColor colorWithWhite:0 alpha:0.04];
+    //self.backgroundColor = [UIColor colorWithWhite:0 alpha:0.04];
+    self.layer.cornerRadius = 8.f;
     
-    self.contextIcon = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 10, self.frame.size.height)];
+    self.contextIcon = [[UIImageView alloc] initWithFrame:CGRectMake(48 - 20, postContextHeight / 2 - 10, 20, 20)];
     // self.contextIcon.backgroundColor = [UIColor colorWithWhite:0 alpha:0.1f];
     self.contextIcon.layer.cornerRadius = self.contextIcon.frame.size.height / 2;
     self.contextIcon.layer.masksToBounds = true;
     self.contextIcon.contentMode = UIViewContentModeCenter;
-    self.contextIcon.tintColor = [UIColor bonfireGray];
+    self.contextIcon.tintColor = [UIColor whiteColor];
+    self.contextIcon.backgroundColor = [UIColor bonfireSecondaryColor];
     [self addSubview:self.contextIcon];
     
     self.contextLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, postContextHeight)];
-    self.contextLabel.textColor = [UIColor bonfireGray];
-    self.contextLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightSemibold];
+    self.contextLabel.textColor = [UIColor bonfirePrimaryColor];
+    self.contextLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightMedium];
     self.contextLabel.textAlignment = NSTextAlignmentLeft;
     //self.contextLabel.backgroundColor = [UIColor colorWithWhite:0 alpha:0.1f];
     [self addSubview:self.contextLabel];
+    
+    self.highlightView = [UIButton buttonWithType:UIButtonTypeCustom];
+    self.highlightView.frame = self.bounds;
+    [self.highlightView bk_addEventHandler:^(id sender) {
+        [UIView animateWithDuration:0.3f delay:0 usingSpringWithDamping:1 initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+            self.backgroundColor = [UIColor contentHighlightedColor];
+        } completion:nil];
+    } forControlEvents:UIControlEventTouchDown];
+    [self.highlightView bk_addEventHandler:^(id sender) {
+        [UIView animateWithDuration:0.3f delay:0 usingSpringWithDamping:1 initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+            self.backgroundColor = [UIColor clearColor];
+        } completion:nil];
+    } forControlEvents:(UIControlEventTouchUpInside|UIControlEventTouchCancel|UIControlEventTouchDragExit)];
+    [self addSubview:self.highlightView];
 }
 
 - (void)layoutSubviews {
     [super layoutSubviews];
     
-    self.contextIcon.frame = CGRectMake(48 - self.contextIcon.image.size.width, self.frame.size.height / 2 - self.contextIcon.image.size.height / 2, self.contextIcon.image.size.width, self.contextIcon.image.size.height);
+    self.highlightView.frame = self.bounds;
+    
+    self.contextIcon.frame = CGRectMake(48 - self.contextIcon.frame.size.width, self.frame.size.height / 2 - self.contextIcon.frame.size.height / 2, self.contextIcon.frame.size.width, self.contextIcon.frame.size.height);
     self.contextLabel.frame = CGRectMake(70 - self.frame.origin.x, self.contextLabel.frame.origin.y, self.frame.size.width - (70 - self.frame.origin.x), self.contextLabel.frame.size.height);
 }
 
@@ -64,6 +84,15 @@
         _text = text;
         
         self.contextLabel.text = text;
+        
+        [self layoutSubviews];
+    }
+}
+- (void)setAttributedText:(NSAttributedString *)attributedText {
+    if (![attributedText isEqualToAttributedString:_attributedText]) {
+        _attributedText = attributedText;
+        
+        self.contextLabel.attributedText = attributedText;
         
         [self layoutSubviews];
     }

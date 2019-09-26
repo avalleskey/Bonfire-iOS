@@ -13,15 +13,13 @@
 
 // ---- VALUES ----
 
-typedef enum {
-    SearchResultCellTypeNone = 0,
-    SearchResultCellTypeCamp = 1,
-    SearchResultCellTypeUser = 2
-} SearchResultCellType;
-@property (nonatomic) SearchResultCellType type;
-
 @property (nonatomic, strong) BFAvatarView *profilePicture;
 @property (nonatomic, strong) UIImageView *checkIcon;
+
+@property (nonatomic, strong) UIView *lineSeparator;
+
+@property (nonatomic, strong) Camp *camp;
+@property (nonatomic, strong) User *user;
 
 // ---- VIEWS ----
 

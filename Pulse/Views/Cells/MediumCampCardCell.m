@@ -35,13 +35,15 @@
 - (void)setup {
     self.camp = [[Camp alloc] init];
     
-    self.backgroundColor = [UIColor whiteColor];
+    self.backgroundColor = [UIColor cardBackgroundColor];
     self.layer.cornerRadius = 12.f;
     self.layer.masksToBounds = false;
-    self.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.1f].CGColor;
-    self.layer.shadowOpacity = 1.f;
+    self.layer.shadowRadius = 1.f;
     self.layer.shadowOffset = CGSizeMake(0, 1);
-    self.layer.shadowRadius = 2.f;
+    self.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.08f].CGColor;
+    self.layer.shadowOpacity = 1.f;
+    self.layer.borderWidth = (1 / [UIScreen mainScreen].scale);
+    self.layer.borderColor = [UIColor colorWithWhite:0 alpha:0.1f].CGColor;
     self.contentView.layer.cornerRadius = self.layer.cornerRadius;
     self.contentView.layer.masksToBounds = true;
     self.layer.shouldRasterize = true;
@@ -53,7 +55,7 @@
     
     self.profilePictureContainerView = [[UIView alloc] initWithFrame:CGRectMake(20, 20, 80, 80)];
     self.profilePictureContainerView.userInteractionEnabled = false;
-    self.profilePictureContainerView.backgroundColor = [UIColor whiteColor];
+    self.profilePictureContainerView.backgroundColor = [UIColor contentBackgroundColor];
     self.profilePictureContainerView.layer.cornerRadius = self.profilePictureContainerView.frame.size.width * .5;
     self.profilePictureContainerView.layer.masksToBounds = false;
     
@@ -81,7 +83,7 @@
     self.campTitleLabel.textAlignment = NSTextAlignmentCenter;
     self.campTitleLabel.numberOfLines = 0;
     self.campTitleLabel.lineBreakMode = NSLineBreakByWordWrapping;
-    self.campTitleLabel.textColor = [UIColor bonfireBlack];
+    self.campTitleLabel.textColor = [UIColor bonfirePrimaryColor];
     [self.contentView addSubview:self.campTitleLabel];
     
     self.campTagLabel = [[UILabel alloc] initWithFrame:CGRectMake(16, self.campTitleLabel.frame.origin.y + self.campTitleLabel.frame.size.height + 4, self.frame.size.width - 32, 18)];
@@ -89,7 +91,7 @@
     self.campTagLabel.textAlignment = NSTextAlignmentCenter;
     self.campTagLabel.numberOfLines = 0;
     self.campTagLabel.lineBreakMode = NSLineBreakByWordWrapping;
-    self.campTagLabel.textColor = [UIColor bonfireBlack];
+    self.campTagLabel.textColor = [UIColor bonfirePrimaryColor];
     [self.contentView addSubview:self.campTagLabel];
     
     self.campDescriptionLabel = [[UILabel alloc] initWithFrame:CGRectMake(16, self.campTitleLabel.frame.origin.y + self.campTitleLabel.frame.size.height + 2, self.frame.size.width - 32, 14)];
@@ -97,14 +99,12 @@
     self.campDescriptionLabel.textAlignment = NSTextAlignmentCenter;
     self.campDescriptionLabel.numberOfLines = 0;
     self.campDescriptionLabel.lineBreakMode = NSLineBreakByWordWrapping;
-    self.campDescriptionLabel.textColor = [UIColor bonfireBlack];
+    self.campDescriptionLabel.textColor = [UIColor bonfirePrimaryColor];
     [self.contentView addSubview:self.campDescriptionLabel];
     
     self.detailsCollectionView = [[BFDetailsCollectionView alloc] initWithFrame:CGRectMake(16, self.frame.size.height - 16 - 16, self.frame.size.width - 32, 16)];
     self.detailsCollectionView.userInteractionEnabled = false;
     [self.contentView addSubview:self.detailsCollectionView];
-    
-    self.loading = true;
 }
 
 - (void)layoutSubviews {
@@ -121,10 +121,7 @@
                                                      options:NSStringDrawingUsesLineFragmentOrigin| NSStringDrawingUsesFontLeading
                                                   attributes:@{NSFontAttributeName:self.campTitleLabel.font}
                                                      context:nil].size;
-    CGRect titleLabelRect = self.campTitleLabel.frame;
-    titleLabelRect.size.height = ceilf(titleSize.height);
-    titleLabelRect.size.width = contentWidth;
-    self.campTitleLabel.frame = titleLabelRect;
+    self.campTitleLabel.frame = CGRectMake(contentPadding, self.campTitleLabel.frame.origin.y, contentWidth, ceilf(titleSize.height));;
     
     if (self.loading) {
         self.campTagLabel.frame = CGRectMake(self.frame.size.width / 4, self.campTitleLabel.frame.origin.y + self.campTitleLabel.frame.size.height + 4, self.frame.size.width / 2, self.campTagLabel.frame.size.height);
@@ -172,7 +169,7 @@
     
     CGFloat borderWidth = 3.f;
     UIView *borderVeiw = [[UIView alloc] initWithFrame:CGRectMake(imageView.frame.origin.x - borderWidth, imageView.frame.origin.y - borderWidth, imageView.frame.size.width + (borderWidth * 2), imageView.frame.size.height + (borderWidth * 2))];
-    borderVeiw.backgroundColor = [UIColor whiteColor];
+    borderVeiw.backgroundColor = [UIColor contentBackgroundColor];
     borderVeiw.layer.cornerRadius = borderVeiw.frame.size.height / 2;
     borderVeiw.layer.masksToBounds = true;
     [self.contentView insertSubview:borderVeiw belowSubview:imageView];
@@ -211,7 +208,7 @@
         self.member4.superview.hidden = true;
     }
     else {
-        self.campTitleLabel.textColor = [UIColor bonfireBlack];
+        self.campTitleLabel.textColor = [UIColor bonfirePrimaryColor];
         self.campTitleLabel.backgroundColor = [UIColor clearColor];
         self.campTitleLabel.layer.masksToBounds = false;
         self.campTitleLabel.layer.cornerRadius = 0;

@@ -7,6 +7,7 @@
 //
 
 #import "PaginationCell.h"
+#import "UIColor+Palette.h"
 
 @implementation PaginationCell
 
@@ -25,8 +26,8 @@
         self.loading = false;
         
         self.spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+        self.spinner.color = [UIColor bonfireSecondaryColor];
         self.spinner.frame = CGRectMake(0, 0, 40, 40);
-        self.spinner.tintColor = [UIColor colorWithWhite:0.6 alpha:1];
         [self.contentView addSubview:self.spinner];
         
         self.selectionStyle = UITableViewCellSelectionStyleNone;

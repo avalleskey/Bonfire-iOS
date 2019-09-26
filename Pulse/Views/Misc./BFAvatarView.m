@@ -11,8 +11,9 @@
 #import <UIImageView+WebCache.h>
 #import "Launcher.h"
 #import "UIColor+Palette.h"
+#import <UIView+WebCache.h>
 
-#define k_defaultAvatarTintColor [UIColor bonfireGray]
+#define k_defaultAvatarTintColor [UIColor bonfireSecondaryColor]
 
 @implementation BFAvatarView
 
@@ -41,7 +42,7 @@
     self.imageView.image = [UIImage imageNamed:@"anonymous"];
     self.imageView.layer.masksToBounds = true;
     self.imageView.layer.borderWidth = 0;
-    self.imageView.layer.borderColor = [UIColor colorWithWhite:0 alpha:0.04f].CGColor;
+    self.imageView.sd_imageTransition = [SDWebImageTransition fadeTransition];
     [self addSubview:self.imageView];
     
     // functionality
@@ -50,7 +51,6 @@
     [self updateCornerRadius];
     
     self.highlightView = [[UIView alloc] initWithFrame:self.bounds];
-    self.highlightView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.3f];
     self.highlightView.userInteractionEnabled = false;
     self.highlightView.alpha = 0;
     [self.imageView addSubview:self.highlightView];
@@ -68,13 +68,20 @@
     self.placeholderAvatar = false;
 }
 
+- (void)layoutSubviews {
+    [super layoutSubviews];
+    
+    self.imageView.layer.borderColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.06f].CGColor;
+    self.highlightView.backgroundColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.3f];
+}
+
 - (void)setOpenOnTap:(BOOL)openOnTap {
     if (openOnTap != _openOnTap) {
         _openOnTap = openOnTap;
         
         if (openOnTap) {
             self.dimsViewOnTap = true;
-            UITapGestureRecognizer *tapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(openUser:)];
+            UITapGestureRecognizer *tapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapped:)];
             [self addGestureRecognizer:tapGestureRecognizer];
         }
         else {
@@ -85,8 +92,13 @@
         }
     }
 }
-- (void)openUser:(UITapGestureRecognizer *)sender {
-    [Launcher openProfile:self.user];
+- (void)tapped:(UITapGestureRecognizer *)sender {
+    if (self.user != nil) {
+        [Launcher openProfile:self.user];
+    }
+    else if (self.camp != nil) {
+        [Launcher openCamp:self.camp];
+    }
 }
 
 - (void)setFrame:(CGRect)frame {
@@ -111,21 +123,22 @@
             self.imageView.layer.borderWidth = 0;
             self.imageView.tintColor = [UIColor whiteColor];
             self.imageView.backgroundColor = k_defaultAvatarTintColor;
+            [self.imageView sd_cancelCurrentImageLoad];
         }
         else {
             if (_user.attributes.details.media.userAvatar.suggested.url && _user.attributes.details.media.userAvatar.suggested.url.length > 0) {
-                self.imageView.backgroundColor = [UIColor bonfireGrayWithLevel:100];
+                self.imageView.backgroundColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.12f];
                 self.imageView.layer.borderWidth = 0;
                 self.imageView.image = nil;
                 
                 [self.imageView sd_setImageWithURL:[NSURL URLWithString:_user.attributes.details.media.userAvatar.suggested.url] completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
-                    self.imageView.backgroundColor = [UIColor whiteColor];
                     self.imageView.layer.borderWidth = 1;
                 }];
             }
             else {
                 self.imageView.backgroundColor = [UIColor fromHex:_user.attributes.details.color];
                 self.imageView.layer.borderWidth = 0;
+                [self.imageView sd_cancelCurrentImageLoad];
                 
                 if ([UIColor useWhiteForegroundForColor:[UIColor fromHex:_user.attributes.details.color]]) {
                     // dark enough
@@ -143,27 +156,29 @@
 }
 - (void)setCamp:(Camp *)camp {
     if (camp == nil || camp != _camp || ![camp.attributes.details.color isEqualToString:_camp.attributes.details.color]) {
+        _user = nil;
         _camp = camp;
         
         if (camp == nil) {
             self.imageView.image = [UIImage imageNamed:@"anonymousGroup"];
             self.imageView.tintColor = [UIColor whiteColor];
-            self.imageView.backgroundColor = [UIColor bonfireGray];
+            self.imageView.backgroundColor = [UIColor bonfireSecondaryColor];
+            [self.imageView sd_cancelCurrentImageLoad];
         }
         else {
             if (_camp.attributes.details.media.campAvatar.suggested.url && _camp.attributes.details.media.campAvatar.suggested.url.length > 0) {
-                self.imageView.backgroundColor = [UIColor bonfireGrayWithLevel:100];
+                self.imageView.backgroundColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.12f];
                 self.imageView.layer.borderWidth = 0;
                 self.imageView.image = nil;
                 
                 [self.imageView sd_setImageWithURL:[NSURL URLWithString:_camp.attributes.details.media.campAvatar.suggested.url] completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
-                    self.imageView.backgroundColor = [UIColor whiteColor];
                     self.imageView.layer.borderWidth = 1;
                 }];
             }
             else {
                 self.imageView.backgroundColor = [UIColor fromHex:_camp.attributes.details.color];
                 self.imageView.layer.borderWidth = 0;
+                [self.imageView sd_cancelCurrentImageLoad];
                 
                 if ([UIColor useWhiteForegroundForColor:[UIColor fromHex:_camp.attributes.details.color]]) {
                     // dark enough
@@ -183,11 +198,11 @@
 - (void)setPlaceholderAvatar:(BOOL)placeholderAvatar {
     if (placeholderAvatar != _placeholderAvatar) {
         _placeholderAvatar = placeholderAvatar;
-        
-        if (_placeholderAvatar) {
-            self.imageView.backgroundColor = [UIColor whiteColor];
-            self.imageView.image = [UIImage imageNamed:@"inviteFriendPlaceholderCircular"];
-        }
+    }
+    
+    if (_placeholderAvatar) {
+        self.imageView.backgroundColor = [UIColor clearColor];
+        self.imageView.image = [UIImage imageNamed:@"inviteFriendPlaceholderCircular"];
     }
 }
 
@@ -227,7 +242,7 @@
 }
 
 - (void)touchCancel {
-    [UIView animateWithDuration:0.2f animations:^{
+    [UIView animateWithDuration:0.15f animations:^{
         self.highlightView.alpha = 0;
     }];
 }

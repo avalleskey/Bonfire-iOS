@@ -13,5 +13,7 @@
 @property (nonatomic) BOOL isBlocked;
 @property (nonatomic) CampVisibility *visibility;
 
+@property (nonatomic) NSString <Optional> *createdAt;
+
 @end
 

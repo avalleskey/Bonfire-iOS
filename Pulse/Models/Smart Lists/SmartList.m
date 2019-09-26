@@ -21,6 +21,9 @@
 
 @implementation SmartListSection
 
+NSString * const SmartListSectionDataTypeUser = @"user";
+NSString * const SmartListSectionDataTypeCamp = @"camp";
+
 + (JSONKeyMapper *)keyMapper
 {
     return [[JSONKeyMapper alloc] initWithModelToJSONDictionary:@{

@@ -82,7 +82,7 @@
     
     if (cell.tag != 1) {
         cell.tag = 1;
-        cell.contentView.backgroundColor = [UIColor colorWithRed:0.98 green:0.98 blue:0.985 alpha:1];
+        cell.contentView.backgroundColor = [UIColor bonfireDetailColor];
         /*cell.contentView.layer.borderColor = [[UIColor separatorColor] colorWithAlphaComponent:0.5].CGColor;
         cell.contentView.layer.borderWidth = 1.f;*/
         cell.contentView.layer.cornerRadius = cell.frame.size.height / 2;
@@ -95,7 +95,7 @@
         UILabel *valueLabel = [[UILabel alloc] initWithFrame:CGRectMake(iconView.frame.origin.x + iconView.frame.size.width + 6, 0, 0, cell.contentView.frame.size.height)];
         valueLabel.tag = 20;
         valueLabel.font = BFDetail_FONT;
-        valueLabel.textColor = [UIColor bonfireBlack];
+        valueLabel.textColor = [UIColor bonfirePrimaryColor];
         [cell.contentView addSubview:valueLabel];
     }
     
@@ -117,7 +117,7 @@
     else if (item.type == BFDetailItemTypeWebsite) {
         iconView.image = [[UIImage imageNamed:@"details_label_link"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
     }
-    iconView.tintColor = [UIColor bonfireGray];
+    iconView.tintColor = [UIColor bonfireSecondaryColor];
     
     UILabel *valueLabel = [cell.contentView viewWithTag:20];
     valueLabel.text = [item prettyValue];
@@ -128,9 +128,8 @@
         valueLabel.textColor = self.tintColor;
     }
     else {
-        valueLabel.textColor = [UIColor bonfireBlack];
+        valueLabel.textColor = [UIColor bonfirePrimaryColor];
     }
-    // iconView.tintColor = valueLabel.textColor;
     
     return cell;
 }
@@ -152,7 +151,7 @@
     if (item.selectable) {
         UICollectionViewCell *cell = [collectionView cellForItemAtIndexPath:indexPath];
         [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-            cell.contentView.backgroundColor = [UIColor colorWithRed:0.85 green:0.85 blue:0.86 alpha:1];
+            cell.contentView.backgroundColor = [UIColor bonfireDetailHighlightedColor];
         } completion:nil];
     }
 }
@@ -163,7 +162,7 @@
     if (item.selectable) {
         UICollectionViewCell *cell = [collectionView cellForItemAtIndexPath:indexPath];
         [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-            cell.contentView.backgroundColor = [UIColor colorWithRed:0.98 green:0.98 blue:0.985 alpha:1];
+            cell.contentView.backgroundColor = [UIColor bonfireDetailColor];
         } completion:nil];
     }
 }

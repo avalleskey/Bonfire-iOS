@@ -34,7 +34,6 @@
         self.textField.returnKeyType = UIReturnKeyGo;
         self.textField.autocorrectionType = UITextAutocorrectionTypeNo;
         self.textField.userInteractionEnabled = false;
-        self.textField.keyboardAppearance = UIKeyboardAppearanceLight;
         self.textField.clearButtonMode = UITextFieldViewModeWhileEditing;
         [self addSubview:self.textField];
         
@@ -106,7 +105,7 @@
         textFieldBackgroundColor = [UIColor bonfireTextFieldBackgroundOnWhite];
     }
     else {
-        textFieldBackgroundColor = [UIColor bonfireTextFieldBackgroundOnLight];
+        textFieldBackgroundColor = [UIColor bonfireTextFieldBackgroundOnContent];
     }
     
     CGFloat red = 0.0, green = 0.0, blue = 0.0, alpha = 0.0;
@@ -146,7 +145,7 @@
         textFieldBackgroundColor = [UIColor bonfireTextFieldBackgroundOnWhite];
     }
     else {
-        textFieldBackgroundColor = [UIColor bonfireTextFieldBackgroundOnLight];
+        textFieldBackgroundColor = [UIColor bonfireTextFieldBackgroundOnContent];
     }
     
     [UIView animateWithDuration:0.2f animations:^{
@@ -234,20 +233,20 @@
     else if (theme == BFTextFieldThemeDark) {
         self.backgroundColor = [UIColor bonfireTextFieldBackgroundOnWhite];
         
-        self.tintColor = [UIColor bonfireBlack];
-        self.textField.textColor = [UIColor colorWithWhite:0.07f alpha:1];
+        self.tintColor =
+        self.textField.textColor = [UIColor bonfirePrimaryColor];
         self.searchIcon.alpha = 0.25;
     }
     else {
-        self.backgroundColor = [UIColor bonfireTextFieldBackgroundOnLight];
+        self.backgroundColor = [UIColor bonfireTextFieldBackgroundOnContent];
         
         self.tintColor =
-        self.textField.textColor = [UIColor colorWithWhite:0.07f alpha:1];
+        self.textField.textColor = [UIColor bonfirePrimaryColor];
         self.searchIcon.alpha = 0.25;
     }
     self.searchIcon.tintColor = self.textField.textColor;
-    //self.textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:self.textField.placeholder attributes:@{NSForegroundColorAttributeName: [UIColor colorWithWhite:0 alpha:self.searchIcon.alpha],
-    //                 NSFontAttributeName: self.textField.font}];
+    self.textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:self.textField.placeholder attributes:@{NSForegroundColorAttributeName: [self.textField.textColor colorWithAlphaComponent:self.searchIcon.alpha],
+                     NSFontAttributeName: self.textField.font}];
 }
 
 @end

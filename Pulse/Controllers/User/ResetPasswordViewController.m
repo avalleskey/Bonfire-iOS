@@ -51,8 +51,8 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
-    self.view.backgroundColor = [UIColor whiteColor];
-    self.view.tintColor = [UIColor bonfireBlack];
+    self.view.backgroundColor = [UIColor contentBackgroundColor];
+    self.view.tintColor = [UIColor bonfireBrand];
     
     [self addListeners];
     [self setupViews];
@@ -104,7 +104,7 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
     self.backButton = [UIButton buttonWithType:UIButtonTypeSystem];
     self.backButton.frame = CGRectMake(3, self.closeButton.frame.origin.y, 44, 44);
     self.backButton.titleLabel.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightSemibold];
-    [self.backButton setTitleColor:[UIColor bonfireGray] forState:UIControlStateDisabled];
+    [self.backButton setTitleColor:[UIColor bonfireSecondaryColor] forState:UIControlStateDisabled];
     [self.backButton setImage:[[UIImage imageNamed:@"leftArrowIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
     self.backButton.tintColor = self.view.tintColor;
     self.backButton.alpha = 0;
@@ -119,7 +119,7 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
     self.nextButton.frame = CGRectMake(24, self.view.frame.size.height, self.view.frame.size.width - (24 * 2), 48);
     self.nextButton.backgroundColor = [self.view tintColor];
     self.nextButton.titleLabel.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightSemibold];
-    [self.nextButton setTitleColor:[UIColor bonfireGray] forState:UIControlStateDisabled];
+    [self.nextButton setTitleColor:[UIColor bonfireSecondaryColor] forState:UIControlStateDisabled];
     [self continuityRadiusForView:self.nextButton withRadius:12.f];
     [self.nextButton setTitle:@"Next" forState:UIControlStateNormal];
     [self.view addSubview:self.nextButton];
@@ -151,7 +151,7 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
     self.instructionLabel.textAlignment = NSTextAlignmentCenter;
     self.instructionLabel.text = @"";
     self.instructionLabel.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightMedium];
-    self.instructionLabel.textColor = [UIColor colorWithRed:0.31 green:0.31 blue:0.32 alpha:1.0];
+    self.instructionLabel.textColor = [UIColor bonfirePrimaryColor];
     self.instructionLabel.numberOfLines = 0;
     self.instructionLabel.lineBreakMode = NSLineBreakByWordWrapping;
     [self.view addSubview:self.instructionLabel];
@@ -177,15 +177,15 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
         [self.view addSubview:inputBlock];
         
         UITextField *textField = [[UITextField alloc] initWithFrame:CGRectMake(24, 0, self.view.frame.size.width - (24 * 2), 56)];
-        textField.textColor = [UIColor bonfireBlack];
-        textField.backgroundColor = [UIColor colorWithWhite:1 alpha:1];
+        textField.textColor = [UIColor bonfirePrimaryColor];
+        textField.backgroundColor = [UIColor cardBackgroundColor];
         textField.layer.cornerRadius = 14.f;
         textField.layer.masksToBounds = false;
         textField.layer.shadowRadius = 2.f;
         textField.layer.shadowOffset = CGSizeMake(0, 1);
         textField.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.1f].CGColor;
         textField.layer.shadowOpacity = 1.f;
-        textField.keyboardAppearance = UIKeyboardAppearanceLight;
+//        textField.keyboardAppearance = UIKeyboardAppearanceLight;
         
         if ([mutatedStep[@"id"] isEqualToString:@"reset_lookup"]) {
             textField.tag = LOOKUP_FIELD;
@@ -197,7 +197,7 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
             // autofill with user email if already logged in
             if ([self hasExistingLookup]) {
                 textField.text = [Session sharedInstance].currentUser.attributes.details.email;
-                textField.textColor = [UIColor bonfireGray];
+                textField.textColor = [UIColor bonfireSecondaryColor];
                 textField.enabled = false;
                 
                 self.nextButton.enabled = true;
@@ -260,11 +260,12 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
         
         // add left-side spacing
         UIView *leftView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 20, textField.frame.size.height)];
-        leftView.backgroundColor = textField.backgroundColor;
+        leftView.backgroundColor = [UIColor clearColor];
         textField.leftView = leftView;
         textField.rightView = leftView;
         textField.leftViewMode = UITextFieldViewModeAlways;
-        textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:([mutatedStep objectForKey:@"placeholder"] ? mutatedStep[@"placeholder"] : @"") attributes:@{NSForegroundColorAttributeName: [UIColor bonfireGray]}];
+        textField.rightViewMode = UITextFieldViewModeAlways;
+        textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:([mutatedStep objectForKey:@"placeholder"] ? mutatedStep[@"placeholder"] : @"") attributes:@{NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
         [textField addTarget:self action:@selector(textFieldChanged:) forControlEvents:UIControlEventEditingChanged];
         
         
@@ -365,7 +366,7 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
 
 - (void)greyOutNextButton {
     self.nextButton.enabled = false;
-    self.nextButton.backgroundColor = [UIColor colorWithRed:0.89 green:0.90 blue:0.91 alpha:1.0];
+    self.nextButton.backgroundColor = [UIColor bonfireDisabledColor];
 }
 
 - (void)handleNext {
@@ -373,7 +374,6 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
     
     // disable next button at the beginning of all steps
     [self greyOutNextButton];
-    [self showSpinnerForStep:self.currentStep];
     
     // sign in to school
     if ([step[@"id"] isEqualToString:@"reset_lookup"]) {
@@ -609,7 +609,7 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
             // change the tint color back to blue
             self.backButton.tintColor = [self.view tintColor];
             previousTextField.tintColor = [self.view tintColor];
-            previousTextField.textColor = [UIColor bonfireBlack];
+            previousTextField.textColor = [UIColor bonfirePrimaryColor];
         }
         
         NSDictionary *activeStep = self.steps[self.currentStep];
@@ -700,16 +700,18 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
     
     NSLog(@"params: %@", @{@"lookup": lookup});
     
+    [self showSpinnerForStep:lookupStep];
+    
     [[HAWebService managerWithContentType:kCONTENT_TYPE_URL_ENCODED] POST:@"accounts/recoveries/email" parameters:@{@"lookup": lookup} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         // move spinner
-        [self removeSpinnerForStep:self.currentStep];
+        [self removeSpinnerForStep:lookupStep];
         [self nextStep:true];
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         NSLog(@"error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);
         NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
         NSLog(@"%@",ErrorResponse);
         
-        [self removeSpinnerForStep:self.currentStep];
+        [self removeSpinnerForStep:lookupStep];
         self.nextButton.enabled = true;
         self.nextButton.backgroundColor = self.view.tintColor;
         self.nextButton.userInteractionEnabled = true;
@@ -731,9 +733,11 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
     
     NSLog(@"params: %@", @{@"lookup": lookup, @"code": code, @"password": newPassword});
     
+    [self showSpinnerForStep:newPasswordStep];
+    
     [[HAWebService managerWithContentType:kCONTENT_TYPE_URL_ENCODED] POST:@"accounts/recoveries/email/confirm" parameters:@{@"lookup": lookup, @"code": code, @"password": newPassword} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         // move spinner
-        [self removeSpinnerForStep:self.currentStep];
+        [self removeSpinnerForStep:newPasswordStep];
         
         JGProgressHUD *HUD = [JGProgressHUD progressHUDWithStyle:JGProgressHUDStyleExtraLight];
         HUD.textLabel.text = @"Saved!";
@@ -754,7 +758,7 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
         NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
         NSLog(@"%@",ErrorResponse);
         
-        [self removeSpinnerForStep:self.currentStep];
+        [self removeSpinnerForStep:newPasswordStep];
         self.nextButton.enabled = true;
         self.nextButton.backgroundColor = self.view.tintColor;
         self.nextButton.userInteractionEnabled = true;
@@ -802,9 +806,9 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
         miniSpinner.alpha = 1;
     } completion:nil];
     [UIView transitionWithView:textField duration:0.3 options:UIViewAnimationOptionTransitionCrossDissolve animations:^{
-        textField.textColor = [[UIColor bonfireBlack] colorWithAlphaComponent:0];
+        textField.textColor = [[UIColor bonfirePrimaryColor] colorWithAlphaComponent:0];
         if (textField.placeholder != nil) {
-            textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:textField.placeholder attributes:@{NSForegroundColorAttributeName: [[UIColor bonfireGray] colorWithAlphaComponent:0]}];
+            textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:textField.placeholder attributes:@{NSForegroundColorAttributeName: [[UIColor bonfireSecondaryColor] colorWithAlphaComponent:0]}];
         }
         textField.tintColor = [UIColor clearColor];
     } completion:nil];
@@ -820,10 +824,10 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
         [miniSpinner removeFromSuperview];
         
         [UIView transitionWithView:textField duration:0.3 options:UIViewAnimationOptionTransitionCrossDissolve animations:^{
-            textField.textColor = [UIColor bonfireBlack];
+            textField.textColor = [UIColor bonfirePrimaryColor];
             textField.tintColor = [self.view tintColor];
             if (textField.placeholder != nil) {
-                textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:textField.placeholder attributes:@{NSForegroundColorAttributeName: [UIColor bonfireGray]}];
+                textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:textField.placeholder attributes:@{NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
             }
         } completion:nil];
     }];

@@ -25,7 +25,7 @@
     
     if (self) {
         self.selectionStyle = UITableViewCellSelectionStyleNone;
-        self.backgroundColor = [UIColor whiteColor];
+        self.backgroundColor = [UIColor contentBackgroundColor];
         
         self.shimmerContainer = [[FBShimmeringView alloc] init];
         self.shimmerContainer.shimmeringSpeed = 800;
@@ -34,7 +34,7 @@
         self.shimmerContentView = [[UIView alloc] init];
         
         self.primaryAvatarView.imageView.image = [UIImage new];
-        self.primaryAvatarView.imageView.backgroundColor = [[UIColor separatorColor] colorWithAlphaComponent:0.5];
+        self.primaryAvatarView.imageView.backgroundColor = [[UIColor tableViewSeparatorColor] colorWithAlphaComponent:0.5];
         self.primaryAvatarView.allowOnlineDot = false;
         [self.primaryAvatarView removeFromSuperview];
         [self.shimmerContentView addSubview:self.primaryAvatarView];
@@ -42,27 +42,31 @@
         self.nameLabel.textColor = [UIColor clearColor];
         self.nameLabel.layer.cornerRadius = 8.f;
         self.nameLabel.layer.masksToBounds = true;
-        self.nameLabel.backgroundColor = [[UIColor separatorColor] colorWithAlphaComponent:0.5];
+        self.nameLabel.backgroundColor = [[UIColor tableViewSeparatorColor] colorWithAlphaComponent:0.5];
         [self.nameLabel removeFromSuperview];
         [self.shimmerContentView addSubview:self.nameLabel];
         
         // text view
-        self.textView.backgroundColor = [[UIColor separatorColor] colorWithAlphaComponent:0.5];
+        self.textView.backgroundColor = [[UIColor tableViewSeparatorColor] colorWithAlphaComponent:0.5];
         self.textView.layer.cornerRadius = 8.f;
         self.textView.layer.masksToBounds = true;
         [self.textView removeFromSuperview];
         [self.shimmerContentView addSubview:self.textView];
                 
         // image view
-        self.imagesView.backgroundColor = [[UIColor separatorColor] colorWithAlphaComponent:0.5];
+        self.imagesView.backgroundColor = [[UIColor tableViewSeparatorColor] colorWithAlphaComponent:0.5];
         // self.imagesView.image = nil;
         [self.imagesView removeFromSuperview];
+        self.imagesView.layer.borderColor = [UIColor clearColor].CGColor;
+        self.imagesView.layer.borderWidth = 0;
         [self.shimmerContentView addSubview:self.imagesView];
         
         self.shimmerContainer.contentView = self.shimmerContentView;
         
         self.dateLabel.hidden =
         self.moreButton.hidden = true;
+        
+        self.shimmerContainer.shimmering = true;
     }
     
     return self;

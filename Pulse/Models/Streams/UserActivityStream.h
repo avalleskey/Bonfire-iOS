@@ -6,17 +6,15 @@
 //  Copyright © 2019 Austin Valleskey. All rights reserved.
 //
 
-#import "JSONModel.h"
+#import "GenericStream.h"
 #import "UserActivity.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 @class UserActivityStream;
 @class UserActivityStreamPage;
-@class UserActivityStreamPageMeta;
-@class UserActivityStreamPageMetaPaging;
 
-@interface UserActivityStream : NSObject <NSCoding>
+@interface UserActivityStream : GenericStream <NSCoding>
 
 @property (nonatomic, strong) NSMutableArray <UserActivityStreamPage *> *pages;
 @property (nonatomic, strong) NSArray <UserActivity *> *activities;
@@ -32,27 +30,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface UserActivityStreamPage : JSONModel
 
 @property (nonatomic) NSArray <UserActivity *> *data;
-@property (nonatomic) UserActivityStreamPageMeta <Optional> *meta;
-
-@end
-
-@interface UserActivityStreamPageMeta : JSONModel
-
-@property (nonatomic) UserActivityStreamPageMetaPaging <Optional> *paging;
-
-@end
-
-@interface UserActivityStreamPageMetaPaging : JSONModel
-
-typedef enum {
-    UserActivityStreamPagingCursorTypeNone,
-    UserActivityStreamPagingCursorTypePrevious,
-    UserActivityStreamPagingCursorTypeNext
-} UserActivityStreamPagingCursorType;
-
-@property (nonatomic) NSString <Optional> *prevCursor;
-@property (nonatomic) NSString <Optional> *nextCursor;
-@property (nonatomic) BOOL replaceCache;
+@property (nonatomic) GenericStreamPageMeta <Optional> *meta;
 
 @end
 

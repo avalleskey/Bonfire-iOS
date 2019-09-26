@@ -2,6 +2,8 @@
 #import "Session.h"
 #import "GTMNSString+HTML.h"
 #import <SearchEmojiOnString/NSString+EMOEmoji.h>
+#import "BFLinkAttachmentView.h"
+#import "NSURL+WebsiteTypeValidation.h"
 
 @implementation Post
 
@@ -14,36 +16,19 @@
 
 + (BOOL)propertyIsOptional:(NSString*)propertyName
 {
-    NSArray *optionalProperties = @[@"tempId"];
-    if ([optionalProperties containsObject:propertyName]) return YES;
-    return NO;
+    return YES;
 }
 
-- (BOOL)requiresURLPreview {
-    return false;
-    
-    /*
-    if (self.attributes.details.message != nil) {
-        // break apart the message
-        // Only TRUE if:
-        // • begins or ends with valid URL
-        // • has only one URL
-        
-        NSArray *parts = [self.attributes.details.message componentsSeparatedByString:@" "];
-        if (parts.count > 0) {
-            if ([self validateUrl:[parts firstObject]]) {
-                NSLog(@"found valid URL: %@", [parts firstObject]);
-                return true;
-            }
-            else if (parts.count > 1 &&
-                     [self validateUrl:[parts lastObject]]) {
-                NSLog(@"found valid URL at end: %@", [parts lastObject]);
-                return true;
-            }
-        }
-    }
-    
-    return false;*/
+- (BOOL)hasLinkAttachment {
+    return (self.attributes.details.attachments.link != nil);
+}
+
+- (BOOL)hasCampAttachment {
+    return (self.attributes.details.attachments.camp != nil);
+}
+
+- (BOOL)hasUserAttachment {
+    return (self.attributes.details.attachments.user != nil);
 }
 
 - (void)createTempWithMessage:(NSString *)message media:(BFMedia *)media postedIn:(Camp * _Nullable)postedIn parentId:(NSString *)parentId {
@@ -103,6 +88,15 @@
 @end
 
 @implementation PostAttributes
+
++ (JSONKeyMapper *)keyMapper
+{
+    return [JSONKeyMapper mapperForSnakeCase];
+}
++ (BOOL)propertyIsOptional:(NSString*)propertyName
+{
+    return YES;
+}
 
 @end
 
@@ -169,41 +163,10 @@ NSString * const POST_DISPLAY_FORMAT_ICEBREAKER = @"icebreaker";
     NSString *trimmedString = [Post trimString:self.message];
     
     return trimmedString;
-    
-    
-    /* TODO: Disabled for now - still need to build metadata downloader
-     
-     // trim leading and trailing spaces
-     if (self.message != nil) {
-     NSString *trimmedString = [self trimString:self.message];
-     // break apart the message
-     // Only TRUE if:
-     // • begins or ends with valid URL
-     // • has only one URL
-     
-     NSArray *parts = [trimmedString componentsSeparatedByString:@" "];
-     if (parts.count > 0) {
-     NSString *firstPart = [parts firstObject];
-     
-     if ([self validateUrl:firstPart]) {
-     NSLog(@"found valid URL: %@", firstPart);
-     return [trimmedString stringByReplacingCharactersInRange:NSMakeRange(0, firstPart.length + 1) withString:@""];
-     }
-     else if (parts.count > 1 &&
-     [self validateUrl:[parts lastObject]]) {
-     NSString *lastPart = [parts lastObject];
-     
-     NSLog(@"found valid URL at end: %@", lastPart);
-     return [self trimString:[trimmedString stringByReplacingCharactersInRange:[trimmedString rangeOfString:lastPart] withString:@""]];
-     }
-     }
-     }
-     
-     return self.message;*/
 }
 
 - (void)setMessage:(NSString<Optional> *)message {
-    if (message != _message) {
+    if (![message isEqualToString:_message]) {
         _message = [message gtm_stringByUnescapingFromHTML];
         
         // set format
@@ -227,13 +190,86 @@ NSString * const POST_DISPLAY_FORMAT_ICEBREAKER = @"icebreaker";
     return [JSONKeyMapper mapperForSnakeCase];
 }
 
++ (BOOL)propertyIsOptional:(NSString*)propertyName
+{
+    return YES;
+}
+
+- (void)setLink:(PostAttachmentsLink<Optional> *)link {
+    if (link != _link) {
+        _link = link;
+        
+        self.link.attributes.contentIdentifier = [self contentIdentifierForLink:link];
+        
+        if (self.link.attributes.linkTitle.length == 0) {
+            if (self.link.attributes.theDescription.length > 0) {
+                self.link.attributes.linkTitle = self.link.attributes.theDescription;
+            }
+            else {
+                self.link.attributes.linkTitle = self.link.attributes.site;
+            }
+        }
+    }
+}
+
+- (BFLinkAttachmentContentIdentifier)contentIdentifierForLink:(PostAttachmentsLink *)link {
+    NSURL *url = [NSURL URLWithString:link.attributes.canonicalUrl];
+    
+    if ([url matches:REGEX_YOUTUBE]) {
+        // youtube link
+//        NSLog(@"youtube link!");
+        return BFLinkAttachmentContentIdentifierYouTubeVideo;
+    }
+    if ([url matches:REGEX_SPOTIFY_SONG]) {
+        // https://open.spotify.com/track/47n6zyO3Uf9axGAPIY0ZOd?si=EzRVMTfJTv2qygVe1BrV4Q
+        // spotify song
+//        NSLog(@"spotify song!");
+        return BFLinkAttachmentContentIdentifierSpotifySong;
+    }
+    if ([url matches:REGEX_SPOTIFY_PLAYLIST]) {
+        // spotify playlist
+        // https://open.spotify.com/user/1248735265/playlist/7cu21dpm13nXHNu8BNp5qd?si=MzdEuaKPSveJWdKk2DcUDw
+//        NSLog(@"spotify playlist!");
+        return BFLinkAttachmentContentIdentifierSpotifyPlaylist;
+    }
+    if ([url matches:REGEX_APPLE_MUSIC_SONG]) {
+        // apple music album
+//        NSLog(@"apple music!");
+        return BFLinkAttachmentContentIdentifierAppleMusicSong;
+    }
+    if ([url matches:REGEX_APPLE_MUSIC_ALBUM]) {
+            // apple music album
+//            NSLog(@"apple music!");
+            return BFLinkAttachmentContentIdentifierAppleMusicAlbum;
+        }
+    if ([url matches:REGEX_SOUNDCLOUD]) {
+        // soundcloud
+//        NSLog(@"soundcloud!");
+        return BFLinkAttachmentContentIdentifierSoundCloud;
+    }
+    if ([url matches:REGEX_APPLE_MUSIC_PODCAST_OR_PODCAST_EPISODE]) {
+        // apple podcast (episode|show)
+//        NSLog(@"apple podcast episode or show!");
+        return BFLinkAttachmentContentIdentifierApplePodcast;
+    }
+    
+    return BFLinkAttachmentContentIdentifierNone;
+}
+
 @end
 
 @implementation PostAttachmentsMedia
 
 + (JSONKeyMapper *)keyMapper
 {
-    return [JSONKeyMapper mapperForSnakeCase];
+    return [[JSONKeyMapper alloc] initWithModelToJSONDictionary:@{
+                                                                      @"identifier": @"id"
+                                                                      }];
+}
+
++ (BOOL)propertyIsOptional:(NSString*)propertyName
+{
+    return YES;
 }
 
 @end
@@ -259,6 +295,50 @@ NSString * const POST_DISPLAY_FORMAT_ICEBREAKER = @"icebreaker";
     return [JSONKeyMapper mapperForSnakeCase];
 }
 
++ (BOOL)propertyIsOptional:(NSString*)propertyName
+{
+    return YES;
+}
+
+@end
+
+@implementation PostAttachmentsLink
+
++ (JSONKeyMapper *)keyMapper
+{
+    return [JSONKeyMapper mapperForSnakeCase];
+}
+
++ (BOOL)propertyIsOptional:(NSString*)propertyName
+{
+    return YES;
+}
+
+@end
+
+@implementation PostAttachmentsLinkAttributes
+
+NSString * const POST_LINK_CUSTOM_FORMAT_AUDIO = @"playable:audio";
+NSString * const POST_LINK_CUSTOM_FORMAT_VIDEO = @"playable:video";
+
++ (JSONKeyMapper *)keyMapper
+{
+    return [[JSONKeyMapper alloc] initWithModelToJSONDictionary:@{
+                                                                  @"theDescription": @"description",
+                                                                  @"canonicalUrl": @"canonical_url",
+                                                                  @"actionUrl": @"action_url",
+                                                                  @"iconUrl": @"icon_url",
+                                                                  @"contentIdentifier": @"content_identifier",
+                                                                  @"postedIn": @"posted_in",
+                                                                  @"linkTitle": @"title"
+                                                                  }];
+}
+
++ (BOOL)propertyIsOptional:(NSString*)propertyName
+{
+    return YES;
+}
+
 @end
 
 @implementation PostEntity
@@ -270,6 +350,17 @@ NSString * const POST_ENTITY_TYPE_URL = @"url";
 + (JSONKeyMapper *)keyMapper
 {
     return [JSONKeyMapper mapperForSnakeCase];
+}
+
+- (void)setDisplayText:(NSString<Optional> *)displayText {
+    if (![displayText isEqualToString:_displayText]) {
+        _displayText = [displayText gtm_stringByUnescapingFromHTML];
+    }
+}
+
++ (BOOL)propertyIsOptional:(NSString*)propertyName
+{
+    return YES;
 }
 
 @end

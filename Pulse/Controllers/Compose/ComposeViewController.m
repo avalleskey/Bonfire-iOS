@@ -28,6 +28,7 @@
     ComposeTextViewCell *textViewCell;
 }
 
+@property (nonatomic) NSAttributedString *activeAttributedString;
 @property (nonatomic) NSRange activeTagRange;
 @property (nonatomic) NSMutableArray *autoCompleteResults;
 
@@ -46,8 +47,8 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
-    self.view.backgroundColor = [UIColor whiteColor];
-    self.navigationController.navigationBar.tintColor = [UIColor bonfireBlack];
+    self.view.backgroundColor = [UIColor contentBackgroundColor];
+    self.navigationController.navigationBar.tintColor = [UIColor bonfirePrimaryColor];
     
     maxLength = [Session sharedInstance].defaults.post.maxLength.soft;
     
@@ -82,13 +83,13 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         self.view.tag = 1;
         // Prevents code inside this block from running more than once
         
-        [self.navigationItem.rightBarButtonItem.customView bk_removeAllBlockObservers];
-        [self.navigationItem.rightBarButtonItem.customView bk_whenTapped:^{
+        [((SimpleNavigationController *)self.navigationController).rightActionView bk_removeAllBlockObservers];
+        [((SimpleNavigationController *)self.navigationController).rightActionView bk_whenTapped:^{
             [self postMessage];
         }];
         
-        [self.navigationItem.rightBarButtonItem.customView bk_removeAllBlockObservers];
-        [self.navigationItem.rightBarButtonItem.customView bk_whenTapped:^{
+        [((SimpleNavigationController *)self.navigationController).leftActionView bk_removeAllBlockObservers];
+        [((SimpleNavigationController *)self.navigationController).leftActionView bk_whenTapped:^{
             if (self->textViewCell.textView.text.length > 0 || self->textViewCell.media.objects.count > 0 || self->textViewCell.url) {
                 // confirm discard changes
                 UIAlertController *confirmActionSheet = [UIAlertController alertControllerWithTitle:nil message:@"Are you sure you want to discard your post?" preferredStyle:UIAlertControllerStyleActionSheet];
@@ -152,7 +153,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     self.tableView.delegate = self;
     self.tableView.dataSource = self;
     self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
-    self.tableView.backgroundColor = [UIColor whiteColor];
+    self.tableView.backgroundColor = [UIColor contentBackgroundColor];
     
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:blankCellIdentifier];
     [self.tableView registerClass:[ComposeTextViewCell class] forCellReuseIdentifier:composeTextViewCellReuseIdentifier];
@@ -173,13 +174,13 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     
     self.titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 26, 102, 13)];
     self.titleLabel.font = [UIFont systemFontOfSize:11.f weight:UIFontWeightMedium];
-    self.titleLabel.textColor = [UIColor bonfireBlack];
+    self.titleLabel.textColor = [UIColor bonfirePrimaryColor];
     [self.titleView addSubview:self.titleLabel];
 
     UIImage *caretImage = [[UIImage imageNamed:@"navCaretIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
     self.titleCaret = [[UIImageView alloc] initWithFrame:CGRectMake(0, self.titleLabel.frame.origin.y + (self.titleLabel.frame.size.height / 2) - (caretImage.size.height / 2) + 1, caretImage.size.width, caretImage.size.height)];
     self.titleCaret.image = caretImage;
-    self.titleCaret.tintColor = [UIColor bonfireBlack];
+    self.titleCaret.tintColor = [UIColor bonfirePrimaryColor];
     self.titleCaret.contentMode = UIViewContentModeCenter;
     [self.titleView addSubview:self.titleCaret];
     
@@ -214,6 +215,8 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     }
     else {
         [self updateTitleText:@"My Profile"];
+        self.titleAvatar.camp = nil;
+        self.titleAvatar.imageView.image = nil;
         self.titleAvatar.user = [[Session sharedInstance] currentUser];
     }
     [self updatePlaceholder];
@@ -246,7 +249,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         self.view.tintColor = [UIColor fromHex:user.attributes.details.color];
     }
     else {
-        self.view.tintColor = [UIColor bonfireBlack];
+        self.view.tintColor = [UIColor bonfirePrimaryColor];
     }
     if (textViewCell) {
         [self textViewDidChange:textViewCell.textView];
@@ -256,10 +259,21 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         [textViewCell.textView becomeFirstResponder];
     }
     
-    [((UIButton *)self.navigationItem.leftBarButtonItem.customView) setTitleColor:self.view.tintColor forState:UIControlStateNormal];
-    [((UIButton *)self.navigationItem.rightBarButtonItem.customView) setTitleColor:self.view.tintColor forState:UIControlStateNormal];
-    [((UIButton *)self.navigationItem.rightBarButtonItem.customView) setTitleColor:[UIColor bonfireGray] forState:UIControlStateDisabled];
-    
+    if ([self.navigationController isKindOfClass:[SimpleNavigationController class]]) {
+        SimpleNavigationController *simpleNavVC = (SimpleNavigationController *)self.navigationController;
+        
+        simpleNavVC.leftActionView.tintColor = self.view.tintColor;
+        simpleNavVC.rightActionView.tintColor = self.view.tintColor;
+        
+        if ([simpleNavVC.leftActionView isKindOfClass:[UIButton class]]) {
+            [(UIButton *)simpleNavVC.leftActionView setTitleColor:self.view.tintColor forState:UIControlStateNormal];
+        }
+        if ([simpleNavVC.rightActionView isKindOfClass:[UIButton class]]) {
+            [(UIButton *)simpleNavVC.rightActionView setTitleColor:self.view.tintColor forState:UIControlStateNormal];
+            [(UIButton *)simpleNavVC.rightActionView setTitleColor:[UIColor bonfireDisabledColor] forState:UIControlStateDisabled];
+        }
+    }
+        
     self.takePictureButton.tintColor = self.view.tintColor;
     self.choosePictureButton.tintColor = self.view.tintColor;
 }
@@ -279,9 +293,9 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 - (void)setupToolbar {
     CGFloat toolbarHeight = composeToolbarHeight + [[[UIApplication sharedApplication] delegate] window].safeAreaInsets.bottom;
     
-    self.toolbarView = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleLight]];
+    self.toolbarView = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleRegular]];
     self.toolbarView.frame = CGRectMake(0, self.view.frame.size.height - toolbarHeight, self.view.frame.size.width, toolbarHeight);
-    self.toolbarView.backgroundColor = [UIColor colorWithRed:1 green:1 blue:1 alpha:0.8];
+    self.toolbarView.backgroundColor = [[UIColor contentBackgroundColor] colorWithAlphaComponent:0.8];
     self.toolbarView.layer.masksToBounds = true;
     [self.view addSubview:self.toolbarView];
     
@@ -289,14 +303,14 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     [self.toolbarView.contentView addSubview:self.toolbarButtonsContainer];
     
     UIView *lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.toolbarView.frame.size.width, (1 / [UIScreen mainScreen].scale))];
-    lineSeparator.backgroundColor = [UIColor colorWithWhite:0 alpha:0.06];
+    lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
     [self.toolbarView.contentView addSubview:lineSeparator];
     
     self.takePictureButton = [UIButton buttonWithType:UIButtonTypeSystem];
     [self.takePictureButton setImage:[[UIImage imageNamed:@"composeToolbarTakePicture"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
     self.takePictureButton.frame = CGRectMake(8, 0, 60, composeToolbarHeight);
     self.takePictureButton.contentMode = UIViewContentModeCenter;
-    self.takePictureButton.tintColor = [UIColor bonfireBlack];
+    self.takePictureButton.tintColor = [UIColor bonfirePrimaryColor];
     [self.takePictureButton bk_whenTapped:^{
         [self takePicture:nil];
     }];
@@ -306,7 +320,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     [self.choosePictureButton setImage:[[UIImage imageNamed:@"composeToolbarChoosePicture"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
     self.choosePictureButton.frame = CGRectMake(self.takePictureButton.frame.origin.x + self.takePictureButton.frame.size.width, 0, 58, composeToolbarHeight);
     self.choosePictureButton.contentMode = UIViewContentModeCenter;
-    self.choosePictureButton.tintColor = [UIColor bonfireBlack];
+    self.choosePictureButton.tintColor = [UIColor bonfirePrimaryColor];
     [self.choosePictureButton bk_whenTapped:^{
         [self chooseFromLibrary:nil];
     }];
@@ -315,7 +329,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     self.characterCountdownLabel = [[UILabel alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 50 - 16, 0, 50, composeToolbarHeight)];
     self.characterCountdownLabel.textAlignment = NSTextAlignmentRight;
     self.characterCountdownLabel.font = [UIFont systemFontOfSize:17.f weight:UIFontWeightMedium];
-    self.characterCountdownLabel.textColor = [[UIColor bonfireBlack] colorWithAlphaComponent:0.5];
+    self.characterCountdownLabel.textColor = [[UIColor bonfirePrimaryColor] colorWithAlphaComponent:0.5];
     self.characterCountdownLabel.text = [NSString stringWithFormat:@"%ld", maxLength];
     [self.toolbarButtonsContainer addSubview:self.characterCountdownLabel];
     
@@ -334,57 +348,55 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 }
 
 - (void)textViewDidChange:(UITextView *)textView {
-    if (textViewCell && [textView isEqual:textViewCell.textView]) {
-        [self checkRequirements];
-        
-        NSString *text = textViewCell.textView.text;
-        
-        // update countdown
-        NSInteger charactersLeft = maxLength - text.length;
-        self.characterCountdownLabel.text = [NSString stringWithFormat:@"%ld", charactersLeft];
-        
-        if (charactersLeft <= 20) {
-            self.characterCountdownLabel.textColor = [UIColor bonfireRed];
-        }
-        else {
-            self.characterCountdownLabel.textColor = [UIColor bonfireGray];
-        }
-        
-        // detect usernames, camptags, and links
-        [self detectEntities];
-        
-        if (textViewCell.url.absoluteString.length == 0 && [text hasSuffix:@" "]) {
-            NSDataDetector *detector = [NSDataDetector dataDetectorWithTypes:NSTextCheckingTypeLink error:nil];
-            if ([detector numberOfMatchesInString:text options:0 range:NSMakeRange(0, text.length)] > 0) {
-                NSArray *matches = [detector matchesInString:text options:0 range:NSMakeRange(0, text.length)];
-                for (NSTextCheckingResult *match in matches) {
-                    if ([match resultType] == NSTextCheckingTypeLink) {
-                        NSURL *url = [match URL];
-                        
-                        textViewCell.url = url;
-                        [self updateToolbarAvailability];
-                        [self.tableView beginUpdates];
-                        [self.tableView endUpdates];
-                        
-                        break;
-                    }
-                }
-            }
-        }
-        
-        [textViewCell layoutSubviews];
-        
-        [self.tableView beginUpdates];
-        [self.tableView endUpdates];
+    [self checkRequirements];
+    
+    self.activeAttributedString = textView.attributedText;
+    
+    // update countdown
+    NSInteger charactersLeft = maxLength - self.activeAttributedString.length;
+    self.characterCountdownLabel.text = [NSString stringWithFormat:@"%ld", charactersLeft];
+    
+    if (charactersLeft <= 20) {
+        self.characterCountdownLabel.textColor = [UIColor bonfireRed];
     }
+    else {
+        self.characterCountdownLabel.textColor = [UIColor bonfireSecondaryColor];
+    }
+    
+    /* MAKE YOUR CHANGES TO THE FIELD CONTENTS AS NEEDED HERE */
+    [self detectEntities];
+    
+    /*
+     if (textViewCell.url.absoluteString.length == 0 && [text hasSuffix:@" "]) {
+     NSDataDetector *detector = [NSDataDetector dataDetectorWithTypes:NSTextCheckingTypeLink error:nil];
+     if ([detector numberOfMatchesInString:text options:0 range:NSMakeRange(0, text.length)] > 0) {
+     NSArray *matches = [detector matchesInString:text options:0 range:NSMakeRange(0, text.length)];
+     for (NSTextCheckingResult *match in matches) {
+     if ([match resultType] == NSTextCheckingTypeLink) {
+     NSURL *url = [match URL];
+     
+     textViewCell.url = url;
+     [self updateToolbarAvailability];
+     [self.tableView beginUpdates];
+     [self.tableView endUpdates];
+     
+     break;
+     }
+     }
+     }
+     }
+     */
+    
+    //[textViewCell layoutSubviews];
 }
 - (void)detectEntities {
-    NSUInteger s_loc = textViewCell.textView.selectedRange.location;
+    NSRange s_range = textViewCell.textView.selectedRange;
+    NSUInteger s_loc = s_range.location;
     
     BOOL insideUsername = false;
     BOOL insideCampTag = false;
     
-    NSMutableAttributedString *attributedText = [[NSMutableAttributedString alloc] initWithString:textViewCell.textView.text attributes:@{NSFontAttributeName: textViewCell.textView.font, NSForegroundColorAttributeName:[UIColor bonfireBlack]}];
+    NSMutableAttributedString *attributedText = [[NSMutableAttributedString alloc] initWithString:textViewCell.textView.text attributes:@{NSFontAttributeName: textViewCell.textView.font, NSForegroundColorAttributeName:[UIColor colorNamed:@"FullContrastColor"]}];
     NSArray *usernameRanges = [textViewCell.textView.text rangesForUsernameMatches];
     NSArray *campTagRanges = [textViewCell.textView.text rangesForCampTagMatches];
     NSArray *urlRanges = [textViewCell.textView.text rangesForLinkMatches];
@@ -419,11 +431,22 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     
     if (urlRanges.count > 0) {
         NSLog(@"urlRanges: %@", urlRanges);
-        for (NSValue *value in campTagRanges) {
+        for (NSValue *value in urlRanges) {
             [attributedText addAttribute:NSForegroundColorAttributeName value:self.view.tintColor range:[value rangeValue]];
         }
     }
-    textViewCell.textView.attributedText = attributedText;
+    
+    self.activeAttributedString = attributedText;
+    textViewCell.textView.attributedText = self.activeAttributedString;
+    
+    // environment issue
+    // -> set selected range using the range before updating the attributed text
+    [textViewCell.textView setSelectedRange:s_range];
+    
+    // update height of the cell
+    [textViewCell resizeTextView];
+    [self.tableView beginUpdates];
+    [self.tableView endUpdates];
     
     if (insideUsername) NSLog(@"insideUsername ==> true");
     if (insideCampTag) NSLog(@"insideCampTag ==> true");
@@ -556,12 +579,6 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     CGFloat bottomPadding = window.safeAreaInsets.bottom;
     
     CGFloat newToolbarY = self.tableView.frame.size.height - self.currentKeyboardHeight - self.toolbarView.frame.size.height + bottomPadding - (topPadding + 44);
-    
-    NSLog(@"self.tableview.frame.size.height: %f", self.tableView.frame.size.height);
-    NSLog(@"self.currentKeyboardHeight: %f", self.currentKeyboardHeight);
-    NSLog(@"self.toolbarView.frame.size.height + bottomPadding: %f", self.toolbarView.frame.size.height + bottomPadding);
-    NSLog(@"bottomPadding: %f", bottomPadding);
-    NSLog(@"(topPadding + navigationBar.frame.size.height): %f", (topPadding + 44));
     
     self.toolbarView.frame = CGRectMake(self.toolbarView.frame.origin.x, newToolbarY, self.toolbarView.frame.size.width, self.toolbarView.frame.size.height);
     
@@ -742,23 +759,26 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     }
     
     [[HAWebService authenticatedManager] GET:url parameters:@{@"q": q} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        NSDictionary *responseData = (NSDictionary *)responseObject[@"data"];
-                
-        if (isUser) {
-            self.autoCompleteResults = [[NSMutableArray alloc] initWithArray:responseData[@"results"][@"users"]];
+        NSString *currentSearchTerm = self.activeTagRange.location != NSNotFound ? [self->textViewCell.textView.text substringWithRange:self.activeTagRange] : @"";
+        if ([tag isEqualToString:currentSearchTerm]) {
+            NSDictionary *responseData = (NSDictionary *)responseObject[@"data"];
+                    
+            if (isUser) {
+                self.autoCompleteResults = [[NSMutableArray alloc] initWithArray:responseData[@"results"][@"users"]];
+            }
+            else if (isCamp) {
+                self.autoCompleteResults = [[NSMutableArray alloc] initWithArray:responseData[@"results"][@"camps"]];
+            }
+            
+            if (self.autoCompleteResults.count > 0 && self.activeTagRange.location != NSNotFound && self.autoCompleteTableView.alpha != 1) {
+                [self showAutoCompleteView];
+            }
+            else if (self.autoCompleteResults.count == 0 && self.autoCompleteTableView.alpha != 0) {
+                [self hideAutoCompleteView];
+            }
+            
+            [self.autoCompleteTableView reloadData];
         }
-        else if (isCamp) {
-            self.autoCompleteResults = [[NSMutableArray alloc] initWithArray:responseData[@"results"][@"camps"]];
-        }
-        
-        if (self.autoCompleteResults.count > 0 && self.activeTagRange.location != NSNotFound && self.autoCompleteTableView.alpha != 1) {
-            [self showAutoCompleteView];
-        }
-        else if (self.autoCompleteResults.count == 0 && self.autoCompleteTableView.alpha != 0) {
-            [self hideAutoCompleteView];
-        }
-        
-        [self.autoCompleteTableView reloadData];
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         NSLog(@"SearchTableViewController / getPosts() - error: %@", error);
         //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
@@ -821,23 +841,24 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                 cell = [[ComposeTextViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:composeTextViewCellReuseIdentifier];
             }
             
-            textViewCell = cell;
-            
             cell.tintColor = self.view.tintColor;
-            cell.delegate = self;
             
             cell.lineSeparator.hidden = (self.replyingTo == nil);
             
-            cell.textView.delegate = self;
-            cell.textView.tintColor = cell.tintColor;
-            [cell.textView becomeFirstResponder];
             [self updatePlaceholder];
             
             if (cell.tag != 1) {
                 cell.tag = 1;
-                cell.textView.text = self.prefillMessage;
-                [self textViewDidChange:cell.textView];
+                [cell.textView becomeFirstResponder];
+                cell.textView.delegate = self;
+                cell.textView.tintColor = cell.tintColor;
+                cell.delegate = self;
             }
+            else {
+                cell.textView.attributedText = self.activeAttributedString;
+            }
+            
+            textViewCell = cell;
             
             return cell;
         }
@@ -874,7 +895,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         if (![cell.contentView viewWithTag:2]) {
             UIView *lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, cell.contentView.frame.size.height - (1 / [UIScreen mainScreen].scale), self.view.frame.size.width, (1 / [UIScreen mainScreen].scale))];
             lineSeparator.tag = 2;
-            lineSeparator.backgroundColor = [UIColor colorWithWhite:0 alpha:0.06];
+            lineSeparator.backgroundColor = [[UIColor bonfirePrimaryColor] colorWithAlphaComponent:0.06];
             [cell.contentView addSubview:lineSeparator];
         }
         
@@ -899,33 +920,15 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         }
         
         if (type != 0) {
-            cell.type = type;
-            
             if (type == 1) {
                 NSError *error;
                 Camp *camp = [[Camp alloc] initWithDictionary:json error:&error];
-                if (error) { NSLog(@"camp error: %@", error); };
-                
-                // 1 = Camp
-                cell.profilePicture.camp = camp;
-                cell.textLabel.text = camp.attributes.details.title;
-                
-                NSString *detailText = [NSString stringWithFormat:@"#%@ · %ld %@", camp.attributes.details.identifier, (long)camp.attributes.summaries.counts.members, (camp.attributes.summaries.counts.members == 1 ? [Session sharedInstance].defaults.camp.membersTitle.singular : [Session sharedInstance].defaults.camp.membersTitle.plural)];
-                /*BOOL useLiveCount = camp.attributes.summaries.counts.live > [Session sharedInstance].defaults.camp.liveThreshold;
-                if (useLiveCount) {
-                    cell.detailTextLabel.text = [NSString stringWithFormat:@"%@ · %li LIVE", detailText, (long)camp.attributes.summaries.counts.live];
-                }*/
-                cell.detailTextLabel.text = detailText;
+                cell.camp = camp;
             }
             else {
                 //NSError *error;
                 User *user = [[User alloc] initWithDictionary:self.autoCompleteResults[indexPath.row] error:nil];
-                
-                cell.profilePicture.user = user;
-                
-                // 2 = User
-                cell.textLabel.text = user.attributes.details.displayName;
-                cell.detailTextLabel.text = [NSString stringWithFormat:@"@%@", user.attributes.details.identifier];
+                cell.user = user;
             }
             
             return cell;
@@ -994,17 +997,17 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     
     if (self.replyingToIcebreaker) {
         UIView *replyingToView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 88)];
-        replyingToView.backgroundColor = [UIColor colorWithRed:0.98 green:0.98 blue:0.99 alpha:1.0];
+        replyingToView.backgroundColor = [UIColor colorNamed:@"Navigation_ClearBackgroundColor"];
         
         UILabel *welcomeLabel = [[UILabel alloc] initWithFrame:CGRectMake(12, 16, replyingToView.frame.size.width - 24, 19)];
-        welcomeLabel.textColor = [UIColor bonfireBlack];
+        welcomeLabel.textColor = [UIColor bonfirePrimaryColor];
         welcomeLabel.text = @"Welcome to the Camp! 👋";
         welcomeLabel.textAlignment = NSTextAlignmentCenter;
         welcomeLabel.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightSemibold];
         [replyingToView addSubview:welcomeLabel];
         
         UILabel *infoLabel = [[UILabel alloc] initWithFrame:CGRectMake(12, 40, replyingToView.frame.size.width - 24, 34)];
-        infoLabel.textColor = [UIColor bonfireGray];
+        infoLabel.textColor = [UIColor bonfireSecondaryColor];
         infoLabel.text = @"Answer the Camp Icebreaker to help\nothers get to know you better";
         infoLabel.textAlignment = NSTextAlignmentCenter;
         infoLabel.numberOfLines = 0;
@@ -1013,27 +1016,27 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         [replyingToView addSubview:infoLabel];
         
         UIView *lineSeparator_t = [[UIView alloc] initWithFrame:CGRectMake(0, 0, replyingToView.frame.size.width, (1 / [UIScreen mainScreen].scale))];
-        lineSeparator_t.backgroundColor = [UIColor colorWithWhite:0 alpha:0.06];
+        lineSeparator_t.backgroundColor = [UIColor tableViewSeparatorColor];
         [replyingToView addSubview:lineSeparator_t];
         
         UIView *lineSeparator_b = [[UIView alloc] initWithFrame:CGRectMake(0, replyingToView.frame.size.height - (1 / [UIScreen mainScreen].scale), replyingToView.frame.size.width, (1 / [UIScreen mainScreen].scale))];
-        lineSeparator_b.backgroundColor = [UIColor colorWithWhite:0 alpha:0.06];
+        lineSeparator_b.backgroundColor = [UIColor tableViewSeparatorColor];
         [replyingToView addSubview:lineSeparator_b];
         
         return replyingToView;
     }
     else {
         UIView *replyingToView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 40)];
-        replyingToView.backgroundColor = [UIColor colorWithRed:0.98 green:0.98 blue:0.99 alpha:1.0];
+        replyingToView.backgroundColor = [UIColor colorNamed:@"Navigation_ClearBackgroundColor"];
         
         UIImageView *replyIcon = [[UIImageView alloc] initWithFrame:CGRectMake(12, replyingToView.frame.size.height / 2 - 7.5, 13, 15)];
         replyIcon.image = [[UIImage imageNamed:@"postActionReply"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-        replyIcon.tintColor = [UIColor bonfireBlack];
+        replyIcon.tintColor = [UIColor bonfirePrimaryColor];
         replyIcon.contentMode = UIViewContentModeScaleAspectFill;
         [replyingToView addSubview:replyIcon];
         
         UILabel *replyingToLabel = [[UILabel alloc] initWithFrame:CGRectMake(37, 0, replyingToView.frame.size.width - 37 - 12, replyingToView.frame.size.height)];
-        replyingToLabel.textColor = [UIColor bonfireBlack];
+        replyingToLabel.textColor = [UIColor bonfirePrimaryColor];
         if ([self.replyingTo.attributes.details.creator.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
             replyingToLabel.text = [NSString stringWithFormat:@"Replying to yourself"];
         }
@@ -1046,11 +1049,11 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         [replyingToView addSubview:replyingToLabel];
         
         UIView *lineSeparator_t = [[UIView alloc] initWithFrame:CGRectMake(0, 0, replyingToView.frame.size.width, (1 / [UIScreen mainScreen].scale))];
-        lineSeparator_t.backgroundColor = [UIColor colorWithWhite:0 alpha:0.06];
+        lineSeparator_t.backgroundColor = [UIColor tableViewSeparatorColor];
         [replyingToView addSubview:lineSeparator_t];
         
         UIView *lineSeparator_b = [[UIView alloc] initWithFrame:CGRectMake(0, replyingToView.frame.size.height - (1 / [UIScreen mainScreen].scale), replyingToView.frame.size.width, (1 / [UIScreen mainScreen].scale))];
-        lineSeparator_b.backgroundColor = [UIColor colorWithWhite:0 alpha:0.06];
+        lineSeparator_b.backgroundColor = [UIColor tableViewSeparatorColor];
         [replyingToView addSubview:lineSeparator_b];
         
         return replyingToView;
@@ -1071,18 +1074,16 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             if (self.autoCompleteResults.count > indexPath.row) {
                 BOOL changes = false;
                 NSString *finalString = textViewCell.textView.text;
-                if (cell.type == SearchResultCellTypeUser) {
-                    User *userSelected = [[User alloc] initWithDictionary:self.autoCompleteResults[indexPath.row] error:nil];
-                    NSString *usernameSelected = userSelected.attributes.details.identifier;
+                if (cell.user) {
+                    NSString *usernameSelected = cell.user.attributes.details.identifier;
                     
                     if (usernameSelected.length > 0) {
                         finalString = [textViewCell.textView.text stringByReplacingCharactersInRange:self.activeTagRange withString:[NSString stringWithFormat:@"@%@ ", usernameSelected]];
                         changes = true;
                     }
                 }
-                else if (cell.type == SearchResultCellTypeCamp) {
-                    Camp *campSelected = [[Camp alloc] initWithDictionary:self.autoCompleteResults[indexPath.row] error:nil];
-                    NSString *campTagSelected = campSelected.attributes.details.identifier;
+                else if (cell.camp) {
+                    NSString *campTagSelected = cell.camp.attributes.details.identifier;
                     
                     if (campTagSelected.length > 0) {
                         finalString = [textViewCell.textView.text stringByReplacingCharactersInRange:self.activeTagRange withString:[NSString stringWithFormat:@"#%@ ", campTagSelected]];

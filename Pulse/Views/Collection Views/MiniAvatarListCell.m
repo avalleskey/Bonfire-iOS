@@ -74,10 +74,10 @@ static NSString * const reuseIdentifier = @"AvatarCell";
         return 6;
     }
     else if (self.camps.count > 0) {
-        return self.camps.count + ([self includeShowAllAction] ? 1 : 0);
+        return self.camps.count + ([self includeShowAllAction] ? 1 : 0) + 1;
     }
     else if (self.users.count > 0) {
-        return self.users.count + ([self includeShowAllAction] ? 1 : 0);
+        return self.users.count + ([self includeShowAllAction] ? 1 : 0) + 1;
     }
     
     return 0;
@@ -99,23 +99,35 @@ static NSString * const reuseIdentifier = @"AvatarCell";
         
         if ([self includeShowAllAction] && indexPath.item == 0) {
             [cell.campAvatar.imageView sd_setImageWithURL:nil];
-            cell.campAvatar.imageView.backgroundColor = [UIColor whiteColor];
+            cell.campAvatar.imageView.backgroundColor = [UIColor contentBackgroundColor];
             cell.campAvatar.imageView.image = [UIImage imageNamed:@"miniListShowAllIcon"];
             cell.campTitleLabel.text = @"My Camps";
+            cell.campTitleLabel.textColor = [[UIColor bonfirePrimaryColor] colorWithAlphaComponent:0.8];
             
             cell.campAvatar.imageView.layer.borderWidth = 1;
         }
-        else if (self.camps != nil) {
+        else if (self.camps != nil && adjustedIndex < self.camps.count) {
             Camp *camp = [[Camp alloc] initWithDictionary:self.camps[adjustedIndex] error:nil];
             
             cell.campAvatar.camp = camp;
             cell.campTitleLabel.text = [@"#" stringByAppendingString:camp.attributes.details.identifier];
+            cell.campTitleLabel.textColor = [UIColor bonfirePrimaryColor];
         }
-        else if (self.users != nil) {
+        else if (self.users != nil && adjustedIndex < self.users.count) {
             User *user = [[User alloc] initWithDictionary:self.users[adjustedIndex] error:nil];
             
             cell.campAvatar.user = user;
             cell.campTitleLabel.text = [@"@" stringByAppendingString:user.attributes.details.identifier];
+            cell.campTitleLabel.textColor = [UIColor bonfirePrimaryColor];
+        }
+        else if (adjustedIndex == self.camps.count) {
+            [cell.campAvatar.imageView sd_setImageWithURL:nil];
+            cell.campAvatar.imageView.backgroundColor = [UIColor contentBackgroundColor];
+            cell.campAvatar.imageView.image = [UIImage imageNamed:@"miniListCreateCampIcon"];
+            cell.campTitleLabel.text = @"Create Camp";
+            cell.campTitleLabel.textColor = [[UIColor bonfirePrimaryColor] colorWithAlphaComponent:0.8];
+            
+            cell.campAvatar.imageView.layer.borderWidth = 1;
         }
     }
     
@@ -139,17 +151,20 @@ static NSString * const reuseIdentifier = @"AvatarCell";
         if ([self includeShowAllAction] && indexPath.row == 0) {
             self.shiowAllAction();
         }
-        else if (self.camps.count > indexPath.row) {
+        else if (adjustedIndex < self.camps.count) {
             // animate the cell user tapped on
             Camp *camp = [[Camp alloc] initWithDictionary:self.camps[adjustedIndex] error:nil];
             
             [Launcher openCamp:camp];
         }
-        else if (self.users.count > indexPath.row) {
+        else if (adjustedIndex < self.users.count) {
             // animate the cell user tapped on
             User *user = [[User alloc] initWithDictionary:self.users[adjustedIndex] error:nil];
             
             [Launcher openProfile:user];
+        }
+        else if (self.camps.count == adjustedIndex) {
+            [Launcher openCreateCamp];
         }
     }
 }

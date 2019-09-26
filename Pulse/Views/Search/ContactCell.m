@@ -22,11 +22,11 @@
         self.imageView.backgroundColor = [UIColor whiteColor];
         
         self.textLabel.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightBold];
-        self.textLabel.textColor = [UIColor bonfireBlack];
+        self.textLabel.textColor = [UIColor bonfirePrimaryColor];
         
         self.detailTextLabel.font = [UIFont systemFontOfSize:12.f weight:UIFontWeightMedium];
         self.detailTextLabel.textAlignment = NSTextAlignmentLeft;
-        self.detailTextLabel.textColor = [UIColor bonfireGray];
+        self.detailTextLabel.textColor = [UIColor bonfireSecondaryColor];
         self.detailTextLabel.lineBreakMode = NSLineBreakByTruncatingTail;
         
         self.checkIcon = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 28, 28)];

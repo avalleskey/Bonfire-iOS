@@ -33,7 +33,7 @@
 
 @interface EditProfileViewController () <UITextFieldDelegate, UITextViewDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate, RSKImageCropViewControllerDelegate, RSKImageCropViewControllerDataSource> {
     UIImage *newAvatar;
-    NSString *userBio;
+    NSMutableDictionary *inputValues;
 }
 
 @end
@@ -85,9 +85,9 @@ static int const EMAIL_FIELD = 206;
                                               } forState:UIControlStateHighlighted];
     self.navigationItem.rightBarButtonItem = self.saveButton;
     
-    self.tableView.backgroundColor = [UIColor headerBackgroundColor];
+    self.tableView.backgroundColor = [UIColor tableViewBackgroundColor];
     self.tableView.separatorInset = UIEdgeInsetsMake(0, 16, 0, 0);
-    self.tableView.separatorColor = [UIColor separatorColor];
+    self.tableView.separatorColor = [UIColor tableViewSeparatorColor];
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
     self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 48, 0);
     
@@ -106,10 +106,10 @@ static int const EMAIL_FIELD = 206;
     [self.tableView registerClass:[InputCell class] forCellReuseIdentifier:inputReuseIdentifier];
     [self.tableView registerClass:[ButtonCell class] forCellReuseIdentifier:buttonReuseIdentifier];
     
-    userBio = [[Session sharedInstance] currentUser].attributes.details.bio;
-    
     // Google Analytics
     [FIRAnalytics setScreenName:@"Edit Profile" screenClass:nil];
+    
+    inputValues = [NSMutableDictionary dictionary];
 }
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
@@ -126,12 +126,23 @@ static int const EMAIL_FIELD = 206;
 }
 
 - (void)themeSelectionDidChange:(NSString *)newHex {
+    [inputValues setObject:newHex forKey:[NSIndexPath indexPathForRow:6 inSection:0]];
     self.themeColor = [UIColor fromHex:newHex];
+    
     [(SimpleNavigationController *)self.navigationController updateBarColor:self.themeColor animated:true];
     
     self.view.tintColor = self.themeColor;
     
-    [self.tableView reloadData];
+    for (UITableViewCell *cell in [self.tableView visibleCells]) {
+        if ([cell isKindOfClass:[InputCell class]]) {
+            ((InputCell *)cell).textView.tintColor = self.view.tintColor;
+            ((InputCell *)cell).input.tintColor = self.view.tintColor;
+        }
+    }
+    
+    [self.tableView beginUpdates];
+    [self.tableView reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0 inSection:0]] withRowAnimation:UITableViewRowAnimationNone];
+    [self.tableView endUpdates];
 }
 
 - (void)saveChanges {
@@ -253,243 +264,247 @@ static int const EMAIL_FIELD = 206;
     if (newAvatar) {
         [changes setObject:newAvatar forKey:@"user_avatar"];
     }
-    
-    InputCell *displayNameCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:1 inSection:0]];
-    NSString *displayName = displayNameCell.input.text;
-    
-    if (![displayName isEqualToString:self.user.attributes.details.displayName]) {
-        BFValidationError error = [displayName validateBonfireDisplayName];
-        if (error == BFValidationErrorNone) {
-            // good to go!
-            [changes setObject:displayName forKey:@"display_name"];
-        }
-        else {
-            NSString *title = @"";
-            NSString *message = @"";
-            switch (error) {
-                case BFValidationErrorTooShort:
-                    title = @"Display Name Too Short";
-                    message = @"Your display name must at least 1 character long";
-                    break;
-                case BFValidationErrorTooLong:
-                    title = @"Display Name Too Long";
-                    message = [NSString stringWithFormat:@"Your display name cannot be longer than 40 characters"];
-                    break;
-                case BFValidationErrorContainsInvalidWords:
-                    title = @"Display Name Cannot Contain Certain Words";
-                    message = [NSString stringWithFormat:@"To protect our community, your display name cannot contain the words Bonfire, Admin, or Moderator as indivudal words"];
-                    break;
+        
+    for (NSIndexPath *indexPath in [inputValues allKeys]) {
+        NSString *value = [inputValues objectForKey:indexPath];
+        
+        if (indexPath == [NSIndexPath indexPathForRow:1 inSection:0]) {
+            if (![value isEqualToString:self.user.attributes.details.displayName]) {
+                BFValidationError error = [value validateBonfireDisplayName];
+                if (error == BFValidationErrorNone) {
+                    // good to go!
+                    if (value != nil) {
+                        [changes setObject:value forKey:@"display_name"];
+                    }
+                }
+                else {
+                    NSString *title = @"";
+                    NSString *message = @"";
+                    switch (error) {
+                        case BFValidationErrorTooShort:
+                            title = @"Display Name Too Short";
+                            message = @"Your display name must at least 1 character long";
+                            break;
+                        case BFValidationErrorTooLong:
+                            title = @"Display Name Too Long";
+                            message = [NSString stringWithFormat:@"Your display name cannot be longer than 40 characters"];
+                            break;
+                        case BFValidationErrorContainsInvalidWords:
+                            title = @"Display Name Cannot Contain Certain Words";
+                            message = [NSString stringWithFormat:@"To protect our community, your display name cannot contain the words Bonfire, Admin, or Moderator as indivudal words"];
+                            break;
+                            
+                        default:
+                            title = @"Requirements Not Met";
+                            message = [NSString stringWithFormat:@"Please ensure that your display name is between 1 and 40 characters long"];
+                            break;
+                    }
                     
-                default:
-                    title = @"Requirements Not Met";
-                    message = [NSString stringWithFormat:@"Please ensure that your display name is between 1 and 40 characters long"];
-                    break;
-            }
-            
-            [self alertWithTitle:title message:message];
-            
-            return @{@"error": @"display_name"};
-        }
-    }
-    
-    InputCell *usernameCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:2 inSection:0]];
-    NSString *username = [usernameCell.input.text stringByReplacingOccurrencesOfString:@"@" withString:@""];
-    
-    if (![username isEqualToString:self.user.attributes.details.identifier]) {
-        BFValidationError error = [username validateBonfireUsername];
-        if (error == BFValidationErrorNone) {
-            // good to go!
-            [changes setObject:username forKey:@"username"];
-        }
-        else {
-            NSString *title = @"";
-            NSString *message = @"";
-            switch (error) {
-                case BFValidationErrorTooShort:
-                    title = @"Username Too Short";
-                    message = @"Your username must at least 3 characters long";
-                    break;
-                case BFValidationErrorTooLong:
-                    title = @"Username Too Long";
-                    message = [NSString stringWithFormat:@"Your username cannot be longer than 15 characters"];
-                    break;
-                case BFValidationErrorContainsInvalidCharacters:
-                    title = @"Username Cannot Contain Special Characters";
-                    message = [NSString stringWithFormat:@"Your username can only contain alphanumeric characters (letters A-Z, numbers 0-9) with the exception of underscores"];
-                    break;
-                case BFValidationErrorContainsInvalidWords:
-                    title = @"Username Cannot Contain Certain Words";
-                    message = [NSString stringWithFormat:@"To protect our community, your username cannot contain the words Bonfire, Admin, or Moderator"];
-                    break;
+                    [self alertWithTitle:title message:message];
                     
-                default:
-                    title = @"Unexpected Username Error";
-                    message = [NSString stringWithFormat:@"Please ensure that your display name is between 1 and 40 characters long"];
-                    break;
-            }
-            
-            [self alertWithTitle:title message:message];
-            
-            return @{@"error": @"username"};
-        }
-    }
-    
-    // bio
-    InputCell *bioCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:3 inSection:0]];
-    NSString *bio = bioCell.textView.text;
-    
-    if (![bio isEqualToString:self.user.attributes.details.bio]) {
-        BFValidationError error = [displayName validateBonfireBio];
-        if (error == BFValidationErrorNone) {
-            // good to go!
-            [changes setObject:bio forKey:@"bio"];
-        }
-        else {
-            NSString *title = @"";
-            NSString *message = @"";
-            switch (error) {
-                case BFValidationErrorTooLong:
-                    title = @"Bio Too Long";
-                    message = [NSString stringWithFormat:@"Your bio cannot be longer than 150 characters"];
-                    break;
-                    
-                default:
-                    title = @"Requirements Not Met";
-                    message = [NSString stringWithFormat:@"Please ensure that your bio is no longer than 150 characters and contains no unusual characters"];
-                    break;
-            }
-            
-            [self alertWithTitle:title message:message];
-            
-            return @{@"error": @"bio"};
-        }
-    }
-    
-    // location
-    InputCell *locationCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:4 inSection:0]];
-    NSString *location = locationCell.input.text;
-    
-    NSString *currentLocation = self.user.attributes.details.location.value;
-    if (!currentLocation) currentLocation = @"";
-    
-    if (![location isEqualToString:currentLocation]) {
-        BFValidationError error = [location validateBonfireLocation];
-        if (error == BFValidationErrorNone) {
-            // good to go!
-            [changes setObject:location forKey:@"location"];
-        }
-        else {
-            NSString *title = @"";
-            NSString *message = @"";
-            switch (error) {
-                case BFValidationErrorTooLong:
-                    title = @"Location Too Long";
-                    message = [NSString stringWithFormat:@"Your location cannot be longer than 30 characters"];
-                    break;
-                    
-                default:
-                    title = @"Requirements Not Met";
-                    message = [NSString stringWithFormat:@"Please ensure that your location is no longer than 30 characters and contains no unusual characters"];
-                    break;
-            }
-            
-            [self alertWithTitle:title message:message];
-            
-            return @{@"error": @"location"};
-        }
-    }
-    
-    // website
-    InputCell *websiteCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:5 inSection:0]];
-    NSString *website = websiteCell.input.text;
-    
-    NSString *currentWebsite = self.user.attributes.details.website.value;
-    if (!currentWebsite) currentWebsite = @"";
-    
-    if (![website isEqualToString:currentWebsite]) {
-        BFValidationError error = [website validateBonfireWebsite];
-        if (error == BFValidationErrorNone || website.length == 0) {
-            if (website.length > 0) {
-                // if setting a new website, prepend http:// to the beginning if it doesn't exist already
-                if ([website rangeOfString:@"http://"].length == 0 && [website rangeOfString:@"https://"].length == 0) {
-                    // prepend http:// if needed
-                    website = [@"http://" stringByAppendingString:website];
+                    return @{@"error": @"display_name"};
                 }
             }
-            
-            [changes setObject:website forKey:@"website"];
         }
-        else {
-            NSString *title = @"";
-            NSString *message = @"";
-            switch (error) {
-                case BFValidationErrorTooLong:
-                    title = @"Location Too Long";
-                    message = [NSString stringWithFormat:@"Your location cannot be longer than 30 characters"];
-                    break;
-                case BFValidationErrorInvalidURL:
-                    title = @"Invalid URL";
-                    message = [NSString stringWithFormat:@"Please ensure that the URL provided is valid"];
-                    break;
+        else if (indexPath == [NSIndexPath indexPathForRow:2 inSection:0]) {
+            NSString *username = [value stringByReplacingOccurrencesOfString:@"@" withString:@""];
+            if (![username isEqualToString:self.user.attributes.details.identifier]) {
+                BFValidationError error = [username validateBonfireUsername];
+                if (error == BFValidationErrorNone) {
+                    // good to go!
+                    if (username != nil) {
+                        [changes setObject:username forKey:@"username"];
+                    }
+                }
+                else {
+                    NSString *title = @"";
+                    NSString *message = @"";
+                    switch (error) {
+                        case BFValidationErrorTooShort:
+                            title = @"Username Too Short";
+                            message = @"Your username must at least 3 characters long";
+                            break;
+                        case BFValidationErrorTooLong:
+                            title = @"Username Too Long";
+                            message = [NSString stringWithFormat:@"Your username cannot be longer than 15 characters"];
+                            break;
+                        case BFValidationErrorContainsInvalidCharacters:
+                            title = @"Username Cannot Contain Special Characters";
+                            message = [NSString stringWithFormat:@"Your username can only contain alphanumeric characters (letters A-Z, numbers 0-9) with the exception of underscores"];
+                            break;
+                        case BFValidationErrorContainsInvalidWords:
+                            title = @"Username Cannot Contain Certain Words";
+                            message = [NSString stringWithFormat:@"To protect our community, your username cannot contain the words Bonfire, Admin, or Moderator"];
+                            break;
+                            
+                        default:
+                            title = @"Unexpected Username Error";
+                            message = [NSString stringWithFormat:@"Please ensure that your display name is between 1 and 40 characters long"];
+                            break;
+                    }
                     
-                default:
-                    title = @"Requirements Not Met";
-                    message = [NSString stringWithFormat:@"Please ensure that your location is no longer than 30 characters and contains no unusual characters"];
-                    break;
-            }
-            
-            [self alertWithTitle:title message:message];
-            
-            return @{@"error": @"website"};
-        }
-    }
-    
-    ThemeSelectorCell *themeColorCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:6 inSection:0]];
-    NSString *themeColor = themeColorCell.selectedColor;
-    
-    if (![[themeColor lowercaseString] isEqualToString:[self.user.attributes.details.color lowercaseString]]) {
-        if (themeColor.length != 6) {
-            [self alertWithTitle:@"Couldn't Save Color" message:@"Please ensure you've selected a theme color from the list and try again."];
-            
-            return @{@"error": @"color"};
-        }
-        else {
-            // good to go!
-            [changes setObject:themeColor forKey:@"color"];
-        }
-    }
-    
-    InputCell *emailCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:1]];
-    NSString *email = emailCell.input.text;
-    
-    if (![email isEqualToString:self.user.attributes.details.email]) {
-        BFValidationError error = [email validateBonfireEmail];
-        if (error == BFValidationErrorNone) {
-            // good to go!
-            [changes setObject:email forKey:@"email"];
-        }
-        else {
-            NSString *title = @"";
-            NSString *message = @"";
-            switch (error) {
-                case BFValidationErrorTooLong:
-                    title = @"Email Too Long";
-                    message = [NSString stringWithFormat:@"Your email cannot be longer than 255 characters"];
-                    break;
-                case BFValidationErrorInvalidEmail:
-                    title = @"Invalid Email";
-                    message = [NSString stringWithFormat:@"Please make sure you entered a valid email address"];
-                    break;
+                    [self alertWithTitle:title message:message];
                     
-                default:
-                    title = @"Unexpected Email Error";
-                    message = [NSString stringWithFormat:@"Please make sure you entered a valid email"];
-                    break;
+                    return @{@"error": @"username"};
+                }
             }
+        }
+        else if (indexPath == [NSIndexPath indexPathForRow:3 inSection:0]) {
+            if (![value isEqualToString:self.user.attributes.details.bio]) {
+                BFValidationError error = [value validateBonfireBio];
+                if (error == BFValidationErrorNone) {
+                    // good to go!
+                    if (value != nil) {
+                        [changes setObject:value forKey:@"bio"];
+                    }
+                }
+                else {
+                    NSString *title = @"";
+                    NSString *message = @"";
+                    switch (error) {
+                        case BFValidationErrorTooLong:
+                            title = @"Bio Too Long";
+                            message = [NSString stringWithFormat:@"Your bio cannot be longer than 150 characters"];
+                            break;
+                            
+                        default:
+                            title = @"Requirements Not Met";
+                            message = [NSString stringWithFormat:@"Please ensure that your bio is no longer than 150 characters and contains no unusual characters"];
+                            break;
+                    }
+                    
+                    [self alertWithTitle:title message:message];
+                    
+                    return @{@"error": @"bio"};
+                }
+            }
+        }
+        else if (indexPath == [NSIndexPath indexPathForRow:4 inSection:0]) {
+            NSString *currentLocation = self.user.attributes.details.location.value;
+            if (!currentLocation) currentLocation = @"";
             
-            [self alertWithTitle:title message:message];
+            if (![value isEqualToString:currentLocation]) {
+                BFValidationError error = [value validateBonfireLocation];
+                if (error == BFValidationErrorNone) {
+                    // good to go!
+                    if (value != nil) {
+                        [changes setObject:value forKey:@"location"];
+                    }
+                }
+                else {
+                    NSString *title = @"";
+                    NSString *message = @"";
+                    switch (error) {
+                        case BFValidationErrorTooLong:
+                            title = @"Location Too Long";
+                            message = [NSString stringWithFormat:@"Your location cannot be longer than 30 characters"];
+                            break;
+                            
+                        default:
+                            title = @"Requirements Not Met";
+                            message = [NSString stringWithFormat:@"Please ensure that your location is no longer than 30 characters and contains no unusual characters"];
+                            break;
+                    }
+                    
+                    [self alertWithTitle:title message:message];
+                    
+                    return @{@"error": @"location"};
+                }
+            }
+        }
+        else if (indexPath == [NSIndexPath indexPathForRow:5 inSection:0]) {
+            NSString *currentWebsite = self.user.attributes.details.website.value;
+            if (!currentWebsite) currentWebsite = @"";
             
-            return @{@"error": @"email"};
+            if (![value isEqualToString:currentWebsite]) {
+                BFValidationError error = [value validateBonfireWebsite];
+                if (error == BFValidationErrorNone || value.length == 0) {
+                    if (value.length > 0) {
+                        // if setting a new website, prepend http:// to the beginning if it doesn't exist already
+                        if ([value rangeOfString:@"http://"].length == 0 && [value rangeOfString:@"https://"].length == 0) {
+                            // prepend http:// if needed
+                            value = [@"http://" stringByAppendingString:value];
+                        }
+                    }
+                    
+                    if (value != nil) {
+                        [changes setObject:value forKey:@"website"];
+                    }
+                }
+                else {
+                    NSString *title = @"";
+                    NSString *message = @"";
+                    switch (error) {
+                        case BFValidationErrorTooLong:
+                            title = @"Website Too Long";
+                            message = [NSString stringWithFormat:@"Your website URL cannot be longer than 30 characters"];
+                            break;
+                        case BFValidationErrorInvalidURL:
+                            title = @"Invalid URL";
+                            message = [NSString stringWithFormat:@"Please ensure that the website URL provided is valid"];
+                            break;
+                            
+                        default:
+                            title = @"Requirements Not Met";
+                            message = [NSString stringWithFormat:@"Please ensure that your website URL is no longer than 30 characters and contains no unusual characters"];
+                            break;
+                    }
+                    
+                    [self alertWithTitle:title message:message];
+                    
+                    return @{@"error": @"website"};
+                }
+            }
+        }
+        else if (indexPath == [NSIndexPath indexPathForRow:6 inSection:0]) {
+            // theme color
+            if (![[value lowercaseString] isEqualToString:[self.user.attributes.details.color lowercaseString]]) {
+                if (value.length != 6) {
+                    [self alertWithTitle:@"Couldn't Save Color" message:@"Please ensure you've selected a theme color from the list and try again."];
+                    
+                    return @{@"error": @"color"};
+                }
+                else {
+                    // good to go!
+                    if (value != nil) {
+                        [changes setObject:value forKey:@"color"];
+                    }
+                }
+            }
+        }
+        else if (indexPath == [NSIndexPath indexPathForRow:0 inSection:1]) {
+            if (![value isEqualToString:self.user.attributes.details.email]) {
+                BFValidationError error = [value validateBonfireEmail];
+                if (error == BFValidationErrorNone) {
+                    // good to go!
+                    if (value != nil) {
+                        [changes setObject:value forKey:@"email"];
+                    }
+                }
+                else {
+                    NSString *title = @"";
+                    NSString *message = @"";
+                    switch (error) {
+                        case BFValidationErrorTooLong:
+                            title = @"Email Too Long";
+                            message = [NSString stringWithFormat:@"Your email cannot be longer than 255 characters"];
+                            break;
+                        case BFValidationErrorInvalidEmail:
+                            title = @"Invalid Email";
+                            message = [NSString stringWithFormat:@"Please make sure you entered a valid email address"];
+                            break;
+                            
+                        default:
+                            title = @"Unexpected Email Error";
+                            message = [NSString stringWithFormat:@"Please make sure you entered a valid email"];
+                            break;
+                    }
+                    
+                    [self alertWithTitle:title message:message];
+                    
+                    return @{@"error": @"email"};
+                }
+            }
         }
     }
     
@@ -547,7 +562,12 @@ static int const EMAIL_FIELD = 206;
             if (indexPath.row == 1) {
                 cell.type = InputCellTypeTextField;
                 cell.inputLabel.text = @"Name";
-                cell.input.text = self.user.attributes.details.displayName;
+                if ([inputValues objectForKey:indexPath]) {
+                    cell.input.text = [inputValues objectForKey:indexPath];
+                }
+                else {
+                    cell.input.text = self.user.attributes.details.displayName;
+                }
                 cell.input.placeholder = @"Name";
                 cell.input.tag = DISPLAY_NAME_FIELD;
                 cell.input.autocapitalizationType = UITextAutocapitalizationTypeWords;
@@ -558,7 +578,12 @@ static int const EMAIL_FIELD = 206;
             else if (indexPath.row == 2) {
                 cell.type = InputCellTypeTextField;
                 cell.inputLabel.text = @"Username";
-                cell.input.text = [NSString stringWithFormat:@"@%@", self.user.attributes.details.identifier];
+                if ([inputValues objectForKey:indexPath]) {
+                    cell.input.text = [inputValues objectForKey:indexPath];
+                }
+                else {
+                    cell.input.text = [NSString stringWithFormat:@"@%@", self.user.attributes.details.identifier];
+                }
                 cell.input.placeholder = @"@username";
                 cell.input.tag = USERNAME_FIELD;
                 cell.input.autocapitalizationType = UITextAutocapitalizationTypeNone;
@@ -569,7 +594,12 @@ static int const EMAIL_FIELD = 206;
             else if (indexPath.row == 3) {
                 cell.type = InputCellTypeTextView;
                 cell.inputLabel.text = @"Bio";
-                cell.textView.text = self.user.attributes.details.bio;
+                if ([inputValues objectForKey:indexPath]) {
+                    cell.input.text = [inputValues objectForKey:indexPath];
+                }
+                else {
+                    cell.textView.text = self.user.attributes.details.bio;
+                }
                 cell.textView.placeholder = @"A little bit about me...";
                 cell.textView.tag = BIO_FIELD;
                 cell.textView.autocapitalizationType = UITextAutocapitalizationTypeSentences;
@@ -580,7 +610,12 @@ static int const EMAIL_FIELD = 206;
             else if (indexPath.row == 4) {
                 cell.type = InputCellTypeTextField;
                 cell.inputLabel.text = @"Location";
-                cell.input.text = self.user.attributes.details.location.value;
+                if ([inputValues objectForKey:indexPath]) {
+                    cell.input.text = [inputValues objectForKey:indexPath];
+                }
+                else {
+                    cell.input.text = self.user.attributes.details.location.value;
+                }
                 cell.input.placeholder = @"Location";
                 cell.input.tag = LOCATION_FIELD;
                 cell.input.autocapitalizationType = UITextAutocapitalizationTypeWords;
@@ -591,7 +626,12 @@ static int const EMAIL_FIELD = 206;
             else if (indexPath.row == 5) {
                 cell.type = InputCellTypeTextField;
                 cell.inputLabel.text = @"Website";
-                cell.input.text = self.user.attributes.details.website.value;
+                if ([inputValues objectForKey:indexPath]) {
+                    cell.input.text = [inputValues objectForKey:indexPath];
+                }
+                else {
+                    cell.input.text = self.user.attributes.details.website.value;
+                }
                 cell.input.placeholder = @"Website";
                 cell.input.tag = WEBSITE_FIELD;
                 cell.input.autocapitalizationType = UITextAutocapitalizationTypeNone;
@@ -603,6 +643,9 @@ static int const EMAIL_FIELD = 206;
             cell.charactersRemainingLabel.hidden = (cell.type != InputCellTypeTextView);
             
             cell.input.delegate = self;
+            [cell.input addTarget:self
+                                  action:@selector(textFieldDidChange:)
+                        forControlEvents:UIControlEventEditingChanged];
             cell.textView.delegate = self;
             
             return cell;
@@ -620,7 +663,12 @@ static int const EMAIL_FIELD = 206;
         InputCell *cell = [tableView dequeueReusableCellWithIdentifier:inputReuseIdentifier forIndexPath:indexPath];
         
         cell.inputLabel.text = @"Email";
-        cell.input.text = self.user.attributes.details.email;
+        if ([inputValues objectForKey:indexPath]) {
+            cell.input.text = [inputValues objectForKey:indexPath];
+        }
+        else {
+            cell.input.text = self.user.attributes.details.email;
+        }
         cell.input.placeholder = @"Email";
         cell.input.tag = 201;
         cell.input.autocapitalizationType = UITextAutocapitalizationTypeNone;
@@ -628,6 +676,9 @@ static int const EMAIL_FIELD = 206;
         cell.input.keyboardType = UIKeyboardTypeEmailAddress;
         
         cell.input.delegate = self;
+        [cell.input addTarget:self
+                      action:@selector(textFieldDidChange:)
+            forControlEvents:UIControlEventEditingChanged];
         
         return cell;
     }
@@ -679,6 +730,14 @@ static int const EMAIL_FIELD = 206;
     
     return YES;
 }
+- (void)textFieldDidChange:(UITextField *)sender {
+    CGPoint point = [sender convertPoint:CGPointZero toView:self.tableView];
+    NSIndexPath *indexPath = [self.tableView indexPathForRowAtPoint:point];
+    
+    NSLog(@"textFieldDidChange: %@", sender);
+    NSLog(@"text:: %@", sender.text);
+    [inputValues setObject:sender.text forKey:indexPath];
+}
 - (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
     NSString *newStr = [textView.text stringByReplacingCharactersInRange:range withString:text];
     
@@ -693,15 +752,19 @@ static int const EMAIL_FIELD = 206;
 }
 
 - (void)textViewDidChange:(UITextView *)textView {
+    CGPoint point = [textView convertPoint:CGPointZero toView:self.tableView];
+    NSIndexPath *indexPath = [self.tableView indexPathForRowAtPoint:point];
+    
     if (textView.tag == BIO_FIELD) {
         // bio
         [self.tableView beginUpdates];
         [self.tableView endUpdates];
-        
+                
         InputCell *cell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:3 inSection:0]];
-        cell.charactersRemainingLabel.text = [NSString stringWithFormat:@"%i", (int)(MAX_USER_BIO_LENGTH - textView.text.length)];
-        
-        userBio = cell.textView.text;
+        if (cell) {
+            cell.charactersRemainingLabel.text = [NSString stringWithFormat:@"%i", (int)(MAX_USER_BIO_LENGTH - textView.text.length)];
+            [inputValues setObject:textView.text forKey:indexPath];
+        }
     }
 }
 
@@ -715,7 +778,7 @@ static int const EMAIL_FIELD = 206;
         }
         else if (indexPath.row == 3) {
             // profile bio -- auto resizing
-            NSString *text = userBio ? userBio : self.user.attributes.details.bio;
+            NSString *text = [inputValues objectForKey:indexPath] ? [inputValues objectForKey:indexPath] : self.user.attributes.details.bio;
             if (text.length == 0) text = @" ";
             
             CGSize boundingSize = CGSizeMake(self.view.frame.size.width - (INPUT_CELL_LABEL_LEFT_PADDING + INPUT_CELL_TEXTVIEW_INSETS.left + INPUT_CELL_TEXTVIEW_INSETS.right) - INPUT_CELL_LABEL_WIDTH, CGFLOAT_MAX);
@@ -771,7 +834,7 @@ static int const EMAIL_FIELD = 206;
 }
 
 - (void)showImagePicker {
-    UIAlertController *imagePickerOptions = [UIAlertController alertControllerWithTitle:@"Set Profile Photo" message:nil preferredStyle:UIAlertControllerStyleActionSheet];
+    UIAlertController *imagePickerOptions = [UIAlertController alertControllerWithTitle:@"Set Profile Picture" message:nil preferredStyle:UIAlertControllerStyleActionSheet];
     
     UIAlertAction *takePhoto = [UIAlertAction actionWithTitle:@"Take Photo" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         [self takePhotoForProfilePicture:nil];
@@ -794,59 +857,66 @@ static int const EMAIL_FIELD = 206;
 - (void)takePhotoForProfilePicture:(id)sender {
     UIImagePickerController *picker = [[UIImagePickerController alloc] init];
     picker.delegate = self;
-    picker.allowsEditing = NO;
+    picker.allowsEditing = false;
     picker.sourceType = UIImagePickerControllerSourceTypeCamera;
     [self presentViewController:picker animated:YES completion:nil];
 }
 - (void)chooseFromLibraryForProfilePicture:(id)sender {
-    [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
-        switch (status) {
-            case PHAuthorizationStatusAuthorized: {
-                NSLog(@"PHAuthorizationStatusAuthorized");
-                
-                UIImagePickerController *picker = [[UIImagePickerController alloc] init];
-                picker.delegate = self;
-                picker.allowsEditing = NO;
-                picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    [[Launcher topMostViewController] presentViewController:picker animated:YES completion:nil];
-                });
-                
-                break;
-            }
-            case PHAuthorizationStatusDenied:
-            case PHAuthorizationStatusNotDetermined:
-            {
-                NSLog(@"PHAuthorizationStatusDenied");
-                // confirm action
-                UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"Allow Bonfire to access your phtoos" message:@"To allow Bonfire to access your photos, go to Settings > Privacy > Set Bonfire to ON" preferredStyle:UIAlertControllerStyleAlert];
-
-                UIAlertAction *openSettingsAction = [UIAlertAction actionWithTitle:@"Open Settings" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-                    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString] options:@{} completionHandler:nil];
-                }];
-                [actionSheet addAction:openSettingsAction];
-                
-                UIAlertAction *closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleCancel handler:nil];
-                [actionSheet addAction:closeAction];
-                
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    [[Launcher topMostViewController] presentViewController:actionSheet animated:YES completion:nil];
-                });
-                
-                break;
-            }
-            case PHAuthorizationStatusRestricted: {
-                NSLog(@"PHAuthorizationStatusRestricted");
-                break;
-            }
-        }
-    }];
+    UIImagePickerController *picker = [[UIImagePickerController alloc] init];
+    picker.delegate = self;
+    picker.allowsEditing = NO;
+    picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+    [[Launcher topMostViewController] presentViewController:picker animated:YES completion:nil];
+    
+//    [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
+//        switch (status) {
+//            case PHAuthorizationStatusAuthorized: {
+//                NSLog(@"PHAuthorizationStatusAuthorized");
+//
+//                dispatch_async(dispatch_get_main_queue(), ^{
+//                    UIImagePickerController *picker = [[UIImagePickerController alloc] init];
+//                    picker.delegate = self;
+//                    picker.allowsEditing = NO;
+//                    picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+//                    [[Launcher topMostViewController] presentViewController:picker animated:YES completion:nil];
+//                });
+//
+//                break;
+//            }
+//            case PHAuthorizationStatusDenied:
+//            case PHAuthorizationStatusNotDetermined:
+//            {
+//                NSLog(@"PHAuthorizationStatusDenied");
+//                // confirm action
+//                UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"Allow Bonfire to access your phtoos" message:@"To allow Bonfire to access your photos, go to Settings > Privacy > Set Bonfire to ON" preferredStyle:UIAlertControllerStyleAlert];
+//
+//                UIAlertAction *openSettingsAction = [UIAlertAction actionWithTitle:@"Open Settings" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+//                    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString] options:@{} completionHandler:nil];
+//                }];
+//                [actionSheet addAction:openSettingsAction];
+//
+//                UIAlertAction *closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleCancel handler:nil];
+//                [actionSheet addAction:closeAction];
+//
+//                dispatch_async(dispatch_get_main_queue(), ^{
+//                    [[Launcher topMostViewController] presentViewController:actionSheet animated:YES completion:nil];
+//                });
+//
+//                break;
+//            }
+//            case PHAuthorizationStatusRestricted: {
+//                NSLog(@"PHAuthorizationStatusRestricted");
+//                break;
+//            }
+//        }
+//    }];
 }
 
 // Crop image has been canceled.
 - (void)imageCropViewControllerDidCancelCrop:(RSKImageCropViewController *)controller
 {
-    [controller.navigationController popViewControllerAnimated:YES];
+    [controller.navigationController dismissViewControllerAnimated:YES completion:nil];
+    [self takePhotoForProfilePicture:nil];
 }
 
 // The original image has been cropped. Additionally provides a rotation angle used to produce image.
@@ -856,8 +926,10 @@ static int const EMAIL_FIELD = 206;
                   rotationAngle:(CGFloat)rotationAngle
 {
     ProfilePictureCell *cell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
-    cell.profilePicture.imageView.image = croppedImage;
-    cell.profilePicture.imageView.contentMode = UIViewContentModeScaleAspectFill;
+    if (cell) {
+        cell.profilePicture.imageView.image = croppedImage;
+        cell.profilePicture.imageView.contentMode = UIViewContentModeScaleAspectFill;
+    }
     
     newAvatar = croppedImage;
     

@@ -29,14 +29,14 @@
         [self.contentView addSubview:self.profilePicture];
         
         self.editPictureImageViewContainer = [[UIView alloc] initWithFrame:CGRectMake(self.profilePicture.frame.size.width - 40 + 6, self.profilePicture.frame.size.height - 40 + 6, 40, 40)];
-        self.editPictureImageViewContainer.backgroundColor = [UIColor whiteColor];
+        self.editPictureImageViewContainer.backgroundColor = [UIColor contentBackgroundColor];
         self.editPictureImageViewContainer.layer.cornerRadius = self.editPictureImageViewContainer.frame.size.height / 2;
         [self.contentView addSubview:self.editPictureImageViewContainer];
         
         self.editPictureImageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 32, 32)];
         self.editPictureImageView.frame = CGRectMake(4, 4, 32, 32);
         self.editPictureImageView.image = [[UIImage imageNamed:@"editProfilePictureIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-        self.editPictureImageView.tintColor = [UIColor bonfireBlack];
+        self.editPictureImageView.tintColor = [UIColor bonfirePrimaryColor];
         [self.editPictureImageViewContainer addSubview:self.editPictureImageView];
     }
     
@@ -49,12 +49,12 @@
     
     if (highlighted) {
         [UIView animateWithDuration:0.2f animations:^{
-            self.backgroundColor = [UIColor colorWithDisplayP3Red:0.92 green:0.92 blue:0.92 alpha:1.00];
+            self.backgroundColor = [UIColor contentHighlightedColor];
         }];
     }
     else {
         [UIView animateWithDuration:0.2f animations:^{
-            self.backgroundColor = [UIColor whiteColor];
+            self.backgroundColor = [UIColor contentBackgroundColor];
         }];
     }
 }

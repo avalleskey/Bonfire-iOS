@@ -16,7 +16,7 @@ NS_ASSUME_NONNULL_BEGIN
 typedef enum {
     BFTextFieldThemeLight = 0,
     BFTextFieldThemeDark = 1,
-    BFTextFieldThemeExtraDark = 2
+    BFTextFieldThemeContent = 2
 } BFTextFieldTheme;
 
 typedef enum {

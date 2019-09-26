@@ -37,33 +37,88 @@
         self.contentView.frame = CGRectMake(0, 0, screenWidth, 100);
         self.contentView.layer.masksToBounds = false;
         
+        self.replyingToButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        self.replyingToButton.frame = CGRectMake(0, 0, self.contentView.frame.size.width, 30);
+        [self.replyingToButton setImage:[UIImage imageNamed:@"replyingToUpArrow"] forState:UIControlStateNormal];
+        self.replyingToButton.backgroundColor = self.contentView.backgroundColor;
+        [self.replyingToButton setTitleColor:[UIColor bonfireSecondaryColor] forState:UIControlStateNormal];
+        [self.replyingToButton setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 8)];
+        [self.replyingToButton setTitleEdgeInsets:UIEdgeInsetsMake(0, 8, 0, 0)];
+        UIView *replyingToSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, self.replyingToButton.frame.size.height - (1 / [UIScreen mainScreen].scale), self.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+        replyingToSeparator.tag = 1;
+        replyingToSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
+        [self.replyingToButton addSubview:replyingToSeparator];
+        self.replyingToButton.hidden = true;
+        [self.contentView addSubview:self.replyingToButton];
+        
         self.primaryAvatarView.frame = CGRectMake(12, 12, 48, 48);
+        self.secondaryAvatarView.frame = CGRectMake(self.primaryAvatarView.frame.origin.x + self.primaryAvatarView.frame.size.width - self.secondaryAvatarView.frame.size.width, self.primaryAvatarView.frame.origin.y + self.primaryAvatarView.frame.size.height - self.secondaryAvatarView.frame.size.height, self.secondaryAvatarView.frame.size.width, self.secondaryAvatarView.frame.size.height);
         self.primaryAvatarView.openOnTap = true;
         
-        self.nameButton = [UIButton buttonWithType:UIButtonTypeSystem];
-        self.nameButton.frame = CGRectMake(70, expandedPostContentOffset.top + 9, self.contentView.frame.size.width - 70 - 50, 16);
-        self.nameButton.titleLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightBold];
-        self.nameButton.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
-        [self.nameButton setTitleColor:[UIColor colorWithWhite:0.07f alpha:1] forState:UIControlStateNormal];
-        [self.nameButton bk_whenTapped:^{
-            [Launcher openProfile:self.post.attributes.details.creator];
+        self.creatorView = [[TappableView alloc] initWithFrame:CGRectMake(70, self.primaryAvatarView.frame.origin.y + (self.primaryAvatarView.frame.size.height / 2) - 16, 400, 32)];
+        [self.creatorView bk_whenTapped:^{
+            if ([self.post.attributes.status.display.creator isEqualToString:POST_DISPLAY_CREATOR_CAMP] && self.post.attributes.status.postedIn != nil) {
+                [Launcher openCamp:self.post.attributes.status.postedIn];
+            }
+            else if (self.post.attributes.details.creator != nil) {
+                [Launcher openProfile:self.post.attributes.details.creator];
+            }
         }];
-        [self.contentView addSubview:self.nameButton];
+        [self.contentView addSubview:self.creatorView];
         
-        self.postedInButton = [UIButton buttonWithType:UIButtonTypeSystem];
-        self.postedInButton.frame = CGRectMake(70, self.nameButton.frame.origin.y + self.nameButton.frame.size.height + 2, self.nameButton.frame.size.width, 14);
+        self.creatorTitleLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 400, 16)];
+        self.creatorTitleLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightBold];
+        self.creatorTitleLabel.textColor = [UIColor bonfirePrimaryColor];
+        [self.creatorView addSubview:self.creatorTitleLabel];
+        
+        self.creatorTagLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, self.creatorTitleLabel.frame.origin.y + self.creatorTitleLabel.frame.size.height + 2, self.creatorTitleLabel.frame.size.width, 14)];
+        self.creatorTagLabel.font = [UIFont systemFontOfSize:12.f weight:UIFontWeightSemibold];
+        self.creatorTagLabel.textColor = [UIColor bonfireSecondaryColor];
+        [self.creatorView addSubview:self.creatorTagLabel];
+        
+        self.postedInArrow = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"postedInTriangleIcon-1"]];
+        self.postedInArrow.hidden = true;
+        [self.contentView addSubview:self.postedInArrow];
+        
+        self.postedInButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        self.postedInButton.frame = CGRectMake(0, 0, 122, 36);
+        self.postedInButton.layer.cornerRadius = self.postedInButton.frame.size.height / 2;
+        self.postedInButton.titleLabel.lineBreakMode = NSLineBreakByTruncatingTail;
+        self.postedInButton.backgroundColor = [UIColor bonfireDetailColor];
+        [self.postedInButton setTitleColor:[UIColor bonfirePrimaryColor] forState:UIControlStateNormal];
         self.postedInButton.titleLabel.font = [UIFont systemFontOfSize:12.f weight:UIFontWeightSemibold];
-        self.postedInButton.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
-        [self.postedInButton setTitle:@"Camp Name" forState:UIControlStateNormal];
-        [self.postedInButton setTitleColor:[UIColor bonfireOrange] forState:UIControlStateNormal];
-        [self.postedInButton setImage:[[UIImage imageNamed:@"replyingToIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
-        [self.postedInButton setTitleEdgeInsets:UIEdgeInsetsMake(0, 4, 0, 0)];
+        self.postedInButton.contentEdgeInsets = UIEdgeInsetsMake(0, 38, 0, 10);
+        self.postedInButton.hidden = true;
+        [self.postedInButton bk_whenTapped:^{
+            if (self.post.attributes.status.postedIn != nil) {
+                [Launcher openCamp:self.post.attributes.status.postedIn];
+            }
+        }];
+        [self.postedInButton bk_addEventHandler:^(id sender) {
+            [UIView animateWithDuration:0.3f delay:0 usingSpringWithDamping:1 initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+                self.postedInButton.backgroundColor = [UIColor bonfireDetailHighlightedColor];
+            } completion:nil];
+        } forControlEvents:UIControlEventTouchDown];
+        [self.postedInButton bk_addEventHandler:^(id sender) {
+            [UIView animateWithDuration:0.3f delay:0 usingSpringWithDamping:1 initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+                self.postedInButton.backgroundColor = [UIColor bonfireDetailColor];
+            } completion:nil];
+        } forControlEvents:(UIControlEventTouchUpInside|UIControlEventTouchCancel|UIControlEventTouchDragExit)];
+        
+        BFAvatarView *postedInAvatarView = [[BFAvatarView alloc] initWithFrame:CGRectMake(4, 4, self.postedInButton.frame.size.height - 8, self.postedInButton.frame.size.height - 8)];
+        postedInAvatarView.userInteractionEnabled = false;
+        postedInAvatarView.dimsViewOnTap = false;
+        postedInAvatarView.tag = 10;
+        [self.postedInButton addSubview:postedInAvatarView];
+        
         [self.contentView addSubview:self.postedInButton];
         
         // text view
-        self.textView.frame = CGRectMake(expandedPostContentOffset.left, self.primaryAvatarView.frame.origin.y + self.primaryAvatarView.frame.size.height + 12, self.contentView.frame.size.width - expandedPostContentOffset.right - expandedPostContentOffset.left, 200);
+        self.textView.frame = CGRectMake(expandedPostContentOffset.left, self.primaryAvatarView.frame.origin.y + self.primaryAvatarView.frame.size.height + 12, [UIScreen mainScreen].bounds.size.width - expandedPostContentOffset.right - expandedPostContentOffset.left, 200);
         self.textView.messageLabel.font = expandedTextViewFont;
         self.textView.delegate = self;
+        self.textView.maxCharacters = 10000;
+        self.textView.postId = self.post.identifier;
         
         self.dateLabel.hidden = true;
         
@@ -104,7 +159,7 @@
         self.imagesView.layer.cornerRadius = 16.f;
         
         self.lineSeparator.hidden = false;
-        self.lineSeparator.backgroundColor = [UIColor separatorColor];
+        self.lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
         [self bringSubviewToFront:self.lineSeparator];
     }
     
@@ -115,16 +170,29 @@
 {
     [super layoutSubviews];
     
+    NSLog(@"layout those subviews boi");
+    
     self.contentView.frame = self.bounds;
+    
+    CGFloat yBottom = ([self.replyingToButton isHidden] ? 0 : self.replyingToButton.frame.size.height);
+    
+    if (![self.replyingToButton isHidden]) {
+        self.replyingToButton.frame = CGRectMake(0, 0, self.frame.size.width, self.replyingToButton.frame.size.height);
+        [self.replyingToButton viewWithTag:1].frame = CGRectMake(0, self.replyingToButton.frame.size.height - (1 / [UIScreen mainScreen].scale), self.replyingToButton.frame.size.width, (1 / [UIScreen mainScreen].scale));
+    }
+    
+    self.primaryAvatarView.frame = CGRectMake(self.primaryAvatarView.frame.origin.x, yBottom + 12, self.primaryAvatarView.frame.size.width, self.primaryAvatarView.frame.size.height);
     
     // -- vote button
     BOOL isVoted = self.post.attributes.context.post.vote != nil;
     [self setVoted:isVoted withAnimation:false];
     
     // -- text view
-    self.textView.tintColor = self.tintColor;
-    [self.textView update];
     self.textView.frame = CGRectMake(expandedPostContentOffset.left, self.primaryAvatarView.frame.origin.y + self.primaryAvatarView.frame.size.height + 12, self.frame.size.width - (expandedPostContentOffset.left + expandedPostContentOffset.right), self.textView.frame.size.height);
+    if (self.post.attributes.details.simpleMessage.length > 0) {
+        self.textView.tintColor = self.tintColor;
+    }
+    yBottom = self.textView.frame.origin.y + self.textView.frame.size.height;
     
     if (![self.moreButton isHidden]) {
         CGFloat moreButtonPadding = 12;
@@ -132,8 +200,36 @@
         self.moreButton.frame = CGRectMake(self.frame.size.width - moreButtonWidth - expandedPostContentOffset.right + moreButtonPadding, (self.primaryAvatarView.frame.origin.y + self.primaryAvatarView.frame.size.height / 2) - 20 - moreButtonPadding, moreButtonWidth, 40 + (moreButtonPadding * 2));
     }
     
-    self.nameButton.frame = CGRectMake(self.nameButton.frame.origin.x, self.nameButton.frame.origin.y, self.frame.size.width - (self.nameButton.frame.origin.x + expandedPostContentOffset.right), self.nameButton.frame.size.height);
-    self.postedInButton.frame = CGRectMake(self.nameButton.frame.origin.x, self.postedInButton.frame.origin.y, self.frame.size.width - self.nameButton.frame.origin.x - expandedPostContentOffset.right, self.postedInButton.frame.size.height);
+    CGFloat headerDetailsMaxWidth = (self.moreButton.frame.origin.x - self.creatorView.frame.origin.x);
+    CGFloat creatorMaxWidth = headerDetailsMaxWidth * (self.post.attributes.status.postedIn != nil ? 0.6 : 1);
+    
+    CGFloat creatorTitleWidth = ceilf([self.creatorTitleLabel.attributedText boundingRectWithSize:CGSizeMake(creatorMaxWidth, self.creatorTitleLabel.frame.size.height) options:(NSStringDrawingUsesFontLeading|NSStringDrawingUsesLineFragmentOrigin)  context:nil].size.width);
+    self.creatorTitleLabel.frame = CGRectMake(0, self.creatorTitleLabel.frame.origin.y, creatorTitleWidth, self.creatorTitleLabel.frame.size.height);
+    
+    CGFloat creatorTagWidth = ceilf([self.creatorTagLabel.text boundingRectWithSize:CGSizeMake(creatorMaxWidth, self.creatorTagLabel.frame.size.height) options:(NSStringDrawingUsesFontLeading|NSStringDrawingUsesLineFragmentOrigin) attributes:@{NSFontAttributeName: self.creatorTagLabel.font} context:nil].size.width);
+    self.creatorTagLabel.frame = CGRectMake(0, self.creatorTagLabel.frame.origin.y, creatorTagWidth, self.creatorTagLabel.frame.size.height);
+    
+    self.creatorView.frame = CGRectMake(self.creatorView.frame.origin.x, self.primaryAvatarView.frame.origin.y + (self.primaryAvatarView.frame.size.height / 2) - (self.creatorView.frame.size.height / 2), (creatorTitleWidth > creatorTagWidth ? creatorTitleWidth : creatorTagWidth), self.creatorView.frame.size.height);
+    
+    if (![self.postedInArrow isHidden]) {
+        self.postedInArrow.frame = CGRectMake(self.creatorView.frame.origin.x + self.creatorView.frame.size.width + 8, self.creatorView.frame.origin.y + (self.creatorView.frame.size.height / 2) - (self.postedInArrow.image.size.height / 2), self.postedInArrow.image.size.width, self.postedInArrow.image.size.height);
+                
+        CGFloat postedInButtonXOrigin = self.postedInArrow.frame.origin.x + self.postedInArrow.frame.size.width + 8;
+        CGFloat postedInButtonWidth = self.postedInButton.intrinsicContentSize.width;
+        if ([self.moreButton isHidden]) {
+            if (postedInButtonWidth > (self.frame.size.width - expandedPostContentOffset.right - postedInButtonXOrigin)) {
+                postedInButtonWidth = (self.frame.size.width - expandedPostContentOffset.right - postedInButtonXOrigin);
+            }
+        }
+        else {
+            if (postedInButtonWidth > (self.moreButton.frame.origin.x - postedInButtonXOrigin)) {
+                postedInButtonWidth = (self.moreButton.frame.origin.x - postedInButtonXOrigin);
+            }
+        }
+        
+        self.postedInButton.frame = CGRectMake(postedInButtonXOrigin, self.creatorView.frame.origin.y + (self.creatorView.frame.size.height / 2) - (self.postedInButton.frame.size.height / 2), postedInButtonWidth, self.postedInButton.frame.size.height);
+    }
+    
     
     BOOL hasImage = (self.post.attributes.details.media.count > 0 || self.post.attributes.details.attachments.media.count > 0); //self.post.images != nil && self.post.images.count > 0;
     if (hasImage) {
@@ -181,14 +277,23 @@
             }
         }
         
-        self.imagesView.frame = CGRectMake(expandedPostContentOffset.left, self.textView.frame.origin.y + (self.post.attributes.details.message.length > 0 ? self.textView.frame.size.height + 8 : 0), imageWidth, imageHeight);
+        self.imagesView.frame = CGRectMake(expandedPostContentOffset.left, yBottom + (self.textView.message.length > 0 ? 8 : 0), imageWidth, imageHeight);
+        
+        yBottom = self.imagesView.frame.origin.y + self.imagesView.frame.size.height;
     }
     else {
         self.imagesView.hidden = true;
     }
     
+    if (self.linkAttachmentView) {
+        [self.linkAttachmentView layoutSubviews];
+        self.linkAttachmentView.frame = CGRectMake(expandedPostContentOffset.left, yBottom + 8, self.frame.size.width - expandedPostContentOffset.left - expandedPostContentOffset.right, [BFLinkAttachmentView heightForLink:self.linkAttachmentView.link width: self.frame.size.width-(expandedPostContentOffset.left+expandedPostContentOffset.right)]);
+        
+        yBottom = self.linkAttachmentView.frame.origin.y + self.linkAttachmentView.frame.size.height;
+    }
+    
     // -- actions view
-    self.actionsView.frame = CGRectMake(expandedPostContentOffset.left, (hasImage ? self.imagesView.frame.origin.y + self.imagesView.frame.size.height : self.textView.frame.origin.y + self.textView.frame.size.height) + 16, self.frame.size.width - (expandedPostContentOffset.left + expandedPostContentOffset.right), self.actionsView.frame.size.height);
+    self.actionsView.frame = CGRectMake(expandedPostContentOffset.left, yBottom + 16, self.frame.size.width - (expandedPostContentOffset.left + expandedPostContentOffset.right), self.actionsView.frame.size.height);
     
     self.activityView.frame = CGRectMake(0, self.actionsView.frame.origin.y + self.actionsView.frame.size.height, self.frame.size.width, 30);
     
@@ -250,54 +355,108 @@
     if ([post toDictionary] != [_post toDictionary]) {
         _post = post;
         
-        BOOL isReply = _post.attributes.details.parentId.length > 0;
-        Camp *postedInCamp = self.post.attributes.status.postedIn;
-        
-        NSString *username = self.post.attributes.details.creator.attributes.details.identifier;
-        if (username != nil) {
-            NSMutableAttributedString *attributedCreatorName = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"@%@", username] attributes:@{NSForegroundColorAttributeName: [UIColor colorWithWhite:0.2f alpha:1], NSFontAttributeName: [UIFont systemFontOfSize:self.nameButton.titleLabel.font.pointSize weight:UIFontWeightSemibold]}];
+        self.replyingToButton.hidden = self.post.attributes.details.parentId == 0;
+        if (![self.replyingToButton isHidden]) {
+            UIFont *font = [UIFont systemFontOfSize:12.f weight:UIFontWeightRegular];
+                    
+            NSMutableAttributedString *attributedText = [[NSMutableAttributedString alloc] initWithString:@"Replying to " attributes:@{NSFontAttributeName: font, NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
             
-            [self.nameButton setAttributedTitle:attributedCreatorName forState:UIControlStateNormal];
+            NSAttributedString *attributedCreatorText = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"@%@", post.attributes.details.parentUsername] attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:font.pointSize weight:UIFontWeightSemibold], NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
+            [attributedText appendAttributedString:attributedCreatorText];
+            
+            [self.replyingToButton setAttributedTitle:attributedText forState:UIControlStateNormal];
+        }
+        
+        // set tint color
+        Camp *postedInCamp = self.post.attributes.status.postedIn;
+        if (postedInCamp != nil) {
+            self.tintColor = [UIColor fromHex:self.post.attributes.status.postedIn.attributes.details.color];
+        }
+        else {
+            self.tintColor = [UIColor fromHex:self.post.attributes.details.creator.attributes.details.color];
         }
         
         UIFont *font = [post isEmojiPost] ? [UIFont systemFontOfSize:expandedTextViewFont.pointSize*POST_EMOJI_SIZE_MULTIPLIER] : expandedTextViewFont;
         self.textView.messageLabel.font = font;
+        self.textView.postId = self.post.identifier;
         
         [self.textView setMessage:self.post.attributes.details.simpleMessage entities:self.post.attributes.details.entities];
         
         // todo: activity view init views
         self.activityView.post = self.post;
         
-        self.postedInButton.userInteractionEnabled = (isReply || postedInCamp != nil);
-        if (postedInCamp) {
-            [UIView performWithoutAnimation:^{
-                [self.postedInButton setTitle:[NSString stringWithFormat:@"#%@", post.attributes.status.postedIn.attributes.details.identifier] forState:UIControlStateNormal];
-                [self.postedInButton layoutIfNeeded];
-            }];
-            self.postedInButton.userInteractionEnabled = true;
-            [self.postedInButton setImage:[[UIImage imageNamed:@"replyingToIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
-            self.postedInButton.tintColor = [UIColor fromHex:_post.attributes.status.postedIn.attributes.details.color];
-            if (self.postedInButton.gestureRecognizers.count == 0 && post.attributes.status.postedIn) {
-                [self.postedInButton bk_whenTapped:^{
-                    [Launcher openCamp:post.attributes.status.postedIn];
-                }];
+        //BOOL isReply = _post.attributes.details.parentId.length > 0;
+        
+        NSString *creatorTitle = @"Anonymous User";
+        NSString *creatorTag = @"@anonymous";
+        if ([self.post.attributes.status.display.creator isEqualToString:POST_DISPLAY_CREATOR_CAMP] && self.post.attributes.status.postedIn != nil) {
+            creatorTitle = self.post.attributes.status.postedIn.attributes.details.title;
+            if (self.post.attributes.status.postedIn.attributes.details.identifier) {
+                creatorTag = [@"#" stringByAppendingString:self.post.attributes.status.postedIn.attributes.details.identifier];
             }
+            
+            self.postedInButton.hidden =
+            self.postedInArrow.hidden  = YES;
         }
         else {
-            [UIView performWithoutAnimation:^{
-                [self.postedInButton setTitle:@"Public" forState:UIControlStateNormal];
-                [self.postedInButton layoutIfNeeded];
-            }];
-            self.postedInButton.tintColor = [UIColor colorWithWhite:0.6 alpha:1];
-            [self.postedInButton setImage:[[UIImage imageNamed:@"expanded_post_public"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
-            self.postedInButton.userInteractionEnabled = false;
+            creatorTitle = self.post.attributes.details.creator.attributes.details.displayName;
+            if (self.post.attributes.details.creator.attributes.details.identifier) {
+                creatorTag = [@"@" stringByAppendingString:self.post.attributes.details.creator.attributes.details.identifier];
+            }
+            
+            self.postedInButton.hidden =
+            self.postedInArrow.hidden  = !postedInCamp;
         }
-        [self.postedInButton setTitleColor:self.postedInButton.tintColor forState:UIControlStateNormal];
+        
+        if (creatorTitle) {
+            UIFont *creatorTitleFont = [UIFont systemFontOfSize:14.f weight:UIFontWeightBold];
+            NSMutableAttributedString *attributedCreatorTitle = [[NSMutableAttributedString alloc] initWithString:creatorTitle attributes:@{NSFontAttributeName:creatorTitleFont}];
+            BOOL isVerified = [self.post.attributes.details.creator isVerified];
+            if (isVerified) {
+                NSMutableAttributedString *spacer = [[NSMutableAttributedString alloc] initWithString:@" "];
+                [spacer addAttribute:NSFontAttributeName value:creatorTitleFont range:NSMakeRange(0, spacer.length)];
+                [attributedCreatorTitle appendAttributedString:spacer];
+                
+                // verified icon ☑️
+                NSTextAttachment *attachment = [[NSTextAttachment alloc] init];
+                attachment.image = [UIImage imageNamed:@"verifiedIcon_small"];
+                [attachment setBounds:CGRectMake(0, roundf(creatorTitleFont.capHeight - attachment.image.size.height)/2.f, attachment.image.size.width, attachment.image.size.height)];
+                
+                NSAttributedString *attachmentString = [NSAttributedString attributedStringWithAttachment:attachment];
+                [attributedCreatorTitle appendAttributedString:attachmentString];
+            }
+            self.creatorTitleLabel.attributedText = attributedCreatorTitle;
+        }
+        else {
+            self.creatorTitleLabel.text = @"";
+        }
+        
+        self.creatorTagLabel.text   = creatorTag;
+        
+        if (![self.postedInButton isHidden]) {
+            if (self.post.attributes.status.postedIn.attributes.details.identifier.length > 0) {
+                NSString *identifier = self.post.attributes.status.postedIn.attributes.details.title;
+                if (self.post.attributes.status.postedIn.attributes.details.identifier.length > 0) {
+                    identifier = [@"#" stringByAppendingString:self.post.attributes.status.postedIn.attributes.details.identifier];
+                }
+                [self.postedInButton setTitle:identifier forState:UIControlStateNormal];
+            }
+            
+            BFAvatarView *postedInAvatarView = [self.postedInButton viewWithTag:10];
+            postedInAvatarView.camp = postedInCamp;
+        }
         
         if (self.primaryAvatarView.user != _post.attributes.details.creator) {
             self.primaryAvatarView.user = _post.attributes.details.creator;
         }
         self.primaryAvatarView.online = false;
+        
+        BOOL showSecondaryAvatarView = false;
+        if ([post.attributes.status.display.creator isEqualToString:POST_DISPLAY_CREATOR_CAMP] && post.attributes.status.postedIn != nil) {
+            self.secondaryAvatarView.camp = post.attributes.status.postedIn;
+            // showSecondaryAvatarView = true;
+        }
+        self.secondaryAvatarView.hidden = !showSecondaryAvatarView;
         
         NSArray *media;
         if (self.post.attributes.details.attachments.media.count > 0) {
@@ -310,37 +469,42 @@
             media = @[];
         }
         
-        UIColor *theme = [UIColor bonfireGrayWithLevel:800];
+        if ([self.post hasLinkAttachment]) {
+            [self initLinkAttachment];
+        }
+        else if (self.linkAttachmentView) {
+            [self removeLinkAttachment];
+        }
+        
+        UIColor *theme;
         if (postedInCamp) {
             theme = [UIColor fromHex:self.post.attributes.status.postedIn.attributes.details.color];
         }
         else {
             theme = [UIColor fromHex:self.post.attributes.details.creator.attributes.details.color];
         }
-        self.activityView.backgroundColor = [theme colorWithAlphaComponent:0.03f];
+        self.activityView.backgroundColor = [theme colorWithAlphaComponent:0.06f];
         self.activityView.tintColor = theme;
         
         [self.imagesView setMedia:media];
     }
 }
 
-+ (CGFloat)heightForPost:(Post *)post {
-    CGFloat height = 0;
++ (CGFloat)heightForPost:(Post *)post width:(CGFloat)contentWidth {
+    CGFloat height = (post.attributes.details.parentId != 0 ? 30 : 0);
     
     // name @username • 2hr
     CGFloat avatarHeight = 48; // 2pt padding underneath
     CGFloat avatarBottomPadding = 12; //15 + 14; // 14pt padding underneath
     
-    height = avatarHeight + avatarBottomPadding;
+    height = height + avatarHeight + avatarBottomPadding;
     
     // message
-    CGFloat contentWidth = [UIScreen mainScreen].bounds.size.width;
-    
-    BOOL hasMessage = post.attributes.details.message.length > 0;
+    BOOL hasMessage = post.attributes.details.simpleMessage.length > 0;
     if (hasMessage) {
         UIFont *font = [post isEmojiPost] ? [UIFont systemFontOfSize:expandedTextViewFont.pointSize*POST_EMOJI_SIZE_MULTIPLIER] : expandedTextViewFont;
-        CGFloat textViewHeight = [PostTextView sizeOfBubbleWithMessage:post.attributes.details.simpleMessage withConstraints:CGSizeMake(contentWidth - expandedPostContentOffset.left - expandedPostContentOffset.right, CGFLOAT_MAX) font:font].height;
-        height = height + textViewHeight;
+        CGFloat messageHeight = [PostTextView sizeOfBubbleWithMessage:post.attributes.details.simpleMessage withConstraints:CGSizeMake(contentWidth - expandedPostContentOffset.left - expandedPostContentOffset.right, CGFLOAT_MAX) font:font maxCharacters:[PostTextView entityBasedMaxCharactersForMessage:post.attributes.details.simpleMessage maxCharacters:CGFLOAT_MAX entities:post.attributes.details.entities]].height;
+        height = height + messageHeight;
     }
     
     // image
@@ -395,6 +559,13 @@
     }
     if (hasImage) {
         height = height + imageHeight;
+    }
+    
+    // 4 on top and 4 on bottom
+    BOOL hasLinkPreview = [post hasLinkAttachment];
+    if (hasLinkPreview) {
+        CGFloat linkPreviewHeight = hasLinkPreview ? [BFLinkAttachmentView heightForLink:post.attributes.details.attachments.link  width:contentWidth-expandedPostContentOffset.left-expandedPostContentOffset.right] : 0; // 8 above
+        height = height + linkPreviewHeight + 8; // 8 above
     }
     
     // deatils label

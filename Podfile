@@ -34,10 +34,15 @@ target 'Pulse' do
   pod 'ObjectiveGumbo'
   pod 'SearchEmojiOnString', '~> 1.0'
   pod 'ISAlternativeRefreshControl'
+  pod 'GoogleFontsiOS/Poppins'
+  pod 'SEJSONViewController'
+  
+  pod 'FBSDKShareKit'
+  
   
   # analytics
   pod 'Firebase/Core'
-  pod 'Firebase/MLNLSmartReply'
+  # pod 'Firebase/MLNLSmartReply'
   
   pod 'Crashlytics', '~> 3.12.0'
   

@@ -90,6 +90,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
             if (self.stream.posts.count == 0) {
                 UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:howToCellReuseIdentifier forIndexPath:indexPath];
                 cell.selectionStyle = UITableViewCellSelectionStyleNone;
+                cell.backgroundColor = [UIColor contentBackgroundColor];
                 
                 if (cell == nil) {
                     cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:howToCellReuseIdentifier];
@@ -110,7 +111,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
                     titleLabel.text = @"About Icebreakers";
                     titleLabel.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightSemibold];
                     titleLabel.textAlignment = NSTextAlignmentCenter;
-                    titleLabel.textColor = [UIColor bonfireBlack];
+                    titleLabel.textColor = [UIColor bonfirePrimaryColor];
                     [cell.contentView addSubview:titleLabel];
                 }
                 
@@ -121,7 +122,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
                     descriptionLabel.text = @"Introduce new members to the Camp by prompting them to reply to a post when they join";
                     descriptionLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightRegular];
                     descriptionLabel.textAlignment = NSTextAlignmentCenter;
-                    descriptionLabel.textColor = [UIColor bonfireGray];
+                    descriptionLabel.textColor = [UIColor bonfireSecondaryColor];
                     descriptionLabel.numberOfLines = 0;
                     descriptionLabel.lineBreakMode = NSLineBreakByWordWrapping;
                     CGFloat descriptionHeight = ceilf([descriptionLabel.text boundingRectWithSize:CGSizeMake(descriptionLabel.frame.size.width, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName: descriptionLabel.font} context:nil].size.height);
@@ -132,6 +133,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
                 UIActivityIndicatorView *spinner = [cell.contentView viewWithTag:13];
                 if (!spinner) {
                     spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+                    spinner.color = [UIColor bonfireSecondaryColor];
                     spinner.tag = 13;
                     spinner.frame = CGRectMake(0, 0, cell.frame.size.width, cell.frame.size.height);
                     [spinner startAnimating];
@@ -185,6 +187,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
                 cell.showCamptag = true;
                 cell.hideActions = false;
                 cell.post = post;
+                cell.moreButton.hidden = true;
                 
                 cell.lineSeparator.hidden = true;
                 
@@ -272,6 +275,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     if (section == 0) {
         BFHeaderView *headerView = [[BFHeaderView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, [BFHeaderView height])];
         headerView.title = @"Active";
+        headerView.separator = false;
         return headerView;
     }
     else if (section == 1) {
@@ -294,7 +298,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
 //
 //        UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(8, imageView.frame.origin.y + imageView.frame.size.height + 10, upsell.frame.size.width - 16, 21)];
 //        title.text = @"About Icebreakers";
-//        title.textColor = [UIColor bonfireBlack];
+//        title.textColor = [UIColor bonfirePrimaryColor];
 //        title.textAlignment = NSTextAlignmentCenter;
 //        title.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightSemibold];
 //        [upsell addSubview:title];
@@ -302,7 +306,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
 //        // Easily invite new members to introduce themselves with an Icebreaker post after they join your Camp
 //        UILabel *description = [[UILabel alloc] initWithFrame:CGRectMake(32, title.frame.origin.y + title.frame.size.height + 6, upsell.frame.size.width - 64, 19)];
 //        description.text = @"Introduce new members to the Camp with an Icebreaker post when they join";
-//        description.textColor = [UIColor bonfireGray];
+//        description.textColor = [UIColor bonfireSecondaryColor];
 //        description.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightMedium];
 //        description.textAlignment = NSTextAlignmentCenter;
 //        description.numberOfLines = 0;

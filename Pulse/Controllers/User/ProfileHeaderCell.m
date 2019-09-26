@@ -22,7 +22,7 @@
     self = [super initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:reuseIdentifier];
     if (self) {
         // general cell styling
-        self.backgroundColor = [UIColor whiteColor];
+        self.backgroundColor = [UIColor contentBackgroundColor];
         self.separatorInset = UIEdgeInsetsMake(0, 62, 0, 0);
         self.selectionStyle = UITableViewCellSelectionStyleNone;
         
@@ -39,7 +39,7 @@
         self.followingButton = [UIButton buttonWithType:UIButtonTypeSystem];
         self.followingButton.frame = CGRectMake(PROFILE_HEADER_EDGE_INSETS.left, 0, self.profilePicture.frame.origin.x - PROFILE_HEADER_EDGE_INSETS.left, 34);
         self.followingButton.center = CGPointMake(self.followingButton.center.x, self.profilePicture.center.y);
-        [self.followingButton setTitleColor:[UIColor colorWithWhite:0.33f alpha:1] forState:UIControlStateNormal];
+        [self.followingButton setTitleColor:[UIColor bonfireSecondaryColor] forState:UIControlStateNormal];
         [self.followingButton.titleLabel setFont:[UIFont systemFontOfSize:16.f weight:UIFontWeightBold]];
         self.followingButton.titleLabel.lineBreakMode = NSLineBreakByWordWrapping;
         self.followingButton.titleLabel.textAlignment = NSTextAlignmentCenter;
@@ -54,7 +54,7 @@
         self.campsButton = [UIButton buttonWithType:UIButtonTypeSystem];
         self.campsButton.frame = CGRectMake(self.profilePicture.frame.origin.x + self.profilePicture.frame.size.width, 0, self.followingButton.frame.size.width, 34);
         self.campsButton.center = CGPointMake(self.campsButton.center.x, self.profilePicture.center.y);
-        [self.campsButton setTitleColor:[UIColor colorWithWhite:0.33f alpha:1] forState:UIControlStateNormal];
+        [self.campsButton setTitleColor:[UIColor bonfireSecondaryColor] forState:UIControlStateNormal];
         [self.campsButton.titleLabel setFont:self.followingButton.titleLabel.font];
         self.campsButton.titleLabel.lineBreakMode = NSLineBreakByWordWrapping;
         self.campsButton.titleLabel.textAlignment = NSTextAlignmentCenter;
@@ -67,7 +67,7 @@
         [self.contentView addSubview:self.campsButton];
         
         self.textLabel.font = PROFILE_HEADER_DISPLAY_NAME_FONT;
-        self.textLabel.textColor = [UIColor bonfireBlack];
+        self.textLabel.textColor = [UIColor bonfirePrimaryColor];
         self.textLabel.textAlignment = NSTextAlignmentCenter;
         self.textLabel.numberOfLines = 0;
         self.textLabel.lineBreakMode = NSLineBreakByWordWrapping;
@@ -77,7 +77,7 @@
         //UIFont *heavyItalicFont = [UIFont fontWithDescriptor:[[[UIFont systemFontOfSize:PROFILE_HEADER_USERNAME_FONT.pointSize weight:UIFontWeightHeavy] fontDescriptor] fontDescriptorWithSymbolicTraits:UIFontDescriptorTraitItalic] size:PROFILE_HEADER_USERNAME_FONT.pointSize];
         self.detailTextLabel.font = [UIFont systemFontOfSize:PROFILE_HEADER_USERNAME_FONT.pointSize weight:UIFontWeightHeavy];
         self.detailTextLabel.textAlignment = NSTextAlignmentCenter;
-        self.detailTextLabel.textColor = [UIColor colorWithWhite:0.47f alpha:1];
+        self.detailTextLabel.textColor = [UIColor bonfireSecondaryColor];
         self.detailTextLabel.numberOfLines = 0;
         self.detailTextLabel.lineBreakMode = NSLineBreakByWordWrapping;
         self.detailTextLabel.backgroundColor = [UIColor clearColor];
@@ -88,7 +88,7 @@
         self.bioLabel.userInteractionEnabled = true;
         self.bioLabel.font = PROFILE_HEADER_BIO_FONT;
         self.bioLabel.textAlignment = NSTextAlignmentCenter;
-        self.bioLabel.textColor = [UIColor colorWithWhite:0.33f alpha:1];
+        self.bioLabel.textColor = [UIColor bonfirePrimaryColor];
         self.bioLabel.numberOfLines = 0;
         self.bioLabel.lineBreakMode = NSLineBreakByWordWrapping;
         self.bioLabel.delegate = self;
@@ -167,7 +167,7 @@
         [self.contentView addSubview:self.followButton];
         
         self.lineSeparator = [[UIView alloc] init];
-        self.lineSeparator.backgroundColor = [UIColor separatorColor];
+        self.lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
         //[self.contentView addSubview:self.lineSeparator];
         
         #ifdef DEBUG
@@ -219,6 +219,7 @@
     CGFloat bottomY;
     
     CGFloat maxWidth = self.frame.size.width - (PROFILE_HEADER_EDGE_INSETS.left + PROFILE_HEADER_EDGE_INSETS.right);
+    maxWidth = maxWidth > IPAD_CONTENT_MAX_WIDTH ? IPAD_CONTENT_MAX_WIDTH : maxWidth;
     
     // line separator
     self.lineSeparator.frame = CGRectMake(0, self.frame.size.height - (1 / [UIScreen mainScreen].scale), self.frame.size.width, (1 / [UIScreen mainScreen].scale));
@@ -239,7 +240,7 @@
     
     // text label
     CGRect textLabelRect = [self.textLabel.attributedText boundingRectWithSize:CGSizeMake(maxWidth, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) context:nil];
-    self.textLabel.frame = CGRectMake(PROFILE_HEADER_EDGE_INSETS.left, bottomY + PROFILE_HEADER_AVATAR_BOTTOM_PADDING, maxWidth, ceilf(textLabelRect.size.height));
+    self.textLabel.frame = CGRectMake(self.frame.size.width / 2 - maxWidth / 2, bottomY + PROFILE_HEADER_AVATAR_BOTTOM_PADDING, maxWidth, ceilf(textLabelRect.size.height));
     bottomY = self.textLabel.frame.origin.y + self.textLabel.frame.size.height;
     
     // detail text label
@@ -262,7 +263,7 @@
         bottomY = self.detailsCollectionView.frame.origin.y + self.detailsCollectionView.frame.size.height;
     }
     
-    self.followButton.frame = CGRectMake(PROFILE_HEADER_EDGE_INSETS.left, bottomY + PROFILE_HEADER_FOLLOW_BUTTON_TOP_PADDING, maxWidth, 36);
+    self.followButton.frame = CGRectMake(self.frame.size.width / 2 - maxWidth / 2, bottomY + PROFILE_HEADER_FOLLOW_BUTTON_TOP_PADDING, maxWidth, 36);
 }
 
 - (BOOL)isCurrentUser {
@@ -273,7 +274,7 @@
     if (user != _user) {
         _user = user;
                 
-        self.tintColor = [[user.attributes.details.color lowercaseString] isEqualToString:@"ffffff"] ? [UIColor bonfireBlack] : [UIColor fromHex:user.attributes.details.color];
+        self.tintColor = [[user.attributes.details.color lowercaseString] isEqualToString:@"ffffff"] ? [UIColor bonfirePrimaryColor] : [UIColor fromHex:user.attributes.details.color];
         
         self.profilePicture.user = user;
         
@@ -347,10 +348,10 @@
                                range:NSMakeRange(0, attrString.length)];
             // style stat
             [attrString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:self.campsButton.titleLabel.font.pointSize weight:UIFontWeightBold] range:NSMakeRange(0, [NSString stringWithFormat:@"%ld", (long)s].length)];
-            [attrString addAttribute:NSForegroundColorAttributeName value:(s==0?[UIColor bonfireGray]:[UIColor colorWithWhite:0.33f alpha:1]) range:NSMakeRange(0, [NSString stringWithFormat:@"%ld", (long)s].length)];
+            [attrString addAttribute:NSForegroundColorAttributeName value:(s==0?[UIColor bonfireSecondaryColor]:[UIColor bonfirePrimaryColor]) range:NSMakeRange(0, [NSString stringWithFormat:@"%ld", (long)s].length)];
             // style label
             [attrString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:self.campsButton.titleLabel.font.pointSize weight:UIFontWeightMedium] range:NSMakeRange([NSString stringWithFormat:@"%ld", (long)s].length + 1, l.length)];
-            [attrString addAttribute:NSForegroundColorAttributeName value:[UIColor bonfireGray] range:NSMakeRange([NSString stringWithFormat:@"%ld", (long)s].length + 1, l.length)];
+            [attrString addAttribute:NSForegroundColorAttributeName value:[UIColor bonfireSecondaryColor] range:NSMakeRange([NSString stringWithFormat:@"%ld", (long)s].length + 1, l.length)];
             
             return attrString;
         };

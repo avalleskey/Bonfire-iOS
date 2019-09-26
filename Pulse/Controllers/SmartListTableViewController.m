@@ -47,10 +47,10 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
 - (void)setupTableView {
     self.tableView.delegate = self;
     self.tableView.dataSource = self;
-    self.tableView.backgroundColor = [UIColor headerBackgroundColor];
+    self.tableView.backgroundColor = [UIColor tableViewBackgroundColor];
     self.tableView.separatorStyle = UITableViewCellSeparatorStyleSingleLine;
     self.tableView.separatorInset = UIEdgeInsetsMake(0, 16, 0, 0);
-    self.tableView.separatorColor = [UIColor separatorColor];
+    self.tableView.separatorColor = [UIColor tableViewSeparatorColor];
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
     self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 48, 0);
     
@@ -237,7 +237,7 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
         
         UILabel *descriptionLabel = [[UILabel alloc] initWithFrame:CGRectMake(12, 12, footer.frame.size.width - 24, 42)];
         descriptionLabel.text = [self parse:s.footer];
-        descriptionLabel.textColor = [UIColor bonfireGray];
+        descriptionLabel.textColor = [UIColor bonfireSecondaryColor];
         descriptionLabel.font = [UIFont systemFontOfSize:13.f weight:UIFontWeightRegular];
         descriptionLabel.textAlignment = NSTextAlignmentLeft;
         descriptionLabel.numberOfLines = 0;

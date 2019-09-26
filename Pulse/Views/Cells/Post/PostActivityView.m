@@ -9,24 +9,17 @@
 #import "PostActivityView.h"
 #import "UIColor+Palette.h"
 
-#define postActivityFontSize 11.f
+#define postActivityFontSize 12.f
 #define postActivityTextColor [UIColor colorWithWhite:0.6 alpha:1]
 
 @interface PostActivityView () {
     NSTimer *timer;
     int step;
-    BOOL active;
 }
 
 @property (nonatomic, strong) UILabel *dateLabel;
 @property (nonatomic, strong) UILabel *firstToReplyLabel;
 @property (nonatomic, strong) UIButton *liveCountButton;
-
-typedef enum {
-    PostActivityViewTagDate,
-    PostActivityViewTagAddReply,
-    PostActivityViewTagLive
-} PostActivityViewTag;
 
 @end
 
@@ -55,7 +48,7 @@ typedef enum {
 }
 
 - (void)setup {
-    self.backgroundColor = [UIColor headerBackgroundColor];
+    self.backgroundColor = [UIColor tableViewBackgroundColor];
     self.tintColor = self.superview.tintColor;
     
     self.clipsToBounds = true;
@@ -73,15 +66,23 @@ typedef enum {
 - (void)initViews {
     self.views = [[NSMutableArray alloc] init];
     
-    [self addSubview:[self createDateLabel]];
-    [self addSubview:[self createFirstToReplyLabel]];
-    [self addSubview:[self createLiveCountButton]];
+    [self createDateLabel];
+    [self createFirstToReplyLabel];
+    [self createLiveCountButton];
+}
+
+- (void)setLink:(PostAttachmentsLink *)link {
+    if (link != _link) {
+        _link = link;
+                
+        [self updateViews];
+    }
 }
 
 - (void)setPost:(Post *)post {
     if (post != _post) {
         _post = post;
-        
+                
         [self updateViews];
     }
 }
@@ -97,6 +98,7 @@ typedef enum {
         self.dateLabel = [[UILabel alloc] initWithFrame:self.bounds];
         self.dateLabel.textColor = self.tintColor;
         self.dateLabel.textAlignment = NSTextAlignmentCenter;
+        [self addSubview:self.dateLabel];
         
         [self updateDateLabelText];
     }
@@ -133,7 +135,12 @@ typedef enum {
 - (UILabel *)createFirstToReplyLabel {
     self.firstToReplyLabel = [[UILabel alloc] initWithFrame:self.bounds];
     self.firstToReplyLabel.tag = PostActivityViewTagAddReply;
-    self.firstToReplyLabel.text = @"Be the first to reply!";
+    if (self.link) {
+        self.firstToReplyLabel.text = @"Be the first to talk about it!";
+    }
+    else if (self.post) {
+        self.firstToReplyLabel.text = @"Be the first to reply!";
+    }
     self.firstToReplyLabel.textColor = self.tintColor;
     self.firstToReplyLabel.textAlignment = NSTextAlignmentCenter;
     self.firstToReplyLabel.font = [UIFont systemFontOfSize:postActivityFontSize weight:UIFontWeightSemibold];
@@ -146,12 +153,13 @@ typedef enum {
 - (void)updateFirstToReplyLabel {
     if (self.post.attributes.summaries.counts.replies > 0) {
         [self.views removeObject:self.firstToReplyLabel];
-        
+        [self.firstToReplyLabel removeFromSuperview];
         return;
     }
     else {
         if (![self.views containsObject:self.firstToReplyLabel]) {
             [self.views addObject:self.firstToReplyLabel];
+            [self addSubview:self.firstToReplyLabel];
             return;
         }
     }
@@ -171,13 +179,12 @@ typedef enum {
 - (void)updateLiveCountText {
     if (self.post.attributes.summaries.counts.live == 0) {
         [self.views removeObject:self.liveCountButton];
+        [self.liveCountButton removeFromSuperview];
         return;
     }
-    else {
-        if (![self.views containsObject:self.liveCountButton]) {
-            [self.views addObject:self.liveCountButton];
-            return;
-        }
+    else if (![self.views containsObject:self.liveCountButton]) {
+        [self.views addObject:self.liveCountButton];
+        [self addSubview:self.liveCountButton];
     }
     
     // use button so we can easily add the live dot to the left
@@ -186,35 +193,22 @@ typedef enum {
     if (liveCount == 0) {
         [self.liveCountButton setTitle:@"Spark this post to help it go viral!" forState:UIControlStateNormal];
         [self.liveCountButton.titleLabel setFont:[UIFont systemFontOfSize:postActivityFontSize weight:UIFontWeightSemibold]];
-        [self.liveCountButton setTitleColor:postActivityTextColor forState:UIControlStateNormal];
+        [self.liveCountButton setTitleColor:self.tintColor forState:UIControlStateNormal];
     }
     else {
-        [self.liveCountButton setImage:[UIImage imageNamed:@"postLiveDot"] forState:UIControlStateNormal];
-        
-        CABasicAnimation *pulseAnimation;
-        pulseAnimation=[CABasicAnimation animationWithKeyPath:@"opacity"];
-        pulseAnimation.duration = 1.0;
-        pulseAnimation.repeatCount=HUGE_VALF;
-        pulseAnimation.autoreverses = YES;
-        pulseAnimation.fromValue=[NSNumber numberWithFloat:1.0];
-        pulseAnimation.toValue=[NSNumber numberWithFloat:0.6];
-        [self.liveCountButton.imageView.layer addAnimation:pulseAnimation forKey:@"animateOpacity"];
-        
-        [self.liveCountButton setTitleEdgeInsets:UIEdgeInsetsMake(0, 6, 0, 0)];
-        [self.liveCountButton setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 6)];
-        NSMutableAttributedString *liveString = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"%ld LIVE", (long)liveCount]];
+        NSMutableAttributedString *liveString = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"%ld active", (long)liveCount]];
         [liveString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:postActivityFontSize weight:UIFontWeightSemibold] range:NSMakeRange(0, liveString.length)];
-        NSMutableAttributedString *timeString = [[NSMutableAttributedString alloc] initWithString:@" in the last 24hr"];
+        NSMutableAttributedString *timeString = [[NSMutableAttributedString alloc] initWithString:@" in the last 24hr 🔥"];
         [timeString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:postActivityFontSize weight:UIFontWeightRegular] range:NSMakeRange(0, timeString.length)];
         [liveString appendAttributedString:timeString];
-        [liveString addAttribute:NSForegroundColorAttributeName value:[UIColor bonfireRed] range:NSMakeRange(0, liveString.length)];
+        [liveString addAttribute:NSForegroundColorAttributeName value:[UIColor bonfireBrand] range:NSMakeRange(0, liveString.length)];
         [self.liveCountButton setAttributedTitle:liveString forState:UIControlStateNormal];
     }
 }
 
 - (void)start {
-    if (!active) {
-        active = true;
+    if (!_active) {
+        _active = true;
         
         [self stop];
         if (self.views.count > 1) {
@@ -226,7 +220,7 @@ typedef enum {
     }
 }
 - (void)stop {
-    active = false;
+    _active = false;
     
     [timer invalidate];
     timer = nil;
@@ -244,8 +238,10 @@ typedef enum {
     step = step + 1;
     if (step >= self.views.count) {
         step = 0;
+        [self updateViews];
     }
     UIView *nextView = self.views[step];
+    NSLog(@"next view ? %@", nextView);
     
     // animate current one out
     if (currentView != nextView) {
@@ -273,6 +269,10 @@ typedef enum {
                                              target: self
                                            selector:@selector(next)
                                            userInfo: nil repeats:NO];
+}
+
+- (PostActivityViewTag)currentViewTag {
+    return (PostActivityViewTag)((UIView *)self.views[step]).tag;
 }
 
 - (void)setTintColor:(UIColor *)tintColor {

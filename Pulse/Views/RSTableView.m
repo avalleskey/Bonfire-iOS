@@ -15,6 +15,7 @@
 #import "StreamPostCell.h"
 #import "ReplyCell.h"
 #import "ExpandThreadCell.h"
+#import "ExpandedPostCell.h"
 #import "AddReplyCell.h"
 
 #import "LoadingCell.h"
@@ -30,11 +31,27 @@
 #import <HapticHelper/HapticHelper.h>
 @import Firebase;
 
+#define SHOW_CURSORS false
+
+@interface RSTableView ()
+
+@property (strong, nonatomic) NSMutableDictionary *cellHeightsDictionary;
+@property (nonatomic) BOOL isScrolling;
+@property (nonatomic) BOOL pendingRefresh;
+
+@end
+
 @implementation RSTableView
 
 @synthesize dataType = _dataType;  //Must do this
 
+static NSString * const expandedPostReuseIdentifier = @"ExpandedPost";
 static NSString * const streamPostReuseIdentifier = @"StreamPost";
+static NSString * const streamMediaPostReuseIdentifier = @"StreamPost_media";
+static NSString * const streamLinkPostReuseIdentifier = @"StreamPost_link";
+static NSString * const streamCampPostReuseIdentifier = @"StreamPost_camp";
+static NSString * const streamUserPostReuseIdentifier = @"StreamPost_user";
+
 static NSString * const postReplyReuseIdentifier = @"ReplyReuseIdentifier";
 static NSString * const expandRepliesCellIdentifier = @"ExpandRepliesReuseIdentifier";
 static NSString * const addReplyCellIdentifier = @"AddReplyReuseIdentifier";
@@ -81,27 +98,53 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         _tableViewStyle = tableViewStyle;
         
         if (tableViewStyle == RSTableViewStyleDefault) {
-            self.backgroundColor = [UIColor whiteColor];
+            self.backgroundColor = [UIColor colorNamed:@"FullContrastColor"];
         }
         else {
-            self.backgroundColor = [UIColor headerBackgroundColor];
+            self.backgroundColor = [UIColor tableViewBackgroundColor];
         }
         
         [self refresh];
     }
 }
 
-- (void)refresh {
+- (void)hardRefresh {
+    self.cellHeightsDictionary = @{}.mutableCopy;
+    
     [self reloadData];
-    // [self layoutIfNeeded];
+    [self layoutIfNeeded];
     
     if (!self.loading) {
         [self.refreshControl endRefreshing];
     }
 }
+- (void)refresh {
+    self.cellHeightsDictionary = @{}.mutableCopy;
+    
+    [self layoutIfNeeded];
+    CGSize beforeContentSize = self.contentSize;
+    
+    BOOL wasLoading = ([[self.visibleCells firstObject] isKindOfClass:[LoadingCell class]]);
+    
+    [self reloadData];
+    [self layoutIfNeeded];
+    
+    if (!self.loading && !wasLoading) {
+        [self.refreshControl endRefreshing];
+        
+        if (self.dataType == RSTableViewTypeFeed) {
+            CGSize afterContentSize = self.contentSize;
+
+            CGPoint afterContentOffset = self.contentOffset;
+            CGPoint newContentOffset = CGPointMake(afterContentOffset.x, afterContentOffset.y + afterContentSize.height - beforeContentSize.height);
+            self.contentOffset = newContentOffset;
+        }
+    }
+}
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
-    if ([self.extendedDelegate respondsToSelector:@selector(tableViewDidScroll:)]) {
+    if (scrollView == self &&
+        [self.extendedDelegate respondsToSelector:@selector(tableViewDidScroll:)]) {
         [self.extendedDelegate tableViewDidScroll:self];
     }
 }
@@ -117,16 +160,26 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     self.loadingMore = false;
     self.delegate = self;
     self.dataSource = self;
-    self.separatorColor = [UIColor separatorColor];
+    self.separatorColor = [UIColor tableViewSeparatorColor];
     self.separatorStyle = UITableViewCellSeparatorStyleNone;
     self.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentAlways;
+    self.cellHeightsDictionary = @{}.mutableCopy;
     self.estimatedRowHeight = 0;
+    self.estimatedSectionHeaderHeight = 0;
+    self.estimatedSectionFooterHeight = 0;
     self.tableViewStyle = RSTableViewStyleDefault;
     
     self.refreshControl = [[UIRefreshControl alloc] init];
     [self sendSubviewToBack:self.refreshControl];
         
+    [self registerClass:[ExpandedPostCell class] forCellReuseIdentifier:expandedPostReuseIdentifier];
+    
     [self registerClass:[StreamPostCell class] forCellReuseIdentifier:streamPostReuseIdentifier];
+    [self registerClass:[StreamPostCell class] forCellReuseIdentifier:streamMediaPostReuseIdentifier];
+    [self registerClass:[StreamPostCell class] forCellReuseIdentifier:streamLinkPostReuseIdentifier];
+    [self registerClass:[StreamPostCell class] forCellReuseIdentifier:streamCampPostReuseIdentifier];
+    [self registerClass:[StreamPostCell class] forCellReuseIdentifier:streamUserPostReuseIdentifier];
+    
     [self registerClass:[ReplyCell class] forCellReuseIdentifier:postReplyReuseIdentifier];
     [self registerClass:[ExpandThreadCell class] forCellReuseIdentifier:expandRepliesCellIdentifier];
     [self registerClass:[AddReplyCell class] forCellReuseIdentifier:addReplyCellIdentifier];
@@ -146,10 +199,11 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     
     if (post != nil) {
         // new post appears valid
-        BOOL changes = [self.stream updatePost:post];
+        BOOL changes = [self.stream updatePost:post removeDuplicates:true];
         
         if (changes) {
             // 💫 changes made
+            _cellHeightsDictionary = [NSMutableDictionary new];
             
             // NSLog(@"parent controller: %@", UIViewParentController(self));
             if (![[Launcher activeViewController] isEqual:UIViewParentController(self)]) {
@@ -167,6 +221,13 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     
     BOOL removePost = false;
     BOOL refresh = false;
+    
+    Post *postInStream = [self.stream postWithId:post.identifier];
+    if (postInStream) {
+        removePost = true;
+        refresh = true;
+    }
+    
     if ([self.parentObject isKindOfClass:[Camp class]] && postedInCamp) {
         Camp *parentCamp = self.parentObject;
         
@@ -208,38 +269,9 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             }
         }
     }
-    else if ([self.parentObject isKindOfClass:[Post class]]) {
-        Post *parentPost = self.parentObject;
-        
-        if (isReply &&
-            (parentPost.identifier == post.attributes.details.parentId)) {
-            // --> reply to the parent Post
-            // Decrement Post replies count
-            removePost = true;
-            refresh = true;
-            
-            NSLog(@"✅ Remove reply inside Post");
-        }
-    }
-    else if (self.dataType == RSTableViewTypeFeed) {
-        Post *postInStream = [self.stream postWithId:post.identifier];
-        
-        if (postInStream) {
-            removePost = true;
-            refresh = true;
-        }
-    }
-    else if (self.dataType == RSTableViewTypeProfile) {
-        Post *postInStream = [self.stream postWithId:post.identifier];
-        
-        if (postInStream) {
-            removePost = true;
-            refresh = true;
-        }
-    }
     
     if (removePost) [self.stream removePost:post];
-    if (refresh) [self refresh];
+    if (refresh) [self hardRefresh];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -261,7 +293,6 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         
         NSInteger postType = (indexPath.section) % 3;
         cell.type = postType;
-        cell.shimmerContainer.shimmering = true;
         
         cell.userInteractionEnabled = false;
         
@@ -280,38 +311,55 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         // (x+1)+1 : --- "view more replies"
         // (x+1)+2 : --- "add a reply..."
         
-        BOOL showViewMore = (replies < post.attributes.summaries.counts.replies);
+        BOOL showViewMore = post.attributes.summaries.replies.count > 0 && (replies < post.attributes.summaries.counts.replies);
         BOOL showAddReply = post.attributes.summaries.replies.count > 0;
         
         NSInteger firstReplyIndex = 1;
         
         if (indexPath.row == 0) {
-            StreamPostCell *cell = [tableView dequeueReusableCellWithIdentifier:streamPostReuseIdentifier forIndexPath:indexPath];
-            
-            if (cell == nil) {
-                cell = [[StreamPostCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:streamPostReuseIdentifier];
+            NSString *reuseIdentifier = streamPostReuseIdentifier;
+            if (!post.attributes.details.attachments) {
+                reuseIdentifier = streamPostReuseIdentifier;
             }
-            
+            else if (post.attributes.details.attachments.media) {
+                reuseIdentifier = streamMediaPostReuseIdentifier;
+            }
+            else if (post.attributes.details.attachments.link) {
+                reuseIdentifier = streamLinkPostReuseIdentifier;
+            }
+            else if (post.attributes.details.attachments.user) {
+                reuseIdentifier = streamUserPostReuseIdentifier;
+            }
+            else if (post.attributes.details.attachments.camp) {
+                reuseIdentifier = streamCampPostReuseIdentifier;
+            }
+
+            StreamPostCell *cell = [tableView dequeueReusableCellWithIdentifier:reuseIdentifier forIndexPath:indexPath];
+
+            if (cell == nil) {
+                cell = [[StreamPostCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:reuseIdentifier];
+            }
+
             NSString *identifierBefore = cell.post.identifier;
-            
+
             cell.showContext = true;
             cell.showCamptag = true;
             cell.post = post;
-            
+
             [cell.actionsView setSummaries:post.attributes.summaries];
-            
+
             if (cell.post.identifier != 0 && [identifierBefore isEqualToString:cell.post.identifier]) {
                 [self didBeginDisplayingCell:cell];
             }
-            
+
             if (cell.actionsView.replyButton.gestureRecognizers.count == 0) {
                 [cell.actionsView.replyButton bk_whenTapped:^{
                     [Launcher openComposePost:cell.post.attributes.status.postedIn inReplyTo:cell.post withMessage:nil media:nil];
                 }];
             }
-            
+
             cell.lineSeparator.hidden = post.attributes.summaries.replies.count > 0 || showViewMore || showAddReply;
-            
+
             return cell;
         }
         else if ((indexPath.row - firstReplyIndex) <  post.attributes.summaries.replies.count) {
@@ -352,7 +400,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             
             BOOL hasExistingReplies = post.attributes.summaries.replies.count != 0;
             cell.textLabel.text = [NSString stringWithFormat:@"View%@ replies (%ld)", (hasExistingReplies ? @" more" : @""), (long)post.attributes.summaries.counts.replies - post.attributes.summaries.replies.count];
-            cell.textLabel.textColor = [UIColor bonfireBlack];
+            cell.textLabel.textColor = [UIColor bonfirePrimaryColor];
             
             if (hasExistingReplies) {
                 // view more replies
@@ -375,7 +423,10 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                 cell = [[AddReplyCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:addReplyCellIdentifier];
             }
             
-            cell.addReplyLabel.text = [NSString stringWithFormat:@"Reply to @%@...", post.attributes.details.creator.attributes.details.identifier];
+            NSString *username = post.attributes.details.creator.attributes.details.identifier;
+            NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"Reply to @%@...", username] attributes:@{NSFontAttributeName: cell.addReplyLabel.font, NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
+            [attributedString setAttributes:@{NSFontAttributeName: [UIFont systemFontOfSize:cell.addReplyLabel.font.pointSize weight:UIFontWeightSemibold]} range:[attributedString.string rangeOfString:[NSString stringWithFormat:@"@%@", username]]];
+            cell.addReplyLabel.attributedText = attributedString;
             
             return cell;
         }
@@ -387,9 +438,15 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    CGFloat height = 0;
+    
+    if ([_cellHeightsDictionary objectForKey:indexPath] && !self.loading) {
+        return [_cellHeightsDictionary[indexPath] doubleValue];
+    }
+    
     if (indexPath.section == 0) {
         if ([self.extendedDelegate respondsToSelector:@selector(heightForRowInFirstSection:)]) {
-            return [self.extendedDelegate heightForRowInFirstSection:indexPath.row];
+            height = [self.extendedDelegate heightForRowInFirstSection:indexPath.row];
         }
     }
     else if (indexPath.section - 1 < self.stream.posts.count && [self.stream.posts[indexPath.section-1].type isEqualToString:@"post"]) {
@@ -408,15 +465,15 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         else if ((indexPath.row - firstReplyIndex) <  post.attributes.summaries.replies.count) {
             NSInteger replyIndex = indexPath.row - firstReplyIndex;
             Post *reply = post.attributes.summaries.replies[replyIndex];
-            return [ReplyCell heightForPost:reply];
+            height = [ReplyCell heightForPost:reply];
         }
         else if (showViewMore && indexPath.row == post.attributes.summaries.replies.count + firstReplyIndex) {
             // "view more replies"
-            return CONVERSATION_EXPAND_CELL_HEIGHT;
+            height = CONVERSATION_EXPAND_CELL_HEIGHT;
         }
         else if (showAddReply && indexPath.row == post.attributes.summaries.replies.count + firstReplyIndex + (showViewMore ? 1 : 0)) {
             // "add a reply"
-            return [AddReplyCell height];
+            height = [AddReplyCell height];
         }
     }
     else if (self.stream.posts.count == 0 && self.loading) {
@@ -425,27 +482,38 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         // 295: 1 line w/ image post
         switch (indexPath.section % 3) {
             case 0:
-                return 102;
+                height = 102;
                 break;
             case 1:
-                return 123;
+                height = 123;
                 break;
             case 2:
-                return 310;
+                height = 310;
                 break;
                 
             default:
-                return 102;
+                height = 102;
                 break;
         }
     }
     else if (indexPath.section - 1 == self.stream.posts.count) {
         // pagination cell
-        return 52;
+        height = 52;
     }
     
-    return 0;
+    if (!self.loading) {
+        [self.cellHeightsDictionary setObject:@(height) forKey:indexPath];
+    }
+    
+    return height;
 }
+
+// give exact height value
+//- (CGFloat)tableView:(UITableView *)tableView estimatedHeightForRowAtIndexPath:(NSIndexPath *)indexPath {
+//    NSNumber *height = [self.cellHeightsDictionary objectForKey:indexPath];
+//    if (height) return height.doubleValue;
+//    return 0;
+//}
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {    
     if (self.loading && self.stream.posts.count == 0) {
@@ -457,7 +525,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     
     if (self.stream.posts.count == 0 && self.loading) {
         // loading cells
-        return 1 + 10;
+        return 10;
     }
     
     return 1 + self.stream.posts.count;
@@ -484,7 +552,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         // x+1 : "view more replies"
         // x+2 : "add a reply..."
         
-        BOOL showViewMore = (replies < reply.attributes.summaries.counts.replies);
+        BOOL showViewMore = reply.attributes.summaries.replies.count > 0 && (replies < reply.attributes.summaries.counts.replies);
         BOOL showAddReply = reply.attributes.summaries.replies.count > 0;
         
         NSInteger rows = 1 + replies + (showViewMore ? 1 : 0) + (showAddReply ? 1 : 0);
@@ -521,13 +589,20 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                                          @"post_id": post.identifier
                                          }];
         
-        [Launcher openPost:post withKeyboard:false];
+        if ([post.identifier isEqualToString:@"3547"]) {
+            PostAttachmentsLink *link = post.attributes.details.attachments.link;
+            link.attributes.postedIn = post.attributes.status.postedIn;
+            [Launcher openLinkConversations:link withKeyboard:false];
+        }
+        else {
+            [Launcher openPost:post withKeyboard:false];
+        }
     }
 }
 //@property (nonatomic) NSInteger lastSinceId;
-- (void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
-    
-}
+//- (void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
+//    [self.cellHeightsDictionary setObject:@(cell.frame.size.height) forKey:indexPath];
+//}
 - (void)didBeginDisplayingCell:(UITableViewCell *)cell {
     Post *post;
     if ([cell isKindOfClass:[PostCell class]]) {
@@ -585,10 +660,10 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         }
     }
     
-#ifdef DEBUG
+#if defined(DEBUG) && SHOW_CURSORS
     if (self.dataType == RSTableViewTypeFeed && section != 0 && self.stream.posts.count > section) {
         Post *post = self.stream.posts[section-1];
-        
+
         if (post.prevCursor.length > 0) {
             return 24;
         }
@@ -613,28 +688,28 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         }
     }
     
-#ifdef DEBUG
+#if defined(DEBUG) && SHOW_CURSORS
     if (self.dataType == RSTableViewTypeFeed && section != 0 && self.stream.posts.count > section) {
         Post *post = self.stream.posts[section-1];
-        
+
         if (post.prevCursor.length > 0) {
             UIView *derp = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, 24)];
-            derp.backgroundColor = [[UIColor separatorColor] colorWithAlphaComponent:0.5];
-            
+            derp.backgroundColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.08];
+
             UILabel *derpLabel = [[UILabel alloc] initWithFrame:CGRectMake(12, 0, derp.frame.size.width - 24, derp.frame.size.height)];
             NSString *string = @"";
             derpLabel.font = [UIFont systemFontOfSize:10.f weight:UIFontWeightRegular];
-            derpLabel.textColor = [UIColor bonfireGray];
+            derpLabel.textColor = [UIColor bonfireSecondaryColor];
             if (post.prevCursor.length > 0) {
                 string = [@"prev: " stringByAppendingString:post.prevCursor];
             }
             derpLabel.text = string;
             [derp addSubview:derpLabel];
-            
+
             [derp bk_whenTapped:^{
                 [Launcher shareOniMessage:[NSString stringWithFormat:@"post id: %@\n\nprev cursor: %@", post.identifier, post.prevCursor] image:nil];
             }];
-            
+
             return derp;
         }
     }
@@ -642,7 +717,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     
     if (section == 0 && self.tableViewStyle == RSTableViewStyleGrouped) {
         UIView *lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, (1 / [UIScreen mainScreen].scale))];
-        lineSeparator.backgroundColor = [UIColor separatorColor];
+        lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
         
         return lineSeparator;
     }
@@ -658,28 +733,30 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                 if ([self.parentObject isKindOfClass:[Camp class]]) {
                     Camp *camp = self.parentObject;
                     
-                    if (camp.attributes.summaries.counts.live >= [Session sharedInstance].defaults.camp.liveThreshold) {
+                    NSLog(@"summaries counts live:: %ld", (long)camp.attributes.summaries.counts.live);
+                    NSLog(@"live threshold:: %ld", (long)[Session sharedInstance].defaults.camp.liveThreshold);
+                    if (camp.attributes.summaries.counts.live >= 5) {
                         UILabel *liveCountLabel = [[UILabel alloc] initWithFrame:CGRectMake(self.frame.size.width - 100 - postContentOffset.right, header.titleLabel.frame.origin.y, 100, header.titleLabel.frame.size.height)];
-                        liveCountLabel.text = [NSString stringWithFormat:@"%ld LIVE", (long)camp.attributes.summaries.counts.live];
-                        liveCountLabel.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightBold];
-                        liveCountLabel.textColor = [UIColor colorWithDisplayP3Red:0.87 green:0.09 blue:0.09 alpha:1];
+                        liveCountLabel.text = [NSString stringWithFormat:@"%ld active 🔥", (long)camp.attributes.summaries.counts.live];
+                        liveCountLabel.font = [UIFont systemFontOfSize:header.titleLabel.font.pointSize weight:UIFontWeightBold];
+                        liveCountLabel.textColor = [UIColor bonfireBrand];
                         liveCountLabel.textAlignment = NSTextAlignmentRight;
                         [header addSubview:liveCountLabel];
                         
                         CGRect liveCountRect = [liveCountLabel.text boundingRectWithSize:CGSizeMake(liveCountLabel.frame.size.width, liveCountLabel.frame.size.height) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:liveCountLabel.font} context:nil];
                         
-                        UIView *liveCountPulse = [[UIView alloc] initWithFrame:CGRectMake(self.frame.size.width - postContentOffset.right - ceilf(liveCountRect.size.width) - 10 - 6, roundf(liveCountLabel.frame.origin.y + (liveCountLabel.frame.size.height / 2) - 4.5), 9, 9)];
+                        UIView *liveCountPulse = [[UIView alloc] initWithFrame:CGRectMake(self.frame.size.width - postContentOffset.right - ceilf(liveCountRect.size.width) - 9 - 4, roundf(liveCountLabel.frame.origin.y + (liveCountLabel.frame.size.height / 2) - 4.5), 9, 9)];
                         liveCountPulse.layer.cornerRadius = liveCountPulse.frame.size.height / 2;
                         liveCountPulse.layer.masksToBounds = true;
                         liveCountPulse.backgroundColor = liveCountLabel.textColor;
                         liveCountPulse.layer.shouldRasterize = true;
                         liveCountPulse.layer.rasterizationScale = [UIScreen mainScreen].scale;
-                        [header addSubview:liveCountPulse];
+                        //[header addSubview:liveCountPulse];
                     }
                 }
             }
             else if (self.dataType == RSTableViewTypeProfile) {
-                header.title = @"Posts";
+                header.title = @"Recent Posts";
             }
             else {
                 header.title = @"Posts";
@@ -707,10 +784,10 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         return showLoadingFooter ? 52 : 0;
     }
     
-#ifdef DEBUG
+#if defined(DEBUG) && SHOW_CURSORS
     if (section != 0 && self.dataType == RSTableViewTypeFeed && self.stream.posts.count > section) {
         Post *post = self.stream.posts[section-1];
-        
+
         if (post.nextCursor.length > 0) {
             return 24;
         }
@@ -727,7 +804,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
 //        }
 //    }
     
-    return (1 / [UIScreen mainScreen].scale);
+    return HALF_PIXEL;
 }
 - (UIView*)tableView:(UITableView*)tableView viewForFooterInSection:(NSInteger)section {
     if (section == 0) {
@@ -745,6 +822,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             UIView *footer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, 52)];
             
             UIActivityIndicatorView *spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+            spinner.color = [UIColor bonfireSecondaryColor];
             spinner.frame = CGRectMake(footer.frame.size.width / 2 - 10, footer.frame.size.height / 2 - 10, 20, 20);
             [footer addSubview:spinner];
             
@@ -762,51 +840,39 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         }
     }
     
-#ifdef DEBUG
+#if defined(DEBUG) && SHOW_CURSORS
     if (section != 0 && self.dataType == RSTableViewTypeFeed && self.stream.posts.count > section) {
         Post *post = self.stream.posts[section-1];
-        
+
         if (post.nextCursor.length > 0) {
             UIView *derp = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, 24)];
             derp.backgroundColor = [[UIColor separatorColor] colorWithAlphaComponent:0.5];
-            
+
             UILabel *derpLabel = [[UILabel alloc] initWithFrame:CGRectMake(12, 0, derp.frame.size.width - 24, derp.frame.size.height)];
             NSString *string = @"";
             derpLabel.font = [UIFont systemFontOfSize:10.f weight:UIFontWeightRegular];
-            derpLabel.textColor = [UIColor bonfireGray];
+            derpLabel.textColor = [UIColor bonfireSecondaryColor];
             if (post.nextCursor.length > 0) {
                 string = [@"next: " stringByAppendingString:post.nextCursor];
             }
             derpLabel.text = string;
             [derp addSubview:derpLabel];
-            
+
             [derp bk_whenTapped:^{
                 [Launcher shareOniMessage:[NSString stringWithFormat:@"post id: %@\n\nnext cursor: %@", post.identifier, post.nextCursor] image:nil];
             }];
-            
+
             return derp;
         }
     }
 #endif
     
-    if (section != 0 || self.tableViewStyle != RSTableViewStyleGrouped) return nil;
+    //if (section != 0 || self.tableViewStyle != RSTableViewStyleGrouped) return nil;
     
-    UIView *lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, (1 / [UIScreen mainScreen].scale))];
-    lineSeparator.backgroundColor = [UIColor separatorColor];
+    UIView *lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, HALF_PIXEL)];
+    lineSeparator.backgroundColor = [UIColor tableViewBackgroundColor];
     
     return lineSeparator;
-}
-
-- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
-//     if (self.dataType == RSTableViewTypeFeed) {
-//         [[NSUserDefaults standardUserDefaults] setFloat:scrollView.contentOffset.y forKey:@"Home_ScrollPosition"];
-//     }
-}
-
-- (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate {
-//    if (self.dataType == RSTableViewTypeFeed) {
-//        [[NSUserDefaults standardUserDefaults] setFloat:scrollView.contentOffset.y forKey:@"Home_ScrollPosition"];
-//    }
 }
 
 @end

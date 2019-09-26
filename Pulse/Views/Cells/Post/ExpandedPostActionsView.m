@@ -53,11 +53,11 @@
         [self addSubview:_voteButton];
         
         _topSeparator = [[UIView alloc] initWithFrame:CGRectMake(self.frame.size.width / 2 - .5, 0, 1, (1 / [UIScreen mainScreen].scale))];
-        _topSeparator.backgroundColor = [UIColor colorWithWhite:0 alpha:0.08];
+        _topSeparator.backgroundColor = [[UIColor tableViewSeparatorColor] colorWithAlphaComponent:0.75];
         [self addSubview:_topSeparator];
         
         _bottomSeparator = [[UIView alloc] initWithFrame:CGRectMake(self.frame.size.width / 2 - .5, self.frame.size.height - _topSeparator.frame.size.height, 1, (1 / [UIScreen mainScreen].scale))];
-        _bottomSeparator.backgroundColor = [UIColor colorWithWhite:0 alpha:0.08];
+        _bottomSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
         [self addSubview:_bottomSeparator];
     }
     return self;

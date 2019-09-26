@@ -19,6 +19,8 @@ NS_ASSUME_NONNULL_BEGIN
  */
 + (UIColor * _Nonnull)fromHex:(NSString *)hex;
 
++ (UIColor * _Nonnull)fromHex:(NSString *)hex adjustForDarkMode:(BOOL)adjustForDarkMode;
+
 /**
  *  Return lighter variant of provided color, given a (optional) specified amount
  *
@@ -47,19 +49,23 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (UIColor * _Nonnull) contentHighlightedColor;
 
++ (UIColor * _Nonnull) cardBackgroundColor;
+
 /**
  *  Header background color
  *
  *  @return UIColor representing the current header background color. May return user-defined Tweak value.
  */
-+ (UIColor * _Nonnull) headerBackgroundColor;
++ (UIColor * _Nonnull) tableViewBackgroundColor;
+
++ (UIColor * _Nonnull) viewBackgroundColor;
 
 /**
  *  Separator background color
  *
  *  @return UIColor representing the current line separator color.
  */
-+ (UIColor * _Nonnull) separatorColor;
++ (UIColor * _Nonnull) tableViewSeparatorColor;
 
 /**
  *  Link color
@@ -73,7 +79,7 @@ NS_ASSUME_NONNULL_BEGIN
  *
  *  @return UIColor representing the color that lines between threaded posts use.
  */
-+ (UIColor * _Nonnull) threadLineColor ;
++ (UIColor * _Nonnull) threadLineColor;
 
 /**
  *  Bonfire brand color of the specified level
@@ -209,18 +215,39 @@ NS_ASSUME_NONNULL_BEGIN
 + (UIColor * _Nonnull)bonfireBrand;
 
 /**
- *  Bonfire Black should be used as the primary action color outside of Camps and User Profiles
+ *  Bonfire primary color
  *
- *  @return UIColor representing Bonfire Black
+ *  @return UIColor representing dark/light mode variant for the Bonfire primary color
  */
-+ (UIColor * _Nonnull)bonfireBlack;
++ (UIColor * _Nonnull)bonfirePrimaryColor;
 
 /**
- *  Bonfire gray color of level 500
+ *  Bonfire secondary color
  *
- *  @return UIColor representing the bonfire color gray at level 500
+ *  @return UIColor representing dark/light mode variant for the Bonfire secondary color
  */
-+ (UIColor * _Nonnull)bonfireGray;
++ (UIColor * _Nonnull)bonfireSecondaryColor;
+
+/**
+ *  Bonfire detail color
+ *
+ *  @return UIColor representing dark/light mode variant for the Bonfire detail color
+ */
++ (UIColor * _Nonnull)bonfireDetailColor;
+
+/**
+ *  Bonfire disabled color
+ *
+ *  @return UIColor representing dark/light mode variant for the Bonfire disabled color
+ */
++ (UIColor * _Nonnull)bonfireDisabledColor;
+
+/**
+ *  Bonfire detail color (on highlight)
+ *
+ *  @return UIColor representing dark/light mode variant for the Bonfire detail color when highlighted
+ */
++ (UIColor * _Nonnull)bonfireDetailHighlightedColor;
 
 /**
  *  Bonfire blue color of level 500
@@ -314,11 +341,11 @@ NS_ASSUME_NONNULL_BEGIN
 + (UIColor * _Nonnull) bonfireTextFieldBackgroundOnWhite;
 
 /**
- *  Bonfire text field background color on light
+ *  Bonfire text field background color on content
  *
- *  @return UIColor representing the bonfire text field background color on light
+ *  @return UIColor representing the bonfire text field background color on content
  */
-+ (UIColor * _Nonnull) bonfireTextFieldBackgroundOnLight;
++ (UIColor * _Nonnull) bonfireTextFieldBackgroundOnContent;
 
 /**
  *  Bonfire text field background color on dark

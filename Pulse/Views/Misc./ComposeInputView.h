@@ -14,6 +14,13 @@
 #import "BFMedia.h"
 #import <HapticHelper/HapticHelper.h>
 
+@protocol ComposeInputViewDelegate <NSObject>
+
+@optional
+- (void)composeInputViewMessageDidChange:(UITextView *)textView;
+
+@end
+
 @interface ComposeInputView : UIView <UITextViewDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, BFMediaDelegate> {
     BOOL _active;
 }
@@ -39,7 +46,11 @@
 
 @property (nonatomic, strong) UIButton *replyingToLabel;
 
+@property (nonatomic, strong) UIView *autoCompleteTableViewContainer;
+@property (nonatomic, strong) UITableView *autoCompleteTableView;
+
 @property (nonatomic, strong) NSArray *mediaTypes;
+@property (nonatomic, strong) NSString *defaultPlaceholder;
 
 - (void)reset;
 
@@ -52,5 +63,7 @@
 - (void)hidePostButton;
 
 - (void)updatePlaceholders;
+
+@property (nonatomic, weak) id <ComposeInputViewDelegate> delegate;
 
 @end

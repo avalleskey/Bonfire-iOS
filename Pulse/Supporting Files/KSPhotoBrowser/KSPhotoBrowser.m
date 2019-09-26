@@ -11,8 +11,8 @@
 #import "UIImage+KS.h"
 #import "KSSDImageManager.h"
 
-static const NSTimeInterval kAnimationDuration = 0.33;
-static const NSTimeInterval kSpringAnimationDuration = 0.5;
+static const NSTimeInterval kAnimationDuration = 0.25;
+static const NSTimeInterval kSpringAnimationDuration = 0.4;
 static const CGFloat kPageControlHeight = 20;
 static const CGFloat kPageControlBottomSpacing = 40;
 
@@ -30,6 +30,7 @@ static Class ImageManagerClass = nil;
 @property (nonatomic, strong) UILabel *pageLabel;
 @property (nonatomic, assign) BOOL presented;
 @property (nonatomic, assign) BOOL statusBarHidden;
+@property (nonatomic, assign) BOOL overlayVisible;
 @property (nonatomic, assign) CGPoint startLocation;
 @property (nonatomic, assign) CGRect startFrame;
 
@@ -197,6 +198,8 @@ static Class ImageManagerClass = nil;
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    
     [self setStatusBarHidden:NO];
 }
 
@@ -552,7 +555,16 @@ static Class ImageManagerClass = nil;
 }
 
 - (void)didSingleTap:(UITapGestureRecognizer *)tap {
-    [self showDismissalAnimation];
+    [self setOverlayVisible:!_overlayVisible];
+    // [self showDismissalAnimation];
+}
+
+- (void)setOverlayVisible:(BOOL)overlayVisible {
+    if (overlayVisible != _overlayVisible) {
+        _overlayVisible = overlayVisible;
+        
+        
+    }
 }
 
 - (void)didDoubleTap:(UITapGestureRecognizer *)tap {

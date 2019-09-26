@@ -14,6 +14,7 @@
 #import "Launcher.h"
 #import "ComposeViewController.h"
 #import "UIImage+fixOrientation.h"
+#import "CampViewController.h"
 @import Firebase;
 
 @interface BFAPI ()
@@ -71,9 +72,7 @@
                         parameters:@{}];
     
     NSString *url = [NSString stringWithFormat:@"users/%@/follow", user.identifier]; // sample data
-    
-    NSLog(@"url: %@", url);
-    
+        
     [[HAWebService authenticatedManager] POST:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSLog(@"--------");
         NSLog(@"success: followUser");
@@ -281,23 +280,31 @@
                 [[NSNotificationCenter defaultCenter] postNotificationName:@"FetchNewTimelinePosts" object:nil];
             }
             
-            if ([responseObject[@"data"] objectForKey:@"prompt"]) {
+            if ([responseObject[@"data"] objectForKey:@"prompt"] && [responseObject[@"data"] objectForKey:@"prompt"] != [NSNull null]) {
                 // open icebreaker prompt if given one!
-                if ([responseObject[@"data"][@"prompt"] objectForKey:@"type"] && [[NSString stringWithFormat:@"%@", responseObject[@"data"][@"prompt"][@"type"]] isEqualToString:@"post"]) {
-                    Post *post = [[Post alloc] initWithDictionary:responseObject[@"data"][@"prompt"] error:nil];
-                    
-                    ComposeViewController *epvc = [[ComposeViewController alloc] init];
-                    epvc.postingIn = post.attributes.status.postedIn;
-                    epvc.replyingTo = post;
-                    epvc.replyingToIcebreaker = true;
-                    
-                    SimpleNavigationController *newNavController = [[SimpleNavigationController alloc] initWithRootViewController:epvc];
-                    newNavController.transitioningDelegate = [Launcher sharedInstance];
-                    [newNavController setLeftAction:SNActionTypeCancel];
-                    [newNavController setRightAction:SNActionTypeShare];
-                    newNavController.view.tintColor = epvc.view.tintColor;
-                    newNavController.currentTheme = [UIColor whiteColor];
-                    [Launcher present:newNavController animated:YES];
+                
+                if ([[Launcher activeViewController] isKindOfClass:[CampViewController class]]) {
+                    if ([responseObject[@"data"][@"prompt"] objectForKey:@"type"] && [[NSString stringWithFormat:@"%@", responseObject[@"data"][@"prompt"][@"type"]] isEqualToString:@"post"]) {
+                        BFTipObject *tipObject = [BFTipObject tipWithCreatorType:BFTipCreatorTypeCamp creator:r title:[NSString stringWithFormat:@"Welcome to the Camp! 👋"] text:@"Help others in the Camp get to know you better! Tap here to answer the Camp Icebreaker" action:^{
+                            Post *post = [[Post alloc] initWithDictionary:responseObject[@"data"][@"prompt"] error:nil];
+                            
+                            ComposeViewController *epvc = [[ComposeViewController alloc] init];
+                            epvc.postingIn = post.attributes.status.postedIn;
+                            epvc.replyingTo = post;
+                            epvc.replyingToIcebreaker = true;
+                            
+                            SimpleNavigationController *newNavController = [[SimpleNavigationController alloc] initWithRootViewController:epvc];
+                            newNavController.transitioningDelegate = [Launcher sharedInstance];
+                            [newNavController setLeftAction:SNActionTypeCancel];
+                            [newNavController setRightAction:SNActionTypeShare];
+                            newNavController.view.tintColor = epvc.view.tintColor;
+                            newNavController.currentTheme = [UIColor whiteColor];
+                            [Launcher present:newNavController animated:YES];
+                        }];
+                        [[BFTipsManager manager] presentTip:tipObject completion:^{
+                            NSLog(@"presentTip() completion");
+                        }];
+                    }
                 }
             }
         }
@@ -444,6 +451,7 @@
     
     UIAlertAction *tryAgain = [UIAlertAction actionWithTitle:@"Try Again" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         [[NSNotificationCenter defaultCenter] postNotificationName:@"NewPostFailed" object:tempPost];
+        NSLog(@"try again with create params:: %@", params);
         [BFAPI createPost:params postingIn:postingIn replyingTo:replyingTo];
     }];
     [actionSheet addAction:tryAgain];
@@ -481,7 +489,27 @@
     [[NSNotificationCenter defaultCenter] postNotificationName:@"PostDeleted" object:post];
 }
 + (void)reportPost:(NSString *)postId completion:(void (^ _Nullable)(BOOL success, id responseObject))handler {
-    handler(true, @{});
+    [FIRAnalytics logEventWithName:@"post_report"
+                            parameters:@{}];
+        
+    NSString *url = [NSString stringWithFormat:@"posts/%@/report", postId];
+    
+    NSDictionary *params = @{};
+    
+    NSLog(@"url:: %@", url);
+    
+    [[HAWebService authenticatedManager] POST:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        NSLog(@"--------");
+        NSLog(@"success: upvote");
+        NSLog(@"--------");
+        
+        handler(true, responseObject);
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+        NSLog(@"%@",ErrorResponse);
+        
+        handler(false, @{@"error": ErrorResponse});
+    }];
 }
 + (void)votePost:(Post *)post completion:(void (^ _Nullable)(BOOL success, id responseObject))handler {
     [FIRAnalytics logEventWithName:@"post_vote"
@@ -528,16 +556,6 @@
     [[BFNotificationManager manager] presentNotification:notificationObject completion:^{
         NSLog(@"presentNotification() completion");
     }];*/
-    
-    // create tip
-    if ([BFTipsManager hasSeenTip:@"about_vote_post"] == false && [Launcher activeTabController]) {
-        BFTipObject *tipObject = [BFTipObject tipWithCreatorType:BFTipCreatorTypeBonfireTip creator:nil title:@"Sparks help posts go viral 🚀" text:@"Sparks invite more people to join the conversation. Only the creator will see how many sparks a post has." action:^{
-            NSLog(@"tip tapped");
-        }];
-        [[BFTipsManager manager] presentTip:tipObject completion:^{
-            NSLog(@"presentTip() completion");
-        }];
-    }
 }
 + (void)unvotePost:(Post *)post completion:(void (^ _Nullable)(BOOL success, id responseObject))handler {
     [FIRAnalytics logEventWithName:@"post_unvote"
@@ -654,58 +672,111 @@
 + (void)compressData:(NSData *)data completion:(void (^ _Nullable)(NSData *imageData))handler {
     __block NSData *imageData = data;
     
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        // run in the background
-        UIImage *image = [UIImage imageWithData:imageData];
-        NSLog(@"image orientation 1:: %ld", (long)image.imageOrientation);
-        NSString *mimeType = [self mimeTypeForData:imageData];
-        
-        //Compress the image iteratively until either the maximum compression threshold (maxCompression) is reached or the maximum file size requirement is satisfied (maxSize)
-        CGFloat compression = 1.0f;
-        CGFloat maxCompression = 0.1f;
-        float maxSize = 5*1024*1024; //specified in bytes
-        
-        NSLog(@"Actual Image Size: %.2f MB",(float)imageData.length/1024.0f/1024.0f);
-        
-        if ([mimeType isEqualToString:@"image/jpeg"]) {
-            NSLog(@"jpeg");
-            
-            imageData = UIImageJPEGRepresentation(image, compression);
-            
-            UIImage *scaledImage = [UIImage imageWithData:imageData];
-            NSLog(@"image orientation 2:: %ld", (long)scaledImage.imageOrientation);
-            
-            while ([imageData length] > maxSize && compression > maxCompression) {
-                compression -= 0.10;
-                imageData = UIImageJPEGRepresentation(image, compression);
-                NSLog(@"Compressed to: %.2f MB with Factor: %.2f",(float)imageData.length/1024.0f/1024.0f, compression);
-            }
-            
-            UIImage *imageAfterCompression = [UIImage imageWithData:imageData];
-            imageAfterCompression = [imageAfterCompression fixOrientation];
-            
+    UIImage *image = [UIImage imageWithData:imageData];
+    NSString *mimeType = [self mimeTypeForData:imageData];
+    
+    float actualHeight = image.size.height;
+    float actualWidth = image.size.width;
+    float maxHeight = 2436;
+    float maxWidth = 2436;
+    float imgRatio = actualWidth/actualHeight;
+    float maxRatio = maxWidth/maxHeight;
+    float compressionQuality = 0.5;//50 percent compression
+    
+    if (actualHeight > maxHeight || actualWidth > maxWidth) {
+        if(imgRatio < maxRatio){
+            //adjust width according to maxHeight
+            imgRatio = maxHeight / actualHeight;
+            actualWidth = imgRatio * actualWidth;
+            actualHeight = maxHeight;
         }
-        else if ([mimeType isEqualToString:@"image/png"]) {
-            NSLog(@"png");
-            
-            imageData = UIImagePNGRepresentation(image);
-            CGFloat scale = 1.0;
-            UIImage *updatedImage = [image fixOrientation];
-            while ([imageData length] > maxSize && compression > maxCompression) {
-                scale -= 0.10;
-                updatedImage = [self imageWithImage:image scaledToSize:CGSizeMake(image.size.width*scale, image.size.height*scale)];
-                [updatedImage fixOrientation];
-                imageData = UIImagePNGRepresentation(updatedImage);
-                NSLog(@"Compressed to: %.2f MB with Scale: %.2f",(float)imageData.length/1024.0f/1024.0f, scale);
-            }
+        else if(imgRatio > maxRatio){
+            //adjust height according to maxWidth
+            imgRatio = maxWidth / actualWidth;
+            actualHeight = imgRatio * actualHeight;
+            actualWidth = maxWidth;
+        }else{
+            actualHeight = maxHeight;
+            actualWidth = maxWidth;
         }
-        else if ([mimeType isEqualToString:@"image/gif"]) {
-            NSLog(@"it's a gif we can't do anything about it.....");
-        }
+    }
+    
+    CGRect rect = CGRectMake(0.0, 0.0, actualWidth, actualHeight);
+    UIGraphicsBeginImageContext(rect.size);
+    [image drawInRect:rect];
+    UIImage *img = UIGraphicsGetImageFromCurrentImageContext();
+    
+    if ([mimeType isEqualToString:@"image/jpeg"]) {
+        NSLog(@"jpeg");
         
-        NSLog(@"Final Image Size: %.2f MB",(float)imageData.length/1024.0f/1024.0f);
-        handler(imageData);
-    });
+        imageData = UIImageJPEGRepresentation(img, compressionQuality);
+    }
+    else if ([mimeType isEqualToString:@"image/png"]) {
+        NSLog(@"png");
+        
+        imageData = UIImagePNGRepresentation([image fixOrientation]);
+    }
+    else if ([mimeType isEqualToString:@"image/gif"]) {
+        NSLog(@"it's a gif we can't do anything about it.....");
+    }
+    
+    UIGraphicsEndImageContext();
+    
+    handler(imageData);
+
+    
+//    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+//        // run in the background
+//        UIImage *image = [UIImage imageWithData:imageData];
+//        NSLog(@"image orientation 1:: %ld", (long)image.imageOrientation);
+//        NSString *mimeType = [self mimeTypeForData:imageData];
+//
+//        //Compress the image iteratively until either the maximum compression threshold (maxCompression) is reached or the maximum file size requirement is satisfied (maxSize)
+//        CGFloat compression = 1.0f;
+//        CGFloat maxCompression = 0.1f;
+//        float maxSize = 5*1024*1024; //specified in bytes
+//
+//        NSLog(@"Actual Image Size: %.2f MB",(float)imageData.length/1024.0f/1024.0f);
+//
+//        if ([mimeType isEqualToString:@"image/jpeg"]) {
+//            NSLog(@"jpeg");
+//
+//            imageData = UIImageJPEGRepresentation(image, compression);
+//
+//            UIImage *scaledImage = [UIImage imageWithData:imageData];
+//            NSLog(@"image orientation 2:: %ld", (long)scaledImage.imageOrientation);
+//
+//            while ([imageData length] > maxSize && compression > maxCompression) {
+//                compression -= 0.10;
+//                imageData = UIImageJPEGRepresentation(image, compression);
+//                NSLog(@"Compressed to: %.2f MB with Factor: %.2f",(float)imageData.length/1024.0f/1024.0f, compression);
+//            }
+//
+//            UIImage *imageAfterCompression = [UIImage imageWithData:imageData];
+//            imageAfterCompression = [imageAfterCompression fixOrientation];
+//
+//        }
+//        else if ([mimeType isEqualToString:@"image/png"]) {
+//            NSLog(@"png");
+//
+//            imageData = UIImagePNGRepresentation(image);
+//            CGFloat scale = 1.0;
+//            UIImage *updatedImage = [image fixOrientation];
+//            while ([imageData length] > maxSize && compression > maxCompression) {
+//                scale -= 0.10;
+//                updatedImage = [self imageWithImage:image scaledToSize:CGSizeMake(image.size.width*scale, image.size.height*scale)];
+//                [updatedImage fixOrientation];
+//                imageData = UIImagePNGRepresentation(updatedImage);
+//                NSLog(@"Compressed to: %.2f MB with Scale: %.2f",(float)imageData.length/1024.0f/1024.0f, scale);
+//            }
+//        }
+//        else if ([mimeType isEqualToString:@"image/gif"]) {
+//            NSLog(@"it's a gif we can't do anything about it.....");
+//        }
+//
+//        NSLog(@"Final Image Size: %.2f MB",(float)imageData.length/1024.0f/1024.0f);
+//        handler(imageData);
+//    });
 }
 
 + (NSString *)mimeTypeForData:(NSData *)data {

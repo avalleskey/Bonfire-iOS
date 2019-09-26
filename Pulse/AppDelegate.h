@@ -14,8 +14,5 @@
 
 @property (nonatomic, strong) UIWindow *window;
 
-- (void)launchOnboarding;
-- (void)launchLoggedIn;
-
 @end
 

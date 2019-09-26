@@ -13,6 +13,8 @@
 #import <HapticHelper/HapticHelper.h>
 #import "UIColor+Palette.h"
 #import "NSString+Validation.h"
+#import "GTMNSString+HTML.h"
+#import "NSString+UTF.h"
 
 #define TWUValidUsername                @"[@][a-z0-9_]{1,20}"
 #define TWUValidCampDisplayId           @"[#][a-z0-9_]{1,30}"
@@ -26,6 +28,7 @@
         self.layer.masksToBounds = false;
         
         self.edgeInsets = UIEdgeInsetsZero;
+        self.maxCharacters = 10000;
 
         self.translatesAutoresizingMaskIntoConstraints = YES;
         
@@ -33,11 +36,12 @@
         _messageLabel.extendsLinkTouchArea = false;
         _messageLabel.userInteractionEnabled = true;
         _messageLabel.font = textViewFont;
-        _messageLabel.textColor = [UIColor colorWithWhite:0 alpha:1];
+        _messageLabel.textColor = [UIColor colorNamed:@"FullContrastColor"];
         _messageLabel.backgroundColor = [UIColor clearColor];
         _messageLabel.numberOfLines = 0;
         _messageLabel.lineBreakMode = NSLineBreakByWordWrapping;
         _messageLabel.delegate = self;
+        //_messageLabel.translatesAutoresizingMaskIntoConstraints = YES;
         
         NSMutableDictionary *mutableActiveLinkAttributes = [NSMutableDictionary dictionary];
         [mutableActiveLinkAttributes setValue:[NSNumber numberWithBool:NO] forKey:(NSString *)kCTUnderlineStyleAttributeName];
@@ -73,12 +77,11 @@
 
 - (void)attributedLabel:(TTTAttributedLabel *)label
    didSelectLinkWithURL:(NSURL *)url {
-    NSLog(@"did select link with url: %@", url);
     if ([[UIApplication sharedApplication] canOpenURL:url]) {
         if ([url.scheme isEqualToString:LOCAL_APP_URI]) {
             // local url
             [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:^(BOOL success) {
-                NSLog(@"opened url!");
+                // NSLog(@"opened url!");
             }];
         }
         else {
@@ -124,30 +127,114 @@
 }
 
 - (void)update {
-    // resize
-    CGSize messageSize = [PostTextView sizeOfBubbleWithMessage:self.message withConstraints:CGSizeMake(self.frame.size.width-(self.edgeInsets.left+self.edgeInsets.right), CGFLOAT_MAX) font:self.messageLabel.font];
+    CGFloat messageHeight = [PostTextView sizeOfBubbleWithMessage:self.messageLabel.text withConstraints:CGSizeMake(self.frame.size.width, CGFLOAT_MAX) font:self.messageLabel.font maxCharacters:self.entityBasedMaxCharacters].height;
     
-    CGFloat width = (UIEdgeInsetsEqualToEdgeInsets(UIEdgeInsetsZero, self.edgeInsets) ? self.frame.size.width : messageSize.width + self.edgeInsets.left + self.edgeInsets.right);
-    self.frame = CGRectMake(self.frame.origin.x, self.frame.origin.y, width, messageSize.height + self.edgeInsets.top + self.edgeInsets.bottom);
-    _messageLabel.translatesAutoresizingMaskIntoConstraints = YES;
+    self.frame = CGRectMake(self.frame.origin.x, self.frame.origin.y, self.frame.size.width, messageHeight);
+    
     self.messageLabel.frame = CGRectMake(0, 0, self.frame.size.width, self.frame.size.height);
 }
 
 - (void)setMessage:(NSString *)message entities:(NSArray<PostEntity *><PostEntity> *)entities {
+    // don't run if this has already been set
+    if ([message isEqualToString:_message] && entities == _entities) return;
+    
     if (![message isEqualToString:_message]) {
-        _message = message;
+        _message = [message gtm_stringByUnescapingFromHTML];
     }
     if (entities != _entities) {
         _entities = entities;
     }
     
-    [self.messageLabel setText:message];
-    [self updateEntities];
-}
-- (void)updateEntities {
-    if (self.message.length == 0 || !self.entities || self.entities.count == 0) return;
+    if (!entities || entities.count == 0) {
+        self.entityBasedMaxCharacters = self.maxCharacters;
+    }
+    else {
+        self.entityBasedMaxCharacters = [PostTextView entityBasedMaxCharactersForMessage:self.message maxCharacters:self.maxCharacters entities:entities];
+    }
+        
+//    NSLog(@"self.maxCharacters = %ld", (long)self.maxCharacters);
+//    NSLog(@"entity based max characters: %ld", (long)self.entityBasedMaxCharacters);
     
-    NSLog(@"message:: %@", self.message);
+    if (message.length > self.entityBasedMaxCharacters) {
+        NSLog(@"needs to be truncated");
+        
+        NSString *truncatedMessage = [[[message substringToIndex:self.entityBasedMaxCharacters] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]] stringByAppendingString:@"... "];
+                
+        NSAttributedString *seeMore = [[NSAttributedString alloc] initWithString:@"See More" attributes:@{NSFontAttributeName: self.messageLabel.font, NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
+
+        [self.messageLabel setText:truncatedMessage afterInheritingLabelAttributesAndConfiguringWithBlock:^NSMutableAttributedString *(NSMutableAttributedString *mutableAttributedString) {
+            [mutableAttributedString appendAttributedString:seeMore];
+            
+            return mutableAttributedString;
+        }];
+    }
+    else {
+        //NSMutableAttributedString *attributedText = [[NSMutableAttributedString alloc] initWithString:message attributes:@{NSFontAttributeName: self.messageLabel.font, NSForegroundColorAttributeName: [UIColor colorNamed:@"FullContrastColor"]}];
+                
+        [self.messageLabel setText:message afterInheritingLabelAttributesAndConfiguringWithBlock:^NSMutableAttributedString *(NSMutableAttributedString *mutableAttributedString) {
+            return mutableAttributedString;
+        }];
+    }
+    
+    if (entities && entities.count > 0) {
+        [self addEntities];
+    }
+    
+    [self update];
+}
++ (NSInteger)entityBasedMaxCharactersForMessage:(NSString *)message maxCharacters:(NSInteger)maxCharacters entities:(NSArray <PostEntity *> <PostEntity> *)entities {
+    NSInteger max = maxCharacters;
+    if (!entities || entities.count == 0) {
+        return maxCharacters;
+    }
+    
+    for (PostEntity *entity in entities) {
+        if ([entity.type isEqualToString:POST_ENTITY_TYPE_PROFILE]) {
+            NSArray *usernameRanges = [message rangesForUsernameMatches];
+            for (NSValue *value in usernameRanges) {
+                NSRange range = [value rangeValue];
+                if (maxCharacters >= range.location && maxCharacters <= range.location + range.length) {
+                    max = range.location + range.length;
+                }
+            }
+            
+            continue;
+        }
+        
+        if ([entity.type isEqualToString:POST_ENTITY_TYPE_CAMP]) {
+            NSArray *campRanges = [message rangesForCampTagMatches];
+            
+            for (NSValue *value in campRanges) {
+                NSRange range = [value rangeValue];
+                if (maxCharacters >= range.location && maxCharacters <= range.location + range.length) {
+                    max = range.location + range.length;
+                }
+            }
+            
+            continue;
+        }
+        
+        if ([entity.type isEqualToString:POST_ENTITY_TYPE_URL] && entity.indices.count == 2) {
+            NSInteger location = [entity.indices[0] integerValue];
+            NSInteger length = [entity.indices[1] integerValue] - [entity.indices[0] integerValue];
+            
+//            NSLog(@"location: %ld", (long)location);
+//            NSLog(@"max characters: %ld", (long)maxCharacters);
+//            NSLog(@"location + length: %ld", location + length);
+            
+            if (maxCharacters >= location && maxCharacters <= location + length) {
+                max = location + length;
+            }
+            
+            continue;
+        }
+    }
+    
+    return max;
+}
+
+- (void)addEntities {
+    if (self.message.length == 0 || !self.entities || self.entities.count == 0) return;
     
     for (PostEntity *entity in self.entities) {
         if ([entity.type isEqualToString:POST_ENTITY_TYPE_PROFILE]) {
@@ -155,7 +242,10 @@
             for (NSValue *value in usernameRanges) {
                 NSRange range = [value rangeValue];
                 NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://user?username=%@", LOCAL_APP_URI, [[self.message substringWithRange:range] stringByReplacingOccurrencesOfString:@"@" withString:@""]]];
-                [self.messageLabel addLinkToURL:url withRange:range];
+                
+                if (range.length + range.location <= self.entityBasedMaxCharacters && range.length + range.location <= self.message.length) {
+                    [self.messageLabel addLinkToURL:url withRange:range];
+                }
             }
             
             continue;
@@ -167,19 +257,28 @@
             for (NSValue *value in campRanges) {
                 NSRange range = [value rangeValue];
                 NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://camp?display_id=%@", LOCAL_APP_URI, [[self.message substringWithRange:range] stringByReplacingOccurrencesOfString:@"#" withString:@""]]];
-                [self.messageLabel addLinkToURL:url withRange:range];
+                if (range.length + range.location <= self.entityBasedMaxCharacters && range.length + range.location <= self.message.length) {
+                    [self.messageLabel addLinkToURL:url withRange:range];
+                }
             }
             
             continue;
         }
         
-        if ([entity.type isEqualToString:POST_ENTITY_TYPE_URL] && entity.indices.count >= 2) {
-            NSLog(@"entity indices:: %@", entity.indices);
-            NSLog(@"entity displayText: %@", entity.displayText);
-            NSInteger location = [entity.indices[0] integerValue];
-            NSInteger length = [entity.indices[1] integerValue] - [entity.indices[0] integerValue];
-            if (location + length <= self.message.length) {
-                [self.messageLabel addLinkToURL:[NSURL URLWithString:entity.actionUrl] withRange:NSMakeRange([entity.indices[0] integerValue], [entity.indices[1] integerValue] - [entity.indices[0] integerValue])];
+        if ([entity.type isEqualToString:POST_ENTITY_TYPE_URL] && entity.indices.count == 2) {
+            NSInteger loc1 = [entity.indices[0] integerValue];
+            NSInteger len1 = [entity.indices[1] integerValue] - [entity.indices[0] integerValue];
+            NSRange range = [self.message composedRangeWithRange:NSMakeRange(loc1, len1)];
+            NSInteger endSpot = range.location + range.length;
+            
+            if (endSpot <= self.entityBasedMaxCharacters && endSpot > range.location && endSpot <= self.message.length && range.location >= 0 && [NSURL URLWithString:entity.actionUrl]) {
+                
+                TTTAttributedLabelLink *link = [[TTTAttributedLabelLink alloc] initWithAttributesFromLabel:self.messageLabel textCheckingResult:[NSTextCheckingResult linkCheckingResultWithRange:range URL:[NSURL URLWithString:entity.actionUrl]]];
+                [link setLinkLongPressBlock:^(TTTAttributedLabel *label, TTTAttributedLabelLink *link) {
+                    UIActivityViewController *activityViewController = [[UIActivityViewController alloc] initWithActivityItems:@[[NSURL URLWithString:entity.actionUrl]] applicationActivities:nil];
+                    [[Launcher topMostViewController] presentViewController:activityViewController animated:YES completion:nil];
+                }];
+                [self.messageLabel addLink:link];
             }
             
             continue;
@@ -209,16 +308,30 @@
     return ![self.messageLabel containslinkAtPoint:location];
 }
 
-+ (CGSize)sizeOfBubbleWithMessage:(NSString *)text withConstraints:(CGSize)constraints font:(UIFont *)font {
-    TTTAttributedLabel *label = [[TTTAttributedLabel alloc] initWithFrame:CGRectMake(0, 0, constraints.width, constraints.height)];
-    label.font = font;
-    label.numberOfLines = 0;
-    label.lineBreakMode = NSLineBreakByWordWrapping;
-    label.text = text;
++ (CGSize)sizeOfBubbleWithMessage:(NSString *)message withConstraints:(CGSize)constraints font:(UIFont *)font maxCharacters:(CGFloat)maxCharacters {
+    if (message.length == 0) return CGSizeZero;
     
-    CGSize size = [TTTAttributedLabel sizeThatFitsAttributedString:label.attributedText withConstraints:constraints limitedToNumberOfLines:CGFLOAT_MAX];
-    
-    return CGSizeMake(ceilf(size.width), ceilf(size.height));
+    if (message.length > maxCharacters) {
+        NSMutableAttributedString *attributedMessage = [[NSMutableAttributedString alloc] initWithString:[[[message  substringToIndex:maxCharacters] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]] stringByAppendingString:@"... "] attributes:@{NSFontAttributeName: font}];
+        
+        NSAttributedString *seeMore = [[NSAttributedString alloc] initWithString:@"See More" attributes:@{NSFontAttributeName: textViewFont}];
+        [attributedMessage appendAttributedString:seeMore];
+        
+//        CGSize size = [TTTAttributedLabel sizeThatFitsAttributedString:attributedMessage withConstraints:constraints limitedToNumberOfLines:CGFLOAT_MAX];
+        
+        CGSize size = [attributedMessage boundingRectWithSize:constraints options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) context:nil].size;
+        
+        return CGSizeMake(constraints.width, ceilf(size.height));
+    }
+    else {
+        NSMutableAttributedString *attributedMessage = [[NSMutableAttributedString alloc] initWithString:message  attributes:@{NSFontAttributeName: font}];
+        
+        CGSize size = [attributedMessage boundingRectWithSize:constraints options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) context:nil].size;
+        
+//        CGSize size = [TTTAttributedLabel sizeThatFitsAttributedString:attributedMessage withConstraints:constraints limitedToNumberOfLines:CGFLOAT_MAX];
+        
+        return CGSizeMake(constraints.width, ceilf(size.height));
+    }
 }
 
 @end

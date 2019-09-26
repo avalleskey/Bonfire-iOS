@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14810.11" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" launchScreen="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="01J-lp-oVM">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14868" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" launchScreen="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="01J-lp-oVM">
     <device id="retina5_5" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14766.13"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14824"/>
+        <capability name="Named colors" minToolsVersion="9.0"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -11,19 +12,32 @@
         <!--View Controller-->
         <scene sceneID="EHf-IW-A2E">
             <objects>
-                <viewController storyboardIdentifier="launchScreen" id="01J-lp-oVM" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="launchScreen" useStoryboardIdentifierAsRestorationIdentifier="YES" id="01J-lp-oVM" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="Ze5-6b-2t3">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="736"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" alpha="0.10000000000000001" contentMode="scaleAspectFit" image="bonfire_wordmark_black" translatesAutoresizingMaskIntoConstraints="NO" id="bxv-ep-ZQL">
+                            <view tag="10" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Yhi-4y-0db">
                                 <rect key="frame" x="105" y="343" width="204" height="50"/>
-                            </imageView>
+                                <subviews>
+                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" tag="11" contentMode="scaleAspectFit" image="bonfire_wordmark" translatesAutoresizingMaskIntoConstraints="NO" id="bxv-ep-ZQL">
+                                        <rect key="frame" x="0.0" y="0.0" width="204" height="50"/>
+                                    </imageView>
+                                </subviews>
+                                <constraints>
+                                    <constraint firstItem="bxv-ep-ZQL" firstAttribute="leading" secondItem="Yhi-4y-0db" secondAttribute="leading" id="7vn-nc-YFn"/>
+                                    <constraint firstAttribute="height" constant="50" id="DHU-pt-qrq"/>
+                                    <constraint firstAttribute="bottom" secondItem="bxv-ep-ZQL" secondAttribute="bottom" id="J1k-5D-YAE"/>
+                                    <constraint firstAttribute="width" constant="204" id="LGK-LJ-Yy5"/>
+                                    <constraint firstAttribute="trailing" secondItem="bxv-ep-ZQL" secondAttribute="trailing" id="UuL-mq-z3j"/>
+                                    <constraint firstItem="bxv-ep-ZQL" firstAttribute="top" secondItem="Yhi-4y-0db" secondAttribute="top" id="i7H-gS-eTQ"/>
+                                </constraints>
+                            </view>
                         </subviews>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <color key="backgroundColor" name="ContentBackgroundColor"/>
                         <constraints>
-                            <constraint firstItem="bxv-ep-ZQL" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="VKN-86-Bfw"/>
-                            <constraint firstItem="bxv-ep-ZQL" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="fFa-iq-PWs"/>
+                            <constraint firstItem="Yhi-4y-0db" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="H9R-HN-oYK"/>
+                            <constraint firstItem="Yhi-4y-0db" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="caQ-Rm-Hj8"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                     </view>
@@ -31,10 +45,13 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="iYj-Kq-Ea1" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="50.724637681159422" y="374.33035714285711"/>
+            <point key="canvasLocation" x="50.724637681159422" y="374.18478260869568"/>
         </scene>
     </scenes>
     <resources>
-        <image name="bonfire_wordmark_black" width="204" height="50"/>
+        <image name="bonfire_wordmark" width="204" height="50"/>
+        <namedColor name="ContentBackgroundColor">
+            <color red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+        </namedColor>
     </resources>
 </document>

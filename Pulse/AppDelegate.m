@@ -11,14 +11,9 @@
 #import "Session.h"
 #import "Launcher.h"
 #import "HelloViewController.h"
-#import "ComplexNavigationController.h"
-#import "SimpleNavigationController.h"
-#import "SearchNavigationController.h"
-#import "DiscoverViewController.h"
+#import "MyCampsTableViewController.h"
 #import "NotificationsTableViewController.h"
-#import "SearchTableViewController.h"
-#import "HomeViewController.h"
-#import "ProfileViewController.h"
+#import "MyFeedViewController.h"
 #import "CampCardsListCell.h"
 #import "MiniAvatarListCell.h"
 #import "UIColor+Palette.h"
@@ -29,6 +24,8 @@
 #import <AudioToolbox/AudioServices.h>
 #import <Crashlytics/Crashlytics.h>
 #import "NSString+Validation.h"
+#import <PINCache/PINCache.h>
+#import <Shimmer/FBShimmeringView.h>
 @import Firebase;
 
 @interface AppDelegate ()
@@ -42,9 +39,6 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     [self setupEnvironment];
     
-    InsightsLogger *logger = [InsightsLogger sharedInstance];
-    [logger closeAllPostInsights];
-    
     self.session = [Session sharedInstance];
     
     NSDictionary *accessToken = [self.session getAccessTokenWithVerification:true];
@@ -56,16 +50,24 @@
     NSLog(@"🌀 Refresh token : %@", refreshToken);
     NSLog(@"🔔 APNS token    : %@", [[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"]);
     NSLog(@"–––––––––––––––————");
-        
+
+    // show loading
+    UIViewController *launchScreen = [[UIStoryboard storyboardWithName:@"LaunchScreen" bundle:[NSBundle mainBundle]] instantiateViewControllerWithIdentifier:@"launchScreen"];
+    self.window.rootViewController = launchScreen;
+    [self.window makeKeyAndVisible];
+    
     if ((accessToken != nil || refreshToken != nil) && self.session.currentUser.identifier != nil) {
-        [self launchLoggedIn];
+        [self launchLoggedInWithCompletion:^(BOOL success) {
+            if (![[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"]) {
+                // no apns -> let's check again
+                [self requestNotifications];
+            }
+        }];
     }
     else {
         // launch onboarding
         [self launchOnboarding];
     }
-
-    [self.window makeKeyAndVisible];
     
     [FIRApp configure];
     #ifdef DEBUG
@@ -75,6 +77,9 @@
     // Google Analytics
     //[FIRApp configure];
     #endif
+    
+    InsightsLogger *logger = [InsightsLogger sharedInstance];
+    [logger closeAllPostInsights];
     
     [self setupRoundedCorners];
     
@@ -98,9 +103,6 @@
     statusBarFrame.origin.y = statusBarFrame.size.height;
     statusBarFrame.size.width = 100;
     statusBarFrame.size.height = 44;
-    
-    NSLog(@"location y: %f", location.y);
-    NSLog(@"statusBarFrame: %f - %f - %f - %f", statusBarFrame.origin.x, statusBarFrame.origin.y, statusBarFrame.size.width, statusBarFrame.size.height);
     
     UITouch *touch = [touches anyObject];
     if (touch.tapCount == 2) {
@@ -251,27 +253,32 @@
         [options addAction:apnsToken];
     }
     
+    UIAlertAction *clearCache = [UIAlertAction actionWithTitle:@"Clear Home Cache" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        [[PINCache sharedCache] removeAllObjects];
+    }];
+    [options addAction:clearCache];
+    
     UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
     [options addAction:cancel];
     
     [[Launcher topMostViewController] presentViewController:options animated:YES completion:nil];
 }
 
-- (void)launchLoggedIn {
+- (void)launchLoggedInWithCompletion:(void (^_Nullable)(BOOL success))handler; {
     [[Session sharedInstance] getNewAccessToken:^(BOOL success, NSString * _Nonnull newToken) {
         if (success) {
             NSInteger launches = [[NSUserDefaults standardUserDefaults] integerForKey:@"launches"];
             launches = launches + 1;
             [[NSUserDefaults standardUserDefaults] setInteger:launches forKey:@"launches"];
             
-            TabController *tbc = [[TabController alloc] init];
-            tbc.delegate = self;
-            self.window.rootViewController = tbc;
+            [Launcher launchLoggedIn:false];
         }
         else {
             [[Session sharedInstance] signOut];
             
-            [self launchOnboarding];
+            [Launcher openOnboarding];
+            
+            handler(false);
         }
     }];
 }
@@ -281,6 +288,7 @@
         HelloViewController *vc = [[HelloViewController alloc] init];
         vc.fromLaunch = true;
         self.window.rootViewController = vc;
+        [self.window makeKeyAndVisible];
     }
 }
 
@@ -321,6 +329,7 @@
 }
 
 - (void)tabBarController:(UITabBarController *)tabBarController didSelectViewController:(UIViewController *)viewController {
+    NSLog(@"did select view controller");
     if ([viewController isKindOfClass:[UINavigationController class]] && [[(UINavigationController *)viewController visibleViewController] isKindOfClass:[NotificationsTableViewController class]]) {
         [(TabController *)(Launcher.activeTabController) setBadgeValue:nil forItem:viewController.tabBarItem];
     }
@@ -346,23 +355,23 @@
                         [(RSTableView *)tableViewController.tableView scrollToTop];
                     }
                     else {
-                        [tableViewController.tableView setContentOffset:CGPointMake(0, -tableViewController.tableView.adjustedContentInset.top) animated:YES];
+                        [tableViewController.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:YES];
                     }
                 }
                 
-                if ([currentNavigationController.visibleViewController isKindOfClass:[HomeViewController class]]) {
+                if ([currentNavigationController.visibleViewController isKindOfClass:[MyFeedViewController class]]) {
                     if ([[tableViewController.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]] isKindOfClass:[MiniAvatarListCell class]]) {
                         MiniAvatarListCell *firstCell = [tableViewController.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
                         [firstCell.collectionView setContentOffset:CGPointMake(-2, 0) animated:YES];
                     }
                 }
-                if ([currentNavigationController.visibleViewController isKindOfClass:[DiscoverViewController class]]) {
-                    DiscoverViewController *tableViewController = (DiscoverViewController *)currentNavigationController.visibleViewController;
+                if ([currentNavigationController.visibleViewController isKindOfClass:[MyCampsTableViewController class]]) {
+                    MyCampsTableViewController *tableViewController = (MyCampsTableViewController *)currentNavigationController.visibleViewController;
                     
                     for (NSInteger i = 0; i < [tableViewController.tableView numberOfSections]; i++) {
                         if ([[tableViewController.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:i]] isKindOfClass:[CampCardsListCell class]]) {
                             CampCardsListCell *firstCell = [tableViewController.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:i]];
-                            [firstCell.collectionView setContentOffset:CGPointMake(-16, 0) animated:YES];
+                            [firstCell.collectionView setContentOffset:CGPointMake(-12, 0) animated:YES];
                         }
                     }
                 }
@@ -381,8 +390,38 @@
     else {
         [(TabController *)([Launcher activeTabController]) showPillIfNeeded];
     }
+    
     previousController = viewController;
 }
+
+//- (BOOL)tabBarController:(UITabBarController *)tabBarController shouldSelectViewController:(UIViewController *)viewController {
+//    NSLog(@"hellllooooooo");
+//
+//    NSArray *tabViewControllers = tabBarController.viewControllers;
+//    UIView *selectedView = tabBarController.selectedViewController.view;
+//    UIView *fromView = [selectedView snapshotViewAfterScreenUpdates:true];
+//    UIView *toView = viewController.view;
+//    [tabBarController.view insertSubview:fromView belowSubview:tabBarController.tabBar];
+//    if (fromView == toView)
+//        return false;
+//    NSUInteger fromIndex = [tabViewControllers indexOfObject:tabBarController.selectedViewController];
+//    NSUInteger toIndex = [tabViewControllers indexOfObject:viewController];
+//
+//    BOOL fromRight = toIndex < fromIndex;
+//    fromView.center = CGPointMake([UIScreen mainScreen].bounds.size.width / 2, fromView.center.y);
+//    toView.center = CGPointMake([UIScreen mainScreen].bounds.size.width * (fromRight ? -.5 : 1.5), toView.center.y);
+//    [UIView animateWithDuration:0.3 delay:0 usingSpringWithDamping:1 initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+//        fromView.center = CGPointMake([UIScreen mainScreen].bounds.size.width * (fromRight ? 1.5 : -.5), fromView.center.y);
+//        toView.center = CGPointMake([UIScreen mainScreen].bounds.size.width / 2, toView.center.y);
+//    } completion:^(BOOL finished) {
+//        if (finished && selectedView == tabBarController.selectedViewController.view) {
+//           tabBarController.selectedIndex = toIndex;
+//            [fromView removeFromSuperview];
+//       }
+//    }];
+//
+//    return true;
+//}
 
 - (BOOL)application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray<id<UIUserActivityRestoring>> * _Nullable))restorationHandler {
     NSLog(@"continueUserActivity:");
@@ -639,6 +678,15 @@
     // NSLog(@"failed to register for remote notifications with error: %@", error);
     
     [[NSNotificationCenter defaultCenter] postNotificationName:@"NotificationsDidFailToRegister" object:error];
+}
+
+- (void)requestNotifications {
+    [[UNUserNotificationCenter currentNotificationCenter] requestAuthorizationWithOptions:(UNAuthorizationOptionAlert|UNAuthorizationOptionSound|UNAuthorizationOptionBadge) completionHandler:^(BOOL granted, NSError * _Nullable error) {
+        // 1. check if permisisons granted
+        if (granted) {
+            [[UIApplication sharedApplication] registerForRemoteNotifications];
+        }
+    }];
 }
 
 - (void)applicationDidEnterBackground:(UIApplication *)application {

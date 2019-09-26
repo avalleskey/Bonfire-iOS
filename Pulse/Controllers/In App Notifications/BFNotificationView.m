@@ -81,7 +81,7 @@
     [self addSubview:self.notificationTypeImageView];
     
     self.creatorTitleLabel = [[UILabel alloc] initWithFrame:CGRectMake(self.notificationTypeImageView.frame.origin.x + self.notificationTypeImageView.frame.size.width + 6, 10, 22, 22)];
-    self.creatorTitleLabel.textColor = [UIColor bonfireGray];
+    self.creatorTitleLabel.textColor = [UIColor bonfireSecondaryColor];
     self.creatorTitleLabel.font = [UIFont systemFontOfSize:12.f weight:UIFontWeightMedium];
     [self addSubview:self.creatorTitleLabel];
     
@@ -247,7 +247,7 @@
 - (void)setStyle:(BFNotificationViewStyle)style {
     if (style == BFNotificationViewStyleDark) {
         self.blurView.effect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleDark];
-        self.blurView.backgroundColor = [[UIColor bonfireGray] colorWithAlphaComponent:0.3];
+        self.blurView.backgroundColor = [[UIColor bonfireSecondaryColor] colorWithAlphaComponent:0.3];
         self.closeButton.tintColor = [UIColor whiteColor];
         self.closeButton.backgroundColor = [UIColor colorWithWhite:1 alpha:0.06f];
         
@@ -257,7 +257,7 @@
     else {
         self.blurView.effect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleLight];
         self.blurView.backgroundColor = [UIColor colorWithWhite:1 alpha:0.9f];
-        self.closeButton.tintColor = [UIColor bonfireBlack];
+        self.closeButton.tintColor = [UIColor bonfirePrimaryColor];
         self.closeButton.backgroundColor = [UIColor colorWithWhite:0 alpha:0.06f];
         
         self.titleLabel.textColor = [UIColor blackColor];

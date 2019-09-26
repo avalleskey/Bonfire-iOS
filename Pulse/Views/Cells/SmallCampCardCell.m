@@ -38,7 +38,7 @@
 - (void)setup {
     self.camp = [[Camp alloc] init];
     
-    self.backgroundColor = [UIColor whiteColor];
+    self.backgroundColor = [UIColor contentBackgroundColor];
     self.layer.cornerRadius = 12.f;
     self.layer.masksToBounds = false;
     self.layer.shadowRadius = 2.f;
@@ -74,7 +74,7 @@
     self.campTitleLabel.textAlignment = NSTextAlignmentLeft;
     self.campTitleLabel.numberOfLines = 1;
     self.campTitleLabel.lineBreakMode = NSLineBreakByTruncatingTail;
-    self.campTitleLabel.textColor = [UIColor bonfireBlack];
+    self.campTitleLabel.textColor = [UIColor bonfirePrimaryColor];
     self.campTitleLabel.text = @"";
     [self.contentView addSubview:self.campTitleLabel];
     
@@ -83,14 +83,14 @@
     self.campDescriptionLabel.textAlignment = NSTextAlignmentLeft;
     self.campDescriptionLabel.numberOfLines = 0;
     self.campDescriptionLabel.lineBreakMode = NSLineBreakByWordWrapping;
-    self.campDescriptionLabel.textColor = [UIColor bonfireGray];
+    self.campDescriptionLabel.textColor = [UIColor bonfireSecondaryColor];
     self.campDescriptionLabel.text = @"";
     [self.contentView addSubview:self.campDescriptionLabel];
     
     self.membersLabel = [[UILabel alloc] initWithFrame:CGRectMake(self.member3.frame.origin.x + self.member3.frame.size.width + 6, self.member1.frame.origin.y, 110, self.member1.frame.size.height)];
     self.membersLabel.textAlignment = NSTextAlignmentLeft;
     self.membersLabel.font = [UIFont systemFontOfSize:10.f weight:UIFontWeightMedium];
-    self.membersLabel.textColor = [UIColor colorWithWhite:0.47f alpha:1];
+    self.membersLabel.textColor = [UIColor bonfireSecondaryColor];
     [self.contentView addSubview:self.membersLabel];
 }
 
@@ -179,7 +179,7 @@
         self.member3.superview.hidden = true;
     }
     else {
-        self.campTitleLabel.textColor = [UIColor bonfireBlack];
+        self.campTitleLabel.textColor = [UIColor bonfirePrimaryColor];
         self.campTitleLabel.backgroundColor = [UIColor clearColor];
         self.campTitleLabel.layer.masksToBounds = false;
         self.campTitleLabel.layer.cornerRadius = 0;

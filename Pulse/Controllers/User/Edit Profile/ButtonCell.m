@@ -25,11 +25,11 @@
         
         self.selectionStyle = UITableViewCellSelectionStyleNone;
         self.contentView.backgroundColor = [UIColor clearColor];
-        self.backgroundColor = [UIColor whiteColor];
+        self.backgroundColor = [UIColor contentBackgroundColor];
         
-        self.kButtonColorDefault = [UIColor bonfireBlack];
+        self.kButtonColorDefault = [UIColor bonfirePrimaryColor];
         self.kButtonColorDestructive = [UIColor colorWithDisplayP3Red:0.82 green:0.01 blue:0.11 alpha:1.0];
-        self.kButtonColorTheme = [UIColor bonfireBlack];
+        self.kButtonColorTheme = [UIColor bonfirePrimaryColor];
         self.kButtonColorBonfire = [UIColor bonfireBrand];
         
         self.selectionStyle = UITableViewCellSelectionStyleNone;
@@ -37,7 +37,7 @@
         self.buttonLabel = [[UILabel alloc] init];
         self.buttonLabel.text = @"";
         self.buttonLabel.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightMedium];
-        self.buttonLabel.textColor = [UIColor bonfireBlack];
+        self.buttonLabel.textColor = [UIColor bonfirePrimaryColor];
         [self.contentView addSubview:self.buttonLabel];
         
         self.detailTextLabel.font = [UIFont systemFontOfSize:self.buttonLabel.font.pointSize];
@@ -57,7 +57,7 @@
     
     if (self.detailTextLabel.text.length > 0) {
         self.detailTextLabel.frame = CGRectMake(self.frame.size.width - 100 - 16 - (self.accessoryType != UITableViewCellAccessoryNone ? 16 : 0), 0, 100, self.frame.size.height);
-        self.detailTextLabel.textColor = [UIColor bonfireGray];
+        self.detailTextLabel.textColor = [UIColor bonfireSecondaryColor];
         self.detailTextLabel.textAlignment = NSTextAlignmentRight;
         self.detailTextLabel.font = [UIFont systemFontOfSize:15.f weight:UIFontWeightRegular];
         

@@ -12,13 +12,19 @@
 #import "HAWebService.h"
 #import "Launcher.h"
 #import "UIColor+Palette.h"
+#import "CampListStream.h"
+#import "BFHeaderView.h"
+#import <PINCache/PINCache.h>
 @import Firebase;
+
+#define MY_CAMPS_CACHE_KEY @"my_camps_paged_cache"
 
 @interface ProfileCampsListViewController ()
 
-@property (nonatomic) BOOL loadingCamps;
+@property (nonatomic, strong) CampListStream *stream;
 
-@property (strong, nonatomic) NSMutableArray *camps;
+@property (nonatomic) BOOL loadingCamps;
+@property (nonatomic) BOOL loadingMoreCamps;
 
 @end
 
@@ -33,14 +39,12 @@ static NSString * const memberCellIdentifier = @"MemberCell";
     [super viewDidLoad];
     
     self.navigationItem.hidesBackButton = true;
-        
-    self.camps = [[NSMutableArray alloc] init];
     
     self.tableView.delegate = self;
     self.tableView.dataSource = self;
     
-    self.tableView.backgroundColor = [UIColor headerBackgroundColor];
-    self.tableView.separatorColor = [UIColor separatorColor];
+    self.tableView.backgroundColor = [UIColor tableViewBackgroundColor];
+    self.tableView.separatorColor = [UIColor tableViewSeparatorColor];
     self.tableView.separatorInset = UIEdgeInsetsMake(0, 70, 0, 0);
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
     self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
@@ -49,36 +53,90 @@ static NSString * const memberCellIdentifier = @"MemberCell";
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:emptySectionCellIdentifier];
     
     [self.tableView registerClass:[SearchResultCell class] forCellReuseIdentifier:memberCellIdentifier];
-    
-    // if admin
-    self.loadingCamps = true;
-    
-    // load in cache
-    if ([[Session sharedInstance].currentUser.identifier isEqualToString:self.user.identifier]) {
-        self.camps = [[NSMutableArray alloc] initWithArray:[[NSUserDefaults standardUserDefaults] arrayForKey:@"my_camps_cache"]];
-        [self sortCamps];
-        if (self.camps.count > 0) {
-            self.loadingCamps = false;
-            [self.tableView reloadData];
-        }
+
+    self.stream = [[CampListStream alloc] init];
+    // load cache
+    if ([self isCurrentUser]) {
+        [self loadCache];
     }
-    [self getCampsList];
+    
+    if (![self.stream nextCursor]) {
+        NSLog(@"no cursor yoooooo:: ");
+        [self getCampsWithCursor:StreamPagingCursorTypeNone];
+    }
     
     // Google Analytics
     [FIRAnalytics setScreenName:@"Profile / Camps" screenClass:nil];
 }
 
-- (void)getCampsList {
+- (BOOL)isCurrentUser {
+    return self.user.identifier != nil && [self.user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier];
+}
+- (void)loadCache {
+    NSArray *cache = [[PINCache sharedCache] objectForKey:MY_CAMPS_CACHE_KEY];
+    
+    self.stream = [[CampListStream alloc] init];
+    if (cache.count > 0) {
+        for (NSDictionary *pageDict in cache) {
+            CampListStreamPage *page = [[CampListStreamPage alloc] initWithDictionary:pageDict error:nil];
+            [self.stream appendPage:page];
+        }
+        
+        NSLog(@"self.stream.camps.count :: %lu", (unsigned long)self.stream.camps.count);
+        if (self.stream.camps.count > 0) {
+            self.loadingCamps = false;
+        }
+        
+        [self.tableView reloadData];
+    }
+}
+- (void)saveCacheIfNeeded {
+    if (![self isCurrentUser]) return;
+    
+    NSMutableArray *newCache = [[NSMutableArray alloc] init];
+    
+    for (NSInteger i = 0; i < self.stream.pages.count; i++) {
+        [newCache addObject:[self.stream.pages[i] toDictionary]];
+    }
+    
+    [[PINCache sharedCache] setObject:[newCache copy] forKey:MY_CAMPS_CACHE_KEY];
+}
+- (void)getCampsWithCursor:(StreamPagingCursorType)cursorType {
     NSString *url = [NSString stringWithFormat:@"users/%@/camps", self.user.identifier];
     
-    [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        NSArray *responseData = (NSArray *)responseObject[@"data"];
+    NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
+    
+    NSString *nextCursor = [self.stream nextCursor];
+    if (cursorType == StreamPagingCursorTypeNext && nextCursor.length > 0) {
+        if ([self.stream hasLoadedCursor:nextCursor]) {
+            return;
+        }
         
-        NSLog(@"response data for requests: %@", responseData);
+        self.loadingMoreCamps = true;
+        [self.stream addLoadedCursor:nextCursor];
+        [params setObject:nextCursor forKey:@"cursor"];
+    }
+    else {
+        self.loadingCamps = true;
+    }
+    
+    NSLog(@"GET -> %@", url);
+    NSLog(@"params: %@", params);
+    
+    [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        CampListStreamPage *page = [[CampListStreamPage alloc] initWithDictionary:responseObject error:nil];
         
-        self.camps = [[NSMutableArray alloc] initWithArray:responseData];
-        if ([self.user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
-            [self sortCamps];
+        if (page.data.count > 0) {
+            if ([params objectForKey:@"cursor"]) {
+                self.loadingMoreCamps = false;
+            }
+            else {
+                // clear the stream (we retrieved a full page of notifs and the old ones are out of date)
+                self.stream = [[CampListStream alloc] init];
+            }
+            [self.stream appendPage:page];
+            
+            [self saveCacheIfNeeded];
         }
         
         self.loadingCamps = false;
@@ -87,29 +145,13 @@ static NSString * const memberCellIdentifier = @"MemberCell";
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         NSLog(@"CampViewController / getRequests() - error: %@", error);
         //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-    }];
-}
-- (void)sortCamps {
-    NSLog(@"sort that ish");
-    if (!self.camps || self.camps.count == 0) return;
-    
-    NSDictionary *opens = [[NSUserDefaults standardUserDefaults] dictionaryForKey:@"camp_opens"];
-    
-    for (NSInteger i = 0; i < self.camps.count; i++) {
-        if ([self.camps[i] isKindOfClass:[NSDictionary class]] && [self.camps[i] objectForKey:@"id"]) {
-            NSMutableDictionary *mutableCamp = [[NSMutableDictionary alloc] initWithDictionary:self.camps[i]];
-            NSString *campId = mutableCamp[@"id"];
-            NSInteger campOpens = [opens objectForKey:campId] ? [opens[campId] integerValue] : 0;
-            [mutableCamp setObject:[NSNumber numberWithInteger:campOpens] forKey:@"opens"];
-            [self.camps replaceObjectAtIndex:i withObject:mutableCamp];
+        if (nextCursor.length > 0) {
+            [self.stream removeLoadedCursor:nextCursor];
         }
-    }
-    NSSortDescriptor *sortByName = [NSSortDescriptor sortDescriptorWithKey:@"opens"
-                                                                 ascending:NO];
-    NSArray *sortDescriptors = [NSArray arrayWithObject:sortByName];
-    NSArray *sortedArray = [self.camps sortedArrayUsingDescriptors:sortDescriptors];
-    
-    self.camps = [[NSMutableArray alloc] initWithArray:sortedArray];
+        self.loadingCamps = false;
+        
+        [self.tableView reloadData];
+    }];
 }
 
 #pragma mark - Table view data source
@@ -118,46 +160,22 @@ static NSString * const memberCellIdentifier = @"MemberCell";
 }
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     if (section == 0 && !self.loadingCamps) {
-        return self.camps.count;
+        return self.stream.camps.count;
     }
     
     return 0;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (indexPath.section == 0) {
+    if (indexPath.section == 0 && indexPath.row < self.stream.camps.count) {
         SearchResultCell *cell = [tableView dequeueReusableCellWithIdentifier:memberCellIdentifier forIndexPath:indexPath];
         
         if (cell == nil) {
             cell = [[SearchResultCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:memberCellIdentifier];
         }
         
-        // Configure the cell...
-        cell.type = SearchResultCellTypeCamp;
-        
-        if (self.loadingCamps) {
-            cell.profilePicture.imageView.backgroundColor = [UIColor colorWithWhite:0.9f alpha:1];
-            cell.textLabel.text = @"Loading...";
-            cell.textLabel.alpha = 0.5;
-            cell.detailTextLabel.text = @"";
-        }
-        else {
-            NSError *error;
-            Camp *camp = [[Camp alloc] initWithDictionary:self.camps[indexPath.row] error:&error];
-            if (error) { NSLog(@"camp error: %@", error); };
-            
-            // 1 = Camp
-            cell.profilePicture.camp = camp;
-            cell.textLabel.text = camp.attributes.details.title;
-            cell.textLabel.alpha = 1;
-            
-            NSString *detailText = [NSString stringWithFormat:@"%ld %@", (long)camp.attributes.summaries.counts.members, (camp.attributes.summaries.counts.members == 1 ? [Session sharedInstance].defaults.camp.membersTitle.singular : [Session sharedInstance].defaults.camp.membersTitle.plural)];
-            /*BOOL useLiveCount = camp.attributes.summaries.counts.live > [Session sharedInstance].defaults.camp.liveThreshold;
-            if (useLiveCount) {
-                cell.detailTextLabel.text = [NSString stringWithFormat:@"%@ · %li LIVE", detailText, (long)camp.attributes.summaries.counts.live];
-            }*/
-            cell.detailTextLabel.text = detailText;
-        }
+        Camp *camp = self.stream.camps[indexPath.row];
+        cell.camp = camp;
         
         return cell;
     }
@@ -171,15 +189,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    CGFloat headerHeight = 0; // 64;
-    
-    if (section == 0 && !self.loadingCamps && self.camps.count == 0)
-        return 0;
-    
-    if (section == 0)
-        return headerHeight;
-    
-    return 0;
+    return CGFLOAT_MIN;
 }
 
 - (nullable UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
@@ -187,33 +197,33 @@ static NSString * const memberCellIdentifier = @"MemberCell";
 }
 - (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
     if (section == 0) {
-        // BOOL hasAnotherPage = self.stream.pages.count > 0 && [self.stream.pages lastObject].meta.paging.next_cursor != nil && [self.stream.pages lastObject].meta.paging.next_cursor.length > 0;
-        // BOOL showLoadingFooter = (self.loadingMore || hasAnotherPage);
+        BOOL hasAnotherPage = self.stream.pages.count > 0 && self.stream.nextCursor.length > 0;
+        BOOL showLoadingFooter = self.loadingCamps || ((self.loadingMoreCamps || hasAnotherPage) && ![self.stream hasLoadedCursor:self.stream.nextCursor]);
         
-        return self.loadingCamps;
+        return showLoadingFooter ? 52 : 0;
     }
     
     return CGFLOAT_MIN;
 }
 - (UIView*)tableView:(UITableView*)tableView viewForFooterInSection:(NSInteger)section {
     if (section == 0) {
-        //BOOL hasAnotherPage = self.stream.pages.count > 0 && [self.stream.pages lastObject].meta.paging.next_cursor != nil && [self.stream.pages lastObject].meta.paging.next_cursor.length > 0;
-        //BOOL showLoadingFooter = (self.loadingMore || hasAnotherPage);
+        // last row
+        BOOL hasAnotherPage = self.stream.pages.count > 0 && self.stream.nextCursor.length > 0;
+        BOOL showLoadingFooter = self.loadingCamps || ((self.loadingMoreCamps || hasAnotherPage) && ![self.stream hasLoadedCursor:self.stream.nextCursor]);
         
-        if (self.loadingCamps) {
+        if (showLoadingFooter) {
             UIView *footer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 52)];
             
             UIActivityIndicatorView *spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+            spinner.color = [UIColor bonfireSecondaryColor];
             spinner.frame = CGRectMake(footer.frame.size.width / 2 - 10, footer.frame.size.height / 2 - 10, 20, 20);
             [footer addSubview:spinner];
             
             [spinner startAnimating];
             
-            /*if (!self.loadingMore && self.stream.pages.count > 0 && [self.stream.pages lastObject].meta.paging.next_cursor != nil && [self.stream.pages lastObject].meta.paging.next_cursor.length > 0) {
-                self.loadingMore = true;
-                NSLog(@"fetch next page");
-                [self getNotificationsWithNextCursor:true];
-            }*/
+            if (!self.loadingMoreCamps && self.stream.pages.count > 0 && self.stream.nextCursor.length > 0) {
+                [self getCampsWithCursor:StreamPagingCursorTypeNext];
+            }
             
             return footer;
         }
@@ -224,13 +234,10 @@ static NSString * const memberCellIdentifier = @"MemberCell";
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.section == 0) {
-        if (indexPath.row < self.camps.count) {
-            NSError *error;
-            Camp *camp = [[Camp alloc] initWithDictionary:self.camps[indexPath.row] error:&error];
-            
-             if (!error) {
-                 [Launcher openCamp:camp];
-             }
+        Camp *camp = self.stream.camps[indexPath.row];
+        
+        if (camp) {
+            [Launcher openCamp:camp];
         }
     }
 }

@@ -104,7 +104,7 @@
 }
 
 - (NSString *)prevCursor {
-    if (self.pages.count == 0) return nil;
+    if (self.pages.count == 0) return @"";
     
     // find first available page with cursor
     for (UserActivityStreamPage *page in self.pages) {
@@ -116,46 +116,15 @@
     return nil;
 }
 - (NSString *)nextCursor {
-    if (self.pages.count == 0) return nil;
-    if ([self.pages lastObject].meta.paging.nextCursor.length == 0) return nil;
+    if (self.pages.count == 0) return @"";
+    if ([self.pages lastObject].meta.paging.nextCursor.length == 0) return @"";
     
     return [self.pages lastObject].meta.paging.nextCursor;
 }
 
-//- (void)markAllAsRead {
-//    for (UserActivityStreamPage *page in self.pages) {
-//        NSMutableArray <UserActivity *> *mutableData = [[NSMutableArray alloc] initWithArray:page.data];
-//        for (UserActivity *activity in mutableData) {
-//            activity.unread = false;
-//        }
-//
-//        page.data = [mutableData copy];
-//    }
-//
-//    [self updateActivitiesArray];
-//}
-
 @end
 
 @implementation UserActivityStreamPage
-
-+ (JSONKeyMapper *)keyMapper
-{
-    return [JSONKeyMapper mapperForSnakeCase];
-}
-
-+ (BOOL)propertyIsOptional:(NSString*)propertyName
-{
-    return YES; // all are optional
-}
-
-@end
-
-@implementation UserActivityStreamPageMeta
-
-@end
-
-@implementation UserActivityStreamPageMetaPaging
 
 + (JSONKeyMapper *)keyMapper
 {

@@ -20,10 +20,11 @@
     
     if (self) {
         self.toggle = [[UISwitch alloc] init];
+        self.contentView.backgroundColor = [UIColor contentBackgroundColor];
         [self.contentView addSubview:self.toggle];
         
         self.textLabel.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightMedium];
-        self.textLabel.textColor = [UIColor bonfireBlack];
+        self.textLabel.textColor = [UIColor bonfireSecondaryColor];
         
         self.accessoryType = UITableViewCellAccessoryNone;
         self.selectionStyle = UITableViewCellSelectionStyleNone;

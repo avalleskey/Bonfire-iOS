@@ -83,10 +83,10 @@
 
 - (void)viewDidAppear:(BOOL)animated {
     // animate in
-    
+    [super viewDidAppear:animated];
 }
 - (void)viewWillDisappear:(BOOL)animated {
-    
+    [super viewWillDisappear:animated];
 }
 
 @end

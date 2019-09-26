@@ -9,15 +9,17 @@
 #import <UIKit/UIKit.h>
 #import "HAWebService.h"
 #import "SmallCampCardCell.h"
+#import "SmallMediumCampCardCell.h"
 #import "MediumCampCardCell.h"
 #import "LargeCampCardCell.h"
 
 @interface CampCardsListCell : UITableViewCell <UICollectionViewDelegate, UICollectionViewDataSource>
 
 typedef enum {
-    CAMP_CARD_SIZE_SMALL = 0,
-    CAMP_CARD_SIZE_MEDIUM = 1,
-    CAMP_CARD_SIZE_LARGE = 2
+    CAMP_CARD_SIZE_SMALL,
+    CAMP_CARD_SIZE_SMALL_MEDIUM,
+    CAMP_CARD_SIZE_MEDIUM,
+    CAMP_CARD_SIZE_LARGE
 } CAMP_CARD_SIZE;
 
 @property (nonatomic, strong) UICollectionView *collectionView;

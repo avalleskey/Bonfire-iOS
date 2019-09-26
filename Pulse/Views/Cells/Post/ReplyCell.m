@@ -15,6 +15,9 @@
 #import "Launcher.h"
 #import "UIColor+Palette.h"
 
+#define REPLY_POST_MAX_CHARACTERS 125
+#define REPLY_BUBBLE_INSETS UIEdgeInsetsMake(0, 0, 0, 0)
+
 @implementation ReplyCell
 
 @synthesize post = _post;
@@ -47,9 +50,11 @@
         self.voted = false;
         
         // text view
-        self.textView.frame = CGRectMake(replyContentOffset.left, 28, self.contentView.frame.size.width - (replyContentOffset.left + replyContentOffset.right), 200);
+        self.textView.frame = CGRectMake(replyContentOffset.left, 28, [UIScreen mainScreen].bounds.size.width - (replyContentOffset.left + replyContentOffset.right), 200);
         self.textView.messageLabel.font = replyTextViewFont;
         self.textView.delegate = self;
+        self.textView.maxCharacters = REPLY_POST_MAX_CHARACTERS;
+        self.textView.postId = self.post.identifier;
 
         //        self.actionsView = [[PostActionsView alloc] initWithFrame:CGRectMake(self.nameLabel.frame.origin.x + postTextViewInset.left, 0, self.nameLabel.frame.size.width - (postTextViewInset.left + postTextViewInset.right), POST_ACTIONS_VIEW_HEIGHT)];
 //        [self.actionsView.voteButton bk_whenTapped:^{
@@ -110,24 +115,26 @@
     }
     
     self.nameLabel.frame = CGRectMake(offset.left, self.primaryAvatarView.frame.origin.y, self.frame.size.width - offset.left - offset.right, 16);
-    CGFloat yBottom = self.nameLabel.frame.origin.y + self.nameLabel.frame.size.height + 4;
+    CGFloat yBottom = self.nameLabel.frame.origin.y + self.nameLabel.frame.size.height;
     
     // -- text view
-    self.textView.tintColor = self.tintColor;
-    self.textView.frame = CGRectMake(offset.left, yBottom, self.frame.size.width - offset.left - offset.right, self.textView.frame.size.height);
-    [self.textView update];
-    yBottom = self.textView.frame.origin.y + self.textView.frame.size.height;
+    self.textView.frame = CGRectMake(offset.left, yBottom + 3, self.frame.size.width - offset.left - offset.right, self.textView.frame.size.height);
+    if (self.post.attributes.details.simpleMessage.length > 0) {
+        self.textView.tintColor = self.tintColor;
+        [self.textView update];
+        yBottom = self.textView.frame.origin.y + self.textView.frame.size.height;
+    }
     
     BOOL hasImage = self.post.attributes.details.media.count > 0 || self.post.attributes.details.attachments.media.count > 0;
     self.imagesView.hidden = !hasImage;
     if (hasImage) {
         CGFloat imageHeight = [PostImagesView streamImageHeight] * .8;
-        self.imagesView.frame = CGRectMake(offset.left, yBottom + 2, self.textView.frame.size.width, imageHeight);
+        self.imagesView.frame = CGRectMake(offset.left, yBottom + 6, self.frame.size.width - offset.left - offset.right, imageHeight);
         
-        yBottom = self.imagesView.frame.origin.y + self.imagesView.frame.size.height;
+        // yBottom = self.imagesView.frame.origin.y + self.imagesView.frame.size.height;
     }
     else {
-        yBottom = self.textView.frame.origin.y + self.textView.frame.size.height;
+        // yBottom = self.textView.frame.origin.y + self.textView.frame.size.height;
     }
     
     // self.actionsView.frame = CGRectMake(offset.left, yBottom + 6, self.frame.size.width - offset.left - offset.right, self.actionsView.frame.size.height);
@@ -228,6 +235,7 @@
         
         UIFont *font = [post isEmojiPost] ? [UIFont systemFontOfSize:textViewFont.pointSize*2] : replyTextViewFont;
         self.textView.messageLabel.font = font;
+        self.textView.postId = self.post.identifier;
         
         [self.textView setMessage:self.post.attributes.details.simpleMessage entities:self.post.attributes.details.entities];
         
@@ -248,8 +256,6 @@
         else {
             [self.imagesView setMedia:@[]];
         }
-        
-        // [self.actionsView setSummaries:post.attributes.summaries];
     }
 }
 
@@ -264,28 +270,25 @@
     
     CGFloat screenWidth = [UIScreen mainScreen].bounds.size.width;
     
-    CGFloat headerHeight = 16 + 4; // 3pt padding underneath
+    CGFloat headerHeight = 16; // 3pt padding underneath
     height = height + headerHeight;
     
     // message
-    UIFont *font = [post isEmojiPost] ? [UIFont systemFontOfSize:textViewFont.pointSize*POST_EMOJI_SIZE_MULTIPLIER] : replyTextViewFont;
-    CGSize messageSize = [PostTextView sizeOfBubbleWithMessage:post.attributes.details.simpleMessage withConstraints:CGSizeMake(screenWidth - replyContentOffset.left - replyContentOffset.right, CGFLOAT_MAX) font:font];
-    CGFloat textViewHeight = post.attributes.details.message.length == 0 ? 0 : ceilf(messageSize.height);
-    height = height + textViewHeight;
+    if (post.attributes.details.simpleMessage.length > 0) {
+        UIFont *font = [post isEmojiPost] ? [UIFont systemFontOfSize:textViewFont.pointSize*POST_EMOJI_SIZE_MULTIPLIER] : replyTextViewFont;
+        
+        CGFloat messageHeight = [PostTextView sizeOfBubbleWithMessage:post.attributes.details.simpleMessage withConstraints:CGSizeMake(screenWidth - replyContentOffset.left - replyContentOffset.right - REPLY_BUBBLE_INSETS.left - REPLY_BUBBLE_INSETS.right, CGFLOAT_MAX) font:font maxCharacters:[PostTextView entityBasedMaxCharactersForMessage:post.attributes.details.simpleMessage maxCharacters:REPLY_POST_MAX_CHARACTERS entities:post.attributes.details.entities]].height;
+//
+        CGFloat textViewHeight = ceilf(messageHeight) + 3; // 4 on top
+        height = height + textViewHeight;
+    }
     
     // image
     BOOL hasImage = (post.attributes.details.media.count > 0 || post.attributes.details.attachments.media.count > 0); // postAtIndex.images != nil && postAtIndex.images.count > 0;
     if (hasImage) {
         CGFloat imageHeight = [PostImagesView streamImageHeight] * .8;
-        imageHeight = imageHeight; // 2 above
+        imageHeight = imageHeight + 6; // 6 above
         height = height + imageHeight;
-    }
-    
-    // 4 on top and 4 on bottom
-    BOOL hasURLPreview = [post requiresURLPreview];
-    if (hasURLPreview) {
-        CGFloat urlPreviewHeight = !hasImage && hasURLPreview ? [PostImagesView streamImageHeight] : 0; // 4 on bottom
-        height = height + urlPreviewHeight;
     }
     
     // details view

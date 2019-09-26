@@ -27,12 +27,15 @@
         self.textLabel.font = [UIFont systemFontOfSize:15.f weight:UIFontWeightSemibold];
         self.textLabel.textColor = [UIColor colorWithWhite:0.33 alpha:1];
         
-        self.morePostsIcon = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"showMorePostsIcon"]];
+        self.morePostsIcon = [[UIImageView alloc] initWithImage:[[UIImage imageNamed:@"showMorePostsIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
+        self.morePostsIcon.tintColor = [UIColor bonfireSecondaryColor];
+        self.morePostsIcon.layer.masksToBounds = true;
+        self.morePostsIcon.backgroundColor = [[UIColor bonfireSecondaryColor] colorWithAlphaComponent:0.1];
         self.morePostsIcon.contentMode = UIViewContentModeCenter;
         [self.contentView addSubview:self.morePostsIcon];
         
         self.lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, self.frame.size.height - (1 / [UIScreen mainScreen].scale), self.frame.size.width, (1 / [UIScreen mainScreen].scale))];
-        self.lineSeparator.backgroundColor = [UIColor separatorColor];
+        self.lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
         self.lineSeparator.hidden = true;
         [self addSubview:self.lineSeparator];
         
@@ -49,7 +52,8 @@
     
     CGFloat profilePictureWidth = 32;
     self.textLabel.frame = CGRectMake(replyContentOffset.left, 0, self.frame.size.width - replyContentOffset.left - replyContentOffset.right, self.frame.size.height);
-    self.morePostsIcon.frame = CGRectMake(postContentOffset.left, self.textLabel.frame.origin.y, profilePictureWidth, self.textLabel.frame.size.height);
+    self.morePostsIcon.frame = CGRectMake(postContentOffset.left, self.frame.size.height / 2 - profilePictureWidth / 2, profilePictureWidth, profilePictureWidth);
+    self.morePostsIcon.layer.cornerRadius = self.morePostsIcon.frame.size.width / 2;
 }
 
 - (void)setHighlighted:(BOOL)highlighted animated:(BOOL)animated {

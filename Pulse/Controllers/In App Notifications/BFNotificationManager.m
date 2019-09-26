@@ -52,11 +52,10 @@
 - (void)presentNotificationView:(BFNotificationView *)notificationView completion:(void (^ __nullable)(void))completion {
     self.presenting = true;
     
-    CGFloat yTop = [UIScreen mainScreen].bounds.size.height;
     CGFloat notificaitonViewHeight = notificationView.frame.size.height;
     UIEdgeInsets safeAreaInsets = [[[UIApplication sharedApplication] delegate] window].safeAreaInsets;
 
-    yTop = (safeAreaInsets.top == 0 ? notificationView.frame.origin.x : safeAreaInsets.top);
+    CGFloat yTop = (safeAreaInsets.top == 0 ? notificationView.frame.origin.x : safeAreaInsets.top);
     
     [self.notifications addObject:notificationView];
     
@@ -81,7 +80,7 @@
             }
         }
     }];
-    [HapticHelper generateFeedback:FeedbackType_Impact_Medium];
+    //[HapticHelper generateFeedback:FeedbackType_Impact_Medium];
     
     // set a timer to dismiss the notification view
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3.f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{

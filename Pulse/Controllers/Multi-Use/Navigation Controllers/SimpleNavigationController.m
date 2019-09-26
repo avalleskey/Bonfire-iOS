@@ -28,11 +28,33 @@
     // Do any additional setup after loading the view.
     
     [self setupNavigationBar];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userUpdated:) name:@"UserUpdated" object:nil];
 }
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    if (self.currentTheme == nil) {
-        self.currentTheme = [UIColor clearColor];
+
+    if ([self isBeingPresented] || [self isMovingToParentViewController]) {
+        if (self.currentTheme == nil) {
+            self.currentTheme = [UIColor clearColor];
+        }
+        
+        // Perform an action that will only be done once
+        if (self.view.tag == VIEW_CONTROLLER_PUSH_TAG) {
+            self.swiper = [[SloppySwiper alloc] initWithNavigationController:self];
+            self.swiper.delegate = self;
+            self.delegate = self.swiper;
+        }
+    }
+}
+
+- (void)userUpdated:(NSNotification *)notification {
+    if ([self.navigationBar isTranslucent]) {
+        //UIColor *actionColor = [UIColor fromHex:[Session sharedInstance].currentUser.attributes.details.color];
+        //self.navigationBar.tintColor = actionColor;
+//        self.navigationItem.leftBarButtonItem.customView.tintColor = actionColor;
+//        self.navigationItem.rightBarButtonItem.customView.tintColor = actionColor;
+//        self.leftActionButton.tintColor = actionColor;
+//        self.rightActionButton.tintColor = actionColor;
     }
 }
 
@@ -45,18 +67,26 @@
 }
 
 - (void)setupNavigationBar {
+    self.navigationItem.leftMargin = 12;
+    self.navigationItem.rightMargin = 12;
 //    // setup items
     [self.navigationBar setTitleTextAttributes:
      @{NSForegroundColorAttributeName:[UIColor blackColor],
        NSFontAttributeName:[UIFont systemFontOfSize:18.f weight:UIFontWeightBold]}];
     
-    self.navigationBar.barStyle = UIBarStyleDefault;
-    
 //    self.titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.navigationBar.frame.size.width - (72 * 2), self.navigationBar.frame.size.height)];
-//    self.titleLabel.textColor = [UIColor bonfireBlack];
+//    self.titleLabel.textColor = [UIColor bonfirePrimaryColor];
 //    self.titleLabel.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightBold];
 //    self.titleLabel.textAlignment = NSTextAlignmentLeft;
 //    [self.navigationItem setTitleView:self.titleLabel];
+    
+    self.navigationBar.barStyle = UIBarStyleDefault;
+    self.navigationBar.shadowImage = [self imageWithColor:[UIColor clearColor]];
+    
+    self.bottomHairline = [[UIView alloc] initWithFrame:CGRectMake(0, self.navigationBar.frame.size.height, self.view.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+    self.bottomHairline.backgroundColor = [UIColor colorNamed:@"FullContrastColor"];
+    self.bottomHairline.alpha = 0.12;
+    [self.navigationBar addSubview:self.bottomHairline];
 }
 
 /*
@@ -67,7 +97,7 @@
     [self.navigationItem setTitleView:self.titleLabel];
 }*/
 
-- (UIBarButtonItem *)createBarButtonItemForType:(SNActionType)actionType {
+- (UIButton *)createActionButtonForType:(SNActionType)actionType {
     UIButton *button = [UIButton buttonWithType:UIButtonTypeSystem];
     
     BOOL includeAction = false;
@@ -76,7 +106,7 @@
         includeAction = true;
         [button setTitle:@"Cancel" forState:UIControlStateNormal];
     }
-    if (actionType == SNActionTypeProfile) {
+    else if (actionType == SNActionTypeProfile) {
         includeAction = true;
         BFAvatarView *userAvatar = [[BFAvatarView alloc] initWithFrame:CGRectMake(12, self.navigationBar.frame.size.height / 2 - 16, 32, 32)];
         userAvatar.user = [[Session sharedInstance] currentUser];
@@ -87,46 +117,51 @@
         
         [[NSNotificationCenter defaultCenter] addObserver:userAvatar selector:@selector(userUpdated:) name:@"UserUpdated" object:nil];
     }
-    if (actionType == SNActionTypeCompose) {
+    else if (actionType == SNActionTypeCompose) {
         includeAction = true;
         [button setImage:[[UIImage imageNamed:@"composeIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
         [button setImageEdgeInsets:UIEdgeInsetsMake(-2, 0, 0, -3)];
     }
-    if (actionType == SNActionTypeMore) {
+    else if (actionType == SNActionTypeMore) {
         includeAction = true;
         [button setImage:[[UIImage imageNamed:@"navMoreIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
     }
-    if (actionType == SNActionTypeInvite) {
+    else if (actionType == SNActionTypeInvite) {
         includeAction = true;
         [button setImage:[[UIImage imageNamed:@"inviteFriendIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
     }
-    if (actionType == SNActionTypeAdd) {
+    else if (actionType == SNActionTypeAdd || actionType == SNActionTypeCreateCamp) {
         includeAction = true;
         [button setImage:[[UIImage imageNamed:@"navPlusIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
     }
-    if (actionType == SNActionTypeShare) {
+    else if (actionType == SNActionTypeShare) {
         [button setTitle:@"Post" forState:UIControlStateNormal];
     }
-    if (actionType == SNActionTypeDone) {
+    else if (actionType == SNActionTypeDone) {
         includeAction = true;
         [button setTitle:@"Done" forState:UIControlStateNormal];
     }
-    if (actionType == SNActionTypeSettings) {
+    else if (actionType == SNActionTypeSettings) {
         includeAction = true;
         [button setImage:[[UIImage imageNamed:@"navSettingsIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
     }
-    if (actionType == SNActionTypeSearch) {
+    else if (actionType == SNActionTypeSearch) {
         includeAction = true;
         [button setImage:[[UIImage imageNamed:@"navSearchIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
     }
+    else if (actionType == SNActionTypeBack) {
+        includeAction = true;
+        [button setImage:[[UIImage imageNamed:@"leftArrowIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+    }
+    else if (actionType == SNActionTypeCamptag) {
+        [button setImage:[[UIImage imageNamed:@"navCamptagIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+    }
     
-    if (button.currentTitle.length > 0) {
-        if (actionType == SNActionTypeShare || actionType == SNActionTypeDone) {
-            [button.titleLabel setFont:[UIFont systemFontOfSize:18.f weight:UIFontWeightBold]];
-        }
-        else {
-            [button.titleLabel setFont:[UIFont systemFontOfSize:18.f weight:UIFontWeightMedium]];
-        }
+    if (actionType == SNActionTypeShare || actionType == SNActionTypeDone) {
+        [button.titleLabel setFont:[UIFont systemFontOfSize:18.f weight:UIFontWeightBold]];
+    }
+    else {
+        [button.titleLabel setFont:[UIFont systemFontOfSize:18.f weight:UIFontWeightMedium]];
     }
     
     CGFloat padding = 16;
@@ -166,10 +201,21 @@
                     [Launcher openInviteFriends:self];
                     break;
                 case SNActionTypeAdd:
+                    
+                    break;
+                case SNActionTypeCreateCamp:
                     [Launcher openCreateCamp];
                     break;
                 case SNActionTypeBack: {
-                    
+                    if (self.viewControllers.count == 1) {
+                        // VC is the top most view controller
+                        [self.view endEditing:YES];
+                        
+                        [self dismissViewControllerAnimated:YES completion:nil];
+                    }
+                    else {
+                        [self popViewControllerAnimated:YES];
+                    }
                     break;
                 }
                 case SNActionTypeSettings:
@@ -185,32 +231,56 @@
         }];
     }
     
-    UIBarButtonItem *item = [[UIBarButtonItem alloc] initWithCustomView:button];
+    if (SNActionTypeBack) {
+        UILongPressGestureRecognizer *longPressToGoHome = [[UILongPressGestureRecognizer alloc] bk_initWithHandler:^(UIGestureRecognizer *sender, UIGestureRecognizerState state, CGPoint location) {
+            switch (actionType) {
+                case SNActionTypeBack: {
+                    if (state == UIGestureRecognizerStateBegan) {
+                        [self setEditing:false];
+                        
+                        [self dismissViewControllerAnimated:YES completion:nil];
+                    }
+                    break;
+                }
+                    
+                default:
+                    break;
+            }
+        }];
+        [button addGestureRecognizer:longPressToGoHome];
+    }
     
-    return item;
+    return button;
 }
 - (void)setLeftAction:(SNActionType)actionType {
-    if (actionType != self.visibleViewController.navigationItem.leftBarButtonItem.customView.tag) {
-        if (actionType == SNActionTypeNone) {
-            self.visibleViewController.navigationItem.leftBarButtonItem = nil;
-        }
-        else {
-            self.visibleViewController.navigationItem.leftBarButtonItem = [self createBarButtonItemForType:actionType];
-            self.visibleViewController.navigationItem.leftMargin = 0;
-        }
+    if (actionType == SNActionTypeNone) {
+        self.leftActionView = [UIButton new];
+        self.navigationItem.leftBarButtonItem = nil;
+    }
+    else {
+        self.leftActionView = [self createActionButtonForType:actionType];
+        UIBarButtonItem *item = [[UIBarButtonItem alloc] initWithCustomView:self.leftActionView];
+        self.visibleViewController.navigationItem.leftBarButtonItem = item;
+        self.visibleViewController.navigationItem.leftMargin = 0;
+        
+        self.leftActionView.tag = actionType;
     }
 }
 - (void)setRightAction:(SNActionType)actionType {
-    if (actionType != self.visibleViewController.navigationItem.rightBarButtonItem.customView.tag) {
+    if ((NSInteger)actionType != self.rightActionView.tag) {
+        [self.rightActionView removeFromSuperview];
         if (actionType == SNActionTypeNone) {
-            self.visibleViewController.navigationItem.rightBarButtonItem = nil;
+            self.rightActionView = [UIButton new];
+            self.navigationItem.rightBarButtonItem = nil;
         }
         else {
-            self.visibleViewController.navigationItem.rightBarButtonItem = [self createBarButtonItemForType:actionType];
+            self.rightActionView = [self createActionButtonForType:actionType];
+            UIBarButtonItem *item = [[UIBarButtonItem alloc] initWithCustomView:self.rightActionView];
+            self.visibleViewController.navigationItem.rightBarButtonItem = item;
             self.visibleViewController.navigationItem.rightMargin = 0;
+            
+            self.rightActionView.tag = actionType;
         }
-        self.visibleViewController.navigationItem.rightBarButtonItem.tag = actionType;
-        self.visibleViewController.navigationItem.rightBarButtonItem.tag = actionType;
     }
 }
 
@@ -222,43 +292,28 @@
     }];
 }
 - (void)hideBottomHairline {
-    UIImageView *navBarHairlineImageView = [self findHairlineImageViewUnder:self.navigationBar];
-    if (navBarHairlineImageView.alpha == 1) {
-        [navBarHairlineImageView.layer removeAllAnimations];
+    if (self.bottomHairline.alpha == 0.12) {
+        [self.bottomHairline.layer removeAllAnimations];
     }
-    navBarHairlineImageView.alpha = 0;
+    self.bottomHairline.alpha = 0;
 }
 - (void)showBottomHairline {
     // Show 1px hairline of translucent nav bar
-    UIImageView *navBarHairlineImageView = [self findHairlineImageViewUnder:self.navigationBar];
-
-    if (navBarHairlineImageView.alpha != 1) {
-        [navBarHairlineImageView.layer removeAllAnimations];
+    if (self.bottomHairline.alpha != 0.12) {
+        [self.bottomHairline.layer removeAllAnimations];
     }
-    navBarHairlineImageView.alpha = 1;
-}
-- (UIImageView *)findHairlineImageViewUnder:(UIView *)view {
-    if ([view isKindOfClass:UIImageView.class] && view.bounds.size.height <= 1.0) {
-        return (UIImageView *)view;
-    }
-    for (UIView *subview in view.subviews) {
-        UIImageView *imageView = [self findHairlineImageViewUnder:subview];
-        if (imageView) {
-            return imageView;
-        }
-    }
-    return nil;
+    self.bottomHairline.alpha = 0.12;
 }
 
 - (void)makeTransparent {
     self.navigationBar.translucent = true;
     self.navigationBar.backgroundColor = [UIColor clearColor];
-    self.navigationBar.shadowImage = [self imageWithColor:[UIColor colorWithWhite:0 alpha:0.1]];    // Hides the hairline
+    [self setShadowVisibility:true withAnimation:false];
 }
 - (void)makeDefault {
     self.navigationBar.translucent = false;
     self.navigationBar.backgroundColor = nil;
-    self.navigationBar.shadowImage = [self imageWithColor:[UIColor clearColor]];    // Hides the hairline
+    [self setShadowVisibility:false withAnimation:false];
 }
 - (UIImage *)imageWithColor:(UIColor *)color {
     CGRect rect = CGRectMake(0.0f, 0.0f, 1.0f, 0.5);
@@ -278,33 +333,40 @@
 
 - (void)updateBarColor:(id)background animated:(BOOL)animated {
     if ([background isKindOfClass:[NSString class]]) {
-        background = [UIColor fromHex:background];
+        background = [UIColor fromHex:background adjustForDarkMode:false];
     }
 
     UIColor *foreground;
+    UIColor *action;
     if (background == nil || background == [UIColor clearColor]) {
-        foreground = [UIColor bonfireBlack];
-        background = [UIColor colorWithRed:0.98 green:0.98 blue:0.99 alpha:1];
+        foreground = [UIColor bonfirePrimaryColor];
+        action = [UIColor bonfirePrimaryColor]; //[UIColor fromHex:[Session sharedInstance].currentUser.attributes.details.color];
+        background = [UIColor colorNamed:@"Navigation_ClearBackgroundColor"];
         [self makeTransparent];
     }
     else {
         if ([UIColor useWhiteForegroundForColor:background]) {
+            action =
             foreground = [UIColor whiteColor];
         }
         else {
-            foreground = [UIColor bonfireBlack];
+            action =
+            foreground = [UIColor bonfirePrimaryColor];
         }
         [self makeDefault];
     }
     
+    [self.navigationBar setTitleTextAttributes:
+    @{NSForegroundColorAttributeName:foreground,
+      NSFontAttributeName:[UIFont systemFontOfSize:18.f weight:UIFontWeightBold]}];
+    
     [UIView animateWithDuration:animated?0.5f:0 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
         self.navigationBar.barTintColor = background;
-        self.navigationBar.tintColor = foreground;
-        self.navigationItem.leftBarButtonItem.customView.tintColor = foreground;
-        self.navigationItem.rightBarButtonItem.customView.tintColor = foreground;
-        [self.navigationBar setTitleTextAttributes:
-         @{NSForegroundColorAttributeName:foreground,
-           NSFontAttributeName:[UIFont systemFontOfSize:18.f weight:UIFontWeightBold]}];
+        self.navigationBar.tintColor = action;
+        self.leftActionView.tintColor = action;
+        self.rightActionView.tintColor = action;
+        self.navigationItem.leftBarButtonItem.customView.tintColor = action;
+        self.navigationItem.rightBarButtonItem.customView.tintColor = action;
         [self.navigationBar layoutIfNeeded];
         [self setNeedsStatusBarAppearanceUpdate];
     } completion:nil];

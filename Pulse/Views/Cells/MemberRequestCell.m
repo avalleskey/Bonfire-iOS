@@ -21,11 +21,11 @@
         [self.contentView addSubview:self.profilePicture];
         
         self.textLabel.font = [UIFont systemFontOfSize:15.f weight:UIFontWeightSemibold];
-        self.textLabel.textColor = [UIColor bonfireBlack];
+        self.textLabel.textColor = [UIColor bonfirePrimaryColor];
         
         self.detailTextLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightRegular];
         self.detailTextLabel.textAlignment = NSTextAlignmentLeft;
-        self.detailTextLabel.textColor = [UIColor bonfireGray];
+        self.detailTextLabel.textColor = [UIColor bonfireSecondaryColor];
         self.detailTextLabel.lineBreakMode = NSLineBreakByTruncatingMiddle;
         
         // general cell styling
@@ -48,7 +48,6 @@
         [self.declineButton.titleLabel setFont:[UIFont systemFontOfSize:16.f weight:UIFontWeightSemibold]];
         self.declineButton.layer.cornerRadius = 10.f;
         self.declineButton.layer.masksToBounds = true;
-        self.declineButton.layer.borderColor = [UIColor separatorColor].CGColor;
         self.declineButton.layer.borderWidth = 1.f;
         [self addPressDownEffectsToButton:self.declineButton];
         [self.contentView addSubview:self.declineButton];
@@ -87,12 +86,15 @@
     CGFloat buttonContainerWidth = self.frame.size.width - 70 - 12;
     self.approveButton.frame = CGRectMake(70, 60, buttonContainerWidth / 2 - 6, 34);
     self.declineButton.frame = CGRectMake(self.approveButton.frame.origin.x + self.approveButton.frame.size.width + 12, self.approveButton.frame.origin.y, self.approveButton.frame.size.width, self.approveButton.frame.size.height);
+    
+    // added in layout subviews for dark mode support
+    self.declineButton.layer.borderColor = [UIColor tableViewSeparatorColor].CGColor;
 }
 
 - (void)setHighlighted:(BOOL)highlighted animated:(BOOL)animated {
     if (highlighted) {
         [UIView animateWithDuration:0.2f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-            self.contentView.backgroundColor = [[UIColor contentBackgroundColor] colorWithAlphaComponent:0.97];
+            self.contentView.backgroundColor = [UIColor contentHighlightedColor];
         } completion:nil];
     }
     else {

@@ -40,17 +40,17 @@
     self.miniSpinner = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 24, 24)];
     self.miniSpinner.contentMode = UIViewContentModeScaleAspectFill;
     self.miniSpinner.image = [[UIImage imageNamed:@"miniSpinner"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-    self.miniSpinner.tintColor = [UIColor bonfireGray];
+    self.miniSpinner.tintColor = [UIColor bonfireSecondaryColor];
     [self addSubview:self.miniSpinner];
     
     self.backgroundView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 32, 32)];
-    self.backgroundView.backgroundColor = [UIColor separatorColor];
+    self.backgroundView.backgroundColor = [UIColor tableViewSeparatorColor];
     self.backgroundView.layer.cornerRadius = self.backgroundView.frame.size.height / 2;
     self.backgroundView.layer.masksToBounds = true;
     //[self addSubview:self.backgroundView];
     
     self.progressView = [[UIView alloc] initWithFrame:CGRectMake(0, self.backgroundView.frame.size.height, self.backgroundView.frame.size.height, self.backgroundView.frame.size.height)];
-    self.progressView.backgroundColor = [UIColor bonfireBlack];
+    self.progressView.backgroundColor = [UIColor bonfirePrimaryColor];
     self.progressView.layer.cornerRadius = self.progressView.frame.size.height / 2;
     self.progressView.layer.masksToBounds = true;
     //[self.backgroundView addSubview:self.progressView];

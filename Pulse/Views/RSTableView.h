@@ -39,7 +39,7 @@ NS_ASSUME_NONNULL_BEGIN
 @optional
 - (void)tableViewDidScroll:(UITableView *)tableView;
 
-- (UITableViewCell *)cellForRowInFirstSection:(NSInteger)row;
+- (UITableViewCell * _Nullable)cellForRowInFirstSection:(NSInteger)row;
 - (CGFloat)heightForRowInFirstSection:(NSInteger)row;
 - (CGFloat)numberOfRowsInFirstSection;
 
@@ -62,10 +62,10 @@ typedef enum {
 @property (nonatomic) RSTableViewStyle tableViewStyle;
 
 @property (nonatomic, strong) id parentObject;
-@property (nonatomic, copy) void (^headerView)(void);
 
 @property (nonatomic) RSTableViewType dataType;
 @property (nonatomic) RSTableViewSubType dataSubType;
+@property BOOL includeContext;
 
 @property BOOL loading;
 @property BOOL error;

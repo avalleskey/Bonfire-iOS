@@ -10,7 +10,6 @@
 #import "BFAvatarView.h"
 #import "UITextView+Placeholder.h"
 #import "UIImageView+WebCache.h"
-#import "PostURLPreviewView.h"
 #import "BFMedia.h"
 
 NS_ASSUME_NONNULL_BEGIN
@@ -21,7 +20,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @end
 
-@interface ComposeTextViewCell : UITableViewCell <PostURLPreviewViewDelegate, BFMediaDelegate>
+@interface ComposeTextViewCell : UITableViewCell <BFMediaDelegate>
 
 // MEDIA
 @property (nonatomic, strong) BFMedia *media;
@@ -31,7 +30,6 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) BFAvatarView *creatorAvatar;
 @property (nonatomic, strong) UIScrollView *mediaScrollView;
 @property (nonatomic, strong) UIStackView *mediaContainerView;
-@property (nonatomic, strong) PostURLPreviewView *urlPreviewView;
 
 @property (nonatomic, strong) UIView *lineSeparator;
 

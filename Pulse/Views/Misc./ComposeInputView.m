@@ -20,6 +20,8 @@
 #import "CampViewController.h"
 #import "ProfileViewController.h"
 #import <HapticHelper/HapticHelper.h>
+#import "NSString+Validation.h"
+#import "SearchResultCell.h"
 
 #define headerHeight 58
 #define postButtonShrinkScale 0.9
@@ -34,10 +36,22 @@
     (UIViewController *)__responder; \
     })
 
+@interface ComposeInputView () <UITextViewDelegate, UITableViewDelegate, UITableViewDataSource>
+
+@property (nonatomic, strong) NSMutableArray *tagSuggestions;
+
+@property (nonatomic) NSAttributedString *activeAttributedString;
+@property (nonatomic) NSRange activeTagRange;
+@property (nonatomic) NSMutableArray *autoCompleteResults;
+
+@end
+
 @implementation ComposeInputView {
-    NSString *defaultPlaceholder;
     NSString *mediaPlaceholder;
 }
+
+static NSString * const searchResultCellIdentifier = @"SearchResultCell";
+static NSString * const blankCellIdentifier = @"BlankCell";
 
 - (id)initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
@@ -68,12 +82,9 @@
     
     self.layer.masksToBounds = false;
     
-    UIView *hairline = [[UIView alloc] initWithFrame:CGRectMake(0, -(1 / [UIScreen mainScreen].scale), screenWidth, (1 / [UIScreen mainScreen].scale))];
-    hairline.backgroundColor = [UIColor separatorColor];
-    [self addSubview:hairline];
-    
     // text view
     _textView = [[UITextView alloc] initWithFrame:CGRectMake(TEXT_VIEW_WITH_IMAGE_X, 6, self.frame.size.width - TEXT_VIEW_WITH_IMAGE_X - 12, 40)];
+    _textView.delegate = self;
     _textView.editable = true;
     _textView.scrollEnabled = false;
     _textView.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightRegular];
@@ -81,14 +92,14 @@
     _textView.contentInset = UIEdgeInsetsZero;
     _textView.textContainerInset = UIEdgeInsetsMake(9, 12, 9, 44);
     _textView.textContainer.lineBreakMode = NSLineBreakByWordWrapping;
-    _textView.textColor = [UIColor bonfireBlack];
+    _textView.textColor = [UIColor bonfirePrimaryColor];
     _textView.layer.cornerRadius = 20.f;
     _textView.backgroundColor = [[UIColor fromHex:@"9FA6AD"] colorWithAlphaComponent:0.1];
-    _textView.layer.borderWidth = (1 / [UIScreen mainScreen].scale);
-    _textView.layer.borderColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.06f].CGColor;
-    _textView.placeholder = defaultPlaceholder;
-    _textView.placeholderColor = [UIColor bonfireGray];
-    _textView.keyboardAppearance = UIKeyboardAppearanceLight;
+    _textView.layer.borderWidth = HALF_PIXEL;
+    _textView.placeholder = self.defaultPlaceholder;
+    _textView.placeholderColor = [UIColor bonfireSecondaryColor];
+//    _textView.keyboardAppearance = UIKeyboardAppearanceLight;
+    _textView.keyboardType = UIKeyboardTypeTwitter;
     [self.contentView addSubview:_textView];
     
     _mediaScrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 8, _textView.frame.size.width, 140 - 16)];
@@ -107,7 +118,7 @@
     self.media = [[BFMedia alloc] init];
     self.media.delegate = self;
     _mediaContainerView = [[UIStackView alloc] initWithFrame:CGRectMake(0, 0, _mediaScrollView.frame.size.width, _mediaScrollView.frame.size.height)];
-    _mediaContainerView.backgroundColor = [UIColor whiteColor];
+    _mediaContainerView.backgroundColor = [UIColor contentBackgroundColor];
     _mediaContainerView.axis = UILayoutConstraintAxisHorizontal;
     _mediaContainerView.distribution = UIStackViewDistributionFill;
     _mediaContainerView.alignment = UIStackViewAlignmentFill;
@@ -186,7 +197,8 @@
     self.expandButton.adjustsImageWhenHighlighted = false;
     self.expandButton.frame = CGRectMake(self.frame.size.width - 12 - 40, _textView.frame.origin.y, 40, 40);
     self.expandButton.contentMode = UIViewContentModeCenter;
-    [self.expandButton setImage:[UIImage imageNamed:@"expandComposeIcon"] forState:UIControlStateNormal];
+    [self.expandButton setImage:[[UIImage imageNamed:@"expandComposeIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+    self.expandButton.tintColor = [UIColor bonfirePrimaryColor];
     [self.expandButton setImage:[UIImage new] forState:UIControlStateDisabled];
     self.expandButton.userInteractionEnabled = true;
     [self.expandButton bk_addEventHandler:^(id sender) {
@@ -214,7 +226,7 @@
     self.replyingToLabel.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
     self.replyingToLabel.contentEdgeInsets = UIEdgeInsetsMake(0, 37, 0, 12);
     self.replyingToLabel.titleLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightMedium];
-    [self.replyingToLabel setTitleColor:[UIColor bonfireBlack] forState:UIControlStateNormal];
+    [self.replyingToLabel setTitleColor:[UIColor bonfirePrimaryColor] forState:UIControlStateNormal];
     [self.replyingToLabel bk_whenTapped:^{
         [self setReplyingTo:nil];
     }];
@@ -223,7 +235,7 @@
     UIImageView *closeIcon = [[UIImageView alloc] init];
     closeIcon.image = [[UIImage imageNamed:@"cancelReplyingToIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
     closeIcon.frame = CGRectMake(self.replyingToLabel.frame.size.width - closeIcon.image.size.width - 12, self.replyingToLabel.frame.size.height / 2 - closeIcon.image.size.height / 2, closeIcon.image.size.width, closeIcon.image.size.height);
-    closeIcon.tintColor = [UIColor bonfireBlack];
+    closeIcon.tintColor = [UIColor bonfirePrimaryColor];
     closeIcon.userInteractionEnabled = true;
     closeIcon.contentMode = UIViewContentModeCenter;
     [closeIcon bk_whenTapped:^{
@@ -233,20 +245,49 @@
     
     UIImageView *replyIcon = [[UIImageView alloc] initWithFrame:CGRectMake(12, self.replyingToLabel.frame.size.height / 2 - 7.5, 13, 15)];
     replyIcon.image = [[UIImage imageNamed:@"postActionReply"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-    replyIcon.tintColor = [UIColor bonfireBlack];
+    replyIcon.tintColor = [UIColor bonfirePrimaryColor];
     replyIcon.contentMode = UIViewContentModeScaleAspectFill;
     [self.replyingToLabel addSubview:replyIcon];
     
-    UIView *lineSeparator_t = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.replyingToLabel.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+    UIView *lineSeparator_t = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.replyingToLabel.frame.size.width, HALF_PIXEL)];
     lineSeparator_t.backgroundColor = [UIColor colorWithWhite:0 alpha:0.06];
     [self.replyingToLabel addSubview:lineSeparator_t];
+    
+    self.autoCompleteTableViewContainer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, 0)];
+    self.autoCompleteTableViewContainer.layer.masksToBounds = false;
+    [self addSubview:self.autoCompleteTableViewContainer];
+    
+    self.autoCompleteTableView = [[UITableView alloc] initWithFrame:self.autoCompleteTableViewContainer.bounds style:UITableViewStyleGrouped];
+    self.autoCompleteTableView.delegate = self;
+    self.autoCompleteTableView.dataSource = self;
+    self.autoCompleteTableView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
+    self.autoCompleteTableView.backgroundColor = [UIColor contentBackgroundColor];
+    self.autoCompleteTableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+    self.autoCompleteTableView.estimatedRowHeight = 68;
+    self.autoCompleteTableView.layer.cornerRadius = self.autoCompleteTableViewContainer.layer.cornerRadius;
+    self.autoCompleteTableView.showsVerticalScrollIndicator = false;
+    
+    [self.autoCompleteTableView registerClass:[UITableViewCell class] forCellReuseIdentifier:blankCellIdentifier];
+    [self.autoCompleteTableView registerClass:[SearchResultCell class] forCellReuseIdentifier:searchResultCellIdentifier];
+    
+    [self.autoCompleteTableViewContainer addSubview:self.autoCompleteTableView];
+    
+    // auto complete hairline
+    UIView *autoCompleteLineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, -HALF_PIXEL, self.autoCompleteTableViewContainer.frame.size.width, HALF_PIXEL)];
+    autoCompleteLineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
+    [self.autoCompleteTableViewContainer addSubview:autoCompleteLineSeparator];
+    
+    // compose box hairline
+    UIView *hairline = [[UIView alloc] initWithFrame:CGRectMake(0, -HALF_PIXEL, screenWidth, HALF_PIXEL)];
+    hairline.backgroundColor = [UIColor tableViewSeparatorColor];
+    //[self addSubview:hairline];
 }
 
 - (void)layoutSubviews
 {
     [super layoutSubviews];
     
-    if (defaultPlaceholder == nil || mediaPlaceholder == nil) {
+    if (self.defaultPlaceholder == nil || mediaPlaceholder == nil) {
         [self updatePlaceholders];
     }
     
@@ -255,42 +296,9 @@
     // style
     // -- text view
     [self resize:false];
-}
-
-- (Post *)createPostObject {
-    Post *post = [[Post alloc] init];
     
-    NSString *message = self.textView.text;
-    
-    post.type = @"post";
-    post.tempId = [NSString stringWithFormat:@"%d", [Session getTempId]];
-    // TODO: Add support for images
-    
-    PostAttributes *attributes = [[PostAttributes alloc] init];
-    /*
-     @property (nonatomic) PostDetails *details;
-     @property (nonatomic) PostStatus *status;
-     @property (nonatomic) PostSummaries *summaries;
-     @property (nonatomic) PostContext *context;
-     */
-    PostDetails *details = [[PostDetails alloc] init];
-    details.creator = [Session sharedInstance].currentUser;
-    if (message.length > 0) {
-        details.message = message;
-    }
-    attributes.details = details;
-    
-    PostStatus *status = [[PostStatus alloc] init];
-    
-    NSDate *date = [NSDate new];
-    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
-    [dateFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ssZ"];
-    status.createdAt = [dateFormatter stringFromDate:date];
-    attributes.status = status;
-    
-    post.attributes = attributes;
-    
-    return post;
+    // added in layoutSubviews for Dark Mode support
+    _textView.layer.borderColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.06].CGColor;
 }
 
 - (void)setMediaTypes:(NSArray *)mediaTypes {
@@ -304,50 +312,53 @@
 - (void)updatePlaceholders {
     NSString *publicPostPlaceholder = @"Share with everyone...";
     
-    defaultPlaceholder = @"";
-    UIViewController *parentController = UIViewParentController(self);
-    if (self.replyingTo != nil) {
-        if ([self.replyingTo.attributes.details.creator.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
-            defaultPlaceholder = @"Add a reply...";
-        }
-        else {
-            NSString *creatorIdentifier = self.replyingTo.attributes.details.creator.attributes.details.identifier;
-            defaultPlaceholder = creatorIdentifier ? [NSString stringWithFormat:@"Reply to @%@...", creatorIdentifier] : @"Add a reply...";
-        }
-    }
-    else if ([parentController isKindOfClass:[ProfileViewController class]]) {
-        ProfileViewController *parentProfile = (ProfileViewController *)parentController;
-        if ([parentProfile.user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier] || [self.textView isFirstResponder]) {
-            // me
-            defaultPlaceholder = publicPostPlaceholder;
-        }
-        else {
-            defaultPlaceholder = [NSString stringWithFormat:@"Share with @%@", parentProfile.user.attributes.details.identifier];
-        }
-    }
-    else if ([parentController isKindOfClass:[CampViewController class]]) {
-        CampViewController *parentCamp = (CampViewController *)parentController;
-        if (parentCamp.camp == nil) {
-            defaultPlaceholder = publicPostPlaceholder;
-        }
-        else {
-            if (parentCamp.camp.attributes.details.title == nil) {
-                defaultPlaceholder = @"Share something...";
+    if (self.defaultPlaceholder == nil) {
+        self.defaultPlaceholder = @"";
+        UIViewController *parentController = UIViewParentController(self);
+        if (self.replyingTo != nil) {
+            if ([self.replyingTo.attributes.details.creator.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
+                self.defaultPlaceholder = @"Add a reply...";
             }
             else {
-                defaultPlaceholder = [[Session sharedInstance].defaults.post.composePrompt stringByReplacingOccurrencesOfString:@"{group_name}" withString:parentCamp.camp.attributes.details.title];
+                NSString *creatorIdentifier = self.replyingTo.attributes.details.creator.attributes.details.identifier;
+                self.defaultPlaceholder = creatorIdentifier ? [NSString stringWithFormat:@"Reply to @%@...", creatorIdentifier] : @"Add a reply...";
             }
         }
+        else if ([parentController isKindOfClass:[ProfileViewController class]]) {
+            ProfileViewController *parentProfile = (ProfileViewController *)parentController;
+            if ([parentProfile.user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier] || [self.textView isFirstResponder]) {
+                // me
+                self.defaultPlaceholder = publicPostPlaceholder;
+            }
+            else {
+                self.defaultPlaceholder = [NSString stringWithFormat:@"Share with @%@", parentProfile.user.attributes.details.identifier];
+            }
+        }
+        else if ([parentController isKindOfClass:[CampViewController class]]) {
+            CampViewController *parentCamp = (CampViewController *)parentController;
+            if (parentCamp.camp == nil) {
+                self.defaultPlaceholder = publicPostPlaceholder;
+            }
+            else {
+                if (parentCamp.camp.attributes.details.title == nil) {
+                    self.defaultPlaceholder = @"Share something...";
+                }
+                else {
+                    self.defaultPlaceholder = [[Session sharedInstance].defaults.post.composePrompt stringByReplacingOccurrencesOfString:@"{group_name}" withString:parentCamp.camp.attributes.details.title];
+                }
+            }
+        }
+        else {
+            self.defaultPlaceholder = @"Add a reply...";
+        }
+        self.defaultPlaceholder = [self stringByDeletingWordsFromString:self.defaultPlaceholder toFit:CGRectMake(0, 0, self.textView.frame.size.width - 44 - 14 - 14, self.textView.frame.size.height - self.textView.contentInset.top - self.textView.contentInset.bottom) withInset:0 usingFont:self.textView.font];
     }
-    else if ([parentController isKindOfClass:[PostViewController class]]) {
-        defaultPlaceholder = @"Add a reply...";
+    else if (mediaPlaceholder == nil) {
+        mediaPlaceholder = @"Add caption or Share";
     }
-    defaultPlaceholder = [self stringByDeletingWordsFromString:defaultPlaceholder toFit:CGRectMake(0, 0, self.textView.frame.size.width - 44 - 14 - 14, self.textView.frame.size.height - self.textView.contentInset.top - self.textView.contentInset.bottom) withInset:0 usingFont:self.textView.font];
-    
-    mediaPlaceholder = @"Add caption or Share";
     
     if (self.media.objects.count == 0) {
-        self.textView.placeholder = defaultPlaceholder;
+        self.textView.placeholder = self.defaultPlaceholder;
     }
     else {
         self.textView.placeholder = mediaPlaceholder;
@@ -399,6 +410,9 @@
     [self hideMediaTray];
     [self setReplyingTo:nil];
     [self updateMediaAvailability];
+    self.tagSuggestions = [NSMutableArray new];
+    [self.autoCompleteTableView reloadData];
+    [self hideAutoCompleteView:true];
 }
 
 - (void)setActive:(BOOL)isActive {
@@ -474,15 +488,6 @@
         self.expandButton.alpha = 1;
     } completion:nil];
 }
-
-- (void)continuityRadiusForView:(UIView *)sender withRadius:(CGFloat)radius {
-    CAShapeLayer * maskLayer = [CAShapeLayer layer];
-    maskLayer.path = [UIBezierPath bezierPathWithRoundedRect:sender.bounds
-                                           byRoundingCorners:UIRectCornerBottomLeft|UIRectCornerBottomRight|UIRectCornerTopLeft|UIRectCornerTopRight
-                                                 cornerRadii:CGSizeMake(radius, radius)].CGPath;
-    
-    sender.layer.mask = maskLayer;
-}
     
 - (void)showImagePicker {
     UIAlertController *imagePickerOptions = [UIAlertController alertControllerWithTitle:nil message:nil preferredStyle:UIAlertControllerStyleActionSheet];
@@ -504,7 +509,6 @@
     [UIViewParentController(self) presentViewController:imagePickerOptions animated:YES completion:nil];
 }
     
-    
 - (void)takePhotoForProfilePicture:(id)sender {
     UIImagePickerController *picker = [[UIImagePickerController alloc] init];
     picker.delegate = self;
@@ -513,48 +517,56 @@
     [UIViewParentController(self) presentViewController:picker animated:YES completion:nil];
 }
 - (void)chooseFromLibraryForProfilePicture:(id)sender {
-    [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
-        switch (status) {
-            case PHAuthorizationStatusAuthorized: {
-                NSLog(@"PHAuthorizationStatusAuthorized");
-                
-                UIImagePickerController *picker = [[UIImagePickerController alloc] init];
-                picker.delegate = self;
-                picker.allowsEditing = NO;
-                picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    [[Launcher topMostViewController] presentViewController:picker animated:YES completion:nil];
-                });
-                
-                break;
-            }
-            case PHAuthorizationStatusDenied:
-            case PHAuthorizationStatusNotDetermined:
-            {
-                NSLog(@"PHAuthorizationStatusDenied");
-                // confirm action
-                UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"Allow Bonfire to access your phtoos" message:@"To allow Bonfire to access your photos, go to Settings > Privacy > Set Bonfire to ON" preferredStyle:UIAlertControllerStyleAlert];
-                
-                UIAlertAction *openSettingsAction = [UIAlertAction actionWithTitle:@"Open Settings" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-                    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString] options:@{} completionHandler:nil];
-                }];
-                [actionSheet addAction:openSettingsAction];
-                
-                UIAlertAction *closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleCancel handler:nil];
-                [actionSheet addAction:closeAction];
-                
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    [[Launcher topMostViewController] presentViewController:actionSheet animated:YES completion:nil];
-                });
-                
-                break;
-            }
-            case PHAuthorizationStatusRestricted: {
-                NSLog(@"PHAuthorizationStatusRestricted");
-                break;
-            }
-        }
-    }];
+    UIImagePickerController *picker = [[UIImagePickerController alloc] init];
+                    picker.delegate = self;
+                    picker.allowsEditing = NO;
+                    picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        [[Launcher topMostViewController] presentViewController:picker animated:YES completion:nil];
+                    });
+    
+//    [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
+//        switch (status) {
+//            case PHAuthorizationStatusAuthorized: {
+//                NSLog(@"PHAuthorizationStatusAuthorized");
+//                
+//                UIImagePickerController *picker = [[UIImagePickerController alloc] init];
+//                picker.delegate = self;
+//                picker.allowsEditing = NO;
+//                picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+//                dispatch_async(dispatch_get_main_queue(), ^{
+//                    [[Launcher topMostViewController] presentViewController:picker animated:YES completion:nil];
+//                });
+//                
+//                break;
+//            }
+//            case PHAuthorizationStatusDenied:
+//            case PHAuthorizationStatusNotDetermined:
+//            {
+//                NSLog(@"PHAuthorizationStatusDenied");
+//                // confirm action
+//                UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"Allow Bonfire to access your phtoos" message:@"To allow Bonfire to access your photos, go to Settings > Privacy > Set Bonfire to ON" preferredStyle:UIAlertControllerStyleAlert];
+//                
+//                UIAlertAction *openSettingsAction = [UIAlertAction actionWithTitle:@"Open Settings" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+//                    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString] options:@{} completionHandler:nil];
+//                }];
+//                [actionSheet addAction:openSettingsAction];
+//                
+//                UIAlertAction *closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleCancel handler:nil];
+//                [actionSheet addAction:closeAction];
+//                
+//                dispatch_async(dispatch_get_main_queue(), ^{
+//                    [[Launcher topMostViewController] presentViewController:actionSheet animated:YES completion:nil];
+//                });
+//                
+//                break;
+//            }
+//            case PHAuthorizationStatusRestricted: {
+//                NSLog(@"PHAuthorizationStatusRestricted");
+//                break;
+//            }
+//        }
+//    }];
 }
 - (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker {
     [picker dismissViewControllerAnimated:YES completion:nil];
@@ -586,7 +598,7 @@
     
     SDAnimatedImageView *view = [[SDAnimatedImageView alloc] init];
     view.userInteractionEnabled = true;
-    view.backgroundColor = [UIColor whiteColor];
+    view.backgroundColor = [UIColor contentBackgroundColor];
     view.layer.cornerRadius = 14.f;
     view.layer.masksToBounds = true;
     view.contentMode = UIViewContentModeScaleAspectFill;
@@ -603,7 +615,7 @@
     }
     [view.heightAnchor constraintEqualToConstant:100].active = true;
     view.layer.borderWidth = 1.f;
-    view.layer.borderColor = [UIColor colorWithWhite:0 alpha:0.06f].CGColor;
+    view.layer.borderColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.06].CGColor;
     [_mediaContainerView addArrangedSubview:view];
     
     UIButton *removeImageButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, 30, 30)];
@@ -641,6 +653,8 @@
     [self updateMediaAvailability];
     
     [self.mediaScrollView setContentOffset:CGPointMake(self.mediaScrollView.contentSize.width - self.mediaScrollView.frame.size.width, 0)];
+    
+    [self showPostButton];
 }
 
 - (void)removeImageAtIndex:(NSInteger)index {
@@ -729,7 +743,7 @@
 }
 - (void)hideMediaTray {
     _textView.textContainerInset = UIEdgeInsetsMake(9, _textView.textContainerInset.left, _textView.textContainerInset.bottom, _textView.textContainerInset.right);
-    _textView.placeholder = defaultPlaceholder;
+    _textView.placeholder = self.defaultPlaceholder;
     
     [self resize:true];
     if (self.textView.text.length == 0) {
@@ -780,6 +794,12 @@
     if (!_replyingToLabel.isHidden && CGRectContainsPoint(_replyingToLabel.bounds, translatedPoint)) {
         return [_replyingToLabel hitTest:translatedPoint withEvent:event];
     }
+    
+    translatedPoint = [_autoCompleteTableView convertPoint:point fromView:self];
+    if (CGRectContainsPoint(_autoCompleteTableView.bounds, translatedPoint)) {
+        return [_autoCompleteTableView hitTest:translatedPoint withEvent:event];
+    }
+    
     return [super hitTest:point withEvent:event];
     
 }
@@ -796,6 +816,274 @@
     } completion:^(BOOL finished) {
         self.replyingToLabel.hidden = true;
     }];
+}
+
+#pragma mark - UITextViewDelegate
+- (void)textViewDidChange:(UITextView *)textView {
+    if ([textView isEqual:self.textView]) {
+        [self resize:false];
+        
+        if (textView.text.length > 0 || self.media.objects.count > 0) {
+            [self showPostButton];
+        }
+        else {
+            [self hidePostButton];
+        }
+        
+        [self detectEntities];
+        
+        if ([self.delegate respondsToSelector:@selector(composeInputViewMessageDidChange:)]) {
+            [self.delegate composeInputViewMessageDidChange:textView];
+        }
+    }
+}
+
+- (void)detectEntities {
+    NSRange s_range = self.textView.selectedRange;
+    NSUInteger s_loc = s_range.location;
+    
+    BOOL insideUsername = false;
+    BOOL insideCampTag = false;
+    
+    NSMutableAttributedString *attributedText = [[NSMutableAttributedString alloc] initWithString:self.textView.text attributes:@{NSFontAttributeName: self.textView.font, NSForegroundColorAttributeName:[UIColor bonfirePrimaryColor]}];
+    NSArray *usernameRanges = [self.textView.text rangesForUsernameMatches];
+    NSArray *campTagRanges = [self.textView.text rangesForCampTagMatches];
+    NSArray *urlRanges = [self.textView.text rangesForLinkMatches];
+    if (usernameRanges.count > 0) {
+        NSLog(@"usernameRanges: %@", usernameRanges);
+        for (NSValue *value in usernameRanges) {
+            NSRange range = [value rangeValue];
+            [attributedText addAttribute:NSForegroundColorAttributeName value:self.textView.tintColor range:range];
+            
+            // NSLog(@"USERNAME. (%lu > %lu && %lu <= %lu + %lu)", s_loc, range.location, s_loc, range.location, range.length);
+            if (s_loc > range.location && s_loc <= range.location + range.length) {
+                insideUsername = true;
+                self.activeTagRange = range;
+                break;
+            }
+        }
+    }
+    if (campTagRanges.count > 0) {
+        NSLog(@"campTagRanges: %@", campTagRanges);
+        for (NSValue *value in campTagRanges) {
+            NSRange range = [value rangeValue];
+            [attributedText addAttribute:NSForegroundColorAttributeName value:self.textView.tintColor range:range];
+            
+            // NSLog(@"CAMP TAG. (%lu > %lu && %lu <= %lu + %lu)", s_loc, range.location, s_loc, range.location, range.length);
+            if (s_loc > range.location && s_loc <= range.location + range.length) {
+                insideCampTag = true;
+                self.activeTagRange = range;
+                break;
+            }
+        }
+    }
+    
+    if (urlRanges.count > 0) {
+        NSLog(@"urlRanges: %@", urlRanges);
+        for (NSValue *value in urlRanges) {
+            [attributedText addAttribute:NSForegroundColorAttributeName value:self.textView.tintColor range:[value rangeValue]];
+        }
+    }
+    
+    self.activeAttributedString = attributedText;
+    self.textView.attributedText = self.activeAttributedString;
+    
+    // environment issue
+    // -> set selected range using the range before updating the attributed text
+    [self.textView setSelectedRange:s_range];
+    
+    // update height of the cell
+    [self resize:true];
+    
+    if (insideUsername) NSLog(@"insideUsername ==> true");
+    if (insideCampTag) NSLog(@"insideCampTag ==> true");
+    
+    if (insideUsername || insideCampTag) {
+        [self getAutoCompleteResults:[self.textView.text substringWithRange:self.activeTagRange]];
+    }
+    else {
+        self.activeTagRange = NSMakeRange(NSNotFound, 0);
+        [self hideAutoCompleteView:true];
+    }
+}
+
+- (void)getAutoCompleteResults:(NSString *)tag {
+    NSString *q = tag;
+    NSLog(@"getAutoCompleteResults(%@)", q);
+    BOOL isUser = [q hasPrefix:@"@"];
+    BOOL isCamp = [q hasPrefix:@"#"];
+    if (!isUser && !isCamp) return;
+    
+    if (isUser) {
+        q = [q stringByReplacingOccurrencesOfString:@"@" withString:@""];
+    }
+    else if (isCamp) {
+        q = [q stringByReplacingOccurrencesOfString:@"#" withString:@""];
+    }
+    
+    NSString *url = @"search";
+    
+    if (isUser) {
+        url = [url stringByAppendingString:@"/users"];
+    }
+    else if (isCamp) {
+        url = [url stringByAppendingString:@"/camps"];
+    }
+    
+    [[HAWebService authenticatedManager] GET:url parameters:@{@"q": q} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        NSString *currentSearchTerm = self.activeTagRange.location != NSNotFound ? [self.textView.text substringWithRange:self.activeTagRange] : @"";
+        if ([tag isEqualToString:currentSearchTerm]) {
+            NSDictionary *responseData = (NSDictionary *)responseObject[@"data"];
+                            
+            if (isUser) {
+                self.autoCompleteResults = [[NSMutableArray alloc] initWithArray:responseData[@"results"][@"users"]];
+            }
+            else if (isCamp) {
+                self.autoCompleteResults = [[NSMutableArray alloc] initWithArray:responseData[@"results"][@"camps"]];
+            }
+                    
+            if (self.autoCompleteResults.count > 0 && self.activeTagRange.location != NSNotFound) {
+                [self.autoCompleteTableView reloadData];
+                [self showAutoCompleteView];
+            }
+            else if (self.autoCompleteResults.count == 0) {
+                [self hideAutoCompleteView:true];
+            }
+        }
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        NSLog(@"SearchTableViewController / getPosts() - error: %@", error);
+        //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+        [self hideAutoCompleteView:true];
+    }];
+}
+
+- (void)showAutoCompleteView {
+    CGFloat height = self.autoCompleteResults.count * [self tableView:self.autoCompleteTableView heightForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
+    if (height > 170) {
+        height = 170; //68 * 2.5
+    }
+    
+    if (self.autoCompleteTableViewContainer.alpha == 0) {
+        self.autoCompleteTableViewContainer.transform = CGAffineTransformMakeTranslation(0, 0);
+        self.autoCompleteTableViewContainer.frame = CGRectMake(0, -1 * height, self.frame.size.width, height);
+        self.autoCompleteTableView.frame = CGRectMake(0, 0, self.autoCompleteTableViewContainer.frame.size.width, self.autoCompleteTableViewContainer.frame.size.height);
+        
+        [UIView animateWithDuration:0.45f delay:0 usingSpringWithDamping:0.6f initialSpringVelocity:0.5f options:(UIViewAnimationOptionCurveEaseOut|UIViewAnimationOptionAllowUserInteraction|UIViewAnimationOptionBeginFromCurrentState) animations:^{
+            self.autoCompleteTableViewContainer.alpha = 1;
+            self.autoCompleteTableViewContainer.transform = CGAffineTransformMakeTranslation(0, 0);
+        } completion:nil];
+    }
+    else {
+        [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.75f initialSpringVelocity:0.5f options:(UIViewAnimationOptionCurveEaseOut|UIViewAnimationOptionAllowUserInteraction|UIViewAnimationOptionBeginFromCurrentState) animations:^{
+            self.autoCompleteTableViewContainer.frame = CGRectMake(0, -1 * height, self.frame.size.width, height);
+            self.autoCompleteTableView.frame = CGRectMake(0, 0, self.autoCompleteTableViewContainer.frame.size.width, self.autoCompleteTableViewContainer.frame.size.height);
+        } completion:nil];
+    }
+}
+- (void)hideAutoCompleteView:(BOOL)animated {
+    [UIView animateWithDuration:animated?0.3f:0 delay:0 usingSpringWithDamping:0.92f initialSpringVelocity:0.5f options:(UIViewAnimationOptionCurveEaseOut|UIViewAnimationOptionAllowUserInteraction|UIViewAnimationOptionBeginFromCurrentState) animations:^{
+        self.autoCompleteTableViewContainer.frame = CGRectMake(0, -(HALF_PIXEL), self.frame.size.width, 0);
+        self.autoCompleteTableView.frame = CGRectMake(0, 0, self.autoCompleteTableViewContainer.frame.size.width, self.autoCompleteTableViewContainer.frame.size.height);
+    } completion:nil];
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    SearchResultCell *cell = [tableView dequeueReusableCellWithIdentifier:searchResultCellIdentifier forIndexPath:indexPath];
+    
+    if (cell == nil) {
+        cell = [[SearchResultCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:searchResultCellIdentifier];
+    }
+    
+    // hide the last row
+    cell.lineSeparator.hidden = indexPath.row == self.autoCompleteResults.count - 1;
+
+    if (cell.gestureRecognizers.count == 0) {
+        [cell bk_whenTapped:^{
+            BOOL changes = false;
+            NSString *finalString = self.textView.text;
+            if (cell.user) {
+                NSString *usernameSelected = cell.user.attributes.details.identifier;
+                
+                if (usernameSelected.length > 0) {
+                    finalString = [self.textView.text stringByReplacingCharactersInRange:self.activeTagRange withString:[NSString stringWithFormat:@"@%@ ", usernameSelected]];
+                    changes = true;
+                }
+            }
+            else if (cell.camp) {
+                NSString *campTagSelected = cell.camp.attributes.details.identifier;
+                
+                if (campTagSelected.length > 0) {
+                    finalString = [self.textView.text stringByReplacingCharactersInRange:self.activeTagRange withString:[NSString stringWithFormat:@"#%@ ", campTagSelected]];
+                    changes = true;
+                }
+            }
+            
+            if (changes) {
+                // set it twice to avoid autocorrection from overriding our changes
+                self.textView.text = finalString;
+                self.textView.text = finalString;
+                
+                [self hideAutoCompleteView:false];
+                [self textViewDidChange:self.textView];
+                [HapticHelper generateFeedback:FeedbackType_Selection];
+            }
+        }];
+    }
+    
+    // -- Type --
+    int type = 0;
+    
+    NSDictionary *json = self.autoCompleteResults[indexPath.row];
+    if (json[@"type"]) {
+        if ([json[@"type"] isEqualToString:@"camp"]) {
+            type = 1;
+        }
+        else if ([json[@"type"] isEqualToString:@"user"]) {
+            type = 2;
+        }
+    }
+    
+    if (type != 0) {
+        if (type == 1) {
+            NSError *error;
+            Camp *camp = [[Camp alloc] initWithDictionary:json error:&error];
+            cell.camp = camp;
+        }
+        else {
+            //NSError *error;
+            User *user = [[User alloc] initWithDictionary:self.autoCompleteResults[indexPath.row] error:nil];
+            cell.user = user;
+        }
+        
+        return cell;
+    }
+    
+    // if all else fails, return a blank cell
+    UITableViewCell *blankCell = [tableView dequeueReusableCellWithIdentifier:blankCellIdentifier forIndexPath:indexPath];
+    return blankCell;
+}
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    return 68;
+}
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+    return 1;
+}
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return self.autoCompleteResults.count;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
+    return CGFLOAT_MIN;
+}
+- (UIView * _Nullable)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
+    return nil;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
+    return CGFLOAT_MIN;
+}
+- (UIView * _Nullable)tableView:(UITableView *)tableView viewForFooterInSection:(NSInteger)section {
+    return nil;
 }
 
 @end

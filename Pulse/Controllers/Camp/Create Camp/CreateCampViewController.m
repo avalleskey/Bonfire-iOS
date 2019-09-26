@@ -10,7 +10,7 @@
 #import <BlocksKit/BlocksKit+UIKit.h>
 #import <HapticHelper/HapticHelper.h>
 #import "L360ConfettiArea.h"
-#import "LargeCampCardCell.h"
+#import "SmallMediumCampCardCell.h"
 #import "Session.h"
 #import "Camp.h"
 #import "ComplexNavigationController.h"
@@ -24,6 +24,9 @@
 #import <JGProgressHUD/JGProgressHUD.h>
 #import <HapticHelper/HapticHelper.h>
 #include <stdlib.h>
+#import <FBSDKShareKit/FBSDKShareKit.h>
+#import <RSKImageCropper/RSKImageCropper.h>
+
 
 @import Firebase;
 //@import FirebasePerformance;
@@ -35,7 +38,7 @@
     (UIViewController *)__responder; \
     })
 
-@interface CreateCampViewController () <L360ConfettiAreaDelegate> {
+@interface CreateCampViewController () <L360ConfettiAreaDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, RSKImageCropViewControllerDelegate, RSKImageCropViewControllerDataSource> {
     UIEdgeInsets safeAreaInsets;
     NSArray *colors;
 }
@@ -46,20 +49,21 @@
 @property (strong, nonatomic) ComplexNavigationController *launchNavVC;
 @property (nonatomic) CGFloat currentKeyboardHeight;
 @property (strong, nonatomic) NSMutableArray *similarCamps;
+@property (strong, nonatomic) Camp *camp;
 //@property (nonatomic) FIRTrace *createTrace;
 
 @end
 
 @implementation CreateCampViewController
 
-static NSString * const largeCardReuseIdentifier = @"LargeCard";
+static NSString * const mediumCardReuseIdentifier = @"MediumCard";
 static NSString * const blankCellIdentifier = @"BlankCell";
 
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
-    self.view.backgroundColor = [UIColor whiteColor];
-    self.view.tintColor = [UIColor bonfireBlack];
+    self.view.backgroundColor = [UIColor contentBackgroundColor];
+    self.view.tintColor = [UIColor bonfirePrimaryColor]; //[UIColor fromHex:[Session sharedInstance].currentUser.attributes.details.color];
         
     [self addListeners];
     [self setupViews];
@@ -117,6 +121,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             }
         }
         [self.similarCampsCollectionView reloadData];
+        [self resizeSimilarCampsCollectionView];
     }
 }
 
@@ -139,7 +144,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     self.nextButton.frame = CGRectMake(24, self.view.frame.size.height, self.view.frame.size.width - (24 * 2), 48);
     self.nextButton.backgroundColor = [self.view tintColor];
     self.nextButton.titleLabel.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightSemibold];
-    [self.nextButton setTitleColor:[UIColor bonfireGray] forState:UIControlStateDisabled];
+    [self.nextButton setTitleColor:[UIColor bonfireSecondaryColor] forState:UIControlStateDisabled];
     [self continuityRadiusForView:self.nextButton withRadius:14.f];
     [self.nextButton setTitle:@"Next" forState:UIControlStateNormal];
     [self.view addSubview:self.nextButton];
@@ -148,7 +153,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     [self.nextButton bk_addEventHandler:^(id sender) {
         [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
             self.nextButton.alpha = 0.8;
-            self.nextButton.transform = CGAffineTransformMakeScale(0.8, 0.8);
+            self.nextButton.transform = CGAffineTransformMakeScale(0.92, 0.92);
         } completion:nil];
     } forControlEvents:UIControlEventTouchDown];
     
@@ -171,7 +176,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     self.instructionLabel.textAlignment = NSTextAlignmentCenter;
     self.instructionLabel.text = @"";
     self.instructionLabel.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightMedium];
-    self.instructionLabel.textColor = [UIColor colorWithRed:0.31 green:0.31 blue:0.32 alpha:1.0];
+    self.instructionLabel.textColor = [UIColor bonfirePrimaryColor];
     self.instructionLabel.numberOfLines = 0;
     self.instructionLabel.lineBreakMode = NSLineBreakByWordWrapping;
     [self.view addSubview:self.instructionLabel];
@@ -180,7 +185,8 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     
     [self.steps addObject:@{@"id": @"camp_title", @"skip": [NSNumber numberWithBool:false], @"next": @"Next", @"instruction": @"What would you like your\nnew Camp to be called?", @"placeholder": @"Camp Name", @"sensitive": [NSNumber numberWithBool:false], @"keyboard": @"title", @"answer": [NSNull null], @"textField": [NSNull null], @"block": [NSNull null]}];
     [self.steps addObject:@{@"id": @"camp_description", @"skip": [NSNumber numberWithBool:false], @"next": @"Next", @"instruction": @"Briefly describe your Camp\n(optional)", @"placeholder":@"Camp Description", @"sensitive": [NSNumber numberWithBool:false], @"keyboard": @"text", @"answer": [NSNull null], @"textField": [NSNull null], @"block": [NSNull null]}];
-    //[self.steps addObject:@{@"id": @"camp_similar", @"skip": [NSNumber numberWithBool:false], @"next": @"Continue Anyways", @"instruction": @"Would you like to join a\nsimilar Camp instead?", @"sensitive": [NSNumber numberWithBool:true], @"answer": [NSNull null], @"block": [NSNull null]}];
+    [self.steps addObject:@{@"id": @"camp_similar", @"skip": [NSNumber numberWithBool:false], @"next": @"Continue Anyways", @"instruction": @"Would you like to join a\nsimilar Camp instead?", @"sensitive": [NSNumber numberWithBool:true], @"answer": [NSNull null], @"block": [NSNull null]}];
+    [self.steps addObject:@{@"id": @"camp_picture", @"skip": [NSNumber numberWithBool:false], @"next": @"Next", @"instruction": @"Set a Camp picture\n(optional)", @"block": [NSNull null]}];
     [self.steps addObject:@{@"id": @"camp_color", @"skip": [NSNumber numberWithBool:false], @"next": @"Create Camp", @"instruction": @"Select Camp Color\nand Privacy Setting", @"sensitive": [NSNumber numberWithBool:true], @"answer": [NSNull null], @"block": [NSNull null]}];
     [self.steps addObject:@{@"id": @"camp_share", @"skip": [NSNumber numberWithBool:false], @"next": @"Enter Camp", @"instruction": @"Your Camp has been created!\nInvite others to join below", @"sensitive": [NSNumber numberWithBool:true], @"answer": [NSNull null], @"block": [NSNull null]}];
     
@@ -198,15 +204,15 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         [self.view addSubview:inputBlock];
         
         UITextField *textField = [[UITextField alloc] initWithFrame:CGRectMake(24, 0, self.view.frame.size.width - (24 * 2), 56)];
-        textField.textColor = [UIColor bonfireBlack];
-        textField.backgroundColor = [UIColor colorWithWhite:1 alpha:1];
+        textField.textColor = [UIColor bonfirePrimaryColor];
+        textField.backgroundColor = [UIColor cardBackgroundColor];
         textField.layer.cornerRadius = 14.f;
         textField.layer.masksToBounds = false;
         textField.layer.shadowRadius = 2.f;
         textField.layer.shadowOffset = CGSizeMake(0, 1);
         textField.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.1f].CGColor;
         textField.layer.shadowOpacity = 1.f;
-        textField.keyboardAppearance = UIKeyboardAppearanceLight;
+//        textField.keyboardAppearance = UIKeyboardAppearanceLight;
         if ([mutatedStep[@"id"] isEqualToString:@"camp_title"]) {
             textField.tag = 201;
         }
@@ -244,11 +250,12 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         
         // add left-side spacing
         UIView *leftView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 20, textField.frame.size.height)];
-        leftView.backgroundColor = textField.backgroundColor;
+        leftView.backgroundColor = [UIColor clearColor];
         textField.leftView = leftView;
         textField.rightView = leftView;
         textField.leftViewMode = UITextFieldViewModeAlways;
-        textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:([mutatedStep objectForKey:@"placeholder"] ? mutatedStep[@"placeholder"] : @"") attributes:@{NSForegroundColorAttributeName: [UIColor bonfireGray]}];
+        textField.rightViewMode = UITextFieldViewModeAlways;
+        textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:([mutatedStep objectForKey:@"placeholder"] ? mutatedStep[@"placeholder"] : @"") attributes:@{NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
         [textField addTarget:self action:@selector(textFieldChanged:) forControlEvents:UIControlEventEditingChanged];
         
         
@@ -269,7 +276,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             UILabel *tryCreating = [[UILabel alloc] initWithFrame:CGRectMake(textField.frame.origin.x + leftView.frame.size.width, textField.frame.origin.y + textField.frame.size.height + 16, self.view.frame.size.width - (textField.frame.origin.x + leftView.frame.size.width) - textField.frame.origin.x, 24)];
             tryCreating.text = [NSString stringWithFormat:@"Try a Camp for your %@", optionString];
             tryCreating.font = [UIFont systemFontOfSize:13.f weight:UIFontWeightRegular];
-            tryCreating.textColor = [UIColor bonfireGray];
+            tryCreating.textColor = [UIColor bonfireSecondaryColor];
             tryCreating.alpha = 0;
             [inputBlock addSubview:tryCreating];
             
@@ -292,7 +299,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         [mutatedStep setObject:textField forKey:@"textField"];
     }
     else if ([mutatedStep[@"id"] isEqualToString:@"camp_similar"]) {
-        UIView *block = [[UIView alloc] initWithFrame:CGRectMake(0, self.view.frame.size.width, self.view.frame.size.width, LARGE_CARD_HEIGHT)];
+        UIView *block = [[UIView alloc] initWithFrame:CGRectMake(0, self.view.frame.size.width, self.view.frame.size.width, SMALL_MEDIUM_CARD_HEIGHT)];
         block.center = CGPointMake(self.view.frame.size.width / 2, self.view.frame.size.height / 2);
         block.alpha = 0;
         block.transform = CGAffineTransformMakeTranslation(self.view.frame.size.width, 0);
@@ -304,7 +311,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         
         self.loadingSimilarCamps = true;
         
-        self.similarCampsCollectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, LARGE_CARD_HEIGHT) collectionViewLayout:flowLayout];
+        self.similarCampsCollectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, SMALL_MEDIUM_CARD_HEIGHT) collectionViewLayout:flowLayout];
         self.similarCampsCollectionView.delegate = self;
         self.similarCampsCollectionView.dataSource = self;
         self.similarCampsCollectionView.contentInset = UIEdgeInsetsMake(0, 24, 0, 24);
@@ -312,7 +319,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         self.similarCampsCollectionView.layer.masksToBounds = false;
         self.similarCampsCollectionView.backgroundColor = [UIColor clearColor];
         
-        [self.similarCampsCollectionView registerClass:[LargeCampCardCell class] forCellWithReuseIdentifier:largeCardReuseIdentifier];
+        [self.similarCampsCollectionView registerClass:[SmallMediumCampCardCell class] forCellWithReuseIdentifier:mediumCardReuseIdentifier];
         [self.similarCampsCollectionView registerClass:[UICollectionViewCell class] forCellWithReuseIdentifier:blankCellIdentifier];
         
         self.similarCamps = [[NSMutableArray alloc] init];
@@ -321,6 +328,36 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         
         [mutatedStep setObject:block forKey:@"block"];
     }
+    else if ([mutatedStep[@"id"] isEqualToString:@"camp_picture"]) {
+            UIView *userProfilePictureContainerBlock = [[UIView alloc] initWithFrame:CGRectMake(0, self.view.frame.size.width, 160, 160)];
+            userProfilePictureContainerBlock.layer.cornerRadius = userProfilePictureContainerBlock.frame.size.width / 2;
+            userProfilePictureContainerBlock.layer.masksToBounds = false;
+            userProfilePictureContainerBlock.layer.shadowRadius = 2.f;
+            userProfilePictureContainerBlock.layer.shadowOffset = CGSizeMake(0, 1);
+            userProfilePictureContainerBlock.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.1f].CGColor;
+            userProfilePictureContainerBlock.layer.shadowOpacity = 1.f;
+            userProfilePictureContainerBlock.backgroundColor = [UIColor cardBackgroundColor];
+            userProfilePictureContainerBlock.alpha = 0;
+            userProfilePictureContainerBlock.center = CGPointMake(self.view.frame.size.width / 2, (self.view.frame.size.height / self.view.transform.d) / 2);
+            userProfilePictureContainerBlock.transform = CGAffineTransformMakeTranslation(self.view.frame.size.width, 0);
+            userProfilePictureContainerBlock.userInteractionEnabled = true;
+            [self.view addSubview:userProfilePictureContainerBlock];
+            
+            [userProfilePictureContainerBlock bk_whenTapped:^{
+                // open camp share
+                [self showImagePicker];
+            }];
+            
+            UIImageView *userProfilePictureBlock = [[UIImageView alloc] initWithFrame:userProfilePictureContainerBlock.bounds];
+            userProfilePictureBlock.tag = 10;
+            userProfilePictureBlock.layer.cornerRadius = userProfilePictureBlock.frame.size.width / 2;
+            userProfilePictureBlock.layer.masksToBounds = true;
+            userProfilePictureBlock.image = [UIImage imageNamed:@"addCampPicture"];
+            userProfilePictureBlock.contentMode = UIViewContentModeScaleAspectFill;
+            [userProfilePictureContainerBlock addSubview:userProfilePictureBlock];
+            
+            [mutatedStep setObject:userProfilePictureContainerBlock forKey:@"block"];
+        }
     else if ([mutatedStep[@"id"] isEqualToString:@"camp_color"]) {
         UIView *colorBlock = [[UIView alloc] initWithFrame:CGRectMake(0, self.view.frame.size.width, 216, 286)];
         colorBlock.center = CGPointMake(self.view.frame.size.width / 2, self.view.frame.size.height / 2 + 35);
@@ -378,7 +415,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         
         UILabel *publicCampLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, publicCampSwitch.frame.origin.y, colorBlock.frame.size.width - publicCampSwitch.frame.size.width, publicCampSwitch.frame.size.height)];
         publicCampLabel.text = @"Private Camp";
-        publicCampLabel.textColor = [UIColor colorWithWhite:0.33 alpha:1];
+        publicCampLabel.textColor = [UIColor bonfirePrimaryColor];
         publicCampLabel.textAlignment = NSTextAlignmentLeft;
         publicCampLabel.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightMedium];
         [colorBlock addSubview:publicCampLabel];
@@ -397,14 +434,14 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         [self.view addSubview:shareBlock];
         
         UIButton *shareField = [[UIButton alloc] initWithFrame:CGRectMake(24, 0, self.view.frame.size.width - (24 * 2), 56)];
-        shareField.backgroundColor = [UIColor colorWithWhite:1 alpha:1];
+        shareField.backgroundColor = [UIColor cardBackgroundColor];
         shareField.layer.cornerRadius = 12.f;
         shareField.layer.masksToBounds = false;
         shareField.layer.shadowRadius = 2.f;
         shareField.layer.shadowOffset = CGSizeMake(0, 1);
         shareField.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.1f].CGColor;
         shareField.layer.shadowOpacity = 1.f;
-        [shareField setTitleColor:[UIColor bonfireBlack] forState:UIControlStateNormal];
+        [shareField setTitleColor:[UIColor bonfirePrimaryColor] forState:UIControlStateNormal];
         shareField.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
         shareField.contentEdgeInsets = UIEdgeInsetsMake(0, 20, 0, 84);
         shareField.titleLabel.lineBreakMode = NSLineBreakByTruncatingTail;
@@ -447,35 +484,73 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         copyLabel.tag = 12;
         [shareField addSubview:copyLabel];
         
-        UIButton *shareButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        shareButton.frame = CGRectMake(shareField.frame.origin.x, shareBlock.frame.size.height - 44, shareField.frame.size.width, 44);
-        [shareButton setTitle:[NSString stringWithFormat:@"Share %@", [[Session sharedInstance].defaults.keywords.groupTitles.singular capitalizedString]] forState:UIControlStateNormal];
-        shareButton.tintColor = [self currentColor];
-        [shareButton setTitleColor:[self currentColor] forState:UIControlStateNormal];
-        [shareButton setTitleEdgeInsets:UIEdgeInsetsMake(0, 10, 0, 0)];
-        [shareButton setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 10)];
-        shareButton.titleLabel.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightBold];
-        shareButton.adjustsImageWhenHighlighted = false;
-        shareButton.layer.cornerRadius = 12.f;
-        shareButton.layer.borderColor = [UIColor colorWithRed:0.92 green:0.93 blue:0.94 alpha:1.0].CGColor;
-        shareButton.layer.borderWidth = 1.f;
-        shareButton.layer.masksToBounds = true;
-        shareButton.tag = 11;
-        [shareButton setImage:[[UIImage imageNamed:@"shareIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+        NSArray *buttons = @[
+//                            @{@"id": @"bonfire", @"image": [UIImage imageNamed:@"share_bonfire"], @"color": [UIColor fromHex:@"FF513C" adjustForDarkMode:false]},
+                            @{@"id": @"facebook", @"image": [UIImage imageNamed:@"share_facebook"], @"color": [UIColor fromHex:@"3B5998" adjustForDarkMode:false]},
+                            @{@"id": @"twitter", @"image": [UIImage imageNamed:@"share_twitter"], @"color": [UIColor fromHex:@"1DA1F2" adjustForDarkMode:false]},
+                            @{@"id": @"imessage", @"image": [UIImage imageNamed:@"share_imessage"], @"color": [UIColor fromHex:@"36DB52" adjustForDarkMode:false]},
+                            @{@"id": @"more", @"image": [UIImage imageNamed:@"share_more"], @"color": [UIColor tableViewSeparatorColor]}
+                            ];
         
-        [shareBlock addSubview:shareButton];
+        CGFloat buttonPadding = 12;
+        CGFloat buttonDiameter = (self.view.frame.size.width - (shareField.frame.origin.x * 2) - (20 * 2) - ((buttons.count - 1) * buttonPadding)) / buttons.count;
         
-        [shareButton bk_addEventHandler:^(id sender) {
-            [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-                shareButton.transform = CGAffineTransformMakeScale(0.92, 0.92);
-            } completion:nil];
-        } forControlEvents:UIControlEventTouchDown];
-        
-        [shareButton bk_addEventHandler:^(id sender) {
-            [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-                shareButton.transform = CGAffineTransformIdentity;
-            } completion:nil];
-        } forControlEvents:(UIControlEventTouchUpInside|UIControlEventTouchCancel|UIControlEventTouchDragExit)];
+        shareBlock.frame = CGRectMake(shareBlock.frame.origin.x, shareBlock.frame.origin.y, shareBlock.frame.size.width, shareField.frame.origin.y + shareField.frame.size.height + (buttonPadding * 1.5) + buttonDiameter);
+        for (NSInteger i = 0; i < buttons.count; i++) {
+            NSDictionary *buttonDict = buttons[i];
+            NSString *identifier = buttonDict[@"id"];
+            
+            UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+            button.frame = CGRectMake(shareField.frame.origin.x + 20 + i * (buttonDiameter + buttonPadding), shareBlock.frame.size.height - buttonDiameter, buttonDiameter, buttonDiameter);
+            button.layer.cornerRadius = button.frame.size.width / 2;
+            button.backgroundColor = buttonDict[@"color"];
+            button.adjustsImageWhenHighlighted = false;
+            button.layer.masksToBounds = true;
+            [button setImage:buttonDict[@"image"] forState:UIControlStateNormal];
+            button.contentMode = UIViewContentModeCenter;
+            [shareBlock addSubview:button];
+            
+            [button bk_addEventHandler:^(id sender) {
+                [HapticHelper generateFeedback:FeedbackType_Selection];
+                [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+                    button.transform = CGAffineTransformMakeScale(0.92, 0.92);
+                } completion:nil];
+            } forControlEvents:UIControlEventTouchDown];
+                    
+            [button bk_addEventHandler:^(id sender) {
+                [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+                    button.transform = CGAffineTransformIdentity;
+                } completion:nil];
+            } forControlEvents:(UIControlEventTouchUpInside|UIControlEventTouchCancel|UIControlEventTouchDragExit)];
+            
+            [button bk_whenTapped:^{
+                NSString *campShareLink = [NSString stringWithFormat:@"https://bonfire.camp/c/%@", self.camp.identifier];
+                if ([identifier isEqualToString:@"bonfire"]) {
+                    [Launcher openInviteToCamp:self.camp];
+                }
+                else if ([identifier isEqualToString:@"twitter"]) {
+                    if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"twitter://post"]]) {
+                        NSString *message = [[NSString stringWithFormat:@"I just created a Camp on @yourbonfire! Join %@: %@", self.camp.attributes.details.title, campShareLink] stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet characterSetWithCharactersInString:@"!*'();:@&=+$,/?%#[]"]];
+                        
+                        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[NSString stringWithFormat:@"twitter://post?message=%@", message]] options:@{} completionHandler:nil];
+                    }
+                }
+                else if ([identifier isEqualToString:@"facebook"]) {
+                    FBSDKShareLinkContent *content = [[FBSDKShareLinkContent alloc] init];
+                    content.contentURL = [NSURL URLWithString:campShareLink];
+                    content.hashtag = [FBSDKHashtag hashtagWithString:@"#Bonfire"];
+                    [FBSDKShareDialog showFromViewController:self
+                                                  withContent:content
+                                                     delegate:nil];
+                }
+                else if ([identifier isEqualToString:@"imessage"]) {
+                    [Launcher shareOniMessage:[NSString stringWithFormat:@"I created a Camp on Bonfire! Join %@: %@", self.camp.attributes.details.title, campShareLink] image:nil];
+                }
+                else if ([identifier isEqualToString:@"more"]) {
+                    [Launcher shareCamp:self.camp];
+                }
+            }];
+        }
         
         [mutatedStep setObject:shareBlock forKey:@"block"];
     }
@@ -487,7 +562,6 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     NSString *newStr = [textField.text stringByReplacingCharactersInRange:range withString:string];
     
     if (textField.tag == 201) {
-        NSLog(@"validation result:: %u", [newStr validateBonfireCampTitle]);
         return [newStr validateBonfireCampTitle] != BFValidationErrorTooLong;
     }
     else if (textField.tag == 202) {
@@ -567,13 +641,11 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 - (void)textFieldChanged:(UITextField *)sender {
     if ([self.steps[self.currentStep][@"id"] isEqualToString:@"camp_title"]) {
         if (sender.text.length <= 1) {
-            self.nextButton.backgroundColor = [UIColor colorWithRed:0.89 green:0.90 blue:0.91 alpha:1.0];
-            self.nextButton.enabled = false;
+            [self greyOutNextButton];
         }
         else {
             // qualifies
-            self.nextButton.backgroundColor = self.view.tintColor;
-            self.nextButton.enabled = true;
+            [self enableNextButton];
         }
     }
 }
@@ -583,9 +655,13 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     return false;
 }
 
+- (void)enableNextButton {
+    self.nextButton.enabled = true;
+    self.nextButton.backgroundColor = self.view.tintColor;
+}
 - (void)greyOutNextButton {
     self.nextButton.enabled = false;
-    self.nextButton.backgroundColor = [UIColor colorWithRed:0.89 green:0.90 blue:0.91 alpha:1.0];
+    self.nextButton.backgroundColor = [UIColor bonfireDisabledColor];
 }
 
 - (void)handleNext {
@@ -672,21 +748,26 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         
         NSDictionary *nextStep = self.steps[next];
         UIView *nextBlock = nextStep[@"block"];
-                
-        if ([nextStep[@"id"] isEqualToString:@"camp_similar"]) {
+          
+        if ([nextStep[@"id"] isEqualToString:@"camp_picture"]) {
             [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-                self.nextButton.backgroundColor = self.view.tintColor;
-                self.nextButton.enabled = true;
+                [self enableNextButton];
             } completion:nil];
         }
-        if ([nextStep[@"id"] isEqualToString:@"camp_color"]) {
+        else if ([nextStep[@"id"] isEqualToString:@"camp_similar"]) {
             [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-                self.nextButton.backgroundColor = [self currentColor];
-                self.nextButton.enabled = true;
+                [self enableNextButton];
+            } completion:nil];
+        }
+        else if ([nextStep[@"id"] isEqualToString:@"camp_color"]) {
+            [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+                [self enableNextButton];
+                self.view.tintColor = [self currentColor];
                 self.closeButton.tintColor = [self currentColor];
+                self.nextButton.backgroundColor = [self currentColor];
             } completion:nil];
         }
-        if ([nextStep[@"id"] isEqualToString:@"camp_share"]) {
+        else if ([nextStep[@"id"] isEqualToString:@"camp_share"]) {
             // remove previously selected color
             UILabel *copyLabel = [nextBlock viewWithTag:12];
             UIButton *shareCampButton = [nextBlock viewWithTag:11];
@@ -695,8 +776,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             [shareCampButton setTitleColor:copyLabel.textColor forState:UIControlStateNormal];
             shareCampButton.layer.borderColor = [copyLabel.textColor colorWithAlphaComponent:0.2f].CGColor;
             
-            self.nextButton.backgroundColor = copyLabel.textColor;
-            self.nextButton.enabled = true;
+            [self enableNextButton];
             
             self.closeButton.userInteractionEnabled = false;
             [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
@@ -704,13 +784,16 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             } completion:nil];
             
             // blast some confetti!
-            L360ConfettiArea *confettiArea = [[L360ConfettiArea alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height)];
-            
-            [self.view insertSubview:confettiArea atIndex:0];
-            confettiArea.blastSpread = 0;
-            confettiArea.delegate = self;
-            confettiArea.swayLength = 75.f;
-            [confettiArea burstAt:CGPointMake(self.view.frame.size.width / 2, -80) confettiWidth:12.f numberOfConfetti:60];
+            [UIView animateWithDuration:0 animations:^{
+                L360ConfettiArea *confettiArea = [[L360ConfettiArea alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height)];
+                            
+                [self.view insertSubview:confettiArea atIndex:0];
+                confettiArea.blastSpread = 0;
+                confettiArea.delegate = self;
+                confettiArea.swayLength = 75.f;
+                [confettiArea burstAt:CGPointMake(self.view.frame.size.width / 2, -80) confettiWidth:12.f numberOfConfetti:60];
+            } completion:^(BOOL finished) {
+            }];
         }
         
         if ([nextStep objectForKey:@"textField"] && ![nextStep[@"textField"] isEqual:[NSNull null]]) {
@@ -817,6 +900,8 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         
         self.similarCamps = [[NSMutableArray alloc] initWithArray:responseData];
         [self.similarCampsCollectionView reloadData];
+        [self.similarCampsCollectionView layoutSubviews];
+        [self resizeSimilarCampsCollectionView];
         
         NSInteger similarCampsStepIndex = [self getIndexOfStepWithId:@"camp_similar"];
         NSMutableDictionary *mutableDict = [[NSMutableDictionary alloc] initWithDictionary:self.steps[similarCampsStepIndex]];
@@ -829,7 +914,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         }
         [self.steps replaceObjectAtIndex:similarCampsStepIndex withObject:mutableDict];
         
-        self.nextButton.enabled = true;
+        [self enableNextButton];
         
         [self removeSpinnerForStep:self.currentStep];
         [self nextStep:true];
@@ -847,7 +932,24 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     }];
 }
 
+- (void)resizeSimilarCampsCollectionView {
+    if (self.similarCampsCollectionView.contentSize.width >= self.similarCampsCollectionView.superview.frame.size.width) {
+        self.similarCampsCollectionView.frame = CGRectMake(0, self.similarCampsCollectionView.frame.origin.y, self.similarCampsCollectionView.superview.frame.size.width, self.similarCampsCollectionView.frame.size.height);
+    }
+    else {
+        CGFloat width = self.similarCampsCollectionView.contentSize.width + self.similarCampsCollectionView.contentInset.left + self.similarCampsCollectionView.contentInset.right;
+        
+        NSLog(@"new widthhhh: %f", width);
+        self.similarCampsCollectionView.frame = CGRectMake(self.similarCampsCollectionView.superview.frame.size.width / 2 - width / 2, self.similarCampsCollectionView.frame.origin.y, width, self.similarCampsCollectionView.frame.size.height);
+    }
+}
+
 - (UIColor *)currentColor {
+    NSInteger colorStep = [self getIndexOfStepWithId:@"camp_color"];
+    if (self.currentStep < colorStep - 1) {
+        return [UIColor bonfirePrimaryColor];
+    }
+    
     return colors[self.themeColor];
 }
 - (void)createCamp {
@@ -870,69 +972,100 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     UISwitch *isPrivateSwitch = [nextBlock viewWithTag:10];
     BOOL visibility = !isPrivateSwitch.on;
     
+    NSInteger campPictureStep = [self getIndexOfStepWithId:@"camp_picture"];
+    UIView *campPictureView = self.steps[campPictureStep][@"block"];
+    UIImageView *campPictureImageView = [campPictureView viewWithTag:10];
+    UIImage *campPicture = campPictureImageView.image;
+    CGImageRef cgref = [campPicture CGImage];
+    CIImage *cim = [campPicture CIImage];
+    BOOL hasCampPicture = (cim != nil || cgref != NULL) && campPictureView.tag == 1;
+    
     NSLog(@"params: %@", @{@"title": campTitle, @"description": campDescription, @"color": campColor, @"visibility": [NSNumber numberWithBool:visibility]});
-
-    [[HAWebService authenticatedManager] POST:@"camps" parameters:@{@"title": campTitle, @"description": campDescription, @"color": campColor, @"visibility": [NSNumber numberWithBool:visibility]} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        NSError *error;
-        Camp *camp = [[Camp alloc] initWithDictionary:responseObject[@"data"] error:&error];
+    
+    void (^createCamp)(NSString *uploadedImage) = ^(NSString *uploadedImage) {
+        NSMutableDictionary *params = @{@"title": campTitle, @"description": campDescription, @"color": campColor, @"visibility": [NSNumber numberWithBool:visibility]}.mutableCopy;
         
-        // update share url
-        NSInteger shareStep = [self getIndexOfStepWithId:@"camp_share"];
-        UIView *shareBlock = self.steps[shareStep][@"block"];
-        UIButton *shareField = [shareBlock viewWithTag:10];
-        [shareField setTitle:[NSString stringWithFormat:@"https://bonfire.camp/c/%@", camp.attributes.details.identifier] forState:UIControlStateNormal];
-        
-        UIButton *shareCampButton = [shareBlock viewWithTag:11];
-        [shareCampButton bk_whenTapped:^{
-            // open camp share
-            [Launcher shareCamp:camp];
-        }];
-        
-        // refresh my camps
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"refreshMyCamps" object:nil];
-        
-        self.nextButton.enabled = true;
-        self.nextButton.backgroundColor = [self currentColor];
-        
-        // move spinner
-        [self removeBigSpinnerForStep:self.currentStep push:true];
-        
-        [self nextStep:true];
-        
-        // Google Analytics
-        [FIRAnalytics logEventWithName:@"camp_created"
-                            parameters:@{
-                                         @"public": (visibility) ? @"YES" : @"NO",
-                                         @"color": campColor
-                                         }];
-        //[self.createTrace stop];
-        
-        for (UIGestureRecognizer *recognizer in self.nextButton.gestureRecognizers) {
-            [self.nextButton removeGestureRecognizer:recognizer];
+        if (uploadedImage.length > 0) {
+            [params setObject:uploadedImage forKey:@"camp_avatar"];
         }
-        [self.nextButton bk_whenTapped:^{
-            [self setEditing:false animated:YES];
+        
+        [[HAWebService authenticatedManager] POST:@"camps" parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+            NSError *error;
+            Camp *camp = [[Camp alloc] initWithDictionary:responseObject[@"data"] error:&error];
+            self.camp = camp;
             
-            [self dismissViewControllerAnimated:YES completion:^{
-                [Launcher openCamp:camp];
+            // update share url
+            NSInteger shareStep = [self getIndexOfStepWithId:@"camp_share"];
+            UIView *shareBlock = self.steps[shareStep][@"block"];
+            UIButton *shareField = [shareBlock viewWithTag:10];
+            [shareField setTitle:[NSString stringWithFormat:@"https://bonfire.camp/c/%@", camp.attributes.details.identifier] forState:UIControlStateNormal];
+            
+            UIButton *shareCampButton = [shareBlock viewWithTag:11];
+            [shareCampButton bk_whenTapped:^{
+                // open camp share
+                [Launcher shareCamp:camp];
             }];
+            
+            // refresh my camps
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"refreshMyCamps" object:nil];
+            
+            [self enableNextButton];
+            
+            // move spinner
+            [self removeBigSpinnerForStep:self.currentStep push:true];
+            
+            [self nextStep:true];
+            
+            // Google Analytics
+            [FIRAnalytics logEventWithName:@"camp_created"
+                                parameters:@{
+                                             @"public": (visibility) ? @"YES" : @"NO",
+                                             @"color": campColor
+                                             }];
+            //[self.createTrace stop];
+            
+            for (UIGestureRecognizer *recognizer in self.nextButton.gestureRecognizers) {
+                [self.nextButton removeGestureRecognizer:recognizer];
+            }
+            [self.nextButton bk_whenTapped:^{
+                [self setEditing:false animated:YES];
+                
+                [self dismissViewControllerAnimated:YES completion:^{
+                    [Launcher openCamp:camp];
+                }];
+            }];
+        } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+            NSLog(@"error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);
+            NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+            NSLog(@"%@",ErrorResponse);
+            
+            [self removeBigSpinnerForStep:self.currentStep push:false];
+            [self enableNextButton];
+            self.nextButton.userInteractionEnabled = true;
+            [self shakeInputBlock];
+            
+            [UIView animateWithDuration:0.3f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+                self.closeButton.alpha = 1;
+            } completion:nil];
         }];
-    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+    };
+    
+    if (hasCampPicture) {
+        BFMediaObject *campPictureObject = [[BFMediaObject alloc] initWithImage:campPicture];
         
-        NSLog(@"error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);
-        NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-        NSLog(@"%@",ErrorResponse);
-        
-        [self removeBigSpinnerForStep:self.currentStep push:false];
-        self.nextButton.enabled = true;
-        self.nextButton.backgroundColor = [self currentColor];
-        self.nextButton.userInteractionEnabled = true;
-        [self shakeInputBlock];
-        
-        [UIView animateWithDuration:0.3f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-            self.closeButton.alpha = 1;
-        } completion:nil];
-    }];
+        [BFAPI uploadImage:campPictureObject copmletion:^(BOOL success, NSString * _Nonnull uploadedImageURL) {
+            if (success) {
+                createCamp(uploadedImageURL);
+            }
+            else {
+                // save it anyways -- despite the profile picture failing
+                createCamp(nil);
+            }
+        }];
+    }
+    else {
+        createCamp(nil);
+    }
 }
 
 - (void)shakeInputBlock {
@@ -975,9 +1108,9 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         miniSpinner.alpha = 1;
     } completion:nil];
     [UIView transitionWithView:textField duration:0.3 options:UIViewAnimationOptionTransitionCrossDissolve animations:^{
-        textField.textColor = [[UIColor bonfireBlack] colorWithAlphaComponent:0];
+        textField.textColor = [[UIColor bonfirePrimaryColor] colorWithAlphaComponent:0];
         if (textField.placeholder != nil) {
-            textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:textField.placeholder attributes:@{NSForegroundColorAttributeName: [[UIColor bonfireGray] colorWithAlphaComponent:0]}];
+            textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:textField.placeholder attributes:@{NSForegroundColorAttributeName: [[UIColor bonfireSecondaryColor] colorWithAlphaComponent:0]}];
         }
         textField.tintColor = [UIColor clearColor];
     } completion:nil];
@@ -993,10 +1126,10 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         [miniSpinner removeFromSuperview];
                 
         [UIView transitionWithView:textField duration:0.3 options:UIViewAnimationOptionTransitionCrossDissolve animations:^{
-            textField.textColor = [UIColor bonfireBlack];
+            textField.textColor = [UIColor bonfirePrimaryColor];
             textField.tintColor = [self.view tintColor];
             if (textField.placeholder != nil) {
-                textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:textField.placeholder attributes:@{NSForegroundColorAttributeName: [UIColor bonfireGray]}];
+                textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:textField.placeholder attributes:@{NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
             }
         } completion:nil];
     }];
@@ -1074,22 +1207,17 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 
 // similar camps collection view
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
-    if (self.loadingSimilarCamps) {
-        return 4;
-    }
-    else {
-        return self.similarCamps.count;
-    }
+    return self.similarCamps.count;
 }
 - (__kindof UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
     if (self.loadingSimilarCamps || self.similarCamps.count > 0) {
-        LargeCampCardCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:largeCardReuseIdentifier forIndexPath:indexPath];
+        SmallMediumCampCardCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:mediumCardReuseIdentifier forIndexPath:indexPath];
         
-        cell.loading = self.loadingSimilarCamps;
-        
-        if (!cell.loading) {
+        if (self.similarCamps.count > indexPath.item) {
             NSError *error;
             cell.camp = [[Camp alloc] initWithDictionary:self.similarCamps[indexPath.item] error:&error];
+            
+            [cell layoutSubviews];
         }
         
         return cell;
@@ -1102,11 +1230,11 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 - (CGSize)collectionView:(UICollectionView *)collectionView
                   layout:(UICollectionViewLayout *)collectionViewLayout
   sizeForItemAtIndexPath:(NSIndexPath *)indexPath {
-    return CGSizeMake(268, LARGE_CARD_HEIGHT);
+    return CGSizeMake(148, SMALL_MEDIUM_CARD_HEIGHT);
 }
 
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
-    if (!self.loadingSimilarCamps) {
+    if (indexPath.row < self.similarCamps.count) {
         // animate the cell user tapped on
         
         // TODO: Figure out a way to display camp previews
@@ -1138,6 +1266,162 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                                                  cornerRadii:CGSizeMake(radius, radius)].CGPath;
     
     sender.layer.mask = maskLayer;
+}
+
+- (void)showImagePicker {
+    UIAlertController *imagePickerOptions = [UIAlertController alertControllerWithTitle:@"Set Camp Picture" message:nil preferredStyle:UIAlertControllerStyleActionSheet];
+    
+    UIAlertAction *takePhoto = [UIAlertAction actionWithTitle:@"Take Photo" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        [self takePhotoForProfilePicture:nil];
+    }];
+    [imagePickerOptions addAction:takePhoto];
+    
+    UIAlertAction *chooseFromLibrary = [UIAlertAction actionWithTitle:@"Choose from Library" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        [self chooseFromLibraryForProfilePicture:nil];
+    }];
+    [imagePickerOptions addAction:chooseFromLibrary];
+    
+    UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+    }];
+    [imagePickerOptions addAction:cancel];
+    
+    [self presentViewController:imagePickerOptions animated:YES completion:nil];
+}
+
+
+- (void)takePhotoForProfilePicture:(id)sender {
+    UIImagePickerController *picker = [[UIImagePickerController alloc] init];
+    picker.delegate = self;
+    picker.allowsEditing = NO;
+    picker.sourceType = UIImagePickerControllerSourceTypeCamera;
+    [self presentViewController:picker animated:YES completion:nil];
+}
+- (void)chooseFromLibraryForProfilePicture:(id)sender {
+    UIImagePickerController *picker = [[UIImagePickerController alloc] init];
+    picker.delegate = self;
+    picker.allowsEditing = NO;
+    picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+    [self presentViewController:picker animated:YES completion:nil];
+}
+
+// Crop image has been canceled.
+- (void)imageCropViewControllerDidCancelCrop:(RSKImageCropViewController *)controller
+{
+    [controller.navigationController dismissViewControllerAnimated:YES completion:nil];
+    [self takePhotoForProfilePicture:nil];
+}
+
+// The original image has been cropped. Additionally provides a rotation angle used to produce image.
+- (void)imageCropViewController:(RSKImageCropViewController *)controller
+                   didCropImage:(UIImage *)croppedImage
+                  usingCropRect:(CGRect)cropRect
+                  rotationAngle:(CGFloat)rotationAngle
+{
+    // userProfilePictureContainerBlock
+    
+    NSInteger profilePictureStep = [self getIndexOfStepWithId:@"camp_picture"];
+    UIView *profilePictureView = self.steps[profilePictureStep][@"block"];
+    profilePictureView.tag = 1;
+    
+    UIImageView *profilePictureImageView = [profilePictureView viewWithTag:10];
+    profilePictureImageView.image = croppedImage;
+    
+    [controller.navigationController dismissViewControllerAnimated:YES completion:nil];
+    
+    [self enableNextButton];
+    
+    [controller.navigationController dismissViewControllerAnimated:YES completion:nil];
+}
+
+// The original image will be cropped.
+- (void)imageCropViewController:(RSKImageCropViewController *)controller
+                  willCropImage:(UIImage *)originalImage
+{
+    // Use when `applyMaskToCroppedImage` set to YES.
+}
+
+- (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker {
+    [picker dismissViewControllerAnimated:YES completion:nil];
+}
+- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary<NSString *,id> *)info {
+    // output image
+    UIImage *chosenImage = info[UIImagePickerControllerOriginalImage];
+    
+    RSKImageCropViewController *imageCropVC = [[RSKImageCropViewController alloc] initWithImage:chosenImage];
+    imageCropVC.delegate = self;
+    imageCropVC.dataSource = self;
+    imageCropVC.cropMode = RSKImageCropModeCustom;
+    
+    // move the cancel and choose buttons up
+    UIEdgeInsets safeAreaInsets = [UIApplication sharedApplication].keyWindow.safeAreaInsets;
+    imageCropVC.cancelButton.transform = CGAffineTransformMakeTranslation(0, -1 * safeAreaInsets.bottom);
+    imageCropVC.chooseButton.transform = CGAffineTransformMakeTranslation(0, -1 * safeAreaInsets.bottom);
+    
+    [picker pushViewController:imageCropVC animated:YES];
+}
+- (CGRect)imageCropViewControllerCustomMaskRect:(RSKImageCropViewController *)controller
+{
+    CGSize aspectRatio = CGSizeMake(1, 1);
+    
+    CGFloat viewWidth = CGRectGetWidth(controller.view.frame);
+    CGFloat viewHeight = CGRectGetHeight(controller.view.frame);
+    
+    CGFloat maskWidth;
+    if ([controller isPortraitInterfaceOrientation]) {
+        maskWidth = viewWidth;
+    } else {
+        maskWidth = viewHeight;
+    }
+    
+    CGFloat maskHeight;
+    do {
+        maskHeight = maskWidth * aspectRatio.height / aspectRatio.width;
+        maskWidth -= 1.0f;
+    } while (maskHeight != floor(maskHeight));
+    maskWidth += 1.0f;
+    
+    CGSize maskSize = CGSizeMake(maskWidth * .75f, maskHeight * .75);
+    
+    NSLog(@"maskSize(%f, %f)", maskSize.width, maskSize.height);
+    
+    CGRect maskRect = CGRectMake((viewWidth - maskSize.width) * 0.5f,
+                                 (viewHeight - maskSize.height) * 0.5f,
+                                 maskSize.width,
+                                 maskSize.height);
+    
+    return maskRect;
+}
+- (UIBezierPath *)imageCropViewControllerCustomMaskPath:(RSKImageCropViewController *)controller {
+    CGFloat circleRadius = controller.maskRect.size.width * .5;
+    
+    UIBezierPath *path = [UIBezierPath bezierPathWithRoundedRect:controller.maskRect
+                                               byRoundingCorners:UIRectCornerBottomLeft|UIRectCornerBottomRight|UIRectCornerTopLeft|UIRectCornerTopRight
+                                                     cornerRadii:CGSizeMake(circleRadius, circleRadius)];
+    return path;
+}
+// Returns a custom rect in which the image can be moved.
+- (CGRect)imageCropViewControllerCustomMovementRect:(RSKImageCropViewController *)controller
+{
+    if (controller.rotationAngle == 0) {
+        return controller.maskRect;
+    } else {
+        CGRect maskRect = controller.maskRect;
+        CGFloat rotationAngle = controller.rotationAngle;
+        
+        CGRect movementRect = CGRectZero;
+        
+        movementRect.size.width = CGRectGetWidth(maskRect) * fabs(cos(rotationAngle)) + CGRectGetHeight(maskRect) * fabs(sin(rotationAngle));
+        movementRect.size.height = CGRectGetHeight(maskRect) * fabs(cos(rotationAngle)) + CGRectGetWidth(maskRect) * fabs(sin(rotationAngle));
+        
+        movementRect.origin.x = CGRectGetMinX(maskRect) + (CGRectGetWidth(maskRect) - CGRectGetWidth(movementRect)) * 0.5f;
+        movementRect.origin.y = CGRectGetMinY(maskRect) + (CGRectGetHeight(maskRect) - CGRectGetHeight(movementRect)) * 0.5f;
+        
+        movementRect.origin.x = floor(CGRectGetMinX(movementRect));
+        movementRect.origin.y = floor(CGRectGetMinY(movementRect));
+        movementRect = CGRectIntegral(movementRect);
+        
+        return movementRect;
+    }
 }
 
 // MODAL TRANSITION

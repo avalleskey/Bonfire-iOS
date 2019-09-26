@@ -10,7 +10,7 @@
 #import "PostActionsView.h"
 
 #define replyContentOffset UIEdgeInsetsMake(10, 114, 8, 12)
-#define replyTextViewFont [UIFont systemFontOfSize:textViewFont.pointSize weight:UIFontWeightRegular]
+#define replyTextViewFont [UIFont systemFontOfSize:textViewFont.pointSize-1.f weight:UIFontWeightRegular]
 
 @interface ReplyCell : PostCell <UITextFieldDelegate, PostTextViewDelegate>
 

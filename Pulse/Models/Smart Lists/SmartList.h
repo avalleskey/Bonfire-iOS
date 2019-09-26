@@ -7,6 +7,8 @@
 //
 
 #import "JSONModel.h"
+#import "UserListStream.h"
+#import "CampListStream.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -31,17 +33,28 @@ NS_ASSUME_NONNULL_BEGIN
 typedef enum {
     SmartListStateEmpty = 0,
     SmartListStateLoading = 1,
-    SmartListStateLoaded = 2
+    SmartListStateLoaded = 2,
+    SmartListStateLoadingMore = 3
 } SmartListState;
 
 @property (nonatomic) NSString <Optional> *identifier;
 @property (nonatomic) NSString <Optional> *title;
 @property (nonatomic) NSString <Optional> *footer;
 @property (nonatomic) NSString <Optional> *url;
-@property (nonatomic) NSMutableArray <Optional> *data;
 @property (nonatomic) NSString <Optional> *next_cursor;
 @property (nonatomic) SmartListState state;
 @property (nonatomic) NSArray <SmartListSectionRow *> <SmartListSectionRow, Optional> *rows;
+
+@property (nonatomic) BOOL cursored;
+// if cursored
+@property (nonatomic) UserListStream <Optional> *userStream;
+@property (nonatomic) CampListStream <Optional> *campStream;
+// else
+@property (nonatomic) NSMutableArray <Optional> *data;
+
+extern NSString * const SmartListSectionDataTypeUser;
+extern NSString * const SmartListSectionDataTypeCamp;
+@property (nonatomic) NSString <Optional> *type;
 
 @end
 

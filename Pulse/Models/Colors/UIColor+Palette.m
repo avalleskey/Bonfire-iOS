@@ -12,6 +12,9 @@
 
 // Helper methods
 + (UIColor * _Nonnull)fromHex:(NSString *)hex {
+    return [self fromHex:hex adjustForDarkMode:false];
+}
++ (UIColor * _Nonnull)fromHex:(NSString *)hex adjustForDarkMode:(BOOL)adjustForDarkMode {
     unsigned rgbValue = 0;
     hex = [hex stringByReplacingOccurrencesOfString:@"#" withString:@""];
     
@@ -21,14 +24,39 @@
         [scanner scanHexInt:&rgbValue];
 
         // bonfire brand -> p3
-        return ([hex isEqualToString:@"FF513C"] || [hex isEqualToString:@"#FF513C"])
-            ? [UIColor colorWithDisplayP3Red:((rgbValue & 0xFF0000) >> 16)/255.0 green:((rgbValue & 0xFF00) >> 8)/255.0 blue:(rgbValue & 0xFF)/255.0 alpha:1.0]
-            : [UIColor colorWithRed:((rgbValue & 0xFF0000) >> 16)/255.0 green:((rgbValue & 0xFF00) >> 8)/255.0 blue:(rgbValue & 0xFF)/255.0 alpha:1.0];
+        CGFloat r = ((rgbValue & 0xFF0000) >> 16)/255.0;
+        CGFloat g = ((rgbValue & 0xFF00) >> 8)/255.0;
+        CGFloat b = (rgbValue & 0xFF)/255.0;
+        
+        if ([hex isEqualToString:@"FF513C"] || [hex isEqualToString:@"#FF513C"]) {
+            // Bonfire p3 color
+            return [UIColor colorWithDisplayP3Red:r green:g blue:b alpha:1.0];
+        }
+        else {
+            UIColor *color;
+            if (@available(iOS 13.0, *)) {
+                // build dynamic UIColor
+                color = [UIColor colorWithDynamicProvider:^UIColor * _Nonnull(UITraitCollection * _Nonnull traitCollection) {
+                    if (traitCollection.userInterfaceStyle == UIUserInterfaceStyleDark) {
+                        return [UIColor colorWithRed:r*(adjustForDarkMode?1.4:1) green:g*(adjustForDarkMode?1.4:1) blue:b*(adjustForDarkMode?1.4:1) alpha:1];
+                    }
+                    else {
+                        return [UIColor colorWithRed:r green:g blue:b alpha:1.0];
+                    }
+                }];
+            }
+            else {
+                color = [UIColor colorWithRed:r green:g blue:b alpha:1.0];
+            }
+            
+            return color;
+        }
     }
     else {
         return [UIColor bonfireGrayWithLevel:800];
     }
 }
+
 + (UIColor *)lighterColorForColor:(UIColor *)c amount:(CGFloat)amount {
     if (amount == 0) amount = 0.2;
     
@@ -84,43 +112,54 @@
 }
 
 + (UIColor * _Nonnull) contentBackgroundColor {
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"dark_mode"]) {
-        return [UIColor blackColor];
-    }
-    else {
-        return [UIColor whiteColor];
-    }
+//    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"dark_mode"]) {
+//        return [UIColor blackColor];
+//    }
+//    else {
+//        return [UIColor whiteColor];
+//    }
+    return [UIColor colorNamed:@"ContentBackgroundColor"];
 }
 
 + (UIColor * _Nonnull) contentHighlightedColor {
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"dark_mode"]) {
-        return [UIColor colorWithWhite:0.04 alpha:1];
-    }
-    else {
-        return [UIColor colorWithWhite:0.97 alpha:1];
-    }
+    return [UIColor colorNamed:@"ContentBackgroundColor_Highlighted"];
 }
 
-+ (UIColor * _Nonnull) headerBackgroundColor {
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"dark_mode"]) {
-        return [UIColor colorWithRed:0.01 green:0.01 blue:0.015 alpha:1];
-    }
-    else {
-        return [UIColor colorWithRed:0.96 green:0.96 blue:0.97 alpha:1.0];
-    }
++ (UIColor * _Nonnull) cardBackgroundColor {
+    return [UIColor colorNamed:@"CardBackgroundColor"];
 }
 
-+ (UIColor * _Nonnull) separatorColor {
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"dark_mode"]) {
-        return [UIColor colorWithRed:0.11f green:0.11f blue:0.13f alpha:1];
-    }
-    else {
-        return [UIColor colorWithRed:0.88 green:0.88 blue:0.89 alpha:1.0];
-    }
++ (UIColor * _Nonnull) tableViewBackgroundColor {
+//    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"dark_mode"]) {
+//        return [UIColor colorWithRed:0.01 green:0.01 blue:0.015 alpha:1];
+//    }
+//    else {
+//        return [UIColor colorWithRed:0.96 green:0.96 blue:0.97 alpha:1.0];
+//    }
+    return [UIColor colorNamed:@"TableViewBackgroundColor"];
+}
++ (UIColor * _Nonnull) viewBackgroundColor {
+    //    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"dark_mode"]) {
+    //        return [UIColor colorWithRed:0.01 green:0.01 blue:0.015 alpha:1];
+    //    }
+    //    else {
+    //        return [UIColor colorWithRed:0.96 green:0.96 blue:0.97 alpha:1.0];
+    //    }
+    return [UIColor colorNamed:@"BackgroundColor"];
+}
+
++ (UIColor * _Nonnull) tableViewSeparatorColor {
+//    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"dark_mode"]) {
+//        return [UIColor colorWithRed:0.11f green:0.11f blue:0.13f alpha:1];
+//    }
+//    else {
+//        return [UIColor colorWithRed:0.88 green:0.88 blue:0.89 alpha:1.0];
+//    }
+    return [UIColor colorNamed:@"SeparatorColor"];
 }
 
 + (UIColor * _Nonnull) linkColor {
-    return [UIColor colorWithDisplayP3Red:0.16f green:0.42f blue:0.6f alpha:1];
+    return [UIColor colorNamed:@"LinkColor"];
 }
 
 + (UIColor * _Nonnull) threadLineColor {
@@ -158,8 +197,9 @@
     return [UIColor colorWithDisplayP3Red:1.00 green:0.36 blue:0.29 alpha:1.0];
 }
 
-+ (UIColor * _Nonnull)bonfireBlack {
-    return [UIColor fromHex:@"31373D"];
++ (UIColor * _Nonnull) bonfirePrimaryColor {
+    return [UIColor colorNamed:@"PrimaryColor"];
+//    return [UIColor fromHex:@"31373D"];
 }
 
 // Gray
@@ -189,8 +229,21 @@
             return [UIColor bonfireGrayWithLevel:500];
     }
 }
-+ (UIColor * _Nonnull) bonfireGray {
-    return [UIColor bonfireGrayWithLevel:500];
++ (UIColor * _Nonnull) bonfireSecondaryColor {
+    return [UIColor colorNamed:@"SecondaryColor"];
+//    return [UIColor bonfireGrayWithLevel:500];
+}
+
++ (UIColor * _Nonnull) bonfireDetailColor {
+    return [UIColor colorNamed:@"DetailColor"];
+}
+
++ (UIColor * _Nonnull) bonfireDisabledColor {
+    return [UIColor colorNamed:@"DisabledColor"];
+}
+
++ (UIColor * _Nonnull) bonfireDetailHighlightedColor {
+    return [UIColor colorNamed:@"DetailColor_Highlighted"];
 }
 
 // Blue
@@ -566,11 +619,11 @@
 }
 
 + (UIColor * _Nonnull) bonfireTextFieldBackgroundOnWhite {
-    return [UIColor colorWithWhite:0 alpha:0.06f];
+    return [UIColor colorWithRed:0 green:0 blue:0.1f alpha:0.04f];
 }
 
-+ (UIColor * _Nonnull) bonfireTextFieldBackgroundOnLight {
-    return [UIColor colorWithWhite:0 alpha:0.08f];
++ (UIColor * _Nonnull) bonfireTextFieldBackgroundOnContent {
+    return [UIColor colorNamed:@"TextFieldBackgroundOnContent"];
 }
 
 + (UIColor * _Nonnull) bonfireTextFieldBackgroundOnDark {

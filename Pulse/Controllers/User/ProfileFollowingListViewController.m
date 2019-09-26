@@ -12,13 +12,15 @@
 #import "HAWebService.h"
 #import "Launcher.h"
 #import "UIColor+Palette.h"
+#import "UserListStream.h"
 @import Firebase;
 
 @interface ProfileFollowingListViewController ()
 
-@property (nonatomic) BOOL loadingUsers;
+@property (nonatomic, strong) UserListStream *stream;
 
-@property (strong, nonatomic) NSMutableArray *users;
+@property (nonatomic) BOOL loadingUsers;
+@property (nonatomic) BOOL loadingMoreUsers;
 
 @end
 
@@ -34,13 +36,11 @@ static NSString * const memberCellIdentifier = @"MemberCell";
     
     self.navigationItem.hidesBackButton = true;
     
-    self.users = [[NSMutableArray alloc] init];
-    
     self.tableView.delegate = self;
     self.tableView.dataSource = self;
     
-    self.tableView.backgroundColor = [UIColor headerBackgroundColor];
-    self.tableView.separatorColor = [UIColor separatorColor];
+    self.tableView.backgroundColor = [UIColor tableViewBackgroundColor];
+    self.tableView.separatorColor = [UIColor tableViewSeparatorColor];
     self.tableView.separatorInset = UIEdgeInsetsMake(0, 70, 0, 0);
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
     self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
@@ -50,30 +50,61 @@ static NSString * const memberCellIdentifier = @"MemberCell";
     
     [self.tableView registerClass:[SearchResultCell class] forCellReuseIdentifier:memberCellIdentifier];
     
-    // if admin
-    self.loadingUsers = true;
-    [self getCampsList];
+    [self getUsersWithCursor:StreamPagingCursorTypeNone];
     
     // Google Analytics
     [FIRAnalytics setScreenName:@"Profile / Following" screenClass:nil];
 }
 
-- (void)getCampsList {
+- (void)getUsersWithCursor:(StreamPagingCursorType)cursorType {
     NSString *url = [NSString stringWithFormat:@"users/%@/following", self.user.identifier];
     
-    [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        NSArray *responseData = (NSArray *)responseObject[@"data"];
+    NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
+    
+    NSString *nextCursor = [self.stream nextCursor];
+    if (cursorType == StreamPagingCursorTypeNext && nextCursor.length > 0) {
+        if ([self.stream hasLoadedCursor:nextCursor]) {
+            return;
+        }
         
-        NSLog(@"response data for requests: %@", responseData);
+        self.loadingMoreUsers = true;
+        [self.stream addLoadedCursor:nextCursor];
+        [params setObject:nextCursor forKey:@"cursor"];
+    }
+    else {
+        self.loadingUsers = true;
+    }
+    
+    NSLog(@"GET -> %@", url);
+    NSLog(@"params: %@", params);
+    
+    [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        UserListStreamPage *page = [[UserListStreamPage alloc] initWithDictionary:responseObject error:nil];
         
-        self.users = [[NSMutableArray alloc] initWithArray:responseData];
+        if (page.data.count > 0) {
+            if ([params objectForKey:@"cursor"]) {
+                self.loadingMoreUsers = false;
+            }
+            else {
+                // clear the stream (we retrieved a full page of notifs and the old ones are out of date)
+                self.stream = [[UserListStream alloc] init];
+            }
+            [self.stream appendPage:page];
+        }
         
         self.loadingUsers = false;
         
         [self.tableView reloadData];
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-        NSLog(@"CampViewController / getRequests() - error: %@", error);
+        NSLog(@"ProfileFollowingListViewController / getUsersWithCursor() - error: %@", error);
         //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+        
+        if (nextCursor.length > 0) {
+            [self.stream removeLoadedCursor:nextCursor];
+        }
+        self.loadingUsers = false;
+        
+        [self.tableView reloadData];
     }];
 }
 
@@ -83,40 +114,22 @@ static NSString * const memberCellIdentifier = @"MemberCell";
 }
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     if (section == 0 && !self.loadingUsers) {
-        return self.users.count;
+        return self.stream.users.count;
     }
     
     return 0;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (indexPath.section == 0) {
+    if (indexPath.section == 0 && indexPath.row < self.stream.users.count) {
         SearchResultCell *cell = [tableView dequeueReusableCellWithIdentifier:memberCellIdentifier forIndexPath:indexPath];
         
         if (cell == nil) {
             cell = [[SearchResultCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:memberCellIdentifier];
         }
         
-        // Configure the cell...
-        cell.type = SearchResultCellTypeUser;
-        
-        if (self.loadingUsers) {
-            cell.profilePicture.user = nil;
-            cell.profilePicture.imageView.backgroundColor = [UIColor colorWithWhite:0.9f alpha:1];
-            cell.textLabel.text = @"Loading...";
-            cell.textLabel.alpha = 0.5;
-            cell.detailTextLabel.text = @"";
-        }
-        else {
-            NSError *error;
-            User *user = [[User alloc] initWithDictionary:self.users[indexPath.row] error:&error];
-            if (error) { NSLog(@"user error: %@", error); };
-            
-            cell.profilePicture.user = user;
-            cell.textLabel.alpha = 1;
-            cell.textLabel.text = user.attributes.details.displayName;
-            cell.detailTextLabel.text = [NSString stringWithFormat:@"@%@", user.attributes.details.identifier];
-        }
+        User *user = self.stream.users[indexPath.row];
+        cell.user = user;
         
         return cell;
     }
@@ -130,63 +143,41 @@ static NSString * const memberCellIdentifier = @"MemberCell";
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    CGFloat headerHeight = 0; // 64;
-    
-    if (section == 0 && !self.loadingUsers && self.users.count == 0)
-        return 0;
-    
-    if (section == 0)
-        return headerHeight;
-    
     return 0;
 }
 
 - (nullable UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
     return nil;
-    
-    /*
-    UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 64)];
-    
-    UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(16, 32, self.view.frame.size.width - 32, 21)];
-    title.textAlignment = NSTextAlignmentLeft;
-    title.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightBold];
-    title.textColor = [UIColor colorWithWhite:0.47f alpha:1];
-    if (section == 0) {
-        title.text = @"Camps Joined";
-    }
-    [header addSubview:title];
-    
-    return header;*/
 }
 - (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
     if (section == 0) {
-        // BOOL hasAnotherPage = self.stream.pages.count > 0 && [self.stream.pages lastObject].meta.paging.next_cursor != nil && [self.stream.pages lastObject].meta.paging.next_cursor.length > 0;
-        // BOOL showLoadingFooter = (self.loadingMore || hasAnotherPage);
+        BOOL hasAnotherPage = self.stream.pages.count > 0 && self.stream.nextCursor.length > 0;
+        BOOL showLoadingFooter = self.loadingUsers || ((self.loadingMoreUsers || hasAnotherPage) && ![self.stream hasLoadedCursor:self.stream.nextCursor]);
         
-        return self.loadingUsers;
+        return showLoadingFooter ? 52 : 0;
     }
     
     return CGFLOAT_MIN;
 }
 - (UIView*)tableView:(UITableView*)tableView viewForFooterInSection:(NSInteger)section {
     if (section == 0) {
-        //BOOL hasAnotherPage = self.stream.pages.count > 0 && [self.stream.pages lastObject].meta.paging.next_cursor != nil && [self.stream.pages lastObject].meta.paging.next_cursor.length > 0;
-        //BOOL showLoadingFooter = (self.loadingMore || hasAnotherPage);
+        // last row
+        BOOL hasAnotherPage = self.stream.pages.count > 0 && self.stream.nextCursor.length > 0;
+        BOOL showLoadingFooter = self.loadingUsers || ((self.loadingMoreUsers || hasAnotherPage) && ![self.stream hasLoadedCursor:self.stream.nextCursor]);
         
-        if (self.loadingUsers) {
+        if (showLoadingFooter) {
             UIView *footer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 52)];
             
             UIActivityIndicatorView *spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+            spinner.color = [UIColor bonfireSecondaryColor];
             spinner.frame = CGRectMake(footer.frame.size.width / 2 - 10, footer.frame.size.height / 2 - 10, 20, 20);
             [footer addSubview:spinner];
             
             [spinner startAnimating];
             
-            /*if (!self.loadingMore && self.stream.pages.count > 0 && [self.stream.pages lastObject].meta.paging.next_cursor != nil && [self.stream.pages lastObject].meta.paging.next_cursor.length > 0) {
-             self.loadingMore = true;
-             NSLog(@"fetch next page");
-             [self getNotificationsWithNextCursor:true];
-             }*/
+            if (!self.loadingMoreUsers && self.stream.pages.count > 0 && self.stream.nextCursor.length > 0) {
+                [self getUsersWithCursor:StreamPagingCursorTypeNext];
+            }
             
             return footer;
         }
@@ -196,14 +187,11 @@ static NSString * const memberCellIdentifier = @"MemberCell";
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (indexPath.section == 0) {
-        if (indexPath.row < self.users.count) {
-            NSError *error;
-            User *user = [[User alloc] initWithDictionary:self.users[indexPath.row] error:&error];
-            
-             if (!error) {
-                 [Launcher openProfile:user];
-             }
+    if (indexPath.section == 0 && indexPath.row < self.stream.users.count) {
+        User *user = self.stream.users[indexPath.row];
+        
+        if (user) {
+            [Launcher openProfile:user];
         }
     }
 }

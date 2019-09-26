@@ -74,6 +74,9 @@
         if (activeTabVC) {
             yTop = activeTabVC.tabBar.frame.origin.y;
         }
+        else if ([activeNavVC.visibleViewController isKindOfClass:[UITableViewController class]]) {
+            yTop = activeNavVC.view.frame.size.height - ((UITableViewController *)activeNavVC.visibleViewController).tableView.adjustedContentInset.bottom;
+        }
         else {
             yTop = activeNavVC.view.frame.size.height - safeAreaInsetBottom;
         }

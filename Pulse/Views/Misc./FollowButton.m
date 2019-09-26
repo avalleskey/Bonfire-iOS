@@ -18,10 +18,10 @@
         self.imageEdgeInsets = UIEdgeInsetsMake(0, 0, 0, 6);
         self.titleLabel.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightBold];
         self.adjustsImageWhenHighlighted = false;
-        self.backgroundColor = [UIColor bonfireBlack];
+        self.backgroundColor = [UIColor bonfirePrimaryColor];
         self.layer.cornerRadius = 12.f;
         self.layer.masksToBounds = false;
-        self.layer.borderColor = [UIColor colorWithWhite:0 alpha:0.06f].CGColor;
+        self.layer.borderColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.06f].CGColor;
         self.layer.borderWidth = 0;
     }
     return self;
@@ -40,6 +40,9 @@
 
 - (void)layoutSubviews {
     [super layoutSubviews];
+    
+    // update border color when trait collection changes
+    self.layer.borderColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.06f].CGColor;
 }
 
 - (void)setHighlighted:(BOOL)highlighted {

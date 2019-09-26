@@ -36,11 +36,12 @@
     
     if (self) {
         self.selectionStyle = UITableViewCellSelectionStyleNone;
+        self.contentView.backgroundColor = [UIColor contentBackgroundColor];
         
         self.selectorLabel = [[UILabel alloc] init];
         self.selectorLabel.text = @"Theme Color";
         self.selectorLabel.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightMedium];
-        self.selectorLabel.textColor = [UIColor colorWithWhite:0.47f alpha:1];
+        self.selectorLabel.textColor = [UIColor bonfireSecondaryColor];
         [self.contentView addSubview:self.selectorLabel];
         
         NSArray *colorList = @[[UIColor bonfireBlue],  // 0
@@ -74,7 +75,7 @@
             [self.customColorView bk_whenTapped:^{
                 // open custom color picker view
                 BFColorPickerViewController *epvc = [[BFColorPickerViewController alloc] initWithColor:self.selectedColor];
-                epvc.view.tintColor = [UIColor bonfireBlack];
+                epvc.view.tintColor = [UIColor bonfirePrimaryColor];
                 
                 UINavigationController *newNavController = [[UINavigationController alloc] initWithRootViewController:epvc];
                 newNavController.transitioningDelegate = [Launcher sharedInstance];

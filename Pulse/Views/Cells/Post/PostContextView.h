@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 
-#define postContextHeight 18
+#define postContextHeight 32
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -18,7 +18,10 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) UIImageView *contextIcon;
 
 @property (nonatomic) NSString *text;
+@property (nonatomic) NSAttributedString *attributedText;
 @property (nonatomic) UIImage *icon;
+
+@property (nonatomic, strong) UIButton *highlightView;
 
 @end
 

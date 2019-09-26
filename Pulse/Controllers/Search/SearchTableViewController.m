@@ -56,6 +56,9 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     
     // Google Analytics
     [FIRAnalytics setScreenName:@"Search" screenClass:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillChangeFrame:) name:UIKeyboardWillChangeFrameNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillDismiss:) name:UIKeyboardWillHideNotification object:nil];
 }
 
 - (void)viewDidDisappear:(BOOL)animated {
@@ -79,15 +82,15 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     
     self.tableView.delegate = self;
     self.tableView.dataSource = self;
-    self.tableView.backgroundColor = [UIColor headerBackgroundColor];
+    self.tableView.backgroundColor = [UIColor contentBackgroundColor];
     //self.tableView.contentInset = UIEdgeInsetsMake(self.navigationController.navigationBar.frame.origin.y + self.navigationController.navigationBar.frame.size.height, 0, 0, 0);
-    self.tableView.separatorStyle = UITableViewCellSeparatorStyleSingleLine;
-    self.tableView.separatorInset = UIEdgeInsetsMake(0, 70, 0, 0);
-    self.tableView.separatorColor = [UIColor separatorColor];
+    self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
     
     [self.tableView registerClass:[SearchResultCell class] forCellReuseIdentifier:reuseIdentifier];
     [self.tableView registerClass:[ButtonCell class] forCellReuseIdentifier:buttonCellReuseIdentifier];
+    
+    [self determineErrorViewVisibility];
 }
 
 - (void)emptySearchResults {
@@ -99,8 +102,11 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     if ([defaults arrayForKey:@"recents_search"]) {
         NSArray *searchRecents = [defaults arrayForKey:@"recents_search"];
-        
         if (searchRecents.count > 0) {
+            if (searchRecents.count > 8) {
+                searchRecents = [searchRecents subarrayWithRange:NSMakeRange(0, 8)];
+            }
+            
             self.recentSearchResults = [[NSMutableArray alloc] initWithArray:searchRecents];
             
             return;
@@ -108,7 +114,69 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     }
 }
 
+- (NSString *)currentSearchText {
+    if ([self.navigationController isKindOfClass:[SearchNavigationController class]]) {
+        return ((SearchNavigationController *)self.navigationController).searchView.textField.text;
+    }
+    else if ([self.navigationController isKindOfClass:[ComplexNavigationController class]]) {
+        return ((ComplexNavigationController *)self.navigationController).searchView.textField.text;
+    }
+    
+    return @"";
+}
+
 - (void)getSearchResults {    
+    NSString *searchText = [self currentSearchText];
+    
+    if (searchText.length == 0) {
+        self.searchResults = [[NSMutableArray alloc] init];
+        [self.tableView reloadData];
+    }
+    else {
+        NSString *url = @"search";
+        NSString *originalSearchText = searchText;
+        
+        if (searchText.length > 0 && [[searchText substringToIndex:1] isEqualToString:@"@"]) {
+            url = [url stringByAppendingString:@"/users"];
+            searchText = [searchText stringByReplacingOccurrencesOfString:@"@" withString:@""];
+        }
+        else if (searchText.length > 0 && [[searchText substringToIndex:1] isEqualToString:@"#"]) {
+            url = [url stringByAppendingString:@"/camps"];
+            searchText = [searchText stringByReplacingOccurrencesOfString:@"@" withString:@""];
+        }
+        
+        [[HAWebService authenticatedManager] GET:url parameters:@{@"q": searchText} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+            if ([originalSearchText isEqualToString:[self currentSearchText]]) {
+                NSDictionary *responseData = (NSDictionary *)responseObject[@"data"];
+                
+                self.searchResults = [[NSMutableArray alloc] init];
+                [self populateSearchResults:responseData];
+                
+                NSLog(@"self.searchResults: %@", self.searchResults);
+                if (self.searchResults.count == 0) {
+                    self.tableView.separatorInset = UIEdgeInsetsMake(0, 12, 0, 0);
+                }
+                else {
+                    self.tableView.separatorInset = UIEdgeInsetsMake(0, 70, 0, 0);
+                }
+                
+                [self.tableView reloadData];
+                [self determineErrorViewVisibility];
+            }
+        } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+            NSLog(@"SearchTableViewController / getPosts() - error: %@", error);
+            //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+            [self.tableView reloadData];
+            [self determineErrorViewVisibility];
+        }];
+    }
+}
+- (void)populateSearchResults:(NSDictionary *)responseData {
+    [self.searchResults addObjectsFromArray:responseData[@"results"][@"camps"]];
+    [self.searchResults addObjectsFromArray:responseData[@"results"][@"users"]];
+}
+
+- (void)determineErrorViewVisibility {
     NSString *searchText;
     if ([self.navigationController isKindOfClass:[SearchNavigationController class]]) {
         searchText = ((SearchNavigationController *)self.navigationController).searchView.textField.text;
@@ -117,76 +185,28 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
         searchText = ((ComplexNavigationController *)self.navigationController).searchView.textField.text;
     }
     
-    if (searchText.length == 0) {
-        self.searchResults = [[NSMutableArray alloc] init];
-        [self.tableView reloadData];
+    if (searchText.length > 0 && self.searchResults.count == 0 && !([self showRecents] &&  self.recentSearchResults.count == 0) && [searchText validateBonfireUsername] != BFValidationErrorNone && [searchText validateBonfireCampTag] != BFValidationErrorNone) {
+        // Error: No posts yet!
+        self.errorView.hidden = false;
+        
+        [self.errorView updateType:ErrorViewTypeNotFound title:@"No Results Found" description:nil actionTitle:nil actionBlock:nil];
+    }
+    else if (searchText.length == 0 && [self tableView:self.tableView numberOfRowsInSection:0] == 0) {
+        self.errorView.hidden = false;
+        
+        [self.errorView updateType:ErrorViewTypeSearch title:@"Start typing..." description:nil actionTitle:nil actionBlock:nil];
     }
     else {
-        NSString *url = @"search";
-        
-        switch (self.resultsType) {
-            case BFSearchResultsTypeTop:
-                url = [url stringByAppendingString:@"/top"];
-                break;
-            case BFSearchResultsTypeCamps:
-                url = [url stringByAppendingString:@"/camps"];
-                break;
-            case BFSearchResultsTypeUsers:
-                url = [url stringByAppendingString:@"/users"];
-                break;
-            case BFSearchResultsTypeFeeds:
-                url = [url stringByAppendingString:@"/feeds"];
-                break;
-            case BFSearchResultsTypeTopPosts:
-                url = [url stringByAppendingString:@"/posts/top"];
-                break;
-            case BFSearchResultsTypeRecentPosts:
-                url = [url stringByAppendingString:@"/posts/recent"];
-                break;
-            case BFSearchResultsTypeHotPosts:
-                url = [url stringByAppendingString:@"/posts/hot"];
-                break;
-                
-            default:
-                break;
-        }
-        
-        [[HAWebService authenticatedManager] GET:url parameters:@{@"q": searchText} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-            NSDictionary *responseData = (NSDictionary *)responseObject[@"data"];
-            
-            self.searchResults = [[NSMutableArray alloc] init];
-            [self populateSearchResults:responseData];
-            
-            if (self.searchResults.count == 0 && !([self showRecents] &&  self.recentSearchResults.count == 0) && [searchText validateBonfireUsername] != BFValidationErrorNone && [searchText validateBonfireCampTag] != BFValidationErrorNone) {
-                // Error: No posts yet!
-                self.errorView.hidden = false;
-                
-                self.errorView.center = CGPointMake(self.view.frame.size.width / 2, (self.tableView.frame.size.height - self.tableView.adjustedContentInset.top - self.tableView.adjustedContentInset.bottom) / 2);
-            }
-            else {
-                self.errorView.hidden = true;
-            }
-            
-            NSLog(@"self.searchResults: %@", self.searchResults);
-            if (self.searchResults.count == 0) {
-                self.tableView.separatorInset = UIEdgeInsetsMake(0, 12, 0, 0);
-            }
-            else {
-                self.tableView.separatorInset = UIEdgeInsetsMake(0, 70, 0, 0);
-            }
-            
-            [self.tableView reloadData];
-        } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-            NSLog(@"SearchTableViewController / getPosts() - error: %@", error);
-            //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-            
-            [self.tableView reloadData];
-        }];
+        self.errorView.hidden = true;
+    }
+    
+    if (![self.errorView isHidden]) {
+        [self positionErrorView];
     }
 }
-- (void)populateSearchResults:(NSDictionary *)responseData {
-    [self.searchResults addObjectsFromArray:responseData[@"results"][@"camps"]];
-    [self.searchResults addObjectsFromArray:responseData[@"results"][@"users"]];
+
+- (void)positionErrorView {
+    self.errorView.center = CGPointMake(self.view.frame.size.width / 2, (self.tableView.frame.size.height - self.tableView.adjustedContentInset.top - _currentKeyboardHeight) / 2);
 }
 
 #pragma mark - Table view data source
@@ -220,13 +240,26 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
         
         if (indexPath.row == 0 && [searchText validateBonfireCampTag] == BFValidationErrorNone) {
             // camp
-            cell.buttonLabel.text = [NSString stringWithFormat:@"Go to #%@", searchText];
+            cell.buttonLabel.text = [NSString stringWithFormat:@"Go to #%@", [searchText stringByReplacingOccurrencesOfString:@"#" withString:@""]];
         }
         else {
             // user
-            cell.buttonLabel.text = [NSString stringWithFormat:@"Go to @%@", searchText];
+            cell.buttonLabel.text = [NSString stringWithFormat:@"Go to @%@", [searchText stringByReplacingOccurrencesOfString:@"@" withString:@""]];
         }
-        cell.buttonLabel.textColor = [UIColor bonfireBlack];
+        
+        cell.gutterPadding = 12;
+        UIView *separator = [cell viewWithTag:10];
+        if (!separator) {
+            separator = [[UIView alloc] initWithFrame:CGRectMake(cell.gutterPadding, 52 - (1 / [UIScreen mainScreen].scale), self.view.frame.size.width - (cell.gutterPadding * 2), (1 / [UIScreen mainScreen].scale))];
+            separator.backgroundColor = [UIColor tableViewSeparatorColor];
+            separator.tag = 10;
+            [cell addSubview:separator];
+        }
+        
+        separator.hidden = !(indexPath.row == 0 && [searchText validateBonfireCampTag] == BFValidationErrorNone);
+        
+        cell.buttonLabel.textColor = [UIColor linkColor];
+        cell.buttonLabel.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightMedium];
         
         return cell;
     }
@@ -244,9 +277,11 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
         // mix of types
         if (indexPath.section == 0) {
             json = self.recentSearchResults[indexPath.row];
+            cell.lineSeparator.hidden = (indexPath.row == self.recentSearchResults.count - 1);
         }
         else {
             json = self.searchResults[indexPath.row];
+            cell.lineSeparator.hidden = (indexPath.row == self.searchResults.count - 1);
         }
         if (json[@"type"]) {
             if ([json[@"type"] isEqualToString:@"camp"]) {
@@ -256,7 +291,6 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
                 type = 2;
             }
         }
-        cell.type = type;
         
         if (type == 0) {
             // 0 = page inside Home (e.g. Timeline, My Camps, Trending)
@@ -267,29 +301,12 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
         else if (type == 1) {
             NSError *error;
             Camp *camp = [[Camp alloc] initWithDictionary:json error:&error];
-            if (error) { NSLog(@"camp error: %@", error); };
-            
-            // 1 = Camp
-            cell.profilePicture.camp = camp;
-            cell.textLabel.text = camp.attributes.details.title;
-            
-            NSString *detailText = [NSString stringWithFormat:@"#%@ · %ld %@", camp.attributes.details.identifier, (long)camp.attributes.summaries.counts.members, (camp.attributes.summaries.counts.members == 1 ? [Session sharedInstance].defaults.camp.membersTitle.singular : [Session sharedInstance].defaults.camp.membersTitle.plural)];
-            /*BOOL useLiveCount = camp.attributes.summaries.counts.live > [Session sharedInstance].defaults.camp.liveThreshold;
-            if (useLiveCount) {
-                cell.detailTextLabel.text = [NSString stringWithFormat:@"%@ · %li LIVE", detailText, (long)camp.attributes.summaries.counts.live];
-            }*/
-            
-            cell.detailTextLabel.text = detailText;
+            cell.camp = camp;
         }
         else {
             NSError *error;
             User *user = [[User alloc] initWithDictionary:json error:&error];
-            
-            cell.profilePicture.user = user;
-            
-            // 2 = User
-            cell.textLabel.text = user.attributes.details.displayName;
-            cell.detailTextLabel.text = [NSString stringWithFormat:@"@%@", user.attributes.details.identifier];
+            cell.user = user;
         }
         
         return cell;
@@ -394,8 +411,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     if (section == 0 && [self showRecents]) {
-        CGFloat maxRecents = 8;
-        return self.recentSearchResults.count > maxRecents ? maxRecents : self.recentSearchResults.count;
+        return self.recentSearchResults.count;
     }
     else if (section == 1) {
         NSString *searchText;
@@ -544,14 +560,17 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     [NSObject cancelPreviousPerformRequestsWithTarget:self];
     
     if (searchText.length > 0) {
-        float delay = 0.1;
-        
+        CGFloat delay = (searchText.length == 1) ? 0 : 0.1f;
+        [self.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:NO];
         [self performSelector:@selector(getSearchResults) withObject:nil afterDelay:delay];
+        [self.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:NO];
     }
     else {
         self.searchResults = [[NSMutableArray alloc] init];
-        [self.tableView reloadData];
     }
+    
+    [self.tableView reloadData];
+    [self determineErrorViewVisibility];
 }
 - (void)updateTable {
     
@@ -598,16 +617,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     CGRect keyboardFrameBeginRect = [keyboardFrameBegin CGRectValue];
     _currentKeyboardHeight = keyboardFrameBeginRect.size.height;
     
-    UIWindow *window = UIApplication.sharedApplication.keyWindow;
-    CGFloat bottomPadding = window.safeAreaInsets.bottom;
-    
-    NSLog(@"bottom padding: %f", bottomPadding);
-    NSLog(@"current keyboard height: %f", _currentKeyboardHeight);
-    
-    self.tableView.contentInset = UIEdgeInsetsMake(self.tableView.contentInset.top, 0, _currentKeyboardHeight - bottomPadding + 24, 0);
-    self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(self.tableView.contentInset.top, 0, _currentKeyboardHeight - bottomPadding, 0);
-    
-    self.errorView.center = CGPointMake(self.view.frame.size.width / 2, (self.tableView.frame.size.height - self.tableView.adjustedContentInset.top - _currentKeyboardHeight) / 2);
+    [self positionErrorView];
 }
 
 - (void)keyboardWillDismiss:(NSNotification *)notification {
@@ -615,13 +625,25 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     
     NSNumber *duration = [notification.userInfo objectForKey:UIKeyboardAnimationDurationUserInfoKey];
     [UIView animateWithDuration:[duration floatValue] delay:0 options:[[notification.userInfo objectForKey:UIKeyboardAnimationCurveUserInfoKey] intValue] << 16 animations:^{
-        self.tableView.contentInset = UIEdgeInsetsMake(self.tableView.contentInset.top, 0, 0, 0);
-        self.tableView.scrollIndicatorInsets = self.tableView.contentInset;
-        
-        self.errorView.center = CGPointMake(self.view.frame.size.width / 2, (self.tableView.frame.size.height / 2) - self.tableView.adjustedContentInset.bottom);
+        [self positionErrorView];
     } completion:nil];
 }
 
-
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    CGFloat normalizedScrollViewContentOffsetY = scrollView.contentOffset.y + scrollView.adjustedContentInset.top;
+    
+    if ([self.navigationController isKindOfClass:[SearchNavigationController class]]) {
+        if (normalizedScrollViewContentOffsetY > 0) {
+            if (((SearchNavigationController *)self.navigationController).bottomHairline.alpha == 0) {
+                [(SearchNavigationController *)self.navigationController setShadowVisibility:YES withAnimation:false];
+            }
+        }
+        else {
+            if (((SearchNavigationController *)self.navigationController).bottomHairline.alpha == 1) {
+                [(SearchNavigationController *)self.navigationController setShadowVisibility:NO withAnimation:false];
+            }
+        }
+    }
+}
 
 @end

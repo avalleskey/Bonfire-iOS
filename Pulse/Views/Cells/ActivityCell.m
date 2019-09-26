@@ -15,6 +15,9 @@
 #import "Launcher.h"
 #import <SDWebImage/UIImageView+WebCache.h>
 
+#define ACTIVITY_CELL_CONTENT_INSET UIEdgeInsetsMake(12, 70, 12, 12)
+#define ACTIVITY_CELL_ATTACHMENT_PADDING 8
+
 @implementation ActivityCell
 
 - (void)awakeFromNib {
@@ -26,8 +29,8 @@
     self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
     
     if (self) {
-        self.backgroundColor = [UIColor whiteColor];
-        
+        self.backgroundColor = [UIColor contentBackgroundColor];
+
         self.textLabel.numberOfLines = 0;
         self.textLabel.lineBreakMode = NSLineBreakByWordWrapping;
         self.textLabel.backgroundColor = [UIColor clearColor];
@@ -35,58 +38,27 @@
         self.selectionStyle = UITableViewCellSelectionStyleNone;
         self.accessoryType = UITableViewCellAccessoryNone;
         
-        self.profilePicture = [[BFAvatarView alloc] initWithFrame:CGRectMake(12, 10, 48, 48)];
+        self.profilePicture = [[BFAvatarView alloc] initWithFrame:CGRectMake(12, ACTIVITY_CELL_CONTENT_INSET.top - 2, 48, 48)];
         self.profilePicture.openOnTap = true;
         [self.contentView addSubview:self.profilePicture];
         
-        self.typeIndicator = [[UIImageView alloc] initWithFrame:CGRectMake(self.profilePicture.frame.origin.x + self.profilePicture.frame.size.width - 20 + 1, self.profilePicture.frame.origin.y + self.profilePicture.frame.size.height - 20 + 1, 20, 20)];
+        self.typeIndicator = [[UIImageView alloc] initWithFrame:CGRectMake(self.profilePicture.frame.origin.x + self.profilePicture.frame.size.width - 20, self.profilePicture.frame.origin.y + self.profilePicture.frame.size.height - 20, 20, 20)];
         self.typeIndicator.layer.cornerRadius = self.typeIndicator.frame.size.height / 2;
         self.typeIndicator.layer.masksToBounds = false;
-        self.typeIndicator.backgroundColor = [UIColor bonfireBlack];
-        self.typeIndicator.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.1f].CGColor;
-        self.typeIndicator.layer.shadowOpacity = 1;
-        self.typeIndicator.layer.shadowOffset = CGSizeMake(0, 1);
-        self.typeIndicator.layer.shadowRadius = 3.f;
+        self.typeIndicator.backgroundColor = [UIColor bonfirePrimaryColor];
         self.typeIndicator.contentMode = UIViewContentModeCenter;
-        self.typeIndicator.tintColor = [UIColor whiteColor];
+        self.typeIndicator.tintColor = [UIColor contentBackgroundColor];
         [self.contentView addSubview:self.typeIndicator];
         
-        self.actionButton = [[UIButton alloc] initWithFrame:CGRectMake(self.frame.size.width - 96 - 36, 0, 96, 32)];
-        self.actionButton.center = CGPointMake(self.actionButton.center.x, self.profilePicture.center.y);
-        self.actionButton.layer.cornerRadius = 8.f;
-        self.actionButton.layer.masksToBounds = true;
-        self.actionButton.layer.borderColor = [UIColor colorWithRed:0.92 green:0.93 blue:0.94 alpha:1.0].CGColor;
-        self.actionButton.layer.borderWidth = 0;
-        self.actionButton.titleLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightBold];
+        // blur bg
+        UIView *typeBackgroundBlurView = [[UIView alloc] init];
+        typeBackgroundBlurView.frame = CGRectMake(self.typeIndicator.frame.origin.x - 2, self.typeIndicator.frame.origin.y - 2, self.typeIndicator.frame.size.width + 4, self.typeIndicator.frame.size.height + 4);
+        typeBackgroundBlurView.backgroundColor = [UIColor contentBackgroundColor];
+        typeBackgroundBlurView.layer.cornerRadius = typeBackgroundBlurView.frame.size.height / 2;
+        typeBackgroundBlurView.layer.masksToBounds = true;
+        [self.contentView insertSubview:typeBackgroundBlurView belowSubview:self.typeIndicator];
         
-        [self.actionButton bk_addEventHandler:^(id sender) {
-            [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-                self.actionButton.transform = CGAffineTransformMakeScale(0.92, 0.92);
-            } completion:nil];
-        } forControlEvents:UIControlEventTouchDown];
-        [self.actionButton bk_addEventHandler:^(id sender) {
-            [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-                self.actionButton.transform = CGAffineTransformIdentity;
-            } completion:nil];
-        } forControlEvents:(UIControlEventTouchUpInside|UIControlEventTouchCancel|UIControlEventTouchDragExit)];
-        [self.actionButton bk_whenTapped:^{
-            [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-                self.actionButton.transform = CGAffineTransformIdentity;
-            } completion:nil];
-        }];
-        [self.contentView addSubview:self.actionButton];
-        
-        self.moreButton = [UIButton buttonWithType:UIButtonTypeSystem];
-        self.moreButton.frame = CGRectMake(self.frame.size.width - 36, 18, 36, 44);
-        [self.moreButton setImage:[UIImage imageNamed:@"notificationsMoreIcon"] forState:UIControlStateNormal];
-        self.moreButton.tintColor = [UIColor colorWithWhite:0.47f alpha:1];
-        self.moreButton.center = CGPointMake(self.moreButton.center.x, self.profilePicture.center.y);
-        [self.moreButton bk_whenTapped:^{
-            [self presentNotificationActions];
-        }];
-        // [self.contentView addSubview:self.moreButton];
-        
-        self.textLabel.frame = CGRectMake(70, 18, self.frame.size.width - 70 - self.actionButton.frame.size.width - 6, 32);
+        self.textLabel.frame = CGRectMake(ACTIVITY_CELL_CONTENT_INSET.left, ACTIVITY_CELL_CONTENT_INSET.top + 6, self.frame.size.width - ACTIVITY_CELL_CONTENT_INSET.left - ACTIVITY_CELL_CONTENT_INSET.right, 32);
         self.textLabel.font = [UIFont systemFontOfSize:15.f];
         self.textLabel.textColor = [UIColor bonfireGrayWithLevel:900];
         
@@ -97,8 +69,14 @@
         self.imagePreview.layer.cornerRadius = 4.f;
         [self.contentView addSubview:self.imagePreview];
         
+        self.userPreviewView = [[BFUserAttachmentView alloc] initWithFrame:CGRectMake(self.frame.size.width - (self.profilePicture.frame.size.width - 4) - 12, self.profilePicture.frame.origin.y + 2, self.profilePicture.frame.size.width - 4, self.profilePicture.frame.size.height - 4)];
+         [self.contentView addSubview:self.userPreviewView];
+        
+        self.campPreviewView = [[BFCampAttachmentView alloc] initWithFrame:CGRectMake(self.frame.size.width - (self.profilePicture.frame.size.width - 4) - 12, self.profilePicture.frame.origin.y + 2, self.profilePicture.frame.size.width - 4, self.profilePicture.frame.size.height - 4)];
+         [self.contentView addSubview:self.campPreviewView];
+        
         self.lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, (1 / [UIScreen mainScreen].scale))];
-        self.lineSeparator.backgroundColor = [UIColor separatorColor];
+        self.lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
         [self addSubview:self.lineSeparator];
         
 #ifdef DEBUG
@@ -121,15 +99,14 @@
 - (void)layoutSubviews {
     [super layoutSubviews];
     
-    self.moreButton.frame = CGRectMake(self.frame.size.width - self.moreButton.frame.size.width, self.profilePicture.frame.origin.y + (self.profilePicture.frame.size.height / 2) - (self.moreButton.frame.size.height / 2), self.moreButton.frame.size.width, self.moreButton.frame.size.height);
-    self.actionButton.frame = CGRectMake(self.frame.size.width - self.actionButton.frame.size.width - 12, self.actionButton.frame.origin.y, self.actionButton.frame.size.width, self.actionButton.frame.size.height);
-    
     BOOL hasImagePreview = ![self.imagePreview isHidden];
     if (hasImagePreview) {
         self.imagePreview.frame = CGRectMake(self.frame.size.width - (self.profilePicture.frame.size.width - 4) - 12, self.profilePicture.frame.origin.y + 2, self.profilePicture.frame.size.width - 4, self.profilePicture.frame.size.height - 4);
     }
     
-    CGFloat textLabelWidth = ([self.imagePreview isHidden] ? self.frame.size.width - 70 - 12 : self.imagePreview.frame.origin.x - 8 - 70);
+    CGFloat leftOffset = 70;
+    CGFloat contentWidth = self.frame.size.width - leftOffset - 12;
+    CGFloat textLabelWidth = ([self.imagePreview isHidden] ? contentWidth : self.imagePreview.frame.origin.x - 8 - leftOffset);
     
     CGRect textLabelRect = [self.textLabel.attributedText boundingRectWithSize:CGSizeMake(textLabelWidth, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) context:nil];
     CGFloat textLabelHeight = textLabelRect.size.height;
@@ -138,15 +115,24 @@
     long rHeight = lroundf(textLabelHeight);
     int lineCount = roundf(rHeight/charSize);
     
-    if (lineCount == 1) {
-        self.textLabel.frame = CGRectMake(70, 17, textLabelWidth, ceilf(textLabelRect.size.height));
-        self.textLabel.center = CGPointMake(self.textLabel.center.x, self.profilePicture.center.y);
+    if (lineCount > 2 || self.campPreviewView || self.userPreviewView) {
+        self.textLabel.frame = CGRectMake(leftOffset, ACTIVITY_CELL_CONTENT_INSET.top, textLabelWidth, ceilf(textLabelRect.size.height));
+    }
+    else if (lineCount == 1) {
+        self.textLabel.frame = CGRectMake(leftOffset, self.profilePicture.frame.origin.y, textLabelWidth, self.profilePicture.frame.size.height);
     }
     else if (lineCount == 2) {
-        self.textLabel.frame = CGRectMake(70, 15, textLabelWidth, ceilf(textLabelRect.size.height));
+        self.textLabel.frame = CGRectMake(leftOffset, ACTIVITY_CELL_CONTENT_INSET.top + 5, textLabelWidth, ceilf(textLabelRect.size.height));
+        self.textLabel.center = CGPointMake(self.textLabel.center.x, self.profilePicture.center.y);
     }
-    else {
-        self.textLabel.frame = CGRectMake(70, 12, textLabelWidth, ceilf(textLabelRect.size.height));
+        
+    if (self.campPreviewView) {
+        [self.campPreviewView layoutSubviews];
+        self.campPreviewView.frame = CGRectMake(self.textLabel.frame.origin.x, self.textLabel.frame.origin.y + self.textLabel.frame.size.height + ACTIVITY_CELL_ATTACHMENT_PADDING, contentWidth, self.campPreviewView.frame.size.height);
+    }
+    else if (self.userPreviewView) {
+        [self.userPreviewView layoutSubviews];
+        self.userPreviewView.frame = CGRectMake(self.textLabel.frame.origin.x, self.textLabel.frame.origin.y + self.textLabel.frame.size.height + ACTIVITY_CELL_ATTACHMENT_PADDING, contentWidth, self.userPreviewView.frame.size.height);
     }
     
     if (![self.lineSeparator isHidden]) {
@@ -160,77 +146,57 @@
     if (self.activity.attributes.type == USER_ACTIVITY_TYPE_USER_FOLLOW) {
         self.typeIndicator.image = [UIImage imageNamed:@"notificationIndicator_profile"];
         self.typeIndicator.backgroundColor = [UIColor bonfireBlue];
-        // TODO: set dynamically based on following context
-        [self.actionButton setTitle:@"Follow" forState:UIControlStateNormal];
-        self.actionButton.hidden = true;
     }
     else if (self.activity.attributes.type == USER_ACTIVITY_TYPE_USER_ACCEPTED_ACCESS) {
         self.typeIndicator.image = [UIImage imageNamed:@"notificationIndicator_check"];
         self.typeIndicator.backgroundColor = [UIColor bonfireGreen];
-        [self.actionButton setTitle:@"Open" forState:UIControlStateNormal];
-        self.actionButton.hidden = true;
     }
     else if (self.activity.attributes.type == USER_ACTIVITY_TYPE_CAMP_ACCESS_REQUEST) {
         self.typeIndicator.image = [UIImage imageNamed:@"notificationIndicator_clock"];
         self.typeIndicator.backgroundColor = [UIColor colorWithRed:0.52 green:0.53 blue:0.55 alpha:1.0];
-        [self.actionButton setTitle:@"Open" forState:UIControlStateNormal];
-        self.actionButton.hidden = true;
     }
     else if (self.activity.attributes.type == USER_ACTIVITY_TYPE_POST_REPLY) {
         self.typeIndicator.image = [UIImage imageNamed:@"notificationIndicator_reply"];
         self.typeIndicator.backgroundColor = [UIColor bonfireViolet];
-        [self.actionButton setTitle:@"View" forState:UIControlStateNormal];
-        self.actionButton.hidden = true;
     }
     else if (self.activity.attributes.type == USER_ACTIVITY_TYPE_POST_VOTED) {
         self.typeIndicator.image = [UIImage imageNamed:@"notificationIndicator_vote"];
         self.typeIndicator.backgroundColor = [UIColor bonfireBrand];
-        [self.actionButton setTitle:@"View" forState:UIControlStateNormal];
-        self.actionButton.hidden = true;
     }
     else if (self.activity.attributes.type == USER_ACTIVITY_TYPE_USER_POSTED || self.activity.attributes.type == USER_ACTIVITY_TYPE_USER_POSTED_CAMP) {
         // TODO: Create user posted icon/color combo
         self.typeIndicator.image = [UIImage imageNamed:@"notificationIndicator_user_posted"];
         self.typeIndicator.backgroundColor = [UIColor bonfireGreen];
-        self.actionButton.hidden = true;
     }
     else if (self.activity.attributes.type == USER_ACTIVITY_TYPE_POST_MENTION) {
         self.typeIndicator.image = [UIImage imageNamed:@"notificationIndicator_mention"];
         self.typeIndicator.backgroundColor = [UIColor colorWithRed:0.07 green:0.78 blue:1.00 alpha:1.0];
-        [self.actionButton setTitle:@"View" forState:UIControlStateNormal];
-        self.actionButton.hidden = true;
     }
     else {
         // unknown
         self.typeIndicator.hidden = true;
     }
-
-    /*
-    case NotificationTypeCampNewMember:
-        self.typeIndicator.image = [UIImage imageNamed:@"notificationIndicator_plus"];
-        self.typeIndicator.backgroundColor = [UIColor bonfireGreen];
-        [self.actionButton setTitle:@"Open" forState:UIControlStateNormal];
-        // self.state = NotificationStateOutline;
-        self.actionButton.hidden = true;
-        break;*/
+    
+    // init/remove attachments
+    if ([ActivityCell includeUserAttachmentForActivity:self.activity]) {
+        [self removeCampAttachment];
+        [self initUserAttachmentWithUser:self.activity.attributes.actioner];
+    }
+    else if ([ActivityCell includeCampAttachmentForActivity:self.activity]) {
+        [self removeUserAttachment];
+        [self initCampAttachmentWithCamp:self.activity.attributes.camp];
+    }
+    else {
+        [self removeCampAttachment];
+        [self removeUserAttachment];
+    }
 }
 
-- (void)presentNotificationActions {
-    UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:nil message:nil preferredStyle:UIAlertControllerStyleActionSheet];
-    
-    // imessage , share via...
-    
-    UIAlertAction *hideAction = [UIAlertAction actionWithTitle:@"Hide this Notification" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-        NSLog(@"Hide this Notifications");
-    }];
-    [actionSheet addAction:hideAction];
-    
-    UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-        NSLog(@"cancel");
-    }];
-    [actionSheet addAction:cancel];
-    
-    [[Launcher activeViewController] presentViewController:actionSheet animated:YES completion:nil];
++ (BOOL)includeUserAttachmentForActivity:(UserActivity *)activity {
+    return activity.attributes.type == USER_ACTIVITY_TYPE_USER_FOLLOW && (activity.attributes.actioner.attributes.details.bio.length > 0 || activity.attributes.actioner.attributes.details.location.value.length > 0 || activity.attributes.actioner.attributes.details.website.value.length > 0);
+}
++ (BOOL)includeCampAttachmentForActivity:(UserActivity *)activity {
+    return activity.attributes.type == USER_ACTIVITY_TYPE_USER_ACCEPTED_ACCESS;
 }
 
 - (void)setActivity:(UserActivity *)activity {
@@ -268,10 +234,59 @@
     }
 }
 
-+ (CGFloat)heightForUserActivity:(UserActivity *)activity {
-    CGFloat minHeight = 68;
+- (void)initCampAttachmentWithCamp:(Camp *)camp {
+    if (!camp) {
+        [self removeCampAttachment];
+        return;
+    }
     
-    CGFloat topPadding = 10;
+    CGFloat width = [UIScreen mainScreen].bounds.size.width - (ACTIVITY_CELL_CONTENT_INSET.left + ACTIVITY_CELL_CONTENT_INSET.right);
+    CGRect frame = CGRectMake(ACTIVITY_CELL_CONTENT_INSET.left, self.textLabel.frame.origin.y + self.textLabel.frame.size.height + ACTIVITY_CELL_ATTACHMENT_PADDING, width, [BFCampAttachmentView heightForCamp:camp width:width]);
+    
+    if (self.campPreviewView) {
+        self.campPreviewView.camp = camp;
+        self.campPreviewView.frame = frame;
+    }
+    else {
+        // need to initialize a user preview view
+        self.campPreviewView = [[BFCampAttachmentView alloc] initWithCamp:camp frame:frame];
+        [self.contentView addSubview:self.campPreviewView];
+    }
+}
+- (void)removeCampAttachment {
+    [self.campPreviewView removeFromSuperview];
+    self.campPreviewView = nil;
+}
+- (void)initUserAttachmentWithUser:(User *)user {    
+    if (!user) {
+        [self removeUserAttachment];
+        return;
+    }
+    
+    // need to initialize a user preview view
+    CGFloat width = [UIScreen mainScreen].bounds.size.width - (ACTIVITY_CELL_CONTENT_INSET.left + ACTIVITY_CELL_CONTENT_INSET.right);
+    CGRect frame = CGRectMake(ACTIVITY_CELL_CONTENT_INSET.left, self.textLabel.frame.origin.y + self.textLabel.frame.size.height + ACTIVITY_CELL_ATTACHMENT_PADDING, width, [BFUserAttachmentView heightForUser:user width:width]);
+    
+    if (self.userPreviewView) {
+        self.userPreviewView.user = user;
+        self.userPreviewView.frame = frame;
+    }
+    else {
+        self.userPreviewView = [[BFUserAttachmentView alloc] initWithUser:user frame:frame];
+        NSLog(@"heightttt: %f", self.userPreviewView.frame.size.height);
+        [self.contentView addSubview:self.userPreviewView];
+    }
+}
+- (void)removeUserAttachment {
+    [self.userPreviewView removeFromSuperview];
+    self.userPreviewView = nil;
+}
+
++ (CGFloat)heightForUserActivity:(UserActivity *)activity {
+    CGFloat minHeight = ACTIVITY_CELL_CONTENT_INSET.top + 48 + ACTIVITY_CELL_CONTENT_INSET.bottom;
+    
+    CGFloat topPadding = ACTIVITY_CELL_CONTENT_INSET.top;
+    CGFloat contentHeight = 0;
     
     BOOL hasImagePreview = false;
     if (activity.attributes.replyPost &&
@@ -284,25 +299,37 @@
     }
     CGFloat pictureWidth = hasImagePreview ? 44 + 8 : 0;
     
-    CGFloat textLabelWidth = [UIScreen mainScreen].bounds.size.width - 70 - pictureWidth - 12; // 36 = action button distance from right
+    CGFloat textLabelWidth = [UIScreen mainScreen].bounds.size.width - ACTIVITY_CELL_CONTENT_INSET.left - pictureWidth - ACTIVITY_CELL_CONTENT_INSET.right; // 36 = action button distance from right
     CGRect textLabelRect = [activity.attributes.attributedString boundingRectWithSize:CGSizeMake(textLabelWidth, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) context:nil];
     CGFloat textLabelHeight = textLabelRect.size.height;
+    contentHeight += ceilf(textLabelRect.size.height);
     
     long charSize = lroundf( [UIFont systemFontOfSize:15.f].lineHeight);
     long rHeight = lroundf(textLabelHeight);
     int lineCount = roundf(rHeight/charSize);
     
-    if (lineCount > 2) {
-        // 12 from top
-        topPadding = 12;
+    if (lineCount > 2 || [ActivityCell includeCampAttachmentForActivity:activity] || [ActivityCell includeUserAttachmentForActivity:activity]) {
+        topPadding = ACTIVITY_CELL_CONTENT_INSET.top;
     }
-    else {
-        // 17 from top
-        topPadding = 17;
+    else if (lineCount == 1) {
+        topPadding = 0;
     }
-    CGFloat bottomPadding = topPadding;
+    else if (lineCount == 2) {
+        topPadding = ACTIVITY_CELL_CONTENT_INSET.top + 5;
+    }
     
-    CGFloat calculatedHeight = topPadding + ceilf(textLabelRect.size.height) + bottomPadding;
+    // attachments
+    CGFloat attachmentWidth = ([UIScreen mainScreen].bounds.size.width - (ACTIVITY_CELL_CONTENT_INSET.left + ACTIVITY_CELL_CONTENT_INSET.right));
+    if ([ActivityCell includeUserAttachmentForActivity:activity]) {
+        contentHeight += (ACTIVITY_CELL_ATTACHMENT_PADDING + [BFUserAttachmentView heightForUser:activity.attributes.actioner width:attachmentWidth]);
+    }
+    else if ([ActivityCell includeCampAttachmentForActivity:activity]) {
+        contentHeight += (ACTIVITY_CELL_ATTACHMENT_PADDING + [BFCampAttachmentView heightForCamp:activity.attributes.camp width:attachmentWidth]);
+    }
+
+    CGFloat bottomPadding = ACTIVITY_CELL_CONTENT_INSET.bottom;
+    
+    CGFloat calculatedHeight = topPadding + contentHeight + bottomPadding;
     
     return calculatedHeight < minHeight ? minHeight : calculatedHeight;
 }
@@ -310,18 +337,18 @@
 - (void)setHighlighted:(BOOL)highlighted animated:(BOOL)animated {
     if (self.activity && highlighted) {
         [UIView animateWithDuration:0.2f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-            self.contentView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.03];
+            self.contentView.backgroundColor = [UIColor contentHighlightedColor];
         } completion:nil];
     }
     else {
         [UIView animateWithDuration:0.2f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-            self.contentView.backgroundColor = [UIColor colorWithWhite:0 alpha:0];
+            self.contentView.backgroundColor = [UIColor contentBackgroundColor];
         } completion:nil];
     }
 }
 
 - (void)setUnread:(BOOL)unread {
-    self.backgroundColor = [UIColor whiteColor];
+    self.backgroundColor = [UIColor contentBackgroundColor];
 }
 
 @end

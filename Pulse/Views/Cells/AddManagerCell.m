@@ -20,6 +20,8 @@
     self = [super initWithStyle:UITableViewCellStyleDefault reuseIdentifier:reuseIdentifier];
     
     if (self) {
+        self.backgroundColor = [UIColor contentBackgroundColor];
+        
         self.imageView.image = [[UIImage imageNamed:@"tableRowAddMemberIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
         self.imageView.frame = CGRectMake(12, 0, 48, 48);
         self.imageView.contentMode = UIViewContentModeScaleAspectFill;

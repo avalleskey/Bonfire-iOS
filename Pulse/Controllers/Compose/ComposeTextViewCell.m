@@ -29,7 +29,8 @@
     if (self) {        
         self.selectionStyle = UITableViewCellSelectionStyleNone;
         
-        self.contentView.backgroundColor = [UIColor whiteColor];
+        self.backgroundColor = [UIColor contentBackgroundColor];
+        self.contentView.backgroundColor = [UIColor contentBackgroundColor];
         self.tintColor = [UIColor bonfireBrand];
         
         self.textView = [[UITextView alloc] initWithFrame:CGRectMake(70, 12, self.frame.size.width - 70 - 12, self.frame.size.height)];
@@ -37,14 +38,14 @@
         self.textView.scrollEnabled = false;
         self.textView.backgroundColor = [UIColor clearColor];
         self.textView.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightRegular];
-        self.textView.textColor = [UIColor bonfireBlack];
+        self.textView.textColor = [UIColor bonfirePrimaryColor];
         self.textView.textContainer.lineFragmentPadding = 0;
         self.textView.contentInset = UIEdgeInsetsZero;
         self.textView.textContainerInset = UIEdgeInsetsMake(12, 0, 12, 0);
         self.textView.placeholder = @"Share with everyone...";
         self.textView.keyboardType = UIKeyboardTypeTwitter;
-        self.textView.keyboardAppearance = UIKeyboardAppearanceLight;
-        self.textView.placeholderColor = [UIColor colorWithRed:0.24 green:0.24 blue:0.26 alpha:0.3];
+//        self.textView.keyboardAppearance = UIKeyboardAppearanceDefault;
+        self.textView.placeholderColor = [[UIColor bonfirePrimaryColor] colorWithAlphaComponent:0.3];
         [self.contentView addSubview:self.textView];
         
         self.creatorAvatar = [[BFAvatarView alloc] initWithFrame:CGRectMake(12, 12, 48, 48)];
@@ -52,10 +53,9 @@
         [self.contentView addSubview:self.creatorAvatar];
         
         [self setupImagesView];
-        [self setupURLPreviewView];
         
         self.lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, self.frame.size.height, self.frame.size.width, (1 / [UIScreen mainScreen].scale))];
-        self.lineSeparator.backgroundColor = [UIColor separatorColor];
+        self.lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
         [self.contentView addSubview:self.lineSeparator];
     }
     
@@ -74,7 +74,7 @@
     self.media = [[BFMedia alloc] init];
     self.media.delegate = self;
     self.mediaContainerView = [[UIStackView alloc] initWithFrame:CGRectMake(0, 0, self.mediaScrollView.frame.size.width, self.mediaScrollView.frame.size.height)];
-    self.mediaContainerView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.2f];
+    //self.mediaContainerView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.2f];
     self.mediaContainerView.axis = UILayoutConstraintAxisHorizontal;
     self.mediaContainerView.distribution = UIStackViewDistributionFill;
     self.mediaContainerView.alignment = UIStackViewAlignmentFill;
@@ -88,37 +88,6 @@
     [self.mediaContainerView.bottomAnchor constraintEqualToAnchor:_mediaScrollView.bottomAnchor].active = true;
     [self.mediaContainerView.topAnchor constraintEqualToAnchor:_mediaScrollView.topAnchor].active = true;
     [self.mediaContainerView.heightAnchor constraintEqualToAnchor:_mediaScrollView.heightAnchor].active = true;
-}
-
-- (void)setupURLPreviewView {
-    self.urlPreviewView = [[PostURLPreviewView alloc] initWithFrame:CGRectMake(self.textView.frame.origin.x, self.textView.frame.origin.y, self.textView.frame.size.width, URL_PREVIEW_DETAILS_HEIGHT)];
-    self.urlPreviewView.delegate = self;
-    self.urlPreviewView.editable = true;
-    self.urlPreviewView.hidden = true;
-    
-    [self.urlPreviewView bk_whenTapped:^{
-        if (self.urlPreviewView.editable) {
-            // confirm action
-            UIAlertController *confirmActionSheet = [UIAlertController alertControllerWithTitle:nil message:nil preferredStyle:UIAlertControllerStyleActionSheet];
-            
-            UIAlertAction *confirmAction = [UIAlertAction actionWithTitle:@"Remove Link" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-                self.url = [NSURL URLWithString:@""];
-            }];
-            [confirmActionSheet addAction:confirmAction];
-            
-            UIAlertAction *cancelActionSheet = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
-            [confirmActionSheet addAction:cancelActionSheet];
-            
-            [[Launcher activeViewController] presentViewController:confirmActionSheet animated:YES completion:nil];
-        }
-        else {
-            [Launcher openURL:self.url.absoluteString];
-        }
-    }];
-    [self.contentView addSubview:self.urlPreviewView];
-}
-- (void)URLPreviewWillChangeFrameTo:(CGRect)newFrame {
-    [self.delegate mediaDidChange];
 }
 
 - (void)layoutSubviews {
@@ -154,40 +123,16 @@
 }
 
 - (void)resizeAttachments {
-    if (self.media.objects.count > 0)
+    if (self.media.objects.count > 0) {
         [self resizeImagesView];
-    
-    [self resizeURLPreviewView];
+    }
 }
 - (void)resizeImagesView {
     // resize image scroll view
     self.mediaScrollView.frame = CGRectMake(0, self.textView.frame.origin.y + self.textView.frame.size.height + 8, self.frame.size.width, 180);
 }
 
-- (void)resizeURLPreviewView {
-    self.urlPreviewView.frame = CGRectMake(self.textView.frame.origin.x, self.textView.frame.origin.y + self.textView.frame.size.height + 8, self.textView.frame.size.width, self.urlPreviewView.frame.size.height);
-}
-
-- (void)setUrl:(NSURL *)url {
-    // NSLog(@"set url: %@", url);
-    if (url != _url) {
-        _url = url;
-        
-        self.urlPreviewView.url = url;
-        
-        if (_url.absoluteString.length == 0) {
-            self.urlPreviewView.hidden = true;
-        }
-        else {
-            self.urlPreviewView.hidden = false;
-        }
-        
-        [self.delegate mediaDidChange];
-    }
-}
-
 - (void)mediaObjectAdded:(BFMediaObject *)object {
-    NSLog(@"media object added:: %@", object);
     if (self.mediaScrollView.isHidden) {
         self.mediaScrollView.hidden = false;
     }
@@ -196,7 +141,7 @@
     
     SDAnimatedImageView *view = [[SDAnimatedImageView alloc] init];
     view.userInteractionEnabled = true;
-    view.backgroundColor = [UIColor bonfireGray];
+    view.backgroundColor = [UIColor bonfireSecondaryColor];
     view.layer.cornerRadius = 12.f;
     view.layer.masksToBounds = true;
     view.contentMode = UIViewContentModeScaleAspectFill;
@@ -213,7 +158,7 @@
     }
     [view.heightAnchor constraintEqualToConstant:100].active = true;
     view.layer.borderWidth = 1.f;
-    view.layer.borderColor = [UIColor colorWithWhite:0 alpha:0.04f].CGColor;
+    view.layer.borderColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.06].CGColor;
     [view bk_whenTapped:^{
         [Launcher expandImageView:view];
     }];
@@ -299,11 +244,6 @@
     if (self.media.objects.count > 0) {
         float imagesHeight = 8 + 180;
         height = height + imagesHeight;
-    }
-    
-    if (self.url.absoluteString.length > 0) {
-        float urlPreviewHeight = 8 + [self.urlPreviewView height];
-        height = height + urlPreviewHeight;
     }
     
     // add bottom padding

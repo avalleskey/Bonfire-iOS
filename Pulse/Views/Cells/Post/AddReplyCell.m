@@ -34,8 +34,8 @@
         
         self.addReplyLabel = [[UILabel alloc] initWithFrame:CGRectMake(114, 10, self.frame.size.width - 114 - replyContentOffset.right, 32)];
         self.addReplyLabel.text = @"Add a reply...";
-        self.addReplyLabel.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightRegular];
-        self.addReplyLabel.textColor = [UIColor bonfireGray];
+        self.addReplyLabel.font = replyTextViewFont;
+        self.addReplyLabel.textColor = [UIColor bonfireSecondaryColor];
         //self.addReplyLabel.textContainerInset = UIEdgeInsetsZero; // UIEdgeInsetsMake((self.addReplyLabel.frame.size.height - self.addReplyLabel.font.lineHeight) / 2, 6, 0, 6);
         //self.addReplyLabel.layer.cornerRadius = self.addReplyLabel.frame.size.height / 2;
         //self.addReplyLabel.backgroundColor = [[UIColor fromHex:@"9FA6AD"] colorWithAlphaComponent:0.1];
@@ -51,7 +51,7 @@
         //[self addSubview:self.topLine];
         
         self.lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, (1 / [UIScreen mainScreen].scale))];
-        self.lineSeparator.backgroundColor = [UIColor separatorColor];
+        self.lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
         [self addSubview:self.lineSeparator];
     }
     

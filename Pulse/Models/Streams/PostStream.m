@@ -46,6 +46,8 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
         [mutableArray addObjectsFromArray:self.tempPosts];
     }
     
+    NSString *lastPostID = @"";
+    
     NSMutableArray *pagesToDelete = [NSMutableArray array];
     for (NSInteger i = 0; i < self.pages.count; i++) {
         // TODO: Insert 'load missing posts' post if before/after doesn't match previous/next page
@@ -54,16 +56,23 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
         NSDictionary *pageDict = [page toDictionary];
         NSArray *pagePosts = [pageDict objectForKey:@"data"] ? pageDict[@"data"] : @[];
         NSMutableArray *mutablePagePosts = [pagePosts mutableCopy];
-        for (NSInteger i = 0; i < mutablePagePosts.count; i++) {
-            Post *post = mutablePagePosts[i];
+        
+        for (Post *post in mutablePagePosts) {
+            if ([lastPostID isEqualToString:post.identifier]) {
+                //[postsToRemove addObject:post];
+            }
+            else {
+                lastPostID = post.identifier;
+            }
+
             if (i == 0 && page.meta.paging.prevCursor.length > 0) {
                 post.prevCursor = page.meta.paging.prevCursor;
             }
             if (i == mutablePagePosts.count - 1 && page.meta.paging.nextCursor.length > 0) {
                 post.nextCursor = page.meta.paging.nextCursor;
             }
-            [mutablePagePosts replaceObjectAtIndex:i withObject:post];
         }
+        //[mutablePagePosts removeObjectsInArray:postsToRemove];
         
         if (mutablePagePosts.count == 0) {
             [pagesToDelete addObject:page];
@@ -85,17 +94,25 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
 }
 
 - (void)prependPage:(PostStreamPage *)page {
+    if (self.pages.count > 0 && [self.pages firstObject].meta.paging.prevCursor.length > 0 && [[self.pages firstObject].meta.paging.prevCursor isEqualToString:page.meta.paging.prevCursor]) {
+        return;
+    }
+    
     NSMutableArray *pageData = [[NSMutableArray alloc] initWithArray:page.data];
     for (NSInteger i = 0; i < pageData.count; i++) {
         Post *post = [[Post alloc] initWithDictionary:pageData[i] error:nil];
         [pageData replaceObjectAtIndex:i withObject:post];
     }
     page.data = [pageData copy];
-    
+
     [self.pages insertObject:page atIndex:0];
     [self updatePostsArray];
 }
 - (void)appendPage:(PostStreamPage *)page {
+    if (self.pages.count > 0 && [self.pages lastObject].meta.paging.nextCursor.length > 0 && [[self.pages lastObject].meta.paging.nextCursor isEqualToString:page.meta.paging.nextCursor]) {
+        return;
+    }
+    
     NSMutableArray *pageData = [[NSMutableArray alloc] initWithArray:page.data];
     for (NSInteger i = 0; i < pageData.count; i++) {
         if ([pageData[i] isKindOfClass:[NSDictionary class]]) {
@@ -343,17 +360,32 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
     
     return nil;
 }
-- (BOOL)updatePost:(Post *)post {
+- (BOOL)updatePost:(Post *)post removeDuplicates:(BOOL)removeDuplicates {
     BOOL changes = false;
+    BOOL foundPost = false;
     for (int p = 0; p < self.pages.count; p++) {
         PostStreamPage *page = self.pages[p];
         
         NSMutableArray <Post *> *mutableArray = [[NSMutableArray alloc] initWithArray:page.data];
         for (NSInteger i = mutableArray.count - 1; i >= 0; i--) {
             Post *postAtIndex = mutableArray[i];
-            if (postAtIndex.identifier == post.identifier) {
-                [mutableArray replaceObjectAtIndex:i withObject:post];
-                changes = true;
+            if ([postAtIndex.identifier isEqualToString:post.identifier]) {
+                if (foundPost && removeDuplicates) {
+                    // decide whether or not to remove it
+                    BOOL remove = false;
+                    if (remove) {
+                        [mutableArray removeObjectAtIndex:i];
+                        changes = true;
+                        
+                        NSLog(@"remove that dupe!");
+                    }
+                }
+                else {
+                    // update the post!
+                    [mutableArray replaceObjectAtIndex:i withObject:post];
+                    changes = true;
+                    foundPost = true;
+                }
             }
         }
         
@@ -364,6 +396,10 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
     [self updatePostsArray];
     
     return changes;
+}
+
+- (void)removeDuplicatesForPost:(Post *)post {
+    
 }
 
 - (void)removePost:(Post *)post {
@@ -468,6 +504,14 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
     [self updatePostsArray];
 }
 
+- (void)setTempPostPosition:(PostStreamOptionTempPostPosition)tempPostPosition {
+    if (tempPostPosition != _tempPostPosition) {
+        _tempPostPosition = tempPostPosition;
+        
+        [self updatePostsArray];
+    }
+}
+
 - (NSString *)prevCursor {
     if (self.pages.count == 0) return nil;
     
@@ -487,65 +531,10 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
     return [self.pages lastObject].meta.paging.nextCursor;
 }
 
-- (void)setTempPostPosition:(PostStreamOptionTempPostPosition)tempPostPosition {
-    if (tempPostPosition != _tempPostPosition) {
-        _tempPostPosition = tempPostPosition;
-        
-        [self updatePostsArray];
-    }
-}
-
-- (void)addLoadedCursor:(NSString *)cursor {
-    [self.cursorsLoaded setObject:[NSDate new] forKey:cursor];
-}
-- (BOOL)hasLoadedCursor:(NSString *)cursor {
-    if (![[self.cursorsLoaded allKeys] containsObject:cursor]) {
-        return false;
-    }
-    
-    NSDate *dateLoaded = [self.cursorsLoaded objectForKey:cursor];
-    NSTimeInterval secondsElapsed = [dateLoaded timeIntervalSinceNow];
-    CGFloat minutesElapsed = secondsElapsed / 60;
-    if (minutesElapsed < -2) {
-        [self.cursorsLoaded removeObjectForKey:cursor];
-        
-        return false;
-    }
-    else {
-        return true;
-    }
-}
-
 @end
 
 @implementation PostStreamPage
 
-+(BOOL)propertyIsOptional:(NSString*)propertyName
-{
-    return true;
-}
-
-@end
-
-@implementation PostStreamPageMeta
-
-+ (JSONKeyMapper *)keyMapper
-{
-    return [JSONKeyMapper mapperForSnakeCase];
-}
-+(BOOL)propertyIsOptional:(NSString*)propertyName
-{
-    return true;
-}
-
-@end
-
-@implementation PostStreamPageMetaPaging
-
-+ (JSONKeyMapper *)keyMapper
-{
-    return [JSONKeyMapper mapperForSnakeCase];
-}
 +(BOOL)propertyIsOptional:(NSString*)propertyName
 {
     return true;

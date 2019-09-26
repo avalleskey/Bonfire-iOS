@@ -35,7 +35,29 @@ static NSString * const postCellReuseIdentifier = @"PostCell";
 - (void)viewDidLoad {
     [super viewDidLoad];
 
+    self.view.backgroundColor = [UIColor tableViewBackgroundColor];
+    
     [self setupTableView];
+    [self setupErrorView];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(newPostCompleted:) name:@"NewPostCompleted" object:nil];
+}
+
+- (void)newPostCompleted:(NSNotification *)notification {
+    NSDictionary *info = notification.object;
+    NSString *tempId = info[@"tempId"];
+    Post *post = info[@"post"];
+    
+    NSLog(@"temp id: %@", tempId);
+    NSLog(@"new post:: %@", post.identifier);
+    
+    if (self.stream.posts.count == 0 && [post.attributes.status.postedIn.identifier isEqualToString:self.camp.identifier]) {
+        // TODO: Check for image as well
+        self.errorView.hidden = true;
+        
+        self.loading = true;
+        [self getPosts];
+    }
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -50,6 +72,7 @@ static NSString * const postCellReuseIdentifier = @"PostCell";
 - (void)setupTableView {
     self.tableView.delegate = self;
     self.tableView.dataSource = self;
+    self.tableView.backgroundColor = [UIColor contentBackgroundColor];
     
     self.stream = [[PostStream alloc] init];
     self.loading = true;
@@ -83,6 +106,19 @@ static NSString * const postCellReuseIdentifier = @"PostCell";
             [self.stream appendPage:page];
         }
         
+        if (self.stream.posts.count == 0) {
+            self.errorView.hidden = false;
+            
+            [self.errorView updateType:ErrorViewTypeNoPosts title:@"No Posts Yet" description:@"In order to set an Icebreaker, your Camp must have at least 1 post" actionTitle:@"Create Post" actionBlock:^{
+                [Launcher openComposePost:self.camp inReplyTo:nil withMessage:nil media:nil];
+            }];
+            
+            [self positionErrorView];
+        }
+        else {
+            self.errorView.hidden = true;
+        }
+        
         self.loading = false;
         
         [self.tableView reloadData];
@@ -103,7 +139,7 @@ static NSString * const postCellReuseIdentifier = @"PostCell";
     [self.tableView addSubview:self.errorView];
 }
 - (void)positionErrorView {
-    self.errorView.center = CGPointMake(self.view.frame.size.width / 2, self.view.frame.size.height / 2);
+    self.errorView.center = CGPointMake(self.view.frame.size.width / 2, self.view.frame.size.height / 2 - [UIApplication sharedApplication].delegate.window.safeAreaInsets.bottom);
 }
 
 #pragma mark - Table view data source
@@ -124,8 +160,8 @@ static NSString * const postCellReuseIdentifier = @"PostCell";
         cell.post = post;
         
         cell.actionsView.voteButton.alpha =
-        cell.actionsView.replyButton.alpha =
-        cell.moreButton.alpha = 0.5;
+        cell.actionsView.replyButton.alpha = 0.5;
+        cell.moreButton.hidden = true;
         cell.actionsView.voteButton.userInteractionEnabled =
         cell.actionsView.replyButton.userInteractionEnabled =
         cell.moreButton.userInteractionEnabled =
@@ -213,7 +249,7 @@ static NSString * const postCellReuseIdentifier = @"PostCell";
         
         UILabel *descriptionLabel = [[UILabel alloc] initWithFrame:CGRectMake(24, 12, header.frame.size.width - 48, 42)];
         descriptionLabel.text = HELP_INFO_DESCRIPTION;
-        descriptionLabel.textColor = [UIColor bonfireGray];
+        descriptionLabel.textColor = [UIColor bonfireSecondaryColor];
         descriptionLabel.font = [UIFont systemFontOfSize:12.f weight:UIFontWeightSemibold];
         descriptionLabel.textAlignment = NSTextAlignmentCenter;
         descriptionLabel.numberOfLines = 0;
@@ -251,6 +287,7 @@ static NSString * const postCellReuseIdentifier = @"PostCell";
             UIView *footer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 52)];
             
             UIActivityIndicatorView *spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+            spinner.color = [UIColor bonfireSecondaryColor];
             spinner.frame = CGRectMake(footer.frame.size.width / 2 - 10, footer.frame.size.height / 2 - 10, 20, 20);
             [footer addSubview:spinner];
             

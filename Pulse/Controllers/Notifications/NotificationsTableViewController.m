@@ -24,11 +24,10 @@
 #import "Launcher.h"
 #import <PINCache/PINCache.h>
 #import "BFTipsManager.h"
+#import <Shimmer/FBShimmeringView.h>
 @import Firebase;
 
-@interface NotificationsTableViewController () {
-    NSDate *lastFetch;
-}
+@interface NotificationsTableViewController ()
 
 @property (nonatomic, strong) UserActivityStream *stream;
 @property (nonatomic, strong) ErrorView *errorView;
@@ -36,7 +35,11 @@
 @property (nonatomic) BOOL loading;
 @property (nonatomic) NSString *loadingPrevCursor;
 
+@property (nonatomic, strong) FBShimmeringView *titleView;
+
 @property (nonatomic, strong) UIActivityIndicatorView *spinner;
+
+@property (nonatomic, strong) NSDate *lastFetch;
 
 @end
 
@@ -50,9 +53,7 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    self.view.backgroundColor = [UIColor headerBackgroundColor];
-    
-    //((SimpleNavigationController *)self.navigationController).navigationBar.prefersLargeTitles = true;
+    self.view.backgroundColor = [UIColor contentBackgroundColor];
     
     self.loading = true;
     
@@ -63,10 +64,10 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
     
     [self loadCache];
     if ([self.stream prevCursor].length > 0) {
-        [self getActivitiesWithCursor:UserActivityStreamPagingCursorTypePrevious];
+        [self getActivitiesWithCursor:StreamPagingCursorTypePrevious];
     }
     else {
-        [self getActivitiesWithCursor:UserActivityStreamPagingCursorTypeNone];
+        [self getActivitiesWithCursor:StreamPagingCursorTypeNone];
     }
     
     // Google Analytics
@@ -74,7 +75,7 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
 }
 
 - (void)notificationReceived:(NSNotification *)notification {
-    [self getActivitiesWithCursor:UserActivityStreamPagingCursorTypePrevious];
+    [self getActivitiesWithCursor:StreamPagingCursorTypePrevious];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -82,14 +83,17 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
     
     [self clearNotifications];
     
-    if ([BFTipsManager hasSeenTip:@"how_to_share_beta"] == false && [Launcher activeTabController]) {
-        BFTipObject *tipObject = [BFTipObject tipWithCreatorType:BFTipCreatorTypeBonfireTip creator:nil title:@"Share the Bonfire Beta 📢" text:@"Inviting your friends to the Beta is easy! Tap the invite button on the top right to invite friends via iMessage" action:^{
-            NSLog(@"tip tapped");
-            [Launcher openInviteFriends:self];
-        }];
-        [[BFTipsManager manager] presentTip:tipObject completion:^{
-            NSLog(@"presentTip() completion");
-        }];
+    if ([self isBeingPresented] || [self isMovingToParentViewController]) {
+        self.tableView.backgroundColor = [UIColor contentBackgroundColor];
+        if ([BFTipsManager hasSeenTip:@"how_to_share_beta"] == false && [Launcher activeTabController]) {
+            BFTipObject *tipObject = [BFTipObject tipWithCreatorType:BFTipCreatorTypeBonfireTip creator:nil title:@"Share the Bonfire Beta 📢" text:@"Inviting your friends to the Beta is easy! Tap the invite button on the top right to invite friends via iMessage" action:^{
+                NSLog(@"tip tapped");
+                [Launcher openInviteFriends:self];
+            }];
+            [[BFTipsManager manager] presentTip:tipObject completion:^{
+                NSLog(@"presentTip() completion");
+            }];
+        }
     }
 }
 - (void)viewDidAppear:(BOOL)animated {
@@ -98,17 +102,44 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
     [self positionErrorView];
     self.spinner.center = self.errorView.center;
     
-    if (self.view.tag == 1) {
+    if ([self isBeingPresented] || [self isMovingToParentViewController]) {
+        // first time
+        [self setupTitleView];
+        
         // fetch new posts after 2mins
-        NSTimeInterval secondsSinceLastFetch = [lastFetch timeIntervalSinceNow];
-        NSLog(@"seconds since last fetch: %f", -secondsSinceLastFetch);
+        NSTimeInterval secondsSinceLastFetch = [self.lastFetch timeIntervalSinceNow];
+        // NSLog(@"seconds since last fetch: %f", -secondsSinceLastFetch);
         if (secondsSinceLastFetch < -(2 * 60)) {
             [self refresh];
         }
     }
-    else {
-        self.view.tag = 1;
-    }
+}
+
+- (void)setupTitleView {
+    UIButton *titleButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    [titleButton setTitleColor:[UIColor bonfirePrimaryColor] forState:UIControlStateNormal];
+    titleButton.titleLabel.font = ([self.navigationController.navigationBar.titleTextAttributes objectForKey:NSFontAttributeName] ? self.navigationController.navigationBar.titleTextAttributes[NSFontAttributeName] : [UIFont systemFontOfSize:18.f weight:UIFontWeightBold]);
+    [titleButton setTitle:self.title forState:UIControlStateNormal];
+    titleButton.frame = CGRectMake(0, 0, [titleButton intrinsicContentSize].width, self.navigationController.navigationBar.frame.size.height);
+    [titleButton bk_whenTapped:^{
+        [self.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:YES];
+        
+        if (!self.loading) {
+            // fetch new posts after 2mins
+            NSTimeInterval secondsSinceLastFetch = [self.lastFetch timeIntervalSinceNow];
+            // NSLog(@"seconds since last fetch: %f", -secondsSinceLastFetch);
+            if (secondsSinceLastFetch < -(2 * 60)) {
+                [self refresh];
+            }
+        }
+    }];
+    
+    self.titleView = [[FBShimmeringView alloc] initWithFrame:titleButton.frame];
+    self.titleView.shimmeringOpacity = 0.8;
+    [self.titleView addSubview:titleButton];
+    self.titleView.contentView = titleButton;
+    
+    self.navigationItem.titleView = titleButton;
 }
 
 - (void)clearNotifications {
@@ -124,7 +155,6 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
     self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
     // self.tableView.separatorInset = UIEdgeInsetsMake(0, 0, 0, 0);
     // self.tableView.separatorColor = [UIColor separatorColor];
-    
     self.tableView.refreshControl = [[UIRefreshControl alloc] init];
     [self.tableView.refreshControl addTarget:self action:@selector(refresh) forControlEvents:UIControlEventValueChanged];
     
@@ -175,6 +205,7 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
 - (void)setupSpinner {
     NSLog(@"tableview :: top: %f bottom: %f", self.tableView.adjustedContentInset.top, self.tableView.adjustedContentInset.bottom);
     self.spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+    self.spinner.color = [UIColor bonfireSecondaryColor];
     self.spinner.center = CGPointMake(self.tableView.frame.size.width / 2, self.tableView.frame.size.height / 2 - self.navigationController.navigationBar.frame.size.height - self.navigationController.navigationBar.frame.origin.y);
     [self stopSpinner];
     [self.tableView addSubview:self.spinner];
@@ -199,20 +230,27 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
 - (void)refresh {
     if (self.loading) return;
     
-    lastFetch = [NSDate new];
+    self.lastFetch = [NSDate new];
     if ([self.stream prevCursor].length > 0) {
-        [self getActivitiesWithCursor:UserActivityStreamPagingCursorTypePrevious];
+        [self getActivitiesWithCursor:StreamPagingCursorTypePrevious];
     }
     else {
-        [self getActivitiesWithCursor:UserActivityStreamPagingCursorTypeNone];
+        [self getActivitiesWithCursor:StreamPagingCursorTypeNone];
     }
 }
 
-- (void)getActivitiesWithCursor:(UserActivityStreamPagingCursorType)cursorType {
-    self.loading = true;
+- (void)setLoading:(BOOL)loading {
+    if (loading != _loading) {
+        _loading = loading;
+    }
     
+    if (!_loading) {
+        self.titleView.shimmering = false;
+    }
+}
+
+- (void)getActivitiesWithCursor:(StreamPagingCursorType)cursorType {
     NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
-    
     if (self.stream.prevCursor.length > 0) {
         if ([self.stream.prevCursor isEqualToString:_loadingPrevCursor]) {
             return;
@@ -222,6 +260,11 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
         _loadingPrevCursor = self.stream.prevCursor;
     }
     
+    if (cursorType == StreamPagingCursorTypeNone || cursorType == StreamPagingCursorTypePrevious) {
+        self.titleView.shimmering = true;
+    }
+    
+    self.loading = true;
     NSLog(@"GET -> %@", @"users/me/notifications");
     NSLog(@"params: %@", params);
     
@@ -239,6 +282,7 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
                 // clear the stream (we retrieved a full page of notifs and the old ones are out of date)
                 self.stream = [[UserActivityStream alloc] init];
             }
+            // always prepend with cursor since we don't allow the frontend to use next cursors
             [self.stream prependPage:page];
                         
             [self saveCache];
@@ -260,6 +304,7 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
         [self.refreshControl performSelector:@selector(endRefreshing) withObject:nil afterDelay:0.0];
         
         [self.tableView reloadData];
+        [self.tableView layoutIfNeeded];
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         NSLog(@"Notificaitons  / getMembers() - error: %@", error);
         //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
@@ -344,6 +389,7 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
                 cell.showContext = true;
                 cell.showCamptag = true;
                 cell.hideActions = true;
+                
                 cell.post = post;
                 
                 if (cell.actionsView.replyButton.gestureRecognizers.count == 0) {
@@ -364,7 +410,10 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
                     cell = [[AddReplyCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:addReplyCellIdentifier];
                 }
                 
-                cell.addReplyLabel.text = [NSString stringWithFormat:@"Reply to @%@...", post.attributes.details.creator.attributes.details.identifier];
+                NSString *username = post.attributes.details.creator.attributes.details.identifier;
+                NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"Reply to @%@...", username] attributes:@{NSFontAttributeName: cell.addReplyLabel.font, NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
+                [attributedString setAttributes:@{NSFontAttributeName: [UIFont systemFontOfSize:cell.addReplyLabel.font.pointSize weight:UIFontWeightSemibold]} range:[attributedString.string rangeOfString:[NSString stringWithFormat:@"@%@", username]]];
+                cell.addReplyLabel.attributedText = attributedString;
                 
                 cell.lineSeparator.hidden = false;
                 
@@ -425,46 +474,46 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-#ifdef DEBUG
-    if (self.stream.activities.count > section) {
-        UserActivity *activity = self.stream.activities[section];
-        
-        if (activity.prevCursor.length > 0) {
-            return 24;
-        }
-    }
-#endif
+//#ifdef DEBUG
+//    if (self.stream.activities.count > section) {
+//        UserActivity *activity = self.stream.activities[section];
+//
+//        if (activity.prevCursor.length > 0) {
+//            return 24;
+//        }
+//    }
+//#endif
     
     return CGFLOAT_MIN;
 }
 
 - (nullable UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
-#ifdef DEBUG
-    if (self.stream.activities.count > section) {
-        UserActivity *activity = self.stream.activities[section];
-        
-        if (activity.prevCursor.length > 0) {
-            UIView *derp = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 24)];
-            derp.backgroundColor = [[UIColor separatorColor] colorWithAlphaComponent:0.5];
-            
-            UILabel *derpLabel = [[UILabel alloc] initWithFrame:CGRectMake(12, 0, derp.frame.size.width - 24, derp.frame.size.height)];
-            NSString *string = @"";
-            derpLabel.font = [UIFont systemFontOfSize:10.f weight:UIFontWeightRegular];
-            derpLabel.textColor = [UIColor bonfireGray];
-            if (activity.prevCursor.length > 0) {
-                string = [@"prev: " stringByAppendingString:activity.prevCursor];
-            }
-            derpLabel.text = string;
-            [derp addSubview:derpLabel];
-            
-            [derp bk_whenTapped:^{
-                [Launcher shareOniMessage:[NSString stringWithFormat:@"activity: %@\n\nprev cursor: %@", activity.identifier, activity.prevCursor] image:nil];
-            }];
-            
-            return derp;
-        }
-    }
-#endif
+//#ifdef DEBUG
+//    if (self.stream.activities.count > section) {
+//        UserActivity *activity = self.stream.activities[section];
+//
+//        if (activity.prevCursor.length > 0) {
+//            UIView *derp = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 24)];
+//            derp.backgroundColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.08];
+//
+//            UILabel *derpLabel = [[UILabel alloc] initWithFrame:CGRectMake(12, 0, derp.frame.size.width - 24, derp.frame.size.height)];
+//            NSString *string = @"";
+//            derpLabel.font = [UIFont systemFontOfSize:10.f weight:UIFontWeightRegular];
+//            derpLabel.textColor = [UIColor bonfireSecondaryColor];
+//            if (activity.prevCursor.length > 0) {
+//                string = [@"prev: " stringByAppendingString:activity.prevCursor];
+//            }
+//            derpLabel.text = string;
+//            [derp addSubview:derpLabel];
+//
+//            [derp bk_whenTapped:^{
+//                [Launcher shareOniMessage:[NSString stringWithFormat:@"activity: %@\n\nprev cursor: %@", activity.identifier, activity.prevCursor] image:nil];
+//            }];
+//
+//            return derp;
+//        }
+//    }
+//#endif
     
     return nil;
 }
@@ -521,5 +570,22 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
         }
     }
 }
+
+//- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+//    CGFloat normalizedScrollViewContentOffsetY = scrollView.contentOffset.y + scrollView.adjustedContentInset.top;
+//
+//    if ([self.navigationController isKindOfClass:[SimpleNavigationController class]]) {
+//        if (normalizedScrollViewContentOffsetY > 0) {
+//            if (((SimpleNavigationController *)self.navigationController).bottomHairline.alpha == 0) {
+//                [((SimpleNavigationController *)self.navigationController) setShadowVisibility:YES withAnimation:false];
+//            }
+//        }
+//        else {
+//            if (((SimpleNavigationController *)self.navigationController).bottomHairline.alpha == 1) {
+//                [((SimpleNavigationController *)self.navigationController) setShadowVisibility:NO withAnimation:false];
+//            }
+//        }
+//    }
+//}
 
 @end

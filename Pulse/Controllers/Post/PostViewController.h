@@ -16,7 +16,7 @@
 #import "PostStream.h"
 #import "TappableView.h"
 
-@interface PostViewController : ThemedViewController <UITextViewDelegate, MFMessageComposeViewControllerDelegate, UITableViewDelegate, UITableViewDataSource>
+@interface PostViewController : ThemedViewController <ComposeInputViewDelegate, MFMessageComposeViewControllerDelegate, UITableViewDelegate, UITableViewDataSource>
 
 @property (nonatomic, strong) Post *parentPost;
 @property (nonatomic, strong) Post *post;
@@ -29,15 +29,5 @@
 @property (nonatomic) CGFloat currentKeyboardHeight;
 
 @property (nonatomic) BOOL showKeyboardOnOpen;
-
-typedef enum {
-    ConversationCellTypeBlank = 0,
-    ConversationCellTypeParent = 1,
-    ConversationCellTypeReply = 2,
-    ConversationCellTypeSubReply = 3,
-    ConversationCellTypeSubReplyTopActionCell = 4,
-    ConversationCellTypeSubReplyBottomActionCell = 5,
-    ConversationCellTypeAddReply = 6
-} ConversationCellType;
 
 @end

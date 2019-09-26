@@ -18,7 +18,8 @@ typedef enum : NSUInteger {
     ErrorViewTypeNoPosts,
     ErrorViewTypeNoNotifications,
     ErrorViewTypeContactsDenied,
-    ErrorViewTypeClock
+    ErrorViewTypeClock,
+    ErrorViewTypeSearch
 } ErrorViewType;
 
 NS_ASSUME_NONNULL_BEGIN

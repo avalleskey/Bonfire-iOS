@@ -2,7 +2,27 @@
   "images" : [
     {
       "idiom" : "universal",
-      "filename" : "bonfire_wordmark_white.pdf"
+      "filename" : "bonfire_wordmark-1.pdf"
+    },
+    {
+      "idiom" : "universal",
+      "filename" : "bonfire_wordmark-2.pdf",
+      "appearances" : [
+        {
+          "appearance" : "luminosity",
+          "value" : "light"
+        }
+      ]
+    },
+    {
+      "idiom" : "universal",
+      "filename" : "bonfire_wordmark_white-2.pdf",
+      "appearances" : [
+        {
+          "appearance" : "luminosity",
+          "value" : "dark"
+        }
+      ]
     }
   ],
   "info" : {

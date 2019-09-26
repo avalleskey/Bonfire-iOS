@@ -16,10 +16,20 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) NSMutableArray *views;
 
 @property (nonatomic, strong) Post *post;
+@property (nonatomic, strong) PostAttachmentsLink *link;
+
+@property (nonatomic) BOOL active;
 
 - (void)start;
 - (void)stop;
 - (void)next;
+
+typedef enum {
+    PostActivityViewTagDate,
+    PostActivityViewTagAddReply,
+    PostActivityViewTagLive
+} PostActivityViewTag;
+- (PostActivityViewTag)currentViewTag;
 
 @end
 

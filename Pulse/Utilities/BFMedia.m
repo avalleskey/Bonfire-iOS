@@ -137,8 +137,7 @@ NSString * const BFMediaObjectMIME_GIF = @"image/gif";
              {
 //                 NSLog(@"info = %@", info);
 //                 NSLog(@"data uti: %@", dataUTI);
-                 NSString *MIME = (__bridge NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)dataUTI, kUTTagClassMIMEType);
-                 self.MIME = MIME;
+                 self.MIME = (__bridge NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)dataUTI, kUTTagClassMIMEType);
 
                  if ([self.MIME isEqualToString:BFMediaObjectMIME_JPEG] || [self.MIME isEqualToString:BFMediaObjectMIME_PNG] || [self.MIME isEqualToString:BFMediaObjectMIME_GIF]) {
                      self.data = imageData;

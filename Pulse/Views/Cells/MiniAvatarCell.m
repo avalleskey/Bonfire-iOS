@@ -32,7 +32,7 @@
     self.campTitleLabel.lineBreakMode = NSLineBreakByTruncatingTail;
     self.campTitleLabel.textAlignment = NSTextAlignmentCenter;
     self.campTitleLabel.font = [UIFont systemFontOfSize:11.f weight:UIFontWeightMedium];
-    self.campTitleLabel.textColor = [UIColor bonfireBlack];
+    self.campTitleLabel.textColor = [UIColor bonfirePrimaryColor];
     [self.contentView addSubview:self.campTitleLabel];
     
     self.updatesDotView = [[UIImageView alloc] initWithFrame:CGRectMake(self.campAvatar.frame.origin.x + self.campAvatar.frame.size.width - 18 - 1, self.campAvatar.frame.origin.y + 1, 18, 18)];
@@ -91,7 +91,7 @@
             self.campTitleLabel.layer.cornerRadius = 4.f;
         }
         else {
-            self.campTitleLabel.textColor = [UIColor bonfireBlack];
+            self.campTitleLabel.textColor = [UIColor bonfirePrimaryColor];
             self.campTitleLabel.backgroundColor = [UIColor clearColor];
             self.campTitleLabel.layer.masksToBounds = false;
             self.campTitleLabel.layer.cornerRadius = 0;

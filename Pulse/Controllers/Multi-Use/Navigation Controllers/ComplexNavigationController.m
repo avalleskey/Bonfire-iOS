@@ -24,8 +24,8 @@
 #import "SearchTableViewController.h"
 #import "OnboardingViewController.h"
 #import "EditProfileViewController.h"
-#import "DiscoverViewController.h"
-#import "HomeViewController.h"
+#import "CampStoreTableViewController.h"
+#import "MyFeedViewController.h"
 #import <UIImageView+WebCache.h>
 #import "UIColor+Palette.h"
 #import "UINavigationItem+Margin.h"
@@ -48,7 +48,7 @@
     self.swiper.delegate = self;
     self.delegate = self.swiper;
     
-    self.view.backgroundColor = [UIColor whiteColor];
+    self.view.backgroundColor = [UIColor tableViewBackgroundColor];
     
     // remove hairline
     [self.navigationBar setBackgroundImage:[UIImage new] forBarMetrics:UIBarMetricsDefault];
@@ -63,13 +63,17 @@
     
     // add background color view
     self.navigationBackgroundView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, [[[UIApplication sharedApplication] delegate] window].safeAreaInsets.top + self.navigationBar.frame.size.height)];
-    self.navigationBackgroundView.backgroundColor = [UIColor whiteColor];
+    self.navigationBackgroundView.backgroundColor = [UIColor tableViewBackgroundColor];
     self.navigationBackgroundView.layer.masksToBounds = true;
     self.navigationBackgroundView.layer.shadowRadius = 0;
     self.navigationBackgroundView.layer.shadowOffset = CGSizeMake(0, (1 / [UIScreen mainScreen].scale));
     self.navigationBackgroundView.layer.shadowColor = [UIColor blackColor].CGColor;
     self.navigationBackgroundView.layer.shadowOpacity = 0;
     [self.view insertSubview:self.navigationBackgroundView belowSubview:self.navigationBar];
+    
+    self.bottomHairline = [[UIView alloc] initWithFrame:CGRectMake(0, self.navigationBar.frame.size.height, self.view.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+    self.bottomHairline.backgroundColor = [UIColor tableViewSeparatorColor];
+    [self.navigationBar addSubview:self.bottomHairline];
     
     [self setupNavigationBarItems];
 }
@@ -165,21 +169,34 @@
     [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillHideNotification object:nil];
 }
 
-- (void)setShadowVisibility:(BOOL)visible withAnimation:(BOOL)animation {    
-    [UIView animateWithDuration:animation?0.25f:0 animations:^{
-        self.navigationBackgroundView.layer.shadowOpacity = visible ? 0.12f : 0;
-    } completion:nil];
+- (void)setShadowVisibility:(BOOL)visible withAnimation:(BOOL)animated {
+    [UIView animateWithDuration:animated?(visible?0.2f:0.4f):0 animations:^{
+        if (visible) [self showBottomHairline];
+        else [self hideBottomHairline];
+    }];
+}
+- (void)hideBottomHairline {
+    if (self.bottomHairline.alpha == 1) {
+        [self.bottomHairline.layer removeAllAnimations];
+    }
+    self.bottomHairline.alpha = 0;
+}
+- (void)showBottomHairline {
+    // Show 1px hairline of translucent nav bar
+    if (self.bottomHairline.alpha != 1) {
+        [self.bottomHairline.layer removeAllAnimations];
+    }
+    self.bottomHairline.alpha = 1;
 }
 
 - (void)makeTransparent {
     self.navigationBar.translucent = true;
     self.navigationBar.backgroundColor = [UIColor clearColor];
-    self.navigationBar.shadowImage = [self imageWithColor:[UIColor colorWithWhite:0 alpha:0.1]];    // Hides the hairline
 }
 - (void)makeDefault {
     self.navigationBar.translucent = false;
     self.navigationBar.backgroundColor = nil;
-    self.navigationBar.shadowImage = [self imageWithColor:[UIColor clearColor]];    // Hides the hairline
+    [self hideBottomHairline];
 }
 - (UIImage *)imageWithColor:(UIColor *)color {
     CGRect rect = CGRectMake(0.0f, 0.0f, 1.0f, 0.5);
@@ -270,7 +287,7 @@
             self.searchView.textField.textColor = [UIColor colorWithWhite:0.07f alpha:1];
             self.searchView.textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:self.searchView.textField.placeholder attributes:@{NSForegroundColorAttributeName: [UIColor colorWithWhite:0 alpha:0.25]}];
             
-            UIColor *tintColor = [UIColor bonfireBlack];
+            UIColor *tintColor = [UIColor bonfirePrimaryColor];
             self.searchView.textField.tintColor =
             self.leftActionButton.tintColor =
             self.rightActionButton.tintColor = tintColor;
@@ -330,14 +347,14 @@
 
 - (void)updateBarColor:(id)background animated:(BOOL)animated {    
     if ([background isKindOfClass:[NSString class]]) {
-        background = [UIColor fromHex:background];
+        background = [UIColor fromHex:background adjustForDarkMode:false];
     }
     self.currentTheme = background;
     
     UIColor *foreground;
     if (background == nil || background == [UIColor clearColor]) {
-        foreground = [UIColor bonfireBlack];
-        background = [UIColor colorWithRed:0.98 green:0.98 blue:0.99 alpha:1];
+        foreground = [UIColor bonfirePrimaryColor];
+        background = [UIColor colorNamed:@"Navigation_ClearBackgroundColor"];
         [self makeTransparent];
     }
     else {
@@ -345,7 +362,7 @@
             foreground = [UIColor whiteColor];
         }
         else {
-            foreground = [UIColor bonfireBlack];
+            foreground = [UIColor bonfirePrimaryColor];
         }
         [self makeDefault];
     }
@@ -363,10 +380,10 @@
         searchIcon.alpha = 0.75;
     }
     else if ([self.currentTheme isEqual:[UIColor whiteColor]]) {
-        self.searchView.textField.textColor = [UIColor bonfireBlack];
+        self.searchView.textField.textColor = [UIColor bonfirePrimaryColor];
         self.searchView.textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:self.searchView.textField.placeholder attributes:@{NSForegroundColorAttributeName: [UIColor colorWithWhite:0 alpha:0.25]}];
         
-        UIColor *tintColor = [UIColor bonfireBlack];
+        UIColor *tintColor = [UIColor bonfirePrimaryColor];
         self.searchView.textField.tintColor =
         self.leftActionButton.tintColor =
         self.rightActionButton.tintColor = tintColor;
@@ -374,14 +391,14 @@
         searchIcon.alpha = 0.25f;
     }
     else {
-        self.searchView.textField.textColor = [UIColor bonfireBlack];
+        self.searchView.textField.textColor = [UIColor bonfirePrimaryColor];
         self.searchView.textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:self.searchView.textField.placeholder attributes:@{NSForegroundColorAttributeName: [UIColor colorWithWhite:0 alpha:0.25]}];
         
         self.shadowView.alpha = 0;
         
         self.searchView.textField.tintColor =
         self.leftActionButton.tintColor =
-        self.rightActionButton.tintColor = [UIColor bonfireBlack];
+        self.rightActionButton.tintColor = [UIColor bonfirePrimaryColor];
         
         searchIcon.alpha = 0.25f;
     }
@@ -394,11 +411,11 @@
             self.searchView.theme = BFTextFieldThemeLight;
         }
         else if ([self.currentTheme isEqual:[UIColor whiteColor]] ||
-                 [self.topViewController isKindOfClass:[DiscoverViewController class]]) {
+                 [self.topViewController isKindOfClass:[CampStoreTableViewController class]]) {
             self.searchView.theme = BFTextFieldThemeDark;
         }
         else {
-            self.searchView.theme = BFTextFieldThemeExtraDark;
+            self.searchView.theme = BFTextFieldThemeContent;
         }
     }
     searchIcon.tintColor = self.searchView.textField.textColor;
@@ -412,8 +429,11 @@
 }
 
 - (void)setupNavigationBarItems {
+    CGFloat searchViewWidth = self.view.frame.size.width - (54 * 2);
+    searchViewWidth = searchViewWidth > IPAD_CONTENT_MAX_WIDTH ? IPAD_CONTENT_MAX_WIDTH : searchViewWidth;
+    
     // create smart text field
-    self.searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width - (54 * 2), 34)];
+    self.searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(0, 0, searchViewWidth, 34)];
     // TODO: Search in groups
     //self.searchView.resultsType = BFSearchResultsTypeTopPosts;
     self.searchView.textField.delegate = self;
@@ -434,17 +454,17 @@
         self.searchView.theme = BFTextFieldThemeLight;
     }
     else if ([self.currentTheme isEqual:[UIColor whiteColor]] ||
-             [self.topViewController isKindOfClass:[DiscoverViewController class]]) {
+             [self.topViewController isKindOfClass:[CampStoreTableViewController class]]) {
         textFieldBackgroundColor = [UIColor bonfireTextFieldBackgroundOnWhite];
         self.searchView.theme = BFTextFieldThemeDark;
     }
     else {
-        textFieldBackgroundColor = [UIColor bonfireTextFieldBackgroundOnLight];
-        self.searchView.theme = BFTextFieldThemeExtraDark;
+        textFieldBackgroundColor = [UIColor bonfireTextFieldBackgroundOnContent];
+        self.searchView.theme = BFTextFieldThemeContent;
     }
     self.searchView.backgroundColor = textFieldBackgroundColor;
     
-    self.searchView.textField.textColor = [UIColor bonfireBlack];
+    self.searchView.textField.textColor = [UIColor bonfirePrimaryColor];
     
     self.searchView.textField.userInteractionEnabled = false;
     
@@ -513,11 +533,14 @@
         }
         
         if ([self.topViewController isKindOfClass:[SearchTableViewController class]]) {
-            self.searchView.frame = CGRectMake(16, self.searchView.frame.origin.y, self.view.frame.size.width - 16 - 90, self.searchView.frame.size.height);
+            self.searchView.frame = CGRectMake(12, self.searchView.frame.origin.y, self.view.frame.size.width - 12 - 90, self.searchView.frame.size.height);
             [self.searchView setPosition:BFSearchTextPositionLeft];
         }
         else {
-            self.searchView.frame = CGRectMake(56, self.searchView.frame.origin.y, self.view.frame.size.width - (54 * 2), self.searchView.frame.size.height);
+            CGFloat searchViewWidth = self.view.frame.size.width - (54 * 2);
+            searchViewWidth = searchViewWidth > IPAD_CONTENT_MAX_WIDTH ? IPAD_CONTENT_MAX_WIDTH : searchViewWidth;
+            
+            self.searchView.frame = CGRectMake(self.view.frame.size.width / 2 - searchViewWidth / 2, self.searchView.frame.origin.y, searchViewWidth, self.searchView.frame.size.height);
             [self.searchView setPosition:BFSearchTextPositionCenter];
         }
     } completion:^(BOOL finished) {
@@ -570,7 +593,7 @@
         [button.titleLabel setFont:[UIFont systemFontOfSize:18.f weight:UIFontWeightMedium]];
     }
     
-    button.tintColor = ([UIColor useWhiteForegroundForColor:self.currentTheme] ? [UIColor whiteColor] : [UIColor bonfireBlack]);
+    button.tintColor = ([UIColor useWhiteForegroundForColor:self.currentTheme] ? [UIColor whiteColor] : [UIColor bonfirePrimaryColor]);
     
     CGFloat padding = 16;
     button.frame = CGRectMake(0, 0, button.intrinsicContentSize.width + (padding * 2), self.navigationBar.frame.size.height);

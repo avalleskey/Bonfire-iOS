@@ -63,7 +63,7 @@
             self.tintColor = disabledColor;
         }
         else {
-            self.tintColor = [UIColor bonfireBlack];
+            self.tintColor = [UIColor bonfirePrimaryColor];
         }
         [self setTitleColor:self.tintColor forState:UIControlStateNormal];
     }

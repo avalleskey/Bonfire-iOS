@@ -18,6 +18,11 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic) BOOL hideCancelOnBlur;
 
+- (void)setShadowVisibility:(BOOL)visible withAnimation:(BOOL)animated;
+- (void)hideBottomHairline;
+- (void)showBottomHairline;
+@property (nonatomic, strong) UIView *bottomHairline;
+
 @end
 
 NS_ASSUME_NONNULL_END

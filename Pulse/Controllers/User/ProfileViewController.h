@@ -12,7 +12,7 @@
 #import "ThemedViewController.h"
 #import "ComposeInputView.h"
 
-@interface ProfileViewController : ThemedViewController <UITextViewDelegate, RSTableViewDelegate>
+@interface ProfileViewController : ThemedViewController <ComposeInputViewDelegate, RSTableViewDelegate>
 
 @property (strong, nonatomic) User *user;
 

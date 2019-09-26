@@ -26,6 +26,12 @@ NS_ASSUME_NONNULL_BEGIN
 @property BOOL voted;
 - (void)setVoted:(BOOL)isVoted animated:(BOOL)animated;
 
+typedef enum {
+    PostActionsViewTypeConversation,
+    PostActionsViewTypeQuote
+} PostActionsViewType;
+@property (nonatomic) PostActionsViewType actionsType;
+
 @end
 
 NS_ASSUME_NONNULL_END

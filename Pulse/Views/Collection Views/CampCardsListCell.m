@@ -24,6 +24,7 @@
 @implementation CampCardsListCell
 
 static NSString * const smallCardReuseIdentifier = @"SmallCard";
+static NSString * const smallMediumCardReuseIdentifier = @"SmallMediumCard";
 static NSString * const mediumCardReuseIdentifier = @"MediumCard";
 static NSString * const largeCardReuseIdentifier = @"LargeCard";
 
@@ -65,9 +66,10 @@ static NSString * const errorCampCellReuseIdentifier = @"ErrorCampCell";
     _collectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 0, screenWidth, [self cardHeight]) collectionViewLayout:flowLayout];
     _collectionView.delegate = self;
     _collectionView.dataSource = self;
-    _collectionView.contentInset = UIEdgeInsetsMake(0, 16, 0, 16);
+    _collectionView.contentInset = UIEdgeInsetsMake(0, 12, 0, 16);
     
     [_collectionView registerClass:[SmallCampCardCell class] forCellWithReuseIdentifier:smallCardReuseIdentifier];
+    [_collectionView registerClass:[SmallMediumCampCardCell class] forCellWithReuseIdentifier:smallMediumCardReuseIdentifier];
     [_collectionView registerClass:[MediumCampCardCell class] forCellWithReuseIdentifier:mediumCardReuseIdentifier];
     [_collectionView registerClass:[LargeCampCardCell class] forCellWithReuseIdentifier:largeCardReuseIdentifier];
     
@@ -106,11 +108,27 @@ static NSString * const errorCampCellReuseIdentifier = @"ErrorCampCell";
                 cell = [[SmallCampCardCell alloc] init];
             }
             
-            cell.loading = self.loading;
+            //cell.loading = self.loading;
             
-            if (!cell.loading) {
-                NSError *error;
-                cell.camp = [[Camp alloc] initWithDictionary:self.camps[indexPath.item] error:&error];
+            if (indexPath.item < self.camps.count) {
+                cell.camp = self.camps[indexPath.item];
+                
+                [cell layoutSubviews];
+            }
+            
+            return cell;
+        }
+        else if (self.size == CAMP_CARD_SIZE_SMALL_MEDIUM) {
+            SmallMediumCampCardCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:smallMediumCardReuseIdentifier forIndexPath:indexPath];
+            
+            if (!cell) {
+                cell = [[SmallMediumCampCardCell alloc] init];
+            }
+                        
+            if (indexPath.item < self.camps.count) {
+                cell.camp = self.camps[indexPath.item];
+                
+                [cell layoutSubviews];
             }
             
             return cell;
@@ -122,11 +140,12 @@ static NSString * const errorCampCellReuseIdentifier = @"ErrorCampCell";
                 cell = [[MediumCampCardCell alloc] init];
             }
             
-            cell.loading = self.loading;
+            //cell.loading = self.loading;
             
-            if (!cell.loading) {
-                NSError *error;
-                cell.camp = [[Camp alloc] initWithDictionary:self.camps[indexPath.item] error:&error];
+            if (indexPath.item < self.camps.count) {
+                cell.camp = self.camps[indexPath.item];
+                
+                [cell layoutSubviews];
             }
             
             return cell;
@@ -138,11 +157,12 @@ static NSString * const errorCampCellReuseIdentifier = @"ErrorCampCell";
                 cell = [[LargeCampCardCell alloc] init];
             }
             
-            cell.loading = self.loading;
+            //cell.loading = self.loading;
             
-            if (!cell.loading) {
-                NSError *error;
-                cell.camp = [[Camp alloc] initWithDictionary:self.camps[indexPath.item] error:&error];
+            if (indexPath.item < self.camps.count) {
+                cell.camp = self.camps[indexPath.item];
+                
+                [cell layoutSubviews];
             }
             
             return cell;
@@ -159,13 +179,17 @@ static NSString * const errorCampCellReuseIdentifier = @"ErrorCampCell";
   sizeForItemAtIndexPath:(NSIndexPath *)indexPath {
     BOOL useFullWidthCell = self.errorLoading || (!self.loading && self.camps.count == 0);
     
+    if (self.size == CAMP_CARD_SIZE_SMALL_MEDIUM) {
+        return CGSizeMake(148, 140);
+    }
+    
     return CGSizeMake(useFullWidthCell?self.frame.size.width - 32:268, [self cardHeight]);
 }
 
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
     if (!self.loading && !self.errorLoading && self.camps.count > 0) {
         // animate the cell user tapped on
-        Camp *camp = [[Camp alloc] initWithDictionary:self.camps[indexPath.row] error:nil];
+        Camp *camp = self.camps[indexPath.row];
         
         [Launcher openCamp:camp];
     }
@@ -174,7 +198,7 @@ static NSString * const errorCampCellReuseIdentifier = @"ErrorCampCell";
         self.camps = [[NSMutableArray alloc] init];
         
         self.loading = true;
-        [self.collectionView setContentOffset:CGPointMake(-16, 0)];
+        [self.collectionView setContentOffset:CGPointMake(-12, 0)];
         self.collectionView.scrollEnabled = false;
         self.errorLoading = false;
         
@@ -185,13 +209,15 @@ static NSString * const errorCampCellReuseIdentifier = @"ErrorCampCell";
 - (void)layoutSubviews {
     [super layoutSubviews];
     
-    self.collectionView.frame = CGRectMake(0, 0, self.frame.size.width, [self cardHeight]);
+    self.collectionView.frame = CGRectMake(0, self.collectionView.frame.origin.y, self.frame.size.width, [self cardHeight]);
 }
 
 - (CGFloat)cardHeight {
     switch (self.size) {
         case CAMP_CARD_SIZE_SMALL:
             return SMALL_CARD_HEIGHT;
+        case CAMP_CARD_SIZE_SMALL_MEDIUM:
+            return SMALL_MEDIUM_CARD_HEIGHT;
         case CAMP_CARD_SIZE_MEDIUM:
             return MEDIUM_CARD_HEIGHT;
         case CAMP_CARD_SIZE_LARGE:

@@ -33,10 +33,10 @@
 
 @interface EditCampViewController () <UITextFieldDelegate, UITextViewDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate, RSKImageCropViewControllerDelegate, RSKImageCropViewControllerDataSource> {
     UIImage *newAvatar;
-    NSString *campDescription;
 }
 
 @property (nonatomic, strong) Camp *updatedCamp;
+@property (nonatomic, strong) NSMutableDictionary *inputValues;
 
 @end
 
@@ -78,9 +78,9 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     self.navigationItem.rightBarButtonItem = self.saveButton;
     
     
-    self.tableView.backgroundColor = [UIColor headerBackgroundColor];
+    self.tableView.backgroundColor = [UIColor tableViewBackgroundColor];
     self.tableView.separatorInset = UIEdgeInsetsMake(0, 16, 0, 0);
-    self.tableView.separatorColor = [UIColor separatorColor];
+    self.tableView.separatorColor = [UIColor tableViewSeparatorColor];
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
     self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 48, 0);
     
@@ -94,11 +94,11 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     [self.tableView registerClass:[InputCell class] forCellReuseIdentifier:inputReuseIdentifier];
     [self.tableView registerClass:[ToggleCell class] forCellReuseIdentifier:toggleReuseIdentifier];
     [self.tableView registerClass:[ButtonCell class] forCellReuseIdentifier:buttonReuseIdentifier];
-    
-    campDescription = self.camp.attributes.details.theDescription;
-    
+        
     // Google Analytics
     [FIRAnalytics setScreenName:@"Edit Camp" screenClass:nil];
+    
+    self.inputValues = [NSMutableDictionary dictionary];
 }
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
@@ -117,6 +117,8 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
 }
 
 - (void)themeSelectionDidChange:(NSString *)newHex {
+    [self.inputValues setObject:newHex forKey:[NSIndexPath indexPathForRow:4 inSection:0]];
+    
     CampDetails *details = [[CampDetails alloc] initWithDictionary:[self.updatedCamp.attributes.details toDictionary] error:nil];
     details.color = newHex;
     self.updatedCamp.attributes.details = details;
@@ -126,7 +128,16 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     
     self.view.tintColor = self.themeColor;
     
-    [self.tableView reloadData];
+    for (UITableViewCell *cell in [self.tableView visibleCells]) {
+        if ([cell isKindOfClass:[InputCell class]]) {
+            ((InputCell *)cell).textView.tintColor = self.view.tintColor;
+            ((InputCell *)cell).input.tintColor = self.view.tintColor;
+        }
+    }
+    
+    [self.tableView beginUpdates];
+    [self.tableView reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0 inSection:0]] withRowAnimation:UITableViewRowAnimationNone];
+    [self.tableView endUpdates];
 }
 
 - (void)saveChanges {
@@ -249,105 +260,109 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
         [changes setObject:newAvatar forKey:@"camp_avatar"];
     }
     
-    InputCell *campNameCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:1 inSection:0]];
-    NSString *campName = campNameCell.input.text;
-    
-    if (![campName isEqualToString:self.camp.attributes.details.title]) {
-        BFValidationError error = [campName validateBonfireCampTitle];
-        if (error == BFValidationErrorNone) {
-            // good to go!
-            [changes setObject:campName forKey:@"title"];
-        }
-        else {
-            NSString *title = @"";
-            NSString *message = @"";
-            switch (error) {
-                case BFValidationErrorTooShort:
-                    title = @"Camp Name Too Short";
-                    message = @"Your Camp name must at least 1 character long";
-                    break;
-                case BFValidationErrorTooLong:
-                    title = @"Camp Name Too Long";
-                    message = [NSString stringWithFormat:@"Your Camp name cannot be longer than 20 characters"];
-                    break;
+    for (NSIndexPath *indexPath in [self.inputValues allKeys]) {
+        NSString *value = [self.inputValues objectForKey:indexPath];
+                
+        if (indexPath == [NSIndexPath indexPathForRow:1 inSection:0]) {
+            // title
+            if (![value isEqualToString:self.camp.attributes.details.title]) {
+                BFValidationError error = [value validateBonfireCampTitle];
+                if (error == BFValidationErrorNone) {
+                    // good to go!
+                    [changes setObject:value forKey:@"title"];
+                }
+                else {
+                    NSString *title = @"";
+                    NSString *message = @"";
+                    switch (error) {
+                        case BFValidationErrorTooShort:
+                            title = @"Camp Name Too Short";
+                            message = @"Your Camp name must at least 1 character long";
+                            break;
+                        case BFValidationErrorTooLong:
+                            title = @"Camp Name Too Long";
+                            message = [NSString stringWithFormat:@"Your Camp name cannot be longer than 20 characters"];
+                            break;
+                            
+                        default:
+                            title = @"Requirements Not Met";
+                            message = [NSString stringWithFormat:@"Please ensure that your Camp name is between 1 and 20 characters long and only contains letters and numbers"];
+                            break;
+                    }
                     
-                default:
-                    title = @"Requirements Not Met";
-                    message = [NSString stringWithFormat:@"Please ensure that your Camp name is between 1 and 20 characters long"];
-                    break;
-            }
-            
-            [self alertWithTitle:title message:message];
-            
-            return @{@"error": @"title"};
-        }
-    }
-    
-    InputCell *campDisplayIdCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:2 inSection:0]];
-    NSString *camptag = [campDisplayIdCell.input.text stringByReplacingOccurrencesOfString:@"#" withString:@""];
-    
-    if (![camptag isEqualToString:self.camp.attributes.details.identifier]) {
-        BFValidationError error = [camptag validateBonfireCampTag];
-        if (error == BFValidationErrorNone) {
-            // good to go!
-            [changes setObject:[camptag stringByReplacingOccurrencesOfString:@"#" withString:@""] forKey:@"identifier"];
-        }
-        else {
-            NSString *title = @"";
-            NSString *message = @"";
-            switch (error) {
-                case BFValidationErrorTooShort:
-                    title = @"#Camptag Too Short";
-                    message = @"Your Camp name must at least 1 character long";
-                    break;
-                case BFValidationErrorTooLong:
-                    title = @"#Camptag Too Long";
-                    message = [NSString stringWithFormat:@"Your #Camptag cannot be longer than %d characters", MAX_CAMP_TAG_LENGTH];
-                    break;
+                    [self alertWithTitle:title message:message];
                     
-                default:
-                    title = @"Requirements Not Met";
-                    message = [NSString stringWithFormat:@"Please ensure that your Camptag is between 1 and %d characters long", MAX_CAMP_TAG_LENGTH];
-                    break;
+                    return @{@"error": @"title"};
+                }
             }
-            
-            [self alertWithTitle:title message:message];
-            
-            return @{@"error": @"camptag"};
         }
-    }
-    
-    InputCell *descriptionCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:3 inSection:0]];
-    NSString *description = descriptionCell.textView.text;
-    
-    if (![description isEqualToString:self.camp.attributes.details.theDescription]) {
-        // good to go!
-        [changes setObject:description forKey:@"description"];
-    }
-    
-    NSString *themeColor = [UIColor toHex:self.themeColor];
-    
-    NSLog(@"self.camp.attributes.details.color:: %@", self.camp.attributes.details.color);
-    NSLog(@"themecolor:: %@", themeColor);
-    
-    if (![[themeColor lowercaseString] isEqualToString:[self.camp.attributes.details.color lowercaseString]]) {
-        if (themeColor.length != 6) {
-            [self alertWithTitle:@"Invalid Camp Color" message:@"Well... this is awkward! Try closing out and trying again!"];
+        else if (indexPath == [NSIndexPath indexPathForRow:2 inSection:0]) {
+            // camptag
+            NSString *camptag = [value stringByReplacingOccurrencesOfString:@"#" withString:@""];
             
-            return @{@"error": @"color"};
+            if (![camptag isEqualToString:self.camp.attributes.details.identifier]) {
+                BFValidationError error = [camptag validateBonfireCampTag];
+                if (error == BFValidationErrorNone) {
+                    // good to go!
+                    [changes setObject:[camptag stringByReplacingOccurrencesOfString:@"#" withString:@""] forKey:@"identifier"];
+                }
+                else {
+                    NSString *title = @"";
+                    NSString *message = @"";
+                    switch (error) {
+                        case BFValidationErrorTooShort:
+                            title = @"#Camptag Too Short";
+                            message = @"Your Camp name must at least 1 character long";
+                            break;
+                        case BFValidationErrorTooLong:
+                            title = @"#Camptag Too Long";
+                            message = [NSString stringWithFormat:@"Your #Camptag cannot be longer than %d characters", MAX_CAMP_TAG_LENGTH];
+                            break;
+                            
+                        default:
+                            title = @"Requirements Not Met";
+                            message = [NSString stringWithFormat:@"Please ensure that your Camptag is between 1 and %d characters long", MAX_CAMP_TAG_LENGTH];
+                            break;
+                    }
+                    
+                    [self alertWithTitle:title message:message];
+                    
+                    return @{@"error": @"camptag"};
+                }
+            }
         }
-        else {
-            // good to go!
-            [changes setObject:themeColor forKey:@"color"];
+        else if (indexPath == [NSIndexPath indexPathForRow:3 inSection:0]) {
+            // description
+            NSString *description = value;
+            
+            if (![description isEqualToString:self.camp.attributes.details.theDescription]) {
+                // good to go!
+                [changes setObject:description forKey:@"description"];
+            }
         }
-    }
-    
-    ToggleCell *visibilityCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:5 inSection:0]];
-    BOOL isPrivate = visibilityCell.toggle.on;
-    
-    if (isPrivate != self.camp.attributes.status.visibility.isPrivate) {
-        // good to go!
-        [changes setObject:[NSNumber numberWithBool:!isPrivate] forKey:@"visibility"];
+        else if (indexPath == [NSIndexPath indexPathForRow:4 inSection:0]) {
+            // color
+            if (![[value lowercaseString] isEqualToString:[self.camp.attributes.details.color lowercaseString]]) {
+                if (value.length != 6) {
+                    [self alertWithTitle:@"Invalid Camp Color" message:@"Well... this is awkward! Try closing out and trying again!"];
+                    
+                    return @{@"error": @"color"};
+                }
+                else {
+                    // good to go!
+                    [changes setObject:value forKey:@"color"];
+                }
+            }
+        }
+        else if (indexPath == [NSIndexPath indexPathForRow:5 inSection:0]) {
+            // private BOOL
+            BOOL isPrivate = [value boolValue];
+            
+            if (isPrivate != self.camp.attributes.status.visibility.isPrivate) {
+                // good to go!
+                [changes setObject:[NSNumber numberWithBool:!isPrivate] forKey:@"visibility"];
+            }
+        }
     }
     
     return changes;
@@ -395,7 +410,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
             else {
                 cell.profilePicture.camp = self.updatedCamp;
                 if ([UIColor fromHex:self.updatedCamp.attributes.details.color] != cell.profilePicture.imageView.backgroundColor) {
-                    [UIView animateWithDuration:0.5f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+                    [UIView animateWithDuration:0.5f delay:0 options:(UIViewAnimationOptionCurveEaseOut|UIViewAnimationOptionBeginFromCurrentState) animations:^{
                         cell.profilePicture.imageView.backgroundColor = [UIColor fromHex:self.updatedCamp.attributes.details.color];
                     } completion:nil];
                 }
@@ -410,7 +425,12 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
             if (indexPath.row == 1) {
                 cell.type = InputCellTypeTextField;
                 cell.inputLabel.text = @"Name";
-                cell.input.text = self.camp.attributes.details.title;
+                if ([self.inputValues objectForKey:indexPath]) {
+                    cell.input.text = [self.inputValues objectForKey:indexPath];
+                }
+                else {
+                    cell.input.text = self.camp.attributes.details.title;
+                }
                 cell.input.placeholder = @"Name";
                 cell.input.tag = 1;
                 cell.input.keyboardType = UIKeyboardTypeDefault;
@@ -418,7 +438,12 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
             else if (indexPath.row == 2) {
                 cell.type = InputCellTypeTextField;
                 cell.inputLabel.text = @"#Camptag";
-                cell.input.text = [NSString stringWithFormat:@"#%@", self.camp.attributes.details.identifier];
+                if ([self.inputValues objectForKey:indexPath]) {
+                    cell.input.text = [self.inputValues objectForKey:indexPath];
+                }
+                else {
+                    cell.input.text = [NSString stringWithFormat:@"#%@", self.camp.attributes.details.identifier];
+                }
                 cell.input.placeholder = @"#Camptag";
                 cell.input.tag = 2;
                 cell.input.keyboardType = UIKeyboardTypeDefault;
@@ -426,7 +451,12 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
             else if (indexPath.row == 3) {
                 cell.type = InputCellTypeTextView;
                 cell.inputLabel.text = @"Description";
-                cell.textView.text = self.camp.attributes.details.theDescription;
+                if ([self.inputValues objectForKey:indexPath]) {
+                    cell.textView.text = [self.inputValues objectForKey:indexPath];
+                }
+                else {
+                    cell.textView.text = self.camp.attributes.details.theDescription;
+                }
                 cell.textView.placeholder = @"A little bit about the Camp...";
                 cell.textView.tag = 3;
                 cell.charactersRemainingLabel.text = [NSString stringWithFormat:@"%i", (int)(MAX_CAMP_DESC_SOFT_LENGTH - cell.textView.text.length)];
@@ -436,6 +466,9 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
             cell.charactersRemainingLabel.hidden = (cell.type != InputCellTypeTextView);
             
             cell.input.delegate = self;
+            [cell.input addTarget:self
+                        action:@selector(textFieldDidChange:)
+                        forControlEvents:UIControlEventEditingChanged];
             cell.textView.delegate = self;
             
             return cell;
@@ -456,6 +489,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
             
             // Configure the cell...
             cell.textLabel.text = @"Private Camp";
+            cell.textLabel.textColor = [UIColor bonfireSecondaryColor];
             cell.toggle.on = self.camp.attributes.status.visibility.isPrivate;
             
             if (cell.toggle.tag == 0) {
@@ -469,15 +503,19 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
                         
                         UIAlertAction *cancelActionSheet = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
                             [cell.toggle setOn:true animated:YES];
+                            [self.inputValues setObject:(cell.toggle.isOn ? @"1" : @"0") forKey:indexPath];
                         }];
                         [confirmActionSheet addAction:cancelActionSheet];
                         
                         UIAlertAction *confirmAction = [UIAlertAction actionWithTitle:@"Confirm" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-                            
+                            [self.inputValues setObject:(cell.toggle.isOn ? @"1" : @"0") forKey:indexPath];
                         }];
                         [confirmActionSheet addAction:confirmAction];
                         
                         [self.navigationController presentViewController:confirmActionSheet animated:YES completion:nil];
+                    }
+                    else {
+                        [self.inputValues setObject:(cell.toggle.isOn ? @"1" : @"0") forKey:indexPath];
                     }
                 } forControlEvents:UIControlEventValueChanged];
             }
@@ -533,6 +571,14 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     
     return YES;
 }
+- (void)textFieldDidChange:(UITextField *)sender {
+    CGPoint point = [sender convertPoint:CGPointZero toView:self.tableView];
+    NSIndexPath *indexPath = [self.tableView indexPathForRowAtPoint:point];
+    
+    NSLog(@"textFieldDidChange: %@", sender);
+    NSLog(@"text:: %@", sender.text);
+    [self.inputValues setObject:sender.text forKey:indexPath];
+}
 - (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
     NSString *newStr = [textView.text stringByReplacingCharactersInRange:range withString:text];
     
@@ -544,15 +590,19 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
 }
 
 - (void)textViewDidChange:(UITextView *)textView {
+    CGPoint point = [textView convertPoint:CGPointZero toView:self.tableView];
+    NSIndexPath *indexPath = [self.tableView indexPathForRowAtPoint:point];
+    
     if (textView.tag == 3) {
         // description
         [self.tableView beginUpdates];
         [self.tableView endUpdates];
         
         InputCell *cell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:3 inSection:0]];
-        cell.charactersRemainingLabel.text = [NSString stringWithFormat:@"%i", (int)(MAX_CAMP_DESC_SOFT_LENGTH - textView.text.length)];
-        
-        campDescription = cell.textView.text;
+        if (cell) {
+            cell.charactersRemainingLabel.text = [NSString stringWithFormat:@"%i", (int)(MAX_CAMP_DESC_SOFT_LENGTH - textView.text.length)];
+            [self.inputValues setObject:textView.text forKey:indexPath];
+        }
     }
 }
 
@@ -566,7 +616,8 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
         }
         else if (indexPath.row == 3) {
             // profile bio -- auto resizing
-            NSString *text = campDescription ? campDescription : self.camp.attributes.details.theDescription;
+            NSString *text = [self.inputValues objectForKey:indexPath] ? [self.inputValues objectForKey:indexPath] : self.camp.attributes.details.theDescription;
+            
             if (text.length == 0) text = @" ";
             
             CGSize boundingSize = CGSizeMake(self.view.frame.size.width - (INPUT_CELL_LABEL_LEFT_PADDING + INPUT_CELL_TEXTVIEW_INSETS.left + INPUT_CELL_TEXTVIEW_INSETS.right) - INPUT_CELL_LABEL_WIDTH, CGFLOAT_MAX);
@@ -621,7 +672,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
         
         UILabel *descriptionLabel = [[UILabel alloc] initWithFrame:CGRectMake(12, 12, footer.frame.size.width - 24, 42)];
         descriptionLabel.text = CAMP_PRIVATE_DESCRIPTION;
-        descriptionLabel.textColor = [UIColor bonfireGray];
+        descriptionLabel.textColor = [UIColor bonfireSecondaryColor];
         descriptionLabel.font = [UIFont systemFontOfSize:12.f weight:UIFontWeightRegular];
         descriptionLabel.textAlignment = NSTextAlignmentLeft;
         descriptionLabel.numberOfLines = 0;
@@ -667,7 +718,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
 }
 
 - (void)showImagePicker {
-    UIAlertController *imagePickerOptions = [UIAlertController alertControllerWithTitle:@"Set Camp Photo" message:nil preferredStyle:UIAlertControllerStyleActionSheet];
+    UIAlertController *imagePickerOptions = [UIAlertController alertControllerWithTitle:@"Set Camp Picture" message:nil preferredStyle:UIAlertControllerStyleActionSheet];
     
     UIAlertAction *takePhoto = [UIAlertAction actionWithTitle:@"Take Photo" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         [self takePhotoForProfilePicture:nil];
@@ -695,54 +746,61 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     [self presentViewController:picker animated:YES completion:nil];
 }
 - (void)chooseFromLibraryForProfilePicture:(id)sender {
-    [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
-        switch (status) {
-            case PHAuthorizationStatusAuthorized: {
-                NSLog(@"PHAuthorizationStatusAuthorized");
-                
-                UIImagePickerController *picker = [[UIImagePickerController alloc] init];
-                picker.delegate = self;
-                picker.allowsEditing = NO;
-                picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    [[Launcher topMostViewController] presentViewController:picker animated:YES completion:nil];
-                });
-                
-                break;
-            }
-            case PHAuthorizationStatusDenied:
-            case PHAuthorizationStatusNotDetermined:
-            {
-                NSLog(@"PHAuthorizationStatusDenied");
-                // confirm action
-                UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"Allow Bonfire to access your phtoos" message:@"To allow Bonfire to access your photos, go to Settings > Privacy > Set Bonfire to ON" preferredStyle:UIAlertControllerStyleAlert];
+    UIImagePickerController *picker = [[UIImagePickerController alloc] init];
+    picker.delegate = self;
+    picker.allowsEditing = NO;
+    picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+    [[Launcher topMostViewController] presentViewController:picker animated:YES completion:nil];
 
-                UIAlertAction *openSettingsAction = [UIAlertAction actionWithTitle:@"Open Settings" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-                    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString] options:@{} completionHandler:nil];
-                }];
-                [actionSheet addAction:openSettingsAction];
-                
-                UIAlertAction *closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleCancel handler:nil];
-                [actionSheet addAction:closeAction];
-                
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    [[Launcher topMostViewController] presentViewController:actionSheet animated:YES completion:nil];
-                });
-                
-                break;
-            }
-            case PHAuthorizationStatusRestricted: {
-                NSLog(@"PHAuthorizationStatusRestricted");
-                break;
-            }
-        }
-    }];
+    //    [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
+//        switch (status) {
+//            case PHAuthorizationStatusAuthorized: {
+//                NSLog(@"PHAuthorizationStatusAuthorized");
+//
+//                UIImagePickerController *picker = [[UIImagePickerController alloc] init];
+//                picker.delegate = self;
+//                picker.allowsEditing = NO;
+//                picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+//                dispatch_async(dispatch_get_main_queue(), ^{
+//                    [[Launcher topMostViewController] presentViewController:picker animated:YES completion:nil];
+//                });
+//
+//                break;
+//            }
+//            case PHAuthorizationStatusDenied:
+//            case PHAuthorizationStatusNotDetermined:
+//            {
+//                NSLog(@"PHAuthorizationStatusDenied");
+//                // confirm action
+//                UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"Allow Bonfire to access your phtoos" message:@"To allow Bonfire to access your photos, go to Settings > Privacy > Set Bonfire to ON" preferredStyle:UIAlertControllerStyleAlert];
+//
+//                UIAlertAction *openSettingsAction = [UIAlertAction actionWithTitle:@"Open Settings" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+//                    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString] options:@{} completionHandler:nil];
+//                }];
+//                [actionSheet addAction:openSettingsAction];
+//
+//                UIAlertAction *closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleCancel handler:nil];
+//                [actionSheet addAction:closeAction];
+//
+//                dispatch_async(dispatch_get_main_queue(), ^{
+//                    [[Launcher topMostViewController] presentViewController:actionSheet animated:YES completion:nil];
+//                });
+//
+//                break;
+//            }
+//            case PHAuthorizationStatusRestricted: {
+//                NSLog(@"PHAuthorizationStatusRestricted");
+//                break;
+//            }
+//        }
+//    }];
 }
 
 // Crop image has been canceled.
 - (void)imageCropViewControllerDidCancelCrop:(RSKImageCropViewController *)controller
 {
-    [controller.navigationController popViewControllerAnimated:YES];
+    [controller.navigationController dismissViewControllerAnimated:YES completion:nil];
+    [self takePhotoForProfilePicture:nil];
 }
 
 // The original image has been cropped. Additionally provides a rotation angle used to produce image.
@@ -752,11 +810,10 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
                   rotationAngle:(CGFloat)rotationAngle
 {
     ProfilePictureCell *cell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
-    cell.profilePicture.imageView.image = croppedImage;
-    cell.profilePicture.imageView.contentMode = UIViewContentModeScaleAspectFill;
-    
-    NSLog(@"profilepicture image view: %@", cell.profilePicture.imageView);
-    NSLog(@"ugh: %@", croppedImage);
+    if (cell) {
+        cell.profilePicture.imageView.image = croppedImage;
+        cell.profilePicture.imageView.contentMode = UIViewContentModeScaleAspectFill;
+    }
     
     newAvatar = croppedImage;
         

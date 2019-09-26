@@ -15,6 +15,10 @@
     return [JSONKeyMapper mapperForSnakeCase];
 }
 
++ (BOOL)propertyIsOptional:(NSString *)propertyName {
+    return true;
+}
+
 - (BFHostedVersionObject *)suggested {
     return self.full;
 }
@@ -26,6 +30,10 @@
 + (JSONKeyMapper *)keyMapper
 {
     return [JSONKeyMapper mapperForSnakeCase];
+}
+
++ (BOOL)propertyIsOptional:(NSString *)propertyName {
+    return true;
 }
 
 @end

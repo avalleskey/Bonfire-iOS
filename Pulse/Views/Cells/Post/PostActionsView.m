@@ -41,7 +41,7 @@
     [self.replyButton setTitleColor:[UIColor bonfireSecondaryColor] forState:UIControlStateNormal];
     self.replyButton.tintColor = self.replyButton.currentTitleColor;
     [self.replyButton setTitle:@"Reply" forState:UIControlStateNormal];
-    self.replyButton.frame = CGRectMake(0, 0, self.replyButton.intrinsicContentSize.width + self.replyButton.currentImage.size.width + self.replyButton.titleEdgeInsets.left, POST_ACTIONS_VIEW_HEIGHT);
+    self.replyButton.frame = CGRectMake(0, 0, self.replyButton.intrinsicContentSize.width + self.replyButton.currentImage.size.width - self.replyButton.titleEdgeInsets.left, POST_ACTIONS_VIEW_HEIGHT);
     [self addTapHandlersToAction:self.replyButton];
     [self addSubview:self.replyButton];
     
@@ -53,7 +53,7 @@
     [self.voteButton setTitleColor:[UIColor bonfireSecondaryColor] forState:UIControlStateNormal];
     [self.voteButton setTitle:@"Spark" forState:UIControlStateNormal];
     [self.voteButton setImage:[[UIImage imageNamed:@"postActionBolt"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
-    self.voteButton.frame = CGRectMake(92, 0, self.voteButton.intrinsicContentSize.width + self.voteButton.currentImage.size.width + self.voteButton.titleEdgeInsets.left, POST_ACTIONS_VIEW_HEIGHT);
+    self.voteButton.frame = CGRectMake(92, 0, self.voteButton.intrinsicContentSize.width + self.voteButton.currentImage.size.width - self.voteButton.titleEdgeInsets.left, POST_ACTIONS_VIEW_HEIGHT);
     [self addTapHandlersToAction:self.voteButton];
     [self addSubview:self.voteButton];
 }
@@ -78,7 +78,6 @@
         _summaries = summaries;
         
         NSInteger repliesCount = summaries.counts.replies;
-    
         NSArray *summaryReplies = summaries.replies;
         
         [self.repliesSnaphotView removeFromSuperview];
@@ -91,8 +90,8 @@
         if (summaryReplies.count > 1) {
             NSMutableSet *existingCreatorIds = [NSMutableSet set];
             for (Post *object in summaryReplies) {
-                if (![existingCreatorIds containsObject:object.attributes.details.creator.identifier]) {
-                    [existingCreatorIds addObject:object.attributes.details.creator.identifier];
+                if (![existingCreatorIds containsObject:object.attributes.creator.identifier]) {
+                    [existingCreatorIds addObject:object.attributes.creator.identifier];
                     [filteredSummaryReplies addObject:object];
                 }
             }
@@ -122,12 +121,12 @@
         UIImageView *repliesIcon = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, icon.size.width, self.repliesSnaphotView.frame.size.height)];
         repliesIcon.contentMode = UIViewContentModeCenter;
         repliesIcon.image = [icon imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-        repliesIcon.tintColor = [UIColor bonfireSecondaryColor];
+        repliesIcon.tintColor = self.tintColor;
         [self.repliesSnaphotView addSubview:repliesIcon];
         
         UILabel *repliesLabel = [[UILabel alloc] init];
         repliesLabel.textAlignment = NSTextAlignmentRight;
-        repliesLabel.textColor = [UIColor bonfireSecondaryColor];
+        repliesLabel.textColor = self.tintColor;
         repliesLabel.font = [UIFont systemFontOfSize:self.replyButton.titleLabel.font.pointSize weight:UIFontWeightRegular];
         repliesLabel.text = [NSString stringWithFormat:@"%lu", repliesCount];
         
@@ -139,7 +138,7 @@
         CGFloat avatarBaselineX = repliesLabel.frame.origin.x + repliesLabel.frame.size.width + 4;
         for (NSInteger i = 0; i < avatars; i++) {
             BFAvatarView *avatarView = [[BFAvatarView alloc] initWithFrame:CGRectMake(2, 2, avatarDiameter, avatarDiameter)];
-            avatarView.user = ((Post *)filteredSummaryReplies[i]).attributes.details.creator;
+            avatarView.user = ((Post *)filteredSummaryReplies[i]).attributes.creator;
             
             UIView *containerView = [[UIView alloc] initWithFrame:CGRectMake(avatarBaselineX + (i * avatarOffset), (self.repliesSnaphotView.frame.size.height / 2 - avatarDiameter / 2) - 2, avatarDiameter + 4, avatarDiameter + 4)];
             containerView.backgroundColor = [UIColor contentBackgroundColor];
@@ -158,10 +157,26 @@
     }
 }
 
+- (void)setFrame:(CGRect)frame {
+    [super setFrame:frame];
+    
+    CGFloat buttonWidth = ceilf(self.frame.size.width / 3);
+    SetX(self.voteButton, buttonWidth);
+}
+
 - (void)layoutSubviews {
     [super layoutSubviews];
     
     self.repliesSnaphotView.frame = CGRectMake(self.frame.size.width - self.repliesSnaphotView.frame.size.width, 0, self.repliesSnaphotView.frame.size.width, POST_ACTIONS_VIEW_HEIGHT);
+}
+
+- (void)setTintColor:(UIColor *)tintColor {
+    [super setTintColor:tintColor];
+    
+    self.replyButton.tintColor = self.tintColor;
+    [self.replyButton setTitleColor:self.tintColor forState:UIControlStateNormal];
+    
+    [self setVoted:self.voted animated:false]; // update colors
 }
 
 - (void)setVoted:(BOOL)isVoted animated:(BOOL)animated {
@@ -176,7 +191,7 @@
             [self.voteButton setImage:[[UIImage imageNamed:@"postActionBolt_active"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
         }
         else {
-            [self.voteButton setTitleColor:[UIColor bonfireSecondaryColor] forState:UIControlStateNormal];
+            [self.voteButton setTitleColor:self.tintColor forState:UIControlStateNormal];
             [self.voteButton setImage:[[UIImage imageNamed:@"postActionBolt"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
         }
         self.voteButton.tintColor = self.voteButton.currentTitleColor;
@@ -198,7 +213,7 @@
         self.replyButton.alpha = 1;
         self.replyButton.userInteractionEnabled = true;
     }
-    self.replyButton.frame = CGRectMake(0, 0, self.replyButton.intrinsicContentSize.width + self.replyButton.currentImage.size.width + self.replyButton.titleEdgeInsets.left, POST_ACTIONS_VIEW_HEIGHT);
+    self.replyButton.frame = CGRectMake(self.replyButton.frame.origin.x, 0, self.replyButton.intrinsicContentSize.width + self.replyButton.currentImage.size.width - self.replyButton.titleEdgeInsets.left, POST_ACTIONS_VIEW_HEIGHT);
 }
 
 @end

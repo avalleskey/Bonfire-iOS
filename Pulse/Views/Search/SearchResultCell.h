@@ -20,6 +20,7 @@
 
 @property (nonatomic, strong) Camp *camp;
 @property (nonatomic, strong) User *user;
+@property (nonatomic, strong) Bot *bot;
 
 // ---- VIEWS ----
 

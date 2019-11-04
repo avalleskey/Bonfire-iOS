@@ -93,12 +93,12 @@
 
 - (void)setHighlighted:(BOOL)highlighted animated:(BOOL)animated {
     if (highlighted) {
-        [UIView animateWithDuration:0.2f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        [UIView animateWithDuration:0.15f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
             self.contentView.backgroundColor = [UIColor contentHighlightedColor];
         } completion:nil];
     }
     else {
-        [UIView animateWithDuration:0.2f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        [UIView animateWithDuration:0.15f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
             self.contentView.backgroundColor = [UIColor contentBackgroundColor];
         } completion:nil];
     }

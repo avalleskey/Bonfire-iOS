@@ -55,7 +55,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     
     self.view.tintColor = self.theme;
     
-    self.view.frame = CGRectMake(0, [[UIApplication sharedApplication] delegate].window.safeAreaInsets.top + self.navigationController.navigationBar.frame.size.height, self.view.frame.size.width, [UIScreen mainScreen].bounds.size.height - ([[UIApplication sharedApplication] delegate].window.safeAreaInsets.top + self.navigationController.navigationBar.frame.size.height));
+    //self.view.frame = CGRectMake(0, [[UIApplication sharedApplication] delegate].window.safeAreaInsets.top + self.navigationController.navigationBar.frame.size.height, self.view.frame.size.width, [UIScreen mainScreen].bounds.size.height - ([[UIApplication sharedApplication] delegate].window.safeAreaInsets.top + self.navigationController.navigationBar.frame.size.height));
     
     self.launchNavVC = (ComplexNavigationController *)self.navigationController;
     self.navigationItem.hidesBackButton = true;
@@ -97,7 +97,10 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     
-    self.segmentedControl.frame = CGRectMake(0, 0, self.view.frame.size.width, 48);
+    NSLog(@"view controller safe area insets:");
+    NSLog(@"%f", self.tableView.adjustedContentInset.top);
+    
+    self.segmentedControl.frame = CGRectMake(0, self.navigationController.navigationBar.frame.size.height + self.navigationController.navigationBar.frame.origin.y, self.view.frame.size.width, 48);
 }
 
 - (void)campManagersUpdated:(NSNotification *)notification {
@@ -142,7 +145,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
 }
 
 - (void)createSegmentedControl {
-    self.segmentedControl = [[UIView alloc] initWithFrame:CGRectMake(0, self.navigationController.navigationBar.frame.origin.y + self.navigationController.navigationBar.frame.size.height, self.view.frame.size.width, 48)];
+    self.segmentedControl = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 48)];
     self.segmentedControl.backgroundColor = [UIColor contentBackgroundColor];
     
     UIView *lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, self.segmentedControl.frame.size.height, self.view.frame.size.width, (1 / [UIScreen mainScreen].scale))];
@@ -220,12 +223,18 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     self.shareButton.frame = CGRectMake(12, 8, self.view.frame.size.width - (12 * 2), baseHeight - (8 * 2));
     self.shareButton.layer.cornerRadius = 12.f;
     self.shareButton.layer.masksToBounds = true;
-    self.shareButton.backgroundColor = self.view.tintColor;
+    self.shareButton.backgroundColor = [UIColor fromHex:[UIColor toHex:self.view.tintColor] adjustForOptimalContrast:true];
     self.shareButton.adjustsImageWhenHighlighted = false;
-    self.shareButton.tintColor = [UIColor whiteColor];
+    if ([UIColor useWhiteForegroundForColor:self.shareButton.backgroundColor]) {
+        self.shareButton.tintColor = [UIColor whiteColor];
+        [self.shareButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    }
+    else {
+        self.shareButton.tintColor = [UIColor blackColor];
+        [self.shareButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    }
     [self.shareButton.titleLabel setFont:[UIFont systemFontOfSize:16.f weight:UIFontWeightBold]];
     [self.shareButton setTitle:@"Invite Friends" forState:UIControlStateNormal];
-    [self.shareButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [self.shareButton setTitleEdgeInsets:UIEdgeInsetsMake(0, 8, 0, 0)];
     [self.shareButton setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 8)];
     [self.shareButton setImage:[[UIImage imageNamed:@"inviteFriendIcon_small"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
@@ -257,7 +266,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
             if (![button isKindOfClass:[UIButton class]]) continue;
             
             if (button.tag == tabIndex) {
-                [button setTitleColor:self.theme forState:UIControlStateNormal];
+                [button setTitleColor:[UIColor fromHex:[UIColor toHex:self.view.tintColor] adjustForOptimalContrast:true] forState:UIControlStateNormal];
             }
             else {
                 [button setTitleColor:[UIColor bonfireSecondaryColor] forState:UIControlStateNormal];
@@ -389,7 +398,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     return [self.camp.attributes.context.camp.membership.role.type isEqualToString:CAMP_ROLE_ADMIN];
 }
 - (BOOL)isPrivate {
-    return [self.camp.attributes.status.visibility isPrivate];
+    return [self.camp.attributes.visibility isPrivate];
 }
 
 #pragma mark - Table view data source
@@ -480,9 +489,9 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
             cell.tag = [s.data[indexPath.row][@"id"] integerValue];
             cell.profilePicture.user = user;
             
-            cell.textLabel.text = user.attributes.details.displayName;
+            cell.textLabel.text = user.attributes.displayName;
             cell.textLabel.textColor = [UIColor bonfirePrimaryColor];
-            cell.detailTextLabel.text = [NSString stringWithFormat:@"@%@", user.attributes.details.identifier];
+            cell.detailTextLabel.text = [NSString stringWithFormat:@"@%@", user.attributes.identifier];
             
             [cell.approveButton setTitle:@"Approve" forState:UIControlStateNormal];
             [cell.declineButton setTitle:@"Decline" forState:UIControlStateNormal];
@@ -526,8 +535,8 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
             
             cell.profilePicture.user = user;
             
-            NSMutableAttributedString *attributedCreatorName = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"%@", user.attributes.details.displayName] attributes:@{NSForegroundColorAttributeName: [UIColor bonfirePrimaryColor], NSFontAttributeName: [UIFont systemFontOfSize:cell.textLabel.font.pointSize weight:UIFontWeightSemibold]}];
-            NSAttributedString *usernameString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@" @%@", user.attributes.details.identifier] attributes:@{NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor], NSFontAttributeName: [UIFont systemFontOfSize:cell.textLabel.font.pointSize weight:UIFontWeightRegular]}];
+            NSMutableAttributedString *attributedCreatorName = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"%@", user.attributes.displayName] attributes:@{NSForegroundColorAttributeName: [UIColor bonfirePrimaryColor], NSFontAttributeName: [UIFont systemFontOfSize:cell.textLabel.font.pointSize weight:UIFontWeightSemibold]}];
+            NSAttributedString *usernameString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@" @%@", user.attributes.identifier] attributes:@{NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor], NSFontAttributeName: [UIFont systemFontOfSize:cell.textLabel.font.pointSize weight:UIFontWeightRegular]}];
             [attributedCreatorName appendAttributedString:usernameString];
             
             cell.textLabel.attributedText = attributedCreatorName;
@@ -580,7 +589,8 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
             else if ([s.identifier isEqualToString:@"members_moderator"]) {
                 cell.textLabel.text = @"Add Managers";
             }
-            cell.textLabel.textColor = self.view.tintColor;
+            cell.textLabel.textColor = [UIColor fromHex:[UIColor toHex:self.view.tintColor] adjustForOptimalContrast:true];
+            cell.imageView.tintColor = cell.textLabel.textColor;
             
             return cell;
         }
@@ -660,9 +670,6 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
                 membersSection.state = SmartListStateEmpty;
             }
         } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-            NSLog(@"CampMembersViewController / acceptRequest() - error: %@", error);
-            NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-            NSLog(@"errorResponse: %@", ErrorResponse);
         }];
     }
 }
@@ -692,9 +699,6 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
             // TODO: set members list back to empty
             // [self getMembers];
         } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-            NSLog(@"CampMembersViewController / deleteRequest() - error: %@", error);
-            NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-            NSLog(@"errorResponse: %@", ErrorResponse);
         }];
     }
 }
@@ -761,8 +765,8 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
         [upsell addSubview:title];
         
         UIButton *shareWithFriends = [UIButton buttonWithType:UIButtonTypeSystem];
-        [shareWithFriends setTitle:[NSString stringWithFormat:@"Share %@", self.camp.attributes.details.title] forState:UIControlStateNormal];
-        [shareWithFriends setTitleColor:self.theme forState:UIControlStateNormal];
+        [shareWithFriends setTitle:[NSString stringWithFormat:@"Share %@", self.camp.attributes.title] forState:UIControlStateNormal];
+        [shareWithFriends setTitleColor:[UIColor fromHex:[UIColor toHex:self.view.tintColor] adjustForOptimalContrast:true] forState:UIControlStateNormal];
         shareWithFriends.frame = CGRectMake(8, title.frame.origin.y + title.frame.size.height + 6, upsell.frame.size.width - 16, 19);
         shareWithFriends.titleLabel.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightMedium];
         [shareWithFriends bk_whenTapped:^{
@@ -800,7 +804,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     BFHeaderView *header = [[BFHeaderView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, [BFHeaderView height])];
     
     header.title = (s.title ? [s.title stringByReplacingOccurrencesOfString:@"{members_count}" withString:[NSString stringWithFormat:@"%ld", self.camp.attributes.summaries.counts.members]] : @"");
-    header.separator = false;
+    header.bottomLineSeparator.hidden = true;
     
     return header;
 }
@@ -878,8 +882,8 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
                 UILabel *nameLabel = [[UILabel alloc] initWithFrame:CGRectMake(16, 96, customView.frame.size.width - 32, 20)];
                 nameLabel.textAlignment = NSTextAlignmentCenter;
                 nameLabel.font = [UIFont systemFontOfSize:17.f weight:UIFontWeightSemibold];
-                nameLabel.textColor = [UIColor blackColor];
-                nameLabel.text = user.attributes.details.displayName;
+                nameLabel.textColor = [UIColor bonfirePrimaryColor];
+                nameLabel.text = user.attributes.displayName;
                 [customView addSubview:nameLabel];
                 [actionSheet.view addSubview:customView];
                 
@@ -911,7 +915,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
         }
     }
     else if ([[tableView cellForRowAtIndexPath:indexPath] isKindOfClass:[AddManagerCell class]]) {
-        AddManagerTableViewController *addManagerTableVC = [[AddManagerTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
+        AddManagerTableViewController *addManagerTableVC = [[AddManagerTableViewController alloc] init];
         addManagerTableVC.camp = self.camp;
         addManagerTableVC.managerType = ([section(indexPath.section).identifier isEqualToString:@"members_admin"] ? @"admin" : @"moderator");
         

@@ -63,7 +63,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     self.view.backgroundColor = [UIColor contentBackgroundColor];
-    self.view.tintColor = [UIColor bonfirePrimaryColor]; //[UIColor fromHex:[Session sharedInstance].currentUser.attributes.details.color];
+    self.view.tintColor = [UIColor bonfirePrimaryColor]; //[UIColor fromHex:[Session sharedInstance].currentUser.attributes.color];
         
     [self addListeners];
     [self setupViews];
@@ -421,7 +421,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         [colorBlock addSubview:publicCampLabel];
         
         UIView *separatorLine = [[UIView alloc] initWithFrame:CGRectMake(0, publicCampSwitch.frame.origin.y - 16 - 1, colorBlock.frame.size.width, 1)];
-        separatorLine.backgroundColor = [UIColor colorWithWhite:0.95 alpha:1];
+        separatorLine.backgroundColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.05];
         [colorBlock addSubview:separatorLine];
         
         [mutatedStep setObject:colorBlock forKey:@"block"];
@@ -486,9 +486,9 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         
         NSArray *buttons = @[
 //                            @{@"id": @"bonfire", @"image": [UIImage imageNamed:@"share_bonfire"], @"color": [UIColor fromHex:@"FF513C" adjustForDarkMode:false]},
-                            @{@"id": @"facebook", @"image": [UIImage imageNamed:@"share_facebook"], @"color": [UIColor fromHex:@"3B5998" adjustForDarkMode:false]},
-                            @{@"id": @"twitter", @"image": [UIImage imageNamed:@"share_twitter"], @"color": [UIColor fromHex:@"1DA1F2" adjustForDarkMode:false]},
-                            @{@"id": @"imessage", @"image": [UIImage imageNamed:@"share_imessage"], @"color": [UIColor fromHex:@"36DB52" adjustForDarkMode:false]},
+                            @{@"id": @"facebook", @"image": [UIImage imageNamed:@"share_facebook"], @"color": [UIColor fromHex:@"3B5998" adjustForOptimalContrast:false]},
+                            @{@"id": @"twitter", @"image": [UIImage imageNamed:@"share_twitter"], @"color": [UIColor fromHex:@"1DA1F2" adjustForOptimalContrast:false]},
+                            @{@"id": @"imessage", @"image": [UIImage imageNamed:@"share_imessage"], @"color": [UIColor fromHex:@"36DB52" adjustForOptimalContrast:false]},
                             @{@"id": @"more", @"image": [UIImage imageNamed:@"share_more"], @"color": [UIColor tableViewSeparatorColor]}
                             ];
         
@@ -530,7 +530,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                 }
                 else if ([identifier isEqualToString:@"twitter"]) {
                     if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"twitter://post"]]) {
-                        NSString *message = [[NSString stringWithFormat:@"I just created a Camp on @yourbonfire! Join %@: %@", self.camp.attributes.details.title, campShareLink] stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet characterSetWithCharactersInString:@"!*'();:@&=+$,/?%#[]"]];
+                        NSString *message = [[NSString stringWithFormat:@"I just created a Camp on @yourbonfire! Join %@: %@", self.camp.attributes.title, campShareLink] stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet characterSetWithCharactersInString:@"!*'();:@&=+$,/?%#[]"]];
                         
                         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[NSString stringWithFormat:@"twitter://post?message=%@", message]] options:@{} completionHandler:nil];
                     }
@@ -544,7 +544,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                                                      delegate:nil];
                 }
                 else if ([identifier isEqualToString:@"imessage"]) {
-                    [Launcher shareOniMessage:[NSString stringWithFormat:@"I created a Camp on Bonfire! Join %@: %@", self.camp.attributes.details.title, campShareLink] image:nil];
+                    [Launcher shareOniMessage:[NSString stringWithFormat:@"I created a Camp on Bonfire! Join %@: %@", self.camp.attributes.title, campShareLink] image:nil];
                 }
                 else if ([identifier isEqualToString:@"more"]) {
                     [Launcher shareCamp:self.camp];
@@ -603,6 +603,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         }
         
         self.themeColor = sender.tag;
+        self.view.tintColor = [self currentColor];
         
         // add check image view
         UIImageView *checkView = [[UIImageView alloc] initWithFrame:CGRectMake(-6, -6, sender.frame.size.width + 12, sender.frame.size.height + 12)];
@@ -658,6 +659,12 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 - (void)enableNextButton {
     self.nextButton.enabled = true;
     self.nextButton.backgroundColor = self.view.tintColor;
+    if ([UIColor useWhiteForegroundForColor:self.nextButton.backgroundColor]) {
+        [self.nextButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    }
+    else {
+        [self.nextButton setTitleColor:[UIColor contentBackgroundColor] forState:UIControlStateNormal];
+    }
 }
 - (void)greyOutNextButton {
     self.nextButton.enabled = false;
@@ -998,7 +1005,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             NSInteger shareStep = [self getIndexOfStepWithId:@"camp_share"];
             UIView *shareBlock = self.steps[shareStep][@"block"];
             UIButton *shareField = [shareBlock viewWithTag:10];
-            [shareField setTitle:[NSString stringWithFormat:@"https://bonfire.camp/c/%@", camp.attributes.details.identifier] forState:UIControlStateNormal];
+            [shareField setTitle:[NSString stringWithFormat:@"https://bonfire.camp/c/%@", camp.attributes.identifier] forState:UIControlStateNormal];
             
             UIButton *shareCampButton = [shareBlock viewWithTag:11];
             [shareCampButton bk_whenTapped:^{
@@ -1035,10 +1042,6 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                 }];
             }];
         } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-            NSLog(@"error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);
-            NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-            NSLog(@"%@",ErrorResponse);
-            
             [self removeBigSpinnerForStep:self.currentStep push:false];
             [self enableNextButton];
             self.nextButton.userInteractionEnabled = true;
@@ -1138,7 +1141,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 - (void)showBigSpinnerForStep:(NSInteger)step {
     UIView *block = (UIView *)[[self.steps objectAtIndex:step] objectForKey:@"block"];
     
-    UIImageView *spinner = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 64, 64)];
+    UIImageView *spinner = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 52, 52)];
     spinner.image = [[UIImage imageNamed:@"spinner"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
     spinner.tintColor = [self currentColor];
     spinner.center = self.view.center;
@@ -1290,18 +1293,96 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 
 
 - (void)takePhotoForProfilePicture:(id)sender {
+    NSString *mediaType = AVMediaTypeVideo;
+    AVAuthorizationStatus authStatus = [AVCaptureDevice authorizationStatusForMediaType:mediaType];
+    if (authStatus == AVAuthorizationStatusAuthorized) {
+        [self openCamera];
+    }
+    else if (authStatus == AVAuthorizationStatusDenied ||
+             authStatus == AVAuthorizationStatusRestricted) {
+        // denied
+        [self showNoCameraAccess];
+    }
+    else if (authStatus == AVAuthorizationStatusNotDetermined) {
+        // not determined?!
+        [AVCaptureDevice requestAccessForMediaType:mediaType completionHandler:^(BOOL granted) {
+            if (granted){
+                NSLog(@"Granted access to %@", mediaType);
+                [self openCamera];
+            }
+            else {
+                NSLog(@"Not granted access to %@", mediaType);
+                [self showNoCameraAccess];
+            }
+        }];
+    }
+}
+- (void)openCamera {
     UIImagePickerController *picker = [[UIImagePickerController alloc] init];
     picker.delegate = self;
     picker.allowsEditing = NO;
     picker.sourceType = UIImagePickerControllerSourceTypeCamera;
-    [self presentViewController:picker animated:YES completion:nil];
+    picker.cameraDevice = UIImagePickerControllerCameraDeviceFront;
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [[Launcher topMostViewController] presentViewController:picker animated:YES completion:nil];
+    });
 }
+- (void)showNoCameraAccess {
+    UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"Allow Bonfire to access your camera" message:@"To allow Bonfire to access your camera, go to Settings > Privacy > Camera > Set Bonfire to ON" preferredStyle:UIAlertControllerStyleAlert];
+
+    UIAlertAction *openSettingsAction = [UIAlertAction actionWithTitle:@"Open Settings" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString] options:@{} completionHandler:nil];
+    }];
+    [actionSheet addAction:openSettingsAction];
+
+    UIAlertAction *closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleCancel handler:nil];
+    [actionSheet addAction:closeAction];
+    [[Launcher topMostViewController] presentViewController:actionSheet animated:YES completion:nil];
+}
+
 - (void)chooseFromLibraryForProfilePicture:(id)sender {
-    UIImagePickerController *picker = [[UIImagePickerController alloc] init];
-    picker.delegate = self;
-    picker.allowsEditing = NO;
-    picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
-    [self presentViewController:picker animated:YES completion:nil];
+    [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
+        switch (status) {
+            case PHAuthorizationStatusAuthorized: {
+                NSLog(@"PHAuthorizationStatusAuthorized");
+                
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    UIImagePickerController *picker = [[UIImagePickerController alloc] init];
+                    picker.delegate = self;
+                    picker.allowsEditing = NO;
+                    picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+                    [[Launcher topMostViewController] presentViewController:picker animated:YES completion:nil];
+                });
+                
+                break;
+            }
+            case PHAuthorizationStatusDenied:
+            case PHAuthorizationStatusNotDetermined:
+            {
+                NSLog(@"PHAuthorizationStatusDenied");
+                // confirm action
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"Allow Bonfire to access your phtoos" message:@"To allow Bonfire to access your photos, go to Settings > Privacy > Camera > Set Bonfire to ON" preferredStyle:UIAlertControllerStyleAlert];
+
+                    UIAlertAction *openSettingsAction = [UIAlertAction actionWithTitle:@"Open Settings" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString] options:@{} completionHandler:nil];
+                    }];
+                    [actionSheet addAction:openSettingsAction];
+                
+                    UIAlertAction *closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleCancel handler:nil];
+                    [actionSheet addAction:closeAction];
+                    [[Launcher topMostViewController] presentViewController:actionSheet animated:YES completion:nil];
+                });
+
+                break;
+            }
+            case PHAuthorizationStatusRestricted: {
+                NSLog(@"PHAuthorizationStatusRestricted");
+                break;
+            }
+        }
+    }];
 }
 
 // Crop image has been canceled.

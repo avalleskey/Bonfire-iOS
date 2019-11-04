@@ -51,7 +51,15 @@
         self.primaryAvatarView.dimsViewOnTap = true;
         self.primaryAvatarView.allowOnlineDot = true;
         [self.primaryAvatarView bk_whenTapped:^{
-            [Launcher openProfile:self.post.attributes.details.creator];
+            if (self.primaryAvatarView.camp) {
+                [Launcher openCamp:self.primaryAvatarView.camp];
+            }
+            else if (self.primaryAvatarView.user) {
+                [Launcher openProfile:self.primaryAvatarView.user];
+            }
+            else if (self.primaryAvatarView.bot) {
+                [Launcher openBot:self.primaryAvatarView.bot];
+            }
         }];
         [self.contentView addSubview:self.primaryAvatarView];
         
@@ -111,15 +119,17 @@
         self.lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
         [self addSubview:self.lineSeparator];
         
-        #ifdef DEBUG
-        UILongPressGestureRecognizer *longPress = [[UILongPressGestureRecognizer alloc] bk_initWithHandler:^(UIGestureRecognizer *sender, UIGestureRecognizerState state, CGPoint location) {
-            if (state == UIGestureRecognizerStateBegan) {
-                // recognized long press
-                [Launcher openDebugView:self.post];
-            }
-        }];
-        [self addGestureRecognizer:longPress];
-        #endif
+        self.topLine = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 3, 0)];
+        self.topLine.backgroundColor = [UIColor threadLineColor];
+        self.topLine.layer.cornerRadius = self.topLine.frame.size.width / 2;
+        self.topLine.hidden = true;
+        [self.contentView addSubview:self.topLine];
+        
+        self.bottomLine = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 3, 0)];
+        self.bottomLine.backgroundColor = [UIColor threadLineColor];
+        self.bottomLine.layer.cornerRadius = self.bottomLine.frame.size.width / 2;
+        self.bottomLine.hidden = true;
+        [self.contentView addSubview:self.bottomLine];
     }
     
     return self;
@@ -142,7 +152,7 @@
         [self.contentView addSubview:self.linkAttachmentView];
     }
     
-    self.linkAttachmentView.link = self.post.attributes.details.attachments.link;
+    self.linkAttachmentView.link = self.post.attributes.attachments.link;
 }
 
 - (void)removeSmartLinkAttachment {
@@ -156,7 +166,8 @@
         [self.contentView addSubview:self.smartLinkAttachmentView];
     }
     
-    self.smartLinkAttachmentView.link = self.post.attributes.details.attachments.link;
+    self.post.attributes.attachments.link.attributes.attribution = self.post.attributes.postedIn;
+    self.smartLinkAttachmentView.link = self.post.attributes.attachments.link;
 }
 
 - (void)removeCampAttachment {
@@ -170,8 +181,7 @@
         [self.contentView addSubview:self.campAttachmentView];
     }
     
-    // TODO: Remove & replace with actual camp
-    self.campAttachmentView.camp = self.post.attributes.details.attachments.camp;
+    self.campAttachmentView.camp = self.post.attributes.attachments.camp;
 }
 
 - (void)removeUserAttachment {
@@ -185,75 +195,73 @@
         [self.contentView addSubview:self.userAttachmentView];
     }
     
-    // TODO: Remove & replace with actual user
-    self.userAttachmentView.user = [Session sharedInstance].currentUser; // self.post.attributes.details.attachments.user;
+    self.userAttachmentView.user = self.post.attributes.attachments.user;
 }
 
-+ (NSAttributedString *)attributedCreatorStringForPost:(Post *)post includeTimestamp:(BOOL)includeTimestamp showCamptag:(BOOL)showCamptag {
+- (void)removePostRemovedAttachment {
+    [self.postRemovedAttachmentView removeFromSuperview];
+    self.postRemovedAttachmentView = nil;
+}
+- (void)initPostRemovedAttachment {
+    if (!self.postRemovedAttachmentView) {
+        // need to initialize a user preview view
+        self.postRemovedAttachmentView = [[BFPostDeletedAttachmentView alloc] init];
+        [self.contentView addSubview:self.postRemovedAttachmentView];
+    }
+    
+    self.postRemovedAttachmentView.message = self.post.attributes.removedReason;
+}
+
++ (NSAttributedString *)attributedCreatorStringForPost:(Post *)post includeTimestamp:(BOOL)includeTimestamp showCamptag:(BOOL)showCamptag primaryColor:(UIColor * _Nullable)primaryColor {
     UIFont *font = [UIFont systemFontOfSize:15.f weight:UIFontWeightRegular];
     
-    if ([post.attributes.status.display.creator isEqualToString:POST_DISPLAY_CREATOR_CAMP] && post.attributes.status.postedIn != nil) {
-        // set display name + camp name combo
-        NSString *identifier = post.attributes.status.postedIn.attributes.details.title;
-        if (post.attributes.status.postedIn.attributes.details.identifier.length > 0) {
-            identifier = [@"#" stringByAppendingString:post.attributes.status.postedIn.attributes.details.identifier];
-        }
-                
-        NSMutableAttributedString *camptagString = [[NSMutableAttributedString alloc] initWithString:identifier];
-        [camptagString addAttribute:NSForegroundColorAttributeName value:[UIColor bonfirePrimaryColor] range:NSMakeRange(0, camptagString.length)];
-        [camptagString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:font.pointSize weight:UIFontWeightSemibold] range:NSMakeRange(0, camptagString.length)];
-        
-        return camptagString;
+    UIColor *secondaryColor = [UIColor bonfireSecondaryColor];
+    if (primaryColor) {
+        secondaryColor = [primaryColor colorWithAlphaComponent:0.5];
     }
     else {
+        primaryColor = [UIColor bonfirePrimaryColor];
+    }
+    
+    BOOL showUsername = !([post.attributes.display.creator isEqualToString:POST_DISPLAY_CREATOR_CAMP] && post.attributes.postedIn != nil);
+    
+    NSMutableAttributedString *creatorString = [[NSMutableAttributedString alloc] init];
+    if (showUsername) {
         // set display name + camp name combo
-        NSString *username = post.attributes.details.creator.attributes.details.identifier != nil ? [NSString stringWithFormat:@"@%@", post.attributes.details.creator.attributes.details.identifier] : @"anonymous";
+        NSString *username = post.attributes.creator.attributes.identifier != nil ? [NSString stringWithFormat:@"@%@", post.attributes.creator.attributes.identifier] : @"anonymous";
         
-        NSMutableAttributedString *creatorString = [[NSMutableAttributedString alloc] initWithString:username];
+        [creatorString appendAttributedString:[[NSAttributedString alloc] initWithString:username]];
         PatternTapResponder creatorTapResponder = ^(NSString *string) {
-            [Launcher openProfile:post.attributes.details.creator];
+            [Launcher openProfile:post.attributes.creator];
         };
         [creatorString addAttribute:RLTapResponderAttributeName value:creatorTapResponder range:NSMakeRange(0, creatorString.length)];
-        [creatorString addAttribute:NSForegroundColorAttributeName value:[UIColor bonfirePrimaryColor] range:NSMakeRange(0, creatorString.length)];
+        [creatorString addAttribute:NSForegroundColorAttributeName value:primaryColor range:NSMakeRange(0, creatorString.length)];
         
         [creatorString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:font.pointSize weight:UIFontWeightSemibold] range:NSMakeRange(0, creatorString.length)];
-        [creatorString addAttribute:RLHighlightedForegroundColorAttributeName value:[[UIColor bonfirePrimaryColor] colorWithAlphaComponent:0.5] range:NSMakeRange(0, creatorString.length)];
+        [creatorString addAttribute:RLHighlightedForegroundColorAttributeName value:[primaryColor colorWithAlphaComponent:0.5] range:NSMakeRange(0, creatorString.length)];
+    }
+    
+    if (includeTimestamp) {
+        NSMutableAttributedString *connector = [[NSMutableAttributedString alloc] initWithString:@"  "];
+        [connector addAttribute:NSFontAttributeName value:font range:NSMakeRange(0, connector.length)];
+        [creatorString appendAttributedString:connector];
         
-        /*
-         BOOL isVerified = true;
-         if (isVerified) {
-         NSMutableAttributedString *spacer = [[NSMutableAttributedString alloc] initWithString:@" "];
-         [spacer addAttribute:NSFontAttributeName value:font range:NSMakeRange(0, spacer.length)];
-         [creatorString appendAttributedString:spacer];
-         
-         // verified icon ☑️
-         NSTextAttachment *attachment = [[NSTextAttachment alloc] init];
-         attachment.image = [UIImage imageNamed:@"verifiedIcon_small"];
-         [attachment setBounds:CGRectMake(0, roundf(font.capHeight - attachment.image.size.height)/2.f, attachment.image.size.width, attachment.image.size.height)];
-         
-         NSAttributedString *attachmentString = [NSAttributedString attributedStringWithAttachment:attachment];
-         [creatorString appendAttributedString:attachmentString];
-         }*/
-        
-        if (includeTimestamp) {
-            NSMutableAttributedString *connector = [[NSMutableAttributedString alloc] initWithString:@"  "];
-            [connector addAttribute:NSFontAttributeName value:font range:NSMakeRange(0, connector.length)];
-            [creatorString appendAttributedString:connector];
+        NSString *timeAgo = [NSDate mysqlDatetimeFormattedAsTimeAgo:post.attributes.createdAt withForm:TimeAgoShortForm];
+        if (timeAgo != nil) {
+            NSMutableAttributedString *timeAgoString = [[NSMutableAttributedString alloc] initWithString:timeAgo];
+            [timeAgoString addAttribute:NSForegroundColorAttributeName value:secondaryColor range:NSMakeRange(0, timeAgoString.length)];
+            [timeAgoString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:font.pointSize-2.f weight:UIFontWeightMedium] range:NSMakeRange(0, timeAgoString.length)];
             
-            NSString *timeAgo = [NSDate mysqlDatetimeFormattedAsTimeAgo:post.attributes.status.createdAt withForm:TimeAgoShortForm];
-            if (timeAgo != nil) {
-                NSMutableAttributedString *timeAgoString = [[NSMutableAttributedString alloc] initWithString:timeAgo];
-                [timeAgoString addAttribute:NSForegroundColorAttributeName value:[UIColor bonfireSecondaryColor] range:NSMakeRange(0, timeAgoString.length)];
-                [timeAgoString addAttribute:NSFontAttributeName value:font range:NSMakeRange(0, timeAgoString.length)];
-                
-                [creatorString appendAttributedString:timeAgoString];
-            }
+            [creatorString appendAttributedString:timeAgoString];
         }
-        else if (showCamptag && post.attributes.status.postedIn != 0) {
-            // create spacer
-            NSMutableAttributedString *spacer = [[NSMutableAttributedString alloc] initWithString:@" "];
-            [spacer addAttribute:NSFontAttributeName value:font range:NSMakeRange(0, spacer.length)];
-            
+    }
+    
+    if (showCamptag && post.attributes.postedIn != 0) {
+        // create spacer
+        NSMutableAttributedString *spacer = [[NSMutableAttributedString alloc] initWithString:@" "];
+        [spacer addAttribute:NSFontAttributeName value:font range:NSMakeRange(0, spacer.length)];
+        
+        if (showUsername) {
             // spacer
             [creatorString appendAttributedString:spacer];
             
@@ -266,30 +274,48 @@
             
             // spacer
             [creatorString appendAttributedString:spacer];
+        }
+        
+        NSString *identifier = post.attributes.postedIn.attributes.title;
+        if (post.attributes.postedIn.attributes.identifier.length > 0) {
+            identifier = [@"#" stringByAppendingString:post.attributes.postedIn.attributes.identifier];
+        }
+        
+        NSMutableAttributedString *campTitleString = [[NSMutableAttributedString alloc] initWithString:identifier];
+        [campTitleString addAttribute:NSForegroundColorAttributeName value:primaryColor range:NSMakeRange(0, campTitleString.length)];
+        [campTitleString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:font.pointSize weight:UIFontWeightSemibold] range:NSMakeRange(0, campTitleString.length)];
+        
+        [creatorString appendAttributedString:campTitleString];
+        
+        if ([post.attributes.postedIn.attributes.visibility isPrivate]) {
+            // spacer
+            [creatorString appendAttributedString:spacer];
             
-            NSString *identifier = post.attributes.status.postedIn.attributes.details.title;
-            if (post.attributes.status.postedIn.attributes.details.identifier.length > 0) {
-                identifier = [@"#" stringByAppendingString:post.attributes.status.postedIn.attributes.details.identifier];
-            }
+            NSTextAttachment *lockAttachment = [[NSTextAttachment alloc] init];
+            lockAttachment.image = [[UIImage imageNamed:@"details_label_private"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
             
-            NSMutableAttributedString *campTitleString = [[NSMutableAttributedString alloc] initWithString:identifier];
-            [campTitleString addAttribute:NSForegroundColorAttributeName value:[UIColor bonfirePrimaryColor] range:NSMakeRange(0, campTitleString.length)];
-            [campTitleString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:font.pointSize weight:UIFontWeightSemibold] range:NSMakeRange(0, campTitleString.length)];
+            CGFloat attachmentHeight = MIN(ceilf(font.lineHeight * 0.7), lockAttachment.image.size.height);
+            CGFloat attachmentWidth = attachmentHeight * (lockAttachment.image.size.width / lockAttachment.image.size.height);
             
-            [creatorString appendAttributedString:campTitleString];
+            [lockAttachment setBounds:CGRectMake(0, roundf(font.capHeight - attachmentHeight)/2.f, attachmentWidth, attachmentHeight)];
+                        
+            NSAttributedString *lockAttachmentString = [NSAttributedString attributedStringWithAttachment:lockAttachment];
+            [creatorString appendAttributedString:lockAttachmentString];
+        }
+        else if ([post.attributes.postedIn.attributes.display.format isEqualToString:CAMP_DISPLAY_FORMAT_CHANNEL]) {
+            // spacer
+            [creatorString appendAttributedString:spacer];
             
-            if ([post.attributes.status.postedIn.attributes.status.visibility isPrivate]) {
-                // spacer
-                [creatorString appendAttributedString:spacer];
-                
-                NSTextAttachment *lockAttachment = [[NSTextAttachment alloc] init];
-                lockAttachment.image = [[UIImage imageNamed:@"inlinePostLockIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-                
-                [lockAttachment setBounds:CGRectMake(0, roundf(font.capHeight - lockAttachment.image.size.height)/2.f, lockAttachment.image.size.width, lockAttachment.image.size.height)];
-                
-                NSAttributedString *lockAttachmentString = [NSAttributedString attributedStringWithAttachment:lockAttachment];
-                [creatorString appendAttributedString:lockAttachmentString];
-            }
+            NSTextAttachment *sourceAttachment = [[NSTextAttachment alloc] init];
+            sourceAttachment.image = [[UIImage imageNamed:@"details_label_source"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+            
+            CGFloat attachmentHeight = MIN(ceilf(font.lineHeight * 0.7), sourceAttachment.image.size.height);
+            CGFloat attachmentWidth = attachmentHeight * (sourceAttachment.image.size.width / sourceAttachment.image.size.height);
+            
+            [sourceAttachment setBounds:CGRectMake(0, roundf(font.capHeight - attachmentHeight)/2.f, attachmentWidth, attachmentHeight)];
+            
+            NSAttributedString *lockAttachmentString = [NSAttributedString attributedStringWithAttachment:sourceAttachment];
+            [creatorString appendAttributedString:lockAttachmentString];
         }
         
         return creatorString;
@@ -318,6 +344,21 @@
     UIGraphicsEndImageContext();
     
     return coloredImage;
+}
+
+- (void)setHighlighted:(BOOL)highlighted animated:(BOOL)animated {
+    [super setHighlighted:highlighted animated:animated];
+    
+    if (self.selectable) {
+        [UIView animateWithDuration:animated?0.15f:0 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+            if (highlighted) {
+                self.backgroundColor = [UIColor contentHighlightedColor];
+            }
+            else {
+                self.backgroundColor = [UIColor contentBackgroundColor];
+            }
+        } completion:nil];
+    }
 }
 
 @end

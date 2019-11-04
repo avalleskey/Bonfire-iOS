@@ -10,6 +10,7 @@
 #import "BFMedia.h"
 #import "BFHostedVersions.h"
 #import "BFContext.h"
+#import "BFLink.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -19,19 +20,14 @@ NS_ASSUME_NONNULL_BEGIN
 
 @class Post;
 @class PostAttributes;
-@class PostStatus;
-@class PostStatusDisplay;
-@class PostStatusDisplayFormat;
+@class PostDisplay;
+@class PostDisplayFormat;
 @class PostCounts;
 @class PostSummaries;
-@class PostDetails;
-@class PostDetails;
 @class PostAttachments;
 @class PostAttachmentsMedia;
 @class PostAttachmentsMediaAtributes;
 @class PostAttachmentsMediaAtributesRawMedia;
-@class PostAttachmentsLink;
-@class PostAttachmentsLinkAttributes;
 @class PostEntity;
 
 @interface Post : JSONModel
@@ -47,11 +43,15 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)hasLinkAttachment;
 - (BOOL)hasUserAttachment;
 - (BOOL)hasCampAttachment;
+- (BOOL)isRemoved;
 
-- (void)createTempWithMessage:(NSString *)message media:(BFMedia *)media postedIn:(Camp * _Nullable)postedIn parentId:(NSString *)parentId;
+- (void)createTempWithMessage:(NSString *)message media:(BFMedia *)media postedIn:(Camp * _Nullable)postedIn parent:(Post *)parent;
 + (NSString *_Nullable)trimString:(NSString *_Nullable)string;
+
 - (BOOL)isEmojiPost;
 
+@property (nonatomic) BOOL containsMention;
+@property (nonatomic) BOOL isCreator;
 @property (nonatomic) NSString <Optional> *prevCursor;
 @property (nonatomic) NSString <Optional> *nextCursor;
 
@@ -59,15 +59,10 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface PostAttributes : JSONModel
 
-@property (nonatomic) PostDetails <Optional> *details;
-@property (nonatomic) PostStatus <Optional> *status;
 @property (nonatomic) PostSummaries <Optional> *summaries;
 @property (nonatomic) BFContext <Optional> *context;
 
-@end
-
-@interface PostDetails : JSONModel
-
+// details
 @property (nonatomic) NSString <Optional> *message;
 @property (nonatomic) PostAttachments <Optional> *attachments;
 @property (nonatomic) NSArray <PostEntity *> <PostEntity, Optional> *entities;
@@ -76,36 +71,35 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic) NSArray <Optional> *media;
 @property (nonatomic) User <Optional> *creator;
 // parent post ID --> used for Post replies
-@property (nonatomic) NSString <Optional> *parentId;
-@property (nonatomic) NSString <Optional> *parentUsername;
+@property (nonatomic) Post <Optional> *parent;
 @property (nonatomic) NSArray <Post *> <Post, Optional> * _Nullable replies;
-
 @property (nonatomic) BOOL emojify;
-
 - (NSString *)simpleMessage;
 
-@end
-
-@interface PostStatus : JSONModel
-
+// status
 @property (nonatomic) Camp <Optional> *postedIn;
 @property (nonatomic) NSString <Optional> *createdAt;
-@property (nonatomic) PostStatusDisplay <Optional> *display;
+@property (nonatomic) PostDisplay <Optional> *display;
+
+// removed
+@property (nonatomic) NSString <Optional> *removedAt;
+@property (nonatomic) NSString <Optional> *removedReason;
 
 @end
 
-@interface PostStatusDisplay : JSONModel
+@interface PostDisplay : JSONModel
 
 extern NSString * const POST_DISPLAY_CREATOR_CAMP;
-extern NSString * const POST_DISPLAY_CREATOR_USER;
 @property (nonatomic) NSString <Optional> *creator;
-@property (nonatomic) PostStatusDisplayFormat <Optional> *format;
+
+@property (nonatomic) PostDisplayFormat <Optional> *format;
 
 @end
 
-@interface PostStatusDisplayFormat : JSONModel
+@interface PostDisplayFormat : JSONModel
 
 extern NSString * const POST_DISPLAY_FORMAT_ICEBREAKER;
+extern NSString * const POST_DISPLAY_FORMAT_;
 @property (nonatomic) NSString <Optional> *type;
 
 @end
@@ -113,7 +107,7 @@ extern NSString * const POST_DISPLAY_FORMAT_ICEBREAKER;
 @interface PostCounts : JSONModel
 
 @property (nonatomic) NSInteger replies;
-@property (nonatomic) NSInteger live;
+@property (nonatomic) NSInteger score;
 
 @end
 
@@ -127,7 +121,7 @@ extern NSString * const POST_DISPLAY_FORMAT_ICEBREAKER;
 @interface PostAttachments : JSONModel
 
 @property (nonatomic) NSArray <PostAttachmentsMedia *> <PostAttachmentsMedia, Optional> *media;
-@property (nonatomic) PostAttachmentsLink <Optional> *link;
+@property (nonatomic) BFLink <Optional> *link;
 @property (nonatomic) Camp <Optional> *camp;
 @property (nonatomic) User <Optional> *user;
 
@@ -163,94 +157,6 @@ typedef enum {
 @interface PostAttachmentsMediaAtributesRawMedia : JSONModel
 
 @property (nonatomic) NSString <Optional> *value;
-
-@end
-
-@interface PostAttachmentsLink : JSONModel
-
-@property (nonatomic) NSString <Optional> *identifier;
-@property (nonatomic) NSString <Optional> *type;
-@property (nonatomic) PostAttachmentsLinkAttributes <Optional> *attributes;
-
-@end
-
-@interface PostAttachmentsLinkAttributes : JSONModel
-
-/**
- The full URL that metadata was retrieved from. What they paste.
- */
-@property (nonatomic) NSString <Optional> *actionUrl;
-
-/**
- The URL that metadata was retrieved from. Where the conversations collect.
-   This is used in setting the custom content identifier property.
- */
-@property (nonatomic) NSString <Optional> *canonicalUrl;
-
-/**
- An icon for the URL. In most cases, this is the URL's favicon.
- */
-@property (nonatomic) NSString <Optional> *iconUrl;
-
-/**
- An image for the URL. In most cases, this is the URL's OG image property value.
- */
-@property (nonatomic) NSArray <Optional> *images;
-
-/**
- Site name to display. In most cases, this will be a pretty-fied URL. If available,
- this will use the URL's OG site property value.
- */
-@property (nonatomic) NSString <Optional> *site;
-
-/**
- A title for the URL. In most cases, this is the URL's <title> attribute.
- */
-@property (nonatomic) NSString <Optional> *linkTitle;
-
-/**
- A detail text for the URL. This can be anything from the URL's OG
- description to the first few lines of the URL's body.
- */
-@property (nonatomic) NSString <Optional> *theDescription;
-
-/**
- In the case that a bot posts inside a For Everyone Camp, a postedIn
-  camp will be provided, so users can discover more posts like it.
- */
-@property (nonatomic) Camp <Optional> *postedIn;
-
-/**
- Always fallback to website.
- 
- Supported custom formats:
- - playable:audio
- - playable:video.
- */
-extern NSString * const POST_LINK_CUSTOM_FORMAT_AUDIO;
-extern NSString * const POST_LINK_CUSTOM_FORMAT_VIDEO;
-@property (nonatomic) NSString <Optional> *format;
-
-/**
- Content identifiers are a set of custom supported link sources.
- This allows us to style/format the link differently in special instances.
- */
-typedef enum {
-    BFLinkAttachmentContentIdentifierNone,
-    BFLinkAttachmentContentIdentifierYouTubeVideo, // works
-    BFLinkAttachmentContentIdentifierSpotifySong, // works
-    BFLinkAttachmentContentIdentifierSpotifyPlaylist, // works
-    BFLinkAttachmentContentIdentifierAppleMusicSong, // works
-    BFLinkAttachmentContentIdentifierAppleMusicAlbum, // works
-    BFLinkAttachmentContentIdentifierSoundCloud, // works
-    BFLinkAttachmentContentIdentifierApplePodcast,
-    // BFLinkAttachmentContentIdentifierTwitterPost,
-    // BFLinkAttachmentContentIdentifierRedditPost
-} BFLinkAttachmentContentIdentifier;
-/**
- Internal value for the content identifier.
- */
-@property (nonatomic) BFLinkAttachmentContentIdentifier contentIdentifier;
 
 @end
 

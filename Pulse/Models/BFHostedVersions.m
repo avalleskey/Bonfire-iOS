@@ -10,6 +10,13 @@
 
 @implementation BFHostedVersions
 
+- (instancetype)initWithDictionary:(NSDictionary *)dict error:(NSError **)err {
+    BFHostedVersions *instance = [super initWithDictionary:dict error:err];
+    instance.suggested = instance.full;
+    
+    return instance;
+}
+
 + (JSONKeyMapper *)keyMapper
 {
     return [JSONKeyMapper mapperForSnakeCase];
@@ -17,10 +24,6 @@
 
 + (BOOL)propertyIsOptional:(NSString *)propertyName {
     return true;
-}
-
-- (BFHostedVersionObject *)suggested {
-    return self.full;
 }
 
 @end

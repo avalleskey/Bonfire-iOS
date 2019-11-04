@@ -17,16 +17,17 @@
 #import "BFCampAttachmentView.h"
 #import "BFUserAttachmentView.h"
 #import "BFSmartLinkAttachmentView.h"
+#import "BFPostDeletedAttachmentView.h"
 
 #import <BlocksKit/BlocksKit+UIKit.h>
 #import "NSDate+NVTimeAgo.h"
 
-#import <Messages/Messages.h>
-#import <MessageUI/MessageUI.h>
 #import <ResponsiveLabel/ResponsiveLabel.H>
 #import <UIFont+Poppins.h>
 
 #define POST_EMOJI_SIZE_MULTIPLIER 2
+
+NS_ASSUME_NONNULL_BEGIN
 
 @interface PostCell : UITableViewCell <UITextFieldDelegate, PostTextViewDelegate>
 
@@ -53,24 +54,33 @@
 
 @property (nonatomic, strong) PostImagesView *imagesView;
 
-@property (nonatomic, strong) BFLinkAttachmentView *linkAttachmentView;
+@property (nonatomic, strong) BFLinkAttachmentView * _Nullable linkAttachmentView;
 - (void)removeLinkAttachment;
 - (void)initLinkAttachment;
 
-@property (nonatomic, strong) BFSmartLinkAttachmentView *smartLinkAttachmentView;
+@property (nonatomic, strong) BFSmartLinkAttachmentView * _Nullable smartLinkAttachmentView;
 - (void)removeSmartLinkAttachment;
 - (void)initSmartLinkAttachment;
 
-@property (nonatomic, strong) BFUserAttachmentView *userAttachmentView;
+@property (nonatomic, strong) BFUserAttachmentView * _Nullable userAttachmentView;
 - (void)removeUserAttachment;
 - (void)initUserAttachment;
 
-@property (nonatomic, strong) BFCampAttachmentView *campAttachmentView;
+@property (nonatomic, strong) BFCampAttachmentView * _Nullable campAttachmentView;
 - (void)removeCampAttachment;
 - (void)initCampAttachment;
 
+@property (nonatomic, strong) BFPostDeletedAttachmentView * _Nullable postRemovedAttachmentView;
+- (void)removePostRemovedAttachment;
+- (void)initPostRemovedAttachment;
+
 @property (nonatomic, strong) UIView *lineSeparator;
 
-+ (NSAttributedString *)attributedCreatorStringForPost:(Post *)post includeTimestamp:(BOOL)includeTimestamp showCamptag:(BOOL)showCamptag;
++ (NSAttributedString *)attributedCreatorStringForPost:(Post *)post includeTimestamp:(BOOL)includeTimestamp showCamptag:(BOOL)showCamptag primaryColor:(UIColor * _Nullable)primaryColor;
+
+@property (nonatomic, strong) UIView *topLine;
+@property (nonatomic, strong) UIView *bottomLine;
 
 @end
+
+NS_ASSUME_NONNULL_END

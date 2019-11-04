@@ -18,6 +18,7 @@ extern NSString * const CAMP_STATUS_CAN_EDIT;
 - (void)updateStatus:(NSString *)status;
 
 @property (nonatomic, strong) NSString *status;
+@property (nonatomic, strong) NSString *followString;
 
 @end
 

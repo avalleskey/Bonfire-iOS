@@ -9,10 +9,19 @@
 #import "CampFollowButton.h"
 #import "Session.h"
 #import "UIColor+Palette.h"
+#import <HapticHelper/HapticHelper.h>
 
 @implementation CampFollowButton
 
 NSString * const CAMP_STATUS_CAN_EDIT = @"admin";
+
+- (id)init {
+    if (self = [super init]) {
+        self.followString = [NSString stringWithFormat:@"Follow %@", @"Camp"];
+    }
+    
+    return self;
+}
 
 - (void)updateStatus:(NSString *)status {
     if (status) {
@@ -28,7 +37,7 @@ NSString * const CAMP_STATUS_CAN_EDIT = @"admin";
     }
     else if ([status isEqualToString:CAMP_STATUS_MEMBER]) {
         [self setImage:[[UIImage imageNamed:@"checkIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
-        [self setTitle:[NSString stringWithFormat:@"%@", [Session sharedInstance].defaults.camp.followingVerb] forState:UIControlStateNormal];
+        [self setTitle:@"Following" forState:UIControlStateNormal];
     }
     else if ([status isEqualToString:CAMP_STATUS_REQUESTED]) {
         [self setImage:[[UIImage imageNamed:@"clockIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
@@ -38,10 +47,6 @@ NSString * const CAMP_STATUS_CAN_EDIT = @"admin";
         [self setImage:[[UIImage imageNamed:@"blockedIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
         [self setTitle:@"Blocked" forState:UIControlStateNormal];
     }
-    else if ([status isEqualToString:CAMP_STATUS_CAMP_BLOCKED]) {
-        [self setImage:[[UIImage imageNamed:@"blockedIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
-        [self setTitle:@"Unavailable" forState:UIControlStateNormal];
-    }
     else if ([status isEqualToString:CAMP_STATUS_LOADING]) {
         [self setImage:nil forState:UIControlStateNormal];
         [self setTitle:@"Loading..." forState:UIControlStateNormal];
@@ -49,7 +54,7 @@ NSString * const CAMP_STATUS_CAN_EDIT = @"admin";
     else {
         // STATUS_LEFT, STATUS_NO_RELATION, STATUS_INVITED
         [self setImage:[[UIImage imageNamed:@"plusIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
-        [self setTitle:[NSString stringWithFormat:@"%@ %@", [Session sharedInstance].defaults.camp.followVerb, [Session sharedInstance].defaults.keywords.groupTitles.singular] forState:UIControlStateNormal];
+        [self setTitle:self.followString forState:UIControlStateNormal];
     }
     
     // set filled state + colors
@@ -59,7 +64,7 @@ NSString * const CAMP_STATUS_CAN_EDIT = @"admin";
     if ([status isEqualToString:CAMP_STATUS_CAN_EDIT] ||
         [status isEqualToString:CAMP_STATUS_MEMBER] ||
         [status isEqualToString:CAMP_STATUS_REQUESTED] ||
-        [status isEqualToString:USER_STATUS_LOADING]) {
+        [status isEqualToString:CAMP_STATUS_LOADING]) {
         self.layer.borderWidth = 1.f;
         self.backgroundColor = [UIColor clearColor];
         
@@ -78,9 +83,9 @@ NSString * const CAMP_STATUS_CAN_EDIT = @"admin";
         UIColor *tintColor = [UIColor whiteColor];
         UIColor *titleColor = [UIColor whiteColor];
         
+        BOOL userInteractionEnabled = true;
         if ([status isEqualToString:CAMP_STATUS_REQUESTED] ||
-                 [status isEqualToString:CAMP_STATUS_BLOCKED] ||
-                 [status isEqualToString:CAMP_STATUS_CAMP_BLOCKED]) {
+            [status isEqualToString:CAMP_STATUS_BLOCKED]) {
             backgroundColor = disabledColor;
         }
         else {
@@ -112,7 +117,6 @@ NSString * const CAMP_STATUS_CAN_EDIT = @"admin";
     
     if (![self.status isEqualToString:CAMP_STATUS_REQUESTED] &&
         ![self.status isEqualToString:CAMP_STATUS_BLOCKED] &&
-        ![self.status isEqualToString:CAMP_STATUS_CAMP_BLOCKED] &&
         ![self.status isEqualToString:CAMP_STATUS_LOADING]) {
         if (highlighted) {
             [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{

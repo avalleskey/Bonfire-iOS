@@ -26,9 +26,7 @@
 }
 
 - (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier {
-    self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
-    
-    if (self) {
+    if (self = [super initWithStyle:style reuseIdentifier:reuseIdentifier]) {
         self.nameLabel.hidden = true;
         
         CGRect screenRect = [[UIScreen mainScreen] bounds];
@@ -38,17 +36,11 @@
         self.contentView.layer.masksToBounds = false;
         
         self.replyingToButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        self.replyingToButton.frame = CGRectMake(0, 0, self.contentView.frame.size.width, 30);
-        [self.replyingToButton setImage:[UIImage imageNamed:@"replyingToUpArrow"] forState:UIControlStateNormal];
+        self.replyingToButton.frame = CGRectMake(expandedPostContentOffset.left, 0, self.contentView.frame.size.width - (expandedPostContentOffset.left + expandedPostContentOffset.right), 24);
         self.replyingToButton.backgroundColor = self.contentView.backgroundColor;
         [self.replyingToButton setTitleColor:[UIColor bonfireSecondaryColor] forState:UIControlStateNormal];
-        [self.replyingToButton setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 8)];
-        [self.replyingToButton setTitleEdgeInsets:UIEdgeInsetsMake(0, 8, 0, 0)];
-        UIView *replyingToSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, self.replyingToButton.frame.size.height - (1 / [UIScreen mainScreen].scale), self.frame.size.width, (1 / [UIScreen mainScreen].scale))];
-        replyingToSeparator.tag = 1;
-        replyingToSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
-        [self.replyingToButton addSubview:replyingToSeparator];
         self.replyingToButton.hidden = true;
+        self.replyingToButton.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
         [self.contentView addSubview:self.replyingToButton];
         
         self.primaryAvatarView.frame = CGRectMake(12, 12, 48, 48);
@@ -57,22 +49,22 @@
         
         self.creatorView = [[TappableView alloc] initWithFrame:CGRectMake(70, self.primaryAvatarView.frame.origin.y + (self.primaryAvatarView.frame.size.height / 2) - 16, 400, 32)];
         [self.creatorView bk_whenTapped:^{
-            if ([self.post.attributes.status.display.creator isEqualToString:POST_DISPLAY_CREATOR_CAMP] && self.post.attributes.status.postedIn != nil) {
-                [Launcher openCamp:self.post.attributes.status.postedIn];
+            if ([self.post.attributes.display.creator isEqualToString:POST_DISPLAY_CREATOR_CAMP] && self.post.attributes.postedIn != nil) {
+                [Launcher openCamp:self.post.attributes.postedIn];
             }
-            else if (self.post.attributes.details.creator != nil) {
-                [Launcher openProfile:self.post.attributes.details.creator];
+            else if (self.post.attributes.creator != nil) {
+                [Launcher openProfile:self.post.attributes.creator];
             }
         }];
         [self.contentView addSubview:self.creatorView];
         
         self.creatorTitleLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 400, 16)];
-        self.creatorTitleLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightBold];
+        self.creatorTitleLabel.font = [UIFont systemFontOfSize:15.f weight:UIFontWeightSemibold];
         self.creatorTitleLabel.textColor = [UIColor bonfirePrimaryColor];
         [self.creatorView addSubview:self.creatorTitleLabel];
         
-        self.creatorTagLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, self.creatorTitleLabel.frame.origin.y + self.creatorTitleLabel.frame.size.height + 2, self.creatorTitleLabel.frame.size.width, 14)];
-        self.creatorTagLabel.font = [UIFont systemFontOfSize:12.f weight:UIFontWeightSemibold];
+        self.creatorTagLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, self.creatorTitleLabel.frame.origin.y + self.creatorTitleLabel.frame.size.height + 2, self.creatorTitleLabel.frame.size.width, 16)];
+        self.creatorTagLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightMedium];
         self.creatorTagLabel.textColor = [UIColor bonfireSecondaryColor];
         [self.creatorView addSubview:self.creatorTagLabel];
         
@@ -90,8 +82,8 @@
         self.postedInButton.contentEdgeInsets = UIEdgeInsetsMake(0, 38, 0, 10);
         self.postedInButton.hidden = true;
         [self.postedInButton bk_whenTapped:^{
-            if (self.post.attributes.status.postedIn != nil) {
-                [Launcher openCamp:self.post.attributes.status.postedIn];
+            if (self.post.attributes.postedIn != nil) {
+                [Launcher openCamp:self.post.attributes.postedIn];
             }
         }];
         [self.postedInButton bk_addEventHandler:^(id sender) {
@@ -116,12 +108,11 @@
         // text view
         self.textView.frame = CGRectMake(expandedPostContentOffset.left, self.primaryAvatarView.frame.origin.y + self.primaryAvatarView.frame.size.height + 12, [UIScreen mainScreen].bounds.size.width - expandedPostContentOffset.right - expandedPostContentOffset.left, 200);
         self.textView.messageLabel.font = expandedTextViewFont;
+        self.textView.messageLabel.selectable = true;
         self.textView.delegate = self;
         self.textView.maxCharacters = 10000;
         self.textView.postId = self.post.identifier;
-        
-        self.dateLabel.hidden = true;
-        
+                
         self.activityView = [[PostActivityView alloc] initWithFrame:CGRectMake(0, self.textView.frame.origin.y + self.textView.frame.size.height, self.frame.size.width, 30)];
         [self.contentView addSubview:self.activityView];
         
@@ -149,14 +140,14 @@
                 }];
             }
         }];
-        [self.actionsView.shareButton bk_whenTapped:^{
-            [Launcher sharePost:self.post];
+        [self.actionsView.moreButton bk_whenTapped:^{
+            [Launcher openActionsForPost:self.post];
         }];
         [self.contentView addSubview:self.actionsView];
         
-        // image view
-        // self.pictureView = [[UIImageView alloc] initWithFrame:CGRectMake(self.textView.frame.origin.x, 56, self.textView.frame.size.width, 120)];
-        self.imagesView.layer.cornerRadius = 16.f;
+        self.moreButton.hidden = true;
+        
+        self.imagesView.layer.cornerRadius = 0;
         
         self.lineSeparator.hidden = false;
         self.lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
@@ -169,39 +160,22 @@
 - (void)layoutSubviews
 {
     [super layoutSubviews];
-    
-    NSLog(@"layout those subviews boi");
-    
+        
     self.contentView.frame = self.bounds;
     
-    CGFloat yBottom = ([self.replyingToButton isHidden] ? 0 : self.replyingToButton.frame.size.height);
+    CGFloat yBottom = expandedPostContentOffset.top;
+    
+    self.primaryAvatarView.frame = CGRectMake(self.primaryAvatarView.frame.origin.x, yBottom, self.primaryAvatarView.frame.size.width, self.primaryAvatarView.frame.size.height);
+    yBottom = self.primaryAvatarView.frame.origin.y + self.primaryAvatarView.frame.size.height + 16;
     
     if (![self.replyingToButton isHidden]) {
-        self.replyingToButton.frame = CGRectMake(0, 0, self.frame.size.width, self.replyingToButton.frame.size.height);
+        self.replyingToButton.frame = CGRectMake(expandedPostContentOffset.left, yBottom, self.frame.size.width - (expandedPostContentOffset.left + expandedPostContentOffset.right), self.replyingToButton.frame.size.height);
         [self.replyingToButton viewWithTag:1].frame = CGRectMake(0, self.replyingToButton.frame.size.height - (1 / [UIScreen mainScreen].scale), self.replyingToButton.frame.size.width, (1 / [UIScreen mainScreen].scale));
-    }
-    
-    self.primaryAvatarView.frame = CGRectMake(self.primaryAvatarView.frame.origin.x, yBottom + 12, self.primaryAvatarView.frame.size.width, self.primaryAvatarView.frame.size.height);
-    
-    // -- vote button
-    BOOL isVoted = self.post.attributes.context.post.vote != nil;
-    [self setVoted:isVoted withAnimation:false];
-    
-    // -- text view
-    self.textView.frame = CGRectMake(expandedPostContentOffset.left, self.primaryAvatarView.frame.origin.y + self.primaryAvatarView.frame.size.height + 12, self.frame.size.width - (expandedPostContentOffset.left + expandedPostContentOffset.right), self.textView.frame.size.height);
-    if (self.post.attributes.details.simpleMessage.length > 0) {
-        self.textView.tintColor = self.tintColor;
-    }
-    yBottom = self.textView.frame.origin.y + self.textView.frame.size.height;
-    
-    if (![self.moreButton isHidden]) {
-        CGFloat moreButtonPadding = 12;
-        CGFloat moreButtonWidth = self.moreButton.currentImage.size.width + (moreButtonPadding * 2);
-        self.moreButton.frame = CGRectMake(self.frame.size.width - moreButtonWidth - expandedPostContentOffset.right + moreButtonPadding, (self.primaryAvatarView.frame.origin.y + self.primaryAvatarView.frame.size.height / 2) - 20 - moreButtonPadding, moreButtonWidth, 40 + (moreButtonPadding * 2));
+        yBottom = self.replyingToButton.frame.origin.y + self.replyingToButton.frame.size.height;
     }
     
     CGFloat headerDetailsMaxWidth = (self.moreButton.frame.origin.x - self.creatorView.frame.origin.x);
-    CGFloat creatorMaxWidth = headerDetailsMaxWidth * (self.post.attributes.status.postedIn != nil ? 0.6 : 1);
+    CGFloat creatorMaxWidth = headerDetailsMaxWidth * (self.post.attributes.postedIn != nil ? 0.6 : 1);
     
     CGFloat creatorTitleWidth = ceilf([self.creatorTitleLabel.attributedText boundingRectWithSize:CGSizeMake(creatorMaxWidth, self.creatorTitleLabel.frame.size.height) options:(NSStringDrawingUsesFontLeading|NSStringDrawingUsesLineFragmentOrigin)  context:nil].size.width);
     self.creatorTitleLabel.frame = CGRectMake(0, self.creatorTitleLabel.frame.origin.y, creatorTitleWidth, self.creatorTitleLabel.frame.size.height);
@@ -230,82 +204,109 @@
         self.postedInButton.frame = CGRectMake(postedInButtonXOrigin, self.creatorView.frame.origin.y + (self.creatorView.frame.size.height / 2) - (self.postedInButton.frame.size.height / 2), postedInButtonWidth, self.postedInButton.frame.size.height);
     }
     
-    
-    BOOL hasImage = (self.post.attributes.details.media.count > 0 || self.post.attributes.details.attachments.media.count > 0); //self.post.images != nil && self.post.images.count > 0;
-    if (hasImage) {
-        self.imagesView.hidden = false;
+    if ([self.post isRemoved]) {
+        self.imagesView.hidden = true;
         
-        CGFloat imageWidth = self.frame.size.width - (expandedPostContentOffset.left + expandedPostContentOffset.right);
-        CGFloat imageHeight = expandedImageHeightDefault;
-        
-        if (self.post.attributes.details.attachments.media.count == 1 && [[self.post.attributes.details.attachments.media firstObject] isKindOfClass:[PostAttachmentsMedia class]]) {
-            NSString *imageURL = self.post.attributes.details.attachments.media[0].attributes.hostedVersions.suggested.url;
-            UIImage *memoryImage = [[SDImageCache sharedImageCache] imageFromMemoryCacheForKey:imageURL];
-            if (memoryImage) {
-                UIImage *memoryImage = [[SDImageCache sharedImageCache] imageFromMemoryCacheForKey:imageURL];
-                if (memoryImage) {
-                    CGFloat heightToWidthRatio = memoryImage.size.height / memoryImage.size.width;
-                    imageHeight = roundf(imageWidth * heightToWidthRatio);
-                    
-                    if (imageHeight < 100) {
-                        // NSLog(@"too small muchacho");
-                        imageHeight = 100;
-                    }
-                    if (imageHeight > 480) {
-                        // NSLog(@"too big muchacho");
-                        imageHeight = 480;
-                    }
-                }
-            }
-            else {
-                UIImage *diskImage = [[SDImageCache sharedImageCache] imageFromDiskCacheForKey:imageURL];
-                
-                if (diskImage) {
-                    // disk image!
-                    CGFloat heightToWidthRatio = diskImage.size.height / diskImage.size.width;
-                    imageHeight = roundf(imageWidth * heightToWidthRatio);
-                    
-                    if (imageHeight < 100) {
-                        // NSLog(@"too small muchacho");
-                        imageHeight = 100;
-                    }
-                    if (imageHeight > 480) {
-                        // NSLog(@"too big muchacho");
-                        imageHeight = 480;
-                    }
-                }
-            }
+        if (self.postRemovedAttachmentView) {
+            [self.postRemovedAttachmentView layoutSubviews];
+            self.postRemovedAttachmentView.frame = CGRectMake(expandedPostContentOffset.left, yBottom, self.frame.size.width - expandedPostContentOffset.left - expandedPostContentOffset.right, [BFPostDeletedAttachmentView heightForMessage:self.postRemovedAttachmentView.message width: self.frame.size.width-(expandedPostContentOffset.left+expandedPostContentOffset.right)]);
+            
+//            yBottom = self.postRemovedAttachmentView.frame.origin.y + self.postRemovedAttachmentView.frame.size.height;
         }
-        
-        self.imagesView.frame = CGRectMake(expandedPostContentOffset.left, yBottom + (self.textView.message.length > 0 ? 8 : 0), imageWidth, imageHeight);
-        
-        yBottom = self.imagesView.frame.origin.y + self.imagesView.frame.size.height;
     }
     else {
-        self.imagesView.hidden = true;
-    }
-    
-    if (self.linkAttachmentView) {
-        [self.linkAttachmentView layoutSubviews];
-        self.linkAttachmentView.frame = CGRectMake(expandedPostContentOffset.left, yBottom + 8, self.frame.size.width - expandedPostContentOffset.left - expandedPostContentOffset.right, [BFLinkAttachmentView heightForLink:self.linkAttachmentView.link width: self.frame.size.width-(expandedPostContentOffset.left+expandedPostContentOffset.right)]);
+        // -- vote button
+        BOOL isVoted = self.post.attributes.context.post.vote != nil;
+        [self setVoted:isVoted withAnimation:false];
         
-        yBottom = self.linkAttachmentView.frame.origin.y + self.linkAttachmentView.frame.size.height;
+        // -- text view
+        self.textView.frame = CGRectMake(expandedPostContentOffset.left, yBottom + ([self.replyingToButton isHidden] ? 0 : 4), self.frame.size.width - (expandedPostContentOffset.left + expandedPostContentOffset.right), self.textView.frame.size.height);
+        if (self.post.attributes.simpleMessage.length > 0) {
+            self.textView.tintColor = self.tintColor;
+        }
+        yBottom = self.textView.frame.origin.y + self.textView.frame.size.height;
+        
+        BOOL hasImage = (self.post.attributes.media.count > 0 || self.post.attributes.attachments.media.count > 0); //self.post.images != nil && self.post.images.count > 0;
+        if (hasImage) {
+            self.imagesView.hidden = false;
+            
+            CGFloat imageWidth = self.frame.size.width;
+            CGFloat imageHeight = expandedImageHeightDefault;
+            
+            if (self.post.attributes.attachments.media.count == 1 && [[self.post.attributes.attachments.media firstObject] isKindOfClass:[PostAttachmentsMedia class]]) {
+                NSString *imageURL = self.post.attributes.attachments.media[0].attributes.hostedVersions.suggested.url;
+                UIImage *memoryImage = [[SDImageCache sharedImageCache] imageFromMemoryCacheForKey:imageURL];
+                if (memoryImage) {
+                    UIImage *memoryImage = [[SDImageCache sharedImageCache] imageFromMemoryCacheForKey:imageURL];
+                    if (memoryImage) {
+                        CGFloat heightToWidthRatio = memoryImage.size.height / memoryImage.size.width;
+                        imageHeight = roundf(imageWidth * heightToWidthRatio);
+                        
+                        if (imageHeight < 100) {
+                            // NSLog(@"too small muchacho");
+                            imageHeight = 100;
+                        }
+                        if (imageHeight > 480) {
+                            // NSLog(@"too big muchacho");
+                            imageHeight = 480;
+                        }
+                    }
+                }
+                else {
+                    UIImage *diskImage = [[SDImageCache sharedImageCache] imageFromDiskCacheForKey:imageURL];
+                    
+                    if (diskImage) {
+                        // disk image!
+                        CGFloat heightToWidthRatio = diskImage.size.height / diskImage.size.width;
+                        imageHeight = roundf(imageWidth * heightToWidthRatio);
+                        
+                        if (imageHeight < 100) {
+                            // NSLog(@"too small muchacho");
+                            imageHeight = 100;
+                        }
+                        if (imageHeight > 480) {
+                            // NSLog(@"too big muchacho");
+                            imageHeight = 480;
+                        }
+                    }
+                }
+            }
+            
+            self.imagesView.frame = CGRectMake(0, yBottom + (self.textView.message.length > 0 || ![self.replyingToButton isHidden] ? 8 : 0), imageWidth, imageHeight);
+            
+            yBottom = self.imagesView.frame.origin.y + self.imagesView.frame.size.height;
+        }
+        else {
+            self.imagesView.hidden = true;
+        }
+        
+        if (self.linkAttachmentView) {
+            [self.linkAttachmentView layoutSubviews];
+            self.linkAttachmentView.frame = CGRectMake(expandedPostContentOffset.left, yBottom + 8, self.frame.size.width - expandedPostContentOffset.left - expandedPostContentOffset.right, [BFLinkAttachmentView heightForLink:self.linkAttachmentView.link width: self.frame.size.width-(expandedPostContentOffset.left+expandedPostContentOffset.right)]);
+            
+            yBottom = self.linkAttachmentView.frame.origin.y + self.linkAttachmentView.frame.size.height;
+        }
+        
+        self.actionsView.frame = CGRectMake(expandedPostContentOffset.left, yBottom + 20, self.frame.size.width - (expandedPostContentOffset.left + expandedPostContentOffset.right), self.actionsView.frame.size.height);
+        yBottom = self.actionsView.frame.origin.y + self.actionsView.frame.size.height;
+        
+        self.activityView.frame = CGRectMake(0, yBottom, self.frame.size.width, 30);
+//        yBottom = self.activityView.frame.origin.y + self.activityView.frame.size.height;
+        
+        self.actionsView.topSeparator.frame = CGRectMake(0, self.actionsView.topSeparator.frame.origin.y, self.actionsView.frame.size.width, self.actionsView.topSeparator.frame.size.height);
+        self.actionsView.bottomSeparator.frame = CGRectMake(-1 * self.actionsView.frame.origin.x, self.actionsView.frame.size.height - self.actionsView.bottomSeparator.frame.size.height, self.actionsView.frame.size.width + (self.actionsView.frame.origin.x * 2), self.actionsView.bottomSeparator.frame.size.height);
+        // self.actionsView.middleSeparator.frame = CGRectMake(self.actionsView.frame.size.width / 2 - .5, 8, 1, self.actionsView.frame.siz e.height - 16);
+        
+        self.actionsView.replyButton.frame = CGRectMake(0, 0, self.actionsView.frame.size.width / 3, self.actionsView.frame.size.height);
+        self.actionsView.voteButton.frame = CGRectMake(self.actionsView.replyButton.frame.size.width, 0, self.actionsView.frame.size.width / 3, self.actionsView.frame.size.height);
+        self.actionsView.moreButton.frame = CGRectMake(self.actionsView.frame.size.width - (self.actionsView.frame.size.width / 3), 0, self.actionsView.frame.size.width / 3, self.actionsView.frame.size.height);
     }
+        
+    self.lineSeparator.frame = CGRectMake(0, self.frame.size.height - self.lineSeparator.frame.size.height,  self.frame.size.width, self.lineSeparator.frame.size.height);
     
-    // -- actions view
-    self.actionsView.frame = CGRectMake(expandedPostContentOffset.left, yBottom + 16, self.frame.size.width - (expandedPostContentOffset.left + expandedPostContentOffset.right), self.actionsView.frame.size.height);
-    
-    self.activityView.frame = CGRectMake(0, self.actionsView.frame.origin.y + self.actionsView.frame.size.height, self.frame.size.width, 30);
-    
-    self.lineSeparator.frame = CGRectMake(0, self.activityView.frame.origin.y + self.activityView.frame.size.height - self.lineSeparator.frame.size.height, self.frame.size.width, self.lineSeparator.frame.size.height);
-    
-    self.actionsView.topSeparator.frame = CGRectMake(0, self.actionsView.topSeparator.frame.origin.y, self.actionsView.frame.size.width, self.actionsView.topSeparator.frame.size.height);
-    self.actionsView.bottomSeparator.frame = CGRectMake(-self.actionsView.frame.origin.x, self.actionsView.frame.size.height - self.actionsView.bottomSeparator.frame.size.height, self.actionsView.frame.size.width + (self.actionsView.frame.origin.x * 2), self.actionsView.bottomSeparator.frame.size.height);
-    // self.actionsView.middleSeparator.frame = CGRectMake(self.actionsView.frame.size.width / 2 - .5, 8, 1, self.actionsView.frame.siz e.height - 16);
-    
-    self.actionsView.replyButton.frame = CGRectMake(0, 0, self.actionsView.frame.size.width / 3, self.actionsView.frame.size.height);
-    self.actionsView.voteButton.frame = CGRectMake(self.actionsView.replyButton.frame.size.width, 0, self.actionsView.frame.size.width / 3, self.actionsView.frame.size.height);
-    self.actionsView.shareButton.frame = CGRectMake(self.actionsView.frame.size.width - (self.actionsView.frame.size.width / 3), 0, self.actionsView.frame.size.width / 3, self.actionsView.frame.size.height);
+    if (![self.topLine isHidden]) {
+        self.topLine.frame = CGRectMake(self.primaryAvatarView.frame.origin.x + (self.primaryAvatarView.frame.size.width / 2) - (self.topLine.frame.size.width / 2), -2, 3, (self.primaryAvatarView.frame.origin.y - 4) + 2);
+    }
 }
 
 - (void)continuityRadiusForView:(UIView *)sender withRadius:(CGFloat)radius {
@@ -355,53 +356,104 @@
     if ([post toDictionary] != [_post toDictionary]) {
         _post = post;
         
-        self.replyingToButton.hidden = self.post.attributes.details.parentId == 0;
+        self.replyingToButton.hidden = !self.post.attributes.parent;
         if (![self.replyingToButton isHidden]) {
-            UIFont *font = [UIFont systemFontOfSize:12.f weight:UIFontWeightRegular];
+            UIFont *font = [UIFont systemFontOfSize:14.f weight:UIFontWeightRegular];
                     
             NSMutableAttributedString *attributedText = [[NSMutableAttributedString alloc] initWithString:@"Replying to " attributes:@{NSFontAttributeName: font, NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
             
-            NSAttributedString *attributedCreatorText = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"@%@", post.attributes.details.parentUsername] attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:font.pointSize weight:UIFontWeightSemibold], NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
+            NSAttributedString *attributedCreatorText = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"@%@", post.attributes.parent.attributes.creator.attributes.identifier] attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:font.pointSize weight:UIFontWeightSemibold], NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
             [attributedText appendAttributedString:attributedCreatorText];
             
             [self.replyingToButton setAttributedTitle:attributedText forState:UIControlStateNormal];
         }
         
         // set tint color
-        Camp *postedInCamp = self.post.attributes.status.postedIn;
+        Camp *postedInCamp = self.post.attributes.postedIn;
         if (postedInCamp != nil) {
-            self.tintColor = [UIColor fromHex:self.post.attributes.status.postedIn.attributes.details.color];
+            self.tintColor = [UIColor fromHex:self.post.attributes.postedIn.attributes.color];
         }
         else {
-            self.tintColor = [UIColor fromHex:self.post.attributes.details.creator.attributes.details.color];
+            self.tintColor = [UIColor fromHex:self.post.attributes.creator.attributes.color];
         }
         
-        UIFont *font = [post isEmojiPost] ? [UIFont systemFontOfSize:expandedTextViewFont.pointSize*POST_EMOJI_SIZE_MULTIPLIER] : expandedTextViewFont;
-        self.textView.messageLabel.font = font;
-        self.textView.postId = self.post.identifier;
-        
-        [self.textView setMessage:self.post.attributes.details.simpleMessage entities:self.post.attributes.details.entities];
-        
-        // todo: activity view init views
-        self.activityView.post = self.post;
-        
-        //BOOL isReply = _post.attributes.details.parentId.length > 0;
-        
+        BOOL removed = [self.post isRemoved];
+        self.actionsView.hidden = removed;
+        self.activityView.hidden = removed;
+        if (removed) {
+            [self initPostRemovedAttachment];
+            
+            if (self.linkAttachmentView) {
+                [self removeLinkAttachment];
+            }
+        }
+        else {
+            UIFont *font = [post isEmojiPost] ? [UIFont systemFontOfSize:expandedTextViewFont.pointSize*POST_EMOJI_SIZE_MULTIPLIER] : expandedTextViewFont;
+            self.textView.messageLabel.font = font;
+            self.textView.postId = self.post.identifier;
+            
+            [self.textView setMessage:self.post.attributes.simpleMessage entities:self.post.attributes.entities];
+            
+            NSArray *media;
+            if (self.post.attributes.attachments.media.count > 0) {
+                media = self.post.attributes.attachments.media;
+            }
+            else if (self.post.attributes.media.count > 0) {
+                media = self.post.attributes.media;
+            }
+            else {
+                media = @[];
+            }
+            [self.imagesView setMedia:media];
+            
+            if ([self.post hasLinkAttachment]) {
+                [self initLinkAttachment];
+            }
+            else if (self.linkAttachmentView) {
+                [self removeLinkAttachment];
+            }
+            
+            if (self.postRemovedAttachmentView) {
+                [self removePostRemovedAttachment];
+            }
+            
+            UIColor *theme;
+            if (postedInCamp) {
+                theme = [UIColor fromHex:self.post.attributes.postedIn.attributes.color adjustForOptimalContrast:true];
+            }
+            else {
+                theme = [UIColor fromHex:self.post.attributes.creator.attributes.color adjustForOptimalContrast:true];
+            }
+            self.activityView.post = self.post;
+            self.activityView.backgroundColor = [theme colorWithAlphaComponent:0.04];
+            self.activityView.tintColor = theme;
+            self.actionsView.tintColor = theme;
+        }
+                
         NSString *creatorTitle = @"Anonymous User";
         NSString *creatorTag = @"@anonymous";
-        if ([self.post.attributes.status.display.creator isEqualToString:POST_DISPLAY_CREATOR_CAMP] && self.post.attributes.status.postedIn != nil) {
-            creatorTitle = self.post.attributes.status.postedIn.attributes.details.title;
-            if (self.post.attributes.status.postedIn.attributes.details.identifier) {
-                creatorTag = [@"#" stringByAppendingString:self.post.attributes.status.postedIn.attributes.details.identifier];
+        if ([self.post.attributes.display.creator isEqualToString:POST_DISPLAY_CREATOR_CAMP] && self.post.attributes.postedIn != nil) {
+            creatorTitle = self.post.attributes.postedIn.attributes.title;
+            if (self.post.attributes.postedIn.attributes.identifier) {
+                creatorTag = [@"#" stringByAppendingString:self.post.attributes.postedIn.attributes.identifier];
             }
             
             self.postedInButton.hidden =
             self.postedInArrow.hidden  = YES;
         }
         else {
-            creatorTitle = self.post.attributes.details.creator.attributes.details.displayName;
-            if (self.post.attributes.details.creator.attributes.details.identifier) {
-                creatorTag = [@"@" stringByAppendingString:self.post.attributes.details.creator.attributes.details.identifier];
+            NSString *timeAgo;
+            if (_post.tempId) {
+                timeAgo = @"1s";
+            }
+            else {
+                timeAgo = [NSDate mysqlDatetimeFormattedAsTimeAgo:_post.attributes.createdAt withForm:TimeAgoShortForm];
+            }
+            
+            creatorTitle = self.post.attributes.creator.attributes.displayName;
+            if (self.post.attributes.creator.attributes.identifier) {
+//                creatorTag = [NSString stringWithFormat:@"%@ · %@", [@"@" stringByAppendingString:self.post.attributes.creator.attributes.identifier], timeAgo];
+                creatorTag = [NSString stringWithFormat:@"%@", [@"@" stringByAppendingString:self.post.attributes.creator.attributes.identifier]];
             }
             
             self.postedInButton.hidden =
@@ -409,9 +461,9 @@
         }
         
         if (creatorTitle) {
-            UIFont *creatorTitleFont = [UIFont systemFontOfSize:14.f weight:UIFontWeightBold];
+            UIFont *creatorTitleFont = [UIFont systemFontOfSize:15.f weight:UIFontWeightSemibold];
             NSMutableAttributedString *attributedCreatorTitle = [[NSMutableAttributedString alloc] initWithString:creatorTitle attributes:@{NSFontAttributeName:creatorTitleFont}];
-            BOOL isVerified = [self.post.attributes.details.creator isVerified];
+            BOOL isVerified = [self.post.attributes.creator isVerified];
             if (isVerified) {
                 NSMutableAttributedString *spacer = [[NSMutableAttributedString alloc] initWithString:@" "];
                 [spacer addAttribute:NSFontAttributeName value:creatorTitleFont range:NSMakeRange(0, spacer.length)];
@@ -431,150 +483,139 @@
             self.creatorTitleLabel.text = @"";
         }
         
-        self.creatorTagLabel.text   = creatorTag;
+        self.creatorTagLabel.text = creatorTag;
         
         if (![self.postedInButton isHidden]) {
-            if (self.post.attributes.status.postedIn.attributes.details.identifier.length > 0) {
-                NSString *identifier = self.post.attributes.status.postedIn.attributes.details.title;
-                if (self.post.attributes.status.postedIn.attributes.details.identifier.length > 0) {
-                    identifier = [@"#" stringByAppendingString:self.post.attributes.status.postedIn.attributes.details.identifier];
-                }
-                [self.postedInButton setTitle:identifier forState:UIControlStateNormal];
+            NSString *identifier;
+            if (self.post.attributes.postedIn.attributes.identifier.length > 0) {
+                identifier = [@"#" stringByAppendingString:self.post.attributes.postedIn.attributes.identifier];
             }
+            else {
+                identifier = self.post.attributes.postedIn.attributes.title;
+            }
+            [self.postedInButton setTitle:identifier forState:UIControlStateNormal];
             
             BFAvatarView *postedInAvatarView = [self.postedInButton viewWithTag:10];
             postedInAvatarView.camp = postedInCamp;
         }
         
-        if (self.primaryAvatarView.user != _post.attributes.details.creator) {
-            self.primaryAvatarView.user = _post.attributes.details.creator;
+        if ([self.post.attributes.display.creator isEqualToString:POST_DISPLAY_CREATOR_CAMP] && self.post.attributes.postedIn) {
+            if (self.primaryAvatarView.camp != _post.attributes.postedIn) {
+                self.primaryAvatarView.camp = _post.attributes.postedIn;
+            }
+        }
+        else {
+            if (self.primaryAvatarView.user != _post.attributes.creator) {
+                self.primaryAvatarView.user = _post.attributes.creator;
+            }
         }
         self.primaryAvatarView.online = false;
         
         BOOL showSecondaryAvatarView = false;
-        if ([post.attributes.status.display.creator isEqualToString:POST_DISPLAY_CREATOR_CAMP] && post.attributes.status.postedIn != nil) {
-            self.secondaryAvatarView.camp = post.attributes.status.postedIn;
+        if ([post.attributes.display.creator isEqualToString:POST_DISPLAY_CREATOR_CAMP] && post.attributes.postedIn != nil) {
+            self.secondaryAvatarView.camp = post.attributes.postedIn;
             // showSecondaryAvatarView = true;
         }
         self.secondaryAvatarView.hidden = !showSecondaryAvatarView;
-        
-        NSArray *media;
-        if (self.post.attributes.details.attachments.media.count > 0) {
-            media = self.post.attributes.details.attachments.media;
-        }
-        else if (self.post.attributes.details.media.count > 0) {
-            media = self.post.attributes.details.media;
-        }
-        else {
-            media = @[];
-        }
-        
-        if ([self.post hasLinkAttachment]) {
-            [self initLinkAttachment];
-        }
-        else if (self.linkAttachmentView) {
-            [self removeLinkAttachment];
-        }
-        
-        UIColor *theme;
-        if (postedInCamp) {
-            theme = [UIColor fromHex:self.post.attributes.status.postedIn.attributes.details.color];
-        }
-        else {
-            theme = [UIColor fromHex:self.post.attributes.details.creator.attributes.details.color];
-        }
-        self.activityView.backgroundColor = [theme colorWithAlphaComponent:0.06f];
-        self.activityView.tintColor = theme;
-        
-        [self.imagesView setMedia:media];
     }
 }
 
-+ (CGFloat)heightForPost:(Post *)post width:(CGFloat)contentWidth {
-    CGFloat height = (post.attributes.details.parentId != 0 ? 30 : 0);
+- (void)setHighlighted:(BOOL)highlighted animated:(BOOL)animated {
     
+}
+
++ (CGFloat)heightForPost:(Post *)post width:(CGFloat)contentWidth {
     // name @username • 2hr
     CGFloat avatarHeight = 48; // 2pt padding underneath
-    CGFloat avatarBottomPadding = 12; //15 + 14; // 14pt padding underneath
+    CGFloat avatarBottomPadding = 16;
     
-    height = height + avatarHeight + avatarBottomPadding;
+    CGFloat height = avatarHeight + avatarBottomPadding;
     
-    // message
-    BOOL hasMessage = post.attributes.details.simpleMessage.length > 0;
-    if (hasMessage) {
-        UIFont *font = [post isEmojiPost] ? [UIFont systemFontOfSize:expandedTextViewFont.pointSize*POST_EMOJI_SIZE_MULTIPLIER] : expandedTextViewFont;
-        CGFloat messageHeight = [PostTextView sizeOfBubbleWithMessage:post.attributes.details.simpleMessage withConstraints:CGSizeMake(contentWidth - expandedPostContentOffset.left - expandedPostContentOffset.right, CGFLOAT_MAX) font:font maxCharacters:[PostTextView entityBasedMaxCharactersForMessage:post.attributes.details.simpleMessage maxCharacters:CGFLOAT_MAX entities:post.attributes.details.entities]].height;
-        height = height + messageHeight;
+    BOOL hasParentPost = post.attributes.parent;
+    if (hasParentPost) {
+        height += 24;
     }
     
-    // image
-    BOOL hasImage = (post.attributes.details.media.count > 0 || post.attributes.details.attachments.media.count > 0);
-    if (hasMessage && hasImage) {
-        // spacing between message and image
-        height = height + 8;
-    }
-    
-    CGFloat imageWidth = contentWidth - (expandedPostContentOffset.left + expandedPostContentOffset.right);
-    CGFloat imageHeight = expandedImageHeightDefault;
-    
-    if (post.attributes.details.attachments.media.count == 1 && [[post.attributes.details.attachments.media firstObject] isKindOfClass:[PostAttachmentsMedia class]]) {
-        NSString *imageURL = post.attributes.details.attachments.media[0].attributes.hostedVersions.suggested.url;
+    BOOL removed = [post isRemoved];
+    if (removed) {
+        height += [BFPostDeletedAttachmentView heightForMessage:post.attributes.removedReason width:contentWidth-expandedPostContentOffset.left-expandedPostContentOffset.right];
         
-        UIImage *memoryImage = [[SDImageCache sharedImageCache] imageFromMemoryCacheForKey:imageURL];
-        if (memoryImage) {
+        height += 16; // bottom padding
+    }
+    else {
+        // message
+        BOOL hasMessage = post.attributes.simpleMessage.length > 0;
+        if (hasMessage) {
+            UIFont *font = [post isEmojiPost] ? [UIFont systemFontOfSize:expandedTextViewFont.pointSize*POST_EMOJI_SIZE_MULTIPLIER] : expandedTextViewFont;
+            CGFloat messageHeight = [PostTextView sizeOfBubbleWithMessage:post.attributes.simpleMessage withConstraints:CGSizeMake(contentWidth - expandedPostContentOffset.left - expandedPostContentOffset.right, CGFLOAT_MAX) font:font maxCharacters:[PostTextView entityBasedMaxCharactersForMessage:post.attributes.simpleMessage maxCharacters:CGFLOAT_MAX entities:post.attributes.entities] styleAsBubble:false].height;
+            height = height + messageHeight + (hasParentPost ? 4 : 0);
+        }
+        
+        // image
+        BOOL hasImage = (post.attributes.media.count > 0 || post.attributes.attachments.media.count > 0);
+        if (hasImage && (hasMessage || hasParentPost)) {
+            // spacing between message and image
+            height = height + 8;
+        }
+        
+        CGFloat imageWidth = contentWidth;
+        CGFloat imageHeight = expandedImageHeightDefault;
+        
+        if (post.attributes.attachments.media.count == 1 && [[post.attributes.attachments.media firstObject] isKindOfClass:[PostAttachmentsMedia class]]) {
+            NSString *imageURL = post.attributes.attachments.media[0].attributes.hostedVersions.suggested.url;
+            
             UIImage *memoryImage = [[SDImageCache sharedImageCache] imageFromMemoryCacheForKey:imageURL];
             if (memoryImage) {
-                CGFloat heightToWidthRatio = memoryImage.size.height / memoryImage.size.width;
-                imageHeight = roundf(imageWidth * heightToWidthRatio);
-                
-                if (imageHeight < 100) {
-                    // NSLog(@"too small muchacho");
-                    imageHeight = 100;
+                UIImage *memoryImage = [[SDImageCache sharedImageCache] imageFromMemoryCacheForKey:imageURL];
+                if (memoryImage) {
+                    CGFloat heightToWidthRatio = memoryImage.size.height / memoryImage.size.width;
+                    imageHeight = roundf(imageWidth * heightToWidthRatio);
+                    
+                    if (imageHeight < 100) {
+                        // NSLog(@"too small muchacho");
+                        imageHeight = 100;
+                    }
+                    if (imageHeight > 480) {
+                        // NSLog(@"too big muchacho");
+                        imageHeight = 480;
+                    }
                 }
-                if (imageHeight > 480) {
-                    // NSLog(@"too big muchacho");
-                    imageHeight = 480;
+            }
+            else {
+                UIImage *diskImage = [[SDImageCache sharedImageCache] imageFromDiskCacheForKey:imageURL];
+                
+                if (diskImage) {
+                    // disk image!
+                    CGFloat heightToWidthRatio = diskImage.size.height / diskImage.size.width;
+                    imageHeight = MAX(MIN(100, roundf(imageWidth * heightToWidthRatio)), 480);
+                    
+                    if (imageHeight < 100) {
+                        imageHeight = 100;
+                    }
+                    else if (imageHeight > 480) {
+                        imageHeight = 480;
+                    }
                 }
             }
         }
-        else {
-            UIImage *diskImage = [[SDImageCache sharedImageCache] imageFromDiskCacheForKey:imageURL];
-            
-            if (diskImage) {
-                // disk image!
-                CGFloat heightToWidthRatio = diskImage.size.height / diskImage.size.width;
-                imageHeight = roundf(imageWidth * heightToWidthRatio);
-                
-                if (imageHeight < 100) {
-                    // NSLog(@"too small muchacho");
-                    imageHeight = 100;
-                }
-                if (imageHeight > 480) {
-                    // NSLog(@"too big muchacho");
-                    imageHeight = 480;
-                }
-            }
+        if (hasImage) {
+            height += imageHeight;
         }
-        imageHeight = imageHeight;
+        
+        // 4 on top and 4 on bottom
+        BOOL hasLinkPreview = [post hasLinkAttachment];
+        if (hasLinkPreview) {
+            CGFloat linkPreviewHeight = hasLinkPreview ? [BFLinkAttachmentView heightForLink:post.attributes.attachments.link  width:contentWidth-expandedPostContentOffset.left-expandedPostContentOffset.right] : 0; // 8 above
+            height += linkPreviewHeight + 8; // 8 above
+        }
+        
+        // actions
+        CGFloat actionsHeight = 20 + expandedActionsViewHeight; // 12 = padding above actions view
+        height += actionsHeight;
+        
+        CGFloat activityHeight = 30;
+        height += activityHeight;
     }
-    if (hasImage) {
-        height = height + imageHeight;
-    }
-    
-    // 4 on top and 4 on bottom
-    BOOL hasLinkPreview = [post hasLinkAttachment];
-    if (hasLinkPreview) {
-        CGFloat linkPreviewHeight = hasLinkPreview ? [BFLinkAttachmentView heightForLink:post.attributes.details.attachments.link  width:contentWidth-expandedPostContentOffset.left-expandedPostContentOffset.right] : 0; // 8 above
-        height = height + linkPreviewHeight + 8; // 8 above
-    }
-    
-    // deatils label
-    CGFloat dateHeight = 16 + 30; // 6 + 14 + 12;
-    height = height + dateHeight;
-    
-    // actions
-    CGFloat actionsHeight = expandedActionsViewHeight; // 12 = padding above actions view
-    height = height + actionsHeight;
     
     return expandedPostContentOffset.top + height + expandedPostContentOffset.bottom; // 1 = line separator
 }

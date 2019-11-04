@@ -29,32 +29,11 @@
         
         self.edgeInsets = UIEdgeInsetsZero;
         self.maxCharacters = 10000;
+        self.textColor = [UIColor bonfirePrimaryColor];
 
         self.translatesAutoresizingMaskIntoConstraints = YES;
         
-        _messageLabel = [[TTTAttributedLabel alloc] initWithFrame:frame];
-        _messageLabel.extendsLinkTouchArea = false;
-        _messageLabel.userInteractionEnabled = true;
-        _messageLabel.font = textViewFont;
-        _messageLabel.textColor = [UIColor colorNamed:@"FullContrastColor"];
-        _messageLabel.backgroundColor = [UIColor clearColor];
-        _messageLabel.numberOfLines = 0;
-        _messageLabel.lineBreakMode = NSLineBreakByWordWrapping;
-        _messageLabel.delegate = self;
-        //_messageLabel.translatesAutoresizingMaskIntoConstraints = YES;
-        
-        NSMutableDictionary *mutableActiveLinkAttributes = [NSMutableDictionary dictionary];
-        [mutableActiveLinkAttributes setValue:[NSNumber numberWithBool:NO] forKey:(NSString *)kCTUnderlineStyleAttributeName];
-        [mutableActiveLinkAttributes setValue:(__bridge id)[[UIColor colorWithRed:0.0f green:0.0f blue:0.0f alpha:0.1f] CGColor] forKey:(NSString *)kTTTBackgroundFillColorAttributeName];
-        [mutableActiveLinkAttributes setValue:[NSNumber numberWithFloat:4.0f] forKey:(NSString *)kTTTBackgroundCornerRadiusAttributeName];
-        [mutableActiveLinkAttributes setValue:[NSNumber numberWithFloat:0] forKey:(NSString *)kTTTBackgroundLineWidthAttributeName];
-        _messageLabel.activeLinkAttributes = mutableActiveLinkAttributes;
-        
-        // update tint color
-        NSMutableDictionary *mutableLinkAttributes = [NSMutableDictionary dictionary];
-        [mutableLinkAttributes setObject:[UIColor linkColor] forKey:(__bridge NSString *)kCTForegroundColorAttributeName];
-        _messageLabel.linkAttributes = mutableLinkAttributes;
-        
+        _messageLabel = [[JKRichTextView alloc] initWithFrame:frame];
         [self addSubview:_messageLabel];
         
         // [self initPatternDetections];
@@ -75,66 +54,66 @@
     return self;
 }
 
-- (void)attributedLabel:(TTTAttributedLabel *)label
-   didSelectLinkWithURL:(NSURL *)url {
-    if ([[UIApplication sharedApplication] canOpenURL:url]) {
-        if ([url.scheme isEqualToString:LOCAL_APP_URI]) {
-            // local url
-            [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:^(BOOL success) {
-                // NSLog(@"opened url!");
-            }];
-        }
-        else {
-            // extern url
-            [Launcher openURL:url.absoluteString];
-        }
-    }
-}
-- (void)attributedLabel:(TTTAttributedLabel *)label didSelectLinkWithPhoneNumber:(NSString *)phoneNumber {
-    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:phoneNumber message:nil preferredStyle:UIAlertControllerStyleActionSheet];
-    
-    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"tel://%@", phoneNumber]];
-    if ([[UIApplication sharedApplication] canOpenURL:url]) {
-        UIAlertAction *call = [UIAlertAction actionWithTitle:@"Call Phone Number" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-            [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
-        }];
-        [alertController addAction:call];
-    }
-    
-    UIAlertAction *copy = [UIAlertAction actionWithTitle:@"Copy" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-        UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
-        pasteboard.string = phoneNumber;
-        
-        JGProgressHUD *HUD = [JGProgressHUD progressHUDWithStyle:JGProgressHUDStyleExtraLight];
-        HUD.textLabel.text = @"Copied Phone Number!";
-        HUD.vibrancyEnabled = false;
-        HUD.animation = [[JGProgressHUDFadeZoomAnimation alloc] init];
-        HUD.textLabel.textColor = [UIColor colorWithWhite:0 alpha:0.6f];
-        HUD.backgroundColor = [UIColor colorWithWhite:0 alpha:0.1f];
-        HUD.indicatorView = [[JGProgressHUDSuccessIndicatorView alloc] init];
-        
-        [HUD showInView:[Launcher activeViewController].view animated:YES];
-        [HapticHelper generateFeedback:FeedbackType_Notification_Success];
-        
-        [HUD dismissAfterDelay:1.5f];
-    }];
-    [alertController addAction:copy];
-    
-    UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
-    [alertController addAction:cancel];
-    
-    [[Launcher activeViewController] presentViewController:alertController animated:YES completion:nil];
-}
 
+//- (void)attributedLabel:(TTTAttributedLabel *)label didSelectLinkWithPhoneNumber:(NSString *)phoneNumber {
+//    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:phoneNumber message:nil preferredStyle:UIAlertControllerStyleActionSheet];
+//
+//    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"tel://%@", phoneNumber]];
+//    if ([[UIApplication sharedApplication] canOpenURL:url]) {
+//        UIAlertAction *call = [UIAlertAction actionWithTitle:@"Call Phone Number" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+//            [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
+//        }];
+//        [alertController addAction:call];
+//    }
+//
+//    UIAlertAction *copy = [UIAlertAction actionWithTitle:@"Copy" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+//        UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
+//        pasteboard.string = phoneNumber;
+//
+//        JGProgressHUD *HUD = [JGProgressHUD progressHUDWithStyle:JGProgressHUDStyleExtraLight];
+//        HUD.textLabel.text = @"Copied Phone Number!";
+//        HUD.vibrancyEnabled = false;
+//        HUD.animation = [[JGProgressHUDFadeZoomAnimation alloc] init];
+//        HUD.textLabel.textColor = [UIColor colorWithWhite:0 alpha:0.6f];
+//        HUD.backgroundColor = [UIColor colorWithWhite:0 alpha:0.1f];
+//        HUD.indicatorView = [[JGProgressHUDSuccessIndicatorView alloc] init];
+//
+//        [HUD showInView:[Launcher activeViewController].view animated:YES];
+//        [HapticHelper generateFeedback:FeedbackType_Notification_Success];
+//
+//        [HUD dismissAfterDelay:1.5f];
+//    }];
+//    [alertController addAction:copy];
+//
+//    UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
+//    [alertController addAction:cancel];
+//
+//    [[Launcher activeViewController] presentViewController:alertController animated:YES completion:nil];
+//}
+
+- (void)setStyleAsBubble:(BOOL)styleAsBubble {
+    if (styleAsBubble != _styleAsBubble) {
+        _styleAsBubble = styleAsBubble;
+        
+        [self update];
+    }
+}
 - (void)update {
-    CGFloat messageHeight = [PostTextView sizeOfBubbleWithMessage:self.messageLabel.text withConstraints:CGSizeMake(self.frame.size.width, CGFLOAT_MAX) font:self.messageLabel.font maxCharacters:self.entityBasedMaxCharacters].height;
-    
-    self.frame = CGRectMake(self.frame.origin.x, self.frame.origin.y, self.frame.size.width, messageHeight);
+    CGSize constraints = CGSizeMake(self.frame.size.width, CGFLOAT_MAX);
+    CGSize messageSize = [PostTextView sizeOfBubbleWithMessage:self.messageLabel.text withConstraints:constraints font:self.messageLabel.font maxCharacters:self.entityBasedMaxCharacters styleAsBubble:self.styleAsBubble];
+        
+    if (self.styleAsBubble) {
+        self.frame = CGRectMake(self.frame.origin.x, self.frame.origin.y, ceilf(messageSize.width), ceilf(messageSize.height));
+    }
+    else {
+        self.frame = CGRectMake(self.frame.origin.x, self.frame.origin.y, self.frame.size.width, ceilf(messageSize.height));
+    }
     
     self.messageLabel.frame = CGRectMake(0, 0, self.frame.size.width, self.frame.size.height);
+    
+    [self.messageLabel layoutSubviews];
 }
-
-- (void)setMessage:(NSString *)message entities:(NSArray<PostEntity *><PostEntity> *)entities {
+- (void)setMessage:(NSString *)message entities:(NSArray<PostEntity *><PostEntity> * _Nullable)entities {
     // don't run if this has already been set
     if ([message isEqualToString:_message] && entities == _entities) return;
     
@@ -159,23 +138,32 @@
         NSLog(@"needs to be truncated");
         
         NSString *truncatedMessage = [[[message substringToIndex:self.entityBasedMaxCharacters] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]] stringByAppendingString:@"... "];
+        NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:truncatedMessage attributes:@{NSFontAttributeName: self.messageLabel.font, NSForegroundColorAttributeName: self.textColor}];
                 
-        NSAttributedString *seeMore = [[NSAttributedString alloc] initWithString:@"See More" attributes:@{NSFontAttributeName: self.messageLabel.font, NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
+        NSAttributedString *seeMore = [[NSAttributedString alloc] initWithString:@"See More" attributes:@{NSFontAttributeName: self.messageLabel.font, NSForegroundColorAttributeName: [self.textColor colorWithAlphaComponent:0.7]}];
+        
+        [attributedString appendAttributedString:seeMore];
 
-        [self.messageLabel setText:truncatedMessage afterInheritingLabelAttributesAndConfiguringWithBlock:^NSMutableAttributedString *(NSMutableAttributedString *mutableAttributedString) {
-            [mutableAttributedString appendAttributedString:seeMore];
-            
-            return mutableAttributedString;
-        }];
+        self.messageLabel.attributedText = attributedString;
+    }
+    else if (message.length > 0) {
+        NSAttributedString *attributedString = [[NSAttributedString alloc] initWithString:message attributes:@{NSFontAttributeName: self.messageLabel.font, NSForegroundColorAttributeName: self.textColor}];
+        
+        self.messageLabel.attributedText = attributedString;
     }
     else {
-        //NSMutableAttributedString *attributedText = [[NSMutableAttributedString alloc] initWithString:message attributes:@{NSFontAttributeName: self.messageLabel.font, NSForegroundColorAttributeName: [UIColor colorNamed:@"FullContrastColor"]}];
-                
-        [self.messageLabel setText:message afterInheritingLabelAttributesAndConfiguringWithBlock:^NSMutableAttributedString *(NSMutableAttributedString *mutableAttributedString) {
-            return mutableAttributedString;
-        }];
+        self.messageLabel.text = @"";
     }
     
+    // clear all entities
+//    - (NSArray *)allDataDetectionHandlers;
+//
+//    - (void)addDataDetectionHandler:(id<JKRichTextViewDataDetectionHandler>)handler;
+//
+//    - (void)removeDataDetectionHandler:(id<JKRichTextViewDataDetectionHandler>)handler;
+    for (id handler in [self.messageLabel allDataDetectionHandlers]) {
+        [self.messageLabel removeDataDetectionHandler:handler];
+    }
     if (entities && entities.count > 0) {
         [self addEntities];
     }
@@ -241,10 +229,16 @@
             NSArray *usernameRanges = [self.message rangesForUsernameMatches];
             for (NSValue *value in usernameRanges) {
                 NSRange range = [value rangeValue];
-                NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://user?username=%@", LOCAL_APP_URI, [[self.message substringWithRange:range] stringByReplacingOccurrencesOfString:@"@" withString:@""]]];
+                NSURL *url;
+                
+                #ifdef DEBUG
+                url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://user?username=%@", LOCAL_APP_URI, [[self.message substringWithRange:range] stringByReplacingOccurrencesOfString:@"@" withString:@""]]];
+                #else
+                url = [NSURL URLWithString:entity.actionUrl];
+                #endif
                 
                 if (range.length + range.location <= self.entityBasedMaxCharacters && range.length + range.location <= self.message.length) {
-                    [self.messageLabel addLinkToURL:url withRange:range];
+                    [self.messageLabel setCustomLink:url forTextAtRange:range];
                 }
             }
             
@@ -256,9 +250,16 @@
 
             for (NSValue *value in campRanges) {
                 NSRange range = [value rangeValue];
-                NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://camp?display_id=%@", LOCAL_APP_URI, [[self.message substringWithRange:range] stringByReplacingOccurrencesOfString:@"#" withString:@""]]];
+                NSURL *url;
+                
+                #ifdef DEBUG
+                url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://camp?display_id=%@", LOCAL_APP_URI, [[self.message substringWithRange:range] stringByReplacingOccurrencesOfString:@"#" withString:@""]]];
+                #else
+                url = [NSURL URLWithString:entity.actionUrl];
+                #endif
+                                
                 if (range.length + range.location <= self.entityBasedMaxCharacters && range.length + range.location <= self.message.length) {
-                    [self.messageLabel addLinkToURL:url withRange:range];
+                    [self.messageLabel setCustomLink:url forTextAtRange:range];
                 }
             }
             
@@ -272,13 +273,8 @@
             NSInteger endSpot = range.location + range.length;
             
             if (endSpot <= self.entityBasedMaxCharacters && endSpot > range.location && endSpot <= self.message.length && range.location >= 0 && [NSURL URLWithString:entity.actionUrl]) {
-                
-                TTTAttributedLabelLink *link = [[TTTAttributedLabelLink alloc] initWithAttributesFromLabel:self.messageLabel textCheckingResult:[NSTextCheckingResult linkCheckingResultWithRange:range URL:[NSURL URLWithString:entity.actionUrl]]];
-                [link setLinkLongPressBlock:^(TTTAttributedLabel *label, TTTAttributedLabelLink *link) {
-                    UIActivityViewController *activityViewController = [[UIActivityViewController alloc] initWithActivityItems:@[[NSURL URLWithString:entity.actionUrl]] applicationActivities:nil];
-                    [[Launcher topMostViewController] presentViewController:activityViewController animated:YES completion:nil];
-                }];
-                [self.messageLabel addLink:link];
+                NSLog(@"NSRange(%lu, %lu)", (unsigned long)range.location, (unsigned long)range.length);
+                [self.messageLabel setCustomLink:[NSURL URLWithString:entity.actionUrl] forTextAtRange:range];
             }
             
             continue;
@@ -301,35 +297,35 @@
         [self.delegate postTextViewDidDoubleTap:self];
     }
 }
+//
+//- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch {
+//    CGPoint location = [touch locationInView:self.messageLabel];
+//    
+//    return ![self.messageLabel containslinkAtPoint:location];
+//}
 
-- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch {
-    CGPoint location = [touch locationInView:self.messageLabel];
-    
-    return ![self.messageLabel containslinkAtPoint:location];
-}
-
-+ (CGSize)sizeOfBubbleWithMessage:(NSString *)message withConstraints:(CGSize)constraints font:(UIFont *)font maxCharacters:(CGFloat)maxCharacters {
++ (CGSize)sizeOfBubbleWithMessage:(NSString *)message withConstraints:(CGSize)constraints font:(UIFont *)font maxCharacters:(CGFloat)maxCharacters styleAsBubble:(BOOL)styleAsBubble {
     if (message.length == 0) return CGSizeZero;
     
+    NSMutableAttributedString *attributedMessage;
     if (message.length > maxCharacters) {
-        NSMutableAttributedString *attributedMessage = [[NSMutableAttributedString alloc] initWithString:[[[message  substringToIndex:maxCharacters] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]] stringByAppendingString:@"... "] attributes:@{NSFontAttributeName: font}];
+        attributedMessage = [[NSMutableAttributedString alloc] initWithString:[[[message  substringToIndex:maxCharacters] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]] stringByAppendingString:@"... "] attributes:@{NSFontAttributeName: font}];
         
-        NSAttributedString *seeMore = [[NSAttributedString alloc] initWithString:@"See More" attributes:@{NSFontAttributeName: textViewFont}];
+        NSAttributedString *seeMore = [[NSAttributedString alloc] initWithString:@"See More" attributes:@{NSFontAttributeName: font}];
         [attributedMessage appendAttributedString:seeMore];
         
-//        CGSize size = [TTTAttributedLabel sizeThatFitsAttributedString:attributedMessage withConstraints:constraints limitedToNumberOfLines:CGFLOAT_MAX];
-        
-        CGSize size = [attributedMessage boundingRectWithSize:constraints options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) context:nil].size;
-        
-        return CGSizeMake(constraints.width, ceilf(size.height));
     }
     else {
-        NSMutableAttributedString *attributedMessage = [[NSMutableAttributedString alloc] initWithString:message  attributes:@{NSFontAttributeName: font}];
-        
-        CGSize size = [attributedMessage boundingRectWithSize:constraints options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) context:nil].size;
-        
-//        CGSize size = [TTTAttributedLabel sizeThatFitsAttributedString:attributedMessage withConstraints:constraints limitedToNumberOfLines:CGFLOAT_MAX];
-        
+        attributedMessage = [[NSMutableAttributedString alloc] initWithString:message  attributes:@{NSFontAttributeName: font}];
+    }
+    
+    CGSize size = [attributedMessage boundingRectWithSize:constraints options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) context:nil].size;
+//     CGSize size2 = [TTTAttributedLabel sizeThatFitsAttributedString:attributedMessage withConstraints:constraints limitedToNumberOfLines:CGFLOAT_MAX];
+    
+    if (styleAsBubble) {
+        return CGSizeMake(ceilf(size.width), ceilf(size.height));
+    }
+    else {
         return CGSizeMake(constraints.width, ceilf(size.height));
     }
 }

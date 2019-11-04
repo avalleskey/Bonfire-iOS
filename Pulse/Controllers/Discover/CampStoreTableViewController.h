@@ -8,12 +8,11 @@
 
 #import <UIKit/UIKit.h>
 #import <BlocksKit/BlocksKit+UIKit.h>
+#import "ThemedTableViewController.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface CampStoreTableViewController : UITableViewController <UIScrollViewDelegate>
-
-@property (strong, nonatomic) UIButton *createCampButton;
+@interface CampStoreTableViewController : ThemedTableViewController <UITableViewDataSource, UITableViewDelegate, UIScrollViewDelegate>
 
 @end
 

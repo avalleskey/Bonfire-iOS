@@ -22,6 +22,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic) NSInteger gutterPadding; // default: 12
 
+@property (nonatomic, strong) UIView *topSeparator;
+@property (nonatomic, strong) UIView *bottomSeparator;
+
 @end
 
 NS_ASSUME_NONNULL_END

@@ -3,6 +3,16 @@
     {
       "idiom" : "universal",
       "filename" : "addCampPicture.pdf"
+    },
+    {
+      "idiom" : "universal",
+      "filename" : "Artboard.pdf",
+      "appearances" : [
+        {
+          "appearance" : "luminosity",
+          "value" : "dark"
+        }
+      ]
     }
   ],
   "info" : {

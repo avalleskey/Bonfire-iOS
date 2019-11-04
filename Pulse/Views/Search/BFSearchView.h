@@ -14,9 +14,9 @@ NS_ASSUME_NONNULL_BEGIN
 @interface BFSearchView : UIView
 
 typedef enum {
-    BFTextFieldThemeLight = 0,
-    BFTextFieldThemeDark = 1,
-    BFTextFieldThemeContent = 2
+    BFTextFieldThemeAuto = 1,
+    BFTextFieldThemeLight = 2,
+    BFTextFieldThemeDark = 3
 } BFTextFieldTheme;
 
 typedef enum {

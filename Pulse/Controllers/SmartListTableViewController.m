@@ -31,6 +31,21 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
 static NSString * const toggleReuseIdentifier = @"ToggleCell";
 static NSString * const blankReuseIdentifier = @"BlankCell";
 
+- (id)init {
+    if (@available(iOS 13.0, *)) {
+        self = [super initWithStyle:UITableViewStyleInsetGrouped];
+    } else {
+        // Fallback on earlier versions
+        self = [super initWithStyle:UITableViewStyleGrouped];
+    }
+    
+    if (self) {
+        
+    }
+    
+    return self;
+}
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     
@@ -49,7 +64,7 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
     self.tableView.dataSource = self;
     self.tableView.backgroundColor = [UIColor tableViewBackgroundColor];
     self.tableView.separatorStyle = UITableViewCellSeparatorStyleSingleLine;
-    self.tableView.separatorInset = UIEdgeInsetsMake(0, 16, 0, 0);
+    self.tableView.separatorInset = UIEdgeInsetsMake(0, 12, 0, 0);
     self.tableView.separatorColor = [UIColor tableViewSeparatorColor];
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
     self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 48, 0);
@@ -202,19 +217,19 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
     
     CGFloat headerHeight = [BFHeaderView height];
     
-    if (s.title) return headerHeight;
+    if (s.title.length > 0) return headerHeight;
     
-    return section == 0 ? 0 : 16;
+    return 16;
 }
 
 - (nullable UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
     SmartListSection *s = section(section);
     
-    if (!s.title) return nil;
+    if (!s.title || s.title.length == 0) return nil;
     
     BFHeaderView *header = [[BFHeaderView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, [BFHeaderView height])];
     header.title = [self parse:s.title];
-    header.separator = false;
+    header.tableViewHasSeparators = true;
 
     return header;
 }
@@ -322,7 +337,12 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
 #pragma mark - Data Helper Functions
 - (NSString *)parse:(NSString *)string {
     if ([string containsString:@"{username}"]) {
-        string = [string stringByReplacingOccurrencesOfString:@"{username}" withString:[Session sharedInstance].currentUser.attributes.details.identifier];
+        if ([Session sharedInstance].currentUser.attributes.identifier) {
+            string = [string stringByReplacingOccurrencesOfString:@"{username}" withString:[Session sharedInstance].currentUser.attributes.identifier];
+        }
+        else {
+            string = [string stringByReplacingOccurrencesOfString:@"{username}" withString:@"anonymous"];
+        }
     }
     if ([string containsString:@"{app_version}"]) {
         NSString *version = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];

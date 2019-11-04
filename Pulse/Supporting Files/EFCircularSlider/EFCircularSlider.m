@@ -130,7 +130,7 @@
 
 -(void) drawHandle:(CGContextRef)ctx{
     CGContextSaveGState(ctx);
-    CGPoint handleCenter =  [self pointFromAngle: angle];
+    CGPoint handleCenter =  [self pointFromAngle:angle];
     if(_handleType == EFSemiTransparentWhiteCircle) {
         [[UIColor colorWithWhite:1.0 alpha:0.7] set];
         CGContextFillEllipseInRect(ctx, CGRectMake(handleCenter.x, handleCenter.y, 20, 20));
@@ -139,13 +139,14 @@
         CGContextFillEllipseInRect(ctx, CGRectMake(handleCenter.x, handleCenter.y, _lineWidth, _lineWidth));
     } else if(_handleType == EFDoubleCircleWithClosedCenter) {
         [_handleColor set];
-        CGContextAddArc(ctx, handleCenter.x + (_lineWidth)/2, handleCenter.y + (_lineWidth)/2, _lineWidth, 0, M_PI *2, 0);
-        CGContextSetLineWidth(ctx, 20);
+        CGContextAddArc(ctx, handleCenter.x + (40)/2, handleCenter.y + (40)/2, 40, 0, M_PI *2, 0);
+        CGContextSetLineWidth(ctx, 0);
         CGContextSetLineCap(ctx, kCGLineCapButt);
         CGContextDrawPath(ctx, kCGPathStroke);
         
-        CGContextFillEllipseInRect(ctx, CGRectMake(handleCenter.x, handleCenter.y, _lineWidth-1, _lineWidth-1));
-        CGContextSetShadowWithColor(ctx, CGSizeMake(0, 2), 6.f, [UIColor colorWithWhite:0 alpha:1].CGColor);
+        CGContextSaveGState(ctx);
+        CGContextSetShadowWithColor(ctx, CGSizeMake(0, 2), 6.f, [UIColor blackColor].CGColor);
+        CGContextFillEllipseInRect(ctx, CGRectMake(handleCenter.x - ((40 - _lineWidth) / 2), handleCenter.y - ((40 - _lineWidth) / 2), 40, 40));
     } else if(_handleType == EFDoubleCircleWithOpenCenter) {
         [_handleColor set];
         CGContextAddArc(ctx, handleCenter.x + (_lineWidth)/2, handleCenter.y + (_lineWidth)/2, _lineWidth/2 + 5, 0, M_PI *2, 0);
@@ -258,6 +259,10 @@
     int currentAngle = floor(AngleFromNorth(centerPoint, point, NO));
     angle = 360 - 90 - currentAngle;
     _currentValue = [self valueFromAngle];
+    
+    NSLog(@"current value:: %f", _currentValue);
+    _handleColor = [UIColor colorWithHue:_currentValue/100 saturation:1 brightness:0.5 alpha:1];
+    
     [self setNeedsDisplay];
 }
 

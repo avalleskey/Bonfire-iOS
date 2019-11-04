@@ -12,6 +12,11 @@
                                                                   }];
 }
 
+#pragma mark - Helper methods
+- (BOOL)isVerified {
+    return self.attributes.isVerified;
+}
+
 @end
 
 @implementation NSArray (CampArray)

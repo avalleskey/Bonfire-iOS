@@ -2,6 +2,8 @@
 #import <JSONModel/JSONModel.h>
 #import "CampAttributes.h"
 
+NS_ASSUME_NONNULL_BEGIN
+
 @protocol Camp
 @end
 
@@ -15,6 +17,9 @@
 @property (nonatomic) NSInteger opens;
 @property (nonatomic) NSDate *lastOpened;
 
+// helper methods
+- (BOOL)isVerified;
+
 @end
 
 @interface NSArray (CampArray)
@@ -23,3 +28,5 @@
 - (NSArray <NSDictionary *> *)toCampDictionaryArray;
 
 @end
+
+NS_ASSUME_NONNULL_END

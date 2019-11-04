@@ -24,13 +24,16 @@
     if (self) {
         self.selectionStyle = UITableViewCellSelectionStyleNone;
         
+        self.backgroundColor = [UIColor contentBackgroundColor];
+        self.contentView.backgroundColor = [UIColor clearColor];
+        
         self.textLabel.font = [UIFont systemFontOfSize:15.f weight:UIFontWeightSemibold];
         self.textLabel.textColor = [UIColor colorWithWhite:0.33 alpha:1];
         
         self.morePostsIcon = [[UIImageView alloc] initWithImage:[[UIImage imageNamed:@"showMorePostsIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
         self.morePostsIcon.tintColor = [UIColor bonfireSecondaryColor];
         self.morePostsIcon.layer.masksToBounds = true;
-        self.morePostsIcon.backgroundColor = [[UIColor bonfireSecondaryColor] colorWithAlphaComponent:0.1];
+//        self.morePostsIcon.backgroundColor = [[UIColor bonfireSecondaryColor] colorWithAlphaComponent:0.1];
         self.morePostsIcon.contentMode = UIViewContentModeCenter;
         [self.contentView addSubview:self.morePostsIcon];
         
@@ -48,25 +51,22 @@
 - (void)layoutSubviews {
     [super layoutSubviews];
     
-    self.lineSeparator.frame = CGRectMake(0, self.frame.size.height - (1 / [UIScreen mainScreen].scale), self.frame.size.width, (1 / [UIScreen mainScreen].scale));
+    self.contentView.frame = CGRectMake(0, 0, self.frame.size.width, [ExpandThreadCell height] - replyContentOffset.bottom);
     
-    CGFloat profilePictureWidth = 32;
-    self.textLabel.frame = CGRectMake(replyContentOffset.left, 0, self.frame.size.width - replyContentOffset.left - replyContentOffset.right, self.frame.size.height);
-    self.morePostsIcon.frame = CGRectMake(postContentOffset.left, self.frame.size.height / 2 - profilePictureWidth / 2, profilePictureWidth, profilePictureWidth);
+    self.lineSeparator.frame = CGRectMake(0, self.contentView.frame.size.height - (1 / [UIScreen mainScreen].scale), self.frame.size.width, (1 / [UIScreen mainScreen].scale));
+    
+    CGFloat morePostsIconSize = [ReplyCell avatarSizeForLevel:1];
+    UIEdgeInsets contentEdgeInsets = [ReplyCell contentEdgeInsetsForLevel:1];
+    self.textLabel.frame = CGRectMake(contentEdgeInsets.left + 10, 0, self.frame.size.width - contentEdgeInsets.left - contentEdgeInsets.right - 10, self.contentView.frame.size.height);
+    
+    self.morePostsIcon.frame = CGRectMake([ReplyCell edgeInsetsForLevel:1].left, self.contentView.frame.size.height / 2 - morePostsIconSize / 2, morePostsIconSize, morePostsIconSize);
     self.morePostsIcon.layer.cornerRadius = self.morePostsIcon.frame.size.width / 2;
 }
 
 - (void)setHighlighted:(BOOL)highlighted animated:(BOOL)animated {
-    if (highlighted) {
-        [UIView animateWithDuration:0.2f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-            self.contentView.backgroundColor = [UIColor contentHighlightedColor];
-        } completion:nil];
-    }
-    else {
-        [UIView animateWithDuration:0.2f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-            self.contentView.backgroundColor = [UIColor contentBackgroundColor];
-        } completion:nil];
-    }
+   [UIView animateWithDuration:0.15f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        self.contentView.alpha = highlighted ? 0.5 : 1;
+    } completion:nil];
 }
 
 - (void)createLineView {
@@ -81,7 +81,7 @@
         dot.layer.cornerRadius = lineWidth / 2;
         [stackedDotView addSubview:dot];
     }
-    stackedDotView.center = CGPointMake(stackedDotView.center.x, CONVERSATION_EXPAND_CELL_HEIGHT / 2);
+    stackedDotView.center = CGPointMake(stackedDotView.center.x, self.contentView.frame.size.height / 2);
     [self.contentView addSubview:stackedDotView];
     
     UIView *topLine = [[UIView alloc] initWithFrame:CGRectMake(x, -2, lineWidth, stackedDotView.frame.origin.y - 4 + 2)];
@@ -93,6 +93,10 @@
     bottomLine.layer.cornerRadius = lineWidth / 2;
     bottomLine.backgroundColor = [UIColor threadLineColor];
     [self.contentView addSubview:bottomLine];
+}
+
++ (CGFloat)height {
+    return 40 + replyContentOffset.bottom;
 }
 
 @end

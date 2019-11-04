@@ -6,21 +6,17 @@
 //  Copyright © 2018 Austin Valleskey. All rights reserved.
 //
 
-#import "Camp.h"
-#import <SDWebImage/UIImageView+WebCache.h>
+#import "CampCardCell.h"
 #import "CampFollowButton.h"
-#import "BFAvatarView.h"
 #import "BFDetailsCollectionView.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 #define LARGE_CARD_HEIGHT 348
 
-@interface LargeCampCardCell : UICollectionViewCell
+@interface LargeCampCardCell : CampCardCell
 
 @property (nonatomic) BOOL loading;
-
-@property (nonatomic, strong) Camp *camp;
 
 @property (nonatomic, strong) UIView *campHeaderView;
 

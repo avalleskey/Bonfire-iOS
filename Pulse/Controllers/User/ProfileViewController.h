@@ -9,21 +9,25 @@
 #import "Session.h"
 #import "RSTableView.h"
 #import "User.h"
+#import "Bot.h"
 #import "ThemedViewController.h"
 #import "ComposeInputView.h"
 
+NS_ASSUME_NONNULL_BEGIN
+
 @interface ProfileViewController : ThemedViewController <ComposeInputViewDelegate, RSTableViewDelegate>
 
-@property (strong, nonatomic) User *user;
+@property (strong, nonatomic) User * _Nullable user;
+@property (strong, nonatomic) Bot * _Nullable bot;
 
-@property (strong, nonatomic) UILabel *navTitle;
-
-@property (strong, nonatomic) RSTableView *tableView;
+@property (strong, nonatomic) RSTableView * _Nullable tableView;
+@property (nonatomic, strong) UIImageView *coverPhotoView;
 
 @property (nonatomic) CGFloat currentKeyboardHeight;
-
-@property (nonatomic, strong) ComposeInputView *composeInputView;
+@property (nonatomic) BOOL isPreview;
 
 - (void)openProfileActions;
 
 @end
+
+NS_ASSUME_NONNULL_END

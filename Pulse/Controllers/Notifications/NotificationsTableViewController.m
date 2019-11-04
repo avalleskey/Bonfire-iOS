@@ -16,7 +16,7 @@
 #import "Session.h"
 #import "HAWebService.h"
 #import "UserActivity.h"
-#import "ErrorView.h"
+#import "BFVisualErrorView.h"
 #import <BlocksKit/BlocksKit.h>
 #import <BlocksKit/BlocksKit+UIKit.h>
 #import "UserActivityStream.h"
@@ -25,19 +25,18 @@
 #import <PINCache/PINCache.h>
 #import "BFTipsManager.h"
 #import <Shimmer/FBShimmeringView.h>
+#import "BFTipView.h"
 @import Firebase;
 
 @interface NotificationsTableViewController ()
 
 @property (nonatomic, strong) UserActivityStream *stream;
-@property (nonatomic, strong) ErrorView *errorView;
+@property (nonatomic, strong) BFVisualErrorView *errorView;
 
-@property (nonatomic) BOOL loading;
+@property (nonatomic) BOOL showUpsell;
 @property (nonatomic) NSString *loadingPrevCursor;
 
 @property (nonatomic, strong) FBShimmeringView *titleView;
-
-@property (nonatomic, strong) UIActivityIndicatorView *spinner;
 
 @property (nonatomic, strong) NSDate *lastFetch;
 
@@ -52,13 +51,14 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
-    self.view.backgroundColor = [UIColor contentBackgroundColor];
-    
+        
     self.loading = true;
+    self.showUpsell = true;
     
     [self setupTableView];
     [self setupErrorView];
+    
+    [self setSpinning:true];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(notificationReceived:) name:@"RemoteNotificationReceived" object:nil];
     
@@ -72,6 +72,9 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
     
     // Google Analytics
     [FIRAnalytics setScreenName:@"Notifications" screenClass:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(postUpdated:) name:@"PostUpdated" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(postDeleted:) name:@"PostDeleted" object:nil];
 }
 
 - (void)notificationReceived:(NSNotification *)notification {
@@ -82,25 +85,11 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
     [super viewWillAppear:animated];
     
     [self clearNotifications];
-    
-    if ([self isBeingPresented] || [self isMovingToParentViewController]) {
-        self.tableView.backgroundColor = [UIColor contentBackgroundColor];
-        if ([BFTipsManager hasSeenTip:@"how_to_share_beta"] == false && [Launcher activeTabController]) {
-            BFTipObject *tipObject = [BFTipObject tipWithCreatorType:BFTipCreatorTypeBonfireTip creator:nil title:@"Share the Bonfire Beta 📢" text:@"Inviting your friends to the Beta is easy! Tap the invite button on the top right to invite friends via iMessage" action:^{
-                NSLog(@"tip tapped");
-                [Launcher openInviteFriends:self];
-            }];
-            [[BFTipsManager manager] presentTip:tipObject completion:^{
-                NSLog(@"presentTip() completion");
-            }];
-        }
-    }
 }
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     
     [self positionErrorView];
-    self.spinner.center = self.errorView.center;
     
     if ([self isBeingPresented] || [self isMovingToParentViewController]) {
         // first time
@@ -135,7 +124,6 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
     }];
     
     self.titleView = [[FBShimmeringView alloc] initWithFrame:titleButton.frame];
-    self.titleView.shimmeringOpacity = 0.8;
     [self.titleView addSubview:titleButton];
     self.titleView.contentView = titleButton;
     
@@ -155,7 +143,6 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
     self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
     // self.tableView.separatorInset = UIEdgeInsetsMake(0, 0, 0, 0);
     // self.tableView.separatorColor = [UIColor separatorColor];
-    self.tableView.refreshControl = [[UIRefreshControl alloc] init];
     [self.tableView.refreshControl addTarget:self action:@selector(refresh) forControlEvents:UIControlEventValueChanged];
     
     [self.tableView registerClass:[ActivityCell class] forCellReuseIdentifier:notificationCellReuseIdentifier];
@@ -165,8 +152,10 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
 }
 
 - (void)setupErrorView {
-    self.errorView = [[ErrorView alloc] initWithFrame:CGRectMake(16, 0, self.view.frame.size.width - 32, 100) title:@"Error loading notifications" description:@"" type:ErrorViewTypeNotFound];
-    self.errorView.center = self.tableView.center;
+    BFVisualError *visualError = [BFVisualError visualErrorOfType:ErrorViewTypeNotFound title:@"Error loading replies" description:@"Check your network settings and tap below to try again" actionTitle:nil actionBlock:nil];
+    
+    self.errorView = [[BFVisualErrorView alloc] initWithVisualError:visualError];
+    [self positionErrorView];
     self.errorView.hidden = true;
     [self.tableView addSubview:self.errorView];
 }
@@ -202,29 +191,29 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
     [[PINCache sharedCache] setObject:[newCache copy] forKey:@"activities_cache"];
 }
 
-- (void)setupSpinner {
-    NSLog(@"tableview :: top: %f bottom: %f", self.tableView.adjustedContentInset.top, self.tableView.adjustedContentInset.bottom);
-    self.spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
-    self.spinner.color = [UIColor bonfireSecondaryColor];
-    self.spinner.center = CGPointMake(self.tableView.frame.size.width / 2, self.tableView.frame.size.height / 2 - self.navigationController.navigationBar.frame.size.height - self.navigationController.navigationBar.frame.origin.y);
-    [self stopSpinner];
-    [self.tableView addSubview:self.spinner];
-}
-- (void)startSpinner {
-    if (!self.spinner) {
-        [self setupSpinner];
-    }
+- (void)postUpdated:(NSNotification *)notification {
+    Post *post = notification.object;
+    // NSLog(@"post that's updated: %@", post);
     
-    if (!self.spinner.isAnimating) {
-        [self.spinner startAnimating];
-        self.spinner.hidden = false;
+    if (post != nil) {
+        // new post appears valid
+        BOOL changes = [self.stream updatePost:post removeDuplicates:true];
+        
+        if (changes) {
+            // 💫 changes made
+            if (![[Launcher activeViewController] isEqual:UIViewParentController(self)]) {
+                [self refresh];
+            }
+        }
     }
 }
-- (void)stopSpinner {
-    if (self.spinner.isAnimating) {
-        [self.spinner stopAnimating];
-        self.spinner.hidden = true;
-    }
+- (void)postDeleted:(NSNotification *)notification {
+    if (![notification.object isKindOfClass:[Post class]]) return;
+    
+    Post *post = notification.object;
+
+    BOOL removedPost = [self.stream removePost:post];
+    if (removedPost) [self refresh];
 }
 
 - (void)refresh {
@@ -240,11 +229,9 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
 }
 
 - (void)setLoading:(BOOL)loading {
-    if (loading != _loading) {
-        _loading = loading;
-    }
+    [super setLoading:loading];
     
-    if (!_loading) {
+    if (!self.loading) {
         self.titleView.shimmering = false;
     }
 }
@@ -265,8 +252,6 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
     }
     
     self.loading = true;
-    NSLog(@"GET -> %@", @"users/me/notifications");
-    NSLog(@"params: %@", params);
     
     [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:@"users/me/notifications" parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         // NSLog(@"response object for notifications: %@", responseObject[@"data"]);
@@ -276,7 +261,7 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
         }
         
         UserActivityStreamPage *page = [[UserActivityStreamPage alloc] initWithDictionary:responseObject error:nil];
-        
+                
         if (page.data.count > 0) {
             if (page.meta.paging.replaceCache || ![params objectForKey:@"cursor"]) {
                 // clear the stream (we retrieved a full page of notifs and the old ones are out of date)
@@ -287,13 +272,12 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
                         
             [self saveCache];
         }
-        
-        self.loading = false;
-        
-        if (self.stream.activities.count == 0) {
+                
+        if (self.stream.activities.count == 0 && ![self messageOfTheDayNotificationObject]) {
             self.errorView.hidden = false;
             
-            [self.errorView updateType:ErrorViewTypeNoNotifications title:@"No Notifications" description:nil actionTitle:nil actionBlock:nil];
+            BFVisualError *visualError = [BFVisualError visualErrorOfType:ErrorViewTypeNoNotifications title:@"No Notifications" description:nil actionTitle:nil actionBlock:nil];
+            self.errorView.visualError = visualError;
             
             [self positionErrorView];
         }
@@ -301,27 +285,26 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
             self.errorView.hidden = true;
         }
         
-        [self.refreshControl performSelector:@selector(endRefreshing) withObject:nil afterDelay:0.0];
-        
         [self.tableView reloadData];
         [self.tableView layoutIfNeeded];
+        
+        self.loading = false;
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         NSLog(@"Notificaitons  / getMembers() - error: %@", error);
-        //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-        self.loading = false;
         
         if (self.stream.activities.count == 0) {
             // Error: No posts yet!
             self.errorView.hidden = false;
             
-            [self.errorView updateType:ErrorViewTypeNoNotifications title:@"No Notifications" description:nil actionTitle:nil actionBlock:nil];
+            BFVisualError *visualError = [BFVisualError visualErrorOfType:ErrorViewTypeNoNotifications title:@"No Notifications" description:nil actionTitle:nil actionBlock:nil];
+            self.errorView.visualError = visualError;
             
             [self positionErrorView];
         }
-        
-        [self.refreshControl performSelector:@selector(endRefreshing) withObject:nil afterDelay:0.0];
-        
+                
         [self.tableView reloadData];
+        
+        self.loading = false;
     }];
 }
 
@@ -332,35 +315,12 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
 #pragma mark - Table view data source
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    BOOL loading = self.loading && self.stream.activities.count == 0;
-    if (loading) {
-        [self startSpinner];
-    }
-    else {
-        [self stopSpinner];
-    }
-    
-    return self.stream.activities.count;
+    return MAX(1, self.stream.activities.count);
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     if (section < self.stream.activities.count && [self.stream.activities[section].type isEqualToString:@"user_activity"]) {
-        UserActivity *activity = self.stream.activities[section];
-        
-        Post *post;
-        if (activity.attributes.type == USER_ACTIVITY_TYPE_POST_REPLY) {
-            post = activity.attributes.replyPost;
-        }
-        else if (activity.attributes.type == USER_ACTIVITY_TYPE_POST_MENTION) {
-            post = activity.attributes.post;
-        }
-        
-        if (post) {
-            return 2;
-        }
-        else {
-            return 1;
-        }
+        return 1;
     }
     
     return 0;
@@ -388,7 +348,7 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
                 
                 cell.showContext = true;
                 cell.showCamptag = true;
-                cell.hideActions = true;
+                cell.hideActions = false;
                 
                 cell.post = post;
                 
@@ -398,7 +358,7 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
                     }];
                 }
                 
-                cell.lineSeparator.hidden = true;
+                cell.lineSeparator.hidden = (indexPath.section == self.stream.activities.count - 1);
                 
                 return cell;
             }
@@ -410,10 +370,10 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
                     cell = [[AddReplyCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:addReplyCellIdentifier];
                 }
                 
-                NSString *username = post.attributes.details.creator.attributes.details.identifier;
-                NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"Reply to @%@...", username] attributes:@{NSFontAttributeName: cell.addReplyLabel.font, NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
-                [attributedString setAttributes:@{NSFontAttributeName: [UIFont systemFontOfSize:cell.addReplyLabel.font.pointSize weight:UIFontWeightSemibold]} range:[attributedString.string rangeOfString:[NSString stringWithFormat:@"@%@", username]]];
-                cell.addReplyLabel.attributedText = attributedString;
+                NSString *username = post.attributes.creator.attributes.identifier;
+                NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"Reply to @%@...", username] attributes:@{NSFontAttributeName: cell.addReplyButton.titleLabel.font, NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
+                [attributedString setAttributes:@{NSFontAttributeName: [UIFont systemFontOfSize:cell.addReplyButton.titleLabel.font.pointSize weight:UIFontWeightSemibold]} range:[attributedString.string rangeOfString:[NSString stringWithFormat:@"@%@", username]]];
+                [cell.addReplyButton setAttributedTitle:attributedString forState:UIControlStateNormal];
                 
                 cell.lineSeparator.hidden = false;
                 
@@ -443,6 +403,57 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
     return blankCell;
 }
 
+- (UIContextMenuConfiguration *)tableView:(UITableView *)tableView contextMenuConfigurationForRowAtIndexPath:(NSIndexPath *)indexPath point:(CGPoint)point  API_AVAILABLE(ios(13.0)){
+    if ([[tableView cellForRowAtIndexPath:indexPath] isKindOfClass:[PostCell class]]) {
+        Post *post = ((PostCell *)[tableView cellForRowAtIndexPath:indexPath]).post;
+        
+        if (post) {
+            NSMutableArray *actions = [NSMutableArray new];
+            UIAction *replyAction = [UIAction actionWithTitle:@"Reply" image:[UIImage systemImageNamed:@"arrowshape.turn.up.left"] identifier:@"reply" handler:^(__kindof UIAction * _Nonnull action) {
+                [Launcher openComposePost:post.attributes.postedIn inReplyTo:post withMessage:nil media:nil];
+            }];
+            [actions addObject:replyAction];
+            
+            if (post.attributes.postedIn) {
+                UIAction *openCamp = [UIAction actionWithTitle:@"Open Camp" image:[UIImage systemImageNamed:@"number"] identifier:@"open_camp" handler:^(__kindof UIAction * _Nonnull action) {
+                    Camp *camp = [[Camp alloc] initWithDictionary:[post.attributes.postedIn toDictionary] error:nil];
+                    
+                    [Launcher openCamp:camp];
+                }];
+                [actions addObject:openCamp];
+            }
+            
+            UIAction *shareViaAction = [UIAction actionWithTitle:@"Share via..." image:[UIImage systemImageNamed:@"square.and.arrow.up"] identifier:@"share_via" handler:^(__kindof UIAction * _Nonnull action) {
+                [Launcher sharePost:post];
+            }];
+            [actions addObject:shareViaAction];
+            
+            UIMenu *menu = [UIMenu menuWithTitle:@"" children:actions];
+            
+            PostViewController *postVC = [Launcher postViewControllerForPost:post];
+            postVC.isPreview = true;
+            
+            UIContextMenuConfiguration *configuration = [UIContextMenuConfiguration configurationWithIdentifier:indexPath previewProvider:^(){return postVC;} actionProvider:^(NSArray* suggestedAction){return menu;}];
+            return configuration;
+        }
+    }
+    
+    return nil;
+}
+- (void)tableView:(UITableView *)tableView willPerformPreviewActionForMenuWithConfiguration:(UIContextMenuConfiguration *)configuration animator:(id<UIContextMenuInteractionCommitAnimating>)animator  API_AVAILABLE(ios(13.0)){
+    NSIndexPath *indexPath = (NSIndexPath *)configuration.identifier;
+    
+    [animator addCompletion:^{
+        wait(0, ^{
+            if ([[tableView cellForRowAtIndexPath:indexPath] isKindOfClass:[PostCell class]]) {
+                Post *post = ((PostCell *)[tableView cellForRowAtIndexPath:indexPath]).post;
+                
+                [Launcher openPost:post withKeyboard:false];
+            }
+        });
+    }];
+}
+
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.section < self.stream.activities.count && [self.stream.activities[indexPath.section].type isEqualToString:@"user_activity"]) {
         UserActivity *activity = self.stream.activities[indexPath.section];
@@ -459,7 +470,7 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
             
             if (post) {
                 if (indexPath.row == 0) {
-                    return [StreamPostCell heightForPost:post showContext:true showActions:false];
+                    return [StreamPostCell heightForPost:post showContext:true showActions:true];
                 }
                 else if (indexPath.row == 1) {
                     return [AddReplyCell height];
@@ -483,6 +494,11 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
 //        }
 //    }
 //#endif
+    
+    if (section == 0 && [self messageOfTheDayNotificationObject]) {
+        BFTipView *tipView = [[BFTipView alloc] initWithObject:[self messageOfTheDayNotificationObject]];
+        return tipView.frame.size.height + (12 * 2);
+    }
     
     return CGFLOAT_MIN;
 }
@@ -515,12 +531,62 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
 //    }
 //#endif
     
+    if (section == 0 && [self messageOfTheDayNotificationObject]) {
+        UIView *containerView = [[UIView alloc] init];
+        containerView.frame = CGRectMake(0, 0, self.view.frame.size.width, 100);
+        
+        BFTipView *tipView = [[BFTipView alloc] init];
+        tipView.frame = CGRectMake(12, 12, self.view.frame.size.width - 24, 200);
+        tipView.style = BFTipViewStyleTable;
+        tipView.dragToDismiss = false;
+        tipView.object = [self messageOfTheDayNotificationObject];
+        tipView.blurView.backgroundColor = [UIColor whiteColor];
+        tipView.frame = CGRectMake(12, 12, self.view.frame.size.width - 24, tipView.frame.size.height);
+        [tipView.closeButton bk_removeEventHandlersForControlEvents:UIControlEventTouchUpInside];
+        [tipView.closeButton bk_whenTapped:^{
+            [UIView animateWithDuration:.45f delay:0 usingSpringWithDamping:0.9f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
+                tipView.alpha = 0;
+                tipView.transform = CGAffineTransformMakeScale(0.8, 0.8);
+                
+                [self.tableView beginUpdates];
+                self.showUpsell = false;
+                [self.tableView endUpdates];
+            } completion:nil];
+        }];
+        containerView.frame = CGRectMake(0, 0, self.view.frame.size.width, tipView.frame.size.height + (12 * 2));
+        [containerView addSubview:tipView];
+        
+        return containerView;
+    }
+    
     return nil;
 }
 - (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
     return CGFLOAT_MIN;
 }
 - (UIView*)tableView:(UITableView*)tableView viewForFooterInSection:(NSInteger)section {
+    return nil;
+}
+
+- (BFTipObject *)messageOfTheDayNotificationObject {
+    if (!self.showUpsell) return nil;
+    
+    if ([Session sharedInstance].defaults.feed.motd) {
+        NSString *title = [Session sharedInstance].defaults.feed.motd.title;
+        NSString *text = [Session sharedInstance].defaults.feed.motd.text;
+        NSString *ctaDisplayText = [Session sharedInstance].defaults.feed.motd.cta.displayText;
+        NSString *imageUrl = [Session sharedInstance].defaults.feed.motd.imageUrl;
+        
+        BFTipObject *tipObject = [BFTipObject tipWithCreatorType:BFTipCreatorTypeBonfireGeneric creator:nil title:title text:text cta:ctaDisplayText imageUrl:imageUrl action:^{
+            NSLog(@"action");
+            if ([Session sharedInstance].defaults.feed.motd.cta.actionUrl.length > 0) {
+                [Launcher openURL:[Session sharedInstance].defaults.feed.motd.cta.actionUrl];
+            }
+        }];
+        
+        return tipObject;
+    }
+    
     return nil;
 }
 
@@ -543,7 +609,7 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
         }
         else if (indexPath.row == 1) {
             // add a reply
-            [Launcher openComposePost:post.attributes.status.postedIn inReplyTo:post withMessage:nil media:nil];
+            [Launcher openComposePost:post.attributes.postedIn inReplyTo:post withMessage:nil media:nil];
         }
     }
     else {
@@ -570,22 +636,5 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
         }
     }
 }
-
-//- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
-//    CGFloat normalizedScrollViewContentOffsetY = scrollView.contentOffset.y + scrollView.adjustedContentInset.top;
-//
-//    if ([self.navigationController isKindOfClass:[SimpleNavigationController class]]) {
-//        if (normalizedScrollViewContentOffsetY > 0) {
-//            if (((SimpleNavigationController *)self.navigationController).bottomHairline.alpha == 0) {
-//                [((SimpleNavigationController *)self.navigationController) setShadowVisibility:YES withAnimation:false];
-//            }
-//        }
-//        else {
-//            if (((SimpleNavigationController *)self.navigationController).bottomHairline.alpha == 1) {
-//                [((SimpleNavigationController *)self.navigationController) setShadowVisibility:NO withAnimation:false];
-//            }
-//        }
-//    }
-//}
 
 @end

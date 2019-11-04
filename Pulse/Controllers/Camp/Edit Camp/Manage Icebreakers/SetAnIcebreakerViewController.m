@@ -18,10 +18,9 @@
 
 @interface SetAnIcebreakerViewController ()
 
-@property (nonatomic) BOOL loading;
 @property (nonatomic) BOOL loadingMore;
 
-@property (nonatomic, strong) ErrorView *errorView;
+@property (nonatomic, strong) BFVisualErrorView *errorView;
 
 @property (nonatomic, strong) PostStream *stream;
 
@@ -34,9 +33,10 @@ static NSString * const postCellReuseIdentifier = @"PostCell";
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-
+    
     self.view.backgroundColor = [UIColor tableViewBackgroundColor];
     
+    [self setSpinning:true];
     [self setupTableView];
     [self setupErrorView];
     
@@ -51,7 +51,7 @@ static NSString * const postCellReuseIdentifier = @"PostCell";
     NSLog(@"temp id: %@", tempId);
     NSLog(@"new post:: %@", post.identifier);
     
-    if (self.stream.posts.count == 0 && [post.attributes.status.postedIn.identifier isEqualToString:self.camp.identifier]) {
+    if (self.stream.posts.count == 0 && [post.attributes.postedIn.identifier isEqualToString:self.camp.identifier]) {
         // TODO: Check for image as well
         self.errorView.hidden = true;
         
@@ -72,10 +72,10 @@ static NSString * const postCellReuseIdentifier = @"PostCell";
 - (void)setupTableView {
     self.tableView.delegate = self;
     self.tableView.dataSource = self;
-    self.tableView.backgroundColor = [UIColor contentBackgroundColor];
+    self.tableView.backgroundColor = [UIColor tableViewBackgroundColor];
+    self.tableView.separatorColor = [UIColor tableViewSeparatorColor];
     
     self.stream = [[PostStream alloc] init];
-    self.loading = true;
     [self.tableView reloadData];
     
     [self.tableView registerClass:[StreamPostCell class] forCellReuseIdentifier:postCellReuseIdentifier];
@@ -83,7 +83,6 @@ static NSString * const postCellReuseIdentifier = @"PostCell";
 }
 
 - (void)getPosts {
-    self.loading = true;
     [self.tableView reloadData];
     
     NSString *url = [[NSString alloc] initWithFormat:@"camps/%@/stream?filter_types=top,!icebreaker", self.camp.identifier];
@@ -92,26 +91,33 @@ static NSString * const postCellReuseIdentifier = @"PostCell";
     if (self.stream.posts.count > 0 && self.stream.nextCursor.length > 0) {
         [params setObject:self.stream.nextCursor forKey:@"cursor"];
     }
+    else if (self.loading) {
+        // already loading without cursor (no need to call again
+        return;
+    }
+    else {
+        self.loading = true;
+    }
     
     if ([params objectForKey:@"cursor"]) {
         [self.stream addLoadedCursor:params[@"cursor"]];
     }
     
-    NSLog(@"GET -> %@", url);
-    NSLog(@"params: %@", params);
-    
     [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         PostStreamPage *page = [[PostStreamPage alloc] initWithDictionary:responseObject error:nil];
-        if (page.data.count > 0) {
+        if (page.data.count > 0 && ![self.stream.nextCursor isEqualToString:page.meta.paging.nextCursor]) {
             [self.stream appendPage:page];
         }
+        
+        NSLog(@"self.stream.posts.count:: %lu", self.stream.posts.count);
         
         if (self.stream.posts.count == 0) {
             self.errorView.hidden = false;
             
-            [self.errorView updateType:ErrorViewTypeNoPosts title:@"No Posts Yet" description:@"In order to set an Icebreaker, your Camp must have at least 1 post" actionTitle:@"Create Post" actionBlock:^{
+            BFVisualError *visualError = [BFVisualError visualErrorOfType:ErrorViewTypeNoPosts title:@"No Posts Yet" description:@"In order to set an Icebreaker, your Camp must have at least 1 post" actionTitle:@"Create Post" actionBlock:^{
                 [Launcher openComposePost:self.camp inReplyTo:nil withMessage:nil media:nil];
             }];
+            self.errorView.visualError = visualError;
             
             [self positionErrorView];
         }
@@ -133,13 +139,13 @@ static NSString * const postCellReuseIdentifier = @"PostCell";
 }
 
 - (void)setupErrorView {
-    self.errorView = [[ErrorView alloc] initWithFrame:CGRectMake(16, 0, self.view.frame.size.width - 32, 100)];
+    self.errorView = [[BFVisualErrorView alloc] initWithFrame:CGRectMake(16, 0, self.view.frame.size.width - 32, 100)];
     self.errorView.center = self.tableView.center;
     self.errorView.hidden = true;
     [self.tableView addSubview:self.errorView];
 }
 - (void)positionErrorView {
-    self.errorView.center = CGPointMake(self.view.frame.size.width / 2, self.view.frame.size.height / 2 - [UIApplication sharedApplication].delegate.window.safeAreaInsets.bottom);
+    self.errorView.center = CGPointMake(self.view.frame.size.width / 2, self.tableView.frame.size.height / 2 - self.navigationController.navigationBar.frame.size.height - self.navigationController.navigationBar.frame.origin.y);
 }
 
 #pragma mark - Table view data source
@@ -167,7 +173,7 @@ static NSString * const postCellReuseIdentifier = @"PostCell";
         cell.moreButton.userInteractionEnabled =
         cell.primaryAvatarView.userInteractionEnabled = false;
         
-        cell.lineSeparator.hidden = false;
+        cell.lineSeparator.hidden = true;
         
         return cell;
     }
@@ -187,9 +193,9 @@ static NSString * const postCellReuseIdentifier = @"PostCell";
         HUD.backgroundColor = [UIColor colorWithWhite:0 alpha:0.1f];
         [HUD showInView:[Launcher topMostViewController].view animated:YES];
         
-        NSLog(@"post:: %@", [NSString stringWithFormat:@"camps/%@/posts/%@/icebreakers", post.attributes.status.postedIn.identifier, post.identifier]);
+        NSLog(@"post:: %@", [NSString stringWithFormat:@"camps/%@/posts/%@/icebreakers", post.attributes.postedIn.identifier, post.identifier]);
         
-        [[HAWebService authenticatedManager] POST:[NSString stringWithFormat:@"camps/%@/posts/%@/icebreakers", post.attributes.status.postedIn.identifier, post.identifier] parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        [[HAWebService authenticatedManager] POST:[NSString stringWithFormat:@"camps/%@/posts/%@/icebreakers", post.attributes.postedIn.identifier, post.identifier] parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
             JGProgressHUD *HUD = [JGProgressHUD progressHUDWithStyle:JGProgressHUDStyleExtraLight];
             HUD.textLabel.text = @"Svaed!";
             [HUD dismiss];

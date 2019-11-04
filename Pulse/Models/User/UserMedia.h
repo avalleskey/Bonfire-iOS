@@ -9,6 +9,7 @@
 
 @interface UserMedia : JSONModel
 
-@property (nonatomic) BFHostedVersions <Optional> *userAvatar;
+@property (nonatomic) BFHostedVersions <Optional> *avatar;
+@property (nonatomic) BFHostedVersions <Optional> *cover;
 
 @end

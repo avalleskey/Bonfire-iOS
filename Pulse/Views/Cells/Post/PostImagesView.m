@@ -127,9 +127,7 @@
                     
                 }
                 else {
-                    [animatedImageView sd_setImageWithURL:url placeholderImage:nil options:0 completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
-                        //[self hideImageViewSpinner:animatedImageView];
-                    }];
+                    [animatedImageView sd_setImageWithURL:url placeholderImage:nil options:0 completed:nil];
                 }
             }
             else {
@@ -338,7 +336,7 @@
 }
 
 + (CGFloat)streamImageHeight {
-    return [Session sharedInstance].defaults.post.imgHeight;
+    return [Session sharedInstance].defaults.post.imgHeight.max;
 }
 
 - (void)startSpinners {

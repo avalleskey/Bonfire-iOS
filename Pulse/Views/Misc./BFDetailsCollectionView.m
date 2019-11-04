@@ -108,7 +108,8 @@
     else if (item.type == BFDetailItemTypePrivacyPrivate) {
         iconView.image = [[UIImage imageNamed:@"details_label_private"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
     }
-    else if (item.type == BFDetailItemTypeMembers) {
+    else if (item.type == BFDetailItemTypeMembers ||
+             item.type == BFDetailItemTypeSubscribers) {
         iconView.image = [[UIImage imageNamed:@"details_label_members"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
     }
     else if (item.type == BFDetailItemTypeLocation) {
@@ -116,6 +117,10 @@
     }
     else if (item.type == BFDetailItemTypeWebsite) {
         iconView.image = [[UIImage imageNamed:@"details_label_link"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+    }
+    else if (item.type == BFDetailItemTypeSourceLink ||
+             item.type == BFDetailItemTypeSourceUser) {
+        iconView.image = [[UIImage imageNamed:@"details_label_source"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
     }
     iconView.tintColor = [UIColor bonfireSecondaryColor];
     
@@ -176,7 +181,8 @@
         item.action();
     }
     else {
-        if (item.type == BFDetailItemTypeWebsite) {
+        if (item.type == BFDetailItemTypeWebsite ||
+            item.type == BFDetailItemTypeSourceLink) {
             NSString *link = item.value;
             
             if (link.length == 0) return;
@@ -198,7 +204,9 @@
         _value = value;
         _action = action;
         
-        _selectable = (_action || _type == BFDetailItemTypeWebsite);
+        _selectable = (_action ||
+                       _type == BFDetailItemTypeWebsite ||
+                       _type == BFDetailItemTypeSourceLink);
     }
     return self;
 }
@@ -211,14 +219,39 @@
         
         return prettyValue;
     }
-    if (self.type == BFDetailItemTypeMembers) {
+    else if (self.type == BFDetailItemTypeMembers) {
         if (prettyValue.length == 0) {
             prettyValue = @"0";
         }
         
-        DefaultsCampMembersTitle *membersTitle = [Session sharedInstance].defaults.camp.membersTitle;
-        prettyValue = [prettyValue stringByAppendingString:[NSString stringWithFormat:@" %@", ([prettyValue isEqualToString:@"1"] ? [membersTitle.singular lowercaseString] : [membersTitle.plural lowercaseString])]];
+        prettyValue = [prettyValue stringByAppendingString:[NSString stringWithFormat:@" %@", ([prettyValue isEqualToString:@"1"] ? @"member" : @"members")]];
         
+        return prettyValue;
+    }
+    else if (self.type == BFDetailItemTypeSubscribers) {
+        if (prettyValue.length == 0) {
+            prettyValue = @"0";
+        }
+        
+        prettyValue = [prettyValue stringByAppendingString:[NSString stringWithFormat:@" %@", ([prettyValue isEqualToString:@"1"] ? @"subscriber" : @"subscribers")]];
+        
+        return prettyValue;
+    }
+    else if (self.type == BFDetailItemTypeSourceLink) {
+        NSURL *url = [NSURL URLWithString:prettyValue];
+        prettyValue = url.host;
+        
+        if (url.path) {
+            [prettyValue stringByAppendingString:url.path];
+        }
+        
+        prettyValue = [@"by " stringByAppendingString:prettyValue];
+                
+        return prettyValue;
+    }
+    else if (self.type == BFDetailItemTypeSourceUser) {
+        prettyValue = [@"by @" stringByAppendingString:prettyValue];
+                
         return prettyValue;
     }
     

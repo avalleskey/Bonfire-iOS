@@ -39,6 +39,10 @@
     return [BFTableViewCellExporter imageForView:tableView];
 }
 + (UIImage *)imageForView:(UIView *)view {
+    if (@available(iOS 13.0, *)) {
+        view.overrideUserInterfaceStyle = UIUserInterfaceStyleLight;
+    }
+    
     CGSize size = view.frame.size;
     
     CGFloat footerHeight = 32.f;
@@ -84,6 +88,11 @@
 - (nonnull UITableViewCell *)tableView:(nonnull UITableView *)tableView cellForRowAtIndexPath:(nonnull NSIndexPath *)indexPath {
     if (self.cell) {
         //[self.cell layoutSubviews];
+        ((UITableViewCell *)self.cell).backgroundColor = [UIColor whiteColor];
+        if (@available(iOS 13.0, *)) {
+            ((UITableViewCell *)self.cell).overrideUserInterfaceStyle = UIUserInterfaceStyleLight;
+        }
+        
         return self.cell;
     }
     

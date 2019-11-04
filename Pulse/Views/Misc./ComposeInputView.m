@@ -26,7 +26,7 @@
 #define headerHeight 58
 #define postButtonShrinkScale 0.9
 
-#define TEXT_VIEW_WITH_IMAGE_X 56
+#define TEXT_VIEW_WITH_IMAGE_X 50
 #define TEXT_VIEW_WITHOUT_IMAGE_X 12
 
 #define UIViewParentController(__view) ({ \
@@ -135,11 +135,12 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     
     // profile picture
     self.addMediaButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    self.addMediaButton.frame = CGRectMake(9, 7, 40, 40);
-    //self.addMediaButton.layer.cornerRadius = self.addMediaButton.frame.size.height / 2;
+    self.addMediaButton.frame = CGRectMake(12, 12, 30, 30);
     [self.addMediaButton setImage:[[UIImage imageNamed:@"composeAddPicture"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
     self.addMediaButton.layer.masksToBounds = true;
-    self.addMediaButton.tintColor = [UIColor fromHex:@"9FA6AD"];
+    self.addMediaButton.layer.cornerRadius = self.addMediaButton.frame.size.height / 2;
+    self.addMediaButton.tintColor = [UIColor whiteColor];
+    self.addMediaButton.backgroundColor = [UIColor bonfireSecondaryColor];
     self.addMediaButton.contentMode = UIViewContentModeScaleAspectFill;
     self.addMediaButton.adjustsImageWhenHighlighted = false;
     [self.addMediaButton bk_addEventHandler:^(id sender) {
@@ -222,36 +223,29 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     self.replyingToLabel = [UIButton buttonWithType:UIButtonTypeCustom];
     self.replyingToLabel.hidden = true;
     self.replyingToLabel.frame = CGRectMake(0, 0, self.frame.size.width, 40);
-    self.replyingToLabel.backgroundColor = [UIColor colorWithRed:0.98 green:0.98 blue:0.99 alpha:1.0];
+    self.replyingToLabel.backgroundColor = [[UIColor bonfireSecondaryColor] colorWithAlphaComponent:0.95];
     self.replyingToLabel.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
     self.replyingToLabel.contentEdgeInsets = UIEdgeInsetsMake(0, 37, 0, 12);
     self.replyingToLabel.titleLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightMedium];
-    [self.replyingToLabel setTitleColor:[UIColor bonfirePrimaryColor] forState:UIControlStateNormal];
-    [self.replyingToLabel bk_whenTapped:^{
-        [self setReplyingTo:nil];
-    }];
+    [self.replyingToLabel setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [self insertSubview:self.replyingToLabel belowSubview:self.contentView];
     
     UIImageView *closeIcon = [[UIImageView alloc] init];
-    closeIcon.image = [[UIImage imageNamed:@"cancelReplyingToIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-    closeIcon.frame = CGRectMake(self.replyingToLabel.frame.size.width - closeIcon.image.size.width - 12, self.replyingToLabel.frame.size.height / 2 - closeIcon.image.size.height / 2, closeIcon.image.size.width, closeIcon.image.size.height);
-    closeIcon.tintColor = [UIColor bonfirePrimaryColor];
-    closeIcon.userInteractionEnabled = true;
     closeIcon.contentMode = UIViewContentModeCenter;
+    closeIcon.image = [[UIImage imageNamed:@"cancelReplyingToIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+    closeIcon.frame = CGRectMake(self.replyingToLabel.frame.size.width - closeIcon.image.size.width - 12 - 12, self.replyingToLabel.frame.size.height / 2 - closeIcon.image.size.height / 2 - 12, closeIcon.image.size.width + 24, closeIcon.image.size.height + 24);
+    closeIcon.tintColor = [UIColor whiteColor];
+    closeIcon.userInteractionEnabled = true;
     [closeIcon bk_whenTapped:^{
         [self setReplyingTo:nil];
     }];
     [self.replyingToLabel addSubview:closeIcon];
     
-    UIImageView *replyIcon = [[UIImageView alloc] initWithFrame:CGRectMake(12, self.replyingToLabel.frame.size.height / 2 - 7.5, 13, 15)];
+    UIImageView *replyIcon = [[UIImageView alloc] initWithFrame:CGRectMake(12, self.replyingToLabel.frame.size.height / 2 - 7.5, 18, 14)];
     replyIcon.image = [[UIImage imageNamed:@"postActionReply"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-    replyIcon.tintColor = [UIColor bonfirePrimaryColor];
+    replyIcon.tintColor = [UIColor whiteColor];
     replyIcon.contentMode = UIViewContentModeScaleAspectFill;
     [self.replyingToLabel addSubview:replyIcon];
-    
-    UIView *lineSeparator_t = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.replyingToLabel.frame.size.width, HALF_PIXEL)];
-    lineSeparator_t.backgroundColor = [UIColor colorWithWhite:0 alpha:0.06];
-    [self.replyingToLabel addSubview:lineSeparator_t];
     
     self.autoCompleteTableViewContainer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, 0)];
     self.autoCompleteTableViewContainer.layer.masksToBounds = false;
@@ -275,12 +269,12 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     // auto complete hairline
     UIView *autoCompleteLineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, -HALF_PIXEL, self.autoCompleteTableViewContainer.frame.size.width, HALF_PIXEL)];
     autoCompleteLineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
-    [self.autoCompleteTableViewContainer addSubview:autoCompleteLineSeparator];
+//    [self.autoCompleteTableViewContainer addSubview:autoCompleteLineSeparator];
     
     // compose box hairline
-    UIView *hairline = [[UIView alloc] initWithFrame:CGRectMake(0, -HALF_PIXEL, screenWidth, HALF_PIXEL)];
-    hairline.backgroundColor = [UIColor tableViewSeparatorColor];
-    //[self addSubview:hairline];
+    self.topSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, -HALF_PIXEL, screenWidth, HALF_PIXEL)];
+    self.topSeparator.backgroundColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.12f];
+    [self addSubview:self.topSeparator];
 }
 
 - (void)layoutSubviews
@@ -313,14 +307,13 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     NSString *publicPostPlaceholder = @"Share with everyone...";
     
     if (self.defaultPlaceholder == nil) {
-        self.defaultPlaceholder = @"";
         UIViewController *parentController = UIViewParentController(self);
         if (self.replyingTo != nil) {
-            if ([self.replyingTo.attributes.details.creator.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
+            if ([self.replyingTo.attributes.creator.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
                 self.defaultPlaceholder = @"Add a reply...";
             }
             else {
-                NSString *creatorIdentifier = self.replyingTo.attributes.details.creator.attributes.details.identifier;
+                NSString *creatorIdentifier = self.replyingTo.attributes.creator.attributes.identifier;
                 self.defaultPlaceholder = creatorIdentifier ? [NSString stringWithFormat:@"Reply to @%@...", creatorIdentifier] : @"Add a reply...";
             }
         }
@@ -331,7 +324,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                 self.defaultPlaceholder = publicPostPlaceholder;
             }
             else {
-                self.defaultPlaceholder = [NSString stringWithFormat:@"Share with @%@", parentProfile.user.attributes.details.identifier];
+                self.defaultPlaceholder = [NSString stringWithFormat:@"Share with @%@", parentProfile.user.attributes.identifier];
             }
         }
         else if ([parentController isKindOfClass:[CampViewController class]]) {
@@ -340,11 +333,11 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                 self.defaultPlaceholder = publicPostPlaceholder;
             }
             else {
-                if (parentCamp.camp.attributes.details.title == nil) {
+                if (parentCamp.camp.attributes.title == nil) {
                     self.defaultPlaceholder = @"Share something...";
                 }
                 else {
-                    self.defaultPlaceholder = [[Session sharedInstance].defaults.post.composePrompt stringByReplacingOccurrencesOfString:@"{group_name}" withString:parentCamp.camp.attributes.details.title];
+                    self.defaultPlaceholder = [NSString stringWithFormat:@"Share in %@...", parentCamp.camp.attributes.title];
                 }
             }
         }
@@ -405,7 +398,6 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 - (void)reset {
     self.textView.text = @"";
     [self hidePostButton];
-    [self.textView resignFirstResponder];
     [self.media flush];
     [self hideMediaTray];
     [self setReplyingTo:nil];
@@ -493,7 +485,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     UIAlertController *imagePickerOptions = [UIAlertController alertControllerWithTitle:nil message:nil preferredStyle:UIAlertControllerStyleActionSheet];
     
     UIAlertAction *takePhoto = [UIAlertAction actionWithTitle:@"Take Photo" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-        [self takePhotoForProfilePicture:nil];
+        [self takePhotoToAttach:nil];
     }];
     [imagePickerOptions addAction:takePhoto];
     
@@ -508,65 +500,97 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     
     [UIViewParentController(self) presentViewController:imagePickerOptions animated:YES completion:nil];
 }
-    
-- (void)takePhotoForProfilePicture:(id)sender {
+
+- (void)takePhotoToAttach:(id)sender {
+    NSString *mediaType = AVMediaTypeVideo;
+    AVAuthorizationStatus authStatus = [AVCaptureDevice authorizationStatusForMediaType:mediaType];
+    if (authStatus == AVAuthorizationStatusAuthorized) {
+        [self openCamera];
+    }
+    else if(authStatus == AVAuthorizationStatusDenied ||
+            authStatus == AVAuthorizationStatusRestricted) {
+        // denied
+        [self showNoCameraAccess];
+    }
+    else if(authStatus == AVAuthorizationStatusNotDetermined){
+        // not determined?!
+        [AVCaptureDevice requestAccessForMediaType:mediaType completionHandler:^(BOOL granted) {
+            if (granted){
+                NSLog(@"Granted access to %@", mediaType);
+                [self openCamera];
+            }
+            else {
+                NSLog(@"Not granted access to %@", mediaType);
+                [self showNoCameraAccess];
+            }
+        }];
+    }
+}
+- (void)openCamera {
     UIImagePickerController *picker = [[UIImagePickerController alloc] init];
     picker.delegate = self;
     picker.allowsEditing = NO;
     picker.sourceType = UIImagePickerControllerSourceTypeCamera;
-    [UIViewParentController(self) presentViewController:picker animated:YES completion:nil];
+   
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [[Launcher topMostViewController] presentViewController:picker animated:YES completion:nil];
+    });
 }
+- (void)showNoCameraAccess {
+    UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"Allow Bonfire to access your camera" message:@"To allow Bonfire to access your camera, go to Settings > Privacy > Camera > Set Bonfire to ON" preferredStyle:UIAlertControllerStyleAlert];
+
+    UIAlertAction *openSettingsAction = [UIAlertAction actionWithTitle:@"Open Settings" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString] options:@{} completionHandler:nil];
+    }];
+    [actionSheet addAction:openSettingsAction];
+
+    UIAlertAction *closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleCancel handler:nil];
+    [actionSheet addAction:closeAction];
+    [[Launcher topMostViewController] presentViewController:actionSheet animated:YES completion:nil];
+}
+
 - (void)chooseFromLibraryForProfilePicture:(id)sender {
-    UIImagePickerController *picker = [[UIImagePickerController alloc] init];
+    [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
+        switch (status) {
+            case PHAuthorizationStatusAuthorized: {
+                NSLog(@"PHAuthorizationStatusAuthorized");
+                
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    UIImagePickerController *picker = [[UIImagePickerController alloc] init];
                     picker.delegate = self;
                     picker.allowsEditing = NO;
                     picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
-                    dispatch_async(dispatch_get_main_queue(), ^{
-                        [[Launcher topMostViewController] presentViewController:picker animated:YES completion:nil];
-                    });
-    
-//    [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
-//        switch (status) {
-//            case PHAuthorizationStatusAuthorized: {
-//                NSLog(@"PHAuthorizationStatusAuthorized");
-//                
-//                UIImagePickerController *picker = [[UIImagePickerController alloc] init];
-//                picker.delegate = self;
-//                picker.allowsEditing = NO;
-//                picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
-//                dispatch_async(dispatch_get_main_queue(), ^{
-//                    [[Launcher topMostViewController] presentViewController:picker animated:YES completion:nil];
-//                });
-//                
-//                break;
-//            }
-//            case PHAuthorizationStatusDenied:
-//            case PHAuthorizationStatusNotDetermined:
-//            {
-//                NSLog(@"PHAuthorizationStatusDenied");
-//                // confirm action
-//                UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"Allow Bonfire to access your phtoos" message:@"To allow Bonfire to access your photos, go to Settings > Privacy > Set Bonfire to ON" preferredStyle:UIAlertControllerStyleAlert];
-//                
-//                UIAlertAction *openSettingsAction = [UIAlertAction actionWithTitle:@"Open Settings" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-//                    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString] options:@{} completionHandler:nil];
-//                }];
-//                [actionSheet addAction:openSettingsAction];
-//                
-//                UIAlertAction *closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleCancel handler:nil];
-//                [actionSheet addAction:closeAction];
-//                
-//                dispatch_async(dispatch_get_main_queue(), ^{
-//                    [[Launcher topMostViewController] presentViewController:actionSheet animated:YES completion:nil];
-//                });
-//                
-//                break;
-//            }
-//            case PHAuthorizationStatusRestricted: {
-//                NSLog(@"PHAuthorizationStatusRestricted");
-//                break;
-//            }
-//        }
-//    }];
+                    [[Launcher topMostViewController] presentViewController:picker animated:YES completion:nil];
+                });
+                
+                break;
+            }
+            case PHAuthorizationStatusDenied:
+            case PHAuthorizationStatusNotDetermined:
+            {
+                NSLog(@"PHAuthorizationStatusDenied");
+                // confirm action
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"Allow Bonfire to access your phtoos" message:@"To allow Bonfire to access your photos, go to Settings > Privacy > Camera > Set Bonfire to ON" preferredStyle:UIAlertControllerStyleAlert];
+
+                    UIAlertAction *openSettingsAction = [UIAlertAction actionWithTitle:@"Open Settings" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString] options:@{} completionHandler:nil];
+                    }];
+                    [actionSheet addAction:openSettingsAction];
+                
+                    UIAlertAction *closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleCancel handler:nil];
+                    [actionSheet addAction:closeAction];
+                    [[Launcher topMostViewController] presentViewController:actionSheet animated:YES completion:nil];
+                });
+
+                break;
+            }
+            case PHAuthorizationStatusRestricted: {
+                NSLog(@"PHAuthorizationStatusRestricted");
+                break;
+            }
+        }
+    }];
 }
 - (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker {
     [picker dismissViewControllerAnimated:YES completion:nil];
@@ -771,17 +795,21 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         _replyingTo = replyingTo;
         
         if (_replyingTo) {
-            if ([replyingTo.attributes.details.creator.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
+            if ([replyingTo.attributes.creator.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
                 [_replyingToLabel setTitle:@"Replying to yourself" forState:UIControlStateNormal];
             }
             else {
-                [_replyingToLabel setTitle:[NSString stringWithFormat:@"Replying to @%@", replyingTo.attributes.details.creator.attributes.details.identifier] forState:UIControlStateNormal];
+                [_replyingToLabel setTitle:[NSString stringWithFormat:@"Replying to @%@", replyingTo.attributes.creator.attributes.identifier] forState:UIControlStateNormal];
             }
             [self showReplyingTo];
         }
         else {
             self.textView.text = @"";
             [self hideReplyingTo];
+        }
+        
+        if ([self.delegate respondsToSelector:@selector(composeInputViewReplyingToDidChange)]) {
+            [self.delegate composeInputViewReplyingToDidChange];
         }
         
         [self updatePlaceholders];
@@ -971,12 +999,16 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         [UIView animateWithDuration:0.45f delay:0 usingSpringWithDamping:0.6f initialSpringVelocity:0.5f options:(UIViewAnimationOptionCurveEaseOut|UIViewAnimationOptionAllowUserInteraction|UIViewAnimationOptionBeginFromCurrentState) animations:^{
             self.autoCompleteTableViewContainer.alpha = 1;
             self.autoCompleteTableViewContainer.transform = CGAffineTransformMakeTranslation(0, 0);
+            
+            self.topSeparator.frame = CGRectMake(0, -1 * (self.autoCompleteTableView.frame.size.height + self.topSeparator.frame.size.height), self.topSeparator.frame.size.width, self.topSeparator.frame.size.height);
         } completion:nil];
     }
     else {
         [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.75f initialSpringVelocity:0.5f options:(UIViewAnimationOptionCurveEaseOut|UIViewAnimationOptionAllowUserInteraction|UIViewAnimationOptionBeginFromCurrentState) animations:^{
             self.autoCompleteTableViewContainer.frame = CGRectMake(0, -1 * height, self.frame.size.width, height);
             self.autoCompleteTableView.frame = CGRectMake(0, 0, self.autoCompleteTableViewContainer.frame.size.width, self.autoCompleteTableViewContainer.frame.size.height);
+            
+            self.topSeparator.frame = CGRectMake(0, -1 * (self.autoCompleteTableView.frame.size.height + self.topSeparator.frame.size.height), self.topSeparator.frame.size.width, self.topSeparator.frame.size.height);
         } completion:nil];
     }
 }
@@ -984,6 +1016,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     [UIView animateWithDuration:animated?0.3f:0 delay:0 usingSpringWithDamping:0.92f initialSpringVelocity:0.5f options:(UIViewAnimationOptionCurveEaseOut|UIViewAnimationOptionAllowUserInteraction|UIViewAnimationOptionBeginFromCurrentState) animations:^{
         self.autoCompleteTableViewContainer.frame = CGRectMake(0, -(HALF_PIXEL), self.frame.size.width, 0);
         self.autoCompleteTableView.frame = CGRectMake(0, 0, self.autoCompleteTableViewContainer.frame.size.width, self.autoCompleteTableViewContainer.frame.size.height);
+        self.topSeparator.frame = CGRectMake(0, -1 * HALF_PIXEL, self.topSeparator.frame.size.width, self.topSeparator.frame.size.height);
     } completion:nil];
 }
 
@@ -1002,7 +1035,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             BOOL changes = false;
             NSString *finalString = self.textView.text;
             if (cell.user) {
-                NSString *usernameSelected = cell.user.attributes.details.identifier;
+                NSString *usernameSelected = cell.user.attributes.identifier;
                 
                 if (usernameSelected.length > 0) {
                     finalString = [self.textView.text stringByReplacingCharactersInRange:self.activeTagRange withString:[NSString stringWithFormat:@"@%@ ", usernameSelected]];
@@ -1010,7 +1043,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                 }
             }
             else if (cell.camp) {
-                NSString *campTagSelected = cell.camp.attributes.details.identifier;
+                NSString *campTagSelected = cell.camp.attributes.identifier;
                 
                 if (campTagSelected.length > 0) {
                     finalString = [self.textView.text stringByReplacingCharactersInRange:self.activeTagRange withString:[NSString stringWithFormat:@"#%@ ", campTagSelected]];

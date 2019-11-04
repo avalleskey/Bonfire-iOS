@@ -18,6 +18,7 @@
 
 @optional
 - (void)composeInputViewMessageDidChange:(UITextView *)textView;
+- (void)composeInputViewReplyingToDidChange;
 
 @end
 
@@ -52,12 +53,14 @@
 @property (nonatomic, strong) NSArray *mediaTypes;
 @property (nonatomic, strong) NSString *defaultPlaceholder;
 
+@property (nonatomic, strong) UIView *topSeparator;
+
 - (void)reset;
 
 - (void)setActive:(BOOL)isActive;
 - (BOOL)isActive;
 
-- (void)resize:(BOOL)aniamted;
+- (void)resize:(BOOL)animated;
 
 - (void)showPostButton;
 - (void)hidePostButton;

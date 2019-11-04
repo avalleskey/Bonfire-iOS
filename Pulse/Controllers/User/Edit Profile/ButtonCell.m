@@ -23,17 +23,19 @@
     if (self) {
         self.gutterPadding = 12;
         
+        self.imageView.layer.masksToBounds = true;
+        self.imageView.backgroundColor = [UIColor bonfireSecondaryColor];
+        
         self.selectionStyle = UITableViewCellSelectionStyleNone;
+        
+        self.backgroundColor  = [UIColor contentBackgroundColor];
         self.contentView.backgroundColor = [UIColor clearColor];
-        self.backgroundColor = [UIColor contentBackgroundColor];
         
         self.kButtonColorDefault = [UIColor bonfirePrimaryColor];
-        self.kButtonColorDestructive = [UIColor colorWithDisplayP3Red:0.82 green:0.01 blue:0.11 alpha:1.0];
+        self.kButtonColorDestructive = [UIColor fromHex:@"ff0900" adjustForOptimalContrast:true];
         self.kButtonColorTheme = [UIColor bonfirePrimaryColor];
         self.kButtonColorBonfire = [UIColor bonfireBrand];
-        
-        self.selectionStyle = UITableViewCellSelectionStyleNone;
-        
+                
         self.buttonLabel = [[UILabel alloc] init];
         self.buttonLabel.text = @"";
         self.buttonLabel.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightMedium];
@@ -47,6 +49,16 @@
         self.checkIcon.tintColor = [UIColor bonfireBrand];
         self.checkIcon.hidden = true;
         [self.contentView addSubview:self.checkIcon];
+        
+        self.topSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, HALF_PIXEL)];
+        self.topSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
+        self.topSeparator.hidden = true;
+        [self.contentView addSubview:self.topSeparator];
+        
+        self.bottomSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, self.frame.size.height - HALF_PIXEL, self.frame.size.width, HALF_PIXEL)];
+        self.bottomSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
+        self.bottomSeparator.hidden = true;
+        [self.contentView addSubview:self.bottomSeparator];
     }
     
     return self;
@@ -55,37 +67,48 @@
 - (void)layoutSubviews {
     [super layoutSubviews];
     
-    if (self.detailTextLabel.text.length > 0) {
+    UIEdgeInsets contentEdgeInsets = UIEdgeInsetsMake(0, self.gutterPadding, 0, self.gutterPadding);
+    
+    if (self.imageView.image != nil) {
+        self.imageView.frame = CGRectMake(contentEdgeInsets.left, self.frame.size.height / 2 - 14, 28, 28);
+        self.imageView.layer.cornerRadius = self.imageView.frame.size.height / 2;
+        
+        contentEdgeInsets.left = self.imageView.frame.origin.x + self.imageView.frame.size.width + 12;
+    }
+    
+    self.detailTextLabel.hidden = self.detailTextLabel.text.length == 0 || [self.detailTextLabel.text isEqualToString:@"0"] || self.detailTextLabel.text.length == 0;
+    if (![self.detailTextLabel isHidden]) {
         self.detailTextLabel.frame = CGRectMake(self.frame.size.width - 100 - 16 - (self.accessoryType != UITableViewCellAccessoryNone ? 16 : 0), 0, 100, self.frame.size.height);
         self.detailTextLabel.textColor = [UIColor bonfireSecondaryColor];
         self.detailTextLabel.textAlignment = NSTextAlignmentRight;
-        self.detailTextLabel.font = [UIFont systemFontOfSize:15.f weight:UIFontWeightRegular];
+        self.detailTextLabel.font = [UIFont systemFontOfSize:self.buttonLabel.font.pointSize weight:UIFontWeightMedium];
         
-        self.buttonLabel.frame = CGRectMake(self.gutterPadding, 0, self.detailTextLabel.frame.origin.x - self.gutterPadding - 8, self.frame.size.height);
+        contentEdgeInsets.right = self.frame.size.width - self.detailTextLabel.frame.origin.x - 8;
     }
-    else if (!self.checkIcon.isHidden) {
+    else if (![self.checkIcon isHidden]) {
         self.checkIcon.frame = CGRectMake(self.frame.size.width - 16 - self.checkIcon.frame.size.width, self.frame.size.height / 2 - self.checkIcon.frame.size.height / 2, self.checkIcon.frame.size.width, self.checkIcon.frame.size.height);
-        self.buttonLabel.frame = CGRectMake(self.gutterPadding, 0, self.checkIcon.frame.origin.x - (self.gutterPadding * 2), self.frame.size.height);
+        
+        contentEdgeInsets.right = self.frame.size.width - self.checkIcon.frame.origin.x - 8;
     }
-    else {
-        self.buttonLabel.frame = CGRectMake(self.gutterPadding, 0, self.frame.size.width - (self.gutterPadding * 2), self.frame.size.height);
-    }
+    
+    self.buttonLabel.frame = CGRectMake(contentEdgeInsets.left, 0, self.frame.size.width - contentEdgeInsets.left - contentEdgeInsets.right, self.frame.size.height);
+    
+    self.topSeparator.frame = CGRectMake(self.topSeparator.frame.origin.x, 0, self.frame.size.width - self.topSeparator.frame.origin.x, self.topSeparator.frame.size.height);
+    self.bottomSeparator.frame = CGRectMake(self.bottomSeparator.frame.origin.x, self.frame.size.height - self.bottomSeparator.frame.size.height, self.frame.size.width - self.bottomSeparator.frame.origin.x, self.bottomSeparator.frame.size.height);
 }
 
 - (void)setHighlighted:(BOOL)highlighted animated:(BOOL)animated
 {
     [super setHighlighted:highlighted animated:animated];
     
-    if (highlighted) {
-        [UIView animateWithDuration:0.2f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+    [UIView animateWithDuration:0.2f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        if (highlighted) {
             self.backgroundColor = [UIColor contentHighlightedColor];
-        } completion:nil];
-    }
-    else {
-        [UIView animateWithDuration:0.2f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        }
+        else {
             self.backgroundColor = [UIColor contentBackgroundColor];
-        } completion:nil];
-    }
+        }
+    } completion:nil];
 }
 
 @end

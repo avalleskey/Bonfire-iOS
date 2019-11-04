@@ -7,22 +7,27 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "EFCircularSlider.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
+@protocol BFColorPickerViewControllerDelegate <NSObject>
+
+- (void)colorPicker:(id)colorPicker didSelectColor:(NSString *)color;
+
+@end
+
 @interface BFColorPickerViewController : UIViewController
 
-- (id)initWithColor:(NSString *)colorString;
+- (id)initWithColor:(UIColor *)color;
 
-@property (nonatomic, strong) UIView *colorPickerView;
-@property (nonatomic, strong) UITextField *hexTextField;
-@property (nonatomic, strong) EFCircularSlider *hueSlider;
+@property (nonatomic, strong) UIView *contentView;
 
-@property (nonatomic, strong) NSString *selectedColor;
+@property (nonatomic, strong) UIColor *selectedColor;
 
-@property (strong, nonatomic) UIBarButtonItem *cancelButton;
-@property (strong, nonatomic) UIBarButtonItem *saveButton;
+@property (strong, nonatomic) UIButton *cancelButton;
+@property (strong, nonatomic) UIButton *saveButton;
+
+@property (nonatomic, weak) id <BFColorPickerViewControllerDelegate> delegate;
 
 @end
 

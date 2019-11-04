@@ -17,6 +17,7 @@ NS_ASSUME_NONNULL_BEGIN
 @class BFContextCampMembershipRole;
 @class BFContextCampMembershipSubscription;
 @class BFContextCampPermissions;
+@class BFContextCampPermissionsMembers;
 
 @class BFContextPost;
 @class BFContextPostReplies;
@@ -54,7 +55,6 @@ extern NSString * const CAMP_STATUS_LEFT;
 extern NSString * const CAMP_STATUS_BLOCKED;
 extern NSString * const CAMP_STATUS_NO_RELATION;
 
-extern NSString * const CAMP_STATUS_CAMP_BLOCKED;
 extern NSString * const CAMP_STATUS_LOADING;
 
 // camp role
@@ -102,6 +102,7 @@ extern NSString * const CAMP_ROLE_ADMIN;
 @property (nonatomic) NSArray <Optional> *post;
 @property (nonatomic) NSArray <Optional> *reply;
 @property (nonatomic) NSArray <Optional> *assign;
+@property (nonatomic) BFContextCampPermissionsMembers <Optional> *members;
 @property (nonatomic) BOOL canInvite;
 @property (nonatomic) BOOL canUpdate;
 @property (nonatomic) BOOL canDelete;
@@ -114,6 +115,16 @@ extern NSString * const CAMP_ROLE_ADMIN;
 
 @end
 
+// BFContext.camp.permissions.members
+@interface BFContextCampPermissionsMembers : JSONModel
+
+// can they invite new members
+@property (nonatomic) BOOL invite;
+
+// can they remove existing members
+@property (nonatomic) BOOL manage;
+
+@end
 
 // BFContext.post
 @interface BFContextPost : JSONModel

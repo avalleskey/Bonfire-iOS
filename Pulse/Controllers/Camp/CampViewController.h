@@ -11,20 +11,26 @@
 #import "RSTableView.h"
 #import "Camp.h"
 #import "ComposeInputView.h"
+#import "ThemedViewController.h"
+
+#if !TARGET_OS_MACCATALYST
 #import <Messages/Messages.h>
 #import <MessageUI/MessageUI.h>
-#import "ThemedViewController.h"
+#endif
 
 @interface CampViewController : ThemedViewController <UITextViewDelegate, RSTableViewDelegate, MFMessageComposeViewControllerDelegate>
 
 @property (nonatomic, strong) Camp *camp;
 
 @property (nonatomic, strong) UILabel *navTitle;
-@property (nonatomic, strong) UIScrollView *scrollView;
+
 @property (nonatomic, strong) RSTableView *tableView;
+@property (nonatomic, strong) UIImageView *coverPhotoView;
+
 @property (nonatomic, strong) ComposeInputView *composeInputView;
 
 @property (nonatomic) CGFloat currentKeyboardHeight;
+@property (nonatomic) BOOL isPreview;
     
 - (void)openCampActions;
 

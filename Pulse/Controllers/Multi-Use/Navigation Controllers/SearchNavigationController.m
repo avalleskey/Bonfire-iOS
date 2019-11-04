@@ -24,7 +24,7 @@
     
     self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] init];
     
-    self.view.tintColor = [UIColor bonfirePrimaryColor]; //[UIColor fromHex:[Session sharedInstance].currentUser.attributes.details.color];
+    self.view.tintColor = [UIColor bonfirePrimaryColor]; //[UIColor fromHex:[Session sharedInstance].currentUser.attributes.color];
     self.view.backgroundColor = [UIColor whiteColor];
     [self setupNavigationBar];
 }
@@ -55,7 +55,7 @@
     [self.navigationBar addSubview:self.bottomHairline];
     
     self.searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(12, 0, self.view.frame.size.width - (12 * 2), 34)];
-    self.searchView.theme = BFTextFieldThemeContent;
+    self.searchView.theme = BFTextFieldThemeAuto;
     self.searchView.textField.delegate = self;
     self.searchView.center = CGPointMake(self.navigationBar.frame.size.width / 2, self.navigationBar.frame.size.height / 2);
     [self.searchView.textField bk_addEventHandler:^(id sender) {

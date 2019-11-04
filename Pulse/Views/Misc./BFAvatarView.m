@@ -18,6 +18,7 @@
 @implementation BFAvatarView
 
 @synthesize user = _user;
+@synthesize bot = _bot;
 @synthesize camp = _camp;
 
 - (id)init {
@@ -66,6 +67,13 @@
     self.dimsViewOnTap = false;
     self.openOnTap = false;
     self.placeholderAvatar = false;
+    
+    if (@available(iOS 13.0, *)) {
+        UIContextMenuInteraction *avatarInteraction = [[UIContextMenuInteraction alloc] initWithDelegate:self];
+        [self addInteraction:avatarInteraction];
+    } else {
+        // Fallback on earlier versions
+    }
 }
 
 - (void)layoutSubviews {
@@ -116,7 +124,7 @@
 }
 
 - (void)setUser:(User *)user {
-    if (user == nil || user != _user || ![user.attributes.details.color isEqualToString:_user.attributes.details.color]) {
+    if (user == nil || user != _user || ![user.attributes.color isEqualToString:_user.attributes.color]) {
         _user = user;
         
         if (user == nil) {
@@ -126,21 +134,21 @@
             [self.imageView sd_cancelCurrentImageLoad];
         }
         else {
-            if (_user.attributes.details.media.userAvatar.suggested.url && _user.attributes.details.media.userAvatar.suggested.url.length > 0) {
+            if (_user.attributes.media.avatar.suggested.url && _user.attributes.media.avatar.suggested.url.length > 0) {
                 self.imageView.backgroundColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.12f];
                 self.imageView.layer.borderWidth = 0;
                 self.imageView.image = nil;
                 
-                [self.imageView sd_setImageWithURL:[NSURL URLWithString:_user.attributes.details.media.userAvatar.suggested.url] completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
+                [self.imageView sd_setImageWithURL:[NSURL URLWithString:_user.attributes.media.avatar.suggested.url] completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
                     self.imageView.layer.borderWidth = 1;
                 }];
             }
             else {
-                self.imageView.backgroundColor = [UIColor fromHex:_user.attributes.details.color];
+                self.imageView.backgroundColor = [UIColor fromHex:_user.attributes.color];
                 self.imageView.layer.borderWidth = 0;
                 [self.imageView sd_cancelCurrentImageLoad];
                 
-                if ([UIColor useWhiteForegroundForColor:[UIColor fromHex:_user.attributes.details.color]]) {
+                if ([UIColor useWhiteForegroundForColor:[UIColor fromHex:_user.attributes.color]]) {
                     // dark enough
                     self.imageView.image = [UIImage imageNamed:@"anonymous"];
                 }
@@ -154,8 +162,49 @@
 - (User *)user {
     return _user;
 }
+
+- (void)setBot:(Bot *)bot {
+    if (bot == nil || bot != _bot || ![bot.attributes.color isEqualToString:_bot.attributes.color]) {
+        _bot = bot;
+        
+        if (bot == nil) {
+            self.imageView.layer.borderWidth = 0;
+            self.imageView.tintColor = [UIColor whiteColor];
+            self.imageView.backgroundColor = k_defaultAvatarTintColor;
+            [self.imageView sd_cancelCurrentImageLoad];
+        }
+        else {
+            if (_bot.attributes.media.avatar.suggested.url && _bot.attributes.media.avatar.suggested.url.length > 0) {
+                self.imageView.backgroundColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.12f];
+                self.imageView.layer.borderWidth = 0;
+                self.imageView.image = nil;
+                
+                [self.imageView sd_setImageWithURL:[NSURL URLWithString:_bot.attributes.media.avatar.suggested.url] completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
+                    self.imageView.layer.borderWidth = 1;
+                }];
+            }
+            else {
+                self.imageView.backgroundColor = [UIColor fromHex:_bot.attributes.color];
+                self.imageView.layer.borderWidth = 0;
+                [self.imageView sd_cancelCurrentImageLoad];
+                
+                if ([UIColor useWhiteForegroundForColor:[UIColor fromHex:_bot.attributes.color]]) {
+                    // dark enough
+                    self.imageView.image = [UIImage imageNamed:@"anonymous_bot"];
+                }
+                else {
+                    self.imageView.image = [UIImage imageNamed:@"anonymous_bot_black"];
+                }
+            }
+        }
+    }
+}
+- (Bot *)bot {
+    return _bot;
+}
+
 - (void)setCamp:(Camp *)camp {
-    if (camp == nil || camp != _camp || ![camp.attributes.details.color isEqualToString:_camp.attributes.details.color]) {
+    if (camp == nil || camp != _camp || ![camp.attributes.color isEqualToString:_camp.attributes.color]) {
         _user = nil;
         _camp = camp;
         
@@ -166,21 +215,21 @@
             [self.imageView sd_cancelCurrentImageLoad];
         }
         else {
-            if (_camp.attributes.details.media.campAvatar.suggested.url && _camp.attributes.details.media.campAvatar.suggested.url.length > 0) {
+            if (_camp.attributes.media.avatar.suggested.url && _camp.attributes.media.avatar.suggested.url.length > 0) {
                 self.imageView.backgroundColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.12f];
                 self.imageView.layer.borderWidth = 0;
                 self.imageView.image = nil;
                 
-                [self.imageView sd_setImageWithURL:[NSURL URLWithString:_camp.attributes.details.media.campAvatar.suggested.url] completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
+                [self.imageView sd_setImageWithURL:[NSURL URLWithString:_camp.attributes.media.avatar.suggested.url] completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
                     self.imageView.layer.borderWidth = 1;
                 }];
             }
             else {
-                self.imageView.backgroundColor = [UIColor fromHex:_camp.attributes.details.color];
+                self.imageView.backgroundColor = [UIColor fromHex:_camp.attributes.color];
                 self.imageView.layer.borderWidth = 0;
                 [self.imageView sd_cancelCurrentImageLoad];
                 
-                if ([UIColor useWhiteForegroundForColor:[UIColor fromHex:_camp.attributes.details.color]]) {
+                if ([UIColor useWhiteForegroundForColor:[UIColor fromHex:_camp.attributes.color]]) {
                     // dark enough
                     self.imageView.image = [UIImage imageNamed:@"anonymousGroup"];
                 }
@@ -202,7 +251,7 @@
     
     if (_placeholderAvatar) {
         self.imageView.backgroundColor = [UIColor clearColor];
-        self.imageView.image = [UIImage imageNamed:@"inviteFriendPlaceholderCircular"];
+        self.imageView.image = [[UIImage imageNamed:@"campHeaderAddIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
     }
 }
 
@@ -261,6 +310,41 @@
 
 - (void)userUpdated:(NSNotification *)notification {
     self.user = [Session sharedInstance].currentUser;
+}
+
+- (nullable UIContextMenuConfiguration *)contextMenuInteraction:(nonnull UIContextMenuInteraction *)interaction configurationForMenuAtLocation:(CGPoint)location  API_AVAILABLE(ios(13.0)){
+    if (self.camp) {
+        UIMenu *menu = [UIMenu menuWithTitle:@"" children:@[]];
+        
+        CampViewController *campVC = [Launcher campViewControllerForCamp:self.camp];
+        campVC.isPreview = true;
+        
+        UIContextMenuConfiguration *configuration = [UIContextMenuConfiguration configurationWithIdentifier:@"camp_preview" previewProvider:^(){return campVC;} actionProvider:^(NSArray* suggestedAction){return menu;}];
+        return configuration;
+    }
+    else if (self.user) {
+        UIMenu *menu = [UIMenu menuWithTitle:@"" children:@[]];
+        
+        ProfileViewController *userVC = [Launcher profileViewControllerForUser:self.user];
+        
+        UIContextMenuConfiguration *configuration = [UIContextMenuConfiguration configurationWithIdentifier:@"user_preview" previewProvider:^(){return userVC;} actionProvider:^(NSArray* suggestedAction){return menu;}];
+        return configuration;
+    }
+    
+    return nil;
+}
+
+- (void)contextMenuInteraction:(UIContextMenuInteraction *)interaction willPerformPreviewActionForMenuWithConfiguration:(UIContextMenuConfiguration *)configuration animator:(id<UIContextMenuInteractionCommitAnimating>)animator  API_AVAILABLE(ios(13.0)){
+    [animator addCompletion:^{
+        wait(0, ^{
+            if (self.camp) {
+                [Launcher openCamp:self.camp];
+            }
+            else if (self.user) {
+                [Launcher openProfile:self.user];
+            }
+        });
+    }];
 }
 
 @end

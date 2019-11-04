@@ -22,6 +22,11 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)prependPage:(UserActivityStreamPage *)page;
 - (void)appendPage:(UserActivityStreamPage *)page;
 
+- (BOOL)updatePost:(Post *)post removeDuplicates:(BOOL)removeDuplicates;
+- (BOOL)removePost:(Post *)post;
+- (void)updateCampObjects:(Camp *)camp;
+- (void)updateUserObjects:(User *)user;
+
 @property (nonatomic) NSString *prevCursor;
 @property (nonatomic) NSString *nextCursor;
 

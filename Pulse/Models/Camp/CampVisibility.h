@@ -9,7 +9,6 @@
 @interface CampVisibility : JSONModel
 
 @property (nonatomic) BOOL isPrivate;
-@property (nonatomic) BOOL searchable;
 
 @end
 

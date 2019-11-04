@@ -20,6 +20,7 @@
 #import "HAWebService.h"
 @import Firebase;
 #import <Photos/Photos.h>
+#import "GTMNSString+HTML.h"
 
 #define composeToolbarHeight 56
 
@@ -50,17 +51,15 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     self.view.backgroundColor = [UIColor contentBackgroundColor];
     self.navigationController.navigationBar.tintColor = [UIColor bonfirePrimaryColor];
     
-    maxLength = [Session sharedInstance].defaults.post.maxLength.soft;
+    maxLength = [Session sharedInstance].defaults.post.maxLength;
     
     if (self.replyingTo) {
-        // strip snapshot from post replying to
-        self.replyingTo.attributes.details.replies = nil;
-        
-        // Google Analytics
         [FIRAnalytics setScreenName:@"Reply" screenClass:nil];
     }
+    else if (self.quotedLink) {
+        [FIRAnalytics setScreenName:@"Quote" screenClass:nil];
+    }
     else {
-        // Google Analytics
         [FIRAnalytics setScreenName:@"Compose" screenClass:nil];
     }
     
@@ -79,8 +78,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         });
     }
     
-    if (self.view.tag != 1) {
-        self.view.tag = 1;
+    if ([self isBeingPresented] || [self isMovingToParentViewController]) {
         // Prevents code inside this block from running more than once
         
         [((SimpleNavigationController *)self.navigationController).rightActionView bk_removeAllBlockObservers];
@@ -117,14 +115,19 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             self.title = @"Reply";
             [self updatePlaceholder];
         }
+        else if (self.quotedLink) {
+            self.navigationItem.titleView = nil;
+            self.title = @"Quote";
+            [self updatePlaceholder];
+        }
         else if (self.postingIn) {
-            [self updateTitleText:self.postingIn.attributes.details.title];
             [self updatePlaceholder];
             self.titleAvatar.camp = self.postingIn;
+            [self updateTitleText:self.postingIn.attributes.title];
         }
         else {
-            [self updateTitleText:@"My Profile"];
             self.titleAvatar.user = [[Session sharedInstance] currentUser];
+            [self updateTitleText:@"My Profile"];
         }
         
         [self updateTintColor];
@@ -191,6 +194,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         self.title = @"";
         self.titleLabel.text = newTitleText;
         
+        self.titleCaret.hidden = self.replyingToIcebreaker;
         if (self.replyingToIcebreaker) {
             SetWidth(self.titleCaret, 0);
             self.titleView.userInteractionEnabled = false;
@@ -210,7 +214,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     self.postingIn = selection;
     
     if (self.postingIn) {
-        [self updateTitleText:self.postingIn.attributes.details.title];
+        [self updateTitleText:self.postingIn.attributes.title];
         self.titleAvatar.camp = self.postingIn;
     }
     else {
@@ -226,11 +230,11 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     Camp *camp;
     User *user;
     if (self.replyingTo) {
-        if (self.replyingTo.attributes.status.postedIn) {
-            camp = self.replyingTo.attributes.status.postedIn;
+        if (self.replyingTo.attributes.postedIn) {
+            camp = self.replyingTo.attributes.postedIn;
         }
         else {
-            user = self.replyingTo.attributes.details.creator;
+            user = self.replyingTo.attributes.creator;
         }
     }
     else {
@@ -243,10 +247,10 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     }
     
     if (camp) {
-        self.view.tintColor = [UIColor fromHex:camp.attributes.details.color];
+        self.view.tintColor = [UIColor fromHex:camp.attributes.color adjustForOptimalContrast:true];
     }
     else if (user) {
-        self.view.tintColor = [UIColor fromHex:user.attributes.details.color];
+        self.view.tintColor = [UIColor fromHex:user.attributes.color adjustForOptimalContrast:true];
     }
     else {
         self.view.tintColor = [UIColor bonfirePrimaryColor];
@@ -278,25 +282,15 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     self.choosePictureButton.tintColor = self.view.tintColor;
 }
 
-- (void)scrollViewDidScroll:(UIScrollView *)scrollView {    
-    if (scrollView == self.tableView) {
-        NSLog(@"self.scrollView.contentOffset.y: %f", scrollView.contentOffset.y);
-        if (scrollView.contentOffset.y > 1) {
-            [(SimpleNavigationController *)self.navigationController setShadowVisibility:TRUE withAnimation:TRUE];
-        }
-        else {
-            [(SimpleNavigationController *)self.navigationController setShadowVisibility:FALSE withAnimation:TRUE];
-        }
-    }
-}
-
 - (void)setupToolbar {
     CGFloat toolbarHeight = composeToolbarHeight + [[[UIApplication sharedApplication] delegate] window].safeAreaInsets.bottom;
+    CGFloat newToolbarY = self.tableView.frame.size.height - self.currentKeyboardHeight - toolbarHeight;
     
     self.toolbarView = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleRegular]];
-    self.toolbarView.frame = CGRectMake(0, self.view.frame.size.height - toolbarHeight, self.view.frame.size.width, toolbarHeight);
-    self.toolbarView.backgroundColor = [[UIColor contentBackgroundColor] colorWithAlphaComponent:0.8];
+    self.toolbarView.frame = CGRectMake(0, newToolbarY, self.view.frame.size.width, toolbarHeight);
+    self.toolbarView.backgroundColor = [[UIColor bonfireDetailColor] colorWithAlphaComponent:0.8];
     self.toolbarView.layer.masksToBounds = true;
+    [self roundCornersOnView:self.toolbarView onTopLeft:true topRight:true bottomLeft:false bottomRight:false radius:10.f];
     [self.view addSubview:self.toolbarView];
     
     self.toolbarButtonsContainer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, toolbarHeight)];
@@ -304,7 +298,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     
     UIView *lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.toolbarView.frame.size.width, (1 / [UIScreen mainScreen].scale))];
     lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
-    [self.toolbarView.contentView addSubview:lineSeparator];
+    //[self.toolbarView.contentView addSubview:lineSeparator];
     
     self.takePictureButton = [UIButton buttonWithType:UIButtonTypeSystem];
     [self.takePictureButton setImage:[[UIImage imageNamed:@"composeToolbarTakePicture"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
@@ -333,7 +327,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     self.characterCountdownLabel.text = [NSString stringWithFormat:@"%ld", maxLength];
     [self.toolbarButtonsContainer addSubview:self.characterCountdownLabel];
     
-    self.autoCompleteTableView = [[UITableView alloc] initWithFrame:CGRectMake(0, 0, self.toolbarView.frame.size.width, 214) style:UITableViewStyleGrouped];
+    self.autoCompleteTableView = [[UITableView alloc] initWithFrame:CGRectMake(0, 0, self.toolbarView.frame.size.width, ceilf(self.tableView.frame.size.height / 4)) style:UITableViewStyleGrouped];
     self.autoCompleteTableView.delegate = self;
     self.autoCompleteTableView.dataSource = self;
     self.autoCompleteTableView.backgroundColor = [UIColor clearColor];
@@ -347,13 +341,33 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     [self.toolbarView.contentView addSubview:self.autoCompleteTableView];
 }
 
+- (UIView *)roundCornersOnView:(UIView *)view onTopLeft:(BOOL)tl topRight:(BOOL)tr bottomLeft:(BOOL)bl bottomRight:(BOOL)br radius:(float)radius {
+
+    if (tl || tr || bl || br) {
+        UIRectCorner corner = 0;
+        if (tl) {corner = corner | UIRectCornerTopLeft;}
+        if (tr) {corner = corner | UIRectCornerTopRight;}
+        if (bl) {corner = corner | UIRectCornerBottomLeft;}
+        if (br) {corner = corner | UIRectCornerBottomRight;}
+
+        UIView *roundedView = view;
+        UIBezierPath *maskPath = [UIBezierPath bezierPathWithRoundedRect:roundedView.bounds byRoundingCorners:corner cornerRadii:CGSizeMake(radius, radius)];
+        CAShapeLayer *maskLayer = [CAShapeLayer layer];
+        maskLayer.frame = roundedView.bounds;
+        maskLayer.path = maskPath.CGPath;
+        roundedView.layer.mask = maskLayer;
+        return roundedView;
+    }
+    return view;
+}
+
 - (void)textViewDidChange:(UITextView *)textView {
     [self checkRequirements];
     
     self.activeAttributedString = textView.attributedText;
     
     // update countdown
-    NSInteger charactersLeft = maxLength - self.activeAttributedString.length;
+    NSInteger charactersLeft = [self charactersRemaining];
     self.characterCountdownLabel.text = [NSString stringWithFormat:@"%ld", charactersLeft];
     
     if (charactersLeft <= 20) {
@@ -389,6 +403,22 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     
     //[textViewCell layoutSubviews];
 }
+
+- (NSInteger)charactersRemaining {
+    NSInteger length = textViewCell.textView.attributedText.string.length;
+    
+    for (NSValue *value in [textViewCell.textView.text rangesForLinkMatches]) {
+        NSRange range = [value rangeValue];
+        
+        // links take up, at max, 25 decoded characters
+        if (range.length > 25) {
+            length -= (range.length - 25);
+        }
+    }
+    
+    return maxLength - length;
+}
+
 - (void)detectEntities {
     NSRange s_range = textViewCell.textView.selectedRange;
     NSUInteger s_loc = s_range.location;
@@ -499,11 +529,11 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     
     defaultPlaceholder = @"";
     if (self.replyingTo != nil) {
-        if ([self.replyingTo.attributes.details.creator.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
+        if ([self.replyingTo.attributes.creator.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
             defaultPlaceholder = @"Add a reply...";
         }
         else {
-            NSString *creatorIdentifier = self.replyingTo.attributes.details.creator.attributes.details.identifier;
+            NSString *creatorIdentifier = self.replyingTo.attributes.creator.attributes.identifier;
             defaultPlaceholder = creatorIdentifier ? [NSString stringWithFormat:@"Reply to @%@...", creatorIdentifier] : @"Add a reply...";
         }
     }
@@ -511,11 +541,11 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         defaultPlaceholder = publicPostPlaceholder;
     }
     else if (self.postingIn != nil) {
-        if (self.postingIn.attributes.details.title == nil) {
+        if (self.postingIn.attributes.title == nil) {
             defaultPlaceholder = @"Share something...";
         }
         else {
-            defaultPlaceholder = [[Session sharedInstance].defaults.post.composePrompt stringByReplacingOccurrencesOfString:@"{group_name}" withString:self.postingIn.attributes.details.title];
+            defaultPlaceholder = [NSString stringWithFormat:@"Share in %@...", self.postingIn.attributes.title];
         }
     }
     mediaPlaceholder = @"Add caption or Share";
@@ -524,7 +554,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         textViewCell.textView.placeholder = mediaPlaceholder;
     }
     else if (textViewCell.url.absoluteString.length > 0) {
-        textViewCell.textView.placeholder = @"Say something about this link...";
+        textViewCell.textView.placeholder = @"Share on your profile...";
     }
     else {
         textViewCell.textView.placeholder = defaultPlaceholder;
@@ -575,26 +605,29 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     _currentKeyboardHeight = keyboardFrameBeginRect.size.height;
     
     UIWindow *window = UIApplication.sharedApplication.delegate.window;
-    CGFloat topPadding = window.safeAreaInsets.top;
     CGFloat bottomPadding = window.safeAreaInsets.bottom;
     
-    CGFloat newToolbarY = self.tableView.frame.size.height - self.currentKeyboardHeight - self.toolbarView.frame.size.height + bottomPadding - (topPadding + 44);
+    CGFloat newToolbarY = self.tableView.frame.size.height - self.currentKeyboardHeight - self.toolbarView.frame.size.height + bottomPadding;
     
-    self.toolbarView.frame = CGRectMake(self.toolbarView.frame.origin.x, newToolbarY, self.toolbarView.frame.size.width, self.toolbarView.frame.size.height);
-    
-    
-    CGFloat contentInset = (self.tableView.frame.size.height - self.toolbarView.frame.origin.y) - bottomPadding;
-    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, contentInset, 0);
-    self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, contentInset, 0);
+    NSNumber *duration = [notification.userInfo objectForKey:UIKeyboardAnimationDurationUserInfoKey];
+    [UIView animateWithDuration:[duration floatValue] delay:0 options:[[notification.userInfo objectForKey:UIKeyboardAnimationCurveUserInfoKey] intValue] << 16 animations:^{
+        self.toolbarView.frame = CGRectMake(self.toolbarView.frame.origin.x, newToolbarY, self.toolbarView.frame.size.width, self.toolbarView.frame.size.height);
+        
+        CGFloat contentInset = (self.tableView.frame.size.height - self.toolbarView.frame.origin.y) - bottomPadding;
+        self.tableView.contentInset = UIEdgeInsetsMake(0, 0, contentInset, 0);
+        self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, contentInset, 0);
+    } completion:nil];
 }
 
 - (void)keyboardWillDismiss:(NSNotification *)notification {
     NSLog(@"keyboardWillDismiss");
     _currentKeyboardHeight = 0;
     
+    CGFloat newToolbarY = self.tableView.frame.size.height - self.currentKeyboardHeight - self.toolbarView.frame.size.height;
+    
     NSNumber *duration = [notification.userInfo objectForKey:UIKeyboardAnimationDurationUserInfoKey];
     [UIView animateWithDuration:[duration floatValue] delay:0 options:[[notification.userInfo objectForKey:UIKeyboardAnimationCurveUserInfoKey] intValue] << 16 animations:^{
-        self.toolbarView.frame = CGRectMake(self.toolbarView.frame.origin.x, self.view.frame.size.height - self.toolbarView.frame.size.height, self.toolbarView.frame.size.width, self.toolbarView.frame.size.height);
+        self.toolbarView.frame = CGRectMake(self.toolbarView.frame.origin.x, newToolbarY, self.toolbarView.frame.size.width, self.toolbarView.frame.size.height);
         
         self.tableView.contentInset = UIEdgeInsetsMake(0, 0, self.toolbarView.frame.size.height, 0);
         self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, self.toolbarView.frame.size.height, 0);
@@ -602,11 +635,49 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 }
 
 - (void)takePicture:(id)sender {
+    NSString *mediaType = AVMediaTypeVideo;
+    AVAuthorizationStatus authStatus = [AVCaptureDevice authorizationStatusForMediaType:mediaType];
+    if(authStatus == AVAuthorizationStatusAuthorized) {
+        [self openCamera];
+    } else if(authStatus == AVAuthorizationStatusDenied ||
+              authStatus == AVAuthorizationStatusRestricted) {
+        // denied
+        [self showNoCameraAccess];
+    } else if(authStatus == AVAuthorizationStatusNotDetermined){
+        // not determined?!
+        [AVCaptureDevice requestAccessForMediaType:mediaType completionHandler:^(BOOL granted) {
+            if (granted){
+                NSLog(@"Granted access to %@", mediaType);
+                [self openCamera];
+            }
+            else {
+                NSLog(@"Not granted access to %@", mediaType);
+                [self showNoCameraAccess];
+            }
+        }];
+    }
+}
+- (void)openCamera {
     UIImagePickerController *picker = [[UIImagePickerController alloc] init];
     picker.delegate = self;
     picker.allowsEditing = NO;
     picker.sourceType = UIImagePickerControllerSourceTypeCamera;
-    [self.navigationController presentViewController:picker animated:YES completion:nil];
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [[Launcher topMostViewController] presentViewController:picker animated:YES completion:nil];
+    });
+}
+- (void)showNoCameraAccess {
+    UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"Allow Bonfire to access your camera" message:@"To allow Bonfire to access your camera, go to Settings > Privacy > Camera > Set Bonfire to ON" preferredStyle:UIAlertControllerStyleAlert];
+
+    UIAlertAction *openSettingsAction = [UIAlertAction actionWithTitle:@"Open Settings" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString] options:@{} completionHandler:nil];
+    }];
+    [actionSheet addAction:openSettingsAction];
+
+    UIAlertAction *closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleCancel handler:nil];
+    [actionSheet addAction:closeAction];
+    [[Launcher topMostViewController] presentViewController:actionSheet animated:YES completion:nil];
 }
 - (void)chooseFromLibrary:(id)sender {
     [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
@@ -630,7 +701,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                 NSLog(@"PHAuthorizationStatusDenied");
                 // confirm action
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"Allow Bonfire to access your phtoos" message:@"To allow Bonfire to access your photos, go to Settings > Privacy > Set Bonfire to ON" preferredStyle:UIAlertControllerStyleAlert];
+                    UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"Allow Bonfire to access your phtoos" message:@"To allow Bonfire to access your photos, go to Settings > Privacy > Camera > Set Bonfire to ON" preferredStyle:UIAlertControllerStyleAlert];
 
                     UIAlertAction *openSettingsAction = [UIAlertAction actionWithTitle:@"Open Settings" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
                         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString] options:@{} completionHandler:nil];
@@ -787,15 +858,25 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     }];
 }
 
+- (void)setReplyingTo:(Post *)replyingTo {
+    if (replyingTo != _replyingTo) {
+        _replyingTo = replyingTo;
+        
+        [self updatePlaceholder];
+    }
+}
+
 - (void)showAutoCompleteView {
     UIWindow *window = UIApplication.sharedApplication.delegate.window;
     CGFloat bottomPadding = window.safeAreaInsets.bottom;
     
-    CGFloat toolbarHeight = 214;
-    CGFloat newToolbarY = self.tableView.frame.size.height - self.currentKeyboardHeight - toolbarHeight - (self.navigationController.navigationBar.frame.origin.y + self.navigationController.navigationBar.frame.size.height);
+    CGFloat toolbarHeight = self.autoCompleteTableView.frame.size.height;
+    CGFloat newToolbarY = self.tableView.frame.size.height - self.currentKeyboardHeight - toolbarHeight;
     
     [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.8f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
         self.toolbarView.frame = CGRectMake(self.toolbarView.frame.origin.x, newToolbarY, self.toolbarView.frame.size.width, toolbarHeight);
+        self.toolbarView.contentView.frame = self.toolbarView.bounds;
+        [self roundCornersOnView:self.toolbarView onTopLeft:true topRight:true bottomLeft:false bottomRight:false radius:10.f];
         
         CGFloat contentInset = (self.tableView.frame.size.height - self.toolbarView.frame.origin.y) - bottomPadding;
         self.tableView.contentInset = UIEdgeInsetsMake(0, 0, contentInset, 0);
@@ -812,11 +893,13 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     UIWindow *window = UIApplication.sharedApplication.delegate.window;
     CGFloat bottomPadding = window.safeAreaInsets.bottom;
     
-    CGFloat toolbarHeight = composeToolbarHeight + [[[UIApplication sharedApplication] delegate] window].safeAreaInsets.bottom;
-    CGFloat newToolbarY = self.tableView.frame.size.height - self.currentKeyboardHeight - toolbarHeight + bottomPadding - (self.navigationController.navigationBar.frame.origin.y + self.navigationController.navigationBar.frame.size.height);
+    CGFloat toolbarHeight = composeToolbarHeight + bottomPadding;
+    CGFloat newToolbarY = self.view.frame.size.height - self.currentKeyboardHeight - toolbarHeight + bottomPadding;
     
     [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.8f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
         self.toolbarView.frame = CGRectMake(self.toolbarView.frame.origin.x, newToolbarY, self.toolbarView.frame.size.width, toolbarHeight);
+        self.toolbarView.contentView.frame = self.toolbarView.bounds;
+        [self roundCornersOnView:self.toolbarView onTopLeft:true topRight:true bottomLeft:false bottomRight:false radius:10.f];
         
         CGFloat contentInset = (self.tableView.frame.size.height - self.toolbarView.frame.origin.y) - bottomPadding;
         self.tableView.contentInset = UIEdgeInsetsMake(0, 0, contentInset, 0);
@@ -832,7 +915,26 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     if (tableView == self.tableView) {
-        if (indexPath.section == 0 && indexPath.row == 0) {
+        if (indexPath.section == 0 && indexPath.row == 0 && self.replyingTo) {
+            StreamPostCell *cell = [tableView dequeueReusableCellWithIdentifier:streamPostReuseIdentifier forIndexPath:indexPath];
+            
+            if (cell == nil) {
+                cell = [[StreamPostCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:streamPostReuseIdentifier];
+            }
+            
+            cell.showContext = false;
+            cell.showCamptag = true;
+            cell.hideActions = true;
+            
+            cell.post = self.replyingTo;
+            
+            cell.lineSeparator.hidden = !self.replyingTo;
+            cell.selectable = false;
+            cell.moreButton.hidden = true;
+            
+            return cell;
+        }
+        else if (indexPath.section == 1 && indexPath.row == 0) {
             if (textViewCell) return textViewCell;
             
             ComposeTextViewCell *cell = [tableView dequeueReusableCellWithIdentifier:composeTextViewCellReuseIdentifier forIndexPath:indexPath];
@@ -843,10 +945,8 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             
             cell.tintColor = self.view.tintColor;
             
-            cell.lineSeparator.hidden = (self.replyingTo == nil);
-            
-            [self updatePlaceholder];
-            
+            cell.lineSeparator.hidden = true;
+                        
             if (cell.tag != 1) {
                 cell.tag = 1;
                 [cell.textView becomeFirstResponder];
@@ -860,24 +960,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             
             textViewCell = cell;
             
-            return cell;
-        }
-        else if (indexPath.section == 1 && indexPath.row == 0 && self.replyingTo) {
-            StreamPostCell *cell = [tableView dequeueReusableCellWithIdentifier:streamPostReuseIdentifier forIndexPath:indexPath];
-            
-            if (cell == nil) {
-                cell = [[StreamPostCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:streamPostReuseIdentifier];
-            }
-            
-            cell.showContext = false;
-            cell.showCamptag = true;
-            cell.hideActions = true;
-            
-            cell.post = self.replyingTo;
-            
-            cell.lineSeparator.hidden = true;
-            cell.selectable = false;
-            cell.moreButton.hidden = true;
+            [self updatePlaceholder];
             
             return cell;
         }
@@ -890,6 +973,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         }
         
         cell.backgroundColor = [UIColor clearColor];
+        cell.contentView.backgroundColor = [UIColor clearColor];
         
         // create a line separator
         if (![cell.contentView viewWithTag:2]) {
@@ -941,12 +1025,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 }
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     if (tableView == self.tableView) {
-        if (indexPath.section == 0 && indexPath.row == 0) {
-            if (!textViewCell) return CGFLOAT_MIN;
-            
-            return [textViewCell height];
-        }
-        else if (indexPath.section == 1 && indexPath.row == 0 && self.replyingTo) {
+        if (indexPath.section == 0 && indexPath.row == 0 && self.replyingTo) {
             float height = [StreamPostCell heightForPost:self.replyingTo showContext:false showActions:false] + 8; // removed action bar (32pt + 8pt)
             float minHeight = 48 + (postContentOffset.top + postContentOffset.bottom); // 48 = avatar height
             if (height < minHeight) {
@@ -954,6 +1033,11 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             }
             
             return height;
+        }
+        else if (indexPath.section == 1 && indexPath.row == 0) {
+            if (!textViewCell) return CGFLOAT_MIN;
+            
+            return [textViewCell height];
         }
     }
     else if (tableView == self.autoCompleteTableView) {
@@ -970,10 +1054,10 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 }
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     if (tableView == self.tableView) {
-        if (section == 0) {
+        if (section == 0 && self.replyingTo) {
             return 1;
         }
-        else if (section == 1 && self.replyingTo) {
+        else if (section == 1) {
             return 1;
         }
     }
@@ -987,7 +1071,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
     if (tableView == self.tableView && section == 0) {
         if (self.replyingTo) {
-            return (self.replyingToIcebreaker ? 88 : 40);
+            return (self.replyingToIcebreaker ? 100 : 52);
         }
     }
     return (tableView == self.tableView && section == 0 && self.replyingTo ? 40 : CGFLOAT_MIN);
@@ -996,8 +1080,14 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     if (tableView != self.tableView || section != 0 || !self.replyingTo) return nil;
     
     if (self.replyingToIcebreaker) {
-        UIView *replyingToView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 88)];
-        replyingToView.backgroundColor = [UIColor colorNamed:@"Navigation_ClearBackgroundColor"];
+        UIView *header = [UIView new];
+        header.frame = CGRectMake(0, 0, self.view.frame.size.width, 104);
+        
+        UIView *replyingToView = [[UIView alloc] initWithFrame:CGRectMake(12, 8, header.frame.size.width - 12 - 12, header.frame.size.height - 12)];
+        replyingToView.backgroundColor = [UIColor bonfireDetailColor];
+        replyingToView.layer.cornerRadius = 8.f;
+        replyingToView.layer.masksToBounds = true;
+        [header addSubview:replyingToView];
         
         UILabel *welcomeLabel = [[UILabel alloc] initWithFrame:CGRectMake(12, 16, replyingToView.frame.size.width - 24, 19)];
         welcomeLabel.textColor = [UIColor bonfirePrimaryColor];
@@ -1015,33 +1105,33 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         infoLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightMedium];
         [replyingToView addSubview:infoLabel];
         
-        UIView *lineSeparator_t = [[UIView alloc] initWithFrame:CGRectMake(0, 0, replyingToView.frame.size.width, (1 / [UIScreen mainScreen].scale))];
-        lineSeparator_t.backgroundColor = [UIColor tableViewSeparatorColor];
-        [replyingToView addSubview:lineSeparator_t];
-        
-        UIView *lineSeparator_b = [[UIView alloc] initWithFrame:CGRectMake(0, replyingToView.frame.size.height - (1 / [UIScreen mainScreen].scale), replyingToView.frame.size.width, (1 / [UIScreen mainScreen].scale))];
-        lineSeparator_b.backgroundColor = [UIColor tableViewSeparatorColor];
-        [replyingToView addSubview:lineSeparator_b];
-        
-        return replyingToView;
+        return header;
     }
     else {
-        UIView *replyingToView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 40)];
-        replyingToView.backgroundColor = [UIColor colorNamed:@"Navigation_ClearBackgroundColor"];
+        UIView *header = [UIView new];
+        header.frame = CGRectMake(0, 0, self.view.frame.size.width, 52);
         
-        UIImageView *replyIcon = [[UIImageView alloc] initWithFrame:CGRectMake(12, replyingToView.frame.size.height / 2 - 7.5, 13, 15)];
-        replyIcon.image = [[UIImage imageNamed:@"postActionReply"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+        UIView *replyingToView = [[UIView alloc] initWithFrame:CGRectMake(12, 8, header.frame.size.width - 12 - 12, header.frame.size.height - 12)];
+        replyingToView.backgroundColor = [UIColor bonfireDetailColor];
+        replyingToView.layer.cornerRadius = 8.f;
+        replyingToView.layer.masksToBounds = true;
+        [header addSubview:replyingToView];
+        
+        UIImage *replyIconImage = [[UIImage imageNamed:@"postActionReply"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+        UIImageView *replyIcon = [[UIImageView alloc] initWithFrame:CGRectMake(12, replyingToView.frame.size.height / 2 - 7.5, replyIconImage.size.width, 15)];
+        replyIcon.image = replyIconImage;
         replyIcon.tintColor = [UIColor bonfirePrimaryColor];
         replyIcon.contentMode = UIViewContentModeScaleAspectFill;
         [replyingToView addSubview:replyIcon];
         
-        UILabel *replyingToLabel = [[UILabel alloc] initWithFrame:CGRectMake(37, 0, replyingToView.frame.size.width - 37 - 12, replyingToView.frame.size.height)];
+        CGFloat replyingToLabelX = replyIcon.frame.origin.x + replyIcon.frame.size.width + 8;
+        UILabel *replyingToLabel = [[UILabel alloc] initWithFrame:CGRectMake(replyingToLabelX, 0, replyingToView.frame.size.width - replyingToLabelX - 12, replyingToView.frame.size.height)];
         replyingToLabel.textColor = [UIColor bonfirePrimaryColor];
-        if ([self.replyingTo.attributes.details.creator.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
+        if ([self.replyingTo.attributes.creator.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
             replyingToLabel.text = [NSString stringWithFormat:@"Replying to yourself"];
         }
         else {
-            replyingToLabel.text = [NSString stringWithFormat:@"Replying to @%@", self.replyingTo.attributes.details.creator.attributes.details.identifier];
+            replyingToLabel.text = [NSString stringWithFormat:@"Replying to @%@", self.replyingTo.attributes.creator.attributes.identifier];
         }
         replyingToLabel.textAlignment = NSTextAlignmentLeft;
         replyingToLabel.lineBreakMode = NSLineBreakByTruncatingMiddle;
@@ -1050,13 +1140,13 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         
         UIView *lineSeparator_t = [[UIView alloc] initWithFrame:CGRectMake(0, 0, replyingToView.frame.size.width, (1 / [UIScreen mainScreen].scale))];
         lineSeparator_t.backgroundColor = [UIColor tableViewSeparatorColor];
-        [replyingToView addSubview:lineSeparator_t];
+        //[replyingToView addSubview:lineSeparator_t];
         
         UIView *lineSeparator_b = [[UIView alloc] initWithFrame:CGRectMake(0, replyingToView.frame.size.height - (1 / [UIScreen mainScreen].scale), replyingToView.frame.size.width, (1 / [UIScreen mainScreen].scale))];
         lineSeparator_b.backgroundColor = [UIColor tableViewSeparatorColor];
-        [replyingToView addSubview:lineSeparator_b];
+        //[replyingToView addSubview:lineSeparator_b];
         
-        return replyingToView;
+        return header;
     }
 }
 
@@ -1075,7 +1165,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                 BOOL changes = false;
                 NSString *finalString = textViewCell.textView.text;
                 if (cell.user) {
-                    NSString *usernameSelected = cell.user.attributes.details.identifier;
+                    NSString *usernameSelected = cell.user.attributes.identifier;
                     
                     if (usernameSelected.length > 0) {
                         finalString = [textViewCell.textView.text stringByReplacingCharactersInRange:self.activeTagRange withString:[NSString stringWithFormat:@"@%@ ", usernameSelected]];
@@ -1083,7 +1173,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                     }
                 }
                 else if (cell.camp) {
-                    NSString *campTagSelected = cell.camp.attributes.details.identifier;
+                    NSString *campTagSelected = cell.camp.attributes.identifier;
                     
                     if (campTagSelected.length > 0) {
                         finalString = [textViewCell.textView.text stringByReplacingCharactersInRange:self.activeTagRange withString:[NSString stringWithFormat:@"#%@ ", campTagSelected]];
@@ -1100,6 +1190,17 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                     [HapticHelper generateFeedback:FeedbackType_Selection];
                 }
             }
+        }
+    }
+}
+
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    if (scrollView == self.tableView) {
+        if ([self.navigationController isKindOfClass:[SimpleNavigationController class]]) {
+            [(SimpleNavigationController *)self.navigationController childTableViewDidScroll:self.tableView];
+        }
+        else if ([self.navigationController isKindOfClass:[ComplexNavigationController class]]) {
+            [(ComplexNavigationController *)self.navigationController childTableViewDidScroll:self.tableView];
         }
     }
 }

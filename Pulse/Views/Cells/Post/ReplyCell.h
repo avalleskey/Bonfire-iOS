@@ -9,19 +9,24 @@
 #import "PostCell.h"
 #import "PostActionsView.h"
 
-#define replyContentOffset UIEdgeInsetsMake(10, 114, 8, 12)
+#define replyContentOffset UIEdgeInsetsMake(0, 12, 12, 12)
 #define replyTextViewFont [UIFont systemFontOfSize:textViewFont.pointSize-1.f weight:UIFontWeightRegular]
 
 @interface ReplyCell : PostCell <UITextFieldDelegate, PostTextViewDelegate>
 
 // @property (nonatomic, strong) PostActionsView *actionsView;
 
-@property (nonatomic, strong) UIView *topLine;
-@property (nonatomic, strong) UIView *bottomLine;
+@property (nonatomic) NSInteger levelsDeep;
 
-@property (nonatomic) BOOL topCell;
-@property (nonatomic) BOOL bottomCell;
+@property (nonatomic, strong) UIView *bubbleBackgroundView;
 
-+ (CGFloat)heightForPost:(Post *)post;
+@property (nonatomic, strong) UIButton *topLevelReplyButton;
+
++ (CGFloat)avatarSizeForLevel:(NSInteger)level;
++ (CGFloat)avatarPaddingForLevel:(NSInteger)level;
++ (UIEdgeInsets)edgeInsetsForLevel:(NSInteger)level;
++ (UIEdgeInsets)contentEdgeInsetsForLevel:(NSInteger)level;
+
++ (CGFloat)heightForPost:(Post *)post levelsDeep:(NSInteger)levelsDeep;
 
 @end

@@ -18,7 +18,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 typedef enum {
     BFTipViewStyleLight = 0,
-    BFTipViewStyleDark = 1
+    BFTipViewStyleDark = 1,
+    BFTipViewStyleTable = 2
 } BFTipViewStyle;
 @property (nonatomic) BFTipViewStyle style;
 
@@ -31,8 +32,12 @@ typedef enum {
 
 @property (nonatomic, strong) UILabel *titleLabel;
 @property (nonatomic, strong) UILabel *textLabel;
+@property (nonatomic, strong) UIButton *cta;
+@property (nonatomic, strong) UIImageView *imageView;
 
 @property (nonatomic, strong) UIVisualEffectView *blurView;
+
+@property (nonatomic) BOOL dragToDismiss;
 
 @end
 
@@ -47,7 +52,7 @@ typedef enum {
     BFTipCreatorTypeUser
 } BFTipCreatorType;
 
-+ (BFTipObject *)tipWithCreatorType:(BFTipCreatorType)creatorType creator:(id _Nullable)creator title:(NSString * _Nullable)title text:(NSString *)text action:(void (^ __nullable)(void))actionHandler;
++ (BFTipObject *)tipWithCreatorType:(BFTipCreatorType)creatorType creator:(id _Nullable)creator title:(NSString * _Nullable)title text:(NSString *)text cta:(NSString * _Nullable)cta imageUrl:(NSString * _Nullable)imageUrl action:(void (^ __nullable)(void))actionHandler;
 
 @property (nonatomic) BFTipCreatorType creatorType;
 @property (nonatomic) id creator;
@@ -57,6 +62,9 @@ typedef enum {
 
 @property (nonatomic) NSString *title;
 @property (nonatomic) NSString *text;
+@property (nonatomic) NSString *imageUrl;
+
+@property (nonatomic) NSString *cta;
 
 @property (nonatomic, copy) void (^action)(void);
 

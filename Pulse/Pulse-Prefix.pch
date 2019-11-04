@@ -16,6 +16,7 @@
 #import "ExtendNSLogFunctionality.h"
 #import "Configuration.h"
 #import "BFMacros.h"
+#import "UIFont+App.h"
 
 #endif
 

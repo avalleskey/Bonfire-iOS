@@ -9,6 +9,12 @@
 #import "Configuration.h"
 #import "HAWebService.h"
 
+#import "User.h"
+#import "Camp.h"
+#import "Post.h"
+#import "NSURL+WebsiteTypeValidation.h"
+#import "NSString+Validation.h"
+
 #define ConfigurationDEVELOPMENT @"development"
 #define ConfigurationPRODUCTION @"production"
 
@@ -124,6 +130,149 @@ NSString * const LOCAL_APP_URI = @"bonfireapp";
     }
     
     return nil;
+}
+
+#pragma mark - Internal URL Helpers
++ (BOOL)isInternalURL:(NSURL *)url {
+    if ([url.scheme isEqualToString:LOCAL_APP_URI]) {
+        return true;
+    }
+    
+    return false;
+}
++ (id)objectFromInternalURL:(NSURL *)url {
+    if (![self isInternalURL:url]) {
+        return false;
+    }
+    
+    // Get parameters
+    NSURLComponents *components = [NSURLComponents componentsWithString:url.absoluteString];
+    NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
+    for(NSURLQueryItem *item in components.queryItems)
+    {
+        [params setObject:item.value forKey:item.name];
+    }
+    
+    // Check if the URL is a supported type
+    if ([url.host isEqualToString:@"user"]) {
+        User *user = [[User alloc] init];
+        UserAttributes *attributes = [[UserAttributes alloc] init];
+        
+        if ([params objectForKey:@"id"]) {
+            user.identifier = params[@"id"];
+        }
+        if ([params objectForKey:@"username"]) {
+            attributes.identifier = params[@"username"];
+        }
+        
+        user.attributes = attributes;
+        
+        return user;
+    }
+    if ([url.host isEqualToString:@"camp"]) {
+        Camp *camp = [[Camp alloc] init];
+        CampAttributes *attributes = [[CampAttributes alloc] init];
+        
+        if ([params objectForKey:@"id"]) {
+            camp.identifier = params[@"id"];
+        }
+        if ([params objectForKey:@"display_id"]) {
+            attributes.identifier = [params[@"display_id"] stringByReplacingOccurrencesOfString:@"#" withString:@""];
+        }
+        
+        camp.attributes = attributes;
+        
+        return camp;
+    }
+    if ([url.host isEqualToString:@"post"]) {
+        Post *post = [[Post alloc] init];
+        if ([params objectForKey:@"id"]) {
+            post.identifier = [NSString stringWithFormat:@"%@", params[@"id"]];
+        }
+        
+        return post;
+    }
+    
+    // unkown internal link type
+    return nil;
+}
++ (BOOL)isExternalBonfireURL:(NSURL *)url {
+    if ([url matches:@"^(?:https?:\\/\\/)?(?:www\\.)?bonfire\\.camp\\b\\/((?:u\\/(?:[a-zA-Z0-9\\_]{1,30}|-[a-zA-Z0-9]{18,}))|(?:c\\/(?:[a-zA-Z0-9\\_]{1,30}|-[a-zA-Z0-9]{18,}))|(?:p\\/(?:[0-9]{1,})))$"]) {
+        return true;
+    }
+    
+    return false;
+}
++ (id)objectFromExternalBonfireURL:(NSURL *)url {
+    if (![self isExternalBonfireURL:url]) {
+        return false;
+    }
+    
+    // Get parameters
+    NSURLComponents *components = [NSURLComponents componentsWithURL:url resolvingAgainstBaseURL:true];
+    NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
+    for(NSURLQueryItem *item in components.queryItems)
+    {
+        [params setObject:item.value forKey:item.name];
+    }
+    
+    if (components.path.length == 0) {
+        return nil;
+    }
+    
+    NSArray *pathComponents = [components.path componentsSeparatedByString:@"/"];
+    BOOL camp = [pathComponents[1] isEqualToString:@"c"];
+    BOOL user = [pathComponents[1] isEqualToString:@"u"];
+    BOOL post = [pathComponents[1] isEqualToString:@"p"];
+    NSString *parent = pathComponents[2];
+    
+    /*                     01   2      3 
+     - https://bonfire.camp/c/{camptag}
+     - https://bonfire.camp/u/{username}
+     - https://bonfire.camp/p/{post_id}
+     */
+    
+    // Check if the URL is a supported type
+    
+    if (user && [parent validateBonfireUsername] == BFValidationErrorNone) {
+        // https://bonfire.camp/u/username
+
+        User *user = [[User alloc] init];
+        UserAttributes *attributes = [[UserAttributes alloc] init];
+        attributes.identifier = [parent stringByReplacingOccurrencesOfString:@"@" withString:@""];
+        
+        user.attributes = attributes;
+                
+        return user;
+    }
+    if (camp && [parent validateBonfireCampTag] == BFValidationErrorNone) {
+        // https://bonfire.camp/c/camptag
+        
+        Camp *camp = [[Camp alloc] init];
+        CampAttributes *attributes = [[CampAttributes alloc] init];
+        attributes.identifier = parent;
+        
+        camp.attributes = attributes;
+                
+        return camp;
+    }
+    if (post) {
+        // https://bonfire.camp/p/{post_id}
+        
+        if (parent == NULL || parent.length == 0) return nil;
+        
+        // open post
+        Post *post =  [[Post alloc] init];
+        post.identifier = parent;
+                
+        return post;
+    }
+
+    // unkown internal link type
+    return nil;
+}
++ (BOOL)isBonfireURL:(NSURL *)url {
+    return [self isInternalURL:url] || [self isExternalBonfireURL:url];
 }
 
 #pragma mark -

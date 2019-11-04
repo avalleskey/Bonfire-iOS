@@ -12,7 +12,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface ProfileFollowingListViewController : ThemedTableViewController
+@interface ProfileFollowingListViewController : ThemedTableViewController <UITableViewDataSource, UITableViewDelegate>
 
 @property (strong, nonatomic) User *user;
 

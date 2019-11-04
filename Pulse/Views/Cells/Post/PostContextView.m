@@ -37,7 +37,7 @@
 
 - (void)setup {
     //self.backgroundColor = [UIColor colorWithWhite:0 alpha:0.04];
-    self.layer.cornerRadius = 8.f;
+    self.layer.cornerRadius = 6.f;
     
     self.contextIcon = [[UIImageView alloc] initWithFrame:CGRectMake(48 - 20, postContextHeight / 2 - 10, 20, 20)];
     // self.contextIcon.backgroundColor = [UIColor colorWithWhite:0 alpha:0.1f];
@@ -45,11 +45,11 @@
     self.contextIcon.layer.masksToBounds = true;
     self.contextIcon.contentMode = UIViewContentModeCenter;
     self.contextIcon.tintColor = [UIColor whiteColor];
-    self.contextIcon.backgroundColor = [UIColor bonfireSecondaryColor];
+    self.contextIcon.backgroundColor = self.tintColor;
     [self addSubview:self.contextIcon];
     
     self.contextLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, postContextHeight)];
-    self.contextLabel.textColor = [UIColor bonfirePrimaryColor];
+    self.contextLabel.textColor = self.tintColor;
     self.contextLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightMedium];
     self.contextLabel.textAlignment = NSTextAlignmentLeft;
     //self.contextLabel.backgroundColor = [UIColor colorWithWhite:0 alpha:0.1f];
@@ -59,15 +59,22 @@
     self.highlightView.frame = self.bounds;
     [self.highlightView bk_addEventHandler:^(id sender) {
         [UIView animateWithDuration:0.3f delay:0 usingSpringWithDamping:1 initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-            self.backgroundColor = [UIColor contentHighlightedColor];
+            self.alpha = 0.7;
         } completion:nil];
     } forControlEvents:UIControlEventTouchDown];
     [self.highlightView bk_addEventHandler:^(id sender) {
         [UIView animateWithDuration:0.3f delay:0 usingSpringWithDamping:1 initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-            self.backgroundColor = [UIColor clearColor];
+            self.alpha = 1;
         } completion:nil];
     } forControlEvents:(UIControlEventTouchUpInside|UIControlEventTouchCancel|UIControlEventTouchDragExit)];
     [self addSubview:self.highlightView];
+}
+
+- (void)setTintColor:(UIColor *)tintColor {
+    [super setTintColor:tintColor];
+    
+    self.contextIcon.backgroundColor = self.tintColor;
+    self.contextLabel.textColor = self.tintColor;
 }
 
 - (void)layoutSubviews {

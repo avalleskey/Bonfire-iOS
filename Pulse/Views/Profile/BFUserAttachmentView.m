@@ -12,20 +12,20 @@
 #import "Launcher.h"
 #import "NSString+Validation.h"
 
-#define USER_ATTACHMENT_EDGE_INSETS UIEdgeInsetsMake(24, 24, 16, 24)
+#define USER_ATTACHMENT_EDGE_INSETS UIEdgeInsetsMake(24, 24, 24, 24)
 
 // avatar macros
 #define USER_ATTACHMENT_AVATAR_SIZE 72
-#define USER_ATTACHMENT_AVATAR_BOTTOM_PADDING 8
+#define USER_ATTACHMENT_AVATAR_BOTTOM_PADDING 10
 // display name macros
 #define USER_ATTACHMENT_DISPLAY_NAME_FONT [UIFont systemFontOfSize:20.f weight:UIFontWeightHeavy]
 #define USER_ATTACHMENT_DISPLAY_NAME_BOTTOM_PADDING 3
 // username macros
 #define USER_ATTACHMENT_USERNAME_FONT [UIFont systemFontOfSize:14.f weight:UIFontWeightBold]
-#define USER_ATTACHMENT_USERNAME_BOTTOM_PADDING 12
+#define USER_ATTACHMENT_USERNAME_BOTTOM_PADDING 8
 // bio macros
 #define USER_ATTACHMENT_BIO_FONT [UIFont systemFontOfSize:14.f weight:UIFontWeightMedium]
-#define USER_ATTACHMENT_BIO_BOTTOM_PADDING 8
+#define USER_ATTACHMENT_BIO_BOTTOM_PADDING 12
 // details macros
 #define USER_ATTACHMENT_DETAILS_EDGE_INSETS UIEdgeInsetsMake(12, 24, 10, 24)
 
@@ -49,6 +49,10 @@
     self.avatarContainerView = [[UIView alloc] initWithFrame:CGRectMake(self.frame.size.width / 2 - USER_ATTACHMENT_AVATAR_SIZE / 2 - 4, USER_ATTACHMENT_EDGE_INSETS.top - 4, USER_ATTACHMENT_AVATAR_SIZE + 8, USER_ATTACHMENT_AVATAR_SIZE + 8)];
     self.avatarContainerView.backgroundColor = [UIColor contentBackgroundColor];
     self.avatarContainerView.layer.cornerRadius = self.avatarContainerView.frame.size.width / 2;
+    self.avatarContainerView.layer.shadowColor = [UIColor blackColor].CGColor;
+    self.avatarContainerView.layer.shadowOffset = CGSizeMake(0, 1);
+    self.avatarContainerView.layer.shadowRadius = 1.f;
+    self.avatarContainerView.layer.shadowOpacity = 0.12;
     [self.contentView addSubview:self.avatarContainerView];
     
     self.avatarView = [[BFAvatarView alloc] initWithFrame:CGRectMake(4, 4, USER_ATTACHMENT_AVATAR_SIZE, USER_ATTACHMENT_AVATAR_SIZE)];
@@ -79,7 +83,7 @@
     self.bioLabel = [[UILabel alloc] initWithFrame:CGRectMake(24, 0, self.frame.size.width - 48, 18)];
     self.bioLabel.font = USER_ATTACHMENT_BIO_FONT;
     self.bioLabel.textAlignment = NSTextAlignmentCenter;
-    self.bioLabel.textColor = [UIColor bonfireSecondaryColor];
+    self.bioLabel.textColor = [UIColor bonfirePrimaryColor];
     self.bioLabel.numberOfLines = 0;
     self.bioLabel.lineBreakMode = NSLineBreakByWordWrapping;
     [self.contentView addSubview:self.bioLabel];
@@ -92,6 +96,13 @@
     [self bk_whenTapped:^{
         [Launcher openProfile:self.user];
     }];
+    
+    if (@available(iOS 13.0, *)) {
+        UIContextMenuInteraction *interaction = [[UIContextMenuInteraction alloc] initWithDelegate:self];
+        [self addInteraction:interaction];
+    } else {
+        // Fallback on earlier versions
+    }
 }
 
 - (void)layoutSubviews {
@@ -139,18 +150,18 @@
     if (user != _user) {
         _user = user;
                 
-        self.tintColor = [[user.attributes.details.color lowercaseString] isEqualToString:@"ffffff"] ? [UIColor bonfirePrimaryColor] : [UIColor fromHex:user.attributes.details.color];
+        self.tintColor = [UIColor fromHex:user.attributes.color];
         
         self.headerBackdrop.backgroundColor = self.tintColor;
         self.avatarView.user = user;
                         
         // display name
-        self.textLabel.hidden = (user.attributes.details.displayName.length == 0);
+        self.textLabel.hidden = (user.attributes.displayName.length == 0);
         if ([self.textLabel isHidden]) {
             self.textLabel.text = @"";
         }
         else {
-            NSString *displayName = user.attributes.details.displayName;
+            NSString *displayName = user.attributes.displayName;
                         
             NSMutableAttributedString *displayNameAttributedString = [[NSMutableAttributedString alloc] initWithString:displayName attributes:@{NSFontAttributeName:USER_ATTACHMENT_DISPLAY_NAME_FONT}];
             if ([user isVerified]) {
@@ -171,22 +182,22 @@
 
         
         // username
-        self.detailTextLabel.textColor = self.tintColor;
-        self.detailTextLabel.hidden = (user.attributes.details.identifier.length == 0);
+        self.detailTextLabel.textColor = [UIColor fromHex:user.attributes.color adjustForOptimalContrast:true];
+        self.detailTextLabel.hidden = (user.attributes.identifier.length == 0);
         if ([self.detailTextLabel isHidden]) {
             self.detailTextLabel.text = @"";
         }
         else {
-            self.detailTextLabel.text = [NSString stringWithFormat:@"@%@", user.attributes.details.identifier];
+            self.detailTextLabel.text = [NSString stringWithFormat:@"@%@", user.attributes.identifier];
         }
         
         // bio
-        self.bioLabel.hidden = (user.attributes.details.bio.length == 0);
+        self.bioLabel.hidden = (user.attributes.bio.length == 0);
         if ([self.bioLabel isHidden]) {
             self.bioLabel.text = @"";
         }
         else {
-            NSMutableAttributedString *attrString = [[NSMutableAttributedString  alloc] initWithString:user.attributes.details.bio];
+            NSMutableAttributedString *attrString = [[NSMutableAttributedString  alloc] initWithString:user.attributes.bio];
             NSMutableParagraphStyle *style = [[NSMutableParagraphStyle alloc] init];
             [style setLineSpacing:3.f];
             [style setAlignment:NSTextAlignmentCenter];
@@ -199,12 +210,12 @@
         }
         
         NSMutableArray *details = [[NSMutableArray alloc] init];
-        if (user.attributes.details.location.value.length > 0) {
-            BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeLocation value:user.attributes.details.location.value action:nil];
+        if (user.attributes.location.displayText.length > 0) {
+            BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeLocation value:user.attributes.location.displayText action:nil];
             [details addObject:item];
         }
-        if (user.attributes.details.website.value.length > 0) {
-            BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeWebsite value:user.attributes.details.website.value action:nil];
+        if (user.attributes.website.displayText.length > 0) {
+            BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeWebsite value:user.attributes.website.displayText action:nil];
             [details addObject:item];
         }
         
@@ -223,8 +234,8 @@
     CGFloat height = USER_ATTACHMENT_EDGE_INSETS.top + USER_ATTACHMENT_AVATAR_SIZE + USER_ATTACHMENT_AVATAR_BOTTOM_PADDING;
     
     // display name
-    if (user.attributes.details.displayName.length > 0) {
-        NSString *displayName = user.attributes.details.displayName;
+    if (user.attributes.displayName.length > 0) {
+        NSString *displayName = user.attributes.displayName;
         
         NSMutableAttributedString *displayNameAttributedString = [[NSMutableAttributedString alloc] initWithString:displayName attributes:@{NSFontAttributeName:USER_ATTACHMENT_DISPLAY_NAME_FONT}];
            if ([user isVerified]) {
@@ -246,14 +257,14 @@
            height += userDisplayNameHeight;
     }
     
-    if (user.attributes.details.identifier.length > 0) {
-        CGRect usernameRect = [[NSString stringWithFormat:@"@%@", user.attributes.details.identifier] boundingRectWithSize:CGSizeMake(maxWidth, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:USER_ATTACHMENT_USERNAME_FONT} context:nil];
+    if (user.attributes.identifier.length > 0) {
+        CGRect usernameRect = [[NSString stringWithFormat:@"@%@", user.attributes.identifier] boundingRectWithSize:CGSizeMake(maxWidth, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:USER_ATTACHMENT_USERNAME_FONT} context:nil];
         CGFloat usernameHeight = ceilf(usernameRect.size.height);
         height += USER_ATTACHMENT_DISPLAY_NAME_BOTTOM_PADDING + usernameHeight;
     }
     
-    if (user.attributes.details.bio.length > 0) {
-        NSMutableAttributedString *attrString = [[NSMutableAttributedString  alloc] initWithString:user.attributes.details.bio];
+    if (user.attributes.bio.length > 0) {
+        NSMutableAttributedString *attrString = [[NSMutableAttributedString  alloc] initWithString:user.attributes.bio];
         NSMutableParagraphStyle *style = [[NSMutableParagraphStyle alloc] init];
         [style setLineSpacing:3.f];
         [style setAlignment:NSTextAlignmentCenter];
@@ -269,12 +280,12 @@
     
     if (user.identifier.length > 0) {
         NSMutableArray *details = [[NSMutableArray alloc] init];
-        if (user.attributes.details.location.value.length > 0) {
-            BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeLocation value:user.attributes.details.location.value action:nil];
+        if (user.attributes.location.displayText.length > 0) {
+            BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeLocation value:user.attributes.location.displayText action:nil];
             [details addObject:item];
         }
-        if (user.attributes.details.website.value.length > 0) {
-            BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeWebsite value:user.attributes.details.website.value action:nil];
+        if (user.attributes.website.displayText.length > 0) {
+            BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeWebsite value:user.attributes.website.displayText action:nil];
             [details addObject:item];
         }
         
@@ -284,11 +295,35 @@
             detailCollectionView.dataSource = detailCollectionView;
             [detailCollectionView setDetails:details];
                         
-            height = height + (user.attributes.details.bio.length > 0 ? USER_ATTACHMENT_BIO_BOTTOM_PADDING : USER_ATTACHMENT_USERNAME_BOTTOM_PADDING) +  USER_ATTACHMENT_DETAILS_EDGE_INSETS.top + detailCollectionView.collectionViewLayout.collectionViewContentSize.height;
+            height = height + (user.attributes.bio.length > 0 ? USER_ATTACHMENT_BIO_BOTTOM_PADDING : USER_ATTACHMENT_USERNAME_BOTTOM_PADDING) + detailCollectionView.collectionViewLayout.collectionViewContentSize.height;
         }
     }
     
     return height + USER_ATTACHMENT_EDGE_INSETS.bottom;
+}
+
+- (nullable UIContextMenuConfiguration *)contextMenuInteraction:(nonnull UIContextMenuInteraction *)interaction configurationForMenuAtLocation:(CGPoint)location  API_AVAILABLE(ios(13.0)){
+    if (self.user) {
+        UIMenu *menu = [UIMenu menuWithTitle:@"" children:@[]];
+        
+        ProfileViewController *profileVC = [Launcher profileViewControllerForUser:self.user];
+        profileVC.isPreview = true;
+        
+        UIContextMenuConfiguration *configuration = [UIContextMenuConfiguration configurationWithIdentifier:@"user_preview" previewProvider:^(){return profileVC;} actionProvider:^(NSArray* suggestedAction){return menu;}];
+        return configuration;
+    }
+    
+    return nil;
+}
+
+- (void)contextMenuInteraction:(UIContextMenuInteraction *)interaction willPerformPreviewActionForMenuWithConfiguration:(UIContextMenuConfiguration *)configuration animator:(id<UIContextMenuInteractionCommitAnimating>)animator  API_AVAILABLE(ios(13.0)){
+    [animator addCompletion:^{
+        wait(0, ^{
+            if (self.user) {
+                [Launcher openProfile:self.user];
+            }
+        });
+    }];
 }
 
 @end

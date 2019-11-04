@@ -81,7 +81,7 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
 }
 
 - (BOOL)hasExistingLookup {
-    return [Session sharedInstance].currentUser.attributes.details.email && [[Session sharedInstance].currentUser.attributes.details.email validateBonfireEmail] == BFValidationErrorNone;
+    return [Session sharedInstance].currentUser.attributes.email && [[Session sharedInstance].currentUser.attributes.email validateBonfireEmail] == BFValidationErrorNone;
 }
 
 - (void)addListeners {
@@ -196,7 +196,7 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
             
             // autofill with user email if already logged in
             if ([self hasExistingLookup]) {
-                textField.text = [Session sharedInstance].currentUser.attributes.details.email;
+                textField.text = [Session sharedInstance].currentUser.attributes.email;
                 textField.textColor = [UIColor bonfireSecondaryColor];
                 textField.enabled = false;
                 

@@ -36,6 +36,8 @@ typedef enum {
 @property (nonatomic, strong) UIView *leftActionView;
 @property (nonatomic, strong) UIView *rightActionView;
 
+@property (nonatomic, strong) UIView *navigationBackgroundView;
+
 @property (nonatomic, strong) SloppySwiper *swiper;
 
 - (void)setShadowVisibility:(BOOL)visible withAnimation:(BOOL)animated;
@@ -43,12 +45,21 @@ typedef enum {
 - (void)showBottomHairline;
 @property (nonatomic, strong) UIView *bottomHairline;
 
-- (void)updateBarColor:(id)background animated:(BOOL)animated;
+- (void)updateBarColor:(id _Nullable)background animated:(BOOL)animated;
 
-@property (nonatomic, strong) UIColor *currentTheme;
+@property (nonatomic, strong)  UIColor * _Nullable currentTheme;
 
 // custom navigation bar views
 @property (nonatomic, strong) UILabel *titleLabel;
+
+@property (nonatomic) CGFloat onScrollLowerBound;
+
+@property (nonatomic) BOOL transparentOnLoad;
+@property (nonatomic, strong) UIColor * _Nullable foregroundBeforeScroll;
+@property (nonatomic) BOOL shadowOnScroll;
+@property (nonatomic) BOOL opaqueOnScroll;
+
+- (void)childTableViewDidScroll:(UITableView *)tableView;
 
 @end
 

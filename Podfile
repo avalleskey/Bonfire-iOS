@@ -12,7 +12,7 @@ target 'Pulse' do
 
   # Pods for Pulse
   pod 'BlocksKit'
-  pod 'AFNetworking'
+  pod 'AFNetworking', '~> 3.0', :subspecs => ['Reachability', 'Serialization', 'Security', 'NSURLSession']
   pod 'Shimmer'
   pod 'UITextView+Placeholder', '~> 1.2'
   pod 'SDWebImage'
@@ -25,7 +25,6 @@ target 'Pulse' do
   pod 'JSONModel'
   pod 'RSKImageCropper'
   pod 'JGProgressHUD'
-  pod 'APAddressBook'
   pod 'libPhoneNumber-iOS', '~> 0.8'
   pod 'ResponsiveLabel', '~> 1.0.11'
   pod 'TTTAttributedLabel'
@@ -36,7 +35,8 @@ target 'Pulse' do
   pod 'ISAlternativeRefreshControl'
   pod 'GoogleFontsiOS/Poppins'
   pod 'SEJSONViewController'
-  
+  pod 'RSColorPicker'
+
   pod 'FBSDKShareKit'
   
   

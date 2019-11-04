@@ -141,7 +141,7 @@
 }
 
 - (void)updateActivityType {
-    // if type is unkown, hide the indicator
+    // if type is unknown, hide the indicator
     self.typeIndicator.hidden = (self.activity.type == USER_ACTIVITY_TYPE_UNKNOWN);
     if (self.activity.attributes.type == USER_ACTIVITY_TYPE_USER_FOLLOW) {
         self.typeIndicator.image = [UIImage imageNamed:@"notificationIndicator_profile"];
@@ -193,7 +193,7 @@
 }
 
 + (BOOL)includeUserAttachmentForActivity:(UserActivity *)activity {
-    return activity.attributes.type == USER_ACTIVITY_TYPE_USER_FOLLOW && (activity.attributes.actioner.attributes.details.bio.length > 0 || activity.attributes.actioner.attributes.details.location.value.length > 0 || activity.attributes.actioner.attributes.details.website.value.length > 0);
+    return activity.attributes.type == USER_ACTIVITY_TYPE_USER_FOLLOW && (activity.attributes.actioner.attributes.bio.length > 0 || activity.attributes.actioner.attributes.location.displayText.length > 0 || activity.attributes.actioner.attributes.website.displayText.length > 0);
 }
 + (BOOL)includeCampAttachmentForActivity:(UserActivity *)activity {
     return activity.attributes.type == USER_ACTIVITY_TYPE_USER_ACCEPTED_ACCESS;
@@ -215,20 +215,20 @@
         // set image preview (if needed)
         BOOL hasImagePreview = false;
         if (self.activity.attributes.replyPost &&
-            self.activity.attributes.replyPost.attributes.details.attachments.media.count > 0) {
+            self.activity.attributes.replyPost.attributes.attachments.media.count > 0) {
             hasImagePreview = true;
         }
         else if (!self.activity.attributes.replyPost &&
-                 self.activity.attributes.post.attributes.details.attachments.media.count > 0) {
+                 self.activity.attributes.post.attributes.attachments.media.count > 0) {
             hasImagePreview = true;
         }
         self.imagePreview.hidden = !hasImagePreview;
         if (hasImagePreview) {
             if (self.activity.attributes.replyPost) {
-                [self.imagePreview sd_setImageWithURL:[NSURL URLWithString:self.activity.attributes.replyPost.attributes.details.attachments.media[0].attributes.hostedVersions.suggested.url]];
+                [self.imagePreview sd_setImageWithURL:[NSURL URLWithString:self.activity.attributes.replyPost.attributes.attachments.media[0].attributes.hostedVersions.suggested.url]];
             }
             else {
-                [self.imagePreview sd_setImageWithURL:[NSURL URLWithString:self.activity.attributes.post.attributes.details.attachments.media[0].attributes.hostedVersions.suggested.url]];
+                [self.imagePreview sd_setImageWithURL:[NSURL URLWithString:self.activity.attributes.post.attributes.attachments.media[0].attributes.hostedVersions.suggested.url]];
             }
         }
     }
@@ -290,11 +290,11 @@
     
     BOOL hasImagePreview = false;
     if (activity.attributes.replyPost &&
-        activity.attributes.replyPost.attributes.details.attachments.media.count > 0) {
+        activity.attributes.replyPost.attributes.attachments.media.count > 0) {
         hasImagePreview = true;
     }
     else if (!activity.attributes.replyPost &&
-             activity.attributes.post.attributes.details.attachments.media.count > 0) {
+             activity.attributes.post.attributes.attachments.media.count > 0) {
         hasImagePreview = true;
     }
     CGFloat pictureWidth = hasImagePreview ? 44 + 8 : 0;
@@ -336,12 +336,12 @@
 
 - (void)setHighlighted:(BOOL)highlighted animated:(BOOL)animated {
     if (self.activity && highlighted) {
-        [UIView animateWithDuration:0.2f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        [UIView animateWithDuration:0.15f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
             self.contentView.backgroundColor = [UIColor contentHighlightedColor];
         } completion:nil];
     }
     else {
-        [UIView animateWithDuration:0.2f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        [UIView animateWithDuration:0.15f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
             self.contentView.backgroundColor = [UIColor contentBackgroundColor];
         } completion:nil];
     }

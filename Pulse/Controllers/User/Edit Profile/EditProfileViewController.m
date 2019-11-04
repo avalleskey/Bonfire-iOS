@@ -33,6 +33,7 @@
 
 @interface EditProfileViewController () <UITextFieldDelegate, UITextViewDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate, RSKImageCropViewControllerDelegate, RSKImageCropViewControllerDataSource> {
     UIImage *newAvatar;
+    UIImage *newCover;
     NSMutableDictionary *inputValues;
 }
 
@@ -57,9 +58,10 @@ static int const EMAIL_FIELD = 206;
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    self.title = @"Edit Profile";
+    self.title = @"";
+    self.view.backgroundColor = [UIColor tableViewBackgroundColor];
     
-    [self setNeedsStatusBarAppearanceUpdate];
+    // [self setNeedsStatusBarAppearanceUpdate];
     
     self.user = [Session sharedInstance].currentUser;
     
@@ -85,19 +87,14 @@ static int const EMAIL_FIELD = 206;
                                               } forState:UIControlStateHighlighted];
     self.navigationItem.rightBarButtonItem = self.saveButton;
     
-    self.tableView.backgroundColor = [UIColor tableViewBackgroundColor];
-    self.tableView.separatorInset = UIEdgeInsetsMake(0, 16, 0, 0);
-    self.tableView.separatorColor = [UIColor tableViewSeparatorColor];
-    self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
-    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 48, 0);
-    
-    self.themeColor = [UIColor fromHex:[[Session sharedInstance] currentUser].attributes.details.color];
+    self.themeColor = [UIColor fromHex:[[Session sharedInstance] currentUser].attributes.color];
+    self.view.tintColor = self.themeColor;
     [(SimpleNavigationController *)self.navigationController updateBarColor:self.themeColor animated:false];
     
-    // remove hairline
-    self.navigationController.navigationBar.backgroundColor = [UIColor clearColor];
-    // [self.navigationController.navigationBar setBackgroundImage:[UIImage imageWithColor:[UIColor clearColor]] forBarMetrics:UIBarMetricsDefault];
-    [self.navigationController.navigationBar setShadowImage:[UIImage new]];
+    [self setupTableView];
+    
+    [self setupCoverPhotoView];
+    self.tableView.contentOffset = CGPointMake(0, -1 * self.tableView.contentInset.top);
     
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:blankReuseIdentifier];
     
@@ -114,9 +111,7 @@ static int const EMAIL_FIELD = 206;
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     
-    if (self.view.tag != 1) {
-        self.view.tag = 1;
-        
+    if ([self isBeingPresented] || [self isMovingToParentViewController]) {        
         [(SimpleNavigationController *)self.navigationController updateBarColor:self.themeColor animated:false];
         
         self.view.tintColor = self.themeColor;
@@ -125,24 +120,102 @@ static int const EMAIL_FIELD = 206;
     }
 }
 
+- (void)setupTableView {
+    self.tableView.delegate = self;
+    self.tableView.dataSource = self;
+    self.tableView.backgroundColor = [UIColor clearColor];
+    self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+    self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
+    self.tableView.refreshControl = nil;
+}
+
+- (void)setupCoverPhotoView {
+    self.coverPhotoView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 120)];
+    self.coverPhotoView.backgroundColor = self.view.tintColor;
+    self.coverPhotoView.contentMode = UIViewContentModeScaleAspectFill;
+    self.coverPhotoView.clipsToBounds = true;
+    [self.coverPhotoView bk_whenTapped:^{
+        // TODO: show options to replace cover photo view
+    }];
+    [self.view insertSubview:self.coverPhotoView belowSubview:self.tableView];
+    
+    [self updateCoverPhotoView];
+}
+- (void)updateCoverPhotoView {
+    CGFloat coverPhotoHeight = 120;
+    if (self.user.attributes.media.cover.suggested.url.length > 0) {
+        coverPhotoHeight = 148;
+        [self.coverPhotoView sd_setImageWithURL:[NSURL URLWithString:self.user.attributes.media.cover.suggested.url]];
+    
+        // add gradient overlay
+        UIColor *topColor = [UIColor colorWithWhite:0 alpha:0.5];
+        UIColor *bottomColor = [UIColor colorWithWhite:0 alpha:0];
+
+        NSArray *gradientColors = [NSArray arrayWithObjects:(id)topColor.CGColor, (id)bottomColor.CGColor, nil];
+        NSArray *gradientLocations = [NSArray arrayWithObjects:[NSNumber numberWithInt:0.0],[NSNumber numberWithInt:1.0], nil];
+
+        CAGradientLayer *gradientLayer = [CAGradientLayer layer];
+        gradientLayer.colors = gradientColors;
+        gradientLayer.locations = gradientLocations;
+        gradientLayer.frame = CGRectMake(0, 0, self.view.frame.size.width, self.tableView.contentInset.top);
+        [self.coverPhotoView.layer addSublayer:gradientLayer];
+    }
+    else {
+        self.coverPhotoView.image = nil;
+        for (CALayer *layer in self.coverPhotoView.layer.sublayers) {
+            if ([layer isKindOfClass:[CAGradientLayer class]]) {
+                [layer removeFromSuperlayer];
+            }
+        }
+    }
+    self.tableView.contentInset = UIEdgeInsetsMake(coverPhotoHeight, 0, 0, 0);
+    
+    // updat the scroll distance
+    if ([self.navigationController isKindOfClass:[ComplexNavigationController class]]) {
+        ((ComplexNavigationController *)self.navigationController).onScrollLowerBound = self.tableView.contentInset.top * .3;
+    }
+    else if ([self.navigationController isKindOfClass:[SimpleNavigationController class]]) {
+        ((SimpleNavigationController *)self.navigationController).onScrollLowerBound = self.tableView.contentInset.top * .3;
+    }
+    
+    self.coverPhotoView.frame = CGRectMake(0, 0, self.view.frame.size.width, self.tableView.contentInset.top + (-1 * self.tableView.contentOffset.y));
+}
+
 - (void)themeSelectionDidChange:(NSString *)newHex {
     [inputValues setObject:newHex forKey:[NSIndexPath indexPathForRow:6 inSection:0]];
     self.themeColor = [UIColor fromHex:newHex];
     
     [(SimpleNavigationController *)self.navigationController updateBarColor:self.themeColor animated:true];
+        
+    ProfilePictureCell *profilePictureCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
     
-    self.view.tintColor = self.themeColor;
-    
-    for (UITableViewCell *cell in [self.tableView visibleCells]) {
-        if ([cell isKindOfClass:[InputCell class]]) {
-            ((InputCell *)cell).textView.tintColor = self.view.tintColor;
-            ((InputCell *)cell).input.tintColor = self.view.tintColor;
+    [UIView animateWithDuration:0.4f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        self.view.tintColor = self.themeColor;
+        self.coverPhotoView.backgroundColor = self.view.tintColor;
+        
+        profilePictureCell.profilePicture.imageView.backgroundColor = self.view.tintColor;
+        
+        if ([UIColor useWhiteForegroundForColor:self.view.tintColor]) {
+            // dark enough
+            profilePictureCell.profilePicture.imageView.image = [UIImage imageNamed:@"anonymous"];
+            self.cancelButton.tintColor = [UIColor whiteColor];
+            self.saveButton.tintColor = [UIColor whiteColor];
         }
-    }
-    
-    [self.tableView beginUpdates];
-    [self.tableView reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0 inSection:0]] withRowAnimation:UITableViewRowAnimationNone];
-    [self.tableView endUpdates];
+        else {
+            profilePictureCell.profilePicture.imageView.image = [UIImage imageNamed:@"anonymous_black"];
+            self.cancelButton.tintColor = [UIColor blackColor];
+            self.saveButton.tintColor = [UIColor blackColor];
+        }
+        
+        profilePictureCell.editPictureImageView.tintColor = [UIColor fromHex:[UIColor toHex:self.view.tintColor] adjustForOptimalContrast:true];
+        
+        for (UITableViewCell *cell in [self.tableView visibleCells]) {
+            if ([cell isKindOfClass:[InputCell class]]) {
+                ((InputCell *)cell).textView.tintColor = self.view.tintColor;
+                ((InputCell *)cell).input.tintColor = self.view.tintColor;
+            }
+        }
+    } completion:nil];
 }
 
 - (void)saveChanges {
@@ -269,7 +342,7 @@ static int const EMAIL_FIELD = 206;
         NSString *value = [inputValues objectForKey:indexPath];
         
         if (indexPath == [NSIndexPath indexPathForRow:1 inSection:0]) {
-            if (![value isEqualToString:self.user.attributes.details.displayName]) {
+            if (![value isEqualToString:self.user.attributes.displayName]) {
                 BFValidationError error = [value validateBonfireDisplayName];
                 if (error == BFValidationErrorNone) {
                     // good to go!
@@ -308,7 +381,7 @@ static int const EMAIL_FIELD = 206;
         }
         else if (indexPath == [NSIndexPath indexPathForRow:2 inSection:0]) {
             NSString *username = [value stringByReplacingOccurrencesOfString:@"@" withString:@""];
-            if (![username isEqualToString:self.user.attributes.details.identifier]) {
+            if (![username isEqualToString:self.user.attributes.identifier]) {
                 BFValidationError error = [username validateBonfireUsername];
                 if (error == BFValidationErrorNone) {
                     // good to go!
@@ -350,7 +423,7 @@ static int const EMAIL_FIELD = 206;
             }
         }
         else if (indexPath == [NSIndexPath indexPathForRow:3 inSection:0]) {
-            if (![value isEqualToString:self.user.attributes.details.bio]) {
+            if (![value isEqualToString:self.user.attributes.bio]) {
                 BFValidationError error = [value validateBonfireBio];
                 if (error == BFValidationErrorNone) {
                     // good to go!
@@ -380,7 +453,7 @@ static int const EMAIL_FIELD = 206;
             }
         }
         else if (indexPath == [NSIndexPath indexPathForRow:4 inSection:0]) {
-            NSString *currentLocation = self.user.attributes.details.location.value;
+            NSString *currentLocation = self.user.attributes.location.displayText;
             if (!currentLocation) currentLocation = @"";
             
             if (![value isEqualToString:currentLocation]) {
@@ -413,7 +486,7 @@ static int const EMAIL_FIELD = 206;
             }
         }
         else if (indexPath == [NSIndexPath indexPathForRow:5 inSection:0]) {
-            NSString *currentWebsite = self.user.attributes.details.website.value;
+            NSString *currentWebsite = self.user.attributes.website.displayText;
             if (!currentWebsite) currentWebsite = @"";
             
             if (![value isEqualToString:currentWebsite]) {
@@ -458,7 +531,7 @@ static int const EMAIL_FIELD = 206;
         }
         else if (indexPath == [NSIndexPath indexPathForRow:6 inSection:0]) {
             // theme color
-            if (![[value lowercaseString] isEqualToString:[self.user.attributes.details.color lowercaseString]]) {
+            if (![[value lowercaseString] isEqualToString:[self.user.attributes.color lowercaseString]]) {
                 if (value.length != 6) {
                     [self alertWithTitle:@"Couldn't Save Color" message:@"Please ensure you've selected a theme color from the list and try again."];
                     
@@ -473,7 +546,7 @@ static int const EMAIL_FIELD = 206;
             }
         }
         else if (indexPath == [NSIndexPath indexPathForRow:0 inSection:1]) {
-            if (![value isEqualToString:self.user.attributes.details.email]) {
+            if (![value isEqualToString:self.user.attributes.email]) {
                 BFValidationError error = [value validateBonfireEmail];
                 if (error == BFValidationErrorNone) {
                     // good to go!
@@ -546,11 +619,21 @@ static int const EMAIL_FIELD = 206;
             else {
                 cell.profilePicture.user = self.user;
                 
-                if ([UIColor fromHex:self.user.attributes.details.color] != cell.profilePicture.imageView.backgroundColor) {
-                    [UIView animateWithDuration:0.5f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-                        cell.profilePicture.imageView.backgroundColor = [UIColor fromHex:self.user.attributes.details.color];
-                    } completion:nil];
+                if (cell.profilePictureContainer.gestureRecognizers.count == 0) {
+                    [cell.profilePictureContainer bk_whenTapped:^{
+                        [self showImagePicker];
+                    }];
                 }
+                       
+                if ([UIColor useWhiteForegroundForColor:self.view.tintColor]) {
+                    // dark enough
+                    cell.profilePicture.imageView.image = [UIImage imageNamed:@"anonymous"];
+                }
+                else {
+                    cell.profilePicture.imageView.image = [UIImage imageNamed:@"anonymous_black"];
+                }
+                
+                cell.editPictureImageView.tintColor = [UIColor fromHex:[UIColor toHex:self.view.tintColor] adjustForOptimalContrast:true];
             }
             
             return cell;
@@ -558,6 +641,8 @@ static int const EMAIL_FIELD = 206;
         else if (indexPath.row == 1 || indexPath.row == 2 || indexPath.row == 3 || indexPath.row == 4 || indexPath.row == 5) {
             InputCell *cell = [tableView dequeueReusableCellWithIdentifier:inputReuseIdentifier forIndexPath:indexPath];
             
+            cell.lineSeparator.frame = CGRectMake(12, cell.frame.size.height - cell.lineSeparator.frame.size.height, self.view.frame.size.width - 12, cell.lineSeparator.frame.size.height);
+            cell.lineSeparator.hidden = false;
             // Configure the cell...
             if (indexPath.row == 1) {
                 cell.type = InputCellTypeTextField;
@@ -566,7 +651,7 @@ static int const EMAIL_FIELD = 206;
                     cell.input.text = [inputValues objectForKey:indexPath];
                 }
                 else {
-                    cell.input.text = self.user.attributes.details.displayName;
+                    cell.input.text = self.user.attributes.displayName;
                 }
                 cell.input.placeholder = @"Name";
                 cell.input.tag = DISPLAY_NAME_FIELD;
@@ -582,7 +667,7 @@ static int const EMAIL_FIELD = 206;
                     cell.input.text = [inputValues objectForKey:indexPath];
                 }
                 else {
-                    cell.input.text = [NSString stringWithFormat:@"@%@", self.user.attributes.details.identifier];
+                    cell.input.text = [NSString stringWithFormat:@"@%@", self.user.attributes.identifier];
                 }
                 cell.input.placeholder = @"@username";
                 cell.input.tag = USERNAME_FIELD;
@@ -598,7 +683,7 @@ static int const EMAIL_FIELD = 206;
                     cell.input.text = [inputValues objectForKey:indexPath];
                 }
                 else {
-                    cell.textView.text = self.user.attributes.details.bio;
+                    cell.textView.text = self.user.attributes.bio;
                 }
                 cell.textView.placeholder = @"A little bit about me...";
                 cell.textView.tag = BIO_FIELD;
@@ -614,7 +699,7 @@ static int const EMAIL_FIELD = 206;
                     cell.input.text = [inputValues objectForKey:indexPath];
                 }
                 else {
-                    cell.input.text = self.user.attributes.details.location.value;
+                    cell.input.text = self.user.attributes.location.displayText;
                 }
                 cell.input.placeholder = @"Location";
                 cell.input.tag = LOCATION_FIELD;
@@ -630,7 +715,7 @@ static int const EMAIL_FIELD = 206;
                     cell.input.text = [inputValues objectForKey:indexPath];
                 }
                 else {
-                    cell.input.text = self.user.attributes.details.website.value;
+                    cell.input.text = self.user.attributes.website.displayText;
                 }
                 cell.input.placeholder = @"Website";
                 cell.input.tag = WEBSITE_FIELD;
@@ -667,7 +752,7 @@ static int const EMAIL_FIELD = 206;
             cell.input.text = [inputValues objectForKey:indexPath];
         }
         else {
-            cell.input.text = self.user.attributes.details.email;
+            cell.input.text = self.user.attributes.email;
         }
         cell.input.placeholder = @"Email";
         cell.input.tag = 201;
@@ -771,14 +856,14 @@ static int const EMAIL_FIELD = 206;
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.section == 0) {
         if (indexPath.row == 0) {
-            return 148;
+            return [ProfilePictureCell height];
         }
         else if (indexPath.row == 1 || indexPath.row == 2 || indexPath.row == 4 || indexPath.row == 5) {
-            return 48;
+            return [InputCell baseHeight];
         }
         else if (indexPath.row == 3) {
             // profile bio -- auto resizing
-            NSString *text = [inputValues objectForKey:indexPath] ? [inputValues objectForKey:indexPath] : self.user.attributes.details.bio;
+            NSString *text = [inputValues objectForKey:indexPath] ? [inputValues objectForKey:indexPath] : self.user.attributes.bio;
             if (text.length == 0) text = @" ";
             
             CGSize boundingSize = CGSizeMake(self.view.frame.size.width - (INPUT_CELL_LABEL_LEFT_PADDING + INPUT_CELL_TEXTVIEW_INSETS.left + INPUT_CELL_TEXTVIEW_INSETS.right) - INPUT_CELL_LABEL_WIDTH, CGFLOAT_MAX);
@@ -794,7 +879,7 @@ static int const EMAIL_FIELD = 206;
         }
     }
     else if (indexPath.section == 1) {
-        return 48;
+        return [InputCell baseHeight];
     }
     
     return 0;
@@ -805,32 +890,26 @@ static int const EMAIL_FIELD = 206;
         return [BFHeaderView height];
     }
     
-    return 0;
-}
-- (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
-    if (section != 1) return nil;
-    
-    BFHeaderView *header = [[BFHeaderView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, [BFHeaderView height])];
-    header.title = @"Private Information";
-    header.separator = false;
-    
-    return header;
-}
-- (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
     return CGFLOAT_MIN;
 }
-- (UIView *)tableView:(UITableView *)tableView viewForFooterInSection:(NSInteger)section {
+- (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
+    if (section == 1) {
+        BFHeaderView *header = [[BFHeaderView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, [BFHeaderView height])];
+        header.title = @"Private Information";
+        header.bottomLineSeparator.hidden = false;
+        
+        return header;
+    }
+    
     return nil;
 }
-
-
-- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (indexPath.section == 0) {
-        if (indexPath.row == 0) {
-            // change profile photo
-            [self showImagePicker];
-        }
-    }
+- (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
+    return HALF_PIXEL;
+}
+- (UIView *)tableView:(UITableView *)tableView viewForFooterInSection:(NSInteger)section {
+    UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, HALF_PIXEL)];
+    separator.backgroundColor = [UIColor tableViewSeparatorColor];
+    return separator;
 }
 
 - (void)showImagePicker {
@@ -855,61 +934,96 @@ static int const EMAIL_FIELD = 206;
 
 
 - (void)takePhotoForProfilePicture:(id)sender {
-    UIImagePickerController *picker = [[UIImagePickerController alloc] init];
-    picker.delegate = self;
-    picker.allowsEditing = false;
-    picker.sourceType = UIImagePickerControllerSourceTypeCamera;
-    [self presentViewController:picker animated:YES completion:nil];
+    NSString *mediaType = AVMediaTypeVideo;
+    AVAuthorizationStatus authStatus = [AVCaptureDevice authorizationStatusForMediaType:mediaType];
+    if (authStatus == AVAuthorizationStatusAuthorized) {
+        [self openCamera];
+    }
+    else if (authStatus == AVAuthorizationStatusDenied ||
+             authStatus == AVAuthorizationStatusRestricted) {
+        // denied
+        [self showNoCameraAccess];
+    }
+    else if (authStatus == AVAuthorizationStatusNotDetermined) {
+        // not determined?!
+        [AVCaptureDevice requestAccessForMediaType:mediaType completionHandler:^(BOOL granted) {
+            if (granted){
+                NSLog(@"Granted access to %@", mediaType);
+                [self openCamera];
+            }
+            else {
+                NSLog(@"Not granted access to %@", mediaType);
+                [self showNoCameraAccess];
+            }
+        }];
+    }
 }
-- (void)chooseFromLibraryForProfilePicture:(id)sender {
+- (void)openCamera {
     UIImagePickerController *picker = [[UIImagePickerController alloc] init];
     picker.delegate = self;
     picker.allowsEditing = NO;
-    picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
-    [[Launcher topMostViewController] presentViewController:picker animated:YES completion:nil];
+    picker.sourceType = UIImagePickerControllerSourceTypeCamera;
+    picker.cameraDevice = UIImagePickerControllerCameraDeviceFront;
     
-//    [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
-//        switch (status) {
-//            case PHAuthorizationStatusAuthorized: {
-//                NSLog(@"PHAuthorizationStatusAuthorized");
-//
-//                dispatch_async(dispatch_get_main_queue(), ^{
-//                    UIImagePickerController *picker = [[UIImagePickerController alloc] init];
-//                    picker.delegate = self;
-//                    picker.allowsEditing = NO;
-//                    picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
-//                    [[Launcher topMostViewController] presentViewController:picker animated:YES completion:nil];
-//                });
-//
-//                break;
-//            }
-//            case PHAuthorizationStatusDenied:
-//            case PHAuthorizationStatusNotDetermined:
-//            {
-//                NSLog(@"PHAuthorizationStatusDenied");
-//                // confirm action
-//                UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"Allow Bonfire to access your phtoos" message:@"To allow Bonfire to access your photos, go to Settings > Privacy > Set Bonfire to ON" preferredStyle:UIAlertControllerStyleAlert];
-//
-//                UIAlertAction *openSettingsAction = [UIAlertAction actionWithTitle:@"Open Settings" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-//                    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString] options:@{} completionHandler:nil];
-//                }];
-//                [actionSheet addAction:openSettingsAction];
-//
-//                UIAlertAction *closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleCancel handler:nil];
-//                [actionSheet addAction:closeAction];
-//
-//                dispatch_async(dispatch_get_main_queue(), ^{
-//                    [[Launcher topMostViewController] presentViewController:actionSheet animated:YES completion:nil];
-//                });
-//
-//                break;
-//            }
-//            case PHAuthorizationStatusRestricted: {
-//                NSLog(@"PHAuthorizationStatusRestricted");
-//                break;
-//            }
-//        }
-//    }];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [[Launcher topMostViewController] presentViewController:picker animated:YES completion:nil];
+    });
+}
+- (void)showNoCameraAccess {
+    UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"Allow Bonfire to access your camera" message:@"To allow Bonfire to access your camera, go to Settings > Privacy > Camera > Set Bonfire to ON" preferredStyle:UIAlertControllerStyleAlert];
+
+    UIAlertAction *openSettingsAction = [UIAlertAction actionWithTitle:@"Open Settings" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString] options:@{} completionHandler:nil];
+    }];
+    [actionSheet addAction:openSettingsAction];
+
+    UIAlertAction *closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleCancel handler:nil];
+    [actionSheet addAction:closeAction];
+    [[Launcher topMostViewController] presentViewController:actionSheet animated:YES completion:nil];
+}
+
+- (void)chooseFromLibraryForProfilePicture:(id)sender {
+    [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
+        switch (status) {
+            case PHAuthorizationStatusAuthorized: {
+                NSLog(@"PHAuthorizationStatusAuthorized");
+                
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    UIImagePickerController *picker = [[UIImagePickerController alloc] init];
+                    picker.delegate = self;
+                    picker.allowsEditing = NO;
+                    picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+                    [[Launcher topMostViewController] presentViewController:picker animated:YES completion:nil];
+                });
+                
+                break;
+            }
+            case PHAuthorizationStatusDenied:
+            case PHAuthorizationStatusNotDetermined:
+            {
+                NSLog(@"PHAuthorizationStatusDenied");
+                // confirm action
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"Allow Bonfire to access your phtoos" message:@"To allow Bonfire to access your photos, go to Settings > Privacy > Camera > Set Bonfire to ON" preferredStyle:UIAlertControllerStyleAlert];
+
+                    UIAlertAction *openSettingsAction = [UIAlertAction actionWithTitle:@"Open Settings" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString] options:@{} completionHandler:nil];
+                    }];
+                    [actionSheet addAction:openSettingsAction];
+                
+                    UIAlertAction *closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleCancel handler:nil];
+                    [actionSheet addAction:closeAction];
+                    [[Launcher topMostViewController] presentViewController:actionSheet animated:YES completion:nil];
+                });
+
+                break;
+            }
+            case PHAuthorizationStatusRestricted: {
+                NSLog(@"PHAuthorizationStatusRestricted");
+                break;
+            }
+        }
+    }];
 }
 
 // Crop image has been canceled.
@@ -1022,6 +1136,19 @@ static int const EMAIL_FIELD = 206;
         movementRect = CGRectIntegral(movementRect);
         
         return movementRect;
+    }
+}
+
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    if (scrollView == self.tableView && [self.navigationController isKindOfClass:[SimpleNavigationController class]]) {
+        [(SimpleNavigationController *)self.navigationController childTableViewDidScroll:self.tableView];
+        
+        if (self.tableView.contentOffset.y > (-1 * self.tableView.contentInset.top)) {
+            self.coverPhotoView.frame = CGRectMake(0, 0.5 * (-self.tableView.contentOffset.y - self.tableView.contentInset.top), self.view.frame.size.width, self.tableView.contentInset.top);
+        }
+        else {
+            self.coverPhotoView.frame = CGRectMake(0, 0, self.view.frame.size.width, self.tableView.contentInset.top + (-self.tableView.contentOffset.y - self.tableView.contentInset.top));
+        }
     }
 }
 

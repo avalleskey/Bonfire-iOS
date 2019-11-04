@@ -23,7 +23,14 @@ extern NSString * const LOCAL_APP_URI;
 + (NSString *)API_CURRENT_VERSION;
 + (NSString *)API_KEY;
 
-#pragma mark Internal Swich Methods
+#pragma mark - Internal URL Helpers
++ (BOOL)isInternalURL:(NSURL *)url;
++ (id)objectFromInternalURL:(NSURL *)url;
++ (BOOL)isExternalBonfireURL:(NSURL *)url;
++ (id)objectFromExternalBonfireURL:(NSURL *)url;
++ (BOOL)isBonfireURL:(NSURL *)url;
+
+#pragma mark - Internal Swich Methods
 + (void)switchToDevelopment;
 + (void)switchToProduction;
 + (void)replaceDevelopmentURIWith:(NSString *)newURI;

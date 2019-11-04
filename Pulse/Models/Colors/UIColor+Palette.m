@@ -8,15 +8,24 @@
 
 #import "UIColor+Palette.h"
 
+#define CLAMP(x, low, high) ({\
+__typeof__(x) __x = (x); \
+__typeof__(low) __low = (low);\
+__typeof__(high) __high = (high);\
+__x > __high ? __high : (__x < __low ? __low : __x);\
+})
+
 @implementation UIColor (Palette)
 
-// Helper methods
+#pragma mark - Helper Methods
 + (UIColor * _Nonnull)fromHex:(NSString *)hex {
-    return [self fromHex:hex adjustForDarkMode:false];
+    return [self fromHex:hex adjustForOptimalContrast:false];
 }
-+ (UIColor * _Nonnull)fromHex:(NSString *)hex adjustForDarkMode:(BOOL)adjustForDarkMode {
++ (UIColor * _Nonnull)fromHex:(NSString *)hex adjustForOptimalContrast:(BOOL)adjustForOptimalContrast {
     unsigned rgbValue = 0;
     hex = [hex stringByReplacingOccurrencesOfString:@"#" withString:@""];
+    
+    if (hex.length == 0 || hex.length > 6) hex = @"616d7c";
     
     if (hex != nil && hex.length == 6) {
         NSScanner *scanner = [NSScanner scannerWithString:hex];
@@ -33,55 +42,121 @@
             return [UIColor colorWithDisplayP3Red:r green:g blue:b alpha:1.0];
         }
         else {
-            UIColor *color;
-            if (@available(iOS 13.0, *)) {
-                // build dynamic UIColor
-                color = [UIColor colorWithDynamicProvider:^UIColor * _Nonnull(UITraitCollection * _Nonnull traitCollection) {
-                    if (traitCollection.userInterfaceStyle == UIUserInterfaceStyleDark) {
-                        return [UIColor colorWithRed:r*(adjustForDarkMode?1.4:1) green:g*(adjustForDarkMode?1.4:1) blue:b*(adjustForDarkMode?1.4:1) alpha:1];
-                    }
-                    else {
-                        return [UIColor colorWithRed:r green:g blue:b alpha:1.0];
-                    }
-                }];
-            }
-            else {
-                color = [UIColor colorWithRed:r green:g blue:b alpha:1.0];
+            UIColor *ogColor = [UIColor colorWithRed:r green:g blue:b alpha:1.0];
+            if (adjustForOptimalContrast) {
+                if (@available(iOS 13.0, *)) {
+                    // build dynamic UIColor
+                    return [UIColor colorWithDynamicProvider:^UIColor * _Nonnull(UITraitCollection * _Nonnull traitCollection) {
+                        CGFloat colorContrast = [self contrastRatioBetween:ogColor and:[self cardBackgroundColor]];
+                        
+                        CGFloat minimumViableColorContrastRatio = 4.5;//(traitCollection.userInterfaceStyle == UIUserInterfaceStyleDark ? 4.5 : 2.3);
+                        if (colorContrast < minimumViableColorContrastRatio) {
+                            return [ogColor minimumViableContrastColorWithContrastRatio:minimumViableColorContrastRatio];
+                        }
+                        else {
+                            return ogColor;
+                        }
+                    }];
+                }
             }
             
-            return color;
+            
+            return ogColor;
         }
     }
     else {
         return [UIColor bonfireGrayWithLevel:800];
     }
 }
++ (CGFloat)contrastRatioBetween:(UIColor *)color1 and:(UIColor *)color2 {
+    CGFloat luminance1 = [UIColor luminanceWithColor:color1];
+    CGFloat luminance2 = [UIColor luminanceWithColor:color2];
+    
+    CGFloat luminanceDarker = MIN(luminance1, luminance2);
+    CGFloat luminanceLighter = MAX(luminance1, luminance2);
+
+    return (luminanceLighter + 0.05) / (luminanceDarker + 0.05);
+}
++ (CGFloat)luminanceWithColor:(UIColor *)color {
+    CIColor *ciColor = [[CIColor alloc] initWithColor:color];
+    
+    return 0.2126 * [UIColor adjust:ciColor.red] + 0.7152 * [UIColor adjust:ciColor.green] + 0.0722 * [UIColor adjust:ciColor.blue];
+}
++ (CGFloat)adjust:(CGFloat)colorComponent {
+    return (colorComponent < 0.03928) ? (colorComponent / 12.92) : pow((colorComponent + 0.055) / 1.055, 2.4);
+}
+- (UIColor *)minimumViableContrastColorWithContrastRatio:(CGFloat)ratio {
+    UIColor *foreground = self; // foreground
+    UIColor *background = [UIColor cardBackgroundColor]; // background
+    
+    CGFloat colorContrast = [UIColor contrastRatioBetween:foreground and:background];
+    CGFloat targetColorContrast = ratio;
+    
+    //NSLog(@"difference in color contrast = %f", targetColorContrast - colorContrast);
+    //NSLog(@"multiple :: %f", targetColorContrast / colorContrast);
+    
+    // what we have:
+    // 1) color1 aka FOREGROUND
+    // 2) color2 aka BACKGROUND
+    // 3) color contrast between color1 and color2
+    // 4) difference or percentage between color contrast and target color contrast
+    
+    // what we want:
+    // color3 aka FOREGROUND with COLOR CONTRAST == 4.5
+    
+    CGFloat foregroundLuminance = [UIColor luminanceWithColor:foreground];
+    CGFloat backgroundLuminance = [UIColor luminanceWithColor:background];
+    
+    BOOL makeLighter = [UIColor useWhiteForegroundForColor:background];
+    BOOL makeDarker = !makeLighter;
+    BOOL notDarkEnough = makeDarker && foregroundLuminance <= backgroundLuminance;
+    BOOL notLightEnough = makeLighter && foregroundLuminance >= backgroundLuminance;
+    
+    if (notDarkEnough || notLightEnough) {
+        foreground = makeLighter ? [UIColor lighterColorForColor:foreground amount:0.3] : [UIColor darkerColorForColor:foreground amount:0.3];
+        foregroundLuminance = [UIColor luminanceWithColor:foreground];
+        colorContrast = [UIColor contrastRatioBetween:foreground and:background];
+    }
+    
+    CGFloat luminance1_after = foregroundLuminance * (targetColorContrast / colorContrast);
+    CGFloat m = luminance1_after / foregroundLuminance;
+    
+    CIColor *foregroundCIColor = [[CIColor alloc] initWithColor:foreground];
+    CGFloat r = makeLighter ? CLAMP(m * foregroundCIColor.red, 0, 1) : CLAMP(foregroundCIColor.red / m, 0, 1);
+    CGFloat g = makeLighter ? CLAMP(m * foregroundCIColor.green, 0, 1) : CLAMP(foregroundCIColor.green / m, 0, 1);
+    CGFloat b = makeLighter ? CLAMP(m * foregroundCIColor.blue, 0, 1) : CLAMP(foregroundCIColor.blue / m, 0, 1);
+    
+    UIColor *resultColor = [UIColor colorWithRed:r green:g blue:b alpha:1];
+    return resultColor;
+}
 
 + (UIColor *)lighterColorForColor:(UIColor *)c amount:(CGFloat)amount {
     if (amount == 0) amount = 0.2;
+        
+    CGFloat h, s, b, a;
     
-    CGFloat r, g, b, a;
-    if ([c getRed:&r green:&g blue:&b alpha:&a])
-        return [UIColor colorWithRed:MIN(r + amount, 1.0)
-                               green:MIN(g + amount, 1.0)
-                                blue:MIN(b + amount, 1.0)
-                               alpha:a];
+    if ([c getHue:&h saturation:&s brightness:&b alpha:&a])
+        return [UIColor colorWithHue:h saturation:MAX(s-amount, 0) brightness:MIN(s+amount, 1) alpha:1];
+    
     return [UIColor whiteColor];
 }
 
 + (UIColor *)darkerColorForColor:(UIColor *)c amount:(CGFloat)amount {
     if (amount == 0) amount = 0.2;
     
-    CGFloat r, g, b, a;
-    if ([c getRed:&r green:&g blue:&b alpha:&a])
-        return [UIColor colorWithRed:MAX(r - amount, 0.0)
-                               green:MAX(g - amount, 0.0)
-                                blue:MAX(b - amount, 0.0)
-                               alpha:a];
+    CGFloat h, s, b, a;
+    
+    if ([c getHue:&h saturation:&s brightness:&b alpha:&a])
+        return [UIColor colorWithHue:h saturation:MAX(s+amount, 0) brightness:MIN(s-amount, 1) alpha:1];
+    
     return [UIColor blackColor];
 }
 + (NSString *)toHex:(UIColor *)color {
     const CGFloat *components = CGColorGetComponents(color.CGColor);
+    
+    if (components == NULL) {
+        return @"616d7c";
+    }
     
     CGFloat r = components[0];
     CGFloat g = components[1];
@@ -92,32 +167,29 @@
             lroundf(g * 255),
             lroundf(b * 255)];
 }
+- (CGFloat)hue {
+    CGFloat hFloat,sFloat,bFloat;
+    [self getHue:&hFloat saturation:&sFloat brightness:&bFloat alpha:nil];
+    return hFloat;
+}
+- (CGFloat)saturation {
+    CGFloat hFloat,sFloat,bFloat;
+    [self getHue:&hFloat saturation:&sFloat brightness:&bFloat alpha:nil];
+    return sFloat;
+}
+- (CGFloat)brightness {
+    CGFloat hFloat,sFloat,bFloat;
+    [self getHue:&hFloat saturation:&sFloat brightness:&bFloat alpha:nil];
+    return bFloat;
+}
 
 + (BOOL)useWhiteForegroundForColor:(UIColor*)backgroundColor {
-    size_t count = CGColorGetNumberOfComponents(backgroundColor.CGColor);
-    const CGFloat *componentColors = CGColorGetComponents(backgroundColor.CGColor);
-    
-    CGFloat darknessScore = 0;
-    if (count == 2) {
-        darknessScore = (((componentColors[0]*255) * 299) + ((componentColors[0]*255) * 587) + ((componentColors[0]*255) * 114)) / 1000;
-    } else if (count == 4) {
-        darknessScore = (((componentColors[0]*255) * 299) + ((componentColors[1]*255) * 587) + ((componentColors[2]*255) * 114)) / 1000;
-    }
-    
-    if (darknessScore >= 195) {
-        return false;
-    }
-    
-    return true;
+    CGFloat contrastRatio = [UIColor contrastRatioBetween:backgroundColor and:[UIColor whiteColor]];
+
+    return contrastRatio >= 2.3;
 }
 
 + (UIColor * _Nonnull) contentBackgroundColor {
-//    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"dark_mode"]) {
-//        return [UIColor blackColor];
-//    }
-//    else {
-//        return [UIColor whiteColor];
-//    }
     return [UIColor colorNamed:@"ContentBackgroundColor"];
 }
 
@@ -163,7 +235,7 @@
 }
 
 + (UIColor * _Nonnull) threadLineColor {
-    return [UIColor colorWithRed:0.95 green:0.95 blue:0.96 alpha:1.0];
+    return [UIColor colorNamed:@"ThreadLineColor"];
 }
 
 // Gray
@@ -619,7 +691,7 @@
 }
 
 + (UIColor * _Nonnull) bonfireTextFieldBackgroundOnWhite {
-    return [UIColor colorWithRed:0 green:0 blue:0.1f alpha:0.04f];
+    return [UIColor colorWithRed:0 green:0 blue:0.1f alpha:0.08f];
 }
 
 + (UIColor * _Nonnull) bonfireTextFieldBackgroundOnContent {

@@ -89,10 +89,6 @@
         // mit
         url = @"https://github.com/JonasGessner/JGProgressHUD/blob/master/LICENSE.txt";
     }
-    if ([rowId isEqualToString:@"ap_address_book"]) {
-        // mit
-        url = @"https://github.com/Alterplay/APAddressBook/blob/master/LICENSE.txt";
-    }
     if ([rowId isEqualToString:@"lib_phone_number"]) {
         // apache 2.0
         url = @"https://github.com/iziz/libPhoneNumber-iOS/blob/master/LICENSE";

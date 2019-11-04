@@ -59,7 +59,7 @@
     self.layer.shadowOpacity = 1;
     self.layer.masksToBounds = false;
         
-    self.blurView = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleLight]];
+    self.blurView = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleProminent]];
     self.blurView.frame = CGRectMake(0, 0, self.frame.size.width, self.frame.size.height);
     self.blurView.layer.cornerRadius = self.layer.cornerRadius;
     self.blurView.layer.masksToBounds = true;
@@ -196,6 +196,10 @@
             self.notificationTypeImageView.image = [UIImage imageNamed:@"notificationIndicator_mention"];
             self.notificationTypeImageView.backgroundColor = [UIColor colorWithRed:0.07 green:0.78 blue:1.00 alpha:1.0];
         }
+        else if (object.activityType == USER_ACTIVITY_TYPE_BONFIRE_MOTD) {
+            self.notificationTypeImageView.image = [UIImage imageNamed:@"notificationIndicator_mention"];
+            self.notificationTypeImageView.backgroundColor = [UIColor colorWithRed:0.07 green:0.78 blue:1.00 alpha:1.0];
+        }
         else {
             // unknown
             // TODO: General notification icon & background
@@ -257,7 +261,7 @@
     else {
         self.blurView.effect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleLight];
         self.blurView.backgroundColor = [UIColor colorWithWhite:1 alpha:0.9f];
-        self.closeButton.tintColor = [UIColor bonfirePrimaryColor];
+        self.closeButton.tintColor = [UIColor blackColor];
         self.closeButton.backgroundColor = [UIColor colorWithWhite:0 alpha:0.06f];
         
         self.titleLabel.textColor = [UIColor blackColor];

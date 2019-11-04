@@ -14,10 +14,13 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface ProfilePictureCell : UITableViewCell
 
+@property (strong, nonatomic) UIView *profilePictureContainer;
 @property (strong, nonatomic) BFAvatarView *profilePicture;
 
 @property (strong, nonatomic) UIView *editPictureImageViewContainer;
 @property (strong, nonatomic) UIImageView *editPictureImageView;
+
++ (CGFloat)height;
 
 @end
 

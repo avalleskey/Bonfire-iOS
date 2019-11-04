@@ -19,6 +19,7 @@
 #import "NSArray+Clean.h"
 #import <PINCache/PINCache.h>
 #import "InsightsLogger.h"
+#import "BFNotificationManager.h"
 
 @interface Session ()
 
@@ -43,7 +44,7 @@ static Session *session;
         
         if ([[NSUserDefaults standardUserDefaults] objectForKey:@"user"]) {
             session.currentUser = [[User alloc] initWithData:[[NSUserDefaults standardUserDefaults] objectForKey:@"user"] error:nil];
-            NSLog(@"🙎‍♂️ User: @%@", session.currentUser.attributes.details.identifier);
+            NSLog(@"🙎‍♂️ User: @%@", session.currentUser.attributes.identifier);
         }
         
         if ([session getAccessTokenWithVerification:true] != nil && session.currentUser.identifier != nil) {
@@ -87,20 +88,33 @@ static Session *session;
             Defaults *newDefaults = [[Defaults alloc] initWithDictionary:responseObject error:&error];
             
             if (!error) {
-                // NSLog(@"set new defaults because there weren't any errors");
-                session.defaults = newDefaults;
+                NSLog(@"set new defaults because there weren't any errors");
+                NSError *error;
+                newDefaults.feed = [[DefaultsFeed alloc] initWithDictionary:@{@"motd": @{@"title": @"Message from Bonfire MOTD", @"text": @"The text would go here. ⭐️", @"image_url": @"https://images.unsplash.com/photo-1550534791-2677533605ab?ixlib=rb-1.2.1&auto=format&fit=crop&w=2700&q=80", @"cta": @{@"type": @"1", @"action_url": @"https://producthunt.com", @"display_text": @"Go to Product Hunt"}}} error:&error];
+                NSLog(@"feed error: %@", error);
                 
+                session.defaults = newDefaults;
+                                
                 // save to local file
                 [session updateDefaultsJSON:responseObject];
+                
+                if (session.defaults.feed.motd) {
+                    if ([Launcher tabController]) {
+                        TabController *tabVC = [Launcher tabController];
+                        
+                        NSString *badgeValue = @"1"; //[NSString stringWithFormat:@"%@", [[userInfo objectForKey:@"aps"] objectForKey:@"badge"]];
+                        [tabVC setBadgeValue:badgeValue forItem:tabVC.notificationsNavVC.tabBarItem];
+                        if (badgeValue && badgeValue.length > 0 && [badgeValue intValue] > 0) {
+                            AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
+                        }
+                    }
+                }
             }
             else {
                 NSLog(@"⚠️ error with new json: %@", error);
             }
         } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
             NSLog(@"😞 darn. error getting the new defaults");
-            NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-            NSLog(@"errorResponse: %@", ErrorResponse);
-            NSLog(@"---------");
         }];
     }
 }
@@ -119,7 +133,7 @@ static Session *session;
         
         NSLog(@"parameters: %@", @{@"vendor": @"APNS", @"token": [[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"]});
         [[HAWebService authenticatedManager] POST:url parameters:@{@"vendor": @"APNS", @"token": [[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"]} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-            NSLog(@"🤪 successfully updated the device token for @%@", session.currentUser.attributes.details.identifier);
+            NSLog(@"🤪 successfully updated the device token for @%@", session.currentUser.attributes.identifier);
             [[NSUserDefaults standardUserDefaults] setObject:[[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"] forKey:@"user_device_token"];
             
             session.deviceToken = [[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"];
@@ -135,6 +149,7 @@ static Session *session;
 
 // User
 - (void)updateUser:(User *)newUser {
+    // add cover photo
     [[NSUserDefaults standardUserDefaults] setObject:[newUser toJSONData] forKey:@"user"];
     
     session.currentUser = newUser;
@@ -271,8 +286,9 @@ static Session *session;
     NSDictionary *accessToken = [Lockbox unarchiveObjectForKey:@"access_token"];
     if (accessToken == nil) { return nil; }
         
-    if (accessToken[@"attributes"] && accessToken[@"attributes"][@"refresh_token"] && [accessToken[@"attributes"][@"refresh_token"] isKindOfClass:[NSString class]]) {
-        return accessToken[@"attributes"][@"refresh_token"];
+    if (accessToken[@"refresh_token"] &&
+        [accessToken[@"refresh_token"] isKindOfClass:[NSString class]]) {
+        return accessToken[@"refresh_token"];
     }
     
     return nil;
@@ -306,23 +322,28 @@ static Session *session;
                 [logoutManager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
                 logoutManager.requestSerializer.HTTPMethodsEncodingParametersInURI = [NSSet setWithObjects:@"GET", @"HEAD", nil];
                 
-                NSLog(@"logoutManager headers: %@", [logoutManager.requestSerializer HTTPRequestHeaders]);
-                NSLog(@"headers: %@", @{@"access_token": token});
-                
-                [logoutManager DELETE:url parameters:@{@"access_token": token} success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-                    NSLog(@"✌️ Logged out of User");
+                if (token) {
+                    NSLog(@"logoutManager headers: %@", [logoutManager.requestSerializer HTTPRequestHeaders]);
+                    NSLog(@"headers: %@", @{@"access_token": token});
                     
+                    [logoutManager DELETE:url parameters:@{@"access_token": token} success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+                        NSLog(@"✌️ Logged out of User");
+                        
+                        [Launcher openOnboarding];
+                    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+                        NSLog(@"❌ Failed to log out of User");
+                        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+                        NSLog(@"log out error: %@", ErrorResponse);
+                        
+                        NSLog(@"task: %@", task);
+                        NSLog(@"logoutManager? %@", logoutManager);
+                        
+                        [Launcher openOnboarding];
+                    }];
+                }
+                else {
                     [Launcher openOnboarding];
-                } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-                    NSLog(@"❌ Failed to log out of User");
-                    NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-                    NSLog(@"log out error: %@", ErrorResponse);
-                    
-                    NSLog(@"task: %@", task);
-                    NSLog(@"logoutManager? %@", logoutManager);
-                    
-                    [Launcher openOnboarding];
-                }];
+                }
             }
         }];
     }
@@ -360,8 +381,8 @@ static Session *session;
     NSDictionary *accessToken = [session getAccessTokenWithVerification:false];
     
     // load cache of user
-    if (accessToken != nil) {
-        handler(TRUE, accessToken[@"attributes"][@"access_token"]);
+    if (accessToken != nil || ([[Session sharedInstance] getAccessTokenWithVerification:YES] && ![HAWebService hasInternet])) {
+        handler(TRUE, accessToken[@"access_token"]);
     }
     else {
         handler(false, nil);
@@ -374,16 +395,15 @@ static Session *session;
     NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
     [formatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ssZ"];
     
-    NSDate *tokenExpiration = [formatter dateFromString:token[@"attributes"][@"expires_at"]];
-    
-//    NSCalendar *gregorian = [[NSCalendar alloc]
-//                             initWithCalendarIdentifier:NSCalendarIdentifierGregorian];
-//    NSDateComponents *comps = [gregorian components: NSCalendarUnitMinute
-//                                           fromDate: [NSDate date]
-//                                             toDate: tokenExpiration
-//                                            options: 0];
-//     NSLog(@"minutes until token expiration:: %ld", (long)[comps minute]);
-//     NSLog(@"token app version: %@", token[@"app_version"]);
+    NSDate *tokenExpiration = [formatter dateFromString:token[@"expires_at"]];
+    NSCalendar *gregorian = [[NSCalendar alloc]
+                             initWithCalendarIdentifier:NSCalendarIdentifierGregorian];
+    NSDateComponents *comps = [gregorian components: NSCalendarUnitMinute
+                                           fromDate: [NSDate date]
+                                             toDate: tokenExpiration
+                                            options: 0];
+     NSLog(@"minutes until token expiration:: %ld", (long)[comps minute]);
+     NSLog(@"token app version: %@", token[@"app_version"]);
     
     NSString *version = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
     if ([now compare:tokenExpiration] == NSOrderedDescending || ![token[@"app_version"] isEqualToString:version]) {
@@ -425,11 +445,11 @@ static Session *session;
     
     // GET NEW ACCESS TOKEN
     NSDictionary *currentAccessToken = [[Session sharedInstance] getAccessTokenWithVerification:YES];
-    if (currentAccessToken) {
+    if (currentAccessToken || ([[Session sharedInstance] getAccessTokenWithVerification:YES] && ![HAWebService hasInternet])) {
         // access token is already valid -- must have already been refreshed
         NSLog(@"🔑✅ getNewAccessToken: NO NEED");
         
-        handler(true, currentAccessToken[@"attributes"][@"access_token"]);
+        handler(true, currentAccessToken[@"access_token"]);
     }
     else if ([[Session sharedInstance] refreshToken] != nil) {
         // has a seemingly valid refresh token, so we should attempt
@@ -449,7 +469,7 @@ static Session *session;
                 }
                 else {
                     // NSLog(@"original effort SUCCEEDED WOOOOOO");
-                    handler(true, accessToken[@"attributes"][@"access_token"]);
+                    handler(true, accessToken[@"access_token"]);
                 }
             }];
         }
@@ -475,7 +495,7 @@ static Session *session;
                 
                 [[Session sharedInstance] setAccessToken:cleanDictionary];
                 
-                handler(true, cleanDictionary[@"attributes"][@"access_token"]);
+                handler(true, cleanDictionary[@"access_token"]);
                 
                 self.refreshingToken = false;
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
@@ -489,8 +509,8 @@ static Session *session;
                 NSDictionary *accessToken = [[Session sharedInstance] getAccessTokenWithVerification:true];
                 if (accessToken != nil) {
                     // already refreshed! good to go
-                    NSLog(@"access token? %@", accessToken[@"attributes"][@"access_token"]);
-                    handler(true, accessToken[@"attributes"][@"access_token"]);
+                    NSLog(@"access token? %@", accessToken[@"access_token"]);
+                    handler(true, accessToken[@"access_token"]);
                 }
                 else {
                     handler(false, nil);

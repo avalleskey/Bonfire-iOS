@@ -1,9 +1,5 @@
 {
     "keywords": {
-        "group_titles": {
-            "singular": "Camp",
-            "plural": "Camps"
-        },
         "view_titles": {
             "user_stream": "Home",
             "discover": "Discover",
@@ -11,30 +7,28 @@
             "my_profile": "My Profile"
         }
     },
-    "profile": {
-        "follow_verb": "Follow",
-        "following_verb": "Following"
-    },
     "post": {
-        "img_height": 200,
-        "max_length": {
-            "hard": 500,
-            "soft": 300
+        "img_height": {
+            "min": 100,
+            "max": 200
         },
-        "compose_prompt": "Share in {group_name}..."
-    },
-    "sharing": {
-        "share_post": "{uri}",
-        "share_camp": "{uri}"
+        "max_length": 300
     },
     "camp": {
-        "follow_verb": "Join",
-        "following_verb": "Joined",
-        "members_title": {
-            "singular": "member",
-            "plural": "members"
-        },
-        "live_threshold": 60
+        "score_threshold": 5,
+        "members_threshold": 3
+    },
+    "feed": {
+        "motd": {
+            "title": "v1.0.3 is out!",
+            "text": "You are using an outdated version of Bonfire! Update now",
+            "image_url": "https://cdn.bonfire.camp/motd/upgrade_motd.jpeg",
+            "cta": {
+                "type": "url",
+                "action_url": "",
+                "display_text": "Download"
+            }
+        }
     },
     "logging": {
         "insights": {

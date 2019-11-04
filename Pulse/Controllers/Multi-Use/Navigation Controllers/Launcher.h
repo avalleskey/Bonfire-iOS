@@ -13,6 +13,9 @@
 #import "User.h"
 #import "SOLOptionsTransitionAnimator.h"
 #import "ComplexNavigationController.h"
+#import "PostViewController.h"
+#import "BotViewController.h"
+#import "CampViewController.h"
 #import "TabController.h"
 
 #define VIEW_CONTROLLER_PUSH_TAG 99
@@ -24,7 +27,7 @@ NS_ASSUME_NONNULL_BEGIN
 + (Launcher *)sharedInstance;
 @property (nonatomic, strong) SOLOptionsTransitionAnimator *animator;
 
-+ (void)launchLoggedIn:(BOOL)animated;
++ (void)launchLoggedIn:(BOOL)animated replaceRootViewController:(BOOL)replaceRootViewController;
 @property (nonatomic, copy) void (^_Nullable launchAction)(void);
 
 + (void)openTimeline;
@@ -33,11 +36,20 @@ NS_ASSUME_NONNULL_BEGIN
 + (void)openDiscover;
 
 + (void)openCamp:(Camp *)camp;
-+ (void)openCampMembersForCamp:(Camp *)camp;
++ (CampViewController *)campViewControllerForCamp:(Camp *)camp;
+
 + (void)openPost:(Post *)post withKeyboard:(BOOL)withKeyboard;
-+ (void)openLinkConversations:(PostAttachmentsLink *)link withKeyboard:(BOOL)withKeyboard;
-+ (void)openPostReply:(Post *)post sender:(UIView *)sender;
++ (PostViewController *)postViewControllerForPost:(Post *)post;
+
 + (void)openProfile:(User *)user;
++ (ProfileViewController *)profileViewControllerForUser:(User *)user;
+
++ (void)openBot:(Bot *)bot;
++ (BotViewController *)botViewControllerForBot:(Bot *)bot;
+
++ (void)openCampMembersForCamp:(Camp *)camp;
++ (void)openLinkConversations:(BFLink *)link withKeyboard:(BOOL)withKeyboard;
++ (void)openPostReply:(Post *)post sender:(UIView *)sender;
 + (void)openProfileCampsJoined:(User *)user;
 + (void)openProfileUsersFollowing:(User *)user;
 + (void)openCreateCamp;
@@ -59,6 +71,7 @@ NS_ASSUME_NONNULL_BEGIN
 + (void)sharePost:(Post *)post;
 + (void)shareCamp:(Camp *)camp;
 + (void)shareUser:(User *)user;
++ (void)shareBot:(Bot *)bot;
 + (void)shareOniMessage:(NSString *)message image:(UIImage * _Nullable)image;
 + (void)openActionsForPost:(Post *)post;
 

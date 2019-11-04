@@ -9,6 +9,7 @@
 #import "UserFollowButton.h"
 #import "Session.h"
 #import "UIColor+Palette.h"
+#import <HapticHelper/HapticHelper.h>
 
 @implementation UserFollowButton
 
@@ -41,21 +42,16 @@
         [self setTitle:([status isEqualToString:USER_STATUS_FOLLOWED]?@"Follow Back":@"Follow") forState:UIControlStateNormal];
     }
     
-    
-    /*
-     else if ([status isEqualToString:USER_STATUS_REQUESTED]) {
-     [self setImage:[[UIImage imageNamed:@"clockIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
-     [self setTitle:@"Requested" forState:UIControlStateNormal];
-     }*/
-    
     // set filled state + colors
     UIColor *disabledColor = [UIColor colorWithRed:0.52 green:0.53 blue:0.55 alpha:1.0];
     UIColor *themeColor = self.superview.tintColor;
     
+    BOOL userInteractionEnabled = true;
     if ([status isEqualToString:USER_STATUS_FOLLOWS] ||
         [status isEqualToString:USER_STATUS_FOLLOW_BOTH] ||
         [status isEqualToString:USER_STATUS_ME] ||
-        [status isEqualToString:USER_STATUS_LOADING]) {
+        [status isEqualToString:USER_STATUS_LOADING] ||
+        [status isEqualToString:USER_STATUS_BLOCKS]) {
         self.layer.borderWidth = 1.f;
         self.backgroundColor = [UIColor clearColor];
         
@@ -79,8 +75,11 @@
                  [status isEqualToString:USER_STATUS_BLOCKS] ||
                  [status isEqualToString:USER_STATUS_BLOCKED]) {
             self.backgroundColor = disabledColor;
+            userInteractionEnabled = false;
         }
     }
+    
+    self.userInteractionEnabled = userInteractionEnabled;
 }
 
 - (void)setHighlighted:(BOOL)highlighted {

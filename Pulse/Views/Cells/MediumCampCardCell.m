@@ -13,6 +13,8 @@
 
 @implementation MediumCampCardCell
 
+@synthesize camp = _camp;
+
 - (id)init {
     if (self = [super init]) {
         [self setup];
@@ -36,14 +38,12 @@
     self.camp = [[Camp alloc] init];
     
     self.backgroundColor = [UIColor cardBackgroundColor];
-    self.layer.cornerRadius = 12.f;
+    self.layer.cornerRadius = 14.f;
     self.layer.masksToBounds = false;
     self.layer.shadowRadius = 1.f;
     self.layer.shadowOffset = CGSizeMake(0, 1);
     self.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.08f].CGColor;
     self.layer.shadowOpacity = 1.f;
-    self.layer.borderWidth = (1 / [UIScreen mainScreen].scale);
-    self.layer.borderColor = [UIColor colorWithWhite:0 alpha:0.1f].CGColor;
     self.contentView.layer.cornerRadius = self.layer.cornerRadius;
     self.contentView.layer.masksToBounds = true;
     self.layer.shouldRasterize = true;
@@ -58,6 +58,10 @@
     self.profilePictureContainerView.backgroundColor = [UIColor contentBackgroundColor];
     self.profilePictureContainerView.layer.cornerRadius = self.profilePictureContainerView.frame.size.width * .5;
     self.profilePictureContainerView.layer.masksToBounds = false;
+    self.profilePictureContainerView.layer.shadowColor = [UIColor blackColor].CGColor;
+    self.profilePictureContainerView.layer.shadowOffset = CGSizeMake(0, 1);
+    self.profilePictureContainerView.layer.shadowRadius = 1.f;
+    self.profilePictureContainerView.layer.shadowOpacity = 0.1;
     
     self.profilePicture = [[BFAvatarView alloc] initWithFrame:CGRectMake(4, 4, 72, 72)];
     self.profilePicture.center = CGPointMake(self.profilePictureContainerView.frame.size.width / 2, self.profilePictureContainerView.frame.size.height / 2);
@@ -79,7 +83,7 @@
     [self styleMemberProfilePictureView:self.member4];
     
     self.campTitleLabel = [[UILabel alloc] initWithFrame:CGRectMake(16, self.profilePictureContainerView.frame.origin.y + self.profilePictureContainerView.frame.size.height + 9, self.frame.size.width - 32, 31)];
-    self.campTitleLabel.font = [UIFont systemFontOfSize:26.f weight:UIFontWeightHeavy];
+    self.campTitleLabel.font = [UIFont systemFontOfSize:24.f weight:UIFontWeightHeavy];
     self.campTitleLabel.textAlignment = NSTextAlignmentCenter;
     self.campTitleLabel.numberOfLines = 0;
     self.campTitleLabel.lineBreakMode = NSLineBreakByWordWrapping;
@@ -87,7 +91,7 @@
     [self.contentView addSubview:self.campTitleLabel];
     
     self.campTagLabel = [[UILabel alloc] initWithFrame:CGRectMake(16, self.campTitleLabel.frame.origin.y + self.campTitleLabel.frame.size.height + 4, self.frame.size.width - 32, 18)];
-    self.campTagLabel.font = [UIFont systemFontOfSize:15.f weight:UIFontWeightHeavy];
+    self.campTagLabel.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightHeavy];
     self.campTagLabel.textAlignment = NSTextAlignmentCenter;
     self.campTagLabel.numberOfLines = 0;
     self.campTagLabel.lineBreakMode = NSLineBreakByWordWrapping;
@@ -109,25 +113,25 @@
 
 - (void)layoutSubviews {
     [super layoutSubviews];
-    
+        
     self.campHeaderView.frame = CGRectMake(self.campHeaderView.frame.origin.x, self.campHeaderView.frame.origin.y, self.frame.size.width, self.campHeaderView.frame.size.height);
     self.profilePictureContainerView.center = CGPointMake(self.campHeaderView.frame.size.width / 2, self.profilePictureContainerView.center.y);
     
     CGFloat contentPadding = 16;
     CGFloat contentWidth = self.frame.size.width - (contentPadding * 2);
+    CGFloat bottomY  = self.campTitleLabel.frame.origin.y;
     
     // title
     CGSize titleSize = [self.campTitleLabel.text boundingRectWithSize:CGSizeMake(contentWidth, self.campTitleLabel.font.lineHeight * 2)
                                                      options:NSStringDrawingUsesLineFragmentOrigin| NSStringDrawingUsesFontLeading
                                                   attributes:@{NSFontAttributeName:self.campTitleLabel.font}
                                                      context:nil].size;
-    self.campTitleLabel.frame = CGRectMake(contentPadding, self.campTitleLabel.frame.origin.y, contentWidth, ceilf(titleSize.height));;
+    self.campTitleLabel.frame = CGRectMake(contentPadding, bottomY, contentWidth, ceilf(titleSize.height));;
+    bottomY = self.campTitleLabel.frame.origin.y + self.campTitleLabel.frame.size.height + 8;
     
-    if (self.loading) {
-        self.campTagLabel.frame = CGRectMake(self.frame.size.width / 4, self.campTitleLabel.frame.origin.y + self.campTitleLabel.frame.size.height + 4, self.frame.size.width / 2, self.campTagLabel.frame.size.height);
-    }
-    else {
-        self.campTagLabel.frame = CGRectMake(contentPadding, self.campTitleLabel.frame.origin.y + self.campTitleLabel.frame.size.height + 4, contentWidth, self.campTagLabel.frame.size.height);
+    if (![self.campTagLabel isHidden]) {
+        self.campTagLabel.frame = CGRectMake(contentPadding, bottomY, contentWidth, self.campTagLabel.frame.size.height);
+        bottomY = self.campTagLabel.frame.origin.y + self.campTagLabel.frame.size.height + 6;
     }
     
     // description
@@ -136,32 +140,31 @@
                                                            attributes:@{NSFontAttributeName:self.campDescriptionLabel.font}
                                                               context:nil].size;
     CGRect descriptionLabelRect = self.campDescriptionLabel.frame;
-    descriptionLabelRect.origin.y = self.campTagLabel.frame.origin.y + self.campTagLabel.frame.size.height + 6;
+    descriptionLabelRect.origin.y = bottomY;
     descriptionLabelRect.size.height = ceilf(descriptionSize.height);
     descriptionLabelRect.size.width = contentWidth;
     self.campDescriptionLabel.frame = descriptionLabelRect;
+//    bottomY = self.campDescriptionLabel.frame.origin.y + self.campDescriptionLabel.frame.size.height;
     
-    self.detailsCollectionView.frame = CGRectMake(contentPadding, self.frame.size.height - 16 - self.detailsCollectionView.frame.size.height, contentWidth, self.detailsCollectionView.frame.size.height);
+    self.detailsCollectionView.frame = CGRectMake(contentPadding, self.frame.size.height - 24 - self.detailsCollectionView.frame.size.height, contentWidth, self.detailsCollectionView.frame.size.height);
     
     self.layer.shadowPath = [UIBezierPath bezierPathWithRoundedRect:self.bounds cornerRadius:self.layer.cornerRadius].CGPath;
     self.contentView.layer.shadowPath = [UIBezierPath bezierPathWithRoundedRect:self.bounds cornerRadius:self.layer.cornerRadius].CGPath;
 }
 
 - (void)setHighlighted:(BOOL)highlighted {
-    if (!self.loading) {
-        if (highlighted) {
-            [UIView animateWithDuration:0.6f delay:0 usingSpringWithDamping:0.6f initialSpringVelocity:0.5f options:(UIViewAnimationOptionCurveEaseOut|UIViewAnimationOptionAllowUserInteraction) animations:^{
-                //self.alpha = 0.75;
-                self.transform = CGAffineTransformMakeScale(0.96, 0.96);
-            } completion:nil];
-        }
-        else {
-            [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.6f initialSpringVelocity:0.5f options:(UIViewAnimationOptionCurveEaseOut|UIViewAnimationOptionAllowUserInteraction) animations:^{
-                self.alpha = 1;
-                self.transform = CGAffineTransformIdentity;
-            } completion:nil];
-        }
-    }
+   if (highlighted) {
+       [UIView animateWithDuration:0.6f delay:0 usingSpringWithDamping:0.6f initialSpringVelocity:0.5f options:(UIViewAnimationOptionCurveEaseOut|UIViewAnimationOptionAllowUserInteraction) animations:^{
+           //self.alpha = 0.75;
+           self.transform = CGAffineTransformMakeScale(0.96, 0.96);
+       } completion:nil];
+   }
+   else {
+       [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.6f initialSpringVelocity:0.5f options:(UIViewAnimationOptionCurveEaseOut|UIViewAnimationOptionAllowUserInteraction) animations:^{
+           self.alpha = 1;
+           self.transform = CGAffineTransformIdentity;
+       } completion:nil];
+   }
 }
 
 - (void)styleMemberProfilePictureView:(UIView *)imageView  {
@@ -169,9 +172,13 @@
     
     CGFloat borderWidth = 3.f;
     UIView *borderVeiw = [[UIView alloc] initWithFrame:CGRectMake(imageView.frame.origin.x - borderWidth, imageView.frame.origin.y - borderWidth, imageView.frame.size.width + (borderWidth * 2), imageView.frame.size.height + (borderWidth * 2))];
-    borderVeiw.backgroundColor = [UIColor contentBackgroundColor];
+    borderVeiw.backgroundColor = [UIColor bonfireDetailColor];
     borderVeiw.layer.cornerRadius = borderVeiw.frame.size.height / 2;
-    borderVeiw.layer.masksToBounds = true;
+    borderVeiw.layer.masksToBounds = false;
+    borderVeiw.layer.shadowColor = [UIColor blackColor].CGColor;
+    borderVeiw.layer.shadowOffset = CGSizeMake(0, HALF_PIXEL);
+    borderVeiw.layer.shadowRadius = 1.f;
+    borderVeiw.layer.shadowOpacity = 0.12;
     [self.contentView insertSubview:borderVeiw belowSubview:imageView];
     
     // move imageview to child of border view
@@ -180,55 +187,13 @@
     [borderVeiw addSubview:imageView];
 }
 
-- (void)setLoading:(BOOL)loading {
-    _loading = loading;
-    
-    if (_loading) {
-        self.campTitleLabel.text = @"Loading...";
-        self.campTitleLabel.textColor = [UIColor clearColor];
-        self.campTitleLabel.backgroundColor = [UIColor colorWithWhite:0.92 alpha:1];
-        self.campTitleLabel.layer.masksToBounds = true;
-        self.campTitleLabel.layer.cornerRadius = 4.f;
-        
-        self.campTagLabel.text = @"#camptag";
-        self.campTagLabel.textColor = [UIColor clearColor];
-        self.campTagLabel.backgroundColor = [UIColor colorWithWhite:0.94 alpha:1];
-        self.campTagLabel.layer.masksToBounds = true;
-        self.campTagLabel.layer.cornerRadius = 4.f;
-        
-        self.campHeaderView.backgroundColor = [UIColor bonfireGrayWithLevel:100];
-        self.profilePicture.camp = nil;
-        self.profilePicture.tintColor = [UIColor bonfireGrayWithLevel:500];
-        
-        self.detailsCollectionView.hidden =
-        self.campDescriptionLabel.hidden =
-        self.member1.superview.hidden =
-        self.member2.superview.hidden =
-        self.member3.superview.hidden =
-        self.member4.superview.hidden = true;
-    }
-    else {
-        self.campTitleLabel.textColor = [UIColor bonfirePrimaryColor];
-        self.campTitleLabel.backgroundColor = [UIColor clearColor];
-        self.campTitleLabel.layer.masksToBounds = false;
-        self.campTitleLabel.layer.cornerRadius = 0;
-        
-        self.campTagLabel.backgroundColor = [UIColor clearColor];
-        self.campTagLabel.layer.masksToBounds = false;
-        self.campTagLabel.layer.cornerRadius = 0;
-        
-        self.detailsCollectionView.hidden =
-        self.campDescriptionLabel.hidden = false;
-    }
-}
-
 - (void)setCamp:(Camp *)camp {
     if (camp != _camp) {
         _camp = camp;
         
-        self.tintColor = [UIColor fromHex:camp.attributes.details.color];
+        self.tintColor = [UIColor fromHex:camp.attributes.color];
         
-        self.campHeaderView.backgroundColor = [UIColor fromHex:camp.attributes.details.color];
+        self.campHeaderView.backgroundColor = [UIColor fromHex:camp.attributes.color];
         // set profile pictures
         for (NSInteger i = 0; i < 4; i++) {
             BFAvatarView *avatarView;
@@ -249,10 +214,13 @@
             }
         }
         
-        self.campTitleLabel.text = camp.attributes.details.title;
-        self.campTagLabel.text = [NSString stringWithFormat:@"#%@", camp.attributes.details.identifier];
-        self.campTagLabel.textColor = [UIColor fromHex:camp.attributes.details.color];
-        self.campDescriptionLabel.text = camp.attributes.details.theDescription;
+        self.campTitleLabel.text = camp.attributes.title;
+        self.campTagLabel.hidden = camp.attributes.identifier.length == 0;
+        if (![self.campTagLabel isHidden]) {
+            self.campTagLabel.text = [NSString stringWithFormat:@"#%@", camp.attributes.identifier];
+            self.campTagLabel.textColor = [UIColor fromHex:camp.attributes.color adjustForOptimalContrast:true];
+        }
+        self.campDescriptionLabel.text = camp.attributes.theDescription;
         
         self.profilePicture.camp = camp;
         

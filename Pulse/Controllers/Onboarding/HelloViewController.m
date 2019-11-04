@@ -69,6 +69,7 @@
     // prepare for animations
     if (self.view.tag != 1) {
         self.view.tag = 1;
+        
         self.signUpButton.alpha = 0;
         self.signInButton.alpha = 0;
         

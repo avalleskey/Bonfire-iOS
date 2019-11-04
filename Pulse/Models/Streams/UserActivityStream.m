@@ -103,6 +103,119 @@
     [self updateActivitiesArray];
 }
 
+
+- (BOOL)updatePost:(Post *)post removeDuplicates:(BOOL)removeDuplicates {
+    BOOL changes = false;
+    
+    for (int p = 0; p < self.pages.count; p++) {
+        UserActivityStreamPage *page = self.pages[p];
+        
+        NSMutableArray <UserActivity *> *mutableArray = [[NSMutableArray alloc] initWithArray:page.data];
+        for (NSInteger i = mutableArray.count - 1; i >= 0; i--) {
+            UserActivity *activityAtIndex = mutableArray[i];
+            if (activityAtIndex.attributes.post &&
+                [activityAtIndex.attributes.post.identifier isEqualToString:post.identifier]) {
+                changes = true;
+                activityAtIndex.attributes.post = post;
+            }
+            else if (activityAtIndex.attributes.replyPost &&
+                    [activityAtIndex.attributes.replyPost.identifier isEqualToString:post.identifier]) {
+                changes = true;
+                activityAtIndex.attributes.replyPost = post;
+            }
+            
+            if (changes) {
+                [mutableArray replaceObjectAtIndex:i withObject:activityAtIndex];
+            }
+        }
+        
+        page.data = [mutableArray copy];
+        
+        [self.pages replaceObjectAtIndex:p withObject:page];
+    }
+    
+    if (changes) {
+        [self updateActivitiesArray];
+    }
+    
+    return changes;
+}
+
+- (BOOL)removePost:(Post *)post {
+    BOOL updates = false;
+    for (int p = 0; p < self.pages.count; p++) {
+        UserActivityStreamPage *page = self.pages[p];
+        
+        NSMutableArray <UserActivity *> *mutableArray = [[NSMutableArray alloc] initWithArray:page.data];
+        for (NSInteger i = mutableArray.count - 1; i >= 0; i--) {
+            UserActivity *activityAtIndex = mutableArray[i];
+            
+            Post *activityPost = activityAtIndex.attributes.post;
+            Post *activityReplyPost = activityAtIndex.attributes.replyPost;
+            if ((activityPost &&
+                 [activityPost.identifier isEqualToString:post.identifier]) ||
+                (activityReplyPost &&
+                [activityReplyPost.identifier isEqualToString:post.identifier])) {
+                [mutableArray removeObjectAtIndex:i];
+                
+                updates = true;
+                
+                continue;
+            }
+        }
+        
+        page.data = [mutableArray copy];
+        
+        [self.pages replaceObjectAtIndex:p withObject:page];
+    }
+    [self updateActivitiesArray];
+    
+    return updates;
+}
+- (void)updateCampObjects:(Camp *)camp {
+    for (int p = 0; p < self.pages.count; p++) {
+        UserActivityStreamPage *page = self.pages[p];
+        
+        NSMutableArray <UserActivity *> *mutableArray = [[NSMutableArray alloc] initWithArray:page.data];
+        for (NSInteger i = mutableArray.count - 1; i >= 0; i--) {
+            UserActivity *activityAtIndex = mutableArray[i];
+            if ([activityAtIndex.attributes.camp.identifier isEqualToString:camp.identifier]) {
+                activityAtIndex.attributes.camp = camp;
+                NSLog(@"👀 updated camp objects in activities array");
+            }
+            [mutableArray replaceObjectAtIndex:i withObject:activityAtIndex];
+        }
+        
+        page.data = [mutableArray copy];
+        
+        [self.pages replaceObjectAtIndex:p withObject:page];
+    }
+    
+    [self updateActivitiesArray];
+}
+- (void)updateUserObjects:(User *)user {
+    for (int p = 0; p < self.pages.count; p++) {
+        UserActivityStreamPage *page = self.pages[p];
+        
+        NSMutableArray <UserActivity *> *mutableArray = [[NSMutableArray alloc] initWithArray:page.data];
+        for (NSInteger i = mutableArray.count - 1; i >= 0; i--) {
+            UserActivity *activityAtIndex = mutableArray[i];
+            if ([activityAtIndex.attributes.actioner.identifier isEqualToString:user.identifier]) {
+                activityAtIndex.attributes.actioner = user;
+                NSLog(@"👀 updated user objects in activities array");
+            }
+            [mutableArray replaceObjectAtIndex:i withObject:activityAtIndex];
+        }
+        
+        page.data = [mutableArray copy];
+        
+        [self.pages replaceObjectAtIndex:p withObject:page];
+    }
+    
+    [self updateActivitiesArray];
+}
+
+
 - (NSString *)prevCursor {
     if (self.pages.count == 0) return @"";
     

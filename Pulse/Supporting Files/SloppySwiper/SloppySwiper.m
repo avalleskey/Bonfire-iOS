@@ -63,11 +63,14 @@
     dismissRecognizer.direction = SSWPanDirectionRight; // SSWPanDirectionDown;
     dismissRecognizer.maximumNumberOfTouches = 1;
     dismissRecognizer.delegate = self;
+    NSLog(@"view view view :: %@", _navigationController.view);
     [_navigationController.view addGestureRecognizer:dismissRecognizer];
     _dismissRecognizer = dismissRecognizer;
 
     _animator = [[SSWAnimator alloc] init];
     _animator.delegate = self;
+    
+    NSLog(@"dismiss recognizer: : %@", dismissRecognizer);
 }
 
 #pragma mark - SSWAnimatorDelegate
@@ -97,6 +100,7 @@
     if (recognizer == self.dismissRecognizer) {
         if (recognizer.state == UIGestureRecognizerStateBegan) {
             if (self.navigationController.presentingViewController && !self.duringAnimation) {
+                NSLog(@"UIGestureRecognizerStateBegan");
                 self.interactionController = [[UIPercentDrivenInteractiveTransition alloc] init];
                 self.interactionController.completionCurve = UIViewAnimationCurveEaseOut;
                 
@@ -155,9 +159,11 @@
     //if (gestureRecognizer == _panRecognizer)
      //   return self.navigationController.viewControllers.count > 1;
     
+    NSLog(@"presenting view controller: %@", self.navigationController.presentingViewController);
+    
     if (gestureRecognizer == _dismissRecognizer)
         return self.navigationController.presentingViewController;
-    
+        
     return false;
 }
 
@@ -174,6 +180,8 @@
 
 - (id<UIViewControllerInteractiveTransitioning>)navigationController:(UINavigationController *)navigationController interactionControllerForAnimationController:(id<UIViewControllerAnimatedTransitioning>)animationController
 {
+    NSLog(@"interactionControllerForAnimationController: %@", animationController);
+    
     return self.interactionController;
 }
 

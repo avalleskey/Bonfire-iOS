@@ -50,6 +50,7 @@ typedef enum {
 - (BOOL)addSubReplies:(NSArray *)newSubReplies toPost:(Post *)post;
 
 - (Post *)postWithId:(NSString *)postId;
+
 - (BOOL)updatePost:(Post *)post removeDuplicates:(BOOL)removeDuplicates;
 - (void)removePost:(Post *)post;
 - (void)updateCampObjects:(Camp *)camp;

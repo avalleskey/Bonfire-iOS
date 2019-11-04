@@ -42,6 +42,11 @@ static HAWebService *manager;
     [manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", [Configuration API_KEY]] forHTTPHeaderField:@"Authorization"];
     [manager.requestSerializer setValue:contentType forHTTPHeaderField:@"Content-Type"];
     
+    NSDictionary *infoDict = [[NSBundle mainBundle] infoDictionary];
+    NSString *appVersion = [infoDict objectForKey:@"CFBundleShortVersionString"];
+    [manager.requestSerializer setValue:[NSString stringWithFormat:@"%@", [NSString stringWithFormat:@"iosClient/%@", appVersion]] forHTTPHeaderField:@"x-bonfire-client"];
+    [manager.requestSerializer setTimeoutInterval:15];
+    
     return manager;
 }
 
@@ -56,13 +61,6 @@ static HAWebService *manager;
         
         self.requestSerializer = [AFHTTPRequestSerializer serializer];
         self.responseSerializer = [AFJSONResponseSerializer serializer];
-        
-        NSDictionary *infoDict = [[NSBundle mainBundle] infoDictionary];
-        NSString *appVersion = [infoDict objectForKey:@"CFBundleShortVersionString"];
-        [self.requestSerializer setValue:[NSString stringWithFormat:@"%@", [NSString stringWithFormat:@"iosClient/%@", appVersion]] forHTTPHeaderField:@"x-bonfire-client"];
-        [self.requestSerializer setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
-        [self.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", [Configuration API_KEY]] forHTTPHeaderField:@"Authorization"];
-        [self.requestSerializer setTimeoutInterval:15];
     }
     return self;
 }
@@ -80,9 +78,6 @@ static HAWebService *manager;
     void (^authFailBlock)(NSURLResponse *response, id responseObject, NSError *error) = ^(NSURLResponse *response, id responseObject, NSError *error)
     {
         NSInteger code = [responseObject[@"error"][@"code"] integerValue];
-        if (code != 0) {
-            NSLog(@"code: %ld", (long)code);
-        }
         
         if (code == BAD_AUTHENTICATION || code == BAD_ACCESS_TOKEN) {
             // refresh the token!
@@ -114,14 +109,35 @@ static HAWebService *manager;
             completionHandler(response, responseObject, error);
         }
         else if (code == OUT_OF_DATE_CLIENT) {
+            [[Session sharedInstance] signOut];
+            
             [Launcher openOutOfDateClient];
             
             completionHandler(response, responseObject, error);
         }
         else {
+            if (code == 0 || (code >= 200 && code < 300)) {
+                NSLog(@"🎉 (code: %lu) %@ → %@", code, request.HTTPMethod, request.URL.absoluteString);
+            }
+            else {
+                NSLog(@"🚩 (code: %lu) %@ → %@", code, request.HTTPMethod, request.URL.absoluteString);
+                
+                NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+                if (ErrorResponse.length > 0) {
+                    NSLog(@"🚩 error respone: %@",ErrorResponse);
+                }
+            }
+            
             completionHandler(response, responseObject, error);
         }
     };
+    
+    NSLog(@"| 👋 %@ → %@", request.HTTPMethod, request.URL.absoluteString);
+    NSLog(@"| 👋 headers: %@", request.allHTTPHeaderFields);
+    NSString *body = [[NSString alloc] initWithData:[request HTTPBody] encoding:NSUTF8StringEncoding];
+    if (body.length > 0) {
+        NSLog(@"| 👋 body: %@", [[NSString alloc] initWithData:[request HTTPBody] encoding:NSUTF8StringEncoding]);
+    }
     
     NSURLSessionDataTask *task = [super dataTaskWithRequest:request uploadProgress:uploadProgressBlock downloadProgress:downloadProgressBlock completionHandler:authFailBlock];
     

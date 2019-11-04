@@ -80,13 +80,14 @@
 //        [Launcher openDiscover];
 //    }];
     
-    self.tabBar.tintColor = [UIColor bonfirePrimaryColor]; //[UIColor fromHex:[Session sharedInstance].currentUser.attributes.details.color];
+    self.tabBar.tintColor = [UIColor bonfirePrimaryColor]; //[UIColor fromHex:[Session sharedInstance].currentUser.attributes.color];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userUpdated:) name:@"UserUpdated" object:nil];
 }
 
 - (void)userUpdated:(NSNotification *)notification {
-    self.tabBar.tintColor = [UIColor bonfirePrimaryColor]; //[UIColor fromHex:[Session sharedInstance].currentUser.attributes.details.color];
-    self.tabIndicator.backgroundColor = [UIColor bonfirePrimaryColor]; //[UIColor fromHex:[Session sharedInstance].currentUser.attributes.details.color];
+    self.tabBar.tintColor = [UIColor bonfirePrimaryColor]; //[UIColor fromHex:[Session sharedInstance].currentUser.attributes.color];
+    self.tabIndicator.backgroundColor = [UIColor bonfirePrimaryColor]; //[UIColor fromHex:[Session sharedInstance].currentUser.attributes.color];
+    self.navigationAvatarView.user = [Session sharedInstance].currentUser;
 }
 
 - (SearchNavigationController *)searchNavWithRootViewController:(NSString *)rootID {
@@ -134,7 +135,7 @@
         simpleNav.currentTheme = [UIColor clearColor];
     }
     else if ([rootID isEqualToString:@"camps"]) {
-        MyCampsTableViewController *viewController = [[MyCampsTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
+        MyCampsTableViewController *viewController = [[MyCampsTableViewController alloc] init];
         viewController.title = @"My Camps";
         
         simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:viewController];
@@ -143,9 +144,9 @@
         simpleNav.currentTheme = [UIColor clearColor];
     }
     else if ([rootID isEqualToString:@"discover"]) {
-        CampStoreTableViewController *viewController = [[CampStoreTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
+        CampStoreTableViewController *viewController = [[CampStoreTableViewController alloc] init];
         // viewController.view.frame = CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height);
-        viewController.title = @"Discover";
+        viewController.title = [Session sharedInstance].defaults.keywords.viewTitles.discover;
         
         simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:viewController];
         simpleNav.currentTheme = [UIColor clearColor];
@@ -153,11 +154,10 @@
         [simpleNav setRightAction:SNActionTypeCompose];
     }
     else if ([rootID isEqualToString:@"notifs"]) {
-        NotificationsTableViewController *viewController = [[NotificationsTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
+        NotificationsTableViewController *viewController = [[NotificationsTableViewController alloc] init];
         viewController.title = [Session sharedInstance].defaults.keywords.viewTitles.notifications;
         [viewController view];
         
-        NSLog(@"view controller table view :: %@", viewController.tableView);
         [viewController.tableView reloadData];
         viewController.view.backgroundColor = [UIColor contentBackgroundColor];
         
@@ -171,13 +171,13 @@
         
         ProfileViewController *viewController = [[ProfileViewController alloc] init];
         viewController.title = [Session sharedInstance].defaults.keywords.viewTitles.myProfile;
-        NSString *themeCSS = user.attributes.details.color.length == 6 ? user.attributes.details.color : @"7d8a99";
+        NSString *themeCSS = user.attributes.color.length == 6 ? user.attributes.color : @"7d8a99";
         viewController.theme = [UIColor fromHex:themeCSS];
         viewController.user = user;
         
         simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:viewController];
         [simpleNav setLeftAction:SNActionTypeInvite];
-        [simpleNav setRightAction:SNActionTypeMore];
+        [simpleNav setRightAction:SNActionTypeSettings];
         simpleNav.currentTheme = viewController.theme;
     }
     else {
@@ -199,7 +199,7 @@
     
     self.tabIndicator = [[UIView alloc] initWithFrame:CGRectMake(20, 0, 22, 3)];
     self.tabIndicator.layer.cornerRadius = self.tabIndicator.frame.size.height / 2;
-    self.tabIndicator.backgroundColor = [UIColor bonfirePrimaryColor]; //[UIColor fromHex:[Session sharedInstance].currentUser.attributes.details.color];
+    self.tabIndicator.backgroundColor = [UIColor bonfirePrimaryColor]; //[UIColor fromHex:[Session sharedInstance].currentUser.attributes.color];
     self.tabIndicator.alpha = 0;
     [self.tabBar addSubview:self.tabIndicator];
     
@@ -207,20 +207,22 @@
     [self.tabBar setShadowImage:[UIImage new]];
     [self.tabBar setTranslucent:true];
     self.tabBar.layer.borderWidth = 0.0f;
-    [self.tabBar setBarTintColor:[UIColor whiteColor]];
+    [self.tabBar setBarTintColor:[UIColor clearColor]];
     [self.tabBar setTintColor:[UIColor bonfireBrand]];
     [[UITabBar appearance] setShadowImage:nil];
-    
+        
     self.blurView = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleProminent]];
-    self.blurView.frame = CGRectMake(0, 0, self.tabBar.frame.size.width, self.tabBar.frame.size.height + [UIApplication sharedApplication].delegate.window.safeAreaInsets.bottom);
-    self.blurView.backgroundColor = [UIColor colorNamed:@"TabBarBackgroundColor"];
+    self.blurView.frame = CGRectMake(0, 0, self.tabBar.frame.size.width, self.tabBar.frame.size.height);
+    self.blurView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.01];
+    self.blurView.contentView.backgroundColor = [UIColor clearColor];
     self.blurView.layer.masksToBounds = true;
+    self.blurView.tintColor = [UIColor clearColor];
     [self.tabBar insertSubview:self.blurView atIndex:0];
 
     // tab bar hairline
     UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, (1 / [UIScreen mainScreen].scale))];
     separator.backgroundColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.06f];
-    [self.tabBar addSubview:separator];
+    //[self.tabBar addSubview:separator];
     
     self.tabBar.clipsToBounds = true;
     self.tabBar.tintColor = [UIColor bonfirePrimaryColor];
@@ -232,10 +234,6 @@
     if ([UIApplication sharedApplication].applicationIconBadgeNumber > 0) {
         [self setBadgeValue:[NSString stringWithFormat:@"%ld", (long)[UIApplication sharedApplication].applicationIconBadgeNumber] forItem:self.notificationsNavVC.tabBarItem];
     }
-    
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.4f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        NSLog(@"suh %@", [Launcher tabController]);
-    });
     
     if (self.view.tag != 1) {
         self.view.tag = 1;
@@ -265,17 +263,24 @@
         // add avatar
         NSInteger meAvatarIndex = [self.viewControllers indexOfObject:self.myProfileNavVC];
         UIView *meTabBarItemView = [self viewForTabInTabBar:self.tabBar withIndex:meAvatarIndex];
-        UIImageView *meTabBarImageView = nil;
+        UIImageView *meTabBarImageView;
         for (UIImageView *subview in [meTabBarItemView subviews]) {
             if ([subview isKindOfClass:[UIImageView class]]) {
                 meTabBarImageView = subview;
                 break;
             }
         }
-        self.navigationAvatarView = [[BFAvatarView alloc] initWithFrame:CGRectMake(meTabBarItemView.frame.origin.x + tabBarItemView.frame.size.width / 2 - 11, tabBarItemView.frame.origin.y + tabBarItemView.frame.size.height / 2 - 11, 22, 22)];
+        self.navigationAvatarView = [[BFAvatarView alloc] initWithFrame:CGRectMake(meTabBarItemView.frame.origin.x + tabBarItemView.frame.size.width / 2 - 11, self.tabBar.frame.origin.y + tabBarItemView.frame.origin.y + tabBarItemView.frame.size.height / 2 - 11, 22, 22)];
         self.navigationAvatarView.userInteractionEnabled = false;
         self.navigationAvatarView.user = [Session sharedInstance].currentUser;
-        [self.tabBar addSubview:self.navigationAvatarView];
+        for (id interaction in self.navigationAvatarView.interactions) {
+            if (@available(iOS 13.0, *)) {
+                if ([interaction isKindOfClass:[UIContextMenuInteraction class]]) {
+                    [self.navigationAvatarView removeInteraction:interaction];
+                }
+            }
+        }
+        [self.tabBar.superview addSubview:self.navigationAvatarView];
 
         if (!IS_IPAD && SYSTEM_VERSION_LESS_THAN(@"13")) {
             NSMutableArray *vcArray = [[NSMutableArray alloc] initWithArray:self.viewControllers];
@@ -321,7 +326,7 @@
         if (!bubbleView) return;
         
         [UIView animateWithDuration:0.8f delay:0.2f usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-            bubbleView.frame = CGRectMake(tabBarItemView.frame.origin.x + tabBarItemView.frame.size.width / 2 + tabBarItem.titlePositionAdjustment.horizontal, tabBarItemView.frame.size.height / 2, 0, self.tabIndicator.frame.size.height);
+            bubbleView.frame = CGRectMake(tabBarItemView.frame.origin.x + tabBarItemView.frame.size.width / 2 + tabBarItem.titlePositionAdjustment.horizontal, bubbleView.frame.origin.y, 0, self.tabIndicator.frame.size.height);
             bubbleView.alpha = 0;
         } completion:^(BOOL finished) {
             [self.badges removeObjectForKey:[NSNumber numberWithInteger:index]];
@@ -393,13 +398,23 @@
     
     [UIView animateWithDuration:0.225 delay:0 usingSpringWithDamping:0.9 initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
         self.tabIndicator.frame = CGRectMake(tabBarItemView.frame.origin.x + tabBarImageView.frame.origin.x, self.tabIndicator.frame.origin.y, tabBarImageView.frame.size.width, self.tabIndicator.frame.size.height);
-
-        tabBarImageView.transform = CGAffineTransformMakeScale(1, 1);
+    } completion:nil];
+    
+    [UIView animateWithDuration:0.2 delay:0 usingSpringWithDamping:0.87 initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+        tabBarItemView.transform = CGAffineTransformMakeScale(0.8, 0.8);
+        if (tabBar.selectedItem == self.myProfileNavVC.tabBarItem) {
+            self.navigationAvatarView.transform = CGAffineTransformMakeScale(0.8, 0.8);
+        }
     } completion:^(BOOL finished) {
-        [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.6 initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-            tabBarImageView.transform = CGAffineTransformIdentity;
+        [UIView animateWithDuration:0.25f delay:0 usingSpringWithDamping:0.85 initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+            tabBarItemView.transform = CGAffineTransformIdentity;
+            if (tabBar.selectedItem == self.myProfileNavVC.tabBarItem) {
+                self.navigationAvatarView.transform = CGAffineTransformIdentity;
+            }
         } completion:nil];
     }];
+    
+    [HapticHelper generateFeedback:FeedbackType_Selection];
     
     [self setNeedsStatusBarAppearanceUpdate];
 }

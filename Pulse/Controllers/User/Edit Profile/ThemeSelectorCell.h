@@ -18,6 +18,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface ThemeSelectorCell : UITableViewCell
 
+@property (strong, nonatomic) UIView *scrollViewContainer;
 @property (strong, nonatomic) UIScrollView *scrollView;
 @property (strong, nonatomic) NSMutableArray *colors;
 @property (strong, nonatomic) NSString *selectedColor;
@@ -26,6 +27,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic) BOOL canSetCustomColor;
 @property (strong, nonatomic) UIImageView *customColorView;
+@property (strong, nonatomic) UITextField *customColorTextField;
 
 @property (nonatomic, weak) id <ThemeSelectorDelegate> delegate;
 

@@ -10,7 +10,6 @@
 #import "Session.h"
 #import "ComposeInputView.h"
 #import "Camp.h"
-#import "ErrorView.h"
 #import "RSTableView.h"
 
 @interface MyFeedViewController : UITableViewController <RSTableViewDelegate, PostStreamDelegate>
@@ -21,7 +20,6 @@ enum {
 };
 
 @property (nonatomic, strong) UIScrollView *scrollView;
-@property (nonatomic, strong) ErrorView *errorView;
 
 @property (nonatomic) int previousScrollOffset;
 @property (nonatomic) CGFloat currentKeyboardHeight;

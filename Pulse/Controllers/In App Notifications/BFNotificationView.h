@@ -41,7 +41,7 @@ typedef enum {
 
 @interface BFNotificationObject : NSObject
 
-+ (BFNotificationObject *)notificationWithActivityType:(USER_ACTIVITY_TYPE)activityType title:(NSString * _Nullable)title text:(NSString *)text action:(void (^ __nullable)(void))actionHandler;
++ (BFNotificationObject *)notificationWithActivityType:(USER_ACTIVITY_TYPE)activityType title:(NSString * _Nullable)title text:(NSString * _Nullable)text action:(void (^ __nullable)(void))actionHandler;
 
 @property (nonatomic) USER_ACTIVITY_TYPE activityType;
 @property (nonatomic) id creator;

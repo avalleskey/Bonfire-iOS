@@ -93,27 +93,27 @@
         
         Post *firstReply = filteredReplies[0];
         
-        self.firstAvatar.user = firstReply.attributes.details.creator;
+        self.firstAvatar.user = firstReply.attributes.creator;
         
         self.secondAvatar.hidden = (filteredCount < 2); // TRUE
-        if (!self.secondAvatar.isHidden && self.secondAvatar.user != filteredReplies[1].attributes.details.creator) { // !TRUE -> FALSE
-            self.secondAvatar.user = filteredReplies[1].attributes.details.creator;
+        if (!self.secondAvatar.isHidden && self.secondAvatar.user != filteredReplies[1].attributes.creator) { // !TRUE -> FALSE
+            self.secondAvatar.user = filteredReplies[1].attributes.creator;
         }
         
         self.thirdAvatar.hidden = (filteredCount < 3);
-        if (!self.thirdAvatar.isHidden && self.thirdAvatar.user != filteredReplies[2].attributes.details.creator) {
-            self.thirdAvatar.user = filteredReplies[2].attributes.details.creator;
+        if (!self.thirdAvatar.isHidden && self.thirdAvatar.user != filteredReplies[2].attributes.creator) {
+            self.thirdAvatar.user = filteredReplies[2].attributes.creator;
         }
         
         [self positionPostPreviewLabel];
         
-        User *userToHighlight = firstReply.attributes.details.creator;
+        User *userToHighlight = firstReply.attributes.creator;
         
-        NSString *usernameString = userToHighlight.attributes.details.identifier;
-        NSString *messageString = firstReply.attributes.details.message;
+        NSString *usernameString = userToHighlight.attributes.identifier;
+        NSString *messageString = firstReply.attributes.message;
         
         NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:usernameString];
-        [attributedString addAttribute:NSForegroundColorAttributeName value:[UIColor fromHex:userToHighlight.attributes.details.color] range:NSMakeRange(0, usernameString.length)];
+        [attributedString addAttribute:NSForegroundColorAttributeName value:[UIColor fromHex:userToHighlight.attributes.color] range:NSMakeRange(0, usernameString.length)];
         UIFont *heavyItalicFont = [UIFont fontWithDescriptor:[[[UIFont systemFontOfSize:self.postPreviewLabel.font.pointSize weight:UIFontWeightHeavy] fontDescriptor] fontDescriptorWithSymbolicTraits:UIFontDescriptorTraitItalic] size:self.postPreviewLabel.font.pointSize];
         [attributedString addAttribute:NSFontAttributeName value:heavyItalicFont range:NSMakeRange(0, usernameString.length)];
         

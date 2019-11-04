@@ -9,6 +9,7 @@
 #import <UIKit/UIKit.h>
 #import "PostStream.h"
 #import "ComposeInputView.h"
+#import "BFVisualErrorView.h"
 
 #define UIViewParentController(__view) ({ \
         UIResponder *__responder = __view; \
@@ -40,6 +41,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)tableViewDidScroll:(UITableView *)tableView;
 
 - (UITableViewCell * _Nullable)cellForRowInFirstSection:(NSInteger)row;
+- (void)didSelectRowInFirstSection:(NSInteger)row;
 - (CGFloat)heightForRowInFirstSection:(NSInteger)row;
 - (CGFloat)numberOfRowsInFirstSection;
 
@@ -62,19 +64,17 @@ typedef enum {
 @property (nonatomic) RSTableViewStyle tableViewStyle;
 
 @property (nonatomic, strong) id parentObject;
+@property (nonatomic, strong) BFVisualError * _Nullable  visualError;
 
 @property (nonatomic) RSTableViewType dataType;
 @property (nonatomic) RSTableViewSubType dataSubType;
 @property BOOL includeContext;
 
 @property BOOL loading;
-@property BOOL error;
-
-// pagination
 @property BOOL loadingMore;
-@property (nonatomic) BOOL reachedBottom;
 
-- (void)refresh;
+- (void)refreshAtTop;
+- (void)refreshAtBottom;
 - (void)scrollToTop;
 
 @property (nonatomic, strong) PostStream *stream;

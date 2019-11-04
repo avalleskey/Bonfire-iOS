@@ -9,13 +9,13 @@
 #import "ThemedTableViewController.h"
 #import "Camp.h"
 #import "BFSearchView.h"
-#import "ErrorView.h"
+#import "BFVisualErrorView.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface AddManagerTableViewController : ThemedTableViewController <UITextFieldDelegate>
+@interface AddManagerTableViewController : ThemedTableViewController <UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate>
 
-@property (nonatomic, strong) ErrorView *errorView;
+@property (nonatomic, strong) BFVisualErrorView *errorView;
 
 @property (nonatomic, strong) UIBarButtonItem *cancelButton;
 @property (nonatomic, strong) UIBarButtonItem *saveButton;

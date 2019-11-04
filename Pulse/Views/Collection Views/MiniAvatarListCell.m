@@ -110,14 +110,14 @@ static NSString * const reuseIdentifier = @"AvatarCell";
             Camp *camp = [[Camp alloc] initWithDictionary:self.camps[adjustedIndex] error:nil];
             
             cell.campAvatar.camp = camp;
-            cell.campTitleLabel.text = [@"#" stringByAppendingString:camp.attributes.details.identifier];
+            cell.campTitleLabel.text = [@"#" stringByAppendingString:camp.attributes.identifier];
             cell.campTitleLabel.textColor = [UIColor bonfirePrimaryColor];
         }
         else if (self.users != nil && adjustedIndex < self.users.count) {
             User *user = [[User alloc] initWithDictionary:self.users[adjustedIndex] error:nil];
             
             cell.campAvatar.user = user;
-            cell.campTitleLabel.text = [@"@" stringByAppendingString:user.attributes.details.identifier];
+            cell.campTitleLabel.text = [@"@" stringByAppendingString:user.attributes.identifier];
             cell.campTitleLabel.textColor = [UIColor bonfirePrimaryColor];
         }
         else if (adjustedIndex == self.camps.count) {

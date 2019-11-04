@@ -55,6 +55,9 @@ UIViewAnimationOptions const SSWNavigationTransitionCurve = 7 << 16;
     fromView.layer.masksToBounds = false;
     toView.layer.masksToBounds = false;
     
+    NSLog(@"fromViewController:::: %@", fromViewController);
+    NSLog(@"toViewController:::::: %@", toViewController);
+    
     [[transitionContext containerView] insertSubview:toViewController.view belowSubview:fromViewController.view];
     
     if ([fromViewController isKindOfClass:[UINavigationController class]]) {
@@ -71,6 +74,7 @@ UIViewAnimationOptions const SSWNavigationTransitionCurve = 7 << 16;
         CGFloat animationDamping = 0.9;
         
         if ([transitionContext isInteractive]) {
+            NSLog(@"yo our transition context is INTERACTIVE :O");
             [UIView animateWithDuration:[self transitionDuration:transitionContext] delay:0 options:UIViewAnimationOptionTransitionNone | UIViewAnimationOptionCurveLinear animations:^{
                 toView.alpha = 1;
                 toView.transform = CGAffineTransformIdentity;
@@ -93,6 +97,7 @@ UIViewAnimationOptions const SSWNavigationTransitionCurve = 7 << 16;
             }];
         }
         else {
+            NSLog(@"nah no interactivity 4 u !");
             [UIView animateWithDuration:animationDuration delay:0 usingSpringWithDamping:animationDamping initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseInOut animations:^{
                 toView.alpha = 1;
                 toView.transform = CGAffineTransformMakeTranslation(0, 0);

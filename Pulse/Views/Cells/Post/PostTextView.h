@@ -7,8 +7,9 @@
 //
 
 #import <UIKit/UIKit.h>
-#import <TTTAttributedLabel/TTTAttributedLabel.h>
 #import "Post.h"
+#import "JKRichTextView.h"
+#import "JKRichTextViewLinkBlockDataHandler.h"
 
 #define kDefaultBubbleBackgroundColor [UIColor colorWithRed:0.89 green:0.89 blue:0.92 alpha:1.00]
 #define textViewFont [UIFont systemFontOfSize:18.f weight:UIFontWeightRegular]
@@ -25,15 +26,15 @@ NS_ASSUME_NONNULL_BEGIN
 
 @end
 
-@interface PostTextView : UIView <UITextViewDelegate, TTTAttributedLabelDelegate, UIGestureRecognizerDelegate>
+@interface PostTextView : UIView <UITextViewDelegate, UIGestureRecognizerDelegate>
 
-@property (nonatomic, strong) TTTAttributedLabel *messageLabel;
+@property (nonatomic, strong) JKRichTextView *messageLabel;
 
 @property (nonatomic, strong) NSString *message;
 @property (nonatomic, strong) NSArray <PostEntity *> <PostEntity> *entities;
 
 // we use a combined setter to ensure that message and entities are both current when setting the text and updating its links
-- (void)setMessage:(NSString *)message entities:(NSArray<PostEntity *><PostEntity> *)entities;
+- (void)setMessage:(NSString *)message entities:(NSArray<PostEntity *><PostEntity> * _Nullable)entities;
 
 @property (nonatomic) UIEdgeInsets edgeInsets;
 
@@ -43,9 +44,12 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, assign) NSInteger entityBasedMaxCharacters;
 + (NSInteger)entityBasedMaxCharactersForMessage:(NSString *)message maxCharacters:(NSInteger)maxCharacters entities:(NSArray <PostEntity *> <PostEntity> *)entities;
 
+@property (nonatomic) BOOL styleAsBubble;
+@property (nonatomic) UIColor *textColor;
+
 - (void)update;
 
-+ (CGSize)sizeOfBubbleWithMessage:(NSString *)message withConstraints:(CGSize)constraints font:(UIFont *)font maxCharacters:(CGFloat)maxCharacters;
++ (CGSize)sizeOfBubbleWithMessage:(NSString *)message withConstraints:(CGSize)constraints font:(UIFont *)font maxCharacters:(CGFloat)maxCharacters styleAsBubble:(BOOL)styleAsBubble;
 
 @property (nonatomic, weak, nullable) id <PostTextViewDelegate> delegate;
 

@@ -29,12 +29,18 @@
 }
 
 - (void)addLoadedCursor:(NSString *)cursor {
+    if (!cursor) return;
+    
     [self.cursorsLoaded setObject:[NSDate new] forKey:cursor];
 }
 - (void)removeLoadedCursor:(NSString *)cursor {
+    if (!cursor) return;
+    
     [self.cursorsLoaded removeObjectForKey:cursor];
 }
 - (BOOL)hasLoadedCursor:(NSString *)cursor {
+    if (!cursor) return false;
+    
     if (![[self.cursorsLoaded allKeys] containsObject:cursor]) {
         return false;
     }

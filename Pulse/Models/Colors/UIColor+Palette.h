@@ -19,7 +19,9 @@ NS_ASSUME_NONNULL_BEGIN
  */
 + (UIColor * _Nonnull)fromHex:(NSString *)hex;
 
-+ (UIColor * _Nonnull)fromHex:(NSString *)hex adjustForDarkMode:(BOOL)adjustForDarkMode;
++ (UIColor * _Nonnull)fromHex:(NSString *)hex adjustForOptimalContrast:(BOOL)adjustForDarkMode;
+
++ (CGFloat)contrastRatioBetween:(UIColor *)color1 and:(UIColor *)color2;
 
 /**
  *  Return lighter variant of provided color, given a (optional) specified amount
@@ -41,6 +43,10 @@ NS_ASSUME_NONNULL_BEGIN
  * @return The hex string value of the UIColor
  */
 + (NSString *)toHex:(UIColor *)color;
+
+@property (nonatomic, readonly) CGFloat hue;
+@property (nonatomic, readonly) CGFloat saturation;
+@property (nonatomic, readonly) CGFloat brightness;
 
 + (BOOL)useWhiteForegroundForColor:(UIColor*)backgroundColor;
 

@@ -72,7 +72,7 @@
     [self updateUsersArray];
 }
 
-- (NSString *)prevCursor {
+- (NSString * _Nullable)prevCursor {
     if (self.pages.count == 0) return @"";
     
     // find first available page with cursor
@@ -84,9 +84,9 @@
     
     return nil;
 }
-- (NSString *)nextCursor {
-    if (self.pages.count == 0) return @"";
-    if ([self.pages lastObject].meta.paging.nextCursor.length == 0) return @"";
+- (NSString * _Nullable)nextCursor {
+    if (self.pages.count == 0) return nil;
+    if ([self.pages lastObject].meta.paging.nextCursor.length == 0) return nil;
     
     return [self.pages lastObject].meta.paging.nextCursor;
 }

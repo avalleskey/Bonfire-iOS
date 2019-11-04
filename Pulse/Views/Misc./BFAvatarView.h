@@ -9,15 +9,17 @@
 #import <UIKit/UIKit.h>
 #import "User.h"
 #import "Camp.h"
+#import "Bot.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 // Macro that defines how much lighter/darker the marshmallow icon is than the profile picture background
 #define BFAvatarViewIconContrast 0.4
 
-@interface BFAvatarView : UIView
+@interface BFAvatarView : UIView <UIContextMenuInteractionDelegate>
 
 @property (nonatomic, nullable) User *user;
+@property (nonatomic, nullable) Bot *bot;
 @property (nonatomic, nullable) Camp *camp;
 
 @property (nonatomic) BOOL online;

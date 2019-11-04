@@ -16,7 +16,7 @@
 - (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier {
     self = [super initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:reuseIdentifier];
     if (self) {
-        self.backgroundColor = [UIColor contentBackgroundColor];
+        self.contentView.backgroundColor = [UIColor contentBackgroundColor];;
         
         self.profilePicture = [[BFAvatarView alloc] initWithFrame:CGRectMake(12, self.frame.size.height / 2 - 21, 48, 48)];
         self.profilePicture.userInteractionEnabled = false;
@@ -76,50 +76,95 @@
 - (void)setUser:(User *)user {
     if (user != _user) {
         _user = user;
+        _bot = nil;
         _camp = nil;
         
         if (user) {
             self.profilePicture.user = user;
-            self.textLabel.text = [NSString stringWithFormat:@"%@", self.user.attributes.details.displayName];
+            self.textLabel.text = [NSString stringWithFormat:@"%@", self.user.attributes.displayName];
             
             // create detail text label
-            self.detailTextLabel.text = [NSString stringWithFormat:@"@%@", self.user.attributes.details.identifier];
-            self.detailTextLabel.textColor = [UIColor fromHex:self.user.attributes.details.color];
+            self.detailTextLabel.text = [NSString stringWithFormat:@"@%@", self.user.attributes.identifier];
+            self.detailTextLabel.textColor = [UIColor fromHex:self.user.attributes.color adjustForOptimalContrast:true];
             self.detailTextLabel.font = [UIFont systemFontOfSize:self.detailTextLabel.font.pointSize weight:UIFontWeightSemibold];
+        }
+    }
+}
+
+- (void)setBot:(Bot *)bot {
+    if (bot != _bot) {
+        _user = nil;
+        _bot = bot;
+        _camp = nil;
+        
+        if (bot) {
+            self.profilePicture.bot = bot;
+            self.textLabel.text = [NSString stringWithFormat:@"%@", self.bot.attributes.displayName];
+            
+            // create detail text label
+            if (self.bot.attributes.identifier.length > 0) {
+                self.detailTextLabel.text = [NSString stringWithFormat:@"@%@", self.bot.attributes.identifier];
+                self.detailTextLabel.textColor = [UIColor fromHex:self.bot.attributes.color adjustForOptimalContrast:true];
+                self.detailTextLabel.font = [UIFont systemFontOfSize:self.detailTextLabel.font.pointSize weight:UIFontWeightSemibold];
+            }
         }
     }
 }
 
 - (void)setCamp:(Camp *)camp {
     if (camp != _camp) {
-        _camp = camp;
         _user = nil;
+        _bot = nil;
+        _camp = camp;
         
         if (camp) {
             self.profilePicture.camp = camp;
-            self.textLabel.text = self.camp.attributes.details.title;
+            self.textLabel.text = self.camp.attributes.title;
             
             // create detail text label
-            self.detailTextLabel.tintColor = [UIColor fromHex:self.camp.attributes.details.color];
-            NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"#%@", camp.attributes.details.identifier] attributes:@{NSForegroundColorAttributeName: [UIColor fromHex:camp.attributes.details.color], NSFontAttributeName: [UIFont systemFontOfSize:self.detailTextLabel.font.pointSize weight:UIFontWeightSemibold]}];
+            self.detailTextLabel.tintColor = [UIColor fromHex:self.camp.attributes.color adjustForOptimalContrast:true];
+            NSMutableAttributedString *attributedString = [NSMutableAttributedString new];
             
-            if ([camp.attributes.status.visibility isPrivate]) {
-                // spacer
-                [attributedString appendAttributedString:[[NSAttributedString alloc] initWithString:@" " attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:self.detailTextLabel.font.pointSize weight:UIFontWeightSemibold]}]];
+            if (self.camp.attributes.identifier.length > 0) {
+                attributedString = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"#%@", camp.attributes.identifier] attributes:@{NSForegroundColorAttributeName: [UIColor fromHex:camp.attributes.color adjustForOptimalContrast:true], NSFontAttributeName: [UIFont systemFontOfSize:self.detailTextLabel.font.pointSize weight:UIFontWeightSemibold]}];
                 
-                NSTextAttachment *lockAttachment = [[NSTextAttachment alloc] init];
-                lockAttachment.image = [self colorImage:[UIImage imageNamed:@"inlinePostLockIcon"] color:self.detailTextLabel.tintColor];
-                
-                [lockAttachment setBounds:CGRectMake(0, roundf([UIFont systemFontOfSize:self.detailTextLabel.font.pointSize weight:UIFontWeightSemibold].capHeight - lockAttachment.image.size.height)/2.f, lockAttachment.image.size.width, lockAttachment.image.size.height)];
-                
-                NSAttributedString *lockAttachmentString = [NSAttributedString attributedStringWithAttachment:lockAttachment];
-                [attributedString appendAttributedString:lockAttachmentString];
+                UIFont *camptagFont = [UIFont systemFontOfSize:self.detailTextLabel.font.pointSize weight:UIFontWeightSemibold];
+                if ([camp.attributes.visibility isPrivate]) {
+                    // spacer
+                    [attributedString appendAttributedString:[[NSAttributedString alloc] initWithString:@" " attributes:@{NSFontAttributeName: camptagFont}]];
+                    
+                    NSTextAttachment *lockAttachment = [[NSTextAttachment alloc] init];
+                    lockAttachment.image = [self colorImage:[UIImage imageNamed:@"details_label_private"] color:self.detailTextLabel.tintColor];
+                    
+                    CGFloat attachmentHeight = MIN(ceilf(self.detailTextLabel.font.lineHeight * 0.7), lockAttachment.image.size.height);
+                    CGFloat attachmentWidth = attachmentHeight * (lockAttachment.image.size.width / lockAttachment.image.size.height);
+                    
+                    [lockAttachment setBounds:CGRectMake(0, roundf(camptagFont.capHeight - attachmentHeight)/2.f, attachmentWidth, attachmentHeight)];
+                    
+                    NSAttributedString *lockAttachmentString = [NSAttributedString attributedStringWithAttachment:lockAttachment];
+                    [attributedString appendAttributedString:lockAttachmentString];
+                }
+                else if ([camp.attributes.display.format isEqualToString:CAMP_DISPLAY_FORMAT_CHANNEL]) {
+                     // spacer
+                     [attributedString appendAttributedString:[[NSAttributedString alloc] initWithString:@" " attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:self.detailTextLabel.font.pointSize weight:UIFontWeightSemibold]}]];
+                     
+                     NSTextAttachment *sourceAttachment = [[NSTextAttachment alloc] init];
+                     sourceAttachment.image = [self colorImage:[UIImage imageNamed:@"details_label_source"] color:self.detailTextLabel.tintColor];
+                     
+                    CGFloat attachmentHeight = MIN(ceilf(self.detailTextLabel.font.lineHeight * 0.7), sourceAttachment.image.size.height);
+                    CGFloat attachmentWidth = attachmentHeight * (sourceAttachment.image.size.width / sourceAttachment.image.size.height);
+                    
+                    [sourceAttachment setBounds:CGRectMake(0, roundf(camptagFont.capHeight - attachmentHeight)/2.f, attachmentWidth, attachmentHeight)];
+                                         
+                     NSAttributedString *lockAttachmentString = [NSAttributedString attributedStringWithAttachment:sourceAttachment];
+                     [attributedString appendAttributedString:lockAttachmentString];
+                }
             }
-            
-            NSAttributedString *dotSeparator = [[NSAttributedString alloc] initWithString:@"  ·  " attributes:@{NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor], NSFontAttributeName: [UIFont systemFontOfSize:self.detailTextLabel.font.pointSize weight:UIFontWeightRegular]}];
-            
+                        
             if (camp.attributes.summaries.counts.members > 0) {
                 if (attributedString.string.length > 0) {
+                    NSAttributedString *dotSeparator = [[NSAttributedString alloc] initWithString:@"  ·  " attributes:@{NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor], NSFontAttributeName: [UIFont systemFontOfSize:self.detailTextLabel.font.pointSize weight:UIFontWeightRegular]}];
+                    
                     [attributedString appendAttributedString:dotSeparator];
                 }
                 
@@ -163,12 +208,17 @@
 - (void)setHighlighted:(BOOL)highlighted animated:(BOOL)animated {
     if (highlighted) {
         [UIView animateWithDuration:0.2f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-            self.backgroundColor = [UIColor contentHighlightedColor];
+            if (self.contentView.backgroundColor == [UIColor contentBackgroundColor]) {
+                self.backgroundColor = [UIColor contentHighlightedColor];
+            }
+            else {
+                self.backgroundColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.04f];
+            }
         } completion:nil];
     }
     else {
         [UIView animateWithDuration:0.2f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-            self.backgroundColor = [UIColor contentBackgroundColor];
+            self.backgroundColor = self.contentView.backgroundColor;
         } completion:nil];
     }
 }

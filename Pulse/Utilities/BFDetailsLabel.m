@@ -76,8 +76,7 @@
             if (valueString.length == 0) {
                 valueString = @"0";
             }
-            DefaultsCampMembersTitle *membersTitle = [Session sharedInstance].defaults.camp.membersTitle;
-            valueString = [valueString stringByAppendingString:[NSString stringWithFormat:@" %@", ([valueString isEqualToString:@"1"] ? [membersTitle.singular lowercaseString] : [membersTitle.plural lowercaseString])]];
+            valueString = [valueString stringByAppendingString:[NSString stringWithFormat:@" %@", ([valueString isEqualToString:@"1"] ? @"member" : @"members")]];
         }
         else if (type == BFDetailTypeLocation) {
             typeImage = [UIImage imageNamed:@"details_label_location"];

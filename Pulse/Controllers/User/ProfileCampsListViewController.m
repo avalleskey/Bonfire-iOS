@@ -23,7 +23,8 @@
 
 @property (nonatomic, strong) CampListStream *stream;
 
-@property (nonatomic) BOOL loadingCamps;
+@property (nonatomic, strong) BFVisualErrorView *errorView;
+
 @property (nonatomic) BOOL loadingMoreCamps;
 
 @end
@@ -39,7 +40,22 @@ static NSString * const memberCellIdentifier = @"MemberCell";
     [super viewDidLoad];
     
     self.navigationItem.hidesBackButton = true;
+    self.view.backgroundColor = [UIColor tableViewBackgroundColor];
     
+    [self setupTableView];
+    [self setupErrorView];
+    
+    [self setSpinning:true];
+    
+    if (![self.stream nextCursor]) {
+        [self getCampsWithCursor:StreamPagingCursorTypeNone];
+    }
+    
+    // Google Analytics
+    [FIRAnalytics setScreenName:@"Profile / Camps" screenClass:nil];
+}
+
+- (void)setupTableView {
     self.tableView.delegate = self;
     self.tableView.dataSource = self;
     
@@ -59,14 +75,15 @@ static NSString * const memberCellIdentifier = @"MemberCell";
     if ([self isCurrentUser]) {
         [self loadCache];
     }
+}
+
+- (void)setupErrorView {
+    BFVisualError *visualError = [BFVisualError visualErrorOfType:ErrorViewTypeNotFound title:@"Error loading" description:@"Check your network settings and tap below to try again" actionTitle:nil actionBlock:nil];
     
-    if (![self.stream nextCursor]) {
-        NSLog(@"no cursor yoooooo:: ");
-        [self getCampsWithCursor:StreamPagingCursorTypeNone];
-    }
-    
-    // Google Analytics
-    [FIRAnalytics setScreenName:@"Profile / Camps" screenClass:nil];
+    self.errorView = [[BFVisualErrorView alloc] initWithVisualError:visualError];
+    [self positionErrorView];
+    self.errorView.hidden = true;
+    [self.tableView addSubview:self.errorView];
 }
 
 - (BOOL)isCurrentUser {
@@ -84,7 +101,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
         
         NSLog(@"self.stream.camps.count :: %lu", (unsigned long)self.stream.camps.count);
         if (self.stream.camps.count > 0) {
-            self.loadingCamps = false;
+            self.loading = false;
         }
         
         [self.tableView reloadData];
@@ -117,11 +134,8 @@ static NSString * const memberCellIdentifier = @"MemberCell";
         [params setObject:nextCursor forKey:@"cursor"];
     }
     else {
-        self.loadingCamps = true;
+        self.loading = true;
     }
-    
-    NSLog(@"GET -> %@", url);
-    NSLog(@"params: %@", params);
     
     [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         CampListStreamPage *page = [[CampListStreamPage alloc] initWithDictionary:responseObject error:nil];
@@ -139,7 +153,19 @@ static NSString * const memberCellIdentifier = @"MemberCell";
             [self saveCacheIfNeeded];
         }
         
-        self.loadingCamps = false;
+        if (self.stream.camps.count == 0) {
+            self.errorView.hidden = false;
+           
+            BFVisualError *visualError = [BFVisualError visualErrorOfType:ErrorViewTypeNoPosts title:@"No Camps to Show" description:[NSString stringWithFormat:@"@%@ hasn't joined any Camps", self.user.attributes.identifier] actionTitle:nil actionBlock:nil];
+            self.errorView.visualError = visualError;
+            
+            [self positionErrorView];
+        }
+        else {
+            self.errorView.hidden = true;
+        }
+        
+        self.loading = false;
         
         [self.tableView reloadData];
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
@@ -148,10 +174,29 @@ static NSString * const memberCellIdentifier = @"MemberCell";
         if (nextCursor.length > 0) {
             [self.stream removeLoadedCursor:nextCursor];
         }
-        self.loadingCamps = false;
+        
+        if (self.stream.camps.count == 0) {
+            // Error: No posts yet!
+            self.errorView.hidden = false;
+            
+            BFVisualError *visualError = [BFVisualError visualErrorOfType:([HAWebService hasInternet] ? ErrorViewTypeGeneral : ErrorViewTypeNoInternet) title:([HAWebService hasInternet] ? @"Error Loading" : @"No Internet") description:@"Check your network settings and tap below to try again" actionTitle:@"Try Again" actionBlock:^{
+                self.loading = true;
+                self.errorView.hidden = true;
+                [self getCampsWithCursor:StreamPagingCursorTypeNone];
+            }];
+            self.errorView.visualError = visualError;
+            
+            [self positionErrorView];
+        }
+        
+        self.loading = false;
         
         [self.tableView reloadData];
     }];
+}
+
+- (void)positionErrorView {
+    self.errorView.center = CGPointMake(self.view.frame.size.width / 2, self.tableView.frame.size.height / 2 - self.navigationController.navigationBar.frame.size.height - self.navigationController.navigationBar.frame.origin.y);
 }
 
 #pragma mark - Table view data source
@@ -159,7 +204,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
     return 1;
 }
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    if (section == 0 && !self.loadingCamps) {
+    if (section == 0 && !self.loading) {
         return self.stream.camps.count;
     }
     
@@ -198,7 +243,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
 - (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
     if (section == 0) {
         BOOL hasAnotherPage = self.stream.pages.count > 0 && self.stream.nextCursor.length > 0;
-        BOOL showLoadingFooter = self.loadingCamps || ((self.loadingMoreCamps || hasAnotherPage) && ![self.stream hasLoadedCursor:self.stream.nextCursor]);
+        BOOL showLoadingFooter = self.loading || ((self.loadingMoreCamps || hasAnotherPage) && ![self.stream hasLoadedCursor:self.stream.nextCursor]);
         
         return showLoadingFooter ? 52 : 0;
     }
@@ -209,7 +254,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
     if (section == 0) {
         // last row
         BOOL hasAnotherPage = self.stream.pages.count > 0 && self.stream.nextCursor.length > 0;
-        BOOL showLoadingFooter = self.loadingCamps || ((self.loadingMoreCamps || hasAnotherPage) && ![self.stream hasLoadedCursor:self.stream.nextCursor]);
+        BOOL showLoadingFooter = self.loading || ((self.loadingMoreCamps || hasAnotherPage) && ![self.stream hasLoadedCursor:self.stream.nextCursor]);
         
         if (showLoadingFooter) {
             UIView *footer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 52)];

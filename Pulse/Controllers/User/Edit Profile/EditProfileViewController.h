@@ -9,12 +9,13 @@
 #import <UIKit/UIKit.h>
 #import "ThemeSelectorCell.h"
 #import "User.h"
+#import "ThemedTableViewController.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface EditProfileViewController : UITableViewController <ThemeSelectorDelegate>
+@interface EditProfileViewController : ThemedTableViewController <ThemeSelectorDelegate, UITableViewDataSource, UITableViewDelegate>
 
-@property (strong, nonatomic) UIView *navigationBackgroundView;
+@property (nonatomic, strong) UIImageView *coverPhotoView;
 
 @property (strong, nonatomic) UIBarButtonItem *cancelButton;
 @property (strong, nonatomic) UIBarButtonItem *saveButton;

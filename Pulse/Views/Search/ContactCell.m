@@ -19,7 +19,7 @@
         self.imageView.layer.masksToBounds = true;
         self.imageView.layer.borderColor = [UIColor clearColor].CGColor;
         self.imageView.layer.borderWidth = 1 / [UIScreen mainScreen].scale;
-        self.imageView.backgroundColor = [UIColor whiteColor];
+        self.imageView.backgroundColor = [UIColor contentBackgroundColor];
         
         self.textLabel.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightBold];
         self.textLabel.textColor = [UIColor bonfirePrimaryColor];
@@ -77,12 +77,12 @@
 
 - (void)setHighlighted:(BOOL)highlighted animated:(BOOL)animated {
     if (highlighted) {
-        [UIView animateWithDuration:0.2f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        [UIView animateWithDuration:0.15f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
             self.contentView.backgroundColor = [[UIColor contentBackgroundColor] colorWithAlphaComponent:0.97];
         } completion:nil];
     }
     else {
-        [UIView animateWithDuration:0.2f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        [UIView animateWithDuration:0.15f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
             self.contentView.backgroundColor = [UIColor contentBackgroundColor];
         } completion:nil];
     }

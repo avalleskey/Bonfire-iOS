@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 
-#define postContextHeight 32
+#define postContextHeight 30
 
 NS_ASSUME_NONNULL_BEGIN
 

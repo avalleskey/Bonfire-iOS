@@ -40,7 +40,7 @@
         self.searchIcon = [[UIImageView alloc] initWithFrame:CGRectMake(0, self.textField.frame.size.height / 2 - 7, 14, 14)];
         self.searchIcon.image = [[UIImage imageNamed:@"miniSearchIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
         
-        self.theme = BFTextFieldThemeDark;
+        self.theme = BFTextFieldThemeAuto;
         self.originalFrame = frame;
         
         [self showSearchIcon:false];
@@ -57,7 +57,9 @@
                     ComplexNavigationController *complexController = (ComplexNavigationController *)[Launcher activeNavigationController];
                     [complexController.searchView updateSearchText:@""];
                     [complexController pushViewController:viewController animated:NO];
-                    [complexController updateBarColor:[UIColor whiteColor] animated:YES];
+                    complexController.opaqueOnScroll = true;
+                    complexController.transparentOnLoad = false;
+                    [complexController updateBarColor:[UIColor contentBackgroundColor] animated:YES];
                     
                     complexController.searchView.textField.userInteractionEnabled = true;
                     [complexController.searchView.textField becomeFirstResponder];
@@ -234,10 +236,11 @@
         self.backgroundColor = [UIColor bonfireTextFieldBackgroundOnWhite];
         
         self.tintColor =
-        self.textField.textColor = [UIColor bonfirePrimaryColor];
+        self.textField.textColor = [UIColor blackColor];
         self.searchIcon.alpha = 0.25;
     }
     else {
+        // auto
         self.backgroundColor = [UIColor bonfireTextFieldBackgroundOnContent];
         
         self.tintColor =

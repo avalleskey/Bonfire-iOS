@@ -11,6 +11,7 @@
 #import "UITextView+Placeholder.h"
 #import "UIImageView+WebCache.h"
 #import "BFMedia.h"
+#import "BFSmartLinkAttachmentView.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -30,6 +31,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) BFAvatarView *creatorAvatar;
 @property (nonatomic, strong) UIScrollView *mediaScrollView;
 @property (nonatomic, strong) UIStackView *mediaContainerView;
+@property (nonatomic, strong) BFSmartLinkAttachmentView * _Nullable smartLinkAttachmentView;
 
 @property (nonatomic, strong) UIView *lineSeparator;
 

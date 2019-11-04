@@ -32,31 +32,7 @@
 
 @end
 
-@implementation DefaultsKeywordsGroupTitles
-
-+ (JSONKeyMapper *)keyMapper {
-    return [JSONKeyMapper mapperForSnakeCase];
-}
-
-+ (BOOL)propertyIsOptional:(NSString *)propertyName {
-    return TRUE;
-}
-
-@end
-
 @implementation DefaultsKeywordsViewTitles
-
-+ (JSONKeyMapper *)keyMapper {
-    return [JSONKeyMapper mapperForSnakeCase];
-}
-
-+ (BOOL)propertyIsOptional:(NSString *)propertyName {
-    return TRUE;
-}
-
-@end
-
-@implementation DefaultsProfile
 
 + (JSONKeyMapper *)keyMapper {
     return [JSONKeyMapper mapperForSnakeCase];
@@ -80,19 +56,7 @@
 
 @end
 
-@implementation DefaultsPostMaxLength
-
-+ (JSONKeyMapper *)keyMapper {
-    return [JSONKeyMapper mapperForSnakeCase];
-}
-
-+ (BOOL)propertyIsOptional:(NSString *)propertyName {
-    return TRUE;
-}
-
-@end
-
-@implementation DefaultsSharing
+@implementation DefaultsPostImgHeight
 
 + (JSONKeyMapper *)keyMapper {
     return [JSONKeyMapper mapperForSnakeCase];
@@ -116,7 +80,29 @@
 
 @end
 
-@implementation DefaultsCampMembersTitle
+@implementation DefaultsFeed
+
++ (JSONKeyMapper *)keyMapper {
+    return [JSONKeyMapper mapperForSnakeCase];
+}
++ (BOOL)propertyIsOptional:(NSString *)propertyName {
+    return TRUE;
+}
+
+@end
+
+@implementation DefaultsFeedMotd
+
++ (JSONKeyMapper *)keyMapper {
+    return [JSONKeyMapper mapperForSnakeCase];
+}
++ (BOOL)propertyIsOptional:(NSString *)propertyName {
+    return TRUE;
+}
+
+@end
+
+@implementation DefaultsFeedMotdCta
 
 + (JSONKeyMapper *)keyMapper {
     return [JSONKeyMapper mapperForSnakeCase];

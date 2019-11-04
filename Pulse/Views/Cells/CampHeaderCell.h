@@ -12,21 +12,22 @@
 #import "BFAvatarView.h"
 #import "BFDetailsCollectionView.h"
 
-#define CAMP_HEADER_EDGE_INSETS UIEdgeInsetsMake(24, 24, 24, 24)
 // avatar macros
-#define CAMP_HEADER_AVATAR_SIZE 96
-#define CAMP_HEADER_AVATAR_BOTTOM_PADDING 12
+#define CAMP_HEADER_AVATAR_SIZE 128
+#define CAMP_HEADER_AVATAR_BOTTOM_PADDING 16
+
+#define CAMP_HEADER_EDGE_INSETS UIEdgeInsetsMake(ceilf(CAMP_HEADER_AVATAR_SIZE * -0.65), 24, 24, 24)
 // display name macros
-#define CAMP_HEADER_NAME_FONT [UIFont systemFontOfSize:24.f weight:UIFontWeightHeavy]
-#define CAMP_HEADER_NAME_BOTTOM_PADDING 4
+#define CAMP_HEADER_NAME_FONT [UIFont systemFontOfSize:26.f weight:UIFontWeightHeavy]
+#define CAMP_HEADER_NAME_BOTTOM_PADDING 6
 // #Camptag macros
 #define CAMP_HEADER_TAG_FONT [UIFont systemFontOfSize:16.f weight:UIFontWeightBold]
-#define CAMP_HEADER_TAG_BOTTOM_PADDING 10
+#define CAMP_HEADER_TAG_BOTTOM_PADDING 12
 // description macros
 #define CAMP_HEADER_DESCRIPTION_FONT [UIFont systemFontOfSize:16.f weight:UIFontWeightRegular]
-#define CAMP_HEADER_DESCRIPTION_BOTTOM_PADDING 0
+#define CAMP_HEADER_DESCRIPTION_BOTTOM_PADDING 12
 // details macros
-#define CAMP_HEADER_DETAILS_EDGE_INSETS UIEdgeInsetsMake(10, 24, 12, 24)
+#define CAMP_HEADER_DETAILS_EDGE_INSETS UIEdgeInsetsMake(12, 24, 12, 24)
 // follow button macros
 #define CAMP_HEADER_FOLLOW_BUTTON_TOP_PADDING 16
 
@@ -42,6 +43,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) CampFollowButton *followButton;
 
 @property (nonatomic, strong) BFAvatarView *campPicture;
+@property (strong, nonatomic) UIView *avatarContainer;
+
 @property (nonatomic, strong) UIButton *infoButton;
 
 @property (nonatomic, strong) BFAvatarView *member2;

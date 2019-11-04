@@ -174,6 +174,43 @@ static NSString * const errorCampCellReuseIdentifier = @"ErrorCampCell";
     return blankCell;
 }
 
+- (UIContextMenuConfiguration *)collectionView:(UICollectionView *)collectionView contextMenuConfigurationForItemAtIndexPath:(NSIndexPath *)indexPath point:(CGPoint)point  API_AVAILABLE(ios(13.0)){
+    if ([[collectionView cellForItemAtIndexPath:indexPath] isKindOfClass:[CampCardCell class]]) {
+        Camp *camp = ((CampCardCell *)[collectionView cellForItemAtIndexPath:indexPath]).camp;
+        
+        if (camp) {
+            UIAction *shareViaAction = [UIAction actionWithTitle:@"Share Camp via..." image:[UIImage systemImageNamed:@"square.and.arrow.up"] identifier:@"share_via" handler:^(__kindof UIAction * _Nonnull action) {
+                [Launcher shareCamp:camp];
+            }];
+            
+            UIMenu *menu = [UIMenu menuWithTitle:@"" children:@[shareViaAction]];
+            
+            CampViewController *campVC = [Launcher campViewControllerForCamp:camp];
+            campVC.isPreview = true;
+            
+            UIContextMenuConfiguration *configuration = [UIContextMenuConfiguration configurationWithIdentifier:indexPath previewProvider:^(){return campVC;} actionProvider:^(NSArray* suggestedAction){return menu;}];
+            return configuration;
+        }
+    }
+    
+    return nil;
+}
+
+- (void)collectionView:(UICollectionView *)collectionView willPerformPreviewActionForMenuWithConfiguration:(UIContextMenuConfiguration *)configuration animator:(id<UIContextMenuInteractionCommitAnimating>)animator  API_AVAILABLE(ios(13.0)){
+    NSIndexPath *indexPath = (NSIndexPath *)configuration.identifier;
+    [animator addCompletion:^{
+        Camp *camp;
+        if ([[collectionView cellForItemAtIndexPath:indexPath] isKindOfClass:[CampCardCell class]]) {
+            camp = ((CampCardCell *)[collectionView cellForItemAtIndexPath:indexPath]).camp;
+        }
+        wait(0, ^{
+            if (camp) {
+               [Launcher openCamp:camp];
+            }
+        });
+    }];
+}
+
 - (CGSize)collectionView:(UICollectionView *)collectionView
                   layout:(UICollectionViewLayout *)collectionViewLayout
   sizeForItemAtIndexPath:(NSIndexPath *)indexPath {

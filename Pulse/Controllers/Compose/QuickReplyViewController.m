@@ -49,9 +49,7 @@
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     
-    if (self.view.tag != 1) {
-        self.view.tag = 1;
-        
+    if ([self isBeingPresented] || [self isMovingToParentViewController]) {
         [self animateIn];
     }
 }
@@ -108,7 +106,7 @@
     
     self.composeInputView.parentViewController = self;
     self.composeInputView.postButton.backgroundColor = self.view.tintColor;//[self.theme isEqual:[UIColor whiteColor]] ? [UIColor colorWithWhite:0.2f alpha:1] : self.theme;
-    self.composeInputView.addMediaButton.tintColor = self.composeInputView.postButton.backgroundColor;
+//    self.composeInputView.addMediaButton.backgroundColor = self.composeInputView.postButton.backgroundColor;
     self.composeInputView.textView.tintColor = self.composeInputView.postButton.backgroundColor;
     
     [self.composeInputView bk_whenTapped:^{

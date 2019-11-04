@@ -22,6 +22,8 @@
 #import "BFTipsManager.h"
 #import "SearchResultCell.h"
 #import "ButtonCell.h"
+#import "CampCardsListCell.h"
+#import "BFVisualErrorView.h"
 @import Firebase;
 
 #define tv ((RSTableView *)self.tableView)
@@ -32,24 +34,23 @@
 
 @property (nonatomic) BOOL loading;
 @property (nonatomic) BOOL userDidRefresh;
+@property (nonatomic, strong) NSDate *lastFetch;
+
+@property (nonatomic, strong) BFVisualErrorView *errorView;
 
 @property CGFloat minHeaderHeight;
 @property CGFloat maxHeaderHeight;
 @property (nonatomic, strong) NSMutableArray *posts;
 
-@property (nonatomic, strong) NSMutableArray *myCamps;
-@property (nonatomic) BOOL loadingMyCamps;
+@property (nonatomic, strong) NSMutableArray <Camp *> *suggestedCamps;
 
 @property (nonatomic, strong) FBShimmeringView *titleView;
-
-@property (nonatomic, strong) NSDate *lastFetch;
 
 @end
 
 @implementation MyFeedViewController
 
-static NSString * const searchResultCellReuseIdentifier = @"SearchResultCell";
-static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
+static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
 
 #pragma mark - UIViewController
 
@@ -61,6 +62,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     
     self.view.backgroundColor = [UIColor contentBackgroundColor];
     
+//    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(recentsUpdated:) name:@"RecentsUpdated" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userUpdated:) name:@"UserUpdated" object:nil];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(newPostBegan:) name:@"NewPostBegan" object:nil];
@@ -96,7 +98,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
         [self fetchNewPosts];
         
         if ([BFTipsManager hasSeenTip:@"about_sparks_info"] == false) {
-            BFTipObject *tipObject = [BFTipObject tipWithCreatorType:BFTipCreatorTypeBonfireTip creator:nil title:@"Sparks help posts go viral 🚀" text:@"Sparks show a post to more people. Only the creator can see who sparks a post." action:^{
+            BFTipObject *tipObject = [BFTipObject tipWithCreatorType:BFTipCreatorTypeBonfireTip creator:nil title:@"Sparks help posts go viral 🚀" text:@"Sparks show a post to more people. Only the creator can see who sparks a post." cta:nil imageUrl:nil action:^{
                 NSLog(@"tip tapped");
             }];
             [[BFTipsManager manager] presentTip:tipObject completion:^{
@@ -168,7 +170,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     tv.loadingMore = false;
     tv.extendedDelegate = self;
     tv.backgroundColor = [UIColor contentBackgroundColor];
-    //[self.tableView registerClass:[CampCardsListCell class] forCellReuseIdentifier:cardsListCellReuseIdentifier];
+    [self.tableView registerClass:[CampCardsListCell class] forCellReuseIdentifier:recentCardsCellReuseIdentifier];
     tv.showsVerticalScrollIndicator = false;
     self.tableView.refreshControl = [[UIRefreshControl alloc] init];
     [self.tableView sendSubviewToBack:self.tableView.refreshControl];
@@ -183,9 +185,14 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     tv.stream.delegate = self;
     
     [self loadCache];
+    //[self loadSuggestedCamps];
 }
 - (void)setupErrorView {
-    self.errorView = [[ErrorView alloc] initWithFrame:CGRectMake(16, 0, [UIScreen mainScreen].bounds.size.width - 32, 100) title:@"Error Loading" description:@"Check your network settings and tap here to try again" type:ErrorViewTypeNotFound];
+    BFVisualError *visualError = [BFVisualError visualErrorOfType:ErrorViewTypeNotFound title:@"Error Loading" description:@"Check your network settings and tap here to try again" actionTitle:@"Reload" actionBlock:^{
+        [self refresh];
+    }];
+    
+    self.errorView = [[BFVisualErrorView alloc] initWithVisualError:visualError];
     self.errorView.center = self.tableView.center;
     self.errorView.hidden = true;
     [self.tableView addSubview:self.errorView];
@@ -210,7 +217,6 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     }];
     
     self.titleView = [[FBShimmeringView alloc] initWithFrame:titleButton.frame];
-    self.titleView.shimmeringOpacity = 0.8;
     [self.titleView addSubview:titleButton];
     self.titleView.contentView = titleButton;
     
@@ -221,13 +227,13 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     self.morePostsIndicator.frame = CGRectMake(self.view.frame.size.width / 2 - (156 / 2), self.navigationController.navigationBar.frame.origin.y + self.navigationController.navigationBar.frame.size.height + 12, 156, 40);
     self.morePostsIndicator.layer.masksToBounds = false;
     self.morePostsIndicator.layer.shadowOffset = CGSizeMake(0, 1);
-    self.morePostsIndicator.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.08].CGColor;
+    self.morePostsIndicator.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.12].CGColor;
     self.morePostsIndicator.layer.shadowOpacity = 1.f;
-    self.morePostsIndicator.layer.shadowRadius = 4.f;
+    self.morePostsIndicator.layer.shadowRadius = 2.f;
     self.morePostsIndicator.tag = 0; // inactive
     self.morePostsIndicator.hidden = true;
     self.morePostsIndicator.layer.cornerRadius = self.morePostsIndicator.frame.size.height / 2;
-    self.morePostsIndicator.backgroundColor = [[UIColor cardBackgroundColor] colorWithAlphaComponent:0.96];
+    self.morePostsIndicator.backgroundColor = [UIColor cardBackgroundColor];
     [self.morePostsIndicator setTitle:@"New Posts" forState:UIControlStateNormal];
     [self.morePostsIndicator setTitleColor:[UIColor bonfirePrimaryColor] forState:UIControlStateNormal];
     self.morePostsIndicator.titleLabel.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightBold];
@@ -236,7 +242,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     CGFloat intrinsticWidth = self.morePostsIndicator.intrinsicContentSize.width + (18*2);
     self.morePostsIndicator.frame = CGRectMake(self.view.frame.size.width / 2 - intrinsticWidth / 2, self.morePostsIndicator.frame.origin.y, intrinsticWidth, self.morePostsIndicator.frame.size.height);
     
-    [self.navigationController.view insertSubview:self.morePostsIndicator belowSubview:self.navigationController.navigationBar];
+    [self.navigationController.view insertSubview:self.morePostsIndicator aboveSubview:self.view];
     
     [self.morePostsIndicator bk_addEventHandler:^(id sender) {
         [UIView animateWithDuration:0.25f delay:0 usingSpringWithDamping:0.8f initialSpringVelocity:0.4f options:UIViewAnimationOptionCurveEaseOut animations:^{
@@ -264,19 +270,19 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     if ([notification.object isKindOfClass:[User class]]) {
         User *user = notification.object;
         if ([user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
-            [tv refresh];
+            [tv refreshAtTop];
         }
     }
 }
 - (void)newPostBegan:(NSNotification *)notification {
     Post *tempPost = notification.object;
     
-    if (tempPost != nil && tempPost.attributes.details.parentId == 0) {
+    if (tempPost != nil && !tempPost.attributes.parent) {
         // TODO: Check for image as well
         self.errorView.hidden = true;
 
         [tv.stream addTempPost:tempPost];
-        [tv refresh];
+        [tv refreshAtTop];
     }
 }
 - (void)newPostCompleted:(NSNotification *)notification {
@@ -287,7 +293,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     NSLog(@"temp id: %@", tempId);
     NSLog(@"new post:: %@", post.identifier);
     
-    if (post != nil && post.attributes.details.parentId == 0) {
+    if (post != nil) {
         // TODO: Check for image as well
         self.errorView.hidden = true;
         
@@ -304,19 +310,19 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
 - (void)newPostFailed:(NSNotification *)notification {
     Post *tempPost = notification.object;
     
-    if (tempPost != nil && tempPost.attributes.details.parentId == 0) {
+    if (tempPost != nil && !tempPost.attributes.parent) {
         // TODO: Check for image as well
         [tv.stream removeTempPost:tempPost.tempId];
-        [tv refresh];
+        [tv refreshAtTop];
         self.errorView.hidden = (tv.stream.posts.count != 0);
     }
 }
 
 #pragma mark - Error View
-- (void)showErrorViewWithType:(ErrorViewType)type title:(NSString *)title description:(NSString *)description {
+- (void)showErrorViewWithType:(ErrorViewType)type title:(NSString *)title description:(NSString *)description actionTitle:(nullable NSString *)actionTitle actionBlock:(void (^ __nullable)(void))actionBlock {
     self.errorView.hidden = false;
-    [self.errorView updateType:type title:title description:description actionTitle:nil actionBlock:nil];
-    [self positionErrorView];
+    self.errorView.visualError = [BFVisualError visualErrorOfType:type title:title description:description actionTitle:actionTitle actionBlock:actionBlock];
+    [self.tableView reloadData];
 }
 - (void)positionErrorView {
     self.errorView.center = CGPointMake(self.view.frame.size.width / 2, self.tableView.frame.size.height / 2 - self.navigationController.navigationBar.frame.size.height - self.navigationController.navigationBar.frame.origin.y);
@@ -363,7 +369,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
         }
         
         dispatch_async(dispatch_get_main_queue(), ^{
-            [tv refresh];
+            [tv refreshAtTop];
         });
     }
 }
@@ -387,6 +393,40 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
 }
 
 #pragma mark - Stream Requests & Management
+// Get suggested camps (if any)
+- (void)loadSuggestedCamps {
+    NSArray *recentCamps = [[NSUserDefaults standardUserDefaults] arrayForKey:@"recents_camps"];
+    
+    if (recentCamps.count == 0) {
+        return;
+    }
+    else if (recentCamps.count > 5) {
+        recentCamps = [recentCamps subarrayWithRange:NSMakeRange(0, 8)];
+    }
+    
+    self.suggestedCamps = [NSMutableArray new];
+    for (id object in recentCamps) {
+        if ([object isKindOfClass:[NSDictionary class]]) {
+            NSError *error;
+            Camp *camp = [[Camp alloc] initWithDictionary:(NSDictionary *)object error:&error];
+            if (!error) {
+                [self.suggestedCamps addObject:camp];
+                return;
+            }
+        }
+        else if ([object isKindOfClass:[Camp class]]) {
+            [self.suggestedCamps addObject:(Camp *)object];
+            return;
+        }
+    }
+    
+    [self.tableView reloadData];
+}
+- (void)recentsUpdated:(NSNotification *)sender {
+    [self loadSuggestedCamps];
+    
+    [self.tableView reloadData];
+}
 // Fetch posts
 - (void)getPostsWithCursor:(StreamPagingCursorType)cursorType {
     NSString *url = @"streams/me";
@@ -411,15 +451,12 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     if ([self.tableView isKindOfClass:[RSTableView class]] && tv.stream.posts.count == 0) {
         self.errorView.hidden = true;
         tv.loading = true;
-        [tv refresh];
+        [tv refreshAtTop];
     }
     
     if (cursorType == StreamPagingCursorTypePrevious && tv.stream.posts.count > 0) {
         self.titleView.shimmering = true;
     }
-    
-    NSLog(@"GET -> %@", url);
-    NSLog(@"params: %@", params);
     
     [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSInteger postsBefore = tv.stream.posts.count;
@@ -444,9 +481,10 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
             // Error: No posts yet!
             self.errorView.hidden = false;
             
-            [self.errorView updateType:ErrorViewTypeHeart title:@"For You" description:@"The posts you care about from the Camps and people you care about." actionTitle:@"Discover Camps" actionBlock:^{
+            BFVisualError *visualError = [BFVisualError visualErrorOfType:ErrorViewTypeHeart title:@"For You" description:@"The posts you care about from the Camps and people you care about" actionTitle:@"Discover Camps" actionBlock:^{
                 [Launcher openDiscover];
             }];
+            self.errorView.visualError = visualError;
             
             [self positionErrorView];
         }
@@ -458,11 +496,12 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
         tv.loading = false;
         if (cursorType == StreamPagingCursorTypeNext) {
             tv.loadingMore = false;
+            
+            [tv refreshAtBottom];
         }
-        
-        // NSLog(@"new posts: %ld", postsAfter - postsBefore);
-        
-        [tv refresh];
+        else {
+            [tv refreshAtTop];
+        }
         
         if (self.userDidRefresh) {
             self.userDidRefresh = false;
@@ -476,26 +515,12 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
             }
         }
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-        NSLog(@"FeedViewController / getPosts() - ErrorResponse: %@", ErrorResponse);
-        
-        // NSHTTPURLResponse *httpResponse = error.userInfo[AFNetworkingOperationFailingURLResponseErrorKey];
-        // NSInteger statusCode = httpResponse.statusCode;
-        // NSLog(@"status code: %ld", (long)statusCode);
-        
         if (tv.stream.posts.count == 0) {
             self.errorView.hidden = false;
             
-            if ([HAWebService hasInternet]) {
-                [self.errorView updateType:ErrorViewTypeGeneral title:@"Error Loading" description:@"Check your network settings and tap below to try again" actionTitle:@"Refresh" actionBlock:^{
-                    [self refresh];
-                }];
-            }
-            else {
-                [self.errorView updateType:ErrorViewTypeNoInternet title:@"No Internet" description:@"Check your network settings and tap below to try again" actionTitle:@"Refresh" actionBlock:^{
-                    [self refresh];
-                }];
-            }
+            [self showErrorViewWithType:([HAWebService hasInternet] ? ErrorViewTypeGeneral : ErrorViewTypeNoInternet) title:([HAWebService hasInternet] ? @"Error Loading" : @"No Internet") description:@"Check your network settings and tap below to try again" actionTitle:@"Refresh" actionBlock:^{
+                [self refresh];
+            }];
             
             [self positionErrorView];
         }
@@ -506,11 +531,12 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
             tv.loadingMore = false;
         }
         self.tableView.userInteractionEnabled = true;
-        [tv refresh];
+        [tv refreshAtTop];
     }];
 }
 // Management
 - (void)refresh {
+    [tv.stream removeLoadedCursor:tv.stream.prevCursor];
     [self.refreshControl performSelector:@selector(endRefreshing) withObject:nil afterDelay:0.0];
     
     self.userDidRefresh = true;
@@ -532,19 +558,48 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
 
 #pragma mark - RSTableViewDelegate
 - (UIView *)viewForFirstSectionHeader {
+//    if (tv.stream.posts.count > 0) {
+//        UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, HALF_PIXEL)];
+//        separator.backgroundColor = [UIColor tableViewSeparatorColor];
+//        return separator;
+//    }
+    
     return nil;
 }
 - (CGFloat)heightForFirstSectionHeader {
+//    if (tv.stream.posts.count > 0) {
+//        return HALF_PIXEL;
+//    }
+    
     return CGFLOAT_MIN; //52;
 }
 - (UITableViewCell * _Nullable)cellForRowInFirstSection:(NSInteger)row {
+    if (row == 0 && self.suggestedCamps.count > 0) {
+        CampCardsListCell *cell = [self.tableView dequeueReusableCellWithIdentifier:recentCardsCellReuseIdentifier forIndexPath:[NSIndexPath indexPathForRow:row inSection:0]];
+        
+        if (cell == nil) {
+            cell = [[CampCardsListCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:recentCardsCellReuseIdentifier];
+        }
+        
+        cell.size = CAMP_CARD_SIZE_SMALL_MEDIUM;
+        
+        cell.loading = false;
+        cell.camps = [[NSMutableArray alloc] initWithArray:self.suggestedCamps];
+        
+        return cell;
+    }
+    
     return nil;
 }
 - (CGFloat)heightForRowInFirstSection:(NSInteger)row {
+    if (row == 0 && self.suggestedCamps.count > 0) {
+        return SMALL_MEDIUM_CARD_HEIGHT;
+    }
+    
     return 0;
 }
 - (CGFloat)numberOfRowsInFirstSection {
-    return 0;
+    return 1;
 }
 - (UIView *)viewForFirstSectionFooter {
     return nil;
@@ -554,7 +609,6 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
 }
 - (void)tableView:(nonnull id)tableView didRequestNextPageWithMaxId:(NSInteger)maxId {
     if (tv.stream.nextCursor.length > 0 && ![tv.stream hasLoadedCursor:tv.stream.nextCursor]) {
-        NSLog(@"get next cursor:: %@", tv.stream.nextCursor);
         [self getPostsWithCursor:StreamPagingCursorTypeNext];
     }
 }

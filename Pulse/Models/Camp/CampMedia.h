@@ -13,7 +13,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface CampMedia : JSONModel
 
-@property (nonatomic) BFHostedVersions <Optional> *campAvatar;
+@property (nonatomic) BFHostedVersions <Optional> *avatar;
 
 @end
 

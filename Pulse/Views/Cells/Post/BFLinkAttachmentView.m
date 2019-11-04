@@ -11,6 +11,7 @@
 #import "NSString+Validation.h"
 #import "Launcher.h"
 #import "NSURL+WebsiteTypeValidation.h"
+#import <SafariServices/SafariServices.h>
 
 #define LINK_ATTACHMENT_EDGE_INSETS UIEdgeInsetsMake(12, 12, 13, 12)
 
@@ -62,12 +63,7 @@
 - (void)setup {
     [super setup];
     
-    //self.backgroundColor = [UIColor colorWithRed:0.97 green:0.97 blue:0.98 alpha:1.0];
-//    self.layer.shadowOffset = CGSizeMake(0, 1);
-//    self.layer.shadowRadius = 1.f;
-//    self.layer.shadowOpacity = 0.08f;
-//    self.layer.shadowColor = [UIColor blackColor].CGColor;
-    self.backgroundColor = [UIColor contentBackgroundColor];
+    self.backgroundColor = [UIColor clearColor];
     
     self.imageView = [[SDAnimatedImageView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, LINK_ATTACHMENT_IMAGE_HEIGHT)];
     self.imageView.contentMode = UIViewContentModeScaleAspectFill;
@@ -139,6 +135,13 @@
     [self bk_whenTapped:^{
         [Launcher openURL:self.link.attributes.actionUrl];
     }];
+    
+    if (@available(iOS 13.0, *)) {
+        UIContextMenuInteraction *interaction = [[UIContextMenuInteraction alloc] initWithDelegate:self];
+        [self addInteraction:interaction];
+    } else {
+        // Fallback on earlier versions
+    }
 }
 
 - (void)addPlayIconToView:(UIView *)view {
@@ -237,7 +240,7 @@
     self.contentView.frame = self.bounds;
 }
 
-- (void)setLink:(PostAttachmentsLink *)link {
+- (void)setLink:(BFLink *)link {
     if (link != _link) {
         _link = link;
         
@@ -299,11 +302,11 @@
     self.sourceLabel.attributedText = mutableString;
 }
 
-+ (BFLinkAttachmentContentType)contentTypeForLink:(PostAttachmentsLink *)link {
++ (BFLinkAttachmentContentType)contentTypeForLink:(BFLink *)link {
     BFLinkAttachmentContentIdentifier contentIdentifier = link.attributes.contentIdentifier;
     
     if (([link.attributes.format isEqualToString:POST_LINK_CUSTOM_FORMAT_VIDEO] ||
-        contentIdentifier == BFLinkAttachmentContentIdentifierYouTubeVideo) &&
+         contentIdentifier == BFLinkAttachmentContentIdentifierYouTubeVideo) &&
         link.attributes.images.count > 0) {
         // video content type
         return BFLinkAttachmentContentTypeVideo;
@@ -419,7 +422,7 @@
     }
 }
 
-+ (CGFloat)heightForLink:(PostAttachmentsLink *)link width:(CGFloat)width {
++ (CGFloat)heightForLink:(BFLink *)link width:(CGFloat)width {
     BFLinkAttachmentContentType contentType = [BFLinkAttachmentView contentTypeForLink:link];
     //BFLinkAttachmentContentIdentifier contentIdentifier = [BFLinkAttachmentView contentIdentifierForLink:link];
     
@@ -452,6 +455,32 @@
     }
     
     return detailsHeight;
+}
+
+
+- (nullable UIContextMenuConfiguration *)contextMenuInteraction:(nonnull UIContextMenuInteraction *)interaction configurationForMenuAtLocation:(CGPoint)location  API_AVAILABLE(ios(13.0)){
+    if (self.link) {
+        UIMenu *menu = [UIMenu menuWithTitle:@"" children:@[]];
+        
+        SFSafariViewController *safariVC = [[SFSafariViewController alloc] initWithURL:[NSURL URLWithString:self.link.attributes.actionUrl]];
+        safariVC.preferredBarTintColor = [UIColor contentBackgroundColor];
+        safariVC.preferredControlTintColor = [UIColor bonfirePrimaryColor];
+        
+        UIContextMenuConfiguration *configuration = [UIContextMenuConfiguration configurationWithIdentifier:@"safari_link_preview" previewProvider:^(){return safariVC;} actionProvider:^(NSArray* suggestedAction){return menu;}];
+        return configuration;
+    }
+    
+    return nil;
+}
+
+- (void)contextMenuInteraction:(UIContextMenuInteraction *)interaction willPerformPreviewActionForMenuWithConfiguration:(UIContextMenuConfiguration *)configuration animator:(id<UIContextMenuInteractionCommitAnimating>)animator  API_AVAILABLE(ios(13.0)){
+    [animator addCompletion:^{
+        wait(0, ^{
+            if (self.link) {
+                [Launcher openURL:self.link.attributes.actionUrl];
+            }
+        });
+    }];
 }
 
 @end

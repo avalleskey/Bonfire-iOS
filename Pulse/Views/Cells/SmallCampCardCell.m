@@ -14,6 +14,8 @@
 
 @implementation SmallCampCardCell
 
+@synthesize camp = _camp;
+
 - (id)init {
     if (self = [super init]) {
         [self setup];
@@ -153,7 +155,7 @@
     
     CGFloat borderWidth = 2.f;
     UIView *borderVeiw = [[UIView alloc] initWithFrame:CGRectMake(imageView.frame.origin.x - borderWidth, imageView.frame.origin.y - borderWidth, imageView.frame.size.width + (borderWidth * 2), imageView.frame.size.height + (borderWidth * 2))];
-    borderVeiw.backgroundColor = [UIColor whiteColor];
+    borderVeiw.backgroundColor = [UIColor cardBackgroundColor];
     borderVeiw.layer.cornerRadius = borderVeiw.frame.size.height / 2;
     borderVeiw.layer.masksToBounds = true;
     [self.contentView insertSubview:borderVeiw belowSubview:imageView];
@@ -193,17 +195,16 @@
     if (camp != _camp) {
         _camp = camp;
         
-        self.tintColor = [UIColor fromHex:self.camp.attributes.details.color];
+        self.tintColor = [UIColor fromHex:self.camp.attributes.color];
                 
-        self.campTitleLabel.text = _camp.attributes.details.title;
-        self.campDescriptionLabel.text = _camp.attributes.details.theDescription;
+        self.campTitleLabel.text = self.camp.attributes.title;
+        self.campDescriptionLabel.text = self.camp.attributes.theDescription;
         
-        self.profilePicture.camp = _camp;
+        self.profilePicture.camp = self.camp;
         
-        DefaultsCampMembersTitle *membersTitle = [Session sharedInstance].defaults.camp.membersTitle;
         if (self.camp.attributes.summaries.counts.members) {
             NSInteger members = self.camp.attributes.summaries.counts.members;
-            self.membersLabel.text = [NSString stringWithFormat:@"%ld %@", members, members == 1 ? [membersTitle.singular lowercaseString] : [membersTitle.plural lowercaseString]];
+            self.membersLabel.text = [NSString stringWithFormat:@"%ld %@", members, members == 1 ? @"member" : @"members"];
             
             if (members > 0) {
                 // setup the replies view
@@ -227,7 +228,7 @@
             }
         }
         else {
-            self.membersLabel.text = [NSString stringWithFormat:@"0 %@", [membersTitle.plural lowercaseString]];
+            self.membersLabel.text = [NSString stringWithFormat:@"0 members"];
         }
     }
 }

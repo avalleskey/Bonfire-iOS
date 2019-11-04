@@ -2,8 +2,16 @@
 
 @implementation CampVisibility
 
-+ (JSONKeyMapper *)keyMapper {
-    return [JSONKeyMapper mapperForSnakeCase];
++ (JSONKeyMapper *)keyMapper
+{
+    return [[JSONKeyMapper alloc] initWithModelToJSONDictionary:@{
+                                                                  @"isPrivate": @"private"
+                                                                  }];
+}
+
++ (BOOL)propertyIsOptional:(NSString*)propertyName
+{
+    return YES;
 }
 
 @end

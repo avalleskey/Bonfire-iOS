@@ -7,10 +7,11 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "ThemedTableViewController.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface NotificationsTableViewController : UITableViewController
+@interface NotificationsTableViewController : ThemedTableViewController <UITableViewDelegate, UITableViewDataSource>
 
 enum {
     MAX_CACHED_ACTIVITIES = 40

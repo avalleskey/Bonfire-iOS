@@ -13,7 +13,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface BFUserAttachmentView : BFAttachmentView
+@interface BFUserAttachmentView : BFAttachmentView <UIContextMenuInteractionDelegate>
 
 - (instancetype)initWithUser:(User *)user frame:(CGRect)frame;
 @property (nonatomic, strong) User *user;

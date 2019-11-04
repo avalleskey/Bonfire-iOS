@@ -13,6 +13,7 @@
 + (BOOL)propertyIsOptional:(NSString *)propertyName {
     return TRUE;
 }
+
 + (JSONKeyMapper *)keyMapper
 {
     return [[JSONKeyMapper alloc] initWithModelToJSONDictionary:@{
@@ -25,8 +26,22 @@
 
 @implementation CampsListAttributes
 
+NSString * const CAMPS_LIST_ICON_TYPE_STAR = @"star";
+NSString * const CAMPS_LIST_ICON_TYPE_TRENDING = @"trending";
+NSString * const CAMPS_LIST_ICON_TYPE_HEART = @"heart";
+NSString * const CAMPS_LIST_ICON_TYPE_HAPPENING = @"happening";
+NSString * const CAMPS_LIST_ICON_TYPE_LOCATION = @"location";
+NSString * const CAMPS_LIST_ICON_TYPE_CLOCK = @"clock";
+
 + (BOOL)propertyIsOptional:(NSString *)propertyName {
     return TRUE;
+}
+
++ (JSONKeyMapper *)keyMapper
+{
+    return [[JSONKeyMapper alloc] initWithModelToJSONDictionary:@{
+                                                                  @"isNew": @"is_new"
+                                                                  }];
 }
 
 @end

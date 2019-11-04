@@ -13,6 +13,11 @@
                     "id": "change_password",
                     "title": "Change Password",
                     "push": true
+                },
+                {
+                    "id": "share_profile",
+                    "title": "Share your Profile",
+                    "push": true
                 }
             ]
         },

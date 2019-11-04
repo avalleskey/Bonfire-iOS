@@ -51,6 +51,8 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
 - (void)setupTableView {
     self.tableView.delegate = self;
     self.tableView.dataSource = self;
+    self.tableView.separatorInset = UIEdgeInsetsZero;
+    self.tableView.separatorColor = [UIColor tableViewSeparatorColor];
     
     [self.tableView registerClass:[StreamPostCell class] forCellReuseIdentifier:postCellReuseIdentifier];
     [self.tableView registerClass:[ButtonCell class] forCellReuseIdentifier:buttonCellReuseIdentifier];
@@ -215,6 +217,9 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
                 cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
             }
             
+            cell.topSeparator.hidden = true;
+            cell.bottomSeparator.hidden = true;
+            
             return cell;
         }
     }
@@ -275,52 +280,11 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     if (section == 0) {
         BFHeaderView *headerView = [[BFHeaderView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, [BFHeaderView height])];
         headerView.title = @"Active";
-        headerView.separator = false;
+        headerView.bottomLineSeparator.hidden = true;
         return headerView;
     }
     else if (section == 1) {
         return nil;
-        
-//        UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 110)];
-//
-//        UIView *upsell = [[UIView alloc] initWithFrame:CGRectMake(12, 16, header.frame.size.width - 24, 94)];
-//        upsell.layer.cornerRadius = 10.f;
-//        upsell.backgroundColor = [UIColor whiteColor];
-//        upsell.layer.shadowOpacity = 1.f;
-//        upsell.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.06f].CGColor;
-//        upsell.layer.shadowRadius = 2.f;
-//        upsell.layer.shadowOffset = CGSizeMake(0, 1);
-//        upsell.layer.masksToBounds = false;
-//
-//        UIImageView *imageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"icebreakerSnowflake"]];
-//        imageView.frame = CGRectMake(upsell.frame.size.width / 2 - imageView.frame.size.width / 2, 16, imageView.frame.size.width, imageView.frame.size.height);
-//        [upsell addSubview:imageView];
-//
-//        UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(8, imageView.frame.origin.y + imageView.frame.size.height + 10, upsell.frame.size.width - 16, 21)];
-//        title.text = @"About Icebreakers";
-//        title.textColor = [UIColor bonfirePrimaryColor];
-//        title.textAlignment = NSTextAlignmentCenter;
-//        title.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightSemibold];
-//        [upsell addSubview:title];
-//
-//        // Easily invite new members to introduce themselves with an Icebreaker post after they join your Camp
-//        UILabel *description = [[UILabel alloc] initWithFrame:CGRectMake(32, title.frame.origin.y + title.frame.size.height + 6, upsell.frame.size.width - 64, 19)];
-//        description.text = @"Introduce new members to the Camp with an Icebreaker post when they join";
-//        description.textColor = [UIColor bonfireSecondaryColor];
-//        description.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightMedium];
-//        description.textAlignment = NSTextAlignmentCenter;
-//        description.numberOfLines = 0;
-//        description.lineBreakMode = NSLineBreakByWordWrapping;
-//        CGFloat height = ceilf([description.text boundingRectWithSize:CGSizeMake(description.frame.size.width, CGFLOAT_MAX) options:(NSStringDrawingUsesFontLeading|NSStringDrawingUsesLineFragmentOrigin) attributes:@{NSFontAttributeName: description.font} context:nil].size.height);
-//        SetHeight(description, height);
-//        [upsell addSubview:description];
-//
-//        SetHeight(upsell, description.frame.origin.y + description.frame.size.height + 24);
-//        SetHeight(header, upsell.frame.size.height + upsell.frame.origin.y);
-//
-//        [header addSubview:upsell];
-//
-//        return header;
     }
     
     return nil;
@@ -347,7 +311,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
             [Launcher openPost:post withKeyboard:NO];
         }
         else if (indexPath.row == 1) {
-            SetAnIcebreakerViewController *mibvc = [[SetAnIcebreakerViewController alloc] initWithStyle:UITableViewStyleGrouped];
+            SetAnIcebreakerViewController *mibvc = [[SetAnIcebreakerViewController alloc] init];
             mibvc.view.tintColor = self.view.tintColor;
             mibvc.camp = self.camp;
             mibvc.delegate = self;

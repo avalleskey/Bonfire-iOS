@@ -21,7 +21,6 @@
 @property (nonatomic) BOOL hideActions;
 
 @property (nonatomic, strong) PostActionsView *actionsView;
-@property (nonatomic, strong) UIView *bottomLine;
 
 - (void)setVoted:(BOOL)isVoted animated:(BOOL)animated;
 

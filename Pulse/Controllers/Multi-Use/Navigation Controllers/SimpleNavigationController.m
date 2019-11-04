@@ -23,38 +23,48 @@
 
 @implementation SimpleNavigationController
 
+- (instancetype)initWithRootViewController:(UIViewController *)rootViewController {
+    if (self = [super initWithRootViewController:rootViewController]) {
+        [self initDefaults];
+        
+        if ([rootViewController isKindOfClass:[ProfileViewController class]] ||
+            [rootViewController isKindOfClass:[CampViewController class]]) {
+            self.transparentOnLoad = true;
+            self.opaqueOnScroll = false;
+        }
+        if ([rootViewController isKindOfClass:[PostViewController class]]) {
+            self.opaqueOnScroll = true;
+        }
+    }
+    
+    return self;
+}
+
+- (void)initDefaults {
+    self.onScrollLowerBound = 12;
+    self.transparentOnLoad = false;
+    self.opaqueOnScroll = true;
+    self.shadowOnScroll = true;
+    self.foregroundBeforeScroll = nil;;
+}
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     
     [self setupNavigationBar];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userUpdated:) name:@"UserUpdated" object:nil];
 }
+
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
 
     if ([self isBeingPresented] || [self isMovingToParentViewController]) {
-        if (self.currentTheme == nil) {
-            self.currentTheme = [UIColor clearColor];
-        }
-        
         // Perform an action that will only be done once
         if (self.view.tag == VIEW_CONTROLLER_PUSH_TAG) {
             self.swiper = [[SloppySwiper alloc] initWithNavigationController:self];
             self.swiper.delegate = self;
             self.delegate = self.swiper;
         }
-    }
-}
-
-- (void)userUpdated:(NSNotification *)notification {
-    if ([self.navigationBar isTranslucent]) {
-        //UIColor *actionColor = [UIColor fromHex:[Session sharedInstance].currentUser.attributes.details.color];
-        //self.navigationBar.tintColor = actionColor;
-//        self.navigationItem.leftBarButtonItem.customView.tintColor = actionColor;
-//        self.navigationItem.rightBarButtonItem.customView.tintColor = actionColor;
-//        self.leftActionButton.tintColor = actionColor;
-//        self.rightActionButton.tintColor = actionColor;
     }
 }
 
@@ -67,35 +77,45 @@
 }
 
 - (void)setupNavigationBar {
-    self.navigationItem.leftMargin = 12;
-    self.navigationItem.rightMargin = 12;
-//    // setup items
+    self.navigationItem.leftMargin = 16;
+    self.navigationItem.rightMargin = 16;
+    
+    // setup items
     [self.navigationBar setTitleTextAttributes:
      @{NSForegroundColorAttributeName:[UIColor blackColor],
        NSFontAttributeName:[UIFont systemFontOfSize:18.f weight:UIFontWeightBold]}];
     
-//    self.titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.navigationBar.frame.size.width - (72 * 2), self.navigationBar.frame.size.height)];
-//    self.titleLabel.textColor = [UIColor bonfirePrimaryColor];
-//    self.titleLabel.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightBold];
-//    self.titleLabel.textAlignment = NSTextAlignmentLeft;
-//    [self.navigationItem setTitleView:self.titleLabel];
+    // remove hairline
+    [self.navigationBar setBackgroundImage:[UIImage new] forBarMetrics:UIBarMetricsDefault];
+    [self.navigationBar setShadowImage:[UIImage new]];
     
-    self.navigationBar.barStyle = UIBarStyleDefault;
-    self.navigationBar.shadowImage = [self imageWithColor:[UIColor clearColor]];
+    // set background color
+    [self.navigationBar setTranslucent:true];
+    [self.navigationBar setBarTintColor:[UIColor clearColor]];
+    
+    // add background color view
+    self.navigationBackgroundView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, [[[UIApplication sharedApplication] delegate] window].safeAreaInsets.top + self.navigationBar.frame.size.height)];
+    self.navigationBackgroundView.backgroundColor = [UIColor contentBackgroundColor];
+    self.navigationBackgroundView.layer.masksToBounds = false;
+    self.navigationBackgroundView.layer.shadowRadius = 2;
+    self.navigationBackgroundView.layer.shadowOffset = CGSizeMake(0, 1);
+    self.navigationBackgroundView.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.12].CGColor;
+    self.navigationBackgroundView.layer.shadowOpacity = 0;
+    [self.view insertSubview:self.navigationBackgroundView belowSubview:self.navigationBar];
+    
+    UIView *containerView = [[UIView alloc] initWithFrame:self.navigationBackgroundView.bounds];
+    containerView.clipsToBounds = true;
+    [self.navigationBackgroundView addSubview:containerView];
     
     self.bottomHairline = [[UIView alloc] initWithFrame:CGRectMake(0, self.navigationBar.frame.size.height, self.view.frame.size.width, (1 / [UIScreen mainScreen].scale))];
     self.bottomHairline.backgroundColor = [UIColor colorNamed:@"FullContrastColor"];
     self.bottomHairline.alpha = 0.12;
     [self.navigationBar addSubview:self.bottomHairline];
+    
+    if (self.currentTheme == nil) {
+        self.currentTheme = [UIColor clearColor];
+    }
 }
-
-/*
-- (void)setTitle:(NSString *)title {
-    [super setTitle:title];
-        
-    self.titleLabel.text = title;
-    [self.navigationItem setTitleView:self.titleLabel];
-}*/
 
 - (UIButton *)createActionButtonForType:(SNActionType)actionType {
     UIButton *button = [UIButton buttonWithType:UIButtonTypeSystem];
@@ -114,8 +134,6 @@
         userAvatar.tag = 10;
         button.frame = userAvatar.frame;
         [button addSubview:userAvatar];
-        
-        [[NSNotificationCenter defaultCenter] addObserver:userAvatar selector:@selector(userUpdated:) name:@"UserUpdated" object:nil];
     }
     else if (actionType == SNActionTypeCompose) {
         includeAction = true;
@@ -164,8 +182,7 @@
         [button.titleLabel setFont:[UIFont systemFontOfSize:18.f weight:UIFontWeightMedium]];
     }
     
-    CGFloat padding = 16;
-    button.frame = CGRectMake(0, 0, button.intrinsicContentSize.width + (padding * 2), self.navigationBar.frame.size.height);
+    button.frame = CGRectMake(0, 0, button.intrinsicContentSize.width, self.navigationBar.frame.size.height);
     
     if (includeAction) {
         [button bk_whenTapped:^{
@@ -261,7 +278,8 @@
         self.leftActionView = [self createActionButtonForType:actionType];
         UIBarButtonItem *item = [[UIBarButtonItem alloc] initWithCustomView:self.leftActionView];
         self.visibleViewController.navigationItem.leftBarButtonItem = item;
-        self.visibleViewController.navigationItem.leftMargin = 0;
+        self.visibleViewController.navigationItem.leftMargin = 16;
+        self.navigationItem.leftMargin = 16;
         
         self.leftActionView.tag = actionType;
     }
@@ -277,7 +295,8 @@
             self.rightActionView = [self createActionButtonForType:actionType];
             UIBarButtonItem *item = [[UIBarButtonItem alloc] initWithCustomView:self.rightActionView];
             self.visibleViewController.navigationItem.rightBarButtonItem = item;
-            self.visibleViewController.navigationItem.rightMargin = 0;
+            self.visibleViewController.navigationItem.rightMargin = 16;
+            self.navigationItem.rightMargin = 16;
             
             self.rightActionView.tag = actionType;
         }
@@ -305,16 +324,6 @@
     self.bottomHairline.alpha = 0.12;
 }
 
-- (void)makeTransparent {
-    self.navigationBar.translucent = true;
-    self.navigationBar.backgroundColor = [UIColor clearColor];
-    [self setShadowVisibility:true withAnimation:false];
-}
-- (void)makeDefault {
-    self.navigationBar.translucent = false;
-    self.navigationBar.backgroundColor = nil;
-    [self setShadowVisibility:false withAnimation:false];
-}
 - (UIImage *)imageWithColor:(UIColor *)color {
     CGRect rect = CGRectMake(0.0f, 0.0f, 1.0f, 0.5);
     const CGFloat alpha = CGColorGetAlpha(color.CGColor);
@@ -331,61 +340,94 @@
     return image;
 }
 
-- (void)updateBarColor:(id)background animated:(BOOL)animated {
+- (void)updateBarColor:(id _Nullable)background animated:(BOOL)animated {
     if ([background isKindOfClass:[NSString class]]) {
-        background = [UIColor fromHex:background adjustForDarkMode:false];
+        background = [UIColor fromHex:background adjustForOptimalContrast:false];
     }
 
     UIColor *foreground;
     UIColor *action;
-    if (background == nil || background == [UIColor clearColor]) {
+    
+    if (background == [UIColor clearColor]) {
+        [self setShadowVisibility:true withAnimation:false];
+        
         foreground = [UIColor bonfirePrimaryColor];
-        action = [UIColor bonfirePrimaryColor]; //[UIColor fromHex:[Session sharedInstance].currentUser.attributes.details.color];
+        action = [UIColor bonfirePrimaryColor]; //[UIColor fromHex:[Session sharedInstance].currentUser.attributes.color];
         background = [UIColor colorNamed:@"Navigation_ClearBackgroundColor"];
-        [self makeTransparent];
     }
     else {
-        if ([UIColor useWhiteForegroundForColor:background]) {
+        [self setShadowVisibility:false withAnimation:false];
+        
+        BOOL useLightForeground = [UIColor useWhiteForegroundForColor:background];
+        if (background == nil || background == [UIColor whiteColor]) {
+            background = [UIColor contentBackgroundColor];
+            action = [UIColor bonfirePrimaryColor]; //[UIColor fromHex:[UIColor toHex:self.view.tintColor] adjustForOptimalContrast:true];
+            foreground = [UIColor bonfirePrimaryColor];
+        }
+        else if (useLightForeground) {
             action =
             foreground = [UIColor whiteColor];
         }
         else {
             action =
-            foreground = [UIColor bonfirePrimaryColor];
+            foreground = [UIColor blackColor];
         }
-        [self makeDefault];
     }
     
-    [self.navigationBar setTitleTextAttributes:
-    @{NSForegroundColorAttributeName:foreground,
-      NSFontAttributeName:[UIFont systemFontOfSize:18.f weight:UIFontWeightBold]}];
-    
     [UIView animateWithDuration:animated?0.5f:0 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-        self.navigationBar.barTintColor = background;
+        [self.navigationBar setTitleTextAttributes:
+        @{NSForegroundColorAttributeName:foreground,
+          NSFontAttributeName:[UIFont systemFontOfSize:18.f weight:UIFontWeightBold]}];
+        self.navigationBackgroundView.backgroundColor = background;
         self.navigationBar.tintColor = action;
         self.leftActionView.tintColor = action;
         self.rightActionView.tintColor = action;
+        self.navigationItem.leftBarButtonItem.tintColor = action;
+        self.navigationItem.rightBarButtonItem.tintColor = action;
+        self.visibleViewController.navigationItem.leftBarButtonItem.tintColor = action;
+        self.visibleViewController.navigationItem.rightBarButtonItem.tintColor = action;
         self.navigationItem.leftBarButtonItem.customView.tintColor = action;
         self.navigationItem.rightBarButtonItem.customView.tintColor = action;
-        [self.navigationBar layoutIfNeeded];
+//        [self.navigationBar layoutIfNeeded];
         [self setNeedsStatusBarAppearanceUpdate];
-    } completion:nil];
+    } completion:^(BOOL finished) {
+        [self setNeedsStatusBarAppearanceUpdate];
+    }];
 }
 
 - (UIStatusBarStyle)preferredStatusBarStyle {
-    if ([UIColor useWhiteForegroundForColor:self.navigationBar.barTintColor]) {
+    if ([UIColor useWhiteForegroundForColor:self.navigationBackgroundView.backgroundColor]) {
         return UIStatusBarStyleLightContent;
     }
     else {
-        return UIStatusBarStyleDefault;
-        
-        /*
         if (@available(iOS 13.0, *)) {
             return UIStatusBarStyleDarkContent;
         } else {
             // Fallback on earlier versions
             return UIStatusBarStyleDefault;
-        }*/
+        }
+    }
+}
+
+- (void)childTableViewDidScroll:(UITableView *)tableView {        
+    CGFloat y = tableView.contentOffset.y + tableView.adjustedContentInset.top;
+    
+    CGFloat a = 0;
+    CGFloat b = self.onScrollLowerBound;
+        
+    CGFloat p = b < a ? 1 : (y - a) / (b - a);
+    if (p > 1) p = 1;
+    if (p < 0) p = 0;
+    
+    if (self.shadowOnScroll) {
+        self.navigationBackgroundView.layer.shadowOpacity = p * 0.8;
+    }
+    
+    if (!self.opaqueOnScroll) {
+        self.navigationBackgroundView.alpha = p;
+    }
+    else if (self.navigationBackgroundView.alpha != 1) {
+        self.navigationBackgroundView.alpha = 1;
     }
 }
 

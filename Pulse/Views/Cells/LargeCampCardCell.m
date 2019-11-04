@@ -22,6 +22,8 @@
 
 @implementation LargeCampCardCell
 
+@synthesize camp = _camp;
+
 - (id)init {
     if (self = [super init]) {
         [self setup];
@@ -134,7 +136,7 @@
             
             if ([self.followButton.status isEqualToString:CAMP_STATUS_MEMBER]) {
                 // confirm action
-                BOOL privateCamp = self.camp.attributes.status.visibility.isPrivate;
+                BOOL privateCamp = self.camp.attributes.visibility.isPrivate;
                 BOOL lastMember = self.camp.attributes.summaries.counts.members <= 1;
                 
                 void (^leave)(void) = ^(){
@@ -183,7 +185,7 @@
                  [self.followButton.status isEqualToString:CAMP_STATUS_INVITED] ||
                  self.followButton.status.length == 0) {
             // join the camp
-            if (self.camp.attributes.status.visibility.isPrivate &&
+            if (self.camp.attributes.visibility.isPrivate &&
                 ![self.followButton.status isEqualToString:CAMP_STATUS_INVITED]) {
                 [self.followButton updateStatus:CAMP_STATUS_REQUESTED];
             }
@@ -353,9 +355,9 @@
     if (camp != _camp) {
         _camp = camp;
         
-        self.tintColor = [UIColor fromHex:camp.attributes.details.color];
+        self.tintColor = [UIColor fromHex:camp.attributes.color];
         
-        self.campHeaderView.backgroundColor = [UIColor fromHex:camp.attributes.details.color];
+        self.campHeaderView.backgroundColor = [UIColor fromHex:camp.attributes.color];
         // set profile pictures
         for (NSInteger i = 0; i < 4; i++) {
             BFAvatarView *avatarView;
@@ -376,10 +378,10 @@
             }
         }
         
-        self.campTitleLabel.text = camp.attributes.details.title;
-        self.campTagLabel.text = [NSString stringWithFormat:@"#%@", camp.attributes.details.identifier];
-        self.campTagLabel.textColor = [UIColor fromHex:camp.attributes.details.color];
-        self.campDescriptionLabel.text = camp.attributes.details.theDescription;
+        self.campTitleLabel.text = camp.attributes.title;
+        self.campTagLabel.text = [NSString stringWithFormat:@"#%@", camp.attributes.identifier];
+        self.campTagLabel.textColor = [UIColor fromHex:camp.attributes.color];
+        self.campDescriptionLabel.text = camp.attributes.theDescription;
         
         self.profilePicture.camp = camp;
         
@@ -390,10 +392,7 @@
 }
 
 - (void)updateFollowButtonStatus {
-    if (self.camp.attributes.status.isBlocked) {
-        [self.followButton updateStatus:CAMP_STATUS_CAMP_BLOCKED];
-    }
-    else if (self.loading && self.camp.attributes.context == nil) {
+    if (self.loading && self.camp.attributes.context == nil) {
         [self.followButton updateStatus:CAMP_STATUS_LOADING];
     }
     else {

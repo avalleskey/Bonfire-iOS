@@ -44,7 +44,7 @@
         self.textView.textContainer.lineFragmentPadding = 0;
         self.textView.hidden = true;
 //        self.textView.keyboardAppearance = UIKeyboardAppearanceLight;
-        self.textView.placeholderColor = [UIColor colorWithRed:0.24 green:0.24 blue:0.26 alpha:0.3];
+        self.textView.placeholderColor = [[UIColor bonfirePrimaryColor] colorWithAlphaComponent:0.3];
         [self.contentView addSubview:self.textView];
         
         UIView *paddingView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 12, 26)];
@@ -78,14 +78,14 @@
         self.textView.frame = self.bounds;
     }
     else {
-        self.inputLabel.frame = CGRectMake(INPUT_CELL_LABEL_LEFT_PADDING, 0, INPUT_CELL_LABEL_WIDTH, (self.type == InputCellTypeTextField ? self.frame.size.height : 48));
+        self.inputLabel.frame = CGRectMake(INPUT_CELL_LABEL_LEFT_PADDING, 0, INPUT_CELL_LABEL_WIDTH, (self.type == InputCellTypeTextField ? self.frame.size.height : [InputCell baseHeight]));
         self.input.frame = CGRectMake(self.inputLabel.frame.origin.x + self.inputLabel.frame.size.width, 0, self.frame.size.width - (self.inputLabel.frame.origin.x + self.inputLabel.frame.size.width), self.frame.size.height);
         self.textView.frame = CGRectMake(self.inputLabel.frame.origin.x + self.inputLabel.frame.size.width, 0, self.frame.size.width - (self.inputLabel.frame.origin.x + self.inputLabel.frame.size.width), self.frame.size.height);
         self.charactersRemainingLabel.frame = CGRectMake(self.textView.frame.origin.x + INPUT_CELL_TEXTVIEW_INSETS.left, self.frame.size.height - INPUT_CELL_TEXTVIEW_INSETS.bottom - 12, self.textView.frame.size.width - (INPUT_CELL_TEXTVIEW_INSETS.left + INPUT_CELL_TEXTVIEW_INSETS.right), 12);
     }
     
     if (![self.lineSeparator isHidden]) {
-        self.lineSeparator.frame = CGRectMake(0, self.frame.size.height - self.lineSeparator.frame.size.height, self.frame.size.width, self.lineSeparator.frame.size.height);
+        self.lineSeparator.frame = CGRectMake(self.lineSeparator.frame.origin.x, self.frame.size.height - self.lineSeparator.frame.size.height, self.frame.size.width - self.lineSeparator.frame.origin.x, self.lineSeparator.frame.size.height);
     }
 }
 
@@ -111,6 +111,10 @@
             self.textView.hidden = false;
         }
     }
+}
+
++ (CGFloat)baseHeight {
+    return 52;
 }
 
 @end

@@ -15,6 +15,7 @@
 #import "ComposeViewController.h"
 #import "UIImage+fixOrientation.h"
 #import "CampViewController.h"
+#import "UIColor+Palette.h"
 @import Firebase;
 
 @interface BFAPI ()
@@ -49,7 +50,7 @@
 #pragma mark - User
 + (void)getUser:(void (^)(BOOL success))handler {
     NSString *url = @"users/me";
-    
+        
     [[HAWebService authenticatedManager] GET:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSError *error;
         
@@ -128,7 +129,7 @@
         NSLog(@"success: blockUser");
         NSLog(@"--------");
         
-        handler(true, @{@"blocked": @false});
+        handler(true, @{@"blocked": @true});
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         NSLog(@"error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);
         NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
@@ -141,9 +142,9 @@
     [FIRAnalytics logEventWithName:@"unblock_user"
                         parameters:@{}];
     
-    NSString *url = [NSString stringWithFormat:@"users/%@/unblock", user.identifier]; // sample data
+    NSString *url = [NSString stringWithFormat:@"users/%@/block", user.identifier]; // sample data
     
-    [[HAWebService authenticatedManager] POST:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+    [[HAWebService authenticatedManager] DELETE:url parameters:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSLog(@"--------");
         NSLog(@"success: unblockUser");
         NSLog(@"--------");
@@ -176,7 +177,9 @@
         NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
         NSLog(@"%@",ErrorResponse);
         
-        handler(false, @{@"error": ErrorResponse});
+        handler(true, @{@"reported": @true});
+        // TODO: Uncomment and remove the above line, once this exists on the backend
+//        handler(false, @{@"error": ErrorResponse});
     }];
 }
 + (void)subscribeToUser:(User *_Nonnull)user completion:(void (^_Nullable)(BOOL success, User *_Nullable user))handler {
@@ -235,6 +238,61 @@
     }];
 }
 
+#pragma mark - Bot
++ (void)addBot:(Bot *_Nonnull)bot toCamp:(Camp *)camp completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler {
+    [FIRAnalytics logEventWithName:@"add_bot_to_camp"
+                        parameters:@{}];
+    
+    NSString *url = [NSString stringWithFormat:@"users/%@/add", bot.identifier]; // sample data
+    
+    [[HAWebService authenticatedManager] POST:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        handler(true, @{@"blocked": @true});
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+        handler(false, @{@"error": ErrorResponse});
+    }];
+}
++ (void)reportBot:(Bot *_Nonnull)bot completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler {
+    [FIRAnalytics logEventWithName:@"report_bot"
+                            parameters:@{}];
+        
+    NSString *url = [NSString stringWithFormat:@"users/%@/report", bot.identifier]; // sample data
+        
+    [[HAWebService authenticatedManager] POST:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        handler(true, @{@"reported": @true});
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        handler(true, @{@"reported": @true});
+        // TODO: Uncomment and remove the above line, once this exists on the backend
+//        NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+//        handler(false, @{@"error": ErrorResponse});
+    }];
+}
++ (void)blockBot:(Bot *_Nonnull)bot completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler {
+    [FIRAnalytics logEventWithName:@"block_bot"
+                        parameters:@{}];
+    
+    NSString *url = [NSString stringWithFormat:@"users/%@/block", bot.identifier]; // sample data
+    
+    [[HAWebService authenticatedManager] POST:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        handler(true, @{@"blocked": @true});
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+        handler(false, @{@"error": ErrorResponse});
+    }];
+}
++ (void)unblockBot:(Bot *_Nonnull)bot completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler {
+    [FIRAnalytics logEventWithName:@"unblock_bot"
+                        parameters:@{}];
+    
+    NSString *url = [NSString stringWithFormat:@"users/%@/block", bot.identifier]; // sample data
+    
+    [[HAWebService authenticatedManager] DELETE:url parameters:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        handler(true, @{@"blocked": @false});
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+        handler(false, @{@"error": ErrorResponse});
+    }];
+}
 
 #pragma mark - Camp
 + (void)followCamp:(Camp *)camp completion:(void (^ _Nullable)(BOOL success, id responseObject))handler {
@@ -266,13 +324,13 @@
                     
                     if ([r.attributes.context.camp.status isEqualToString:CAMP_STATUS_MEMBER]) {
                         r.attributes.summaries.counts.members = r.attributes.summaries.counts.members + 1;
-                    }
-                    
-                    if (r.attributes.summaries.members.count < 6) {
-                        // add yourself as a user, so we can update the canvas pic!
-                        NSMutableArray <User *><User, Optional> *mutableSummariesMembersArray = [r.attributes.summaries.members mutableCopy];
-                        [mutableSummariesMembersArray addObject:[Session sharedInstance].currentUser];
-                        r.attributes.summaries.members = mutableSummariesMembersArray;
+                        
+                        if (r.attributes.summaries.members.count < 6) {
+                            // add yourself as a user, so we can update the canvas pic!
+                            NSMutableArray <User *><User, Optional> *mutableSummariesMembersArray = [r.attributes.summaries.members mutableCopy];
+                            [mutableSummariesMembersArray addObject:[Session sharedInstance].currentUser];
+                            r.attributes.summaries.members = mutableSummariesMembersArray;
+                        }
                     }
                 }
                 
@@ -285,11 +343,11 @@
                 
                 if ([[Launcher activeViewController] isKindOfClass:[CampViewController class]]) {
                     if ([responseObject[@"data"][@"prompt"] objectForKey:@"type"] && [[NSString stringWithFormat:@"%@", responseObject[@"data"][@"prompt"][@"type"]] isEqualToString:@"post"]) {
-                        BFTipObject *tipObject = [BFTipObject tipWithCreatorType:BFTipCreatorTypeCamp creator:r title:[NSString stringWithFormat:@"Welcome to the Camp! 👋"] text:@"Help others in the Camp get to know you better! Tap here to answer the Camp Icebreaker" action:^{
+                        BFTipObject *tipObject = [BFTipObject tipWithCreatorType:BFTipCreatorTypeCamp creator:r title:[NSString stringWithFormat:@"Welcome to the Camp! 👋"] text:@"Help others in the Camp get to know you better! Tap here to answer the Camp Icebreaker" cta:nil imageUrl:nil action:^{
                             Post *post = [[Post alloc] initWithDictionary:responseObject[@"data"][@"prompt"] error:nil];
                             
                             ComposeViewController *epvc = [[ComposeViewController alloc] init];
-                            epvc.postingIn = post.attributes.status.postedIn;
+                            epvc.postingIn = post.attributes.postedIn;
                             epvc.replyingTo = post;
                             epvc.replyingToIcebreaker = true;
                             
@@ -298,7 +356,7 @@
                             [newNavController setLeftAction:SNActionTypeCancel];
                             [newNavController setRightAction:SNActionTypeShare];
                             newNavController.view.tintColor = epvc.view.tintColor;
-                            newNavController.currentTheme = [UIColor whiteColor];
+                            newNavController.currentTheme = [UIColor contentBackgroundColor];
                             [Launcher present:newNavController animated:YES];
                         }];
                         [[BFTipsManager manager] presentTip:tipObject completion:^{
@@ -386,7 +444,7 @@
     // --> This will place a temporary post at the top of related streams
     // --> Once the post has been created, we send a notification telling the View Controllers to remove the temporary post and replace it with the new post
     Post *tempPost = [[Post alloc] init];
-    [tempPost createTempWithMessage:params[@"message"] media:params[@"media"] postedIn:postingIn parentId:replyingTo.identifier];
+    [tempPost createTempWithMessage:params[@"message"] media:params[@"media"] postedIn:postingIn parent:replyingTo];
     [[NSNotificationCenter defaultCenter] postNotificationName:@"NewPostBegan" object:tempPost];
     
     [self uploadImages:params[@"media"] copmletion:^(BOOL imageSuccess, NSArray *images) {

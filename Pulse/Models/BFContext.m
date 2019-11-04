@@ -33,7 +33,6 @@ NSString * const CAMP_STATUS_LEFT = @"left";
 NSString * const CAMP_STATUS_BLOCKED = @"blocked";
 NSString * const CAMP_STATUS_NO_RELATION = @"none";
 //
-NSString * const CAMP_STATUS_CAMP_BLOCKED = @"camp_blocked";
 NSString * const CAMP_STATUS_LOADING = @"loading";
 
 // camp role
@@ -115,6 +114,15 @@ NSString * const CAMP_ROLE_ADMIN = @"admin";
 }
 - (BOOL)replyContainsMediaType:(NSString *)mediaType {
     return [self.reply containsObject:mediaType];
+}
+
+@end
+
+@implementation BFContextCampPermissionsMembers
+
++ (BOOL)propertyIsOptional:(NSString*)propertyName
+{
+    return YES; // all are optional
 }
 
 @end

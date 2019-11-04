@@ -65,12 +65,15 @@
     }
     if ([rowId isEqualToString:@"change_password"]) {
         // push change password
-        ChangePasswordTableViewController *changePasswordTableVC = [[ChangePasswordTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
+        ChangePasswordTableViewController *changePasswordTableVC = [[ChangePasswordTableViewController alloc] init];
         [Launcher push:changePasswordTableVC animated:YES];
+    }
+    if ([rowId isEqualToString:@"share_profile"]) {
+        [Launcher shareUser:[Session sharedInstance].currentUser];
     }
     if ([rowId isEqualToString:@"notifications"]) {
         // push notifications settings
-        NotificationsSettingsTableViewController *notificationsTableVC = [[NotificationsSettingsTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
+        NotificationsSettingsTableViewController *notificationsTableVC = [[NotificationsSettingsTableViewController alloc] init];
         [Launcher push:notificationsTableVC animated:YES];
     }
     if ([rowId isEqualToString:@"get_help"]) {
@@ -92,7 +95,7 @@
     }
     if ([rowId isEqualToString:@"legal"]) {
         // push legal
-        LegalTableViewController *legalTableVC = [[LegalTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
+        LegalTableViewController *legalTableVC = [[LegalTableViewController alloc] init];
         [Launcher push:legalTableVC animated:YES];
     }
     if ([rowId isEqualToString:@"sign_out"]) {

@@ -27,7 +27,6 @@
 
 @property (nonatomic, strong) UserListStream *stream;
 
-@property (nonatomic) BOOL loadingUsers;
 @property (nonatomic) BOOL loadingMoreUsers;
 
 @property (nonatomic, strong) NSMutableArray <NSString *> *selectedMembers;
@@ -46,12 +45,15 @@ static NSString * const memberCellIdentifier = @"MemberCell";
     self.view.backgroundColor = [UIColor contentBackgroundColor];
     
     self.title = [NSString stringWithFormat:@"Add %@", ([self.managerType isEqualToString:CAMP_ROLE_ADMIN] ? @"Directors" : @"Managers")];
-    self.view.tintColor = [UIColor fromHex:self.camp.attributes.details.color];
+    self.view.tintColor = [UIColor fromHex:self.camp.attributes.color];
     self.navigationController.view.tintColor = self.view.tintColor;
+    
+    self.theme = self.view.tintColor;
     
     [self setupNavigationBar];
     [self setupTableView];
     [self setupErrorView];
+    [self setSpinning:true];
     
     self.selectedMembers = [[NSMutableArray alloc] init];
     [self getMembersWithCursorType:StreamPagingCursorTypeNone];
@@ -63,12 +65,14 @@ static NSString * const memberCellIdentifier = @"MemberCell";
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     
-    self.tableView.backgroundColor = [UIColor viewBackgroundColor];
+    self.tableView.backgroundColor = [UIColor contentBackgroundColor];
 }
 
 - (void)setupNavigationBar {
+    UIColor *buttonColor = [UIColor fromHex:[UIColor toHex:self.view.tintColor] adjustForOptimalContrast:true];
+    
     self.cancelButton = [[UIBarButtonItem alloc] initWithTitle:@"Cancel" style:UIBarButtonItemStylePlain target:self action:@selector(dismiss)];
-    [self.cancelButton setTintColor:self.view.tintColor];
+    [self.cancelButton setTintColor:buttonColor];
     [self.cancelButton setTitleTextAttributes:@{
                                                 NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightMedium]
                                                 } forState:UIControlStateNormal];
@@ -81,7 +85,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
         [self save];
     }];
     self.saveButton.enabled = false;
-    [self.saveButton setTintColor:self.view.tintColor];
+    [self.saveButton setTintColor:buttonColor];
     [self.saveButton setTitleTextAttributes:@{
                                               NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightBold]
                                               } forState:UIControlStateDisabled];
@@ -126,15 +130,12 @@ static NSString * const memberCellIdentifier = @"MemberCell";
         [params setObject:nextCursor forKey:@"cursor"];
     }
     else {
-        self.loadingUsers = true;
+        self.loading = true;
     }
     
     // types of members to show
     NSString *filterTypes = [NSString stringWithFormat:@"member,%@", [self.managerType isEqualToString:CAMP_ROLE_ADMIN] ? @"moderator" : @"admin"];
     [params setObject:filterTypes forKey:@"filter_types"];
-    
-    NSLog(@"GET -> %@", url);
-    NSLog(@"params: %@", params);
     
     [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         UserListStreamPage *page = [[UserListStreamPage alloc] initWithDictionary:responseObject error:nil];
@@ -150,7 +151,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
             [self.stream appendPage:page];
         }
         
-        self.loadingUsers = false;
+        self.loading = false;
         
         if (self.stream.users.count == 0) {
             [self showNoMembersView];
@@ -158,7 +159,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
         else {
             [self hideNoMembersView];
         }
-        
+                
         [self.tableView reloadData];
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         NSLog(@"AddManagerTableViewController / getMembers() - error: %@", error);
@@ -166,7 +167,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
         if (nextCursor.length > 0) {
             [self.stream removeLoadedCursor:nextCursor];
         }
-        self.loadingUsers = false;
+        self.loading = false;
         
         [self.tableView reloadData];
     }];
@@ -183,7 +184,9 @@ static NSString * const memberCellIdentifier = @"MemberCell";
 }
 
 - (void)setupErrorView {
-    self.errorView = [[ErrorView alloc] initWithFrame:CGRectMake(16, 0, self.view.frame.size.width - 32, 100) title:@"No Members Available" description:[NSString stringWithFormat:@"Have others join the Camp before assigning them %@", [self.managerType isEqualToString:CAMP_ROLE_ADMIN] ? @"Directors" : @"Managers"] type:ErrorViewTypeGeneral];
+    BFVisualError *visualError = [BFVisualError visualErrorOfType:ErrorViewTypeGeneral title:@"No Members Available" description:[NSString stringWithFormat:@"Have others join the Camp before assigning them %@", [self.managerType isEqualToString:CAMP_ROLE_ADMIN] ? @"Directors" : @"Managers"] actionTitle:nil actionBlock:nil];
+    
+    self.errorView = [[BFVisualErrorView alloc] initWithVisualError:visualError];
     self.errorView.center = CGPointMake(self.view.frame.size.width / 2, (self.tableView.frame.size.height - self.tableView.safeAreaInsets.bottom) / 2);
     self.errorView.hidden = true;
     [self.tableView addSubview:self.errorView];
@@ -236,7 +239,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
 - (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
     if (section == 0) {
         BOOL hasAnotherPage = self.stream.pages.count > 0 && self.stream.nextCursor.length > 0;
-        BOOL showLoadingFooter = self.loadingUsers || ((self.loadingMoreUsers || hasAnotherPage) && ![self.stream hasLoadedCursor:self.stream.nextCursor]);
+        BOOL showLoadingFooter = self.loading || ((self.loadingMoreUsers || hasAnotherPage) && ![self.stream hasLoadedCursor:self.stream.nextCursor]);
         
         return showLoadingFooter ? 52 : 0;
     }
@@ -247,7 +250,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
     if (section == 0) {
         // last row
         BOOL hasAnotherPage = self.stream.pages.count > 0 && self.stream.nextCursor.length > 0;
-        BOOL showLoadingFooter = self.loadingUsers || ((self.loadingMoreUsers || hasAnotherPage) && ![self.stream hasLoadedCursor:self.stream.nextCursor]);
+        BOOL showLoadingFooter = self.loading || ((self.loadingMoreUsers || hasAnotherPage) && ![self.stream hasLoadedCursor:self.stream.nextCursor]);
         
         if (showLoadingFooter) {
             UIView *footer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 52)];
@@ -277,12 +280,14 @@ static NSString * const memberCellIdentifier = @"MemberCell";
         cell = [[SearchResultCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:memberCellIdentifier];
     }
     
+    cell.backgroundColor = [UIColor contentBackgroundColor];
+    
     // member cell
     User *user = self.stream.users[indexPath.row];
     cell.profilePicture.user = user;
     
-    NSMutableAttributedString *attributedCreatorName = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"%@", user.attributes.details.displayName] attributes:@{NSForegroundColorAttributeName: [UIColor bonfirePrimaryColor], NSFontAttributeName: [UIFont systemFontOfSize:cell.textLabel.font.pointSize weight:UIFontWeightSemibold]}];
-    NSAttributedString *usernameString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@" @%@", user.attributes.details.identifier] attributes:@{NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor], NSFontAttributeName: [UIFont systemFontOfSize:cell.textLabel.font.pointSize weight:UIFontWeightRegular]}];
+    NSMutableAttributedString *attributedCreatorName = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"%@", user.attributes.displayName] attributes:@{NSForegroundColorAttributeName: [UIColor bonfirePrimaryColor], NSFontAttributeName: [UIFont systemFontOfSize:cell.textLabel.font.pointSize weight:UIFontWeightSemibold]}];
+    NSAttributedString *usernameString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@" @%@", user.attributes.identifier] attributes:@{NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor], NSFontAttributeName: [UIFont systemFontOfSize:cell.textLabel.font.pointSize weight:UIFontWeightRegular]}];
     [attributedCreatorName appendAttributedString:usernameString];
     cell.textLabel.attributedText = attributedCreatorName;
     
@@ -356,9 +361,6 @@ static NSString * const memberCellIdentifier = @"MemberCell";
                 });
             }
         } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-            NSLog(@"AddManagerTableViewController / save() - error: %@", error);
-            NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-            NSLog(@"errorResponse: %@", ErrorResponse);
             
             [completedMembers addObject:params[@"user_id"]];
             if (completedMembers.count == self.selectedMembers.count) {

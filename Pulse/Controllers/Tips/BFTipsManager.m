@@ -52,7 +52,7 @@
 - (void)presentTipView:(BFTipView *)tipView completion:(void (^ __nullable)(void))completion {
     self.presenting = true;
     
-    CGFloat yTop = [UIScreen mainScreen].bounds.size.height;
+    CGFloat yTop;
     CGFloat tipViewHeight = tipView.frame.size.height;
     CGFloat safeAreaInsetBottom = [[[UIApplication sharedApplication] delegate] window].safeAreaInsets.bottom;
     
@@ -99,6 +99,9 @@
         tipView.center = CGPointMake([UIScreen mainScreen].bounds.size.width / 2, yTop + (tipViewHeight / 2));
     } completion:^(BOOL finished) {
         
+    }];
+    [tipView.closeButton bk_whenTapped:^{
+        [[BFTipsManager manager] hideAllTips];
     }];
     [HapticHelper generateFeedback:FeedbackType_Impact_Medium];
 }

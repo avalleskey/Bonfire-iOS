@@ -9,6 +9,7 @@
 #import <UIKit/UIKit.h>
 #import "Camp.h"
 #import "Post.h"
+#import "ThemedTableViewController.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -21,7 +22,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @end
 
-@interface SetAnIcebreakerViewController : UITableViewController
+@interface SetAnIcebreakerViewController : ThemedTableViewController <UITableViewDataSource, UITableViewDelegate>
 
 @property (nonatomic, strong) Camp *camp;
 

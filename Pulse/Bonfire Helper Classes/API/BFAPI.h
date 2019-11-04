@@ -8,8 +8,9 @@
 
 #import <Foundation/Foundation.h>
 #import "Post.h"
-#import "Camp.h"
 #import "User.h"
+#import "Bot.h"
+#import "Camp.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -24,6 +25,12 @@ NS_ASSUME_NONNULL_BEGIN
 + (void)unblockUser:(User *_Nonnull)user completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
 + (void)subscribeToUser:(User *_Nonnull)user completion:(void (^_Nullable)(BOOL success, User *_Nullable user))handler;
 + (void)unsubscribeFromUser:(User *_Nonnull)user completion:(void (^_Nullable)(BOOL success, User *_Nullable user))handler;
+
+#pragma mark - Bot
++ (void)addBot:(Bot *_Nonnull)bot toCamp:(Camp *)camp completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
++ (void)reportBot:(Bot *_Nonnull)bot completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
++ (void)blockBot:(Bot *_Nonnull)bot completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
++ (void)unblockBot:(Bot *_Nonnull)bot completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
 
 #pragma mark - Camp
 + (void)followCamp:(Camp *_Nonnull)camp completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;

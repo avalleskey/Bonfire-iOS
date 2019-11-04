@@ -37,7 +37,6 @@ typedef enum {
 @property (nonatomic, strong) UIButton *leftActionButton;
 @property (nonatomic, strong) UIButton *rightActionButton;
 
-@property (nonatomic, strong) UIView *shadowView;
 @property (nonatomic, strong) UIView *navigationBackgroundView;
 
 - (void)goBack;
@@ -54,5 +53,12 @@ typedef enum {
 @property (nonatomic, strong) UIColor *currentTheme;
 
 @property (nonatomic) CGFloat currentKeyboardHeight;
+
+@property (nonatomic) BOOL transparentOnLoad;
+
+@property (nonatomic) CGFloat onScrollLowerBound;
+@property (nonatomic) BOOL shadowOnScroll;
+@property (nonatomic) BOOL opaqueOnScroll;
+- (void)childTableViewDidScroll:(UITableView *)tableView;
     
 @end

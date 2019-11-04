@@ -7,20 +7,14 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "Camp.h"
-#import <SDWebImage/UIImageView+WebCache.h>
-#import "BFAvatarView.h"
+#import "CampCardCell.h"
 #import "BFDetailsCollectionView.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 #define MEDIUM_CARD_HEIGHT 296
 
-@interface MediumCampCardCell : UICollectionViewCell
-
-@property (nonatomic) BOOL loading;
-
-@property (nonatomic, strong) Camp *camp;
+@interface MediumCampCardCell : CampCardCell
 
 @property (nonatomic, strong) UIView *campHeaderView;
 

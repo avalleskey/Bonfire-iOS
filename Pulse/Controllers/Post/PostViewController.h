@@ -10,13 +10,11 @@
 #import "Session.h"
 #import "Post.h"
 #import "ComposeInputView.h"
-#import <Messages/Messages.h>
-#import <MessageUI/MessageUI.h>
 #import "ThemedViewController.h"
 #import "PostStream.h"
 #import "TappableView.h"
 
-@interface PostViewController : ThemedViewController <ComposeInputViewDelegate, MFMessageComposeViewControllerDelegate, UITableViewDelegate, UITableViewDataSource>
+@interface PostViewController : ThemedViewController <ComposeInputViewDelegate, UITableViewDelegate, UITableViewDataSource, UIContextMenuInteractionDelegate>
 
 @property (nonatomic, strong) Post *parentPost;
 @property (nonatomic, strong) Post *post;
@@ -27,7 +25,9 @@
 @property (nonatomic, strong) TappableView *parentPostScrollIndicator;
 
 @property (nonatomic) CGFloat currentKeyboardHeight;
+@property (nonatomic) CGRect currentKeyboardFrame;
 
 @property (nonatomic) BOOL showKeyboardOnOpen;
+@property (nonatomic) BOOL isPreview;
 
 @end

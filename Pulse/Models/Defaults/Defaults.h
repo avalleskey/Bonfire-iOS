@@ -10,14 +10,13 @@
 
 @class Defaults;
 @class DefaultsKeywords;
-@class DefaultsKeywordsGroupTitles;
 @class DefaultsKeywordsViewTitles;
-@class DefaultsProfile;
 @class DefaultsPost;
-@class DefaultsPostMaxLength;
-@class DefaultsSharing;
+@class DefaultsPostImgHeight;
 @class DefaultsCamp;
-@class DefaultsCampMembersTitle;
+@class DefaultsFeed;
+@class DefaultsFeedMotd;
+@class DefaultsFeedMotdCta;
 @class DefaultsLogging;
 @class DefaultsLoggingInsights;
 @class DefaultsLoggingInsightsImpressions;
@@ -27,28 +26,19 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @interface Defaults : JSONModel
-
+ 
 @property (nonatomic) DefaultsKeywords <Optional> *keywords;
 @property (nonatomic) DefaultsLogging <Optional> *logging;
 @property (nonatomic) NSDictionary <Optional> *notifications;
 @property (nonatomic) DefaultsPost <Optional> *post;
-@property (nonatomic) DefaultsProfile <Optional> *profile;
 @property (nonatomic) DefaultsCamp <Optional> *camp;
-@property (nonatomic) DefaultsSharing <Optional> *sharing;
+@property (nonatomic) DefaultsFeed <Optional> *feed;
 
 @end
 
 @interface DefaultsKeywords : JSONModel
 
-@property (nonatomic) DefaultsKeywordsGroupTitles <Optional> *groupTitles;
 @property (nonatomic) DefaultsKeywordsViewTitles <Optional> *viewTitles;
-
-@end
-
-@interface DefaultsKeywordsGroupTitles : JSONModel
-
-@property (nonatomic) NSString <Optional> *singular;
-@property (nonatomic) NSString <Optional> *plural;
 
 @end
 
@@ -61,48 +51,47 @@ NS_ASSUME_NONNULL_BEGIN
 
 @end
 
-@interface DefaultsProfile : JSONModel
-
-@property (nonatomic) NSString <Optional> *followVerb;
-@property (nonatomic) NSString <Optional> *followingVerb;
-
-@end
-
 @interface DefaultsPost : JSONModel
 
-@property (nonatomic) NSInteger imgHeight;
-@property (nonatomic) DefaultsPostMaxLength <Optional> *maxLength;
-@property (nonatomic) NSString <Optional> *composePrompt;
+@property (nonatomic) DefaultsPostImgHeight <Optional> *imgHeight;
+@property (nonatomic) NSInteger maxLength;
 
 @end
 
-@interface DefaultsPostMaxLength : JSONModel
+@interface DefaultsPostImgHeight : JSONModel
 
-@property (nonatomic) NSInteger hard;
-@property (nonatomic) NSInteger soft;
-
-@end
-
-@interface DefaultsSharing : JSONModel
-
-@property (nonatomic) NSString <Optional> *sharePost;
-@property (nonatomic) NSString <Optional> *shareCamp;
+@property (nonatomic) NSInteger min;
+@property (nonatomic) NSInteger max;
 
 @end
 
 @interface DefaultsCamp : JSONModel
 
-@property (nonatomic) NSString <Optional> *followVerb;
-@property (nonatomic) NSString <Optional> *followingVerb;
-@property (nonatomic) DefaultsCampMembersTitle <Optional> *membersTitle;
-@property (nonatomic) NSInteger liveThreshold;
+@property (nonatomic) NSInteger scoreThreshold;
+@property (nonatomic) NSInteger membersThreshold; // Number of members required to "start" a (default format) public Camp
 
 @end
 
-@interface DefaultsCampMembersTitle : JSONModel
+@interface DefaultsFeed : JSONModel
 
-@property (nonatomic) NSString <Optional> *singular;
-@property (nonatomic) NSString <Optional> *plural;
+@property (nonatomic) DefaultsFeedMotd <Optional> *motd;
+
+@end
+
+@interface DefaultsFeedMotd : JSONModel
+
+@property (nonatomic) NSString <Optional> *title;
+@property (nonatomic) NSString <Optional> *text;
+@property (nonatomic) NSString <Optional> *imageUrl;
+@property (nonatomic) DefaultsFeedMotdCta <Optional> *cta;
+
+@end
+
+@interface DefaultsFeedMotdCta : JSONModel
+
+@property (nonatomic) NSString <Optional> *type;
+@property (nonatomic) NSString <Optional> *actionUrl;
+@property (nonatomic) NSString <Optional> *displayText;
 
 @end
 

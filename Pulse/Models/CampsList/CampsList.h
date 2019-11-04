@@ -28,6 +28,16 @@ NS_ASSUME_NONNULL_BEGIN
 @interface CampsListAttributes : JSONModel
 
 @property (nonatomic) NSString <Optional> *title;
+@property (nonatomic) BOOL isNew;
+
+extern NSString * const CAMPS_LIST_ICON_TYPE_STAR;
+extern NSString * const CAMPS_LIST_ICON_TYPE_TRENDING;
+extern NSString * const CAMPS_LIST_ICON_TYPE_HEART;
+extern NSString * const CAMPS_LIST_ICON_TYPE_HAPPENING;
+extern NSString * const CAMPS_LIST_ICON_TYPE_LOCATION;
+extern NSString * const CAMPS_LIST_ICON_TYPE_CLOCK;
+@property (nonatomic) NSString <Optional> *icon;
+
 @property (nonatomic) NSArray <Camp *> <Camp, Optional> *camps;
 
 @end

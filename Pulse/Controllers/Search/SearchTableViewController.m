@@ -22,14 +22,14 @@
 #import "SearchNavigationController.h"
 #import "ComplexNavigationController.h"
 #import "NSString+Validation.h"
-#import "ErrorView.h"
+#import "BFVisualErrorView.h"
 @import Firebase;
 
 @interface SearchTableViewController ()
 
 @property (nonatomic, strong) NSMutableArray *searchResults;
 @property (nonatomic, strong) NSMutableArray *recentSearchResults;
-@property (nonatomic, strong) ErrorView *errorView;
+@property (nonatomic, strong) BFVisualErrorView *errorView;
 
 @end
 
@@ -70,7 +70,9 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
 }
 
 - (void)setupErrorView {
-    self.errorView = [[ErrorView alloc] initWithFrame:CGRectMake(16, 0, self.view.frame.size.width - 32, 100) title:@"No Results Found" description:@"" type:ErrorViewTypeNotFound];
+    BFVisualError *visualError = [BFVisualError visualErrorOfType:ErrorViewTypeNotFound title:@"No Results Found" description:nil actionTitle:nil actionBlock:nil];
+    
+    self.errorView = [[BFVisualErrorView alloc] initWithVisualError:visualError];
     self.errorView.center = CGPointMake(self.view.frame.size.width / 2, (self.tableView.frame.size.height - self.tableView.adjustedContentInset.top - self.tableView.adjustedContentInset.bottom) / 2);
     self.errorView.hidden = true;
     [self.tableView addSubview:self.errorView];
@@ -189,12 +191,14 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
         // Error: No posts yet!
         self.errorView.hidden = false;
         
-        [self.errorView updateType:ErrorViewTypeNotFound title:@"No Results Found" description:nil actionTitle:nil actionBlock:nil];
+        BFVisualError *visualError = [BFVisualError visualErrorOfType:ErrorViewTypeNotFound title:@"No Results Found" description:nil actionTitle:nil actionBlock:nil];
+        self.errorView.visualError = visualError;
     }
     else if (searchText.length == 0 && [self tableView:self.tableView numberOfRowsInSection:0] == 0) {
         self.errorView.hidden = false;
         
-        [self.errorView updateType:ErrorViewTypeSearch title:@"Start typing..." description:nil actionTitle:nil actionBlock:nil];
+        BFVisualError *visualError = [BFVisualError visualErrorOfType:ErrorViewTypeSearch title:@"Start typing..." description:nil actionTitle:nil actionBlock:nil];
+        self.errorView.visualError = visualError;
     }
     else {
         self.errorView.hidden = true;
@@ -270,9 +274,6 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
             cell = [[SearchResultCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:reuseIdentifier];
         }
         
-        // -- Type --
-        int type = 0;
-        
         NSDictionary *json;
         // mix of types
         if (indexPath.section == 0) {
@@ -283,30 +284,27 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
             json = self.searchResults[indexPath.row];
             cell.lineSeparator.hidden = (indexPath.row == self.searchResults.count - 1);
         }
-        if (json[@"type"]) {
-            if ([json[@"type"] isEqualToString:@"camp"]) {
-                type = 1;
-            }
-            else if ([json[@"type"] isEqualToString:@"user"]) {
-                type = 2;
-            }
-        }
         
-        if (type == 0) {
-            // 0 = page inside Home (e.g. Timeline, My Camps, Trending)
-            cell.textLabel.text = @"Page";
-            cell.imageView.image = [UIImage new];
-            cell.imageView.backgroundColor = [UIColor blueColor];
-        }
-        else if (type == 1) {
+        if ([json[@"type"] isEqualToString:@"camp"]) {
             NSError *error;
             Camp *camp = [[Camp alloc] initWithDictionary:json error:&error];
             cell.camp = camp;
         }
-        else {
+        else if ([json[@"type"] isEqualToString:@"user"]) {
             NSError *error;
             User *user = [[User alloc] initWithDictionary:json error:&error];
             cell.user = user;
+        }
+        else if ([json[@"type"] isEqualToString:@"bot"]) {
+            NSError *error;
+            Bot *bot = [[Bot alloc] initWithDictionary:json error:&error];
+            cell.bot = bot;
+        }
+        else {
+            // 0 = page inside Home (e.g. Timeline, My Camps, Trending)
+            cell.textLabel.text = @"";
+            cell.imageView.image = [UIImage new];
+            cell.imageView.backgroundColor = [UIColor blueColor];
         }
         
         return cell;
@@ -359,9 +357,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
             Camp *camp = [[Camp alloc] init];
             camp.type = @"camp";
             CampAttributes *attributes = [[CampAttributes alloc] init];
-            CampDetails *details = [[CampDetails alloc] init];
-            details.identifier = [searchText stringByReplacingOccurrencesOfString:@"#" withString:@""];
-            attributes.details = details;
+            attributes.identifier = [searchText stringByReplacingOccurrencesOfString:@"#" withString:@""];
             camp.attributes = attributes;
             
             [Launcher openCamp:camp];
@@ -372,9 +368,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
             User *user = [[User alloc] init];
             user.type = @"user";
             UserAttributes *attributes = [[UserAttributes alloc] init];
-            UserDetails *details = [[UserDetails alloc] init];
-            details.identifier = [searchText stringByReplacingOccurrencesOfString:@"@" withString:@""];
-            attributes.details = details;
+            attributes.identifier = [searchText stringByReplacingOccurrencesOfString:@"@" withString:@""];
             user.attributes = attributes;
             
             [Launcher openProfile:user];
@@ -399,6 +393,11 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
                 User *user = [[User alloc] initWithDictionary:json error:nil];
                 
                 [Launcher openProfile:user];
+            }
+            else if ([json[@"type"] isEqualToString:@"bot"]) {
+                Bot *bot = [[Bot alloc] initWithDictionary:json error:nil];
+                
+                [Launcher openBot:bot];
             }
         }
     }
@@ -630,6 +629,19 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
 }
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    // pass scroll events up to the navigation controller
+    UINavigationController *navController = UIViewParentController(self).navigationController;
+    if (navController) {
+        if ([navController isKindOfClass:[ComplexNavigationController class]]) {
+            ComplexNavigationController *complexNav = (ComplexNavigationController *)navController;
+            [complexNav childTableViewDidScroll:self.tableView];
+        }
+        else if ([navController isKindOfClass:[SimpleNavigationController class]]) {
+            SimpleNavigationController *simpleNav = (SimpleNavigationController *)navController;
+            [simpleNav childTableViewDidScroll:self.tableView];
+        }
+    }
+    
     CGFloat normalizedScrollViewContentOffsetY = scrollView.contentOffset.y + scrollView.adjustedContentInset.top;
     
     if ([self.navigationController isKindOfClass:[SearchNavigationController class]]) {

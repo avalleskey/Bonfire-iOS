@@ -45,7 +45,7 @@
     NSString *refreshToken = self.session.refreshToken;
     NSLog(@"––––– Session –––––");
     // NSLog(@"self.session.currentUser: %@", self.session.currentUser.identifier);
-    NSLog(@"🙎‍♂️ @%@ (id: %@)", [Session sharedInstance].currentUser.attributes.details.identifier, [Session sharedInstance].currentUser.identifier);
+    NSLog(@"🙎‍♂️ @%@ (id: %@)", [Session sharedInstance].currentUser.attributes.identifier, [Session sharedInstance].currentUser.identifier);
     NSLog(@"🔑 Access token  : %@", accessToken);
     NSLog(@"🌀 Refresh token : %@", refreshToken);
     NSLog(@"🔔 APNS token    : %@", [[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"]);
@@ -66,6 +66,7 @@
     }
     else {
         // launch onboarding
+        NSLog(@"launch onboarding");
         [self launchOnboarding];
     }
     
@@ -216,7 +217,7 @@
         [options addAction:apnsToken];
     }
     
-    NSString *sesssionToken = [NSString stringWithFormat:@"%@", [[Session sharedInstance] getAccessTokenWithVerification:true][@"attributes"][@"access_token"]];
+    NSString *sesssionToken = [NSString stringWithFormat:@"%@", [[Session sharedInstance] getAccessTokenWithVerification:true][@"access_token"]];
     if (sesssionToken.length > 0) {
         UIAlertAction *apnsToken = [UIAlertAction actionWithTitle:@"View Access Token" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
             [options dismissViewControllerAnimated:YES completion:nil];
@@ -271,7 +272,7 @@
             launches = launches + 1;
             [[NSUserDefaults standardUserDefaults] setInteger:launches forKey:@"launches"];
             
-            [Launcher launchLoggedIn:false];
+            [Launcher launchLoggedIn:false replaceRootViewController:true];
         }
         else {
             [[Session sharedInstance] signOut];
@@ -284,6 +285,7 @@
 }
 
 - (void)launchOnboarding {
+    NSLog(@"self.window.rootviewController: %@", [self.window.rootViewController isKindOfClass:[HelloViewController class]] ? @"YES" : @"NO");
     if (![self.window.rootViewController isKindOfClass:[HelloViewController class]]) {
         HelloViewController *vc = [[HelloViewController alloc] init];
         vc.fromLaunch = true;
@@ -310,7 +312,7 @@
     NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
     [formatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ssZ"];
     
-    NSDate *tokenExpiration = [formatter dateFromString:token[@"attributes"][@"expires_at"]];
+    NSDate *tokenExpiration = [formatter dateFromString:token[@"expires_at"]];
     
     NSLog(@"token app version: %@", token[@"app_version"]);
     
@@ -329,7 +331,6 @@
 }
 
 - (void)tabBarController:(UITabBarController *)tabBarController didSelectViewController:(UIViewController *)viewController {
-    NSLog(@"did select view controller");
     if ([viewController isKindOfClass:[UINavigationController class]] && [[(UINavigationController *)viewController visibleViewController] isKindOfClass:[NotificationsTableViewController class]]) {
         [(TabController *)(Launcher.activeTabController) setBadgeValue:nil forItem:viewController.tabBarItem];
     }
@@ -423,138 +424,6 @@
 //    return true;
 //}
 
-- (BOOL)application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray<id<UIUserActivityRestoring>> * _Nullable))restorationHandler {
-    NSLog(@"continueUserActivity:");
-    
-    if ([userActivity.activityType isEqualToString:@"com.Ingenious.bonfire.open-camp-activity-type"])
-    {
-        // only open if there is a user signed in
-        if (![Session sharedInstance].currentUser) {
-            return false;
-        }
-        
-        if ([userActivity.userInfo objectForKey:@"camp"] &&
-            [userActivity.userInfo[@"camp"] isKindOfClass:[NSDictionary class]])
-        {
-            NSError *error;
-            Camp *camp = [[Camp alloc] initWithDictionary:userActivity.userInfo[@"camp"] error:&error];
-            if (!error) {
-                [Launcher openCamp:camp];
-                return true;
-            }
-        }
-    }
-    else if ([userActivity.activityType isEqualToString:@"com.Ingenious.bonfire.open-feed-timeline"])
-    {
-        // only open if there is a user signed in
-        if (![Session sharedInstance].currentUser) {
-            return false;
-        }
-        
-        if ([userActivity.userInfo objectForKey:@"feed"])
-        {
-            [Launcher openTimeline];
-            
-            return true;
-        }
-    }
-    else if ([userActivity.activityType isEqualToString:NSUserActivityTypeBrowsingWeb]) {
-        // only allow universal links to be opened if there is a user signed in
-        if (![Session sharedInstance].currentUser) {
-            return false;
-        }
-        
-        // Universal Links
-        NSURL *incomingURL = userActivity.webpageURL;
-        NSURLComponents *components = [NSURLComponents componentsWithURL:incomingURL resolvingAgainstBaseURL:true];
-        //NSArray<NSURLQueryItem *> *params = components.queryItems;
-        NSString *path = components.path;
-        
-        if (path.length == 0) {
-            return false;
-        }
-        
-        NSArray *pathComponents = [path componentsSeparatedByString:@"/"];
-        
-        // NSLog(@"pathComponents: %@", pathComponents);
-        // NSLog(@"path: %@", path);
-        // NSLog(@"params: %@", params);
-        
-        // this should never occur, but don't continue if it does
-        // would only occur if given: https://bonfire.camp/
-        if (pathComponents.count < 2) return false;
-        
-        BOOL camp = [pathComponents[1] isEqualToString:@"c"];
-        BOOL user = [pathComponents[1] isEqualToString:@"u"];
-        BOOL post = [pathComponents[1] isEqualToString:@"p"];
-        NSString *parent = pathComponents[2];
-        
-        /*                     01   2      3      4
-         - https://bonfire.camp/c/{camptag}
-         - https://bonfire.camp/u/{username}
-         - https://bonfire.camp/p/{post_id}
-         */
-        if (pathComponents.count == 3 && (camp || user || post)) {
-            // check for camptag or username
-            if (user && [parent validateBonfireUsername] == BFValidationErrorNone) {
-                // https://bonfire.camp/u/username
-                // valid username
-                
-                // open username
-                User *user = [[User alloc] init];
-                UserAttributes *attributes = [[UserAttributes alloc] init];
-                UserDetails *details = [[UserDetails alloc] init];
-                details.identifier = [parent stringByReplacingOccurrencesOfString:@"@" withString:@""];
-                
-                attributes.details = details;
-                user.attributes = attributes;
-                
-                NSLog(@"open user: %@", user);
-                
-                [Launcher openProfile:user];
-                
-                return true;
-            }
-            if (camp && [parent validateBonfireCampTag] == BFValidationErrorNone) {
-                // https://bonfire.camp/c/camptag
-                NSLog(@"valid camp");
-                
-                Camp *camp = [[Camp alloc] init];
-                CampAttributes *attributes = [[CampAttributes alloc] init];
-                CampDetails *details = [[CampDetails alloc] init];
-                details.identifier = parent;
-                
-                attributes.details = details;
-                camp.attributes = attributes;
-                
-                NSLog(@"open camp: %@", camp);
-                
-                [Launcher openCamp:camp];
-                
-                return true;
-            }
-            if (post) {
-                // https://bonfire.camp/p/{post_id}
-                
-                if (parent == NULL || parent.length == 0) return false;
-                
-                // open post
-                Post *post =  [[Post alloc] init];
-                post.identifier = parent;
-                
-                NSLog(@"open post: %@", post);
-                
-                [Launcher openPost:post withKeyboard:false];
-                
-                return true;
-            }
-        }
-    }
-    
-    return false;
-}
-
-
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo fetchCompletionHandler:(void (^)(UIBackgroundFetchResult result))completionHandler {
     // only open if there is a user signed in
     if (![Session sharedInstance].currentUser) {
@@ -583,7 +452,7 @@
         NSString *message;
         USER_ACTIVITY_TYPE activityType = 0;
         if (userInfo[@"aps"]) {
-            if (userInfo[@"aps"][@"alert"]) {
+            if (userInfo[@"aps"][@"alert"] && [userInfo[@"aps"][@"alert"] isKindOfClass:[NSDictionary class]]) {
                 if (userInfo[@"aps"][@"alert"][@"title"]) {
                     title = userInfo[@"aps"][@"alert"][@"title"];
                 }
@@ -619,7 +488,10 @@
 
 - (void)handleNotificationActionForUserInfo:(NSDictionary *)userInfo {
     TabController *tabVC = Launcher.tabController;
-    tabVC.selectedIndex = [tabVC.viewControllers indexOfObject:tabVC.notificationsNavVC];
+    if (tabVC) {
+        tabVC.selectedIndex = [tabVC.viewControllers indexOfObject:tabVC.notificationsNavVC];
+        [tabVC tabBar:tabVC.tabBar didSelectItem:tabVC.notificationsNavVC.tabBarItem];
+    }
     
     NSDictionary *data = userInfo[@"data"];
     NSDictionary *formats = [Session sharedInstance].defaults.notifications;
@@ -659,7 +531,6 @@
                           ntohl(tokenBytes[0]), ntohl(tokenBytes[1]), ntohl(tokenBytes[2]),
                           ntohl(tokenBytes[3]), ntohl(tokenBytes[4]), ntohl(tokenBytes[5]),
                           ntohl(tokenBytes[6]), ntohl(tokenBytes[7])];
-    
     NSLog(@"token:: %@", token);
 
     if ([[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"] == nil || ([[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"] != nil &&
@@ -705,8 +576,71 @@
     sender.layer.mask = maskLayer;
 }
 
+
+- (BOOL)application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray<id<UIUserActivityRestoring>> * _Nullable))restorationHandler {
+    NSLog(@"continueUserActivity:");
+    
+    // handle external URL actions
+    
+    if ([userActivity.activityType isEqualToString:@"com.Ingenious.bonfire.open-camp-activity-type"])
+    {
+        // only open if there is a user signed in
+        if (![Session sharedInstance].currentUser) {
+            return false;
+        }
+        
+        if ([userActivity.userInfo objectForKey:@"camp"] &&
+            [userActivity.userInfo[@"camp"] isKindOfClass:[NSDictionary class]])
+        {
+            NSError *error;
+            Camp *camp = [[Camp alloc] initWithDictionary:userActivity.userInfo[@"camp"] error:&error];
+            if (!error) {
+                [Launcher openCamp:camp];
+                return true;
+            }
+        }
+    }
+    else if ([userActivity.activityType isEqualToString:@"com.Ingenious.bonfire.open-feed-timeline"])
+    {
+        // only open if there is a user signed in
+        if (![Session sharedInstance].currentUser) {
+            return false;
+        }
+        
+        if ([userActivity.userInfo objectForKey:@"feed"])
+        {
+            [Launcher openTimeline];
+            
+            return true;
+        }
+    }
+    else if ([userActivity.activityType isEqualToString:NSUserActivityTypeBrowsingWeb]) {
+        // only allow universal links to be opened if there is a user signed in
+        if (![Session sharedInstance].currentUser) {
+            return false;
+        }
+        
+        // Universal Links
+        id objectFromURL = [Configuration objectFromExternalBonfireURL:userActivity.webpageURL];
+        
+        if ([objectFromURL isKindOfClass:[User class]]) {
+            [Launcher openProfile:(User *)objectFromURL];
+        }
+        if ([objectFromURL isKindOfClass:[Camp class]]) {
+            [Launcher openCamp:(Camp *)objectFromURL];
+        }
+        if ([objectFromURL isKindOfClass:[Post class]]) {
+            [Launcher openPost:(Post *)objectFromURL withKeyboard:NO];
+        }
+    }
+    
+    return false;
+}
+
 - (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options {
-    if (!url || ![url.scheme isEqualToString:LOCAL_APP_URI]) {
+    BOOL internalURL = [Configuration isInternalURL:url];
+    BOOL externalURL = [Configuration isExternalBonfireURL:url];
+    if (!internalURL && !externalURL) {
         return false;
     }
     
@@ -717,48 +651,24 @@
         [params setObject:item.value forKey:item.name];
     }
     
-    if ([url.host isEqualToString:@"user"]) {
-        User *user = [[User alloc] init];
-        UserAttributes *attributes = [[UserAttributes alloc] init];
-        UserDetails *details = [[UserDetails alloc] init];
-        
-        if ([params objectForKey:@"id"]) {
-            user.identifier = params[@"id"];
-        }
-        if ([params objectForKey:@"username"]) {
-            details.identifier = params[@"username"];
-        }
-        
-        attributes.details = details;
-        user.attributes = attributes;
-        
-        [Launcher openProfile:user];
+    id objectFromURL;
+    if (internalURL) {
+        objectFromURL = [Configuration objectFromInternalURL:url];
     }
-    if ([url.host isEqualToString:@"camp"]) {
-        Camp *camp = [[Camp alloc] init];
-        CampAttributes *attributes = [[CampAttributes alloc] init];
-        CampDetails *details = [[CampDetails alloc] init];
-        
-        if ([params objectForKey:@"id"]) {
-            camp.identifier = params[@"id"];
-        }
-        if ([params objectForKey:@"display_id"]) {
-            details.identifier = [params[@"display_id"] stringByReplacingOccurrencesOfString:@"#" withString:@""];
-        }
-        
-        attributes.details = details;
-        camp.attributes = attributes;
-        
-        [Launcher openCamp:camp];
+    else {
+        objectFromURL = [Configuration objectFromExternalBonfireURL:url];
     }
-    if ([url.host isEqualToString:@"post"]) {
-        Post *post = [[Post alloc] init];
-        if ([params objectForKey:@"id"]) {
-            post.identifier = [NSString stringWithFormat:@"%@", params[@"id"]];
-        }
-        [Launcher openPost:post withKeyboard:NO];
+    
+    if ([objectFromURL isKindOfClass:[User class]]) {
+        [Launcher openProfile:(User *)objectFromURL];
     }
-    if ([url.host isEqualToString:@"compose"]) {
+    else if ([objectFromURL isKindOfClass:[Camp class]]) {
+        [Launcher openCamp:(Camp *)objectFromURL];
+    }
+    else if ([objectFromURL isKindOfClass:[Post class]]) {
+        [Launcher openPost:(Post *)objectFromURL withKeyboard:NO];
+    }
+    else if (internalURL && [url.host isEqualToString:@"compose"]) {
         Camp *camp;
         if ([params objectForKey:@"camp_id"]) {
             camp = [[Camp alloc] init];

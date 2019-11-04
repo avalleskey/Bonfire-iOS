@@ -7,19 +7,16 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "Camp.h"
-#import <SDWebImage/UIImageView+WebCache.h>
-#import "BFAvatarView.h"
+#import "CampCardCell.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 #define SMALL_CARD_HEIGHT 100
 
-@interface SmallCampCardCell : UICollectionViewCell
+@interface SmallCampCardCell : CampCardCell
 
 @property (nonatomic) BOOL loading;
 
-@property (nonatomic, strong) Camp *camp;
 
 @property (nonatomic, strong) BFAvatarView *profilePicture;
 

@@ -121,9 +121,6 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
         self.loadingCamps = true;
     }
     
-    NSLog(@"GET -> %@", url);
-    NSLog(@"params: %@", params);
-    
     [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         CampListStreamPage *page = [[CampListStreamPage alloc] initWithDictionary:responseObject error:nil];
         
@@ -248,7 +245,7 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
     if (section == 0) return 0;
-    if (section == 1) return [BFHeaderView height];
+    if (section == 1 && (self.loadingCamps || self.stream.camps.count > 0)) return [BFHeaderView height];
     
     return 0;
 }
@@ -259,7 +256,7 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
     if (section == 1) {
         BFHeaderView *header = [[BFHeaderView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, [BFHeaderView height])];
         
-        header.separator = false;
+        header.bottomLineSeparator.hidden = true;
         
         if (section == 1) {
             if (self.loadingCamps || self.stream.camps.count > 0) {

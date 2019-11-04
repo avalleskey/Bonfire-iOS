@@ -90,6 +90,21 @@
     [self.mediaContainerView.heightAnchor constraintEqualToAnchor:_mediaScrollView.heightAnchor].active = true;
 }
 
+//- (void)removeSmartLinkAttachment {
+//    [self.smartLinkAttachmentView removeFromSuperview];
+//    self.smartLinkAttachmentView = nil;
+//}
+//- (void)initSmartLinkAttachment {
+//    if (!self.smartLinkAttachmentView) {
+//        // need to initialize a user preview view
+//        self.smartLinkAttachmentView = [[BFSmartLinkAttachmentView alloc] init];
+//        [self.contentView addSubview:self.smartLinkAttachmentView];
+//    }
+//    
+//    self.post.attributes.attachments.link.attributes.postedIn = self.post.attributes.postedIn;
+//    self.smartLinkAttachmentView.link = self.post.attributes.attachments.link;
+//}
+
 - (void)layoutSubviews {
     [super layoutSubviews];
     

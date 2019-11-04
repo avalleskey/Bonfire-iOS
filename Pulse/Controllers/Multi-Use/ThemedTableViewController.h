@@ -7,12 +7,25 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "RSTableView.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface ThemedTableViewController : UITableViewController
+@interface ThemedTableViewController : UIViewController
 
+// views
+@property (nonatomic, strong) UITableView * _Nullable tableView;
+@property (nonatomic, strong) RSTableView * _Nullable rs_tableView;
+@property (nonatomic, strong) UIRefreshControl * refreshControl;
+@property (nonatomic, strong) UIImageView *bigSpinner;
+
+// values
 @property (nonatomic, strong) UIColor *theme;
+@property (nonatomic) BOOL spinning;
+@property (nonatomic) BOOL loading;
+
+// methods
+- (void)setSpinning:(BOOL)spinning animated:(BOOL)animated;
 
 @end
 

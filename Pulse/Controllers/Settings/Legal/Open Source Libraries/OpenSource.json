@@ -82,12 +82,6 @@
                     "present": true
                 },
                 {
-                    "id": "ap_address_book",
-                    "title": "APAddressBook",
-                    "detail": "MIT",
-                    "present": true
-                },
-                {
                     "id": "lib_phone_number",
                     "title": "libPhoneNumber-iOS",
                     "detail": "APACHE",

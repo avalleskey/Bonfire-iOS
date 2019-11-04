@@ -11,7 +11,7 @@
 
 #pragma mark - Helper methods
 - (BOOL)isVerified {
-    return self.attributes.status.verifiedAt.length > 0;
+    return [self.attributes isVerified];
 }
 
 @end

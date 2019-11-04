@@ -20,26 +20,26 @@
     
     // available variables
     NSMutableDictionary *variables = [[NSMutableDictionary alloc] init];
-    if (activity.attributes.actioner.attributes.details.identifier) {
-        [variables setObject:[NSString stringWithFormat:@"@%@", activity.attributes.actioner.attributes.details.identifier] forKey:@"$actioner.username"];
+    if (activity.attributes.actioner.attributes.identifier) {
+        [variables setObject:[NSString stringWithFormat:@"@%@", activity.attributes.actioner.attributes.identifier] forKey:@"$actioner.username"];
     }
-    if (activity.attributes.actioner.attributes.details.displayName) {
-        [variables setObject:activity.attributes.actioner.attributes.details.displayName forKey:@"$actioner.displayName"];
+    if (activity.attributes.actioner.attributes.displayName) {
+        [variables setObject:activity.attributes.actioner.attributes.displayName forKey:@"$actioner.displayName"];
     }
-    if (activity.attributes.actioner.attributes.details.bio) {
-        [variables setObject:activity.attributes.actioner.attributes.details.bio forKey:@"$actioner.bio"];
+    if (activity.attributes.actioner.attributes.bio) {
+        [variables setObject:activity.attributes.actioner.attributes.bio forKey:@"$actioner.bio"];
     }
-    if (activity.attributes.camp.attributes.details.title) {
-        [variables setObject:activity.attributes.camp.attributes.details.title forKey:@"$camp.title"];
+    if (activity.attributes.camp.attributes.title) {
+        [variables setObject:activity.attributes.camp.attributes.title forKey:@"$camp.title"];
     }
-    if (activity.attributes.camp.attributes.details.theDescription) {
-        [variables setObject:activity.attributes.camp.attributes.details.theDescription forKey:@"$camp.description"];
+    if (activity.attributes.camp.attributes.theDescription) {
+        [variables setObject:activity.attributes.camp.attributes.theDescription forKey:@"$camp.description"];
     }
-    if (activity.attributes.camp.attributes.details.identifier) {
-        [variables setObject:[NSString stringWithFormat:@"#%@", activity.attributes.camp.attributes.details.identifier] forKey:@"$camp.identifier"];
+    if (activity.attributes.camp.attributes.identifier) {
+        [variables setObject:[NSString stringWithFormat:@"#%@", activity.attributes.camp.attributes.identifier] forKey:@"$camp.identifier"];
     }
-    if (activity.attributes.post.attributes.details.message) {
-        [variables setObject:activity.attributes.post.attributes.details.message forKey:@"$post.message"];
+    if (activity.attributes.post.attributes.message) {
+        [variables setObject:activity.attributes.post.attributes.message forKey:@"$post.message"];
     }
     
     NSArray *stringParts = @[];

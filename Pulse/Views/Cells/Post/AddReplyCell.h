@@ -15,9 +15,10 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic, strong) BFAvatarView *profilePicture;
 
-@property (nonatomic, strong) UILabel *addReplyLabel;
+@property (nonatomic) NSInteger levelsDeep;
 
-@property (nonatomic, strong) UIView *topLine;
+@property (nonatomic, strong) UIButton *addReplyButton;
+
 @property (nonatomic, strong) UIView *lineSeparator;
 
 + (CGFloat)height;

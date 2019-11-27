@@ -41,23 +41,10 @@
 - (void)layoutSubviews {
     [super layoutSubviews];
     
+    self.transform = CGAffineTransformIdentity;
+    
     // update border color when trait collection changes
     self.layer.borderColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.06f].CGColor;
-}
-
-- (void)setHighlighted:(BOOL)highlighted {
-    [super setHighlighted:highlighted];
-    
-    if (highlighted) {
-        [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-            self.transform = CGAffineTransformMakeScale(0.92, 0.92);
-        } completion:nil];
-    }
-    else {
-        [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-            self.transform = CGAffineTransformIdentity;
-        } completion:nil];
-    }
 }
 
 @end

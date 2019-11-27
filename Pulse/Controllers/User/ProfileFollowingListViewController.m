@@ -16,13 +16,16 @@
 #import "BFVisualErrorView.h"
 @import Firebase;
 
-@interface ProfileFollowingListViewController ()
+@interface ProfileFollowingListViewController () <UserListStreamDelegate, UITextFieldDelegate>
 
 @property (nonatomic, strong) UserListStream *stream;
 
 @property (nonatomic, strong) BFVisualErrorView *errorView;
 
 @property (nonatomic) BOOL loadingMoreUsers;
+
+@property (nonatomic, strong) NSString *searchPhrase;
+@property (nonatomic, strong) BFSearchView *searchView;
 
 @end
 
@@ -50,6 +53,10 @@ static NSString * const memberCellIdentifier = @"MemberCell";
     [FIRAnalytics setScreenName:@"Profile / Following" screenClass:nil];
 }
 
+- (void)userListStreamDidUpdate:(UserListStream *)stream {
+    [self.tableView reloadData];
+}
+
 - (void)setupTableView {
     self.tableView.delegate = self;
     self.tableView.dataSource = self;
@@ -60,6 +67,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
     self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
     self.tableView.tintColor = self.theme;
+    self.tableView.refreshControl = nil;
     
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:blankReuseIdentifier];
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:emptySectionCellIdentifier];
@@ -91,11 +99,19 @@ static NSString * const memberCellIdentifier = @"MemberCell";
         [self.stream addLoadedCursor:nextCursor];
         [params setObject:nextCursor forKey:@"cursor"];
     }
-    else {
+    else if (self.searchPhrase && self.searchPhrase.length > 0) {
+        [params setObject:self.searchPhrase forKey:@"filter_query"];
+    }
+    else if (self.stream.users.count == 0) {
         self.loading = true;
     }
     
     [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        if (params[@"s"] && ![params[@"s"] isEqualToString:self.searchPhrase]) {
+            NSLog(@"search phrase has changed");
+            return;
+        }
+        
         UserListStreamPage *page = [[UserListStreamPage alloc] initWithDictionary:responseObject error:nil];
         
         if (page.data.count > 0) {
@@ -105,6 +121,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
             else {
                 // clear the stream (we retrieved a full page of notifs and the old ones are out of date)
                 self.stream = [[UserListStream alloc] init];
+                self.stream.delegate = self;
             }
             [self.stream appendPage:page];
         }
@@ -176,6 +193,8 @@ static NSString * const memberCellIdentifier = @"MemberCell";
             cell = [[SearchResultCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:memberCellIdentifier];
         }
         
+        cell.showActionButton = true;
+        
         User *user = self.stream.users[indexPath.row];
         cell.user = user;
         
@@ -191,12 +210,59 @@ static NSString * const memberCellIdentifier = @"MemberCell";
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
+    if (section == 0 && self.stream.users.count >100000) {
+        return 52;
+    }
+    
     return 0;
 }
 
 - (nullable UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
+    if (section == 0 && self.stream.users.count > 100000) {
+        UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 52)];
+        header.backgroundColor = [UIColor whiteColor];
+        
+        // search view
+        self.searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(12, 8, self.view.frame.size.width - (12 * 2), 36)];
+        self.searchView.placeholder = @"Search";
+        [self.searchView updateSearchText:self.searchPhrase];
+        self.searchView.textField.tintColor = self.view.tintColor;
+        self.searchView.textField.delegate = self;
+        [self.searchView.textField bk_addEventHandler:^(id sender) {
+            self.searchPhrase = self.searchView.textField.text;
+            
+            [self.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:NO];
+            [self getUsersWithCursor:StreamPagingCursorTypeNone];
+            [self.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:NO];
+        } forControlEvents:UIControlEventEditingChanged];
+        [header addSubview:self.searchView];
+        
+        return header;
+    }
+    
     return nil;
 }
+
+- (void)textFieldDidBeginEditing:(UITextField *)textField {
+    [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.8f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+        [self.searchView setPosition:BFSearchTextPositionLeft];
+    } completion:nil];
+}
+- (void)textFieldDidEndEditing:(UITextField *)textField {
+    self.searchView.textField.userInteractionEnabled = false;
+    
+    [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.8f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+        [self.searchView setPosition:BFSearchTextPositionCenter];
+    } completion:^(BOOL finished) {
+        
+    }];
+}
+- (BOOL)textFieldShouldReturn:(UITextField *)textField {
+    [self.searchView.textField resignFirstResponder];
+    
+    return FALSE;
+}
+
 - (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
     if (section == 0) {
         BOOL hasAnotherPage = self.stream.pages.count > 0 && self.stream.nextCursor.length > 0;

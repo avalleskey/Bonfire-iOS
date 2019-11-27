@@ -1,5 +1,5 @@
 #import <Foundation/Foundation.h>
-#import <JSONModel/JSONModel.h>
+#import "BFJSONModel.h"
 #import "CampAttributes.h"
 
 NS_ASSUME_NONNULL_BEGIN
@@ -7,7 +7,7 @@ NS_ASSUME_NONNULL_BEGIN
 @protocol Camp
 @end
 
-@interface Camp : JSONModel
+@interface Camp : BFJSONModel
 
 @property (nonatomic) NSString <Optional> *identifier;
 @property (nonatomic) NSString <Optional> *type;
@@ -19,6 +19,13 @@ NS_ASSUME_NONNULL_BEGIN
 
 // helper methods
 - (BOOL)isVerified;
+- (BOOL)isChannel;
+- (BOOL)isPrivate;
+
+#pragma mark - API Methods
+- (void)subscribeToCamp;
+- (void)unsubscribeFromCamp;
+- (void)report;
 
 @end
 

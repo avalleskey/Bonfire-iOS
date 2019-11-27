@@ -17,7 +17,6 @@ target 'Pulse' do
   pod 'UITextView+Placeholder', '~> 1.2'
   pod 'SDWebImage'
   pod 'HapticHelper'
-  pod 'GoogleAnalytics'
   pod 'JTSImageViewController'
   pod 'UINavigationItem+Margin'
   pod 'Lockbox'
@@ -34,17 +33,13 @@ target 'Pulse' do
   pod 'SearchEmojiOnString', '~> 1.0'
   pod 'ISAlternativeRefreshControl'
   pod 'GoogleFontsiOS/Poppins'
-  pod 'SEJSONViewController'
-  pod 'RSColorPicker'
-
-  pod 'FBSDKShareKit'
-  
+  pod 'SEJSONViewController'  
   
   # analytics
-  pod 'Firebase/Core'
+  pod 'Fabric'
+  pod 'Crashlytics'
+  pod 'Firebase/Analytics'
   # pod 'Firebase/MLNLSmartReply'
-  
-  pod 'Crashlytics', '~> 3.12.0'
   
   target 'PulseTests' do
     inherit! :search_paths

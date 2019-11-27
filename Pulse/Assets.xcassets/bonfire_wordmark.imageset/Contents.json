@@ -6,16 +6,6 @@
     },
     {
       "idiom" : "universal",
-      "filename" : "bonfire_wordmark-2.pdf",
-      "appearances" : [
-        {
-          "appearance" : "luminosity",
-          "value" : "light"
-        }
-      ]
-    },
-    {
-      "idiom" : "universal",
       "filename" : "bonfire_wordmark_white-2.pdf",
       "appearances" : [
         {

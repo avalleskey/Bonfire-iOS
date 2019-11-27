@@ -63,12 +63,16 @@
     self.blurView.frame = CGRectMake(0, 0, self.frame.size.width, self.frame.size.height);
     self.blurView.layer.cornerRadius = self.layer.cornerRadius;
     self.blurView.layer.masksToBounds = true;
+    self.blurView.backgroundColor = [[UIColor colorNamed:@"FullContrastColor_Inverted"] colorWithAlphaComponent:0.8];
+    self.titleLabel.textColor = [UIColor blackColor];
+    self.textLabel.textColor = [UIColor blackColor];
     [self addSubview:self.blurView];
     
     self.closeButton = [[TappableButton alloc] initWithFrame:CGRectMake(self.frame.size.width - 22 - 12, 0, 22, 22)];
     self.closeButton.layer.cornerRadius = self.closeButton.frame.size.height / 2;
     self.closeButton.padding = UIEdgeInsetsMake(12, 12, 12, 12);
     [self.closeButton setImage:[[UIImage imageNamed:@"navCloseIcon_small"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+    self.closeButton.tintColor = [UIColor bonfireSecondaryColor];
     self.closeButton.contentMode = UIViewContentModeScaleAspectFill;
     [self.closeButton bk_whenTapped:^{
         [[BFNotificationManager manager] hideAllNotifications];
@@ -90,6 +94,7 @@
     self.titleLabel.numberOfLines = 0;
     self.titleLabel.lineBreakMode = NSLineBreakByWordWrapping;
     self.titleLabel.textAlignment = NSTextAlignmentLeft;
+    self.titleLabel.textColor = [UIColor bonfirePrimaryColor];
     [self addSubview:self.titleLabel];
     
     self.textLabel = [[UILabel alloc] initWithFrame:CGRectMake(self.titleLabel.frame.origin.x, self.titleLabel.frame.origin.y + self.titleLabel.frame.size.height + 4, self.titleLabel.frame.size.width, 0)];
@@ -97,10 +102,9 @@
     self.textLabel.numberOfLines = 0;
     self.textLabel.lineBreakMode = NSLineBreakByWordWrapping;
     self.textLabel.textAlignment = NSTextAlignmentLeft;
+    self.textLabel.textColor = [UIColor bonfirePrimaryColor];
     [self addSubview:self.textLabel];
-    
-    [self setStyle:BFNotificationViewStyleLight]; // set default style
-    
+        
     [self setupPanRecognizer];
     
     [self layoutSubviews];
@@ -196,10 +200,6 @@
             self.notificationTypeImageView.image = [UIImage imageNamed:@"notificationIndicator_mention"];
             self.notificationTypeImageView.backgroundColor = [UIColor colorWithRed:0.07 green:0.78 blue:1.00 alpha:1.0];
         }
-        else if (object.activityType == USER_ACTIVITY_TYPE_BONFIRE_MOTD) {
-            self.notificationTypeImageView.image = [UIImage imageNamed:@"notificationIndicator_mention"];
-            self.notificationTypeImageView.backgroundColor = [UIColor colorWithRed:0.07 green:0.78 blue:1.00 alpha:1.0];
-        }
         else {
             // unknown
             // TODO: General notification icon & background
@@ -245,27 +245,6 @@
         
         CGSize textSize = [self.textLabel.text boundingRectWithSize:CGSizeMake(self.frame.size.width - (self.textLabel.frame.origin.x * 2), CGFLOAT_MAX) options:(NSStringDrawingUsesFontLeading|NSStringDrawingUsesLineFragmentOrigin) attributes:@{NSFontAttributeName:self.textLabel.font} context:nil].size;
         self.textLabel.frame = CGRectMake(self.textLabel.frame.origin.x, self.titleLabel.frame.origin.y + ([self.titleLabel isHidden] ? 0 : self.titleLabel.frame.size.height + 4), self.frame.size.width - (self.textLabel.frame.origin.x * 2), ceilf(textSize.height));
-    }
-}
-
-- (void)setStyle:(BFNotificationViewStyle)style {
-    if (style == BFNotificationViewStyleDark) {
-        self.blurView.effect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleDark];
-        self.blurView.backgroundColor = [[UIColor bonfireSecondaryColor] colorWithAlphaComponent:0.3];
-        self.closeButton.tintColor = [UIColor whiteColor];
-        self.closeButton.backgroundColor = [UIColor colorWithWhite:1 alpha:0.06f];
-        
-        self.titleLabel.textColor = [UIColor whiteColor];
-        self.textLabel.textColor = [UIColor whiteColor];
-    }
-    else {
-        self.blurView.effect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleLight];
-        self.blurView.backgroundColor = [UIColor colorWithWhite:1 alpha:0.9f];
-        self.closeButton.tintColor = [UIColor blackColor];
-        self.closeButton.backgroundColor = [UIColor colorWithWhite:0 alpha:0.06f];
-        
-        self.titleLabel.textColor = [UIColor blackColor];
-        self.textLabel.textColor = [UIColor blackColor];
     }
 }
 

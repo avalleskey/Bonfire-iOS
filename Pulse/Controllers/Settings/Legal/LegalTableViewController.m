@@ -42,7 +42,7 @@
         [Launcher openURL:@"https://bonfire.camp/privacy"];
     }
     if ([rowId isEqualToString:@"open_source_libraries"]) {
-        OpenSourceLibrariesTableViewController *openSourceLibrariesTableVC = [[OpenSourceLibrariesTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
+        OpenSourceLibrariesTableViewController *openSourceLibrariesTableVC = [[OpenSourceLibrariesTableViewController alloc] init];
         [Launcher push:openSourceLibrariesTableVC animated:YES];
     }
 }

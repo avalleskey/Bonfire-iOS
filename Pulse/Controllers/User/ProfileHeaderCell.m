@@ -15,6 +15,7 @@
 #import "Launcher.h"
 #import "UIColor+Palette.h"
 #import "NSString+Validation.h"
+#import "BFAlertController.h"
 
 @implementation ProfileHeaderCell
 
@@ -41,8 +42,41 @@
         self.profilePicture = [[BFAvatarView alloc] initWithFrame:CGRectMake(profilePicBorderWidth, profilePicBorderWidth, PROFILE_HEADER_AVATAR_SIZE, PROFILE_HEADER_AVATAR_SIZE)];
         self.profilePicture.dimsViewOnTap = true;
         [self.profilePicture bk_whenTapped:^{
-            if (self.profilePicture.user.attributes.media.avatar.suggested.url.length > 0) {
+            BOOL hasPicture = (self.profilePicture.user.attributes.media.avatar.suggested.url.length > 0);
+            
+            void(^expandProfilePic)(void) = ^() {
                 [Launcher expandImageView:self.profilePicture.imageView];
+            };
+            void(^openEditProfile)(void) = ^() {
+                [Launcher openEditProfile];
+            };
+            
+            if ([self.user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
+                if (hasPicture) {
+                    // confirm action
+                    BFAlertController *actionSheet = [BFAlertController alertControllerWithTitle:nil message:nil preferredStyle:BFAlertControllerStyleActionSheet];
+                    
+                    BFAlertAction *action1 = [BFAlertAction actionWithTitle:@"View User Photo" style:BFAlertActionStyleDefault handler:^{
+                        expandProfilePic();
+                    }];
+                    [actionSheet addAction:action1];
+                    
+                    BFAlertAction *action2 = [BFAlertAction actionWithTitle:@"Edit Profile" style:BFAlertActionStyleDefault handler:^{
+                        openEditProfile();
+                    }];
+                    [actionSheet addAction:action2];
+                    
+                    BFAlertAction *cancelActionSheet = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
+                    [actionSheet addAction:cancelActionSheet];
+                    
+                    [[Launcher topMostViewController] presentViewController:actionSheet animated:true completion:nil];
+                }
+                else {
+                    openEditProfile();
+                }
+            }
+            else if (hasPicture) {
+                expandProfilePic();
             }
         }];
         for (id interaction in self.profilePicture.interactions) {
@@ -343,8 +377,10 @@
             BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeLocation value:user.attributes.location.displayText action:nil];
             [details addObject:item];
         }
-        if (user.attributes.website.displayText.length > 0) {
-            BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeWebsite value:user.attributes.website.displayText action:nil];
+        if (user.attributes.website.displayUrl.length > 0) {
+            BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeWebsite value:user.attributes.website.displayUrl action:^{
+                [Launcher openURL:user.attributes.website.actionUrl];
+            }];
             [details addObject:item];
         }
         
@@ -420,8 +456,8 @@
                 BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeLocation value:user.attributes.location.displayText action:nil];
                 [details addObject:item];
             }
-            if (user.attributes.website.displayText.length > 0) {
-                BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeWebsite value:user.attributes.website.displayText action:nil];
+            if (user.attributes.website.displayUrl.length > 0) {
+                BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeWebsite value:user.attributes.website.displayUrl action:nil];
                 [details addObject:item];
             }
             

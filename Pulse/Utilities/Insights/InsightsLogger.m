@@ -188,9 +188,7 @@ static InsightsLogger *logger;
     }
 }
 
-- (void)closeAllPostInsights {
-    // NSLog(@"closeAllPostInsights()");
-    
+- (void)closeAllPostInsights {    
     for (NSString *key in [logger.activeTimeframes allKeys]) {
         [self closePostInsight:key action:nil];
     }

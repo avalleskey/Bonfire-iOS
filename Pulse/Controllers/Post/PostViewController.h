@@ -16,7 +16,6 @@
 
 @interface PostViewController : ThemedViewController <ComposeInputViewDelegate, UITableViewDelegate, UITableViewDataSource, UIContextMenuInteractionDelegate>
 
-@property (nonatomic, strong) Post *parentPost;
 @property (nonatomic, strong) Post *post;
 
 @property (nonatomic, strong) UITableView *tableView;

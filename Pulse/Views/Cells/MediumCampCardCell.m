@@ -38,7 +38,7 @@
     self.camp = [[Camp alloc] init];
     
     self.backgroundColor = [UIColor cardBackgroundColor];
-    self.layer.cornerRadius = 14.f;
+    self.layer.cornerRadius = 15.f;
     self.layer.masksToBounds = false;
     self.layer.shadowRadius = 1.f;
     self.layer.shadowOffset = CGSizeMake(0, 1);
@@ -53,20 +53,43 @@
     self.campHeaderView.backgroundColor = [UIColor bonfireOrange];
     [self.contentView addSubview:self.campHeaderView];
     
-    self.profilePictureContainerView = [[UIView alloc] initWithFrame:CGRectMake(20, 20, 80, 80)];
-    self.profilePictureContainerView.userInteractionEnabled = false;
-    self.profilePictureContainerView.backgroundColor = [UIColor contentBackgroundColor];
-    self.profilePictureContainerView.layer.cornerRadius = self.profilePictureContainerView.frame.size.width * .5;
-    self.profilePictureContainerView.layer.masksToBounds = false;
-    self.profilePictureContainerView.layer.shadowColor = [UIColor blackColor].CGColor;
-    self.profilePictureContainerView.layer.shadowOffset = CGSizeMake(0, 1);
-    self.profilePictureContainerView.layer.shadowRadius = 1.f;
-    self.profilePictureContainerView.layer.shadowOpacity = 0.1;
+    self.campAvatarContainer = [[UIView alloc] initWithFrame:CGRectMake(20, 20, 80, 80)];
+    self.campAvatarContainer.userInteractionEnabled = false;
+    self.campAvatarContainer.backgroundColor = [UIColor contentBackgroundColor];
+    self.campAvatarContainer.layer.cornerRadius = self.campAvatarContainer.frame.size.width * .5;
+    self.campAvatarContainer.layer.masksToBounds = false;
+    self.campAvatarContainer.layer.shadowColor = [UIColor blackColor].CGColor;
+    self.campAvatarContainer.layer.shadowOffset = CGSizeMake(0, 1);
+    self.campAvatarContainer.layer.shadowRadius = 1.f;
+    self.campAvatarContainer.layer.shadowOpacity = 0.1;
     
-    self.profilePicture = [[BFAvatarView alloc] initWithFrame:CGRectMake(4, 4, 72, 72)];
-    self.profilePicture.center = CGPointMake(self.profilePictureContainerView.frame.size.width / 2, self.profilePictureContainerView.frame.size.height / 2);
-    [self.profilePictureContainerView addSubview:self.profilePicture];
-    [self.contentView addSubview:self.profilePictureContainerView];
+    self.campAvatar = [[BFAvatarView alloc] initWithFrame:CGRectMake(4, 4, 72, 72)];
+    self.campAvatar.center = CGPointMake(self.campAvatarContainer.frame.size.width / 2, self.campAvatarContainer.frame.size.height / 2);
+    [self.campAvatarContainer addSubview:self.campAvatar];
+    [self.contentView addSubview:self.campAvatarContainer];
+    
+    self.campAvatarReasonView = [[UIView alloc] init];
+    self.campAvatarReasonView.hidden = true;
+    self.campAvatarReasonView.backgroundColor = [UIColor bonfireDetailColor];
+    self.campAvatarReasonView.layer.shadowColor = [UIColor blackColor].CGColor;
+    self.campAvatarReasonView.layer.shadowOffset = CGSizeMake(0, 1);
+    self.campAvatarReasonView.layer.shadowRadius = 1.f;
+    self.campAvatarReasonView.layer.shadowOpacity = 0.12;
+    self.campAvatarReasonView.frame = CGRectMake(self.campAvatarContainer.frame.origin.x + self.campAvatarContainer.frame.size.width - 30, self.campAvatarContainer.frame.origin.y, 28, 28);
+    self.campAvatarReasonView.layer.cornerRadius = self.campAvatarReasonView.frame.size.height / 2;
+    self.campAvatarReasonView.layer.masksToBounds = false;
+    [self.contentView addSubview:self.campAvatarReasonView];
+    
+    self.campAvatarReasonLabel = [[UILabel alloc] initWithFrame:self.campAvatarReasonView.bounds];
+    self.campAvatarReasonLabel.textAlignment = NSTextAlignmentCenter;
+    self.campAvatarReasonLabel.font = [UIFont systemFontOfSize:11.f weight:UIFontWeightSemibold];
+    self.campAvatarReasonLabel.text = @"🔥";
+    [self.campAvatarReasonView addSubview:self.campAvatarReasonLabel];
+    
+    self.campAvatarReasonImageView = [[UIImageView alloc] initWithFrame:self.campAvatarReasonView.bounds];
+    self.campAvatarReasonImageView.contentMode = UIViewContentModeCenter;
+    self.campAvatarReasonImageView.hidden = true;
+    [self.campAvatarReasonView addSubview:self.campAvatarReasonImageView];
     
     self.member1 = [[BFAvatarView alloc] initWithFrame:CGRectMake(42, 64, 32, 32)];
     self.member1.tag = 0;
@@ -82,7 +105,7 @@
     [self styleMemberProfilePictureView:self.member3];
     [self styleMemberProfilePictureView:self.member4];
     
-    self.campTitleLabel = [[UILabel alloc] initWithFrame:CGRectMake(16, self.profilePictureContainerView.frame.origin.y + self.profilePictureContainerView.frame.size.height + 9, self.frame.size.width - 32, 31)];
+    self.campTitleLabel = [[UILabel alloc] initWithFrame:CGRectMake(16, self.campAvatarContainer.frame.origin.y + self.campAvatarContainer.frame.size.height + 9, self.frame.size.width - 32, 31)];
     self.campTitleLabel.font = [UIFont systemFontOfSize:24.f weight:UIFontWeightHeavy];
     self.campTitleLabel.textAlignment = NSTextAlignmentCenter;
     self.campTitleLabel.numberOfLines = 0;
@@ -101,12 +124,12 @@
     self.campDescriptionLabel = [[UILabel alloc] initWithFrame:CGRectMake(16, self.campTitleLabel.frame.origin.y + self.campTitleLabel.frame.size.height + 2, self.frame.size.width - 32, 14)];
     self.campDescriptionLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightRegular];
     self.campDescriptionLabel.textAlignment = NSTextAlignmentCenter;
-    self.campDescriptionLabel.numberOfLines = 0;
-    self.campDescriptionLabel.lineBreakMode = NSLineBreakByWordWrapping;
+    self.campDescriptionLabel.numberOfLines = 2;
+    self.campDescriptionLabel.lineBreakMode = NSLineBreakByTruncatingTail;
     self.campDescriptionLabel.textColor = [UIColor bonfirePrimaryColor];
     [self.contentView addSubview:self.campDescriptionLabel];
     
-    self.detailsCollectionView = [[BFDetailsCollectionView alloc] initWithFrame:CGRectMake(16, self.frame.size.height - 16 - 16, self.frame.size.width - 32, 16)];
+    self.detailsCollectionView = [[BFDetailsCollectionView alloc] initWithFrame:CGRectMake(16, self.frame.size.height - 16 - 20, self.frame.size.width - 32, 16)];
     self.detailsCollectionView.userInteractionEnabled = false;
     [self.contentView addSubview:self.detailsCollectionView];
 }
@@ -115,19 +138,22 @@
     [super layoutSubviews];
         
     self.campHeaderView.frame = CGRectMake(self.campHeaderView.frame.origin.x, self.campHeaderView.frame.origin.y, self.frame.size.width, self.campHeaderView.frame.size.height);
-    self.profilePictureContainerView.center = CGPointMake(self.campHeaderView.frame.size.width / 2, self.profilePictureContainerView.center.y);
+    self.campAvatarContainer.center = CGPointMake(self.campHeaderView.frame.size.width / 2, self.campAvatarContainer.center.y);
+    
+    if (![self.campAvatarReasonView isHidden]) {
+        self.campAvatarReasonView.frame = CGRectMake(self.campAvatarContainer.frame.origin.x + self.campAvatarContainer.frame.size.width - self.campAvatarReasonView.frame.size.width - 2, self.campAvatarContainer.frame.origin.y + self.campAvatarContainer.frame.size.height - self.campAvatarReasonView.frame.size.height - 2, self.campAvatarReasonView.frame.size.width, self.campAvatarReasonView.frame.size.height);
+    }
     
     CGFloat contentPadding = 16;
     CGFloat contentWidth = self.frame.size.width - (contentPadding * 2);
     CGFloat bottomY  = self.campTitleLabel.frame.origin.y;
     
     // title
-    CGSize titleSize = [self.campTitleLabel.text boundingRectWithSize:CGSizeMake(contentWidth, self.campTitleLabel.font.lineHeight * 2)
+    CGSize titleSize = [self.campTitleLabel.attributedText boundingRectWithSize:CGSizeMake(contentWidth, self.campTitleLabel.font.lineHeight * 2)
                                                      options:NSStringDrawingUsesLineFragmentOrigin| NSStringDrawingUsesFontLeading
-                                                  attributes:@{NSFontAttributeName:self.campTitleLabel.font}
                                                      context:nil].size;
     self.campTitleLabel.frame = CGRectMake(contentPadding, bottomY, contentWidth, ceilf(titleSize.height));;
-    bottomY = self.campTitleLabel.frame.origin.y + self.campTitleLabel.frame.size.height + 8;
+    bottomY = self.campTitleLabel.frame.origin.y + self.campTitleLabel.frame.size.height + 6;
     
     if (![self.campTagLabel isHidden]) {
         self.campTagLabel.frame = CGRectMake(contentPadding, bottomY, contentWidth, self.campTagLabel.frame.size.height);
@@ -146,7 +172,7 @@
     self.campDescriptionLabel.frame = descriptionLabelRect;
 //    bottomY = self.campDescriptionLabel.frame.origin.y + self.campDescriptionLabel.frame.size.height;
     
-    self.detailsCollectionView.frame = CGRectMake(contentPadding, self.frame.size.height - 24 - self.detailsCollectionView.frame.size.height, contentWidth, self.detailsCollectionView.frame.size.height);
+    self.detailsCollectionView.frame = CGRectMake(contentPadding, self.frame.size.height - 20 - self.detailsCollectionView.frame.size.height, contentWidth, self.detailsCollectionView.frame.size.height);
     
     self.layer.shadowPath = [UIBezierPath bezierPathWithRoundedRect:self.bounds cornerRadius:self.layer.cornerRadius].CGPath;
     self.contentView.layer.shadowPath = [UIBezierPath bezierPathWithRoundedRect:self.bounds cornerRadius:self.layer.cornerRadius].CGPath;
@@ -202,7 +228,7 @@
             else if (i == 2) { avatarView = self.member3; }
             else { avatarView = self.member4; }
             
-            if (camp.attributes.summaries.members.count > i) {
+            if (camp.attributes.summaries.members.count > i && ![camp isChannel]) {
                 avatarView.superview.hidden = false;
                 
                 User *userForImageView = camp.attributes.summaries.members[i];
@@ -214,7 +240,34 @@
             }
         }
         
-        self.campTitleLabel.text = camp.attributes.title;
+        // camp title
+        NSString *campTitle;
+        UIFont *font = [UIFont systemFontOfSize:24.f weight:UIFontWeightHeavy];
+        if (camp.attributes.title.length > 0) {
+            campTitle = camp.attributes.title;
+        }
+        else if (camp.attributes.identifier.length > 0) {
+            campTitle = [NSString stringWithFormat:@"@%@", camp.attributes.identifier];
+        }
+        else {
+            campTitle = @"Secret Camp";
+        }
+        NSMutableAttributedString *displayNameAttributedString = [[NSMutableAttributedString alloc] initWithString:campTitle attributes:@{NSFontAttributeName:font}];
+        if ([camp isVerified]) {
+            NSMutableAttributedString *spacer = [[NSMutableAttributedString alloc] initWithString:@" "];
+            [spacer addAttribute:NSFontAttributeName value:font range:NSMakeRange(0, spacer.length)];
+            [displayNameAttributedString appendAttributedString:spacer];
+            
+            // verified icon ☑️
+            NSTextAttachment *attachment = [[NSTextAttachment alloc] init];
+            attachment.image = [UIImage imageNamed:@"verifiedIcon_large"];
+            [attachment setBounds:CGRectMake(0, roundf(font.capHeight - attachment.image.size.height)/2.f-1, attachment.image.size.width, attachment.image.size.height)];
+            
+            NSAttributedString *attachmentString = [NSAttributedString attributedStringWithAttachment:attachment];
+            [displayNameAttributedString appendAttributedString:attachmentString];
+        }
+        self.campTitleLabel.attributedText = displayNameAttributedString;
+        
         self.campTagLabel.hidden = camp.attributes.identifier.length == 0;
         if (![self.campTagLabel isHidden]) {
             self.campTagLabel.text = [NSString stringWithFormat:@"#%@", camp.attributes.identifier];
@@ -222,11 +275,48 @@
         }
         self.campDescriptionLabel.text = camp.attributes.theDescription;
         
-        self.profilePicture.camp = camp;
+        self.campAvatar.camp = camp;
+        
+        BOOL showIndicator = false;
+        if (camp.attributes.summaries.counts.live > 5) {
+            showIndicator = true;
+            self.campAvatarReasonLabel.text = @"🔥";
+        }
+        else if (camp.attributes.createdAt.length > 0) {
+            NSDateFormatter *inputFormatter = [[NSDateFormatter alloc] init];
+                [inputFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ssZ"];
+            NSDate *date = [inputFormatter dateFromString:camp.attributes.createdAt];
+            
+            NSUInteger unitFlags = NSCalendarUnitDay;
+            NSCalendar *calendar = [[NSCalendar alloc] initWithCalendarIdentifier:NSCalendarIdentifierGregorian];
+            NSDateComponents *components = [calendar components:unitFlags fromDate:date toDate:[NSDate new] options:0];
+            
+            if ([components day] < 7) {
+                showIndicator = true;
+                self.campAvatarReasonLabel.text = @"🆕";
+            }
+        }
+        self.campAvatarReasonView.hidden = !showIndicator;
+        self.campAvatarReasonImageView.hidden = showIndicator;
+        self.campAvatarReasonLabel.hidden = !showIndicator;
         
         // set details view up with members
-        BFDetailItem *members = [[BFDetailItem alloc] initWithType:BFDetailItemTypeMembers value:[NSString stringWithFormat:@"%ld", (long)camp.attributes.summaries.counts.members] action:nil];
-        self.detailsCollectionView.details = @[members];
+        if ([camp isChannel] && (camp.attributes.display.sourceLink || camp.attributes.display.sourceUser))  {
+            if (camp.attributes.display.sourceLink) {
+                BFDetailItem *sourceLink = [[BFDetailItem alloc] initWithType:BFDetailItemTypeSourceLink value:[NSString stringWithFormat:@"%@", camp.attributes.display.sourceLink.attributes.canonicalUrl] action:nil];
+                sourceLink.selectable = false;
+                self.detailsCollectionView.details = @[sourceLink];
+            }
+            else if (camp.attributes.display.sourceUser) {
+                BFDetailItem *sourceUser = [[BFDetailItem alloc] initWithType:BFDetailItemTypeSourceUser value:[NSString stringWithFormat:@"%@", camp.attributes.display.sourceUser.attributes.identifier] action:nil];
+                sourceUser.selectable = false;
+                self.detailsCollectionView.details = @[sourceUser];
+            }
+        }
+        else {
+            BFDetailItem *members = [[BFDetailItem alloc] initWithType:[camp isChannel]?BFDetailItemTypeSubscribers:BFDetailItemTypeMembers value:[NSString stringWithFormat:@"%ld", (long)camp.attributes.summaries.counts.members] action:nil];
+            self.detailsCollectionView.details = @[members];
+        }
     }
 }
 

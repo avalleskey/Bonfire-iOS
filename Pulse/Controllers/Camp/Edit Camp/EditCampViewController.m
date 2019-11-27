@@ -21,6 +21,7 @@
 #import <NSString+EMOEmoji.h>
 #import "BFHeaderView.h"
 #import "ManageIcebreakersViewController.h"
+#import "BFAlertController.h"
 
 #import <RSKImageCropper/RSKImageCropper.h>
 #import <BlocksKit/BlocksKit.h>
@@ -31,9 +32,11 @@
 
 #define CAMP_PRIVATE_DESCRIPTION @"When your Camp is private, only people you approve can see content posted inside your Camp. Your existing members won’t be affected."
 
-@interface EditCampViewController () <UITextFieldDelegate, UITextViewDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate, RSKImageCropViewControllerDelegate, RSKImageCropViewControllerDataSource> {
+@interface EditCampViewController () <UITextFieldDelegate, UITextViewDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate, RSKImageCropViewControllerDelegate, RSKImageCropViewControllerDataSource, UITableViewDelegate, UITableViewDataSource	> {
     UIImage *newAvatar;
 }
+
+@property (nonatomic) CGFloat currentKeyboardHeight;
 
 @property (nonatomic, strong) Camp *updatedCamp;
 @property (nonatomic, strong) NSMutableDictionary *inputValues;
@@ -54,6 +57,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     [super viewDidLoad];
     
     self.title = @"Edit Camp";
+    self.view.backgroundColor = [UIColor tableViewBackgroundColor];
     
     self.cancelButton = [[UIBarButtonItem alloc] initWithTitle:@"Cancel" style:UIBarButtonItemStylePlain target:self action:@selector(dismiss:)];
     [self.cancelButton setTintColor:[UIColor whiteColor]];
@@ -77,23 +81,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
                                               } forState:UIControlStateHighlighted];
     self.navigationItem.rightBarButtonItem = self.saveButton;
     
-    
-    self.tableView.backgroundColor = [UIColor tableViewBackgroundColor];
-    self.tableView.separatorInset = UIEdgeInsetsMake(0, 12, 0, 0);
-    self.tableView.separatorColor = [UIColor tableViewSeparatorColor];
-    self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
-    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 48, 0);
-    
-    // remove hairline
-    [self.navigationController.navigationBar setShadowImage:[UIImage new]];
-    
-    [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:blankReuseIdentifier];
-    
-    [self.tableView registerClass:[ProfilePictureCell class] forCellReuseIdentifier:profilePictureReuseIdentifier];
-    [self.tableView registerClass:[ThemeSelectorCell class] forCellReuseIdentifier:themeSelectorReuseIdentifier];
-    [self.tableView registerClass:[InputCell class] forCellReuseIdentifier:inputReuseIdentifier];
-    [self.tableView registerClass:[ToggleCell class] forCellReuseIdentifier:toggleReuseIdentifier];
-    [self.tableView registerClass:[ButtonCell class] forCellReuseIdentifier:buttonReuseIdentifier];
+    [self setupTableView];
         
     // Google Analytics
     [FIRAnalytics setScreenName:@"Edit Camp" screenClass:nil];
@@ -109,9 +97,18 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
         [(SimpleNavigationController *)self.navigationController updateBarColor:self.themeColor animated:false];
         
         self.view.tintColor = self.themeColor;
+        self.coverPhotoView.backgroundColor = self.themeColor;
         
         [self.tableView reloadData];
     }
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillChangeFrame:) name:UIKeyboardWillChangeFrameNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillDismiss:) name:UIKeyboardWillHideNotification object:nil];
+}
+
+- (void)viewWillDisappear:(BOOL)animated {
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillChangeFrameNotification object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillHideNotification object:nil];
 }
 
 - (void)themeSelectionDidChange:(NSString *)newHex {
@@ -122,18 +119,113 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     self.themeColor = [UIColor fromHex:newHex];
     [(SimpleNavigationController *)self.navigationController updateBarColor:self.themeColor animated:true];
     
-    self.view.tintColor = self.themeColor;
+    ProfilePictureCell *profilePictureCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
     
-    for (UITableViewCell *cell in [self.tableView visibleCells]) {
-        if ([cell isKindOfClass:[InputCell class]]) {
-            ((InputCell *)cell).textView.tintColor = self.view.tintColor;
-            ((InputCell *)cell).input.tintColor = self.view.tintColor;
+    BOOL emptyProfilePic = [profilePictureCell.profilePicture.imageView.image isEqual:[UIImage imageNamed:@"anonymousGroup"]] || [profilePictureCell.profilePicture.imageView.image isEqual:[UIImage imageNamed:@"anonymousGroup_black"]];
+    
+    [UIView animateWithDuration:0.4f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        self.view.tintColor = self.themeColor;
+        self.coverPhotoView.backgroundColor = self.view.tintColor;
+        
+    profilePictureCell.profilePicture.imageView.backgroundColor = self.view.tintColor;
+        
+        if ([UIColor useWhiteForegroundForColor:self.view.tintColor]) {
+            // dark enough
+            if (emptyProfilePic) {
+                profilePictureCell.profilePicture.imageView.image = [UIImage imageNamed:@"anonymousGroup"];
+            }
+            self.cancelButton.tintColor = [UIColor whiteColor];
+            self.saveButton.tintColor = [UIColor whiteColor];
+        }
+        else {
+            if (emptyProfilePic) {
+                profilePictureCell.profilePicture.imageView.image = [UIImage imageNamed:@"anonymousGroup_black"];
+            }
+            self.cancelButton.tintColor = [UIColor blackColor];
+            self.saveButton.tintColor = [UIColor blackColor];
+        }
+        
+        profilePictureCell.editPictureImageView.tintColor = [UIColor fromHex:[UIColor toHex:self.view.tintColor] adjustForOptimalContrast:true];
+        
+        for (UITableViewCell *cell in [self.tableView visibleCells]) {
+            if ([cell isKindOfClass:[InputCell class]]) {
+                ((InputCell *)cell).textView.tintColor = self.view.tintColor;
+                ((InputCell *)cell).input.tintColor = self.view.tintColor;
+            }
+        }
+    } completion:nil];
+}
+
+- (void)setupTableView {
+    self.tableView.delegate = self;
+    self.tableView.dataSource = self;
+    self.tableView.backgroundColor = [UIColor clearColor];
+    self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+    self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
+    self.tableView.refreshControl = nil;
+    
+    [self setupCoverPhotoView];
+    self.tableView.contentOffset = CGPointMake(0, -1 * self.tableView.contentInset.top);
+    
+    [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:blankReuseIdentifier];
+    
+    [self.tableView registerClass:[ProfilePictureCell class] forCellReuseIdentifier:profilePictureReuseIdentifier];
+    [self.tableView registerClass:[ThemeSelectorCell class] forCellReuseIdentifier:themeSelectorReuseIdentifier];
+    [self.tableView registerClass:[InputCell class] forCellReuseIdentifier:inputReuseIdentifier];
+    [self.tableView registerClass:[ToggleCell class] forCellReuseIdentifier:toggleReuseIdentifier];
+    [self.tableView registerClass:[ButtonCell class] forCellReuseIdentifier:buttonReuseIdentifier];
+}
+
+- (void)setupCoverPhotoView {
+    self.coverPhotoView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 120)];
+    self.coverPhotoView.backgroundColor = self.themeColor;
+    self.coverPhotoView.contentMode = UIViewContentModeScaleAspectFill;
+    self.coverPhotoView.clipsToBounds = true;
+    [self.coverPhotoView bk_whenTapped:^{
+        // TODO: show options to replace cover photo view
+    }];
+    [self.view insertSubview:self.coverPhotoView atIndex:0];
+    
+    [self updateCoverPhotoView];
+}
+- (void)updateCoverPhotoView {
+    CGFloat coverPhotoHeight = 120;
+    if (self.camp.attributes.media.cover.suggested.url.length > 0) {
+        coverPhotoHeight = 148;
+        [self.coverPhotoView sd_setImageWithURL:[NSURL URLWithString:self.camp.attributes.media.cover.suggested.url]];
+    
+        // add gradient overlay
+        UIColor *topColor = [UIColor colorWithWhite:0 alpha:0.5];
+        UIColor *bottomColor = [UIColor colorWithWhite:0 alpha:0];
+
+        NSArray *gradientColors = [NSArray arrayWithObjects:(id)topColor.CGColor, (id)bottomColor.CGColor, nil];
+        NSArray *gradientLocations = [NSArray arrayWithObjects:[NSNumber numberWithInt:0.0],[NSNumber numberWithInt:1.0], nil];
+
+        CAGradientLayer *gradientLayer = [CAGradientLayer layer];
+        gradientLayer.colors = gradientColors;
+        gradientLayer.locations = gradientLocations;
+        gradientLayer.frame = CGRectMake(0, 0, self.view.frame.size.width, self.tableView.contentInset.top);
+        [self.coverPhotoView.layer addSublayer:gradientLayer];
+    }
+    else {
+        self.coverPhotoView.image = nil;
+        for (CALayer *layer in self.coverPhotoView.layer.sublayers) {
+            if ([layer isKindOfClass:[CAGradientLayer class]]) {
+                [layer removeFromSuperlayer];
+            }
         }
     }
+    self.tableView.contentInset = UIEdgeInsetsMake(coverPhotoHeight, 0, 24, 0);
     
-    [self.tableView beginUpdates];
-    [self.tableView reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0 inSection:0]] withRowAnimation:UITableViewRowAnimationNone];
-    [self.tableView endUpdates];
+    // updat the scroll distance
+    if ([self.navigationController isKindOfClass:[ComplexNavigationController class]]) {
+        ((ComplexNavigationController *)self.navigationController).onScrollLowerBound = self.tableView.contentInset.top * .3;
+    }
+    else if ([self.navigationController isKindOfClass:[SimpleNavigationController class]]) {
+        ((SimpleNavigationController *)self.navigationController).onScrollLowerBound = self.tableView.contentInset.top * .3;
+    }
+    
+    self.coverPhotoView.frame = CGRectMake(0, 0, self.view.frame.size.width, self.tableView.contentInset.top + (-1 * self.tableView.contentOffset.y));
 }
 
 - (void)saveChanges {
@@ -148,7 +240,6 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     
     if (changes.count > 0) {
         // requirements have been met and there's more than one change to save
-        
         JGProgressHUD *HUD = [JGProgressHUD progressHUDWithStyle:JGProgressHUDStyleExtraLight];
         HUD.textLabel.text = @"Saving...";
         HUD.vibrancyEnabled = false;
@@ -189,12 +280,12 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
         
         void (^saveCamp)(NSString *uploadedImage) = ^(NSString *uploadedImage) {
             NSMutableDictionary *params = [[NSMutableDictionary alloc] initWithDictionary:changes];
-            if ([params objectForKey:@"camp_avatar"]) {
+            if ([params objectForKey:@"avatar"]) {
                 if (uploadedImage) {
-                    [params setObject:uploadedImage forKey:@"camp_avatar"];
+                    [params setObject:uploadedImage forKey:@"avatar"];
                 }
                 else {
-                    [params removeObjectForKey:@"camp_avatar"];
+                    [params removeObjectForKey:@"avatar"];
                 }
             }
             
@@ -210,12 +301,6 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
                 // save user
                 Camp *camp = [[Camp alloc] initWithDictionary:responseObject[@"data"] error:nil];
                 
-                NSLog(@"camp:");
-                NSLog(@"%@", camp);
-                
-                NSLog(@"responseObject::");
-                NSLog(@"%@", responseObject);
-                
                 [[NSNotificationCenter defaultCenter] postNotificationName:@"CampUpdated" object:camp];
                 [[NSNotificationCenter defaultCenter] postNotificationName:@"refreshMyCamps" object:nil];
                 
@@ -229,7 +314,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
             }];
         };
         
-        if ([changes objectForKey:@"camp_avatar"]) {
+        if ([changes objectForKey:@"avatar"]) {
             // upload avatar
             BFMediaObject *avatarObject = [[BFMediaObject alloc] initWithImage:newAvatar];
             [BFAPI uploadImage:avatarObject copmletion:^(BOOL success, NSString * _Nonnull uploadedImageURL) {
@@ -253,7 +338,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     NSMutableDictionary *changes = [[NSMutableDictionary alloc] init];
     
     if (newAvatar) {
-        [changes setObject:newAvatar forKey:@"camp_avatar"];
+        [changes setObject:newAvatar forKey:@"avatar"];
     }
     
     for (NSIndexPath *indexPath in [self.inputValues allKeys]) {
@@ -298,6 +383,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
             
             if (![camptag isEqualToString:self.camp.attributes.identifier]) {
                 BFValidationError error = [camptag validateBonfireCampTag];
+                NSLog(@"errror:: %u", error);
                 if (error == BFValidationErrorNone) {
                     // good to go!
                     [changes setObject:[camptag stringByReplacingOccurrencesOfString:@"#" withString:@""] forKey:@"identifier"];
@@ -354,9 +440,9 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
             // private BOOL
             BOOL isPrivate = [value boolValue];
             
-            if (isPrivate != self.camp.attributes.visibility.isPrivate) {
+            if (isPrivate != [self.camp.attributes isPrivate]) {
                 // good to go!
-                [changes setObject:[NSNumber numberWithBool:!isPrivate] forKey:@"visibility"];
+                [changes setObject:[NSNumber numberWithBool:isPrivate] forKey:@"private"];
             }
         }
     }
@@ -364,14 +450,12 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     return changes;
 }
 - (void)alertWithTitle:(NSString *)title message:(NSString *)message {
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:title message:message preferredStyle:UIAlertControllerStyleAlert];
+    BFAlertController *alert = [BFAlertController alertControllerWithTitle:title message:message preferredStyle:BFAlertControllerStyleAlert];
     
-    UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"Got it" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-        [alert dismissViewControllerAnimated:YES completion:nil];
-    }];
+    BFAlertAction *okAction = [BFAlertAction actionWithTitle:@"Got it" style:BFAlertActionStyleDefault handler:nil];
     [alert addAction:okAction];
     
-    [[Launcher topMostViewController] presentViewController:alert animated:YES completion:nil];
+    [[Launcher topMostViewController] presentViewController:alert animated:true completion:nil];
 }
 
 #pragma mark - Table view data source
@@ -400,6 +484,12 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
         if (indexPath.row == 0) {
             ProfilePictureCell *cell = [tableView dequeueReusableCellWithIdentifier:profilePictureReuseIdentifier forIndexPath:indexPath];
             
+            if (cell.profilePictureContainer.gestureRecognizers.count == 0) {
+                [cell.profilePictureContainer bk_whenTapped:^{
+                    [self showImagePicker];
+                }];
+            }
+            
             if (newAvatar) {
                 cell.profilePicture.imageView.image = newAvatar;
             }
@@ -416,6 +506,9 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
         }
         else if (indexPath.row == 1 || (indexPath.row == 2 && self.camp.attributes.identifier.length > 0) || indexPath.row == 3) {
             InputCell *cell = [tableView dequeueReusableCellWithIdentifier:inputReuseIdentifier forIndexPath:indexPath];
+            
+            cell.lineSeparator.frame = CGRectMake(12, cell.frame.size.height - cell.lineSeparator.frame.size.height, self.view.frame.size.width - 12, cell.lineSeparator.frame.size.height);
+            cell.lineSeparator.hidden = false;
             
             // Configure the cell...
             if (indexPath.row == 1) {
@@ -478,6 +571,9 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
             cell.selectedColor = self.updatedCamp.attributes.color;
             cell.selectorLabel.text = @"Camp Color";
             
+            cell.bottomSeparator.frame = CGRectMake(12, cell.frame.size.height - cell.bottomSeparator.frame.size.height, self.view.frame.size.width - 12, cell.bottomSeparator.frame.size.height);
+            cell.bottomSeparator.hidden = false;
+                        
             return cell;
         }
         else if (indexPath.row == 5) {
@@ -486,29 +582,31 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
             // Configure the cell...
             cell.textLabel.text = @"Private Camp";
             cell.textLabel.textColor = [UIColor bonfireSecondaryColor];
-            cell.toggle.on = self.camp.attributes.visibility.isPrivate;
+            cell.toggle.on = [self.camp isPrivate];
+            
+            cell.bottomSeparator.hidden = false;
             
             if (cell.toggle.tag == 0) {
                 cell.toggle.tag = 1;
                 [cell.toggle bk_addEventHandler:^(id sender) {
-                    if (!cell.toggle.isOn && self.camp.attributes.visibility.isPrivate) {
+                    if (!cell.toggle.isOn && [self.camp isPrivate]) {
                         NSLog(@"toggle is now on");
                         // confirm action
-                        UIAlertController *confirmActionSheet = [UIAlertController alertControllerWithTitle:@"Change Privacy?" message:@"When your Camp is public, everyone can see content posted inside your Camp. Also, any pending member requests will be automatically approved once you save." preferredStyle:UIAlertControllerStyleAlert];
+                        BFAlertController *confirmActionSheet = [BFAlertController alertControllerWithTitle:@"Change Privacy?" message:@"When your Camp is public, everyone can see content posted inside your Camp. Also, any pending member requests will be automatically approved once you save." preferredStyle:BFAlertControllerStyleAlert];
                         confirmActionSheet.view.tintColor = self.themeColor;
                         
-                        UIAlertAction *cancelActionSheet = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                        BFAlertAction *confirmAction = [BFAlertAction actionWithTitle:@"Confirm" style:BFAlertActionStyleDefault handler:^{
+                            [self.inputValues setObject:(cell.toggle.isOn ? @"1" : @"0") forKey:indexPath];
+                        }];
+                        [confirmActionSheet addAction:confirmAction];
+                        
+                        BFAlertAction *cancelActionSheet = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:^{
                             [cell.toggle setOn:true animated:YES];
                             [self.inputValues setObject:(cell.toggle.isOn ? @"1" : @"0") forKey:indexPath];
                         }];
                         [confirmActionSheet addAction:cancelActionSheet];
                         
-                        UIAlertAction *confirmAction = [UIAlertAction actionWithTitle:@"Confirm" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-                            [self.inputValues setObject:(cell.toggle.isOn ? @"1" : @"0") forKey:indexPath];
-                        }];
-                        [confirmActionSheet addAction:confirmAction];
-                        
-                        [self.navigationController presentViewController:confirmActionSheet animated:YES completion:nil];
+                        [self.navigationController presentViewController:confirmActionSheet animated:true completion:nil];
                     }
                     else {
                         [self.inputValues setObject:(cell.toggle.isOn ? @"1" : @"0") forKey:indexPath];
@@ -531,6 +629,9 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
         // Configure the cell...
         cell.buttonLabel.text = @"Manage Icebreaker";
         cell.buttonLabel.textColor = cell.kButtonColorDefault;
+        
+        cell.topSeparator.hidden = false;
+        cell.bottomSeparator.hidden = false;
         
         return cell;
     }
@@ -573,6 +674,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     
     NSLog(@"textFieldDidChange: %@", sender);
     NSLog(@"text:: %@", sender.text);
+    NSLog(@"indexpath (section: %lu, row: %lu)", indexPath.section, indexPath.row);
     [self.inputValues setObject:sender.text forKey:indexPath];
 }
 - (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
@@ -598,6 +700,8 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
         if (cell) {
             cell.charactersRemainingLabel.text = [NSString stringWithFormat:@"%i", (int)(MAX_CAMP_DESC_SOFT_LENGTH - textView.text.length)];
             [self.inputValues setObject:textView.text forKey:indexPath];
+            
+            NSLog(@"indexpath (section: %lu, row: %lu)", indexPath.section, indexPath.row);
         }
     }
 }
@@ -688,13 +792,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (indexPath.section == 0) {
-        if (indexPath.row == 0) {
-            // change profile photo
-            [self showImagePicker];
-        }
-    }
-    else if (indexPath.section == 1) {
+    if (indexPath.section == 1) {
         if (indexPath.row == 0) {
             ManageIcebreakersViewController *mibvc = [[ManageIcebreakersViewController alloc] initWithStyle:UITableViewStyleGrouped];
             mibvc.view.tintColor = self.themeColor;
@@ -715,23 +813,22 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
 }
 
 - (void)showImagePicker {
-    UIAlertController *imagePickerOptions = [UIAlertController alertControllerWithTitle:@"Set Camp Picture" message:nil preferredStyle:UIAlertControllerStyleActionSheet];
+    BFAlertController *imagePickerOptions = [BFAlertController alertControllerWithTitle:@"Set Camp Picture" message:nil preferredStyle:BFAlertControllerStyleActionSheet];
     
-    UIAlertAction *takePhoto = [UIAlertAction actionWithTitle:@"Take Photo" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+    BFAlertAction *takePhoto = [BFAlertAction actionWithTitle:@"Take Photo" style:BFAlertActionStyleDefault handler:^{
         [self takePhotoForProfilePicture:nil];
     }];
     [imagePickerOptions addAction:takePhoto];
     
-    UIAlertAction *chooseFromLibrary = [UIAlertAction actionWithTitle:@"Choose from Library" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+    BFAlertAction *chooseFromLibrary = [BFAlertAction actionWithTitle:@"Choose from Library" style:BFAlertActionStyleDefault handler:^{
         [self chooseFromLibraryForProfilePicture:nil];
     }];
     [imagePickerOptions addAction:chooseFromLibrary];
     
-    UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-    }];
+    BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
     [imagePickerOptions addAction:cancel];
     
-    [self presentViewController:imagePickerOptions animated:YES completion:nil];
+    [self presentViewController:imagePickerOptions animated:true completion:nil];
 }
 
 
@@ -772,16 +869,16 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     });
 }
 - (void)showNoCameraAccess {
-    UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"Allow Bonfire to access your camera" message:@"To allow Bonfire to access your camera, go to Settings > Privacy > Camera > Set Bonfire to ON" preferredStyle:UIAlertControllerStyleAlert];
+    BFAlertController *actionSheet = [BFAlertController alertControllerWithTitle:@"Allow Bonfire to access your camera" message:@"To allow Bonfire to access your camera, go to Settings > Privacy > Camera > Set Bonfire to ON" preferredStyle:BFAlertControllerStyleAlert];
 
-    UIAlertAction *openSettingsAction = [UIAlertAction actionWithTitle:@"Open Settings" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+    BFAlertAction *openSettingsAction = [BFAlertAction actionWithTitle:@"Open Settings" style:BFAlertActionStyleDefault handler:^{
         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString] options:@{} completionHandler:nil];
     }];
     [actionSheet addAction:openSettingsAction];
 
-    UIAlertAction *closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleCancel handler:nil];
+    BFAlertAction *closeAction = [BFAlertAction actionWithTitle:@"Close" style:BFAlertActionStyleCancel handler:nil];
     [actionSheet addAction:closeAction];
-    [[Launcher topMostViewController] presentViewController:actionSheet animated:YES completion:nil];
+    [[Launcher topMostViewController] presentViewController:actionSheet animated:true completion:nil];
 }
 
 - (void)chooseFromLibraryForProfilePicture:(id)sender {
@@ -806,16 +903,16 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
                 NSLog(@"PHAuthorizationStatusDenied");
                 // confirm action
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"Allow Bonfire to access your phtoos" message:@"To allow Bonfire to access your photos, go to Settings > Privacy > Camera > Set Bonfire to ON" preferredStyle:UIAlertControllerStyleAlert];
+                    BFAlertController *actionSheet = [BFAlertController alertControllerWithTitle:@"Allow Bonfire to access your phtoos" message:@"To allow Bonfire to access your photos, go to Settings > Privacy > Camera > Set Bonfire to ON" preferredStyle:BFAlertControllerStyleAlert];
 
-                    UIAlertAction *openSettingsAction = [UIAlertAction actionWithTitle:@"Open Settings" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                    BFAlertAction *openSettingsAction = [BFAlertAction actionWithTitle:@"Open Settings" style:BFAlertActionStyleDefault handler:^{
                         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString] options:@{} completionHandler:nil];
                     }];
                     [actionSheet addAction:openSettingsAction];
                 
-                    UIAlertAction *closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleCancel handler:nil];
+                    BFAlertAction *closeAction = [BFAlertAction actionWithTitle:@"Close" style:BFAlertActionStyleCancel handler:nil];
                     [actionSheet addAction:closeAction];
-                    [[Launcher topMostViewController] presentViewController:actionSheet animated:YES completion:nil];
+                    [[Launcher topMostViewController] presentViewController:actionSheet animated:true completion:nil];
                 });
 
                 break;
@@ -945,7 +1042,37 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
     if (scrollView == self.tableView && [self.navigationController isKindOfClass:[SimpleNavigationController class]]) {
         [(SimpleNavigationController *)self.navigationController childTableViewDidScroll:self.tableView];
+        
+        if (self.tableView.contentOffset.y > (-1 * self.tableView.contentInset.top)) {
+            self.coverPhotoView.frame = CGRectMake(0, 0.5 * (-self.tableView.contentOffset.y - self.tableView.contentInset.top), self.view.frame.size.width, self.tableView.contentInset.top);
+        }
+        else {
+            self.coverPhotoView.frame = CGRectMake(0, 0, self.view.frame.size.width, self.tableView.contentInset.top + (-self.tableView.contentOffset.y - self.tableView.contentInset.top));
+        }
     }
+}
+
+- (void)keyboardWillChangeFrame:(NSNotification *)notification {
+    NSDictionary* keyboardInfo = [notification userInfo];
+    NSValue* keyboardFrameBegin = [keyboardInfo valueForKey:UIKeyboardFrameEndUserInfoKey];
+    CGRect keyboardFrameBeginRect = [keyboardFrameBegin CGRectValue];
+    _currentKeyboardHeight = keyboardFrameBeginRect.size.height;
+    CGFloat bottomPadding = [[UIApplication sharedApplication] keyWindow].safeAreaInsets.bottom;
+    
+    CGFloat extraBottomPadding = 24;
+    self.tableView.contentInset = UIEdgeInsetsMake(self.tableView.contentInset.top, self.tableView.contentInset.left, _currentKeyboardHeight - bottomPadding + extraBottomPadding, self.tableView.contentInset.right);
+    self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, self.tableView.contentInset.bottom - 24, 0);
+}
+
+- (void)keyboardWillDismiss:(NSNotification *)notification {
+    _currentKeyboardHeight = 0;
+    CGFloat extraBottomPadding = 24;
+    
+    NSNumber *duration = [notification.userInfo objectForKey:UIKeyboardAnimationDurationUserInfoKey];
+    [UIView animateWithDuration:[duration floatValue] delay:0 options:[[notification.userInfo objectForKey:UIKeyboardAnimationCurveUserInfoKey] intValue] << 16 animations:^{
+        self.tableView.contentInset = UIEdgeInsetsMake(self.tableView.contentInset.top, self.tableView.contentInset.left, self.currentKeyboardHeight + extraBottomPadding, self.tableView.contentInset.right);
+        self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, self.tableView.contentInset.bottom - extraBottomPadding, 0);
+    } completion:nil];
 }
 
 @end

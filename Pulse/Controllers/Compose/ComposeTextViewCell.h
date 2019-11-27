@@ -25,13 +25,14 @@ NS_ASSUME_NONNULL_BEGIN
 
 // MEDIA
 @property (nonatomic, strong) BFMedia *media;
-@property (nonatomic, strong) NSURL *url;
 
 @property (nonatomic, strong) UITextView *textView;
 @property (nonatomic, strong) BFAvatarView *creatorAvatar;
 @property (nonatomic, strong) UIScrollView *mediaScrollView;
 @property (nonatomic, strong) UIStackView *mediaContainerView;
-@property (nonatomic, strong) BFSmartLinkAttachmentView * _Nullable smartLinkAttachmentView;
+@property (nonatomic, strong) BFAttachmentView *quotedAttachmentView;
+
+@property (nonatomic, strong) UIView *topLine;
 
 @property (nonatomic, strong) UIView *lineSeparator;
 

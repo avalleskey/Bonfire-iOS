@@ -115,7 +115,7 @@ static NSString * const postCellReuseIdentifier = @"PostCell";
             self.errorView.hidden = false;
             
             BFVisualError *visualError = [BFVisualError visualErrorOfType:ErrorViewTypeNoPosts title:@"No Posts Yet" description:@"In order to set an Icebreaker, your Camp must have at least 1 post" actionTitle:@"Create Post" actionBlock:^{
-                [Launcher openComposePost:self.camp inReplyTo:nil withMessage:nil media:nil];
+                [Launcher openComposePost:self.camp inReplyTo:nil withMessage:nil media:nil quotedObject:nil];
             }];
             self.errorView.visualError = visualError;
             
@@ -234,7 +234,7 @@ static NSString * const postCellReuseIdentifier = @"PostCell";
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     if (self.stream.posts.count > indexPath.row) {
         Post *post = self.stream.posts[indexPath.row];
-        return [StreamPostCell heightForPost:post showContext:true showActions:true];
+        return [StreamPostCell heightForPost:post showContext:true showActions:true minimizeLinks:false];
     }
     
     return 0;

@@ -17,6 +17,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic, strong) UIView *dotView;
 
+@property (nonatomic) NSInteger levelsDeep;
+
 + (CGFloat)height;
 
 @end

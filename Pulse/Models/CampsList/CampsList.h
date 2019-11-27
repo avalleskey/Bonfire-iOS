@@ -6,7 +6,7 @@
 //  Copyright © 2019 Austin Valleskey. All rights reserved.
 //
 
-#import "JSONModel.h"
+#import "BFJSONModel.h"
 #import "Camp.h"
 
 NS_ASSUME_NONNULL_BEGIN
@@ -17,7 +17,7 @@ NS_ASSUME_NONNULL_BEGIN
 @class CampsList;
 @class CampsListAttributes;
 
-@interface CampsList : JSONModel
+@interface CampsList : BFJSONModel
 
 @property (nonatomic) NSString <Optional> *identifier;
 @property (nonatomic) NSString <Optional> *type;
@@ -25,7 +25,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @end
 
-@interface CampsListAttributes : JSONModel
+@interface CampsListAttributes : BFJSONModel
 
 @property (nonatomic) NSString <Optional> *title;
 @property (nonatomic) BOOL isNew;

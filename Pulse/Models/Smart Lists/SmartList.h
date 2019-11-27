@@ -6,7 +6,7 @@
 //  Copyright © 2018 Austin Valleskey. All rights reserved.
 //
 
-#import "JSONModel.h"
+#import "BFJSONModel.h"
 #import "UserListStream.h"
 #import "CampListStream.h"
 
@@ -20,7 +20,7 @@ NS_ASSUME_NONNULL_BEGIN
 @class SmartListSectionRow;
 @class SmartListSectionRowInput;
 
-@interface SmartList : JSONModel
+@interface SmartList : BFJSONModel
 
 @property (nonatomic) NSString <Optional> *identifier;
 @property (nonatomic) NSString <Optional> *title;
@@ -28,7 +28,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @end
 
-@interface SmartListSection : JSONModel
+@interface SmartListSection : BFJSONModel
 
 typedef enum {
     SmartListStateEmpty = 0,
@@ -58,7 +58,7 @@ extern NSString * const SmartListSectionDataTypeCamp;
 
 @end
 
-@interface SmartListSectionRow : JSONModel
+@interface SmartListSectionRow : BFJSONModel
 
 @property (nonatomic) NSString *identifier;
 @property (nonatomic) NSString <Optional> *title;
@@ -72,7 +72,7 @@ extern NSString * const SmartListSectionDataTypeCamp;
 
 @end
 
-@interface SmartListSectionRowInput : JSONModel
+@interface SmartListSectionRowInput : BFJSONModel
 
 extern NSString * const SmartListInputEmailValidation;
 extern NSString * const SmartListInputUsernameValidation;

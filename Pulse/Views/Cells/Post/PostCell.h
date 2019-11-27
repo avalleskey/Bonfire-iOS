@@ -13,11 +13,13 @@
 #import "BFAvatarView.h"
 #import "PostTextView.h"
 #import "PostImagesView.h"
+
 #import "BFLinkAttachmentView.h"
 #import "BFCampAttachmentView.h"
 #import "BFUserAttachmentView.h"
 #import "BFSmartLinkAttachmentView.h"
 #import "BFPostDeletedAttachmentView.h"
+#import "BFPostAttachmentView.h"
 
 #import <BlocksKit/BlocksKit+UIKit.h>
 #import "NSDate+NVTimeAgo.h"
@@ -37,6 +39,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property BOOL selectable;
 
 @property BOOL voted;
+@property BOOL unread;
 
 // @property (strong) NSDictionary *theme;
 @property (nonatomic, strong) Post *post;
@@ -73,6 +76,10 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) BFPostDeletedAttachmentView * _Nullable postRemovedAttachmentView;
 - (void)removePostRemovedAttachment;
 - (void)initPostRemovedAttachment;
+
+@property (nonatomic, strong) BFPostAttachmentView * _Nullable postAttachmentView;
+- (void)removePostAttachment;
+- (void)initPostAttachment;
 
 @property (nonatomic, strong) UIView *lineSeparator;
 

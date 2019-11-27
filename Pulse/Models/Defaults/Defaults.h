@@ -6,7 +6,7 @@
 //  Copyright © 2018 Austin Valleskey. All rights reserved.
 //
 
-#import "JSONModel.h"
+#import "BFJSONModel.h"
 
 @class Defaults;
 @class DefaultsKeywords;
@@ -14,9 +14,9 @@
 @class DefaultsPost;
 @class DefaultsPostImgHeight;
 @class DefaultsCamp;
-@class DefaultsFeed;
-@class DefaultsFeedMotd;
-@class DefaultsFeedMotdCta;
+@class DefaultsAnnouncement;
+@class DefaultsAnnouncementAttributes;
+@class DefaultsAnnouncementAttributesCta;
 @class DefaultsLogging;
 @class DefaultsLoggingInsights;
 @class DefaultsLoggingInsightsImpressions;
@@ -25,24 +25,24 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface Defaults : JSONModel
+@interface Defaults : BFJSONModel
  
 @property (nonatomic) DefaultsKeywords <Optional> *keywords;
 @property (nonatomic) DefaultsLogging <Optional> *logging;
 @property (nonatomic) NSDictionary <Optional> *notifications;
 @property (nonatomic) DefaultsPost <Optional> *post;
 @property (nonatomic) DefaultsCamp <Optional> *camp;
-@property (nonatomic) DefaultsFeed <Optional> *feed;
+@property (nonatomic) DefaultsAnnouncement <Optional> * _Nullable announcement;
 
 @end
 
-@interface DefaultsKeywords : JSONModel
+@interface DefaultsKeywords : BFJSONModel
 
 @property (nonatomic) DefaultsKeywordsViewTitles <Optional> *viewTitles;
 
 @end
 
-@interface DefaultsKeywordsViewTitles : JSONModel
+@interface DefaultsKeywordsViewTitles : BFJSONModel
 
 @property (nonatomic) NSString <Optional> *userStream;
 @property (nonatomic) NSString <Optional> *discover;
@@ -51,43 +51,49 @@ NS_ASSUME_NONNULL_BEGIN
 
 @end
 
-@interface DefaultsPost : JSONModel
+@interface DefaultsPost : BFJSONModel
 
 @property (nonatomic) DefaultsPostImgHeight <Optional> *imgHeight;
 @property (nonatomic) NSInteger maxLength;
 
 @end
 
-@interface DefaultsPostImgHeight : JSONModel
+@interface DefaultsPostImgHeight : BFJSONModel
 
 @property (nonatomic) NSInteger min;
 @property (nonatomic) NSInteger max;
 
 @end
 
-@interface DefaultsCamp : JSONModel
+@interface DefaultsCamp : BFJSONModel
 
 @property (nonatomic) NSInteger scoreThreshold;
 @property (nonatomic) NSInteger membersThreshold; // Number of members required to "start" a (default format) public Camp
 
 @end
 
-@interface DefaultsFeed : JSONModel
+@interface DefaultsAnnouncement : BFJSONModel
 
-@property (nonatomic) DefaultsFeedMotd <Optional> *motd;
+@property (nonatomic) NSString <Optional> *identifier;
+@property (nonatomic) NSString <Optional> *type; // == "announcement"
+@property (nonatomic) DefaultsAnnouncementAttributes <Optional> *attributes;
+
+#pragma mark - API Handlers
+- (void)dismissWithCompletion:(void (^_Nullable)(BOOL success, id __nullable responseObject))completion;
+- (void)ctaTappedWithCompletion:(void (^_Nullable)(BOOL success, id __nullable responseObject))completion;
 
 @end
 
-@interface DefaultsFeedMotd : JSONModel
+@interface DefaultsAnnouncementAttributes : BFJSONModel
 
 @property (nonatomic) NSString <Optional> *title;
 @property (nonatomic) NSString <Optional> *text;
 @property (nonatomic) NSString <Optional> *imageUrl;
-@property (nonatomic) DefaultsFeedMotdCta <Optional> *cta;
+@property (nonatomic) DefaultsAnnouncementAttributesCta <Optional> *cta;
 
 @end
 
-@interface DefaultsFeedMotdCta : JSONModel
+@interface DefaultsAnnouncementAttributesCta : BFJSONModel
 
 @property (nonatomic) NSString <Optional> *type;
 @property (nonatomic) NSString <Optional> *actionUrl;
@@ -95,25 +101,25 @@ NS_ASSUME_NONNULL_BEGIN
 
 @end
 
-@interface DefaultsLogging : JSONModel
+@interface DefaultsLogging : BFJSONModel
 
 @property (nonatomic) DefaultsLoggingInsights <Optional> *insights;
 
 @end
 
-@interface DefaultsLoggingInsights : JSONModel
+@interface DefaultsLoggingInsights : BFJSONModel
 
 @property (nonatomic) DefaultsLoggingInsightsImpressions <Optional> *impressions;
 
 @end
 
-@interface DefaultsLoggingInsightsImpressions : JSONModel
+@interface DefaultsLoggingInsightsImpressions : BFJSONModel
 
 @property (nonatomic) DefaultsLoggingInsightsImpressionsBatching <Optional> *batching;
 
 @end
 
-@interface DefaultsLoggingInsightsImpressionsBatching : JSONModel
+@interface DefaultsLoggingInsightsImpressionsBatching : BFJSONModel
 
 @property (nonatomic) NSInteger maxTimeframes;
 @property (nonatomic) NSInteger maxLengthHrs;
@@ -126,7 +132,7 @@ NS_ASSUME_NONNULL_BEGIN
 // -> notifications
 // -> -> 3
 // -> -> -> DefaultsNotificationsFormat
-@interface DefaultsNotificationsFormat : JSONModel
+@interface DefaultsNotificationsFormat : BFJSONModel
 
 extern NSString * const ACTIVITY_ACTION_OBJECT_ACTIONER;
 extern NSString * const ACTIVITY_ACTION_OBJECT_POST;

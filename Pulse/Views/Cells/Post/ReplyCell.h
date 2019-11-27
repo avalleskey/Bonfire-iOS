@@ -9,8 +9,9 @@
 #import "PostCell.h"
 #import "PostActionsView.h"
 
-#define replyContentOffset UIEdgeInsetsMake(0, 12, 12, 12)
-#define replyTextViewFont [UIFont systemFontOfSize:textViewFont.pointSize-1.f weight:UIFontWeightRegular]
+#define replyTextViewFont [UIFont systemFontOfSize:textViewFont.pointSize+1.f weight:UIFontWeightRegular]
+#define REPLY_BUBBLE_INSETS UIEdgeInsetsMake(replyTextViewFont.pointSize*.4, replyTextViewFont.pointSize*.65, replyTextViewFont.pointSize*.4, replyTextViewFont.pointSize*.65)
+#define replyContentOffset UIEdgeInsetsMake(0, 12, replyTextViewFont.pointSize*.5, 12)
 
 @interface ReplyCell : PostCell <UITextFieldDelegate, PostTextViewDelegate>
 
@@ -19,6 +20,8 @@
 @property (nonatomic) NSInteger levelsDeep;
 
 @property (nonatomic, strong) UIView *bubbleBackgroundView;
+@property (nonatomic, strong) UIView *bubbleBackgroundDot1;
+@property (nonatomic, strong) UIView *bubbleBackgroundDot2;
 
 @property (nonatomic, strong) UIButton *topLevelReplyButton;
 

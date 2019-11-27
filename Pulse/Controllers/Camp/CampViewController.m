@@ -23,6 +23,7 @@
 #import "BFNotificationManager.h"
 #import "SetAnIcebreakerViewController.h"
 #import "BFTipsManager.h"
+#import "BFAlertController.h"
 //#import "BFUpsellTableViewCell.h"
 
 @interface CampViewController () {
@@ -111,14 +112,14 @@ static NSString * const reuseIdentifier = @"Result";
     [self updateCoverPhotoView];
 }
 - (void)updateCoverPhotoView {
-    if (1 == 2) {
-        self.tableView.contentInset = UIEdgeInsetsMake(152, 0, self.tableView.contentInset.bottom, 0);
-        //[self.coverPhotoView sd_setImageWithURL:[NSURL URLWithString:self.link.attributes.images[0]]];
-    }
-    else {
+//    if (1 == 2) {
+//        self.tableView.contentInset = UIEdgeInsetsMake(152, 0, self.tableView.contentInset.bottom, 0);
+//        //[self.coverPhotoView sd_setImageWithURL:[NSURL URLWithString:self.link.attributes.images[0]]];
+//    }
+//    else {
         self.tableView.contentInset = UIEdgeInsetsMake(120, 0, self.tableView.contentInset.bottom, 0);
         self.coverPhotoView.image = nil;
-    }
+//    }
     [self.tableView.refreshControl setBounds:CGRectMake(self.tableView.refreshControl.bounds.origin.x, self.tableView.contentInset.top, self.tableView.refreshControl.bounds.size.width, self.tableView.refreshControl.bounds.size.height)];
     self.coverPhotoView.frame = CGRectMake(0, 0, self.view.frame.size.width, self.tableView.contentInset.top + (-1 * self.tableView.contentOffset.y));
     UIVisualEffectView *overlayView = [self.coverPhotoView viewWithTag:10];
@@ -155,6 +156,8 @@ static NSString * const reuseIdentifier = @"Result";
     
     if (post != nil && [post.attributes.postedIn.identifier isEqualToString:self.camp.identifier] && !post.attributes.parent) {
         // TODO: Check for image as well
+        [self.tableView.stream removeLoadedCursor:self.tableView.stream.prevCursor];
+        
         [self.tableView.stream removeTempPost:tempId];
         
         [self determineEmptyStateVisibility];
@@ -222,14 +225,14 @@ static NSString * const reuseIdentifier = @"Result";
             [self.tableView.stream updateCampObjects:camp];
         }
         
-        if (self.camp.attributes.visibility.isPrivate && self.tableView.stream.posts.count > 0 && ([self.camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_LEFT] || [self.camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_NO_RELATION])) {
+        if ([self.camp isPrivate] && self.tableView.stream.posts.count > 0 && ([self.camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_LEFT] || [self.camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_NO_RELATION])) {
             self.tableView.stream.pages = [[NSMutableArray alloc] init];
             self.tableView.stream.posts = @[];
             
             [self showErrorViewWithType:ErrorViewTypeLocked title:@"Private Camp" description:@"Request access above to get access to this Camp’s posts" actionTitle:nil actionBlock:nil];
         }
         
-        [self.tableView refreshAtTop];
+        [self.tableView hardRefresh];
     }
 }
 - (void)setCamp:(Camp *)camp {
@@ -254,9 +257,9 @@ static NSString * const reuseIdentifier = @"Result";
 }
 
 - (BOOL)isActive {
-    BOOL publicCamp = ![self.camp.attributes.visibility isPrivate];
+    BOOL publicCamp = ![self.camp isPrivate];
     BOOL isChannel = [self.camp.attributes.display.format isEqualToString:@"channel"];
-    return isChannel || !(self.tableView.stream.posts.count == 0 && publicCamp && self.camp.attributes.summaries.counts.members < [Session sharedInstance].defaults.camp.membersThreshold);
+    return isChannel || !(self.camp.attributes.summaries.counts.posts == 0 && publicCamp && self.camp.attributes.summaries.counts.members < [Session sharedInstance].defaults.camp.membersThreshold);
 }
 
 - (void)loadCamp {
@@ -282,7 +285,9 @@ static NSString * const reuseIdentifier = @"Result";
         // camp not found
         self.tableView.hidden = true;
         
-        [self showErrorViewWithType:ErrorViewTypeNotFound title:@"Camp Not Found" description:@"We couldn’t find the Camp\nyou were looking for" actionTitle:nil actionBlock:nil];
+        [self showErrorViewWithType:ErrorViewTypeNotFound title:@"Camp Not Found"description:@"We couldn’t find the Camp\nyou were looking for" actionTitle:@"Create New Camp" actionBlock:^{
+            [Launcher openCreateCamp];
+        }];
         
         [self hideMoreButton];
     }
@@ -356,7 +361,9 @@ static NSString * const reuseIdentifier = @"Result";
         NSHTTPURLResponse *httpResponse = error.userInfo[AFNetworkingOperationFailingURLResponseErrorKey];
         NSInteger statusCode = httpResponse.statusCode;
         if (statusCode == 404) {
-            [self showErrorViewWithType:ErrorViewTypeNotFound title:@"Camp Not Found"description:@"We couldn’t find the Camp\nyou were looking for" actionTitle:nil actionBlock:nil];
+            [self showErrorViewWithType:ErrorViewTypeNotFound title:@"Camp Not Found"description:@"We couldn’t find the Camp\nyou were looking for" actionTitle:@"Create New Camp" actionBlock:^{
+                [Launcher openCreateCamp];
+            }];
             
             self.camp = nil;
             
@@ -452,9 +459,7 @@ static NSString * const reuseIdentifier = @"Result";
 
 - (void)loadCampContent {
     if ([self canViewPosts]) {
-        if ([self.camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_MEMBER] && [self isActive]) {
-            [self showComposeInputView];
-        }
+        [self updateComposeInputView];
         
         [self getPostsWithCursor:StreamPagingCursorTypeNone];
     }
@@ -472,7 +477,7 @@ static NSString * const reuseIdentifier = @"Result";
         else if ([self.camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_BLOCKED]) { // blocked from Camp
             [self showErrorViewWithType:ErrorViewTypeBlocked title:@"Blocked By Camp" description:@"Your account is blocked from creating and viewing posts in this Camp" actionTitle:nil actionBlock:nil];
         }
-        else if (self.camp.attributes.visibility.isPrivate) { // not blocked, not member
+        else if ([self.camp isPrivate]) { // not blocked, not member
             // private camp but not a member yet
             [self showErrorViewWithType:ErrorViewTypeLocked title:@"Private Camp" description:@"Request access above to get access to this Camp’s posts" actionTitle:nil actionBlock:nil];
             
@@ -480,7 +485,9 @@ static NSString * const reuseIdentifier = @"Result";
             self.tableView.stream.pages = [[NSMutableArray alloc] init];
         }
         else {
-            [self showErrorViewWithType:ErrorViewTypeNotFound title:@"Camp Not Found" description:@"We couldn’t find the Camp\nyou were looking for" actionTitle:nil actionBlock:nil];
+            [self showErrorViewWithType:ErrorViewTypeNotFound title:@"Camp Not Found"description:@"We couldn’t find the Camp\nyou were looking for" actionTitle:@"Create New Camp" actionBlock:^{
+                [Launcher openCreateCamp];
+            }];
             
             [UIView animateWithDuration:0.25f delay:0 usingSpringWithDamping:0.72f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
                 self.launchNavVC.rightActionButton.alpha = 0;
@@ -506,6 +513,7 @@ static NSString * const reuseIdentifier = @"Result";
         
         self.composeInputView.textView.tintColor = themeAdjustedForDarkMode;
         self.composeInputView.postButton.backgroundColor = themeAdjustedForDarkMode;
+        self.composeInputView.postButton.tintColor = [UIColor highContrastForegroundForBackground:self.composeInputView.postButton.backgroundColor];
         self.coverPhotoView.backgroundColor = theme;
         
         if ([UIColor useWhiteForegroundForColor:theme]) {
@@ -536,6 +544,7 @@ static NSString * const reuseIdentifier = @"Result";
     self.composeInputView.parentViewController = self;
     UIColor *themeAdjustedForDarkMode = [UIColor fromHex:[UIColor toHex:self.theme] adjustForOptimalContrast:true];
     self.composeInputView.postButton.backgroundColor = themeAdjustedForDarkMode;
+    self.composeInputView.postButton.tintColor = [UIColor highContrastForegroundForBackground:self.composeInputView.postButton.backgroundColor];
 //    self.composeInputView.addMediaButton.backgroundColor = self.composeInputView.postButton.backgroundColor;
     self.composeInputView.textView.tintColor = self.composeInputView.postButton.backgroundColor;
     
@@ -548,7 +557,7 @@ static NSString * const reuseIdentifier = @"Result";
         [self postMessage];
     }];
     [self.composeInputView.expandButton bk_whenTapped:^{
-        [Launcher openComposePost:self.camp inReplyTo:nil withMessage:self.composeInputView.textView.text media:nil];
+        [Launcher openComposePost:self.camp inReplyTo:nil withMessage:self.composeInputView.textView.text media:nil  quotedObject:nil];
     }];
     
     [self.view addSubview:self.composeInputView];
@@ -568,9 +577,11 @@ static NSString * const reuseIdentifier = @"Result";
     
     if ([params objectForKey:@"message"] || [params objectForKey:@"media"]) {
         // meets min. requirements
-        [BFAPI createPost:params postingIn:self.camp replyingTo:nil];
+        [BFAPI createPost:params postingIn:self.camp replyingTo:nil attachments:nil];
         
         [self.composeInputView reset];
+        
+        [self.view endEditing:true];
     }
 }
 
@@ -589,7 +600,7 @@ static NSString * const reuseIdentifier = @"Result";
     BOOL canViewPosts = self.camp.identifier != nil && // has an ID
                         ![self.camp.attributes isSuspended] && // Camp not blocked
                         ![self.camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_BLOCKED] && // User blocked by Camp
-                        (!self.camp.attributes.visibility.isPrivate || // (public camp OR
+                        (![self.camp isPrivate] || // (public camp OR
                          [self.camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_MEMBER]);
     
     return canViewPosts;
@@ -607,9 +618,10 @@ static NSString * const reuseIdentifier = @"Result";
     if (cursorType == StreamPagingCursorTypeNext) {
         [params setObject:self.tableView.stream.nextCursor forKey:@"cursor"];
     }
-    else if (self.tableView.stream.prevCursor.length > 0) {
+    else if (cursorType == StreamPagingCursorTypePrevious && self.tableView.stream.prevCursor.length > 0) {
         [params setObject:self.tableView.stream.prevCursor forKey:@"cursor"];
     }
+    
     if ([params objectForKey:@"cursor"]) {
         [self.tableView.stream addLoadedCursor:params[@"cursor"]];
     }
@@ -622,16 +634,19 @@ static NSString * const reuseIdentifier = @"Result";
         PostStreamPage *page = [[PostStreamPage alloc] initWithDictionary:responseObject error:nil];
         if (page.data.count > 0) {
             if (cursorType == StreamPagingCursorTypeNone) {
+                if (self.tableView.stream.prevCursor) {
+                    [self.tableView.stream removeLoadedCursor:self.tableView.stream.prevCursor];
+                }
+                if (self.tableView.stream.nextCursor) {
+                    [self.tableView.stream removeLoadedCursor:self.tableView.stream.nextCursor];
+                }
+                
                 self.tableView.stream.posts = @[];
                 self.tableView.stream.pages = [[NSMutableArray alloc] init];
+                [self.tableView.stream appendPage:page];
             }
-            if (cursorType == StreamPagingCursorTypeNone ||
-                cursorType == StreamPagingCursorTypePrevious) {
+            if (cursorType == StreamPagingCursorTypePrevious) {
                 [self.tableView.stream prependPage:page];
-                
-                if ([self.camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_MEMBER] && [self isActive]) {
-                    [self showComposeInputView];
-                }
             }
             else if (cursorType == StreamPagingCursorTypeNext) {
                 [self.tableView.stream appendPage:page];
@@ -658,7 +673,9 @@ static NSString * const reuseIdentifier = @"Result";
         NSHTTPURLResponse *httpResponse = error.userInfo[AFNetworkingOperationFailingURLResponseErrorKey];
         NSInteger statusCode = httpResponse.statusCode;
         if (statusCode == 404) {
-            [self showErrorViewWithType:ErrorViewTypeNotFound title:@"Camp Not Found"description:@"We couldn’t find the Camp\nyou were looking for" actionTitle:nil actionBlock:nil];
+            [self showErrorViewWithType:ErrorViewTypeNotFound title:@"Camp Not Found"description:@"We couldn’t find the Camp\nyou were looking for" actionTitle:@"Create New Camp" actionBlock:^{
+                [Launcher openCreateCamp];
+            }];
             
             self.camp = nil;
             
@@ -859,7 +876,6 @@ static NSString * const reuseIdentifier = @"Result";
         }
         
         CGFloat percentageHidden = ((self.tableView.contentOffset.y + self.tableView.contentInset.top) / (self.tableView.contentInset.top * .75));
-        NSLog(@"percentageHidden: %f", percentageHidden);
         UIView *overlayView = [self.coverPhotoView viewWithTag:10];
         overlayView.frame = CGRectMake(0, 0, self.coverPhotoView.frame.size.width, self.coverPhotoView.frame.size.height);
         overlayView.alpha = percentageHidden;
@@ -869,36 +885,15 @@ static NSString * const reuseIdentifier = @"Result";
 - (void)openCampActions {
     // TODO: check that the user is actually an Admin, not just a member
     BOOL isMember              = [self.camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_MEMBER];
+    BOOL isAdmin               = [self.camp.attributes.context.camp.membership.role.type isEqualToString:CAMP_ROLE_ADMIN];
     BOOL canUpdate             = [self.camp.attributes.context.camp.permissions canUpdate];
     BOOL campPostNotifications = self.camp.attributes.context.camp.membership.subscription != nil;
-    // Share to...
-    // Turn on/off post notifications
-    // Share on Instagram
-    // Share on Twitter
-    // Share on iMessage
-    // Report Camp
     
-    UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:nil message:nil preferredStyle:UIAlertControllerStyleActionSheet]; // old title: @"\n\n\n\n\n\n"
-    //actionSheet.view.tintColor = [UIColor bonfirePrimaryColor];
-    
-    /*
-     CGFloat margin = 8.0f;
-     UIView *customView = [[UIView alloc] initWithFrame:CGRectMake(margin, 0, actionSheet.view.bounds.size.width - margin * 4, 140.f)];
-     BFAvatarView *campAvatar = [[BFAvatarView alloc] initWithFrame:CGRectMake(customView.frame.size.width / 2 - 32, 24, 64, 64)];
-     campAvatar.camp = self.camp;
-     [customView addSubview:campAvatar];
-     UILabel *nameLabel = [[UILabel alloc] initWithFrame:CGRectMake(16, 96, customView.frame.size.width - 32, 20)];
-     nameLabel.textAlignment = NSTextAlignmentCenter;
-     nameLabel.font = [UIFont systemFontOfSize:17.f weight:UIFontWeightSemibold];
-     nameLabel.textColor = [UIColor blackColor];
-     nameLabel.text = self.camp.attributes.title;
-     [customView addSubview:nameLabel];
-     [actionSheet.view addSubview:customView];
-     */
-    
+    BFAlertController *actionSheet = [BFAlertController alertControllerWithTitle:(self.camp.attributes.identifier.length > 0 ? self.camp.attributes.title : nil) message:(self.camp.attributes.identifier.length > 0 ? [@"#" stringByAppendingString:self.camp.attributes.identifier] : nil) preferredStyle:BFAlertControllerStyleActionSheet]; // old title: @"\n\n\n\n\n\n"
+
     if ([self.camp.attributes.context.camp.permissions canUpdate]) {
-        UIAlertAction *editCamp = [UIAlertAction actionWithTitle:@"Edit Camp" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-            EditCampViewController *epvc = [[EditCampViewController alloc] initWithStyle:UITableViewStyleGrouped];
+        BFAlertAction *editCamp = [BFAlertAction actionWithTitle:@"Edit Camp" style:BFAlertActionStyleDefault handler:^{
+            EditCampViewController *epvc = [[EditCampViewController alloc] init];
             epvc.themeColor = [UIColor fromHex:self.camp.attributes.color];
             epvc.view.tintColor = epvc.themeColor;
             epvc.camp = self.camp;
@@ -913,7 +908,7 @@ static NSString * const reuseIdentifier = @"Result";
     }
     
     if (isMember) {
-        UIAlertAction *togglePostNotifications = [UIAlertAction actionWithTitle:[NSString stringWithFormat:@"Turn %@ Post Notifications", campPostNotifications ? @"Off" : @"On"] style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        BFAlertAction *togglePostNotifications = [BFAlertAction actionWithTitle:[NSString stringWithFormat:@"Turn Post Notifications %@", campPostNotifications ? @"Off" : @"On"] style:BFAlertActionStyleDefault handler:^{
             NSLog(@"toggle post notifications");
             // confirm action
             if ([Session sharedInstance].deviceToken != nil) {
@@ -926,13 +921,12 @@ static NSString * const reuseIdentifier = @"Result";
             }
             else {
                 // confirm action
-                UIAlertController *notificationsNotice = [UIAlertController alertControllerWithTitle:@"Notications Not Enabled" message:@"In order to enable Post Notifications, you must turn on notifications for Bonfire in the iOS Settings" preferredStyle:UIAlertControllerStyleAlert];
+                BFAlertController *notificationsNotice = [BFAlertController alertControllerWithTitle:@"Notications Not Enabled" message:@"In order to enable Post Notifications, you must turn on notifications for Bonfire in the iOS Settings" preferredStyle:BFAlertControllerStyleAlert];
                 
-                UIAlertAction *alertCancel = [UIAlertAction actionWithTitle:@"Okay" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-                }];
+                BFAlertAction *alertCancel = [BFAlertAction actionWithTitle:@"Okay" style:BFAlertActionStyleCancel handler:nil];
                 [notificationsNotice addAction:alertCancel];
                 
-                [self.navigationController presentViewController:notificationsNotice animated:YES completion:nil];
+                [self.navigationController presentViewController:notificationsNotice animated:true completion:nil];
             }
         }];
         [actionSheet addAction:togglePostNotifications];
@@ -942,7 +936,7 @@ static NSString * const reuseIdentifier = @"Result";
     BOOL hasiMessage           = false;
     hasiMessage = [MFMessageComposeViewController canSendText];
     if (hasiMessage) {
-        UIAlertAction *shareOniMessage = [UIAlertAction actionWithTitle:@"Share on iMessage" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        BFAlertAction *shareOniMessage = [BFAlertAction actionWithTitle:@"Share on iMessage" style:BFAlertActionStyleDefault handler:^{
             NSLog(@"share on iMessage");
             
             NSString *url = [NSString stringWithFormat:@"https://bonfire.camp/c/%@", self.camp.attributes.identifier];
@@ -954,7 +948,7 @@ static NSString * const reuseIdentifier = @"Result";
     }
     #endif
     
-    UIAlertAction *shareCamp = [UIAlertAction actionWithTitle:@"Share Camp via..." style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+    BFAlertAction *shareCamp = [BFAlertAction actionWithTitle:@"Share Camp via..." style:BFAlertActionStyleDefault handler:^{
         [Launcher shareCamp:self.camp];
     }];
     [actionSheet addAction:shareCamp];
@@ -988,9 +982,9 @@ static NSString * const reuseIdentifier = @"Result";
      */
     
     if (canUpdate) {
-        UIAlertAction *leaveCamp = [UIAlertAction actionWithTitle:@"Leave Camp" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+        BFAlertAction *leaveCamp = [BFAlertAction actionWithTitle:@"Leave Camp" style:BFAlertActionStyleDefault handler:^{
             // confirm action
-            BOOL privateCamp = [self.camp.attributes.visibility isPrivate];
+            BOOL privateCamp = [self.camp isPrivate];
             BOOL lastMember = self.camp.attributes.summaries.counts.members <= 1;
             
             NSString *message;
@@ -1006,9 +1000,9 @@ static NSString * const reuseIdentifier = @"Result";
                 message = @"You will no longer have access to this Camp's posts";
             }
             
-            UIAlertController *confirmDeletePostActionSheet = [UIAlertController alertControllerWithTitle:@"Leave Camp?" message:message preferredStyle:UIAlertControllerStyleAlert];
+            BFAlertController *confirmDeletePostActionSheet = [BFAlertController alertControllerWithTitle:@"Leave Camp?" message:message preferredStyle:BFAlertControllerStyleAlert];
             
-            UIAlertAction *confirmLeaveCamp = [UIAlertAction actionWithTitle:@"Leave" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+            BFAlertAction *confirmLeaveCamp = [BFAlertAction actionWithTitle:@"Leave" style:BFAlertActionStyleDestructive handler:^{
                 [BFAPI unfollowCamp:self.camp completion:^(BOOL success, id responseObject) {
                     
                 }];
@@ -1021,49 +1015,45 @@ static NSString * const reuseIdentifier = @"Result";
             }];
             [confirmDeletePostActionSheet addAction:confirmLeaveCamp];
             
-            UIAlertAction *cancelLeaveCamp = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
+            BFAlertAction *cancelLeaveCamp = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
             [confirmDeletePostActionSheet addAction:cancelLeaveCamp];
             
-            [UIViewParentController(self) presentViewController:confirmDeletePostActionSheet animated:YES completion:nil];
+            [UIViewParentController(self) presentViewController:confirmDeletePostActionSheet animated:true completion:nil];
         }];
         [actionSheet addAction:leaveCamp];
     }
+    if (!isAdmin) {
+        BFAlertAction *reportCamp = [BFAlertAction actionWithTitle:[NSString stringWithFormat:@"Report"] style:BFAlertActionStyleDefault handler:^ {
+            // confirm action
+            BFAlertController *saveAndOpenTwitterConfirm = [BFAlertController alertControllerWithTitle:[NSString stringWithFormat:@"Report %@", self.camp.attributes.title] message:[NSString stringWithFormat:@"Are you sure you would like to report this Camp?"] preferredStyle:BFAlertControllerStyleAlert];
+            
+            BFAlertAction *alertConfirm = [BFAlertAction actionWithTitle:@"Report" style:BFAlertActionStyleDestructive handler:^{
+                NSLog(@"report camp");
+                [self.camp report];
+            }];
+            [saveAndOpenTwitterConfirm addAction:alertConfirm];
+            
+            BFAlertAction *alertCancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:^{
+                NSLog(@"cancel report camp");
+            }];
+            [saveAndOpenTwitterConfirm addAction:alertCancel];
+            
+            [[Launcher topMostViewController] presentViewController:saveAndOpenTwitterConfirm animated:true completion:nil];
+        }];
+        [actionSheet addAction:reportCamp];
+    }
     
-    UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-        NSLog(@"cancel");
-    }];
-    //[cancel setValue:[UIColor bonfirePrimaryColor] forKey:@"titleTextColor"];
+    BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
     [actionSheet addAction:cancel];
     
-    [self.navigationController presentViewController:actionSheet animated:YES completion:nil];
+    [self.navigationController presentViewController:actionSheet animated:true completion:nil];
 }
 
 - (void)turnOnPostNotifications {
-    // Update the model
-    BFContextCampMembershipSubscription *subscription = [[BFContextCampMembershipSubscription alloc] init];
-    NSDate *date = [NSDate new];
-    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
-    [dateFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ssZ"];
-    subscription.createdAt = [dateFormatter stringFromDate:date];
-    self.camp.attributes.context.camp.membership.subscription = subscription;
-    
-    NSString *url = [NSString stringWithFormat:@"camps/%@/members/subscriptions", [self campIdentifier]];
-    
-    [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] POST:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        NSLog(@"turn on post notifications!");
-    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-    }];
+    [self.camp subscribeToCamp];
 }
 - (void)turnOffPostNotifications {
-    // Update the model
-    self.camp.attributes.context.camp.membership.subscription = nil;
-    
-    NSString *url = [NSString stringWithFormat:@"camps/%@/members/subscriptions", [self campIdentifier]];
-
-    [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] DELETE:url parameters:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        NSLog(@"turn off post notifications.");
-    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-    }];
+    [self.camp unsubscribeFromCamp];
 }
 
 #pragma mark - RSTableViewDelegate
@@ -1086,7 +1076,7 @@ static NSString * const reuseIdentifier = @"Result";
         else {
             if (emptyCamptag) {
                 if (emptyCampTitle) {
-                    cell.textLabel.text = @"Unknown Camp";
+                    cell.textLabel.text = @"Camp Not Found";
                 }
             }
             else {

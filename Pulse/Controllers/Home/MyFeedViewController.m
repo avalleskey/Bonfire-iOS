@@ -91,11 +91,8 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
         [self setupMorePostsIndicator];
         
         tv.tableViewStyle = RSTableViewStyleDefault;
-        // [(SimpleNavigationController *)self.navigationController hideBottomHairline];
         
         [self positionErrorView];
-        
-        [self fetchNewPosts];
         
         if ([BFTipsManager hasSeenTip:@"about_sparks_info"] == false) {
             BFTipObject *tipObject = [BFTipObject tipWithCreatorType:BFTipCreatorTypeBonfireTip creator:nil title:@"Sparks help posts go viral 🚀" text:@"Sparks show a post to more people. Only the creator can see who sparks a post." cta:nil imageUrl:nil action:^{
@@ -107,13 +104,13 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
         }
         
         // present
-        self.tableView.transform = CGAffineTransformMakeTranslation(0, 48);
+        self.tableView.transform = CGAffineTransformMakeTranslation(0, 56);
         self.tableView.userInteractionEnabled = false;
         [UIView animateWithDuration:0.35f delay:0 usingSpringWithDamping:0.95f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
             self.launchLogo.alpha = 0;
             self.launchLogo.transform = CGAffineTransformMakeScale(0.92, 0.92);
         } completion:nil];
-        [UIView animateWithDuration:0.5f delay:0.3f usingSpringWithDamping:0.75f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        [UIView animateWithDuration:0.56f delay:0.3f usingSpringWithDamping:0.7f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
             self.tableView.transform = CGAffineTransformMakeTranslation(0, 0);
             self.tableView.alpha = 1;
         } completion:^(BOOL finished) {
@@ -131,8 +128,13 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
         }
     }
 }
+
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
+    
+    if ([self isBeingPresented] || [self isMovingToParentViewController]) {
+        [self setupContent];
+    }
     
     self.errorView.center = CGPointMake(self.view.frame.size.width / 2, self.tableView.frame.size.height / 2 - self.navigationController.navigationBar.frame.size.height - self.navigationController.navigationBar.frame.origin.y);
     
@@ -177,15 +179,21 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
     [self.tableView.refreshControl addTarget:self action:@selector(refresh) forControlEvents:UIControlEventValueChanged];
     
     self.tableView.scrollIndicatorInsets = UIEdgeInsetsZero;
-    
-    [self setupContent];
 }
 - (void)setupContent {
     tv.stream = [[PostStream alloc] init];
     tv.stream.delegate = self;
     
     [self loadCache];
-    //[self loadSuggestedCamps];
+    
+    // load most up to date content
+    self.lastFetch = [NSDate new];
+    if (tv.stream.prevCursor.length > 0) {
+        [self getPostsWithCursor:StreamPagingCursorTypePrevious];
+    }
+    else {
+        [self getPostsWithCursor:StreamPagingCursorTypeNone];
+    }
 }
 - (void)setupErrorView {
     BFVisualError *visualError = [BFVisualError visualErrorOfType:ErrorViewTypeNotFound title:@"Error Loading" description:@"Check your network settings and tap here to try again" actionTitle:@"Reload" actionBlock:^{
@@ -310,7 +318,7 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
 - (void)newPostFailed:(NSNotification *)notification {
     Post *tempPost = notification.object;
     
-    if (tempPost != nil && !tempPost.attributes.parent) {
+    if (tempPost != nil) {
         // TODO: Check for image as well
         [tv.stream removeTempPost:tempPost.tempId];
         [tv refreshAtTop];
@@ -374,19 +382,21 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
     }
 }
 - (void)saveCache {
-    NSString *cacheKey = @"home_feed_cache";
-    
-    if (cacheKey) {
-        NSMutableArray *newCache = [[NSMutableArray alloc] init];
-
-        NSInteger postsCount = 0;
-        for (NSInteger i = 0; i < tv.stream.pages.count && postsCount < MAX_FEED_CACHED_POSTS; i++) {
-            postsCount =+ tv.stream.pages[i].data.count;
-            [newCache addObject:[tv.stream.pages[i] toDictionary]];
-        }
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        NSString *cacheKey = @"home_feed_cache";
         
-        [[PINCache sharedCache] setObject:[newCache copy] forKey:cacheKey];
-    }
+        if (cacheKey) {
+            NSMutableArray *newCache = [[NSMutableArray alloc] init];
+
+            NSInteger postsCount = 0;
+            for (NSInteger i = 0; i < tv.stream.pages.count && postsCount < MAX_FEED_CACHED_POSTS; i++) {
+                postsCount =+ tv.stream.pages[i].data.count;
+                [newCache addObject:[tv.stream.pages[i] toDictionary]];
+            }
+            
+            [[PINCache sharedCache] setObject:[newCache copy] forKey:cacheKey];
+        }
+    });
 }
 - (void)postStreamDidUpdate:(PostStream *)stream {
     [self saveCache];
@@ -447,11 +457,10 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
         }
     }
     
-    self.tableView.hidden = false;
     if ([self.tableView isKindOfClass:[RSTableView class]] && tv.stream.posts.count == 0) {
         self.errorView.hidden = true;
         tv.loading = true;
-        [tv refreshAtTop];
+        [tv hardRefresh];
     }
     
     if (cursorType == StreamPagingCursorTypePrevious && tv.stream.posts.count > 0) {
@@ -482,7 +491,14 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
             self.errorView.hidden = false;
             
             BFVisualError *visualError = [BFVisualError visualErrorOfType:ErrorViewTypeHeart title:@"For You" description:@"The posts you care about from the Camps and people you care about" actionTitle:@"Discover Camps" actionBlock:^{
-                [Launcher openDiscover];
+                TabController *tabVC = (TabController *)[Launcher activeTabController];
+                if (tabVC) {
+                    tabVC.selectedIndex = [tabVC.viewControllers indexOfObject:tabVC.storeNavVC];
+                    [tabVC tabBar:tabVC.tabBar didSelectItem:tabVC.storeNavVC.tabBarItem];
+                }
+                else {
+                    [Launcher openDiscover];
+                }
             }];
             self.errorView.visualError = visualError;
             
@@ -498,6 +514,9 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
             tv.loadingMore = false;
             
             [tv refreshAtBottom];
+        }
+        else if (self.userDidRefresh || cursorType == StreamPagingCursorTypeNone) {
+            [tv hardRefresh];
         }
         else {
             [tv refreshAtTop];
@@ -537,7 +556,6 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
 // Management
 - (void)refresh {
     [tv.stream removeLoadedCursor:tv.stream.prevCursor];
-    [self.refreshControl performSelector:@selector(endRefreshing) withObject:nil afterDelay:0.0];
     
     self.userDidRefresh = true;
     [self fetchNewPosts];
@@ -552,6 +570,7 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
     }
     
     if (!_loading) {
+        [self.refreshControl endRefreshing];
         self.titleView.shimmering = false;
     }
 }

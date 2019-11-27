@@ -23,10 +23,11 @@ typedef NS_ENUM(NSInteger, BFAlertControllerStyle) {
 
 @interface BFAlertAction : NSObject <NSCopying>
 
-+ (instancetype)actionWithTitle:(nullable NSString *)title style:(BFAlertActionStyle)style handler:(void (^ __nullable)(BFAlertAction *action))handler;
++ (instancetype)actionWithTitle:(nullable NSString *)title style:(BFAlertActionStyle)style handler:(void (^ __nullable)(void))actionHandler;
 
-@property (nullable, nonatomic, readonly) NSString *title;
+@property (nullable, nonatomic, strong) NSString *title;
 @property (nonatomic, readonly) BFAlertActionStyle style;
+@property (nonatomic, strong) void (^actionHandler)(void);
 @property (nonatomic, getter=isEnabled) BOOL enabled;
 
 @end
@@ -36,12 +37,12 @@ typedef NS_ENUM(NSInteger, BFAlertControllerStyle) {
 + (instancetype)alertControllerWithTitle:(nullable NSString *)title message:(nullable NSString *)message preferredStyle:(BFAlertControllerStyle)preferredStyle;
 
 - (void)addAction:(BFAlertAction *)action;
-@property (nonatomic, readonly) NSArray<BFAlertAction *> *actions;
+@property (nonatomic, strong) NSMutableArray<BFAlertAction *> *actions;
 
 // Preferred action is bold
 @property (nonatomic, strong, nullable) BFAlertAction *preferredAction;
 
-@property (nonatomic, strong, nullable) UIView *header;
+@property (nonatomic, strong, nullable) UIView *headerView;
 @property (nullable, nonatomic, copy) NSString *message;
 
 @property (nonatomic, readonly) BFAlertControllerStyle preferredStyle;

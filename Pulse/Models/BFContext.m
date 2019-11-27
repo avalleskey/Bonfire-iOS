@@ -54,6 +54,10 @@ NSString * const CAMP_ROLE_ADMIN = @"admin";
     return [JSONKeyMapper mapperForSnakeCase];
 }
 
++ (BOOL)propertyIsOptional:(NSString *)propertyName {
+    return true;
+}
+
 @end
 
 @implementation BFContextCampMembershipRole
@@ -89,7 +93,7 @@ NSString * const CAMP_ROLE_ADMIN = @"admin";
 }
 
 - (BOOL)canPost {
-    NSArray *availableMediaTypes = @[BFMediaTypeText, BFMediaTypeLongFormText, BFMediaTypeImage, BFMediaTypeGIF, BFMediaTypeVideo];
+    NSArray *availableMediaTypes = @[BFMediaTypeText, BFMediaTypeImage, BFMediaTypeGIF, BFMediaTypeVideo];
     for (NSString *mediaType in availableMediaTypes) {
         if ([self postContainsMediaType:mediaType]) {
             return true;
@@ -99,8 +103,29 @@ NSString * const CAMP_ROLE_ADMIN = @"admin";
     return false;
 }
 - (BOOL)canReply {
-    NSArray *availableMediaTypes = @[BFMediaTypeText, BFMediaTypeLongFormText, BFMediaTypeImage, BFMediaTypeGIF, BFMediaTypeVideo];
+    NSArray *availableMediaTypes = @[BFMediaTypeText, BFMediaTypeImage, BFMediaTypeGIF, BFMediaTypeVideo];
     for (NSString *mediaType in availableMediaTypes) {
+        if ([self replyContainsMediaType:mediaType]) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+- (BOOL)canPostMedia {
+    NSArray *mediaTypes = @[BFMediaTypeImage, BFMediaTypeGIF];
+    for (NSString *mediaType in mediaTypes) {
+        if ([self postContainsMediaType:mediaType]) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+- (BOOL)canReplyMedia {
+    NSArray *mediaTypes = @[BFMediaTypeImage, BFMediaTypeGIF];
+    for (NSString *mediaType in mediaTypes) {
         if ([self replyContainsMediaType:mediaType]) {
             return true;
         }
@@ -152,7 +177,7 @@ NSString * const CAMP_ROLE_ADMIN = @"admin";
                                                                   }];
 }
 
-- (BOOL)canReply {
+- (BOOL)canReply {    
     NSArray *availableMediaTypes = @[BFMediaTypeText, BFMediaTypeLongFormText, BFMediaTypeImage, BFMediaTypeGIF, BFMediaTypeVideo];
     for (NSString *mediaType in availableMediaTypes) {
         if ([self replyContainsMediaType:mediaType]) {

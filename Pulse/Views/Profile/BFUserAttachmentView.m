@@ -214,13 +214,19 @@
             BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeLocation value:user.attributes.location.displayText action:nil];
             [details addObject:item];
         }
-        if (user.attributes.website.displayText.length > 0) {
-            BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeWebsite value:user.attributes.website.displayText action:nil];
+        if (user.attributes.website.displayUrl.length > 0) {
+            BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeWebsite value:user.attributes.website.displayUrl action:^{
+                [Launcher openURL:user.attributes.website.actionUrl];
+            }];
             [details addObject:item];
         }
         
         self.detailsCollectionView.details = [details copy];
     }
+}
+
+- (CGFloat)height {
+    return [BFUserAttachmentView heightForUser:self.user width:self.frame.size.width];
 }
 
 + (CGFloat)heightForUser:(User *)user width:(CGFloat)width {
@@ -284,8 +290,8 @@
             BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeLocation value:user.attributes.location.displayText action:nil];
             [details addObject:item];
         }
-        if (user.attributes.website.displayText.length > 0) {
-            BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeWebsite value:user.attributes.website.displayText action:nil];
+        if (user.attributes.website.displayUrl.length > 0) {
+            BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeWebsite value:user.attributes.website.displayUrl action:nil];
             [details addObject:item];
         }
         

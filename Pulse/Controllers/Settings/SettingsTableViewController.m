@@ -10,6 +10,7 @@
 #import "Legal/LegalTableViewController.h"
 #import "Notifications/NotificationsSettingsTableViewController.h"
 #import "Change Password/ChangePasswordTableViewController.h"
+#import "BFAlertController.h"
 
 #import <JGProgressHUD/JGProgressHUD.h>
 #import <HapticHelper/HapticHelper.h>
@@ -69,7 +70,7 @@
         [Launcher push:changePasswordTableVC animated:YES];
     }
     if ([rowId isEqualToString:@"share_profile"]) {
-        [Launcher shareUser:[Session sharedInstance].currentUser];
+        [Launcher shareIdentity:[Session sharedInstance].currentUser];
     }
     if ([rowId isEqualToString:@"notifications"]) {
         // push notifications settings
@@ -100,14 +101,9 @@
     }
     if ([rowId isEqualToString:@"sign_out"]) {
         // sign out
-        UIAlertController *areYouSure = [UIAlertController alertControllerWithTitle:@"Sign Out?" message:@"Please confirm you would like to sign out" preferredStyle:UIAlertControllerStyleAlert];
+        BFAlertController *areYouSure = [BFAlertController alertControllerWithTitle:@"Sign Out?" message:@"Please confirm you would like to sign out" preferredStyle:BFAlertControllerStyleAlert];
         
-        UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-            [areYouSure dismissViewControllerAnimated:YES completion:nil];
-        }];
-        [areYouSure addAction:cancel];
-        
-        UIAlertAction *confirm = [UIAlertAction actionWithTitle:@"Sign Out" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+        BFAlertAction *confirm = [BFAlertAction actionWithTitle:@"Sign Out" style:BFAlertActionStyleDestructive handler:^{
             JGProgressHUD *HUD = [JGProgressHUD progressHUDWithStyle:JGProgressHUDStyleExtraLight];
             HUD.textLabel.text = @"Signing out...";
             HUD.vibrancyEnabled = false;
@@ -123,7 +119,10 @@
         }];
         [areYouSure addAction:confirm];
         
-        [self.navigationController presentViewController:areYouSure animated:YES completion:nil];
+        BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
+        [areYouSure addAction:cancel];
+        
+        [self.navigationController presentViewController:areYouSure animated:true completion:nil];
     }
     if ([rowId isEqualToString:@"invite_friends_beta"]) {
         [Launcher copyBetaInviteLink];

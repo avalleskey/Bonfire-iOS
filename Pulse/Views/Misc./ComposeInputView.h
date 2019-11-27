@@ -29,12 +29,13 @@
 @property (nonatomic, strong) Post *post;
 @property (nonatomic, strong) Post *replyingTo;
 
-@property (nonatomic, strong) UIView *contentView;
+@property (nonatomic, strong) UIVisualEffectView *contentView;
 @property (nonatomic, strong) UIButton *addMediaButton;
 @property (nonatomic, strong) UITextView *textView;
 
 @property (nonatomic, strong) TappableButton *postButton;
 @property (nonatomic, strong) UIButton *expandButton;
+@property (nonatomic, strong) UILabel *charRemainingLabel;
 
 @property (nonatomic, strong) UIViewController *parentViewController;
 

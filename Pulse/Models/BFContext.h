@@ -6,7 +6,7 @@
 //  Copyright © 2019 Austin Valleskey. All rights reserved.
 //
 
-#import "JSONModel.h"
+#import "BFJSONModel.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -29,7 +29,7 @@ NS_ASSUME_NONNULL_BEGIN
 @class BFContextMeFollowMe;
 @class BFContextMeFollowMeSubscription;
 
-@interface BFContext : JSONModel
+@interface BFContext : BFJSONModel
 
 // media types
 extern NSString * const BFMediaTypeText; // "text"
@@ -45,7 +45,7 @@ extern NSString * const BFMediaTypeVideo; // "media/video"
 @end
 
 // BFContext.camp
-@interface BFContextCamp : JSONModel
+@interface BFContextCamp : BFJSONModel
 
 // camp status
 extern NSString * const CAMP_STATUS_INVITED;
@@ -72,17 +72,17 @@ extern NSString * const CAMP_ROLE_ADMIN;
 @end
 
 // BFContext.camp.membership
-@interface BFContextCampMembership : JSONModel
+@interface BFContextCampMembership : BFJSONModel
 
 @property (nonatomic) NSString <Optional> *joinedAt;
-@property (nonatomic) NSString <Optional> *blockedAt;
+//@property (nonatomic) NSString <Optional> *blockedAt;
 @property (nonatomic) BFContextCampMembershipRole <Optional> *role;
 @property (nonatomic) BFContextCampMembershipSubscription <Optional> * _Nullable subscription;
 
 @end
 
 // BFContext.camp.membership.role
-@interface BFContextCampMembershipRole : JSONModel
+@interface BFContextCampMembershipRole : BFJSONModel
 
 @property (nonatomic) NSString <Optional> *type;
 @property (nonatomic) NSString <Optional> *assignedAt;
@@ -90,14 +90,14 @@ extern NSString * const CAMP_ROLE_ADMIN;
 @end
 
 // BFContext.camp.membership.subscription
-@interface BFContextCampMembershipSubscription : JSONModel
+@interface BFContextCampMembershipSubscription : BFJSONModel
 
 @property (nonatomic) NSString <Optional> *createdAt;
 
 @end
 
 // BFContext.camp.permissions
-@interface BFContextCampPermissions : JSONModel
+@interface BFContextCampPermissions : BFJSONModel
 
 @property (nonatomic) NSArray <Optional> *post;
 @property (nonatomic) NSArray <Optional> *reply;
@@ -113,10 +113,13 @@ extern NSString * const CAMP_ROLE_ADMIN;
 - (BOOL)canReply;
 - (BOOL)replyContainsMediaType:(NSString *)mediaType;
 
+- (BOOL)canPostMedia;
+- (BOOL)canReplyMedia;
+
 @end
 
 // BFContext.camp.permissions.members
-@interface BFContextCampPermissionsMembers : JSONModel
+@interface BFContextCampPermissionsMembers : BFJSONModel
 
 // can they invite new members
 @property (nonatomic) BOOL invite;
@@ -127,7 +130,7 @@ extern NSString * const CAMP_ROLE_ADMIN;
 @end
 
 // BFContext.post
-@interface BFContextPost : JSONModel
+@interface BFContextPost : BFJSONModel
 
 @property (nonatomic) BFContextPostReplies <Optional> *replies;
 @property (nonatomic) BFContextPostPermissions <Optional> *permissions;
@@ -136,14 +139,14 @@ extern NSString * const CAMP_ROLE_ADMIN;
 @end
 
 // BFContext.post.replies
-@interface BFContextPostReplies : JSONModel
+@interface BFContextPostReplies : BFJSONModel
 
 @property (nonatomic) NSInteger count;
 
 @end
 
 // BFContext.post.permissions
-@interface BFContextPostPermissions : JSONModel
+@interface BFContextPostPermissions : BFJSONModel
 
 @property (nonatomic) NSArray <Optional> *reply;
 @property (nonatomic) BOOL canDelete;
@@ -154,14 +157,14 @@ extern NSString * const CAMP_ROLE_ADMIN;
 @end
 
 // BFContext.post.vote
-@interface BFContextPostVote : JSONModel
+@interface BFContextPostVote : BFJSONModel
 
 @property (nonatomic) NSString *createdAt;
 
 @end
 
 // BFContext.me
-@interface BFContextMe : JSONModel
+@interface BFContextMe : BFJSONModel
 
 extern NSString * const USER_STATUS_ME;
 
@@ -184,20 +187,20 @@ extern NSString * const USER_STATUS_LOADING;
 
 @end
 
-@interface BFContextMeFollow : JSONModel
+@interface BFContextMeFollow : BFJSONModel
 
 @property (nonatomic) BFContextMeFollowMe <Optional> *me;
 
 @end
 
-@interface BFContextMeFollowMe : JSONModel
+@interface BFContextMeFollowMe : BFJSONModel
 
 @property (nonatomic) NSString <Optional> *createdAt;
 @property (nonatomic) BFContextMeFollowMeSubscription <Optional> * _Nullable subscription;
 
 @end
 
-@interface BFContextMeFollowMeSubscription : JSONModel
+@interface BFContextMeFollowMeSubscription : BFJSONModel
 
 @property (nonatomic) NSString <Optional> *createdAt;
 

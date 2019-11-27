@@ -31,6 +31,7 @@
 #import "BFTableViewCellExporter.h"
 #import "InviteToCampTableViewController.h"
 #import "BFBotAttachmentView.h"
+#import "BFAlertController.h"
 #import <SEJSONViewController/SEJSONViewController.h>
 
 #import <SafariServices/SafariServices.h>
@@ -556,8 +557,8 @@ static Launcher *launcher;
     SimpleNavigationController *newNavController = [[SimpleNavigationController alloc] initWithRootViewController:p];
     newNavController.transitioningDelegate = [Launcher sharedInstance];
     [newNavController setLeftAction:SNActionTypeBack];
-    newNavController.view.tintColor = p.theme;
-    newNavController.currentTheme = [UIColor clearColor];
+//    newNavController.view.tintColor = p.theme;
+    newNavController.currentTheme = p.theme;
     
     [Launcher push:newNavController animated:YES];
 }
@@ -582,11 +583,6 @@ static Launcher *launcher;
 + (void)openLinkConversations:(BFLink *)link withKeyboard:(BOOL)withKeyboard {
     LinkConversationsViewController *p = [[LinkConversationsViewController alloc] init];
     p.showKeyboardOnOpen = withKeyboard;
-    
-    // mock loading with only the identifier
-    // post = [[Post alloc] init];
-    // post.identifier = 7;
-    
     p.link = link;
     
     NSString *themeCSS;
@@ -621,13 +617,13 @@ static Launcher *launcher;
     [self present:c animated:YES];
 }
 
-+ (void)openComposePost:(Camp * _Nullable)camp inReplyTo:(Post * _Nullable)replyingTo withMessage:(NSString * _Nullable)message media:(NSArray * _Nullable)media {
++ (void)openComposePost:(Camp * _Nullable)camp inReplyTo:(Post * _Nullable)replyingTo withMessage:(NSString * _Nullable)message media:(NSArray * _Nullable)media quotedObject:(NSObject * _Nullable)quotedObject {
     ComposeViewController *epvc = [[ComposeViewController alloc] init];
     epvc.view.tintColor = [UIColor bonfirePrimaryColor];
     epvc.postingIn = camp;
     epvc.replyingTo = replyingTo;
     epvc.prefillMessage = message;
-    //epvc.media = [[NSMutableArray alloc] initWithArray:media];
+    epvc.quotedObject = quotedObject;
     
     SimpleNavigationController *newNavController = [[SimpleNavigationController alloc] initWithRootViewController:epvc];
     newNavController.transitioningDelegate = [Launcher sharedInstance];
@@ -700,7 +696,7 @@ static Launcher *launcher;
         vc.transitioningDelegate = [Launcher sharedInstance];
         vc.modalPresentationStyle = UIModalPresentationFullScreen;
         
-        [[Launcher activeViewController] presentViewController:vc animated:YES completion:^{
+        [[Launcher topMostViewController] presentViewController:vc animated:YES completion:^{
 
         }];
     }
@@ -760,6 +756,10 @@ static Launcher *launcher;
 }
 
 + (void)openURL:(NSString *)urlString {
+    if (![urlString containsString:@"http://"] &&  ![urlString containsString:@"https://"]) {
+        urlString = [@"https://" stringByAppendingString:urlString];
+    }
+    
     NSURL *url = [[NSURL alloc] initWithString:urlString];
     if ([[UIApplication sharedApplication] canOpenURL:url]) {
         launcher.safariVC = [[SFSafariViewController alloc] initWithURL:url];
@@ -769,7 +769,7 @@ static Launcher *launcher;
         launcher.safariVC.preferredBarTintColor = [UIColor contentBackgroundColor];
         launcher.safariVC.preferredControlTintColor = [UIColor bonfirePrimaryColor];
         //self.safariVC.preferredStatusBarStyle = UIStatusBarStyleDarkContent;
-        [[Launcher activeViewController] presentViewController:launcher.safariVC animated:YES completion:nil];
+        [[Launcher topMostViewController] presentViewController:launcher.safariVC animated:YES completion:nil];
     }
 }
 + (void)safariViewControllerDidFinish:(SFSafariViewController *)controller {
@@ -859,7 +859,7 @@ static Launcher *launcher;
     // A) Any page
     // B) Inside Camp
     
-    UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:nil message:nil preferredStyle:UIAlertControllerStyleActionSheet];
+    BFAlertController *actionSheet = [BFAlertController alertControllerWithTitle:nil message:nil preferredStyle:BFAlertControllerStyleActionSheet];
     
     // 1.B.* -- Any user, outside camp, any following state
     if (post.attributes.postedIn == nil) {
@@ -867,7 +867,7 @@ static Launcher *launcher;
                               [[[[Launcher activeNavigationController] viewControllers] lastObject] isKindOfClass:[ProfileViewController class]] &&
                               [((ProfileViewController *)[[[Launcher activeNavigationController] viewControllers] lastObject]).user.identifier isEqualToString:post.attributes.creator.identifier]);
         if (!insideProfile && ![post.attributes.creator.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
-            UIAlertAction *openProfile = [UIAlertAction actionWithTitle:[NSString stringWithFormat:@"View @%@'s Profile", post.attributes.creator.attributes.identifier] style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            BFAlertAction *openProfile = [BFAlertAction actionWithTitle:[NSString stringWithFormat:@"View @%@'s Profile", post.attributes.creator.attributes.identifier] style:BFAlertActionStyleDefault handler:^{
                 NSLog(@"open camp");
                 
                 NSError *error;
@@ -880,7 +880,7 @@ static Launcher *launcher;
     }
     else {
         if (!insideCamp) {
-            UIAlertAction *openCamp = [UIAlertAction actionWithTitle:@"Open Camp" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            BFAlertAction *openCamp = [BFAlertAction actionWithTitle:@"Open Camp" style:BFAlertActionStyleDefault handler:^{
                 NSLog(@"open camp");
                 
                 NSError *error;
@@ -896,7 +896,7 @@ static Launcher *launcher;
     #if !TARGET_OS_MACCATALYST
     BOOL hasiMessage = [MFMessageComposeViewController canSendText];
     if (hasiMessage) {
-        UIAlertAction *shareOniMessage = [UIAlertAction actionWithTitle:@"Share on iMessage" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        BFAlertAction *shareOniMessage = [BFAlertAction actionWithTitle:@"Share on iMessage" style:BFAlertActionStyleDefault handler:^{
             NSString *url = [NSString stringWithFormat:@"https://bonfire.camp/p/%@", post.identifier];
             
             NSString *message;
@@ -914,7 +914,7 @@ static Launcher *launcher;
     #endif
     
     // 1.A.* -- Any user, any page, any following state
-    UIAlertAction *sharePost = [UIAlertAction actionWithTitle:@"Share via..." style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+    BFAlertAction *sharePost = [BFAlertAction actionWithTitle:@"Share via..." style:BFAlertActionStyleDefault handler:^{
         NSLog(@"share post");
         
         [Launcher sharePost:post];
@@ -923,12 +923,12 @@ static Launcher *launcher;
     
     // !2.A.* -- Not Creator, any page, any following state
     if (!isCreator) {
-        UIAlertAction *reportPost = [UIAlertAction actionWithTitle:@"Report" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        BFAlertAction *reportPost = [BFAlertAction actionWithTitle:@"Report" style:BFAlertActionStyleDefault handler:^{
             NSLog(@"report post");
             // confirm action
-            UIAlertController *confirmReportPostActionSheet = [UIAlertController alertControllerWithTitle:@"Report Post" message:@"Are you sure you want to report this post?" preferredStyle:UIAlertControllerStyleAlert];
+            BFAlertController *confirmReportPostActionSheet = [BFAlertController alertControllerWithTitle:@"Report Post" message:@"Are you sure you want to report this post?" preferredStyle:BFAlertControllerStyleAlert];
             
-            UIAlertAction *confirmReportPost = [UIAlertAction actionWithTitle:@"Report" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+            BFAlertAction *confirmReportPost = [BFAlertAction actionWithTitle:@"Report" style:BFAlertActionStyleDestructive handler:^{
                 NSLog(@"confirm report post");
                 [BFAPI reportPost:post.identifier completion:^(BOOL success, id responseObject) {
                     NSLog(@"reported post!");
@@ -936,24 +936,22 @@ static Launcher *launcher;
             }];
             [confirmReportPostActionSheet addAction:confirmReportPost];
             
-            UIAlertAction *cancelDeletePost = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-                NSLog(@"cancel report post");
-            }];
+            BFAlertAction *cancelDeletePost = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
             [confirmReportPostActionSheet addAction:cancelDeletePost];
             
-            [[Launcher activeViewController] presentViewController:confirmReportPostActionSheet animated:YES completion:nil];
+            [[Launcher topMostViewController] presentViewController:confirmReportPostActionSheet animated:YES completion:nil];
         }];
         [actionSheet addAction:reportPost];
     }
     
     // 2|3.A.* -- Creator or camp admin, any page, any following state
     if (canDelete) {
-        UIAlertAction *deletePost = [UIAlertAction actionWithTitle:@"Delete" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        BFAlertAction *deletePost = [BFAlertAction actionWithTitle:@"Delete" style:BFAlertActionStyleDefault handler:^{
             NSLog(@"delete post");
             // confirm action
-            UIAlertController *confirmDeletePostActionSheet = [UIAlertController alertControllerWithTitle:@"Delete Post" message:@"Are you sure you want to delete this post?" preferredStyle:UIAlertControllerStyleAlert];
+            BFAlertController *confirmDeletePostActionSheet = [BFAlertController alertControllerWithTitle:@"Delete Post" message:@"Are you sure you want to delete this post?" preferredStyle:BFAlertControllerStyleAlert];
             
-            UIAlertAction *confirmDeletePost = [UIAlertAction actionWithTitle:@"Delete" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+            BFAlertAction *confirmDeletePost = [BFAlertAction actionWithTitle:@"Delete" style:BFAlertActionStyleDestructive handler:^{
                 JGProgressHUD *HUD = [JGProgressHUD progressHUDWithStyle:JGProgressHUDStyleExtraLight];
                 HUD.textLabel.text = @"Deleting...";
                 HUD.vibrancyEnabled = false;
@@ -997,29 +995,25 @@ static Launcher *launcher;
             }];
             [confirmDeletePostActionSheet addAction:confirmDeletePost];
             
-            UIAlertAction *cancelDeletePost = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-                NSLog(@"cancel delete post");
-            }];
+            BFAlertAction *cancelDeletePost = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
             [confirmDeletePostActionSheet addAction:cancelDeletePost];
             
-            [[Launcher activeViewController] presentViewController:confirmDeletePostActionSheet animated:YES completion:nil];
+            [[Launcher topMostViewController] presentViewController:confirmDeletePostActionSheet animated:YES completion:nil];
         }];
         [actionSheet addAction:deletePost];
     }
     
     #ifdef DEBUG
-    UIAlertAction *debugPost = [UIAlertAction actionWithTitle:@"Debug Post" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+    BFAlertAction *debugPost = [BFAlertAction actionWithTitle:@"Debug Post" style:BFAlertActionStyleDefault handler:^{
         [Launcher openDebugView:post];
     }];
     [actionSheet addAction:debugPost];
     #endif
         
-    UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-        NSLog(@"cancel");
-    }];
+    BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
     [actionSheet addAction:cancel];
     
-    [[Launcher activeViewController] presentViewController:actionSheet animated:YES completion:nil];
+    [[Launcher topMostViewController] presentViewController:actionSheet animated:true completion:nil];
 }
 + (void)sharePost:(Post *)post {
     UIImage *image = [Launcher imageForPost:post];
@@ -1037,23 +1031,24 @@ static Launcher *launcher;
     UIActivityViewController *controller = [[UIActivityViewController alloc]initWithActivityItems:@[message, image] applicationActivities:nil];
     controller.modalPresentationStyle = UIModalPresentationFullScreen;
     
-    [[Launcher activeViewController] presentViewController:controller animated:YES completion:nil];
+    [[Launcher topMostViewController] presentViewController:controller animated:YES completion:nil];
 }
-+ (void)shareUser:(User *)user {
-    UIImage *image = [Launcher imageForUser:user];
++ (void)shareIdentity:(Identity *)identity {
+    UIImage *image;
+    if ([identity.type isEqualToString:@"user"]) {
+        image = [Launcher imageForUser:(User *)identity];
+    }
+    else if ([identity.type isEqualToString:@"bot"]) {
+        image = [Launcher imageForBot:(Bot *)identity];
+    }
+    else {
+        return;
+    }
     
-    UIActivityViewController *controller = [[UIActivityViewController alloc]initWithActivityItems:@[[NSString stringWithFormat:@"https://bonfire.camp/u/%@", user.attributes.identifier], image] applicationActivities:nil];
+    UIActivityViewController *controller = [[UIActivityViewController alloc]initWithActivityItems:@[[NSString stringWithFormat:@"https://bonfire.camp/u/%@", identity.attributes.identifier], image] applicationActivities:nil];
     controller.modalPresentationStyle = UIModalPresentationOverCurrentContext;
     
-    [[Launcher activeViewController] presentViewController:controller animated:YES completion:nil];
-}
-+ (void)shareBot:(Bot *)bot {
-    UIImage *image = [Launcher imageForBot:bot];
-    
-    UIActivityViewController *controller = [[UIActivityViewController alloc]initWithActivityItems:@[[NSString stringWithFormat:@"https://bonfire.camp/u/%@", bot.attributes.identifier], image] applicationActivities:nil];
-    controller.modalPresentationStyle = UIModalPresentationOverCurrentContext;
-    
-    [[Launcher activeViewController] presentViewController:controller animated:YES completion:nil];
+    [[Launcher topMostViewController] presentViewController:controller animated:YES completion:nil];
 }
 + (void)shareCamp:(Camp *)camp {
     UIImage *image = [Launcher imageForCamp:camp];
@@ -1066,7 +1061,7 @@ static Launcher *launcher;
     UIActivityViewController *controller = [[UIActivityViewController alloc]initWithActivityItems:@[[NSString stringWithFormat:@"https://bonfire.camp/c/%@", identifier], image] applicationActivities:nil];
     controller.modalPresentationStyle = UIModalPresentationOverCurrentContext;
     
-    [[Launcher activeViewController] presentViewController:controller animated:YES completion:nil];
+    [[Launcher topMostViewController] presentViewController:controller animated:YES completion:nil];
 }
 #if !TARGET_OS_MACCATALYST
 + (void)shareOniMessage:(NSString *)message image:(UIImage * _Nullable)image {
@@ -1077,7 +1072,7 @@ static Launcher *launcher;
         MFMessageComposeViewController *messageController = [[MFMessageComposeViewController alloc] init]; // Create message VC
         messageController.messageComposeDelegate = launcher; // Set delegate to current instance
         messageController.modalPresentationStyle = UIModalPresentationFullScreen;
-        
+        messageController.view.tintColor = [UIColor bonfirePrimaryColor];
         messageController.body = message; // Set initial text to example message
         
         if (image != nil) {
@@ -1085,7 +1080,7 @@ static Launcher *launcher;
             [messageController addAttachmentData:dataImg typeIdentifier:@"public.data" filename:@"Image.png"];
         }
         
-        [[Launcher activeViewController] presentViewController:messageController animated:YES completion:nil];
+        [[Launcher topMostViewController] presentViewController:messageController animated:YES completion:nil];
     }
 }
 #endif
@@ -1191,7 +1186,7 @@ static Launcher *launcher;
     
     if ([[Launcher activeViewController].restorationIdentifier isEqualToString:@"launchScreen"]) {
         launcher.launchAction = ^{
-            [[Launcher activeViewController] presentViewController:viewController animated:YES completion:nil];
+            [[Launcher topMostViewController] presentViewController:viewController animated:YES completion:nil];
         };
         
         NSLog(@"we just set the laucnh action");
@@ -1199,7 +1194,7 @@ static Launcher *launcher;
     else {
         launcher.launchAction = nil;
         
-        [[Launcher activeViewController] presentViewController:viewController animated:YES completion:nil];
+        [[Launcher topMostViewController] presentViewController:viewController animated:YES completion:nil];
     }
 }
 + (void)push:(UIViewController *)viewController animated:(BOOL)animated {

@@ -98,6 +98,7 @@
         self.dateLabel = [[UILabel alloc] initWithFrame:self.bounds];
         self.dateLabel.textColor = self.tintColor;
         self.dateLabel.textAlignment = NSTextAlignmentCenter;
+        self.dateLabel.font = [UIFont systemFontOfSize:postActivityFontSize weight:UIFontWeightSemibold];
         
         [self updateDateLabelText];
     }
@@ -107,10 +108,34 @@
 - (void)updateDateLabelText {
     BOOL show = false;
     if (self.link) {
-        show = false;
+        show = true;
+        
+        self.dateLabel.text = @"Share this link to help it go viral!";
     }
     else if (self.post) {
         show = true;
+        
+        NSDateFormatter *inputFormatter = [[NSDateFormatter alloc] init];
+        [inputFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ssZ"];
+        NSDate *date = [inputFormatter dateFromString:self.post.attributes.createdAt];
+        if (date) {
+            // iMessage like date
+            NSDateFormatter *outputFormatter_part1 = [[NSDateFormatter alloc] init];
+            [outputFormatter_part1 setDateFormat:@"EEE, MMM d, yyyy"];
+            NSDateFormatter *outputFormatter_part2 = [[NSDateFormatter alloc] init];
+            [outputFormatter_part2 setDateFormat:@" h:mm a"];
+            NSMutableAttributedString *dateString = [[NSMutableAttributedString alloc] initWithString:[outputFormatter_part1 stringFromDate:date]];
+            [dateString addAttribute:NSForegroundColorAttributeName value:self.dateLabel.textColor range:NSMakeRange(0, dateString.length)];
+            [dateString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:postActivityFontSize weight:UIFontWeightSemibold] range:NSMakeRange(0, dateString.length)];
+            NSMutableAttributedString *timeString = [[NSMutableAttributedString alloc] initWithString:[outputFormatter_part2 stringFromDate:date]];
+            [timeString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:postActivityFontSize weight:UIFontWeightRegular] range:NSMakeRange(0, timeString.length)];
+            [dateString appendAttributedString:timeString];
+            [dateString addAttribute:NSForegroundColorAttributeName value:self.dateLabel.textColor range:NSMakeRange(0, dateString.length)];
+            self.dateLabel.attributedText = dateString;
+        }
+        else {
+            self.dateLabel.text = @"";
+        }
     }
     
     if (show) {
@@ -123,28 +148,6 @@
         [self.views removeObject:self.dateLabel];
         [self.dateLabel removeFromSuperview];
         return;
-    }
-    
-    NSDateFormatter *inputFormatter = [[NSDateFormatter alloc] init];
-    [inputFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ssZ"];
-    NSDate *date = [inputFormatter dateFromString:self.post.attributes.createdAt];
-    if (date) {
-        // iMessage like date
-        NSDateFormatter *outputFormatter_part1 = [[NSDateFormatter alloc] init];
-        [outputFormatter_part1 setDateFormat:@"EEE, MMM d, yyyy"];
-        NSDateFormatter *outputFormatter_part2 = [[NSDateFormatter alloc] init];
-        [outputFormatter_part2 setDateFormat:@" h:mm a"];
-        NSMutableAttributedString *dateString = [[NSMutableAttributedString alloc] initWithString:[outputFormatter_part1 stringFromDate:date]];
-        [dateString addAttribute:NSForegroundColorAttributeName value:self.dateLabel.textColor range:NSMakeRange(0, dateString.length)];
-        [dateString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:postActivityFontSize weight:UIFontWeightSemibold] range:NSMakeRange(0, dateString.length)];
-        NSMutableAttributedString *timeString = [[NSMutableAttributedString alloc] initWithString:[outputFormatter_part2 stringFromDate:date]];
-        [timeString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:postActivityFontSize weight:UIFontWeightRegular] range:NSMakeRange(0, timeString.length)];
-        [dateString appendAttributedString:timeString];
-        [dateString addAttribute:NSForegroundColorAttributeName value:self.dateLabel.textColor range:NSMakeRange(0, dateString.length)];
-        self.dateLabel.attributedText = dateString;
-    }
-    else {
-        self.dateLabel.text = @"";
     }
 }
 - (UILabel *)createFirstToReplyLabel {
@@ -166,10 +169,9 @@
 - (void)updateFirstToReplyLabel {
     BOOL show = false;
     if (self.link) {
-        show = true;
-        self.firstToReplyLabel.text = @"Be the first to talk about it!";
+        show = false;
     }
-    else if (self.post && self.post.attributes.summaries.counts.replies == 0) {
+    else if (self.post && self.post.attributes.summaries.counts.replies == 0 && [self.post.attributes.context.post.permissions canReply]) {
         show = true;
         self.firstToReplyLabel.text = @"Be the first to reply!";
     }
@@ -205,8 +207,7 @@
     
     BOOL show = false;
     if (self.link) {
-        show = true;
-        liveCount = self.post.attributes.summaries.counts.score;
+        show = false;
     }
     else if (self.post && self.post.attributes.summaries.counts.score > 0) {
         show = true;
@@ -216,7 +217,7 @@
     if (show) {
         if (liveCount == 0) {
             if (self.link) {
-                [self.liveCountButton setTitle:@"Quote this post to help it go viral!" forState:UIControlStateNormal];
+                [self.liveCountButton setTitle:@"Share this link to help it go viral!" forState:UIControlStateNormal];
             }
             else {
                 [self.liveCountButton setTitle:@"Spark this post to help it go viral!" forState:UIControlStateNormal];

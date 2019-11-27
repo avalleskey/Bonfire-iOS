@@ -5,12 +5,14 @@
 
 #import <UIKit/UIKit.h>
 #import <Foundation/Foundation.h>
-#import <JSONModel/JSONModel.h>
+#import "BFJSONModel.h"
 #import "Camp.h"
 #import "BFMedia.h"
 #import "BFHostedVersions.h"
 #import "BFContext.h"
 #import "BFLink.h"
+#import "Bot.h"
+#import "User.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -20,6 +22,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @class Post;
 @class PostAttributes;
+@class PostAttributesThread;
 @class PostDisplay;
 @class PostDisplayFormat;
 @class PostCounts;
@@ -30,7 +33,7 @@ NS_ASSUME_NONNULL_BEGIN
 @class PostAttachmentsMediaAtributesRawMedia;
 @class PostEntity;
 
-@interface Post : JSONModel
+@interface Post : BFJSONModel
 
 @property (nonatomic) NSString <Optional> *identifier;
 
@@ -43,9 +46,10 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)hasLinkAttachment;
 - (BOOL)hasUserAttachment;
 - (BOOL)hasCampAttachment;
+- (BOOL)hasPostAttachment;
 - (BOOL)isRemoved;
 
-- (void)createTempWithMessage:(NSString *)message media:(BFMedia *)media postedIn:(Camp * _Nullable)postedIn parent:(Post *)parent;
+- (void)createTempWithMessage:(NSString *)message media:(BFMedia *)media postedIn:(Camp * _Nullable)postedIn parent:(Post *)parent attachments:(PostAttachments * _Nullable)attachments;
 + (NSString *_Nullable)trimString:(NSString *_Nullable)string;
 
 - (BOOL)isEmojiPost;
@@ -57,7 +61,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @end
 
-@interface PostAttributes : JSONModel
+@interface PostAttributes : BFJSONModel
 
 @property (nonatomic) PostSummaries <Optional> *summaries;
 @property (nonatomic) BFContext <Optional> *context;
@@ -69,12 +73,11 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic) NSString <Optional> *url;
 @property (nonatomic) BOOL hasMedia;
 @property (nonatomic) NSArray <Optional> *media;
-@property (nonatomic) User <Optional> *creator;
 // parent post ID --> used for Post replies
 @property (nonatomic) Post <Optional> *parent;
+@property (nonatomic) PostAttributesThread <Optional> *thread;
 @property (nonatomic) NSArray <Post *> <Post, Optional> * _Nullable replies;
-@property (nonatomic) BOOL emojify;
-- (NSString *)simpleMessage;
+@property (nonatomic) Identity <Optional> * _Nullable creator;
 
 // status
 @property (nonatomic) Camp <Optional> *postedIn;
@@ -85,9 +88,27 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic) NSString <Optional> *removedAt;
 @property (nonatomic) NSString <Optional> *removedReason;
 
+#pragma mark - Generated properties
+// if the source is a user, sourceUser will exist
+@property (nonatomic) User <Optional> * _Nullable creatorUser;
+// if the source is a bot, creatorBot will exist
+@property (nonatomic) Bot <Optional> * _Nullable creatorBot;
+
+@property (nonatomic) BOOL emojify;
+
+#pragma mark - Getter methods
+- (NSString *)simpleMessage;
+- (NSString *)simpleMessageWithTruncationLimit:(NSInteger)truncationLimit;
+
 @end
 
-@interface PostDisplay : JSONModel
+@interface PostAttributesThread : BFJSONModel
+
+@property (nonatomic) NSString <Optional> *prevCursor;
+
+@end
+
+@interface PostDisplay : BFJSONModel
 
 extern NSString * const POST_DISPLAY_CREATOR_CAMP;
 @property (nonatomic) NSString <Optional> *creator;
@@ -96,7 +117,7 @@ extern NSString * const POST_DISPLAY_CREATOR_CAMP;
 
 @end
 
-@interface PostDisplayFormat : JSONModel
+@interface PostDisplayFormat : BFJSONModel
 
 extern NSString * const POST_DISPLAY_FORMAT_ICEBREAKER;
 extern NSString * const POST_DISPLAY_FORMAT_;
@@ -104,30 +125,31 @@ extern NSString * const POST_DISPLAY_FORMAT_;
 
 @end
 
-@interface PostCounts : JSONModel
+@interface PostCounts : BFJSONModel
 
 @property (nonatomic) NSInteger replies;
 @property (nonatomic) NSInteger score;
 
 @end
 
-@interface PostSummaries : JSONModel
+@interface PostSummaries : BFJSONModel
 
 @property (nonatomic) NSArray <Post *> <Post, Optional> *replies;
 @property (nonatomic) PostCounts <Optional> *counts;
 
 @end
 
-@interface PostAttachments : JSONModel
+@interface PostAttachments : BFJSONModel
 
 @property (nonatomic) NSArray <PostAttachmentsMedia *> <PostAttachmentsMedia, Optional> *media;
 @property (nonatomic) BFLink <Optional> *link;
 @property (nonatomic) Camp <Optional> *camp;
 @property (nonatomic) User <Optional> *user;
+@property (nonatomic) Post <Optional> *post;
 
 @end
 
-@interface PostAttachmentsMedia : JSONModel
+@interface PostAttachmentsMedia : BFJSONModel
 
 @property (nonatomic) NSString <Optional> *identifier;
 @property (nonatomic) NSString <Optional> *type;
@@ -135,7 +157,7 @@ extern NSString * const POST_DISPLAY_FORMAT_;
 
 @end
 
-@interface PostAttachmentsMediaAtributes : JSONModel
+@interface PostAttachmentsMediaAtributes : BFJSONModel
 
 typedef enum {
     PostAttachmentMediaTypeImage = 1,
@@ -154,13 +176,13 @@ typedef enum {
 
 @end
 
-@interface PostAttachmentsMediaAtributesRawMedia : JSONModel
+@interface PostAttachmentsMediaAtributesRawMedia : BFJSONModel
 
 @property (nonatomic) NSString <Optional> *value;
 
 @end
 
-@interface PostEntity : JSONModel
+@interface PostEntity : BFJSONModel
 
 extern NSString * const POST_ENTITY_TYPE_PROFILE;
 extern NSString * const POST_ENTITY_TYPE_CAMP;

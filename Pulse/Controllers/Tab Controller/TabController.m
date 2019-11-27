@@ -121,6 +121,7 @@
         [simpleNav setRightAction:SNActionTypeCompose];
         simpleNav.currentTheme = [UIColor clearColor];
         simpleNav.tabBarItem.title = viewController.title;
+        simpleNav.shadowOnScroll = false;
         
         viewController.tableView.frame = viewController.view.bounds;
     }
@@ -133,6 +134,7 @@
         [simpleNav setRightAction:SNActionTypeCompose];
         [simpleNav setShadowVisibility:true withAnimation:false];
         simpleNav.currentTheme = [UIColor clearColor];
+        simpleNav.shadowOnScroll = false;
     }
     else if ([rootID isEqualToString:@"camps"]) {
         MyCampsTableViewController *viewController = [[MyCampsTableViewController alloc] init];
@@ -142,6 +144,7 @@
         [simpleNav setLeftAction:SNActionTypeInvite];
         [simpleNav setRightAction:SNActionTypeCompose];
         simpleNav.currentTheme = [UIColor clearColor];
+        simpleNav.shadowOnScroll = false;
     }
     else if ([rootID isEqualToString:@"discover"]) {
         CampStoreTableViewController *viewController = [[CampStoreTableViewController alloc] init];
@@ -152,6 +155,7 @@
         simpleNav.currentTheme = [UIColor clearColor];
         [simpleNav setLeftAction:SNActionTypeInvite];
         [simpleNav setRightAction:SNActionTypeCompose];
+        simpleNav.shadowOnScroll = false;
     }
     else if ([rootID isEqualToString:@"notifs"]) {
         NotificationsTableViewController *viewController = [[NotificationsTableViewController alloc] init];
@@ -165,6 +169,7 @@
         [simpleNav setLeftAction:SNActionTypeInvite];
         [simpleNav setRightAction:SNActionTypeCompose];
         simpleNav.currentTheme = [UIColor clearColor];
+        simpleNav.shadowOnScroll = false;
     }
     else if ([rootID isEqualToString:@"me"]) {
         User *user = [Session sharedInstance].currentUser;
@@ -185,7 +190,6 @@
         
         simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:viewController];
     }
-    // [simpleNav hideBottomHairline];
     
     UITabBarItem *tabBarItem = [[UITabBarItem alloc] initWithTitle:@"" image:[[UIImage imageNamed:[NSString stringWithFormat:@"tabIcon-%@", rootID]] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] selectedImage:[[UIImage imageNamed:[NSString stringWithFormat:@"tabIcon-%@_selected", rootID]] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
     simpleNav.tabBarItem = tabBarItem;

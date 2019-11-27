@@ -10,6 +10,7 @@
 #import "Session.h"
 #import "UIColor+Palette.h"
 #import "NSDate+NVTimeAgo.h"
+#import "GTMNSString+HTML.h"
 
 @implementation UserActivity
 
@@ -85,7 +86,7 @@
         [attributedString appendAttributedString:attributedPart];
     }
     
-    NSString *timeStamp = [NSDate mysqlDatetimeFormattedAsTimeAgo:self.attributes.createdAt withForm:TimeAgoShortForm];
+    NSString *timeStamp = self.attributes.createdAt.length > 0 ? [NSDate mysqlDatetimeFormattedAsTimeAgo:self.attributes.createdAt withForm:TimeAgoShortForm] : @"";
 
     NSMutableAttributedString *timeStampString = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@" %@", timeStamp]];
     [timeStampString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:fontSize weight:UIFontWeightRegular] range:NSMakeRange(0, timeStampString.length)];
@@ -94,7 +95,18 @@
     
     if ((self.attributes.post.attributes.message.length > 0 && !self.attributes.replyPost) || self.attributes.replyPost.attributes.message.length > 0) {
         NSString *message = self.attributes.replyPost.attributes.message ? self.attributes.replyPost.attributes.message : self.attributes.post.attributes.message;
-        message = (message.length > 35) ? [[message substringToIndex:35] stringByAppendingString:@"..."] : message;
+
+        // define the range you're interested in
+        NSRange stringRange = {0, MIN([message length], 40)};
+
+        // adjust the range to include dependent chars
+        stringRange = [message rangeOfComposedCharacterSequencesForRange:stringRange];
+
+        // Now you can create the short string
+        NSString *shortenedMessage = [message substringWithRange:stringRange];
+        if (shortenedMessage.length < message.length) {
+            message = [[shortenedMessage stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] stringByAppendingString:@"..."];
+        }
         
         NSMutableAttributedString *messageString = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"\n%@", message]];
         [messageString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:fontSize-1.f weight:UIFontWeightRegular] range:NSMakeRange(0, messageString.length)];
@@ -120,6 +132,10 @@
     return YES;
 }
 
+- (void)markAsRead {
+    self.attributes.read = true;
+}
+
 @end
 
 @implementation UserActivityAttributes
@@ -127,6 +143,11 @@
 + (JSONKeyMapper *)keyMapper
 {
     return [JSONKeyMapper mapperForSnakeCase];
+}
+
++ (BOOL)propertyIsOptional:(NSString*)propertyName
+{
+    return YES;
 }
 
 @end

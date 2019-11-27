@@ -245,6 +245,10 @@
             [prettyValue stringByAppendingString:url.path];
         }
         
+        if (prettyValue.length > 4 && [[prettyValue substringToIndex:4] isEqualToString:@"www."]) {
+            prettyValue = [prettyValue substringFromIndex:4];
+        }
+        
         prettyValue = [@"by " stringByAppendingString:prettyValue];
                 
         return prettyValue;

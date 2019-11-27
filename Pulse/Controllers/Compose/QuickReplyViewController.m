@@ -156,7 +156,6 @@
     
     if ([params objectForKey:@"message"] || [params objectForKey:@"images"]) {
         // meets min. requirements
-        // [[Session sharedInstance] createPost:params postingIn:self.camp replyingTo:nil];
         
         self.composeInputView.textView.text = @"";
         [self.composeInputView hidePostButton];

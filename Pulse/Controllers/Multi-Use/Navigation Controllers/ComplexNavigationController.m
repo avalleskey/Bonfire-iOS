@@ -607,7 +607,7 @@
                 }
                 break;
             case LNActionTypeCompose:
-                [Launcher openComposePost:nil inReplyTo:nil withMessage:nil media:nil];
+                [Launcher openComposePost:nil inReplyTo:nil withMessage:nil media:nil quotedObject:nil];
                 break;
             case LNActionTypeMore: {
                 if ([self.viewControllers[self.viewControllers.count-1] isKindOfClass:[PostViewController class]]) {

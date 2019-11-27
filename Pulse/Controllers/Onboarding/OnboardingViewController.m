@@ -19,6 +19,7 @@
 #import "SmallMediumCampCardCell.h"
 #import <NSString+EMOEmoji.h>
 #import "ResetPasswordViewController.h"
+#import "BFAlertController.h"
 
 @import UserNotifications;
 @import Firebase;
@@ -116,7 +117,12 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     }];
 }
 - (void)receivedNotificationsUpdate:(NSNotification *)notificaiton {
-    [Launcher launchLoggedIn:true replaceRootViewController:false];
+    // last step: download defaults, then launch
+    [[Session sharedInstance] initDefaultsWithCompletion:^(BOOL success) {
+        NSLog(@"success fetching defaults ? %@", success ? @"YES" : @"NO");
+        
+        [Launcher launchLoggedIn:true replaceRootViewController:false];
+    }];
 }
 
 - (void)setupViews {
@@ -201,22 +207,22 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     
     [self.legalDisclosureLabel bk_whenTapped:^{
         // confirm action
-        UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:nil message:nil preferredStyle:UIAlertControllerStyleActionSheet];
+        BFAlertController *actionSheet = [BFAlertController alertControllerWithTitle:nil message:nil preferredStyle:BFAlertControllerStyleActionSheet];
         
-        UIAlertAction *privacyPolicy = [UIAlertAction actionWithTitle:@"Privacy Policy" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        BFAlertAction *privacyPolicy = [BFAlertAction actionWithTitle:@"Privacy Policy" style:BFAlertActionStyleDefault handler:^{
             [Launcher openURL:@"https://bonfire.camp/privacy"];
         }];
         [actionSheet addAction:privacyPolicy];
         
-        UIAlertAction *termsOfService = [UIAlertAction actionWithTitle:@"Terms of Service" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        BFAlertAction *termsOfService = [BFAlertAction actionWithTitle:@"Terms of Service" style:BFAlertActionStyleDefault handler:^{
             [Launcher openURL:@"https://bonfire.camp/terms"];
         }];
         [actionSheet addAction:termsOfService];
         
-        UIAlertAction *cancelActionSheet = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
+        BFAlertAction *cancelActionSheet = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
         [actionSheet addAction:cancelActionSheet];
         
-        [self presentViewController:actionSheet animated:YES completion:nil];
+        [self presentViewController:actionSheet animated:true completion:nil];
     }];
     
     [self.view addSubview:self.legalDisclosureLabel];
@@ -782,12 +788,10 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                     
                     [self enableNextButton];
                     
-                    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Email Not Valid" message:@"We had an issue verifying your email. Please make sure there aren't any typos in the email provided." preferredStyle:UIAlertControllerStyleAlert];
-                    UIAlertAction *gotItAction = [UIAlertAction actionWithTitle:@"Okay" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-                        [alert dismissViewControllerAnimated:true completion:nil];
-                    }];
+                    BFAlertController *alert = [BFAlertController alertControllerWithTitle:@"Email Not Valid" message:@"We had an issue verifying your email. Please make sure there aren't any typos in the email provided." preferredStyle:BFAlertControllerStyleAlert];
+                    BFAlertAction *gotItAction = [BFAlertAction actionWithTitle:@"Okay" style:BFAlertActionStyleCancel handler:nil];
                     [alert addAction:gotItAction];
-                    [self presentViewController:alert animated:YES completion:nil];
+                    [self presentViewController:alert animated:true completion:nil];
                 }
                 
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
@@ -796,12 +800,10 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                 [self shakeInputBlock];
                 [self enableNextButton];
                 
-                UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Uh oh!" message:@"We encountered a network error while looking up your account. Check your network settings and try again." preferredStyle:UIAlertControllerStyleAlert];
-                UIAlertAction *gotItAction = [UIAlertAction actionWithTitle:@"Okay" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-                    [alert dismissViewControllerAnimated:true completion:nil];
-                }];
+                BFAlertController *alert = [BFAlertController alertControllerWithTitle:@"Uh oh!" message:@"We encountered a network error while looking up your account. Check your network settings and try again." preferredStyle:BFAlertControllerStyleAlert];
+                BFAlertAction *gotItAction = [BFAlertAction actionWithTitle:@"Okay" style:BFAlertActionStyleCancel handler:nil];
                 [alert addAction:gotItAction];
-                [[Launcher activeViewController] presentViewController:alert animated:YES completion:nil];
+                [[Launcher activeViewController] presentViewController:alert animated:true completion:nil];
             }];
         }
         else {
@@ -834,12 +836,10 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             [self shakeInputBlock];
             [self enableNextButton];
             
-            UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Password Doesn't Match" message:@"The passwords you provided don't match. Please try again or go back to set a new one." preferredStyle:UIAlertControllerStyleAlert];
-            UIAlertAction *gotItAction = [UIAlertAction actionWithTitle:@"Okay" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-                [alert dismissViewControllerAnimated:true completion:nil];
-            }];
+            BFAlertController *alert = [BFAlertController alertControllerWithTitle:@"Password Doesn't Match" message:@"The passwords you provided don't match. Please try again or go back to set a new one." preferredStyle:BFAlertControllerStyleAlert];
+            BFAlertAction *gotItAction = [BFAlertAction actionWithTitle:@"Okay" style:BFAlertActionStyleCancel handler:nil];
             [alert addAction:gotItAction];
-            [self presentViewController:alert animated:YES completion:nil];
+            [self presentViewController:alert animated:true completion:nil];
         }
     }
     else if ([step[@"id"] isEqualToString:@"user_dob"]) {
@@ -861,14 +861,14 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         }
         else {
             // not allowed
-            UIAlertController *ageBlockerAlert = [UIAlertController alertControllerWithTitle:@"Must be 13 or older" message:@"Come back to Bonfire when you're old enough!" preferredStyle:UIAlertControllerStyleAlert];
+            BFAlertController *ageBlockerAlert = [BFAlertController alertControllerWithTitle:@"Must be 13 or older" message:@"Come back to Bonfire when you're old enough!" preferredStyle:BFAlertControllerStyleAlert];
             
-            UIAlertAction *okayAction = [UIAlertAction actionWithTitle:@"Okay" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            BFAlertAction *okayAction = [BFAlertAction actionWithTitle:@"Okay" style:BFAlertActionStyleDefault handler:^{
                 [ageBlockerAlert dismissViewControllerAnimated:YES completion:nil];
             }];
             [ageBlockerAlert addAction:okayAction];
             
-            [Launcher.topMostViewController presentViewController:ageBlockerAlert animated:YES completion:nil];
+            [Launcher.topMostViewController presentViewController:ageBlockerAlert animated:true completion:nil];
             
             [self enableNextButton];
         }
@@ -942,12 +942,10 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             [self shakeInputBlock];
             [self enableNextButton];
             
-            UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Username Not Valid" message:@"Please ensure the username you provided is at least 3 characters and only contains letters, numbers, and underscores (_)." preferredStyle:UIAlertControllerStyleAlert];
-            UIAlertAction *gotItAction = [UIAlertAction actionWithTitle:@"Okay" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-                [alert dismissViewControllerAnimated:true completion:nil];
-            }];
+            BFAlertController *alert = [BFAlertController alertControllerWithTitle:@"Username Not Valid" message:@"Please ensure the username you provided is at least 3 characters and only contains letters, numbers, and underscores (_)." preferredStyle:BFAlertControllerStyleAlert];
+            BFAlertAction *gotItAction = [BFAlertAction actionWithTitle:@"Okay" style:BFAlertActionStyleCancel handler:nil];
             [alert addAction:gotItAction];
-            [self presentViewController:alert animated:YES completion:nil];
+            [self presentViewController:alert animated:true completion:nil];
         }
         else {
             // verify username is available
@@ -972,12 +970,10 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                         [self shakeInputBlock];
                         [self enableNextButton];
                         
-                        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Username Not Available" message:@"Uh oh! Looks like someone already has that username. Please try another one!" preferredStyle:UIAlertControllerStyleAlert];
-                        UIAlertAction *gotItAction = [UIAlertAction actionWithTitle:@"Okay" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-                            [alert dismissViewControllerAnimated:true completion:nil];
-                        }];
+                        BFAlertController *alert = [BFAlertController alertControllerWithTitle:@"Username Not Available" message:@"Uh oh! Looks like someone already has that username. Please try another one!" preferredStyle:BFAlertControllerStyleAlert];
+                        BFAlertAction *gotItAction = [BFAlertAction actionWithTitle:@"Okay" style:BFAlertActionStyleCancel handler:nil];
                         [alert addAction:gotItAction];
-                        [[Launcher activeViewController] presentViewController:alert animated:YES completion:nil];
+                        [[Launcher activeViewController] presentViewController:alert animated:true completion:nil];
                     }
                     else {
                         [self attemptToSignUp];
@@ -988,12 +984,10 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                     [self shakeInputBlock];
                     [self enableNextButton];
                     
-                    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Username Not Valid" message:@"We had an issue verifying your username. Please try again or choose a different username!" preferredStyle:UIAlertControllerStyleAlert];
-                    UIAlertAction *gotItAction = [UIAlertAction actionWithTitle:@"Okay" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-                        [alert dismissViewControllerAnimated:true completion:nil];
-                    }];
+                    BFAlertController *alert = [BFAlertController alertControllerWithTitle:@"Username Not Valid" message:@"We had an issue verifying your username. Please try again or choose a different username!" preferredStyle:BFAlertControllerStyleAlert];
+                    BFAlertAction *gotItAction = [BFAlertAction actionWithTitle:@"Okay" style:BFAlertActionStyleCancel handler:nil];
                     [alert addAction:gotItAction];
-                    [self presentViewController:alert animated:YES completion:nil];
+                    [self presentViewController:alert animated:true completion:nil];
                 }
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
                 // not long enough –> shake input block
@@ -1014,20 +1008,16 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                 }
                 
                 if (code == USER_USERNAME_TAKEN) {
-                    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Username Not Available" message:@"Uh oh! Looks like someone already has that username. Please try another one!" preferredStyle:UIAlertControllerStyleAlert];
-                    UIAlertAction *gotItAction = [UIAlertAction actionWithTitle:@"Okay" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-                        [alert dismissViewControllerAnimated:true completion:nil];
-                    }];
+                    BFAlertController *alert = [BFAlertController alertControllerWithTitle:@"Username Not Available" message:@"Uh oh! Looks like someone already has that username. Please try another one!" preferredStyle:BFAlertControllerStyleAlert];
+                    BFAlertAction *gotItAction = [BFAlertAction actionWithTitle:@"Okay" style:BFAlertActionStyleCancel handler:nil];
                     [alert addAction:gotItAction];
-                    [[Launcher activeViewController] presentViewController:alert animated:YES completion:nil];
+                    [[Launcher activeViewController] presentViewController:alert animated:true completion:nil];
                 }
                 else {
-                    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Uh oh!" message:@"We encountered a network error while looking up your account. Check your network settings and try again." preferredStyle:UIAlertControllerStyleAlert];
-                    UIAlertAction *gotItAction = [UIAlertAction actionWithTitle:@"Okay" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-                        [alert dismissViewControllerAnimated:true completion:nil];
-                    }];
+                    BFAlertController *alert = [BFAlertController alertControllerWithTitle:@"Uh oh!" message:@"We encountered a network error while looking up your account. Check your network settings and try again." preferredStyle:BFAlertControllerStyleAlert];
+                    BFAlertAction *gotItAction = [BFAlertAction actionWithTitle:@"Okay" style:BFAlertActionStyleCancel handler:nil];
                     [alert addAction:gotItAction];
-                    [[Launcher activeViewController] presentViewController:alert animated:YES completion:nil];
+                    [[Launcher activeViewController] presentViewController:alert animated:true completion:nil];
                 }
             }];
         }
@@ -1054,6 +1044,12 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 - (void)enableNextButton {
     self.nextButton.enabled = true;
     self.nextButton.backgroundColor = self.view.tintColor;
+    if ([UIColor useWhiteForegroundForColor:self.nextButton.backgroundColor]) {
+        [self.nextButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    }
+    else {
+        [self.nextButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    }
     self.nextButton.userInteractionEnabled = true;
 }
 - (void)prepareForLogin {
@@ -1167,12 +1163,10 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                                 parameters:@{}];
         }
         
-        UIAlertController *alert = [UIAlertController alertControllerWithTitle:errorTitle message:errorMessage preferredStyle:UIAlertControllerStyleAlert];
-        UIAlertAction *gotItAction = [UIAlertAction actionWithTitle:@"Okay" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-            [alert dismissViewControllerAnimated:true completion:nil];
-        }];
+        BFAlertController *alert = [BFAlertController alertControllerWithTitle:errorTitle message:errorMessage preferredStyle:BFAlertControllerStyleAlert];
+        BFAlertAction *gotItAction = [BFAlertAction actionWithTitle:@"Okay" style:BFAlertActionStyleCancel handler:nil];
         [alert addAction:gotItAction];
-        [self presentViewController:alert animated:YES completion:nil];
+        [self presentViewController:alert animated:true completion:nil];
     }];
 }
 - (void)attemptToSignUp {
@@ -1239,12 +1233,10 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             
             [self enableNextButton];
             
-            UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Uh oh!" message:@"We encountered an error while signing you up. Check your network settings and try again." preferredStyle:UIAlertControllerStyleAlert];
-            UIAlertAction *gotItAction = [UIAlertAction actionWithTitle:@"Okay" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-                [alert dismissViewControllerAnimated:true completion:nil];
-            }];
+            BFAlertController *alert = [BFAlertController alertControllerWithTitle:@"Uh oh!" message:@"We encountered an error while signing you up. Check your network settings and try again." preferredStyle:BFAlertControllerStyleAlert];
+            BFAlertAction *gotItAction = [BFAlertAction actionWithTitle:@"Okay" style:BFAlertActionStyleCancel handler:nil];
             [alert addAction:gotItAction];
-            [self presentViewController:alert animated:YES completion:nil];
+            [self presentViewController:alert animated:true completion:nil];
         }];
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         // email not valid
@@ -1253,12 +1245,10 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         
         [self enableNextButton];
         
-        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Unexpected Error" message:@"We had an issue verifying your account. Check your network settings and try again." preferredStyle:UIAlertControllerStyleAlert];
-        UIAlertAction *gotItAction = [UIAlertAction actionWithTitle:@"Okay" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-            [alert dismissViewControllerAnimated:true completion:nil];
-        }];
+        BFAlertController *alert = [BFAlertController alertControllerWithTitle:@"Unexpected Error" message:@"We had an issue verifying your account. Check your network settings and try again." preferredStyle:BFAlertControllerStyleAlert];
+        BFAlertAction *gotItAction = [BFAlertAction actionWithTitle:@"Okay" style:BFAlertActionStyleCancel handler:nil];
         [alert addAction:gotItAction];
-        [self presentViewController:alert animated:YES completion:nil];
+        [self presentViewController:alert animated:true completion:nil];
     }];
 }
 - (void)attemptToSaveUser {
@@ -1276,6 +1266,12 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         [self removeBigSpinnerForStep:self.currentStep push:false];
         self.nextButton.enabled = true;
         self.nextButton.backgroundColor = [self currentColor];
+        if ([UIColor useWhiteForegroundForColor:self.nextButton.backgroundColor]) {
+            [self.nextButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        }
+        else {
+            [self.nextButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+        }
         self.nextButton.userInteractionEnabled = true;
         [self shakeInputBlock];
     };
@@ -1283,7 +1279,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     void (^saveUser)(NSString *uploadedImage) = ^(NSString *uploadedImage) {
         NSMutableDictionary *params = [[NSMutableDictionary alloc] initWithDictionary:@{@"color": color}];
         if (uploadedImage && uploadedImage.length > 0) {
-            [params setObject:uploadedImage forKey:@"user_avatar"];
+            [params setObject:uploadedImage forKey:@"avatar"];
         }
         
         [[HAWebService authenticatedManager] PUT:@"users/me" parameters:params success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
@@ -1438,6 +1434,12 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         if ([nextStep[@"id"] isEqualToString:@"user_color"]) {
             [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
                 self.nextButton.backgroundColor = [self currentColor];
+                if ([UIColor useWhiteForegroundForColor:self.nextButton.backgroundColor]) {
+                    [self.nextButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+                }
+                else {
+                    [self.nextButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+                }
                 self.closeButton.tintColor = [self currentColor];
             } completion:nil];
         }
@@ -1686,6 +1688,12 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         else {
             [self.nextButton setTitle:previousStep[@"next"] forState:UIControlStateNormal];
             self.nextButton.backgroundColor = self.view.tintColor;
+            if ([UIColor useWhiteForegroundForColor:self.nextButton.backgroundColor]) {
+                [self.nextButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+            }
+            else {
+                [self.nextButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+            }
             self.nextButton.enabled = true;
             [self.nextButton setHidden:false];
         }
@@ -1891,23 +1899,22 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 }
 
 - (void)showImagePicker {
-    UIAlertController *imagePickerOptions = [UIAlertController alertControllerWithTitle:@"Set Profile Picture" message:nil preferredStyle:UIAlertControllerStyleActionSheet];
+    BFAlertController *imagePickerOptions = [BFAlertController alertControllerWithTitle:@"Set Profile Picture" message:nil preferredStyle:BFAlertControllerStyleActionSheet];
     
-    UIAlertAction *takePhoto = [UIAlertAction actionWithTitle:@"Take Photo" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+    BFAlertAction *takePhoto = [BFAlertAction actionWithTitle:@"Take Photo" style:BFAlertActionStyleDefault handler:^{
         [self takePhotoForProfilePicture:nil];
     }];
     [imagePickerOptions addAction:takePhoto];
     
-    UIAlertAction *chooseFromLibrary = [UIAlertAction actionWithTitle:@"Choose from Library" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+    BFAlertAction *chooseFromLibrary = [BFAlertAction actionWithTitle:@"Choose from Library" style:BFAlertActionStyleDefault handler:^{
         [self chooseFromLibraryForProfilePicture:nil];
     }];
     [imagePickerOptions addAction:chooseFromLibrary];
     
-    UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-    }];
+    BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
     [imagePickerOptions addAction:cancel];
     
-    [self presentViewController:imagePickerOptions animated:YES completion:nil];
+    [self presentViewController:imagePickerOptions animated:true completion:nil];
 }
 
 
@@ -1948,16 +1955,16 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     });
 }
 - (void)showNoCameraAccess {
-    UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"Allow Bonfire to access your camera" message:@"To allow Bonfire to access your camera, go to Settings > Privacy > Camera > Set Bonfire to ON" preferredStyle:UIAlertControllerStyleAlert];
+    BFAlertController *actionSheet = [BFAlertController alertControllerWithTitle:@"Allow Bonfire to access your camera" message:@"To allow Bonfire to access your camera, go to Settings > Privacy > Camera > Set Bonfire to ON" preferredStyle:BFAlertControllerStyleAlert];
 
-    UIAlertAction *openSettingsAction = [UIAlertAction actionWithTitle:@"Open Settings" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+    BFAlertAction *openSettingsAction = [BFAlertAction actionWithTitle:@"Open Settings" style:BFAlertActionStyleDefault handler:^{
         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString] options:@{} completionHandler:nil];
     }];
     [actionSheet addAction:openSettingsAction];
 
-    UIAlertAction *closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleCancel handler:nil];
+    BFAlertAction *closeAction = [BFAlertAction actionWithTitle:@"Close" style:BFAlertActionStyleCancel handler:nil];
     [actionSheet addAction:closeAction];
-    [[Launcher topMostViewController] presentViewController:actionSheet animated:YES completion:nil];
+    [[Launcher topMostViewController] presentViewController:actionSheet animated:true completion:nil];
 }
 
 - (void)chooseFromLibraryForProfilePicture:(id)sender {
@@ -1979,16 +1986,16 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             {
                 // confirm action
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"Allow Bonfire to access your phtoos" message:@"To allow Bonfire to access your photos, go to Settings > Privacy > Camera > Set Bonfire to ON" preferredStyle:UIAlertControllerStyleAlert];
+                    BFAlertController *actionSheet = [BFAlertController alertControllerWithTitle:@"Allow Bonfire to access your phtoos" message:@"To allow Bonfire to access your photos, go to Settings > Privacy > Camera > Set Bonfire to ON" preferredStyle:BFAlertControllerStyleAlert];
 
-                    UIAlertAction *openSettingsAction = [UIAlertAction actionWithTitle:@"Open Settings" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                    BFAlertAction *openSettingsAction = [BFAlertAction actionWithTitle:@"Open Settings" style:BFAlertActionStyleDefault handler:^{
                         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString] options:@{} completionHandler:nil];
                     }];
                     [actionSheet addAction:openSettingsAction];
                 
-                    UIAlertAction *closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleCancel handler:nil];
+                    BFAlertAction *closeAction = [BFAlertAction actionWithTitle:@"Close" style:BFAlertActionStyleCancel handler:nil];
                     [actionSheet addAction:closeAction];
-                    [[Launcher topMostViewController] presentViewController:actionSheet animated:YES completion:nil];
+                    [[Launcher topMostViewController] presentViewController:actionSheet animated:true completion:nil];
                 });
 
                 break;
@@ -2006,7 +2013,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     // init campsJoined so we can keep track of how many Camps have been joined
     campsJoined = [[NSMutableDictionary alloc] init];
     
-    [[HAWebService authenticatedManager] GET:@"users/me/camps/lists" parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+    [[HAWebService authenticatedManager] GET:@"users/me/camps/lists/suggested" parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSArray *responseData = responseObject[@"data"];
         
         self.campSuggestions = [[NSMutableArray alloc] init];

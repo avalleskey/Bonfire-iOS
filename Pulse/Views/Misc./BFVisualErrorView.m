@@ -72,6 +72,7 @@
         }
             
         [self resize];
+        [self updateErrorTitleColor];
     }
 }
 
@@ -157,6 +158,9 @@
     BOOL hideImageView = false;
     UIColor *themeColor;
     
+    // reset content mode
+    self.imageView.contentMode = UIViewContentModeCenter;
+    
     switch (newType) {
         case ErrorViewTypeGeneral:
             // hideImageView = true;
@@ -193,6 +197,14 @@
         case ErrorViewTypeSearch:
             self.imageView.image = [[UIImage imageNamed:@"errorSearch"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
             break;
+        case ErrorViewTypeRepliesDisabled:
+            self.imageView.image = [[UIImage imageNamed:@"errorRepliesDisabled"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+            break;
+        case ErrorViewTypeFirstPost:
+            self.imageView.contentMode = UIViewContentModeScaleAspectFill;
+            self.imageView.image = [UIImage imageNamed:@"errorFirstPost"];
+            themeColor = [UIColor bonfireBrand];
+            break;
             
         default:
             self.imageView.image = [[UIImage imageNamed:@"errorGeneral"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
@@ -204,15 +216,28 @@
     if (!hideImageView) {
         if (themeColor) {
             self.imageView.tintColor = [UIColor fromHex:[UIColor toHex:themeColor] adjustForOptimalContrast:true];
-            self.imageView.backgroundColor = [[UIColor fromHex:[UIColor toHex:themeColor] adjustForOptimalContrast:true] colorWithAlphaComponent:0.16];
+            if (self.imageView.contentMode == UIViewContentModeCenter) {
+                self.imageView.backgroundColor = [[UIColor fromHex:[UIColor toHex:themeColor] adjustForOptimalContrast:true] colorWithAlphaComponent:0.16];
+            }
+            else {
+                self.imageView.backgroundColor = [UIColor clearColor];
+            }
             
             self.actionButton.backgroundColor = self.imageView.tintColor;
+            
+            if ([UIColor useWhiteForegroundForColor:self.actionButton.backgroundColor]) {
+                [self.actionButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+            }
+            else {
+                [self.actionButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+            }
         }
         else {
             self.imageView.tintColor = [UIColor bonfireSecondaryColor];
             self.imageView.backgroundColor = [[UIColor bonfireSecondaryColor] colorWithAlphaComponent:0.16];
             
-            self.actionButton.backgroundColor = [UIColor fromHex:[UIColor toHex:self.superview.tintColor] adjustForOptimalContrast:true];
+            self.actionButton.backgroundColor = [UIColor bonfirePrimaryColor];
+            [self.actionButton setTitleColor:[UIColor viewBackgroundColor] forState:UIControlStateNormal];
         }
     }
         

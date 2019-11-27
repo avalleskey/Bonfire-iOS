@@ -235,6 +235,35 @@
     return [self.pages lastObject].meta.paging.nextCursor;
 }
 
+- (void)markAllAsRead {
+    for (int p = 0; p < self.pages.count; p++) {
+        UserActivityStreamPage *page = self.pages[p];
+        
+        NSMutableArray <UserActivity *> *mutableArray = [[NSMutableArray alloc] initWithArray:page.data];
+        for (NSInteger i = mutableArray.count - 1; i >= 0; i--) {
+            UserActivity *activityAtIndex = mutableArray[i];
+            [activityAtIndex markAsRead];
+            [mutableArray replaceObjectAtIndex:i withObject:activityAtIndex];
+        }
+        
+        page.data = [mutableArray copy];
+        
+        [self.pages replaceObjectAtIndex:p withObject:page];
+    }
+    
+    [self updateActivitiesArray];
+}
+- (NSInteger)unreadCount {
+    NSInteger unread = 0;
+    for (UserActivity *activity in self.activities) {
+        if (!activity.attributes.read) {
+            unread++;
+        }
+    }
+    
+    return unread;
+}
+
 @end
 
 @implementation UserActivityStreamPage

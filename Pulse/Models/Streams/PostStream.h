@@ -61,7 +61,7 @@ typedef enum {
 
 @end
 
-@interface PostStreamPage : JSONModel
+@interface PostStreamPage : BFJSONModel
 
 @property (nonatomic) NSArray<Post *> *data;
 @property (nonatomic) GenericStreamPageMeta <Optional> *meta;

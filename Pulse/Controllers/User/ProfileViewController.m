@@ -21,6 +21,7 @@
 #import "ButtonCell.h"
 #import "BFHeaderView.h"
 #import "SpacerCell.h"
+#import "BFAlertController.h"
 
 #import <BlocksKit/BlocksKit.h>
 #import <BlocksKit/BlocksKit+UIKit.h>
@@ -192,14 +193,14 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
 - (void)userUpdated:(NSNotification *)notification {
     if ([notification.object isKindOfClass:[User class]]) {
         User *user = notification.object;
-        if ([user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
-            self.user = [Session sharedInstance].currentUser;
+        if ([user.identifier isEqualToString:self.user.identifier]) {
+            self.user = user;
             
             [self.tableView.stream updateUserObjects:user];
             
             [self updateTheme];
             
-            [self.tableView reloadData];
+            [self.tableView hardRefresh];
         }
     }
 }
@@ -257,76 +258,72 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
     //BOOL currentUserIsBlocked = [self currentUserIsBlocked];
     
     // @"\n\n\n\n\n\n"
-    UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:nil message:nil preferredStyle:UIAlertControllerStyleActionSheet];
     
-//    CGFloat margin = 8.0f;
-//    UIView *customView = [[UIView alloc] initWithFrame:CGRectMake(margin, 0, actionSheet.view.bounds.size.width - margin * 4, 140.f)];
-//    BFAvatarView *userAvatar = [[BFAvatarView alloc] initWithFrame:CGRectMake(customView.frame.size.width / 2 - 32, 24, 64, 64)];
-//    userAvatar.user = self.user;
-//    [customView addSubview:userAvatar];
-//    UILabel *nameLabel = [[UILabel alloc] initWithFrame:CGRectMake(16, 96, customView.frame.size.width - 32, 20)];
-//    nameLabel.textAlignment = NSTextAlignmentCenter;
-//    nameLabel.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightBold];
-//    nameLabel.textColor = [UIColor bonfirePrimaryColor];
-//    nameLabel.text = [@"@" stringByAppendingString:self.user.attributes.identifier];
-//    [customView addSubview:nameLabel];
-//    [actionSheet.view addSubview:customView];
+    Identity *identity;
+    BFAlertController *actionSheet;
+    
+    if (self.user)  {
+        identity = self.user;
+        actionSheet = [BFAlertController alertControllerWithTitle:self.user.attributes.displayName message:[@"@" stringByAppendingString:self.user.attributes.identifier] preferredStyle:BFAlertControllerStyleActionSheet];
+    }
+    else if (self.bot) {
+        identity = self.bot;
+        actionSheet = [BFAlertController alertControllerWithTitle:self.bot.attributes.displayName message:[@"@" stringByAppendingString:self.bot.attributes.identifier] preferredStyle:BFAlertControllerStyleActionSheet];
+    }
+    else {
+        return;
+    }
     
     if (![self isBot] && ![self isCurrentUser] && ([self.user.attributes.context.me.status isEqualToString:USER_STATUS_FOLLOWS] || [self.user.attributes.context.me.status isEqualToString:USER_STATUS_FOLLOW_BOTH])) {
         BOOL userPostNotificationsOn = self.user.attributes.context.me.follow.me.subscription != nil;
-        UIAlertAction *togglePostNotifications = [UIAlertAction actionWithTitle:[NSString stringWithFormat:@"Turn %@ Post Notifications", userPostNotificationsOn ? @"Off" : @"On"] style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        BFAlertAction *togglePostNotifications = [BFAlertAction actionWithTitle:[NSString stringWithFormat:@"Turn Post Notifications %@", userPostNotificationsOn ? @"Off" : @"On"] style:BFAlertActionStyleDefault handler:^{
             NSLog(@"toggle post notifications");
             // confirm action
             if ([Session sharedInstance].deviceToken.length > 0) {
                 if (userPostNotificationsOn) {
-                    [BFAPI unsubscribeFromUser:self.user completion:^(BOOL success, User *_Nullable user) {
-                        if (success && user) {
-                            self.user = user;
-                            NSLog(@"user updated!");
-                        }
-                    }];
+                    [self.user unsubscribeFromPostNotifications];
                 }
                 else {
-                    [BFAPI subscribeToUser:self.user completion:^(BOOL success, User *_Nullable user) {
-                        if (success && user) {
-                            self.user = user;
-                            NSLog(@"user updated! subscribed now....");
-                        }
-                    }];
+                    [self.user subscribeToPostNotifications];
                 }
             }
             else {
                 // confirm action
-                UIAlertController *notificationsNotice = [UIAlertController alertControllerWithTitle:@"Notifications Not Enabled" message:@"In order to enable Post Notifications, you must turn on notifications for Bonfire in the iOS Settings" preferredStyle:UIAlertControllerStyleAlert];
+                BFAlertController *notificationsNotice = [BFAlertController alertControllerWithTitle:@"Notifications Not Enabled" message:@"In order to enable Post Notifications, you must turn on notifications for Bonfire in the iOS Settings" preferredStyle:BFAlertControllerStyleAlert];
                 
-                UIAlertAction *alertCancel = [UIAlertAction actionWithTitle:@"Okay" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-                }];
+                BFAlertAction *alertCancel = [BFAlertAction actionWithTitle:@"Okay" style:BFAlertActionStyleCancel handler:nil];
                 [notificationsNotice addAction:alertCancel];
                 
-                [self.navigationController presentViewController:notificationsNotice animated:YES completion:nil];
+                [[Launcher topMostViewController] presentViewController:notificationsNotice animated:true completion:nil];
             }
         }];
         [actionSheet addAction:togglePostNotifications];
     }
     
     // 1.A.* -- Any user, any page, any following state
-    UIAlertAction *shareUser = [UIAlertAction actionWithTitle:[NSString stringWithFormat:@"Share %@ via...", [self isCurrentUser] ? @"your profile" : [NSString stringWithFormat:@"@%@", self.user.attributes.identifier]] style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+    BFAlertAction *shareUser = [BFAlertAction actionWithTitle:[NSString stringWithFormat:@"Share %@ via...", [self isCurrentUser] ? @"your profile" : [NSString stringWithFormat:@"@%@", identity.attributes.identifier]] style:BFAlertActionStyleDefault handler:^{
         NSLog(@"share profile");
         
-        [Launcher shareUser:self.user];
+        if (self.user) {
+            [Launcher shareIdentity:self.user];
+        }
+        else if (self.bot) {
+            [Launcher shareIdentity:self.bot];
+        }
     }];
     [actionSheet addAction:shareUser];
     
     if (![self isCurrentUser]) {
-        UIAlertAction *blockUsername = [UIAlertAction actionWithTitle:[NSString stringWithFormat:@"%@", userIsBlocked ? @"Unblock" : @"Block"] style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        BFAlertAction *blockUsername = [BFAlertAction actionWithTitle:[NSString stringWithFormat:@"%@", userIsBlocked ? @"Unblock" : @"Block"] style:BFAlertActionStyleDefault handler:^ {
             // confirm action
-            UIAlertController *alertConfirmController = [UIAlertController alertControllerWithTitle:[NSString stringWithFormat:@"%@ %@", userIsBlocked ? @"Unblock" : @"Block" , self.user.attributes.displayName] message:[NSString stringWithFormat:@"Are you sure you would like to block @%@?", self.user.attributes.identifier] preferredStyle:UIAlertControllerStyleAlert];
+            BFAlertController *alertConfirmController = [BFAlertController alertControllerWithTitle:[NSString stringWithFormat:@"%@ %@", userIsBlocked ? @"Unblock" : @"Block" , identity.attributes.displayName] message:[NSString stringWithFormat:@"Are you sure you would like to block @%@?", identity.attributes.identifier] preferredStyle:BFAlertControllerStyleAlert];
             
-            UIAlertAction *alertConfirm = [UIAlertAction actionWithTitle:userIsBlocked ? @"Unblock" : @"Block" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+            BFAlertAction *alertConfirm = [BFAlertAction actionWithTitle:userIsBlocked ? @"Unblock" : @"Block" style:BFAlertActionStyleDestructive handler:^{
                 if (userIsBlocked) {
-                    [BFAPI unblockUser:self.user completion:^(BOOL success, id responseObject) {
+                    [BFAPI unblockIdentity:identity completion:^(BOOL success, id responseObject) {
                         if (success) {
                             // NSLog(@"success unblocking!");
+                            [self loadUser];
                         }
                         else {
                             NSLog(@"error unblocking ;(");
@@ -334,9 +331,10 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
                     }];
                 }
                 else {
-                    [BFAPI blockUser:self.user completion:^(BOOL success, id responseObject) {
+                    [BFAPI blockIdentity:identity completion:^(BOOL success, id responseObject) {
                         if (success) {
                             // NSLog(@"success blocking!");
+                            [self loadUser];
                         }
                         else {
                             NSLog(@"error blocking ;(");
@@ -346,20 +344,20 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
             }];
             [alertConfirmController addAction:alertConfirm];
             
-            UIAlertAction *alertCancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
+            BFAlertAction *alertCancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
             [alertConfirmController addAction:alertCancel];
             
-            [self.navigationController presentViewController:alertConfirmController animated:YES completion:nil];
+            [[Launcher topMostViewController] presentViewController:alertConfirmController animated:true completion:nil];
         }];
         [actionSheet addAction:blockUsername];
         
-        UIAlertAction *reportUsername = [UIAlertAction actionWithTitle:[NSString stringWithFormat:@"Report"] style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        BFAlertAction *reportUsername = [BFAlertAction actionWithTitle:[NSString stringWithFormat:@"Report"] style:BFAlertActionStyleDefault handler:^ {
             // confirm action
-            UIAlertController *saveAndOpenTwitterConfirm = [UIAlertController alertControllerWithTitle:[NSString stringWithFormat:@"Report %@", self.user.attributes.displayName] message:[NSString stringWithFormat:@"Are you sure you would like to report @%@?", self.user.attributes.identifier] preferredStyle:UIAlertControllerStyleAlert];
+            BFAlertController *saveAndOpenTwitterConfirm = [BFAlertController alertControllerWithTitle:[NSString stringWithFormat:@"Report %@", identity.attributes.displayName] message:[NSString stringWithFormat:@"Are you sure you would like to report @%@?", identity.attributes.identifier] preferredStyle:BFAlertControllerStyleAlert];
             
-            UIAlertAction *alertConfirm = [UIAlertAction actionWithTitle:@"Report" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+            BFAlertAction *alertConfirm = [BFAlertAction actionWithTitle:@"Report" style:BFAlertActionStyleDestructive handler:^{
                 NSLog(@"report user");
-                [BFAPI reportUser:self.user completion:^(BOOL success, id responseObject) {
+                [BFAPI reportIdentity:identity completion:^(BOOL success, id responseObject) {
                     if (success) {
                         // update the state to blocked
                         
@@ -371,31 +369,34 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
             }];
             [saveAndOpenTwitterConfirm addAction:alertConfirm];
             
-            UIAlertAction *alertCancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+            BFAlertAction *alertCancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:^{
                 NSLog(@"cancel report user");
                 
                 // TODO: Verify this closes both action sheets
             }];
             [saveAndOpenTwitterConfirm addAction:alertCancel];
             
-            [self.navigationController presentViewController:saveAndOpenTwitterConfirm animated:YES completion:nil];
+            [[Launcher topMostViewController] presentViewController:saveAndOpenTwitterConfirm animated:true completion:nil];
         }];
         [actionSheet addAction:reportUsername];
     }
     
     if ([self isCurrentUser]) {
-        UIAlertAction *openSettings = [UIAlertAction actionWithTitle:@"Settings" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        BFAlertAction *openEditProfile = [BFAlertAction actionWithTitle:@"Edit Profile" style:BFAlertActionStyleDefault handler:^{
+            [Launcher openEditProfile];
+        }];
+        [actionSheet addAction:openEditProfile];
+        
+        BFAlertAction *openSettings = [BFAlertAction actionWithTitle:@"Settings" style:BFAlertActionStyleDefault handler:^{
             [Launcher openSettings];
         }];
         [actionSheet addAction:openSettings];
     }
     
-    UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-        NSLog(@"cancel");
-    }];
+    BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
     [actionSheet addAction:cancel];
     
-    [self.navigationController presentViewController:actionSheet animated:YES completion:nil];
+    [[Launcher topMostViewController] presentViewController:actionSheet animated:NO completion:nil];
 }
 
 - (void)showErrorViewWithType:(ErrorViewType)type title:(NSString *)title description:(NSString *)description actionTitle:(nullable NSString *)actionTitle actionBlock:(void (^ __nullable)(void))actionBlock {
@@ -566,7 +567,7 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
         [self.tableView refreshAtTop];
                 
         if (self.bot) {
-            [self showErrorViewWithType:ErrorViewTypeNotFound title:@"About Bots" description:@"Bots automate posts, moderation, and more" actionTitle:nil actionBlock:nil];
+            [self showErrorViewWithType:ErrorViewTypeNotFound title:@"About Bots" description:@"Bots automate posts,\nmoderation, and more" actionTitle:nil actionBlock:nil];
         }
         else if ([self currentUserIsBlocked]) { // blocked by User
             [self showErrorViewWithType:ErrorViewTypeBlocked title:[NSString stringWithFormat:@"@%@ Blocked You", self.user.attributes.identifier] description:[NSString stringWithFormat:@"You are blocked from viewing and interacting with %@", self.user.attributes.displayName] actionTitle:nil actionBlock:nil];
@@ -636,7 +637,15 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
             
             if (self.tableView.stream.posts.count == 0) {
                 // Error: No sparks yet!
-                [self showErrorViewWithType:ErrorViewTypeNoPosts title:@"No Posts Yet" description:nil actionTitle:nil actionBlock:nil];
+                if ([self isCurrentUser]) {
+                    NSString *firstMessage = [NSString stringWithFormat:@"#HelloBonfire, I'm %@! Nice to meet you. 👋", [self.user.attributes.displayName componentsSeparatedByString:@" "][0]];
+                    [self showErrorViewWithType:ErrorViewTypeFirstPost title:@"Create Your First Post" description:@"Introduce yourself to the Bonfire community" actionTitle:@"Open Compose" actionBlock:^{
+                        [Launcher openComposePost:nil inReplyTo:nil withMessage:firstMessage media:nil quotedObject:nil];
+                    }];
+                }
+                else {
+                    [self showErrorViewWithType:ErrorViewTypeNoPosts title:@"No Posts Yet" description:nil actionTitle:nil actionBlock:nil];
+                }
             }
             else {
                 self.tableView.visualError = nil;
@@ -733,7 +742,6 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
         }
         
         CGFloat percentageHidden = ((self.tableView.contentOffset.y + self.tableView.contentInset.top) / (self.tableView.contentInset.top * .75));
-        NSLog(@"percentageHidden: %f", percentageHidden);
         UIView *overlayView = [self.coverPhotoView viewWithTag:10];
         overlayView.frame = CGRectMake(0, 0, self.coverPhotoView.frame.size.width, self.coverPhotoView.frame.size.height);
         overlayView.alpha = percentageHidden;
@@ -794,18 +802,18 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
             return cell;
         }
     }
-    else if (row == 1) {
+    else if (row == 3) {
         SpacerCell *cell = [self.tableView dequeueReusableCellWithIdentifier:spacerCellReuseIdentifier forIndexPath:[NSIndexPath indexPathForRow:row inSection:0]];
-        
+
         if (cell == nil) {
             cell = [[SpacerCell alloc] initWithStyle:UITableViewCellStyleValue2 reuseIdentifier:spacerCellReuseIdentifier];
         }
-        
+
         cell.topSeparator.hidden = true;
-        
+
         return cell;
     }
-    else if (row == 2 || row == 3) {
+    else if (row == 1 || row == 2) {
         ButtonCell *cell = [self.tableView dequeueReusableCellWithIdentifier:buttonCellReuseIdentifier forIndexPath:[NSIndexPath indexPathForRow:row inSection:0]];
         
         if (cell == nil) {
@@ -815,15 +823,16 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
         // Configure the cell...
         cell.buttonLabel.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightSemibold];
         cell.detailTextLabel.font = [UIFont systemFontOfSize:cell.buttonLabel.font.pointSize weight:UIFontWeightMedium];
-        if (row == 2) {
+        if (row == 1) {
             cell.buttonLabel.text = @"Following";
             cell.detailTextLabel.text = [NSString stringWithFormat:@"%ld", (long)self.user.attributes.summaries.counts.following];
             cell.bottomSeparator.frame = CGRectMake(12, cell.bottomSeparator.frame.origin.y, self.view.frame.size.width - 12, cell.bottomSeparator.frame.size.height);
         }
-        else if (row == 3) {
+        else if (row == 2) {
             cell.buttonLabel.text = @"Camps";
             cell.detailTextLabel.text = [NSString stringWithFormat:@"%ld", (long)self.user.attributes.summaries.counts.camps];
         }
+        cell.buttonLabel.textColor = [UIColor bonfirePrimaryColor];
         
         cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
         
@@ -838,10 +847,10 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
 
 - (void)didSelectRowInFirstSection:(NSInteger)row {
     if (self.user) {
-        if (row == 2) {
+        if (row == 1) {
             [Launcher openProfileUsersFollowing:self.user];
         }
-        else if (row == 3) {
+        else if (row == 2) {
             [Launcher openProfileCampsJoined:self.user];
         }
     }
@@ -856,18 +865,18 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
             return [BotHeaderCell heightForBot:self.bot isLoading:self.loading];
         }
     }
-    else if (row == 1) {
-        return [SpacerCell height];
-    }
-    else if (row == 2 || row == 3) {
+    else if (row == 1 || row == 2) {
         return 52;
+    }
+    else if (row == 3) {
+        return [SpacerCell height];
     }
     
     return 0;
 }
 - (CGFloat)numberOfRowsInFirstSection {
     NSInteger rows = 1;
-    if (self.user && !([self userIsBlocked] || [self currentUserIsBlocked])) {
+    if (!(self.tableView.visualError && !(self.tableView.visualError.errorType == ErrorViewTypeNoPosts || self.tableView.visualError.errorType == ErrorViewTypeFirstPost)) && self.user && !([self userIsBlocked] || [self currentUserIsBlocked])) {
         rows += 3;
     }
     

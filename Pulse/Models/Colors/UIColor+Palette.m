@@ -42,14 +42,14 @@ __x > __high ? __high : (__x < __low ? __low : __x);\
             return [UIColor colorWithDisplayP3Red:r green:g blue:b alpha:1.0];
         }
         else {
-            UIColor *ogColor = [UIColor colorWithRed:r green:g blue:b alpha:1.0];
+            __block UIColor *ogColor = [UIColor colorWithRed:r green:g blue:b alpha:1.0];
             if (adjustForOptimalContrast) {
                 if (@available(iOS 13.0, *)) {
                     // build dynamic UIColor
                     return [UIColor colorWithDynamicProvider:^UIColor * _Nonnull(UITraitCollection * _Nonnull traitCollection) {
                         CGFloat colorContrast = [self contrastRatioBetween:ogColor and:[self cardBackgroundColor]];
                         
-                        CGFloat minimumViableColorContrastRatio = 4.5;//(traitCollection.userInterfaceStyle == UIUserInterfaceStyleDark ? 4.5 : 2.3);
+                        CGFloat minimumViableColorContrastRatio = 4.5;
                         if (colorContrast < minimumViableColorContrastRatio) {
                             return [ogColor minimumViableContrastColorWithContrastRatio:minimumViableColorContrastRatio];
                         }
@@ -57,6 +57,17 @@ __x > __high ? __high : (__x < __low ? __low : __x);\
                             return ogColor;
                         }
                     }];
+                }
+                else {
+                    CGFloat colorContrast = [self contrastRatioBetween:ogColor and:[self cardBackgroundColor]];
+                    
+                    CGFloat minimumViableColorContrastRatio = 4.5;
+                    if (colorContrast < minimumViableColorContrastRatio) {
+                        return [ogColor minimumViableContrastColorWithContrastRatio:minimumViableColorContrastRatio];
+                    }
+                    else {
+                        return ogColor;
+                    }
                 }
             }
             
@@ -85,32 +96,20 @@ __x > __high ? __high : (__x < __low ? __low : __x);\
 + (CGFloat)adjust:(CGFloat)colorComponent {
     return (colorComponent < 0.03928) ? (colorComponent / 12.92) : pow((colorComponent + 0.055) / 1.055, 2.4);
 }
-- (UIColor *)minimumViableContrastColorWithContrastRatio:(CGFloat)ratio {
+- (UIColor *)minimumViableContrastColorWithContrastRatio:(CGFloat)targetColorContrast {
     UIColor *foreground = self; // foreground
     UIColor *background = [UIColor cardBackgroundColor]; // background
     
     CGFloat colorContrast = [UIColor contrastRatioBetween:foreground and:background];
-    CGFloat targetColorContrast = ratio;
-    
-    //NSLog(@"difference in color contrast = %f", targetColorContrast - colorContrast);
-    //NSLog(@"multiple :: %f", targetColorContrast / colorContrast);
-    
-    // what we have:
-    // 1) color1 aka FOREGROUND
-    // 2) color2 aka BACKGROUND
-    // 3) color contrast between color1 and color2
-    // 4) difference or percentage between color contrast and target color contrast
-    
-    // what we want:
-    // color3 aka FOREGROUND with COLOR CONTRAST == 4.5
     
     CGFloat foregroundLuminance = [UIColor luminanceWithColor:foreground];
     CGFloat backgroundLuminance = [UIColor luminanceWithColor:background];
     
     BOOL makeLighter = [UIColor useWhiteForegroundForColor:background];
     BOOL makeDarker = !makeLighter;
-    BOOL notDarkEnough = makeDarker && foregroundLuminance <= backgroundLuminance;
-    BOOL notLightEnough = makeLighter && foregroundLuminance >= backgroundLuminance;
+    
+    BOOL notDarkEnough = makeDarker && foregroundLuminance >= backgroundLuminance;
+    BOOL notLightEnough = (makeLighter && foregroundLuminance <= backgroundLuminance);
     
     if (notDarkEnough || notLightEnough) {
         foreground = makeLighter ? [UIColor lighterColorForColor:foreground amount:0.3] : [UIColor darkerColorForColor:foreground amount:0.3];
@@ -119,14 +118,29 @@ __x > __high ? __high : (__x < __low ? __low : __x);\
     }
     
     CGFloat luminance1_after = foregroundLuminance * (targetColorContrast / colorContrast);
+    
+    // m represents the percentage change between the luminance before and after adjusting for our suggested target color contrast
     CGFloat m = luminance1_after / foregroundLuminance;
     
-    CIColor *foregroundCIColor = [[CIColor alloc] initWithColor:foreground];
-    CGFloat r = makeLighter ? CLAMP(m * foregroundCIColor.red, 0, 1) : CLAMP(foregroundCIColor.red / m, 0, 1);
-    CGFloat g = makeLighter ? CLAMP(m * foregroundCIColor.green, 0, 1) : CLAMP(foregroundCIColor.green / m, 0, 1);
-    CGFloat b = makeLighter ? CLAMP(m * foregroundCIColor.blue, 0, 1) : CLAMP(foregroundCIColor.blue / m, 0, 1);
+    CGFloat h;
+    CGFloat s;
+    CGFloat b;
+    [foreground getHue:&h saturation:&s brightness:&b alpha:nil];
     
-    UIColor *resultColor = [UIColor colorWithRed:r green:g blue:b alpha:1];
+    CGFloat bAfter = makeLighter ? CLAMP(b * m, 0, 1) : CLAMP(b / m, 0, 1);
+    CGFloat maxS = 0.95;
+    if (@available(iOS 13.0, *)) {
+        if ([UITraitCollection currentTraitCollection].userInterfaceStyle == UIUserInterfaceStyleDark) {
+            maxS = 0.6;
+        }
+    }
+    s = CLAMP(s - fabs(b - bAfter), 0, maxS);
+    b = bAfter;
+    
+    UIColor *resultColor = [UIColor colorWithHue:h saturation:s brightness:b alpha:1];
+    
+    // DLog(@"Resulting contrast ratio: %f", [UIColor contrastRatioBetween:resultColor and:background]);
+        
     return resultColor;
 }
 
@@ -157,10 +171,10 @@ __x > __high ? __high : (__x < __low ? __low : __x);\
     if (components == NULL) {
         return @"616d7c";
     }
-    
-    CGFloat r = components[0];
-    CGFloat g = components[1];
-    CGFloat b = components[2];
+        
+    CGFloat r = MAX(MIN(components[0], 1), 0);
+    CGFloat g = MAX(MIN(components[1], 1), 0);
+    CGFloat b = MAX(MIN(components[2], 1), 0);
     
     return [NSString stringWithFormat:@"%02lX%02lX%02lX",
             lroundf(r * 255),
@@ -187,6 +201,15 @@ __x > __high ? __high : (__x < __low ? __low : __x);\
     CGFloat contrastRatio = [UIColor contrastRatioBetween:backgroundColor and:[UIColor whiteColor]];
 
     return contrastRatio >= 2.3;
+}
+
++ (UIColor *)highContrastForegroundForBackground:(UIColor*)backgroundColor {
+    if ([self useWhiteForegroundForColor:backgroundColor]) {
+        return [UIColor whiteColor];
+    }
+    else {
+        return [UIColor blackColor];
+    }
 }
 
 + (UIColor * _Nonnull) contentBackgroundColor {
@@ -487,7 +510,7 @@ __x > __high ? __high : (__x < __low ? __low : __x);\
         case 400:
             return [UIColor fromHex:@"#ff726d"];
         case 500:
-            return [UIColor fromHex:@"#ff0900"];
+            return [UIColor systemRedColor];
         case 600:
             return [UIColor fromHex:@"#e60800"];
         case 700:

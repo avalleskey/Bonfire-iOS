@@ -294,7 +294,6 @@ static NSString * const memberCellIdentifier = @"MemberCell";
     cell.detailTextLabel.text = ([user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier] ? @"You" : [@"Joined " stringByAppendingString:[NSDate mysqlDatetimeFormattedAsTimeAgo:user.attributes.context.camp.membership.joinedAt withForm:TimeAgoLongForm]]);
     
     cell.checkIcon.hidden = ![self.selectedMembers containsObject:user.identifier];
-    cell.checkIcon.tintColor = self.view.tintColor;
     cell.lineSeparator.hidden = (indexPath.row == self.stream.users.count - 1);
     
     return cell;

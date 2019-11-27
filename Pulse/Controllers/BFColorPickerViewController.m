@@ -64,12 +64,14 @@
     [super viewWillAppear:animated];
     
     if ([self isBeingPresented] || [self isMovingToParentViewController]) {
-        [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:1 initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:1 initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveLinear animations:^{
             self.view.backgroundColor = [UIColor colorWithWhite:0 alpha:0.4];
         } completion:nil];
         
+        self.contentView.frame = CGRectMake(self.contentView.frame.origin.x, self.view.frame.size.height, self.contentView.frame.size.width, self.contentView.frame.size.height);
+        
         [UIView animateWithDuration:0.5f delay:0.1f usingSpringWithDamping:0.85f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
-            self.contentView.frame = CGRectMake(self.contentView.frame.origin.x, self.view.frame.size.height - 457 - (HAS_ROUNDED_CORNERS ? 0 : 8) - [UIApplication sharedApplication].keyWindow.safeAreaInsets.bottom, self.contentView.frame.size.width, self.contentView.frame.size.height);
+            self.contentView.frame = CGRectMake(self.contentView.frame.origin.x, self.view.frame.size.height - self.contentView.frame.size.height - (HAS_ROUNDED_CORNERS ? 0 : 8) - [UIApplication sharedApplication].keyWindow.safeAreaInsets.bottom, self.contentView.frame.size.width, self.contentView.frame.size.height);
         } completion:nil];
     }
 }
@@ -87,7 +89,7 @@
 }
 
 - (void)initContentView {
-    self.contentView = [[UIView alloc] initWithFrame:CGRectMake(8, self.view.frame.size.height, self.view.frame.size.width - 16, 457)];
+    self.contentView = [[UIView alloc] initWithFrame:CGRectMake(8, self.view.frame.size.height, self.view.frame.size.width - 16, 425)];
     [self continuityRadiusForView:self.contentView withRadius:HAS_ROUNDED_CORNERS?24:6];
     self.contentView.backgroundColor = [UIColor contentBackgroundColor];
     [self.view addSubview:self.contentView];
@@ -112,14 +114,14 @@
     self.previewHexLabel.textColor = [UIColor bonfireSecondaryColor];
     self.previewHexLabel.textAlignment = NSTextAlignmentCenter;
     self.previewHexLabel.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightMedium];
-    [self.contentView addSubview:self.previewHexLabel];
+//    [self.contentView addSubview:self.previewHexLabel];
     
     [self initSliders];
     [self initButtons];
 }
 
 - (void)initSliders {
-    self.hueSliderContainer = [[UIView alloc] initWithFrame:CGRectMake(32, 161, self.contentView.frame.size.width - 64, 20)];
+    self.hueSliderContainer = [[UIView alloc] initWithFrame:CGRectMake(32, 129, self.contentView.frame.size.width - 64, 20)];
     self.hueSliderContainer.layer.cornerRadius = self.hueSliderContainer.frame.size.height / 2;
     // add hue slider gradient background
     self.hueGradient = [CAGradientLayer layer];
@@ -137,7 +139,7 @@
     [self.hueSliderContainer addSubview:self.hueSlider];
     [self.contentView addSubview:self.hueSliderContainer];
     
-    self.saturationSliderContainer = [[UIView alloc] initWithFrame:CGRectMake(self.hueSliderContainer.frame.origin.x, 225, self.hueSliderContainer.frame.size.width, self.hueSliderContainer.frame.size.height)];
+    self.saturationSliderContainer = [[UIView alloc] initWithFrame:CGRectMake(self.hueSliderContainer.frame.origin.x, 193, self.hueSliderContainer.frame.size.width, self.hueSliderContainer.frame.size.height)];
     self.saturationSliderContainer.layer.cornerRadius = self.saturationSliderContainer.frame.size.height / 2;
     // add saturation slider gradient background
     self.saturationGradient = [CAGradientLayer layer];
@@ -156,7 +158,7 @@
     [self.saturationSliderContainer addSubview:self.saturationSlider];
     [self.contentView addSubview:self.saturationSliderContainer];
     
-    self.brightnessSliderContainer = [[UIView alloc] initWithFrame:CGRectMake(self.hueSliderContainer.frame.origin.x, 289, self.hueSliderContainer.frame.size.width, self.hueSliderContainer.frame.size.height)];
+    self.brightnessSliderContainer = [[UIView alloc] initWithFrame:CGRectMake(self.hueSliderContainer.frame.origin.x, 257, self.hueSliderContainer.frame.size.width, self.hueSliderContainer.frame.size.height)];
     self.brightnessSliderContainer.layer.cornerRadius = self.brightnessSliderContainer.frame.size.height / 2;
     // add saturation slider gradient background
     self.brightnessGradient = [CAGradientLayer layer];
@@ -188,24 +190,44 @@
     CGFloat buttonFontPointSize = 18;
     CGFloat buttonHeight = 56;
     
-    self.cancelButton = [UIButton buttonWithType:UIButtonTypeSystem];
-    [self.cancelButton setTitleColor:[UIColor bonfireSecondaryColor] forState:UIControlStateNormal];
+    self.cancelButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [self.cancelButton setTitleColor:[UIColor bonfirePrimaryColor] forState:UIControlStateNormal];
     self.cancelButton.frame = CGRectMake(0, self.contentView.frame.size.height - buttonHeight, self.contentView.frame.size.width, buttonHeight);
-    self.cancelButton.titleLabel.font = [UIFont systemFontOfSize:buttonFontPointSize weight:UIFontWeightRegular];
+    self.cancelButton.titleLabel.font = [UIFont systemFontOfSize:buttonFontPointSize weight:UIFontWeightSemibold];
     [self.cancelButton setTitle:@"Cancel" forState:UIControlStateNormal];
     [self.cancelButton bk_whenTapped:^{
         [self dismiss];
     }];
+    [self.cancelButton bk_addEventHandler:^(id sender) {
+        [UIView animateWithDuration:0.2f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+            self.cancelButton.backgroundColor = [UIColor contentHighlightedColor];
+        } completion:nil];
+    } forControlEvents:UIControlEventTouchDown];
+    [self.cancelButton bk_addEventHandler:^(id sender) {
+        [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.6f initialSpringVelocity:0.5f options:(UIViewAnimationOptionCurveEaseOut|UIViewAnimationOptionAllowUserInteraction) animations:^{
+            self.cancelButton.backgroundColor = [UIColor contentBackgroundColor];
+        } completion:nil];
+    } forControlEvents:(UIControlEventTouchUpInside|UIControlEventTouchCancel|UIControlEventTouchDragExit)];
     [self.contentView addSubview:self.cancelButton];
     
-    self.saveButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    self.saveButton = [UIButton buttonWithType:UIButtonTypeCustom];
     self.saveButton.frame = CGRectMake(0, self.cancelButton.frame.origin.y - buttonHeight, self.contentView.frame.size.width, buttonHeight);
-    self.saveButton.titleLabel.font = [UIFont systemFontOfSize:buttonFontPointSize weight:UIFontWeightBold];
+    self.saveButton.titleLabel.font = [UIFont systemFontOfSize:buttonFontPointSize weight:UIFontWeightRegular];
     [self.saveButton setTitle:@"Set" forState:UIControlStateNormal];
     [self.saveButton bk_whenTapped:^{
         [HapticHelper generateFeedback:FeedbackType_Selection];
         [self save];
     }];
+    [self.saveButton bk_addEventHandler:^(id sender) {
+        [UIView animateWithDuration:0.2f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+            self.saveButton.backgroundColor = [UIColor contentHighlightedColor];
+        } completion:nil];
+    } forControlEvents:UIControlEventTouchDown];
+    [self.saveButton bk_addEventHandler:^(id sender) {
+        [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.6f initialSpringVelocity:0.5f options:(UIViewAnimationOptionCurveEaseOut|UIViewAnimationOptionAllowUserInteraction) animations:^{
+            self.saveButton.backgroundColor = [UIColor contentBackgroundColor];
+        } completion:nil];
+    } forControlEvents:(UIControlEventTouchUpInside|UIControlEventTouchCancel|UIControlEventTouchDragExit)];
     [self.contentView addSubview:self.saveButton];
     
     UIView *lineSeparator1 = [[UIView alloc] initWithFrame:CGRectMake(0, self.cancelButton.frame.origin.y, self.contentView.frame.size.width, HALF_PIXEL)];
@@ -320,8 +342,8 @@ CGFloat const kColorPickerViewSaturationBrightnessScale = 100;
     CGFloat bright = self.brightnessSlider.value/kColorPickerViewSaturationBrightnessScale;
 
     UIColor *color = [UIColor colorWithHue:hue
-                                saturation:MAX(sat, 0.01)
-                                brightness:MAX(bright, 0.01)
+                                saturation:MAX(sat, 0)
+                                brightness:MAX(bright, 0)
                                      alpha:1];
     
     [self setSelectedColor:color];
@@ -338,7 +360,8 @@ CGFloat const kColorPickerViewSaturationBrightnessScale = 100;
 
 - (void)dismiss {
     self.view.userInteractionEnabled = false;
-    [UIView animateWithDuration:0.3f delay:0 usingSpringWithDamping:1 initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
+
+    [UIView animateWithDuration:0.35f delay:0 usingSpringWithDamping:1 initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
         self.view.backgroundColor = [UIColor colorWithWhite:0 alpha:0];
         self.contentView.frame = CGRectMake(self.contentView.frame.origin.x, self.view.frame.size.height, self.contentView.frame.size.width, self.contentView.frame.size.height);
     } completion:^(BOOL finished) {
@@ -364,8 +387,8 @@ CGFloat const kColorPickerViewSaturationBrightnessScale = 100;
     for (int numberOfColors = 0; numberOfColors < 10; numberOfColors++) {
         
         UIColor *color = [UIColor colorWithHue:hue
-                                    saturation:self.selectedColor.saturation
-                                    brightness:self.selectedColor.brightness
+                                    saturation:1
+                                    brightness:1
                                          alpha:1];
         
         [hues addObject:(id)color.CGColor];

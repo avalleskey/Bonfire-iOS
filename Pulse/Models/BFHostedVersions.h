@@ -6,13 +6,13 @@
 //  Copyright © 2019 Austin Valleskey. All rights reserved.
 //
 
-#import "JSONModel.h"
+#import "BFJSONModel.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 @class BFHostedVersionObject;
 
-@interface BFHostedVersions : JSONModel
+@interface BFHostedVersions : BFJSONModel
 
 @property (nonatomic) BFHostedVersionObject <Optional> *suggested;
 
@@ -24,7 +24,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @end
 
-@interface BFHostedVersionObject : JSONModel
+@interface BFHostedVersionObject : BFJSONModel
 
 @property (nonatomic) NSString *url;
 

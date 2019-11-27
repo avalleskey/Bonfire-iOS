@@ -19,6 +19,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic) BOOL selectable;
 @property (nonatomic) BOOL touchDown;
 
+- (CGFloat)height;
+
 @end
 
 NS_ASSUME_NONNULL_END

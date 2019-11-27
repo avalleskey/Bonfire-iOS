@@ -65,8 +65,6 @@
     }
     else {
         self.layer.borderWidth = 0;
-        self.tintColor = [UIColor whiteColor];
-        [self setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
         
         if ([status isEqualToString:USER_STATUS_NO_RELATION] || [status isEqualToString:USER_STATUS_FOLLOWED]) {
             self.backgroundColor = themeColor;
@@ -76,6 +74,15 @@
                  [status isEqualToString:USER_STATUS_BLOCKED]) {
             self.backgroundColor = disabledColor;
             userInteractionEnabled = false;
+        }
+        
+        if ([UIColor useWhiteForegroundForColor:self.backgroundColor]) {
+            self.tintColor = [UIColor whiteColor];
+            [self setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        }
+        else {
+            self.tintColor = [UIColor blackColor];
+            [self setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
         }
     }
     
@@ -91,13 +98,15 @@
         ![self.status isEqualToString:USER_STATUS_BLOCKED] &&
         ![self.status isEqualToString:USER_STATUS_LOADING]) {
         if (highlighted) {
-            [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-                self.transform = CGAffineTransformMakeScale(0.92, 0.92);
+            [UIView animateWithDuration:0.25 delay:0 usingSpringWithDamping:1 initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+//                self.transform = CGAffineTransformMakeScale(0.92, 0.92);
+                self.alpha = 0.5;
             } completion:nil];
         }
         else {
-            [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-                self.transform = CGAffineTransformIdentity;
+            [UIView animateWithDuration:0.25     delay:0 usingSpringWithDamping:1 initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+//                self.transform = CGAffineTransformIdentity;
+                self.alpha = 1;
             } completion:nil];
         }
     }

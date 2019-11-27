@@ -16,28 +16,22 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface BFAPI : NSObject
 
+#pragma mark - Identity
++ (void)reportIdentity:(Identity *_Nonnull)identity completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
++ (void)blockIdentity:(Identity *_Nonnull)identity completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
++ (void)unblockIdentity:(Identity *_Nonnull)identity completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
+
 #pragma mark - User
-+ (void)getUser:(void (^)(BOOL success))handler;
++ (void)getUser:(void (^ _Nullable)(BOOL success))handler;
 + (void)followUser:(User *_Nonnull)user completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
 + (void)unfollowUser:(User *_Nonnull)user completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
-+ (void)reportUser:(User *_Nonnull)user completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
-+ (void)blockUser:(User *_Nonnull)user completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
-+ (void)unblockUser:(User *_Nonnull)user completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
-+ (void)subscribeToUser:(User *_Nonnull)user completion:(void (^_Nullable)(BOOL success, User *_Nullable user))handler;
-+ (void)unsubscribeFromUser:(User *_Nonnull)user completion:(void (^_Nullable)(BOOL success, User *_Nullable user))handler;
-
-#pragma mark - Bot
-+ (void)addBot:(Bot *_Nonnull)bot toCamp:(Camp *)camp completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
-+ (void)reportBot:(Bot *_Nonnull)bot completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
-+ (void)blockBot:(Bot *_Nonnull)bot completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
-+ (void)unblockBot:(Bot *_Nonnull)bot completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
 
 #pragma mark - Camp
 + (void)followCamp:(Camp *_Nonnull)camp completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
 + (void)unfollowCamp:(Camp *_Nonnull)camp completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
 
 #pragma mark - Post
-+ (void)createPost:(NSDictionary *)params postingIn:(Camp * _Nullable)postingIn replyingTo:(Post * _Nullable)replyingTo;
++ (void)createPost:(NSDictionary *)params postingIn:(Camp * _Nullable)postingIn replyingTo:(Post * _Nullable)replyingTo attachments:(PostAttachments * _Nullable)attachments;
 + (void)deletePost:(Post *_Nonnull)post completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
 + (void)reportPost:(NSString *)postId completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
 + (void)votePost:(Post *_Nonnull)post completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;

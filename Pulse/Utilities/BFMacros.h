@@ -15,6 +15,19 @@
 #define IPAD_CONTENT_MAX_WIDTH 560
 
 //////////////////////////////////////////////////////////////////
+// Cache Keys
+//////////////////////////////////////////////////////////////////
+#define MY_CAMPS_CAN_POST_KEY @"my_camps_can_post"
+
+#ifdef DEBUG
+    #define DLog(FORMAT, ...) printf("%s: %s   %s\n", __PRETTY_FUNCTION__, [[NSString stringWithFormat:@"%d", __LINE__] UTF8String], [[NSString stringWithFormat:FORMAT, ##__VA_ARGS__] UTF8String])
+    #define DSpacer() printf("\n")
+#else
+    #define DLog(...) {}
+    #define DSpacer() {}
+#endif
+
+//////////////////////////////////////////////////////////////////
 // CGRect
 //////////////////////////////////////////////////////////////////
 

@@ -7,6 +7,7 @@
 //
 
 #import "BFTableViewCellExporter.h"
+#import "UIColor+Palette.h"
 
 @interface BFTableViewCellExporter()
 
@@ -39,10 +40,6 @@
     return [BFTableViewCellExporter imageForView:tableView];
 }
 + (UIImage *)imageForView:(UIView *)view {
-    if (@available(iOS 13.0, *)) {
-        view.overrideUserInterfaceStyle = UIUserInterfaceStyleLight;
-    }
-    
     CGSize size = view.frame.size;
     
     CGFloat footerHeight = 32.f;
@@ -50,7 +47,7 @@
     CGFloat cornerRadius = 20.f;
     
     UIView *containerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, size.width + padding.left + padding.right, size.height + padding.top + padding.bottom)];
-    containerView.backgroundColor = [UIColor colorWithRed:0.95 green:0.95 blue:0.96 alpha:1.0];
+    containerView.backgroundColor = [UIColor tableViewBackgroundColor];
     
     [BFTableViewCellExporter continuityRadiusForView:view withRadius:cornerRadius];
     
@@ -60,7 +57,7 @@
     
     UIView *footer = [[UIView alloc] initWithFrame:CGRectMake(tableViewContainerView.frame.origin.x, tableViewContainerView.frame.origin.y + tableViewContainerView.frame.size.height + 16, view.frame.size.width, footerHeight)];
     UIImageView *logo = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"bonfireShareFooterImage"]];
-    logo.frame = CGRectMake(footer.frame.size.width / 2 - (360 / 2), 0, 360, 32);
+    logo.frame = CGRectMake(footer.frame.size.width / 2 - (168 / 2), 0, 168, 32);
     [footer addSubview:logo];
         
     [containerView addSubview:tableViewContainerView];
@@ -88,11 +85,6 @@
 - (nonnull UITableViewCell *)tableView:(nonnull UITableView *)tableView cellForRowAtIndexPath:(nonnull NSIndexPath *)indexPath {
     if (self.cell) {
         //[self.cell layoutSubviews];
-        ((UITableViewCell *)self.cell).backgroundColor = [UIColor whiteColor];
-        if (@available(iOS 13.0, *)) {
-            ((UITableViewCell *)self.cell).overrideUserInterfaceStyle = UIUserInterfaceStyleLight;
-        }
-        
         return self.cell;
     }
     

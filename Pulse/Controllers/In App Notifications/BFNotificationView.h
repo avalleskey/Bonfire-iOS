@@ -17,12 +17,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface BFNotificationView : UIView
 
-typedef enum {
-    BFNotificationViewStyleLight = 0,
-    BFNotificationViewStyleDark = 1
-} BFNotificationViewStyle;
-@property (nonatomic) BFNotificationViewStyle style;
-
 - (id)initWithObject:(BFNotificationObject *)object;
 @property (nonatomic) BFNotificationObject *object;
 

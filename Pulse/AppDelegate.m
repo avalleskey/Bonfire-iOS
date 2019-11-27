@@ -19,13 +19,15 @@
 #import "UIColor+Palette.h"
 #import "InsightsLogger.h"
 #import "BFNotificationManager.h"
+#import "BFAlertController.h"
 
 #import <Lockbox/Lockbox.h>
 #import <AudioToolbox/AudioServices.h>
-#import <Crashlytics/Crashlytics.h>
 #import "NSString+Validation.h"
 #import <PINCache/PINCache.h>
 #import <Shimmer/FBShimmeringView.h>
+
+#import <Crashlytics/Crashlytics.h>
 @import Firebase;
 
 @interface AppDelegate ()
@@ -57,12 +59,7 @@
     [self.window makeKeyAndVisible];
     
     if ((accessToken != nil || refreshToken != nil) && self.session.currentUser.identifier != nil) {
-        [self launchLoggedInWithCompletion:^(BOOL success) {
-            if (![[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"]) {
-                // no apns -> let's check again
-                [self requestNotifications];
-            }
-        }];
+        [self launchLoggedInWithCompletion:nil];
     }
     else {
         // launch onboarding
@@ -79,8 +76,11 @@
     //[FIRApp configure];
     #endif
     
-    InsightsLogger *logger = [InsightsLogger sharedInstance];
-    [logger closeAllPostInsights];
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        // run on background thread
+        InsightsLogger *logger = [InsightsLogger sharedInstance];
+        [logger closeAllPostInsights];
+    });
     
     [self setupRoundedCorners];
     
@@ -118,10 +118,10 @@
 
 - (void)statusBarTouchedAction {
     BOOL isDevelopment = [Configuration isDevelopment];
-    UIAlertController *options = [UIAlertController alertControllerWithTitle:@"Internal Tools" message:(isDevelopment ? @"Bonfire Development" : @"Bonfire Production") preferredStyle:UIAlertControllerStyleAlert];
+    BFAlertController *options = [BFAlertController alertControllerWithTitle:@"Internal Tools" message:(isDevelopment ? @"Bonfire Development" : @"Bonfire Production") preferredStyle:BFAlertControllerStyleAlert];
     
     if (isDevelopment) {
-        UIAlertAction *switchToProduction = [UIAlertAction actionWithTitle:@"Switch to Production Mode" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        BFAlertAction *switchToProduction = [BFAlertAction actionWithTitle:@"Switch to Production Mode" style:BFAlertActionStyleDefault handler:^{
             [[Session sharedInstance] signOut];
             
             [Configuration switchToProduction];
@@ -130,10 +130,10 @@
         }];
         [options addAction:switchToProduction];
         
-        UIAlertAction *changeURL = [UIAlertAction actionWithTitle:@"Set API URL" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        BFAlertAction *changeURL = [BFAlertAction actionWithTitle:@"Set API URL" style:BFAlertActionStyleDefault handler:^{
             [options dismissViewControllerAnimated:YES completion:nil];
             
-            // use UIAlertController
+            // use BFAlertController
             UIAlertController *alert= [UIAlertController
                                        alertControllerWithTitle:@"Set API"
                                        message:@"Enter the base URI used when prefixing any API requests in the app."
@@ -160,9 +160,9 @@
                                                                [alert dismissViewControllerAnimated:YES completion:nil];
                                                            }];
             
-            [alert addAction:cancel];
             [alert addAction:ok];
             [alert addAction:saveAndQuit];
+            [alert addAction:cancel];
             
             [alert addTextFieldWithConfigurationHandler:^(UITextField *textField) {
                 textField.placeholder = @"Development Base URI";
@@ -170,13 +170,13 @@
                 textField.keyboardType = UIKeyboardTypeURL;
             }];
             
-            [[Launcher activeViewController] presentViewController:alert animated:YES completion:nil];
+            [[Launcher topMostViewController] presentViewController:alert animated:true completion:nil];
         }];
         
         [options addAction:changeURL];
     }
     else {
-        UIAlertAction *switchToDevelopmentMode = [UIAlertAction actionWithTitle:@"Switch to Development Mode" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        BFAlertAction *switchToDevelopmentMode = [BFAlertAction actionWithTitle:@"Switch to Development Mode" style:BFAlertActionStyleDefault handler:^{
             [[Session sharedInstance] signOut];
             
             [Configuration switchToDevelopment];
@@ -188,30 +188,28 @@
     
     NSString *token = [[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"];
     if (token != nil) {
-        UIAlertAction *apnsToken = [UIAlertAction actionWithTitle:@"View APNS Token" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        BFAlertAction *apnsToken = [BFAlertAction actionWithTitle:@"View APNS Token" style:BFAlertActionStyleDefault handler:^{
             [options dismissViewControllerAnimated:YES completion:nil];
             
-            // use UIAlertController
-            UIAlertController *alert = [UIAlertController
+            // use BFAlertController
+            BFAlertController *alert = [BFAlertController
                                         alertControllerWithTitle:@"APNS Token"
                                         message:token
-                                        preferredStyle:UIAlertControllerStyleAlert];
+                                        preferredStyle:BFAlertControllerStyleAlert];
             
-            UIAlertAction *ok = [UIAlertAction actionWithTitle:@"Copy" style:UIAlertActionStyleDefault
-                                                       handler:^(UIAlertAction * action){
+            BFAlertAction *ok = [BFAlertAction actionWithTitle:@"Copy" style:BFAlertActionStyleDefault
+                                                       handler:^{
                                                            UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
                                                            pasteboard.string = token;
                                                        }];
             
-            UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel
-                                                           handler:^(UIAlertAction * action) {
-                                                               [alert dismissViewControllerAnimated:YES completion:nil];
-                                                           }];
+            BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel
+                                                           handler:nil];
             
-            [alert addAction:cancel];
             [alert addAction:ok];
+            [alert addAction:cancel];
             
-            [[Launcher activeViewController] presentViewController:alert animated:YES completion:nil];
+            [[Launcher topMostViewController] presentViewController:alert animated:true completion:nil];
         }];
         
         [options addAction:apnsToken];
@@ -219,50 +217,48 @@
     
     NSString *sesssionToken = [NSString stringWithFormat:@"%@", [[Session sharedInstance] getAccessTokenWithVerification:true][@"access_token"]];
     if (sesssionToken.length > 0) {
-        UIAlertAction *apnsToken = [UIAlertAction actionWithTitle:@"View Access Token" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        BFAlertAction *apnsToken = [BFAlertAction actionWithTitle:@"View Access Token" style:BFAlertActionStyleDefault handler:^{
             [options dismissViewControllerAnimated:YES completion:nil];
             
-            // use UIAlertController
-            UIAlertController *alert = [UIAlertController
+            // use BFAlertController
+            BFAlertController *alert = [BFAlertController
                                         alertControllerWithTitle:@"Access Token"
                                         message:sesssionToken
-                                        preferredStyle:UIAlertControllerStyleAlert];
+                                        preferredStyle:BFAlertControllerStyleAlert];
             
-            UIAlertAction *ok = [UIAlertAction actionWithTitle:@"Copy" style:UIAlertActionStyleDefault
-                                                       handler:^(UIAlertAction * action){
+            BFAlertAction *copy = [BFAlertAction actionWithTitle:@"Copy" style:BFAlertActionStyleDefault
+                                                       handler:^{
                                                            UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
                                                            pasteboard.string = sesssionToken;
                                                        }];
             
-            UIAlertAction *imessage = [UIAlertAction actionWithTitle:@"iMessage" style:UIAlertActionStyleDefault
-                                                       handler:^(UIAlertAction * action){
+            BFAlertAction *imessage = [BFAlertAction actionWithTitle:@"iMessage" style:BFAlertActionStyleDefault
+                                                       handler:^{
                                                            [Launcher shareOniMessage:sesssionToken image:nil];
                                                        }];
             
-            UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel
-                                                           handler:^(UIAlertAction * action) {
-                                                               [alert dismissViewControllerAnimated:YES completion:nil];
-                                                           }];
+            BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel
+                                                           handler:nil];
             
-            [alert addAction:cancel];
             [alert addAction:imessage];
-            [alert addAction:ok];
+            [alert addAction:copy];
+            [alert addAction:cancel];
             
-            [[Launcher activeViewController] presentViewController:alert animated:YES completion:nil];
+            [[Launcher topMostViewController] presentViewController:alert animated:true completion:nil];
         }];
         
         [options addAction:apnsToken];
     }
     
-    UIAlertAction *clearCache = [UIAlertAction actionWithTitle:@"Clear Home Cache" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+    BFAlertAction *clearCache = [BFAlertAction actionWithTitle:@"Clear Cache" style:BFAlertActionStyleDefault handler:^{
         [[PINCache sharedCache] removeAllObjects];
     }];
     [options addAction:clearCache];
     
-    UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
+    BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
     [options addAction:cancel];
     
-    [[Launcher topMostViewController] presentViewController:options animated:YES completion:nil];
+    [[Launcher topMostViewController] presentViewController:options animated:true completion:nil];
 }
 
 - (void)launchLoggedInWithCompletion:(void (^_Nullable)(BOOL success))handler; {
@@ -273,13 +269,31 @@
             [[NSUserDefaults standardUserDefaults] setInteger:launches forKey:@"launches"];
             
             [Launcher launchLoggedIn:false replaceRootViewController:true];
+            
+            NSDictionary *infoDict = [[NSBundle mainBundle] infoDictionary];
+            NSString *version = [infoDict objectForKey:@"CFBundleShortVersionString"];
+            NSString *buildNumber = [infoDict objectForKey:@"CFBundleVersion"];
+            NSString *notificationTokenLastVersion = [NSString stringWithFormat:@"%@b%@", version, buildNumber?buildNumber:@"0"];
+            
+            if (![[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"] ||
+                ![[NSUserDefaults standardUserDefaults] stringForKey:@"device_token_last_version"] ||
+                ![[[NSUserDefaults standardUserDefaults] stringForKey:@"device_token_last_version"] isEqualToString:notificationTokenLastVersion]) {
+                [[NSUserDefaults standardUserDefaults] setObject:notificationTokenLastVersion forKey:@"device_token_last_version"];
+                [self requestNotifications];
+            }
+            
+            if (handler) {
+                handler(true);
+            }
         }
         else {
             [[Session sharedInstance] signOut];
             
             [Launcher openOnboarding];
             
-            handler(false);
+            if (handler) {
+                handler(false);
+            }
         }
     }];
 }
@@ -340,32 +354,36 @@
         // the same tab was tapped a second time
         if ([viewController isKindOfClass:[UINavigationController class]]) {
             UINavigationController *currentNavigationController = (UINavigationController *)viewController;
+            UITableView *tableView;
             if ([currentNavigationController.visibleViewController isKindOfClass:[UITableViewController class]]) {
-                UITableViewController *tableViewController = (UITableViewController *)currentNavigationController.visibleViewController;
-                
+                tableView = ((UITableViewController *)currentNavigationController.visibleViewController).tableView;
+            }
+            else if ([currentNavigationController.visibleViewController isKindOfClass:[ThemedTableViewController class]]) {
+                tableView = ((ThemedTableViewController *)currentNavigationController.visibleViewController).tableView;
+            }
+            else if ([currentNavigationController.visibleViewController isKindOfClass:[ProfileViewController class]]) {
+                tableView = ((ProfileViewController *)currentNavigationController.visibleViewController).tableView;
+            }
+            
+            if (tableView) {
                 if (currentNavigationController.navigationBar.prefersLargeTitles) {
-                    [tableViewController.tableView setContentOffset:CGPointMake(0, -140) animated:YES];
-                    [tableViewController.tableView reloadData];
-                    [tableViewController.tableView layoutIfNeeded];
-                    [tableViewController.tableView setContentOffset:CGPointZero animated:YES];
+                    [tableView setContentOffset:CGPointMake(0, -140) animated:YES];
+                    [tableView reloadData];
+                    [tableView layoutIfNeeded];
+                    [tableView setContentOffset:CGPointZero animated:YES];
                     
-                    [tableViewController.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:([tableViewController.tableView numberOfRowsInSection:0] > 0 ? 0 : 1)] atScrollPosition:UITableViewScrollPositionTop animated:YES];
+                    [tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:([tableView numberOfRowsInSection:0] > 0 ? 0 : 1)] atScrollPosition:UITableViewScrollPositionTop animated:YES];
                 }
                 else {
-                    if ([tableViewController.tableView isKindOfClass:[RSTableView class]]) {
-                        [(RSTableView *)tableViewController.tableView scrollToTop];
+                    if ([tableView isKindOfClass:[RSTableView class]]) {
+                        [(RSTableView *)tableView scrollToTop];
                     }
                     else {
-                        [tableViewController.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:YES];
+                        [tableView layoutIfNeeded];
+                        [tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:true];
                     }
                 }
                 
-                if ([currentNavigationController.visibleViewController isKindOfClass:[MyFeedViewController class]]) {
-                    if ([[tableViewController.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]] isKindOfClass:[MiniAvatarListCell class]]) {
-                        MiniAvatarListCell *firstCell = [tableViewController.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
-                        [firstCell.collectionView setContentOffset:CGPointMake(-2, 0) animated:YES];
-                    }
-                }
                 if ([currentNavigationController.visibleViewController isKindOfClass:[MyCampsTableViewController class]]) {
                     MyCampsTableViewController *tableViewController = (MyCampsTableViewController *)currentNavigationController.visibleViewController;
                     
@@ -375,15 +393,6 @@
                             [firstCell.collectionView setContentOffset:CGPointMake(-12, 0) animated:YES];
                         }
                     }
-                }
-            }
-            else if ([currentNavigationController.visibleViewController isKindOfClass:[UIViewController class]]) {
-                UIViewController *simpleViewController = (UIViewController *)currentNavigationController.visibleViewController;
-                if ([simpleViewController.view viewWithTag:101] && [[simpleViewController.view viewWithTag:101] isKindOfClass:[UITableView class]]) {
-                    // has a content scroll view
-                    UITableView *contentScrollView = (UITableView *)[simpleViewController.view viewWithTag:101];
-                    
-                    [contentScrollView setContentOffset:CGPointMake(0, -contentScrollView.adjustedContentInset.top) animated:YES];
                 }
             }
         }
@@ -555,7 +564,10 @@
     [[UNUserNotificationCenter currentNotificationCenter] requestAuthorizationWithOptions:(UNAuthorizationOptionAlert|UNAuthorizationOptionSound|UNAuthorizationOptionBadge) completionHandler:^(BOOL granted, NSError * _Nullable error) {
         // 1. check if permisisons granted
         if (granted) {
-            [[UIApplication sharedApplication] registerForRemoteNotifications];
+            dispatch_async(dispatch_get_main_queue(), ^{
+                NSLog(@"inside dispatch async block main thread from main thread");
+                [[UIApplication sharedApplication] registerForRemoteNotifications];
+            });
         }
     }];
 }
@@ -581,7 +593,6 @@
     NSLog(@"continueUserActivity:");
     
     // handle external URL actions
-    
     if ([userActivity.activityType isEqualToString:@"com.Ingenious.bonfire.open-camp-activity-type"])
     {
         // only open if there is a user signed in
@@ -615,6 +626,7 @@
         }
     }
     else if ([userActivity.activityType isEqualToString:NSUserActivityTypeBrowsingWeb]) {
+        DLog(@"nice ok cooooool");
         // only allow universal links to be opened if there is a user signed in
         if (![Session sharedInstance].currentUser) {
             return false;
@@ -633,6 +645,7 @@
             [Launcher openPost:(Post *)objectFromURL withKeyboard:NO];
         }
     }
+    NSLog(@"useractivity.activitytype: %@", userActivity.activityType);
     
     return false;
 }
@@ -686,7 +699,7 @@
             message = params[@"message"];
         }
         
-        [Launcher openComposePost:camp inReplyTo:replyingTo withMessage:message media:nil];
+        [Launcher openComposePost:camp inReplyTo:replyingTo withMessage:message media:nil quotedObject:nil];
     }
     
     return true;

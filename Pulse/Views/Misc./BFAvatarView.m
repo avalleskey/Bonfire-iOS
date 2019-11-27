@@ -71,8 +71,6 @@
     if (@available(iOS 13.0, *)) {
         UIContextMenuInteraction *avatarInteraction = [[UIContextMenuInteraction alloc] initWithDelegate:self];
         [self addInteraction:avatarInteraction];
-    } else {
-        // Fallback on earlier versions
     }
 }
 
@@ -104,6 +102,9 @@
     if (self.user != nil) {
         [Launcher openProfile:self.user];
     }
+    else if (self.bot != nil) {
+        [Launcher openBot:self.bot];
+    }
     else if (self.camp != nil) {
         [Launcher openCamp:self.camp];
     }
@@ -125,6 +126,8 @@
 
 - (void)setUser:(User *)user {
     if (user == nil || user != _user || ![user.attributes.color isEqualToString:_user.attributes.color]) {
+        _bot = nil;
+        _camp = nil;
         _user = user;
         
         if (user == nil) {
@@ -165,6 +168,8 @@
 
 - (void)setBot:(Bot *)bot {
     if (bot == nil || bot != _bot || ![bot.attributes.color isEqualToString:_bot.attributes.color]) {
+        _user = nil;
+        _camp = nil;
         _bot = bot;
         
         if (bot == nil) {
@@ -206,6 +211,7 @@
 - (void)setCamp:(Camp *)camp {
     if (camp == nil || camp != _camp || ![camp.attributes.color isEqualToString:_camp.attributes.color]) {
         _user = nil;
+        _bot = nil;
         _camp = camp;
         
         if (camp == nil) {

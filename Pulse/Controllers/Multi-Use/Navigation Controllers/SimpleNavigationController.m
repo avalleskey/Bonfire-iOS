@@ -77,8 +77,8 @@
 }
 
 - (void)setupNavigationBar {
-    self.navigationItem.leftMargin = 16;
-    self.navigationItem.rightMargin = 16;
+    self.navigationItem.leftMargin = 0;
+    self.navigationItem.rightMargin = 0;
     
     // setup items
     [self.navigationBar setTitleTextAttributes:
@@ -182,7 +182,7 @@
         [button.titleLabel setFont:[UIFont systemFontOfSize:18.f weight:UIFontWeightMedium]];
     }
     
-    button.frame = CGRectMake(0, 0, button.intrinsicContentSize.width, self.navigationBar.frame.size.height);
+    button.frame = CGRectMake(0, 0, button.intrinsicContentSize.width + 32, self.navigationBar.frame.size.height);
     
     if (includeAction) {
         [button bk_whenTapped:^{
@@ -197,7 +197,7 @@
                     [self dismissViewControllerAnimated:YES completion:nil];
                     break;
                 case SNActionTypeCompose:
-                    [Launcher openComposePost:nil inReplyTo:nil withMessage:nil media:nil];
+                    [Launcher openComposePost:nil inReplyTo:nil withMessage:nil media:nil quotedObject:nil];
                     break;
                 case SNActionTypeMore: {
                     if ([self.viewControllers[self.viewControllers.count-1] isKindOfClass:[CampViewController class]]) {
@@ -278,8 +278,8 @@
         self.leftActionView = [self createActionButtonForType:actionType];
         UIBarButtonItem *item = [[UIBarButtonItem alloc] initWithCustomView:self.leftActionView];
         self.visibleViewController.navigationItem.leftBarButtonItem = item;
-        self.visibleViewController.navigationItem.leftMargin = 16;
-        self.navigationItem.leftMargin = 16;
+        self.visibleViewController.navigationItem.leftMargin = 0;
+        self.navigationItem.leftMargin = 0;
         
         self.leftActionView.tag = actionType;
     }
@@ -295,8 +295,8 @@
             self.rightActionView = [self createActionButtonForType:actionType];
             UIBarButtonItem *item = [[UIBarButtonItem alloc] initWithCustomView:self.rightActionView];
             self.visibleViewController.navigationItem.rightBarButtonItem = item;
-            self.visibleViewController.navigationItem.rightMargin = 16;
-            self.navigationItem.rightMargin = 16;
+            self.visibleViewController.navigationItem.rightMargin = 0;
+            self.navigationItem.rightMargin = 0;
             
             self.rightActionView.tag = actionType;
         }
@@ -350,7 +350,7 @@
     
     if (background == [UIColor clearColor]) {
         [self setShadowVisibility:true withAnimation:false];
-        
+                
         foreground = [UIColor bonfirePrimaryColor];
         action = [UIColor bonfirePrimaryColor]; //[UIColor fromHex:[Session sharedInstance].currentUser.attributes.color];
         background = [UIColor colorNamed:@"Navigation_ClearBackgroundColor"];

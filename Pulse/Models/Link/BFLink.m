@@ -13,7 +13,9 @@
 
 + (JSONKeyMapper *)keyMapper
 {
-    return [JSONKeyMapper mapperForSnakeCase];
+    return [[JSONKeyMapper alloc] initWithModelToJSONDictionary:@{
+                                                                  @"identifier": @"id"
+                                                                  }];
 }
 
 + (BOOL)propertyIsOptional:(NSString*)propertyName
@@ -25,7 +27,7 @@
     BFLink *instance = [super initWithDictionary:dict error:err];
     
     instance.attributes.contentIdentifier = [self setContentIdentifier];
-        
+            
     if (instance.attributes.linkTitle.length == 0) {
         if (instance.attributes.theDescription.length > 0) {
             instance.attributes.linkTitle = instance.attributes.theDescription;
@@ -80,6 +82,10 @@
     }
     
     return BFLinkAttachmentContentIdentifierNone;
+}
+
+- (BOOL)isSmartLink {
+    return self.attributes.attribution != nil;
 }
 
 @end

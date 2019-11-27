@@ -74,6 +74,7 @@ typedef enum {
 @property BOOL loadingMore;
 
 - (void)refreshAtTop;
+- (void)hardRefresh;
 - (void)refreshAtBottom;
 - (void)scrollToTop;
 

@@ -206,7 +206,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
             // Configure the cell...
             if (self.stream.posts.count == 0) {
                 cell.buttonLabel.text = @"Choose a Post";
-                cell.buttonLabel.textColor = self.view.tintColor;
+                cell.buttonLabel.textColor = [UIColor fromHex:[UIColor toHex:self.view.tintColor] adjustForOptimalContrast:true];
                 cell.buttonLabel.textAlignment = NSTextAlignmentCenter;
                 cell.accessoryType = UITableViewCellAccessoryNone;
             }
@@ -264,7 +264,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
             else {
                 if (self.stream.posts.count > indexPath.row) {
                     Post *post = self.stream.posts[indexPath.row];
-                    return [StreamPostCell heightForPost:post showContext:true showActions:true];
+                    return [StreamPostCell heightForPost:post showContext:true showActions:true minimizeLinks:false];
                 }
             }
         }

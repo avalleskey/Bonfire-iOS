@@ -17,7 +17,8 @@ NSString * const CAMP_STATUS_CAN_EDIT = @"admin";
 
 - (id)init {
     if (self = [super init]) {
-        self.followString = [NSString stringWithFormat:@"Follow %@", @"Camp"];
+        self.followString = [NSString stringWithFormat:@"Join %@", @"Camp"];
+        self.followingString = @"Joined";
     }
     
     return self;
@@ -37,7 +38,7 @@ NSString * const CAMP_STATUS_CAN_EDIT = @"admin";
     }
     else if ([status isEqualToString:CAMP_STATUS_MEMBER]) {
         [self setImage:[[UIImage imageNamed:@"checkIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
-        [self setTitle:@"Following" forState:UIControlStateNormal];
+        [self setTitle:self.followingString forState:UIControlStateNormal];
     }
     else if ([status isEqualToString:CAMP_STATUS_REQUESTED]) {
         [self setImage:[[UIImage imageNamed:@"clockIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
@@ -80,10 +81,7 @@ NSString * const CAMP_STATUS_CAN_EDIT = @"admin";
         self.layer.borderWidth = 0;
         
         UIColor *backgroundColor;
-        UIColor *tintColor = [UIColor whiteColor];
-        UIColor *titleColor = [UIColor whiteColor];
         
-        BOOL userInteractionEnabled = true;
         if ([status isEqualToString:CAMP_STATUS_REQUESTED] ||
             [status isEqualToString:CAMP_STATUS_BLOCKED]) {
             backgroundColor = disabledColor;
@@ -91,24 +89,27 @@ NSString * const CAMP_STATUS_CAN_EDIT = @"admin";
         else {
             if ([UIColor useWhiteForegroundForColor:themeColor]) {
                 backgroundColor = themeColor;
-                tintColor =
-                titleColor = [UIColor whiteColor];
             }
             else if ([themeColor isEqual:[UIColor whiteColor]]) {
                 backgroundColor = [UIColor bonfirePrimaryColor];
-                tintColor =
-                titleColor = [UIColor whiteColor];
             }
             else {
                 backgroundColor = [UIColor darkerColorForColor:themeColor amount:0.4];
-                tintColor =
-                titleColor = [UIColor whiteColor];
             }
         }
         
         self.backgroundColor = backgroundColor;
+        
+        UIColor *tintColor;
+        if ([UIColor useWhiteForegroundForColor:self.backgroundColor]) {
+            tintColor = [UIColor whiteColor];
+        }
+        else {
+            tintColor = [UIColor blackColor];
+        }
+        
         self.tintColor = tintColor;
-        [self setTitleColor:titleColor forState:UIControlStateNormal];
+        [self setTitleColor:tintColor forState:UIControlStateNormal];
     }
 }
 
@@ -119,13 +120,15 @@ NSString * const CAMP_STATUS_CAN_EDIT = @"admin";
         ![self.status isEqualToString:CAMP_STATUS_BLOCKED] &&
         ![self.status isEqualToString:CAMP_STATUS_LOADING]) {
         if (highlighted) {
-            [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-                self.transform = CGAffineTransformMakeScale(0.92, 0.92);
+            [UIView animateWithDuration:0.25f delay:0 usingSpringWithDamping:1 initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+//                self.transform = CGAffineTransformMakeScale(0.92, 0.92);
+                self.alpha = 0.5;
             } completion:nil];
         }
         else {
-            [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-                self.transform = CGAffineTransformIdentity;
+            [UIView animateWithDuration:0.25f delay:0 usingSpringWithDamping:1 initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+//                self.transform = CGAffineTransformIdentity;
+                self.alpha = 1;
             } completion:nil];
         }
     }

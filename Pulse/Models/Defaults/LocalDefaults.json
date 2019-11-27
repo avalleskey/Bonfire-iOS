@@ -18,18 +18,6 @@
         "score_threshold": 5,
         "members_threshold": 3
     },
-    "feed": {
-        "motd": {
-            "title": "v1.0.3 is out!",
-            "text": "You are using an outdated version of Bonfire! Update now",
-            "image_url": "https://cdn.bonfire.camp/motd/upgrade_motd.jpeg",
-            "cta": {
-                "type": "url",
-                "action_url": "",
-                "display_text": "Download"
-            }
-        }
-    },
     "logging": {
         "insights": {
             "impressions": {

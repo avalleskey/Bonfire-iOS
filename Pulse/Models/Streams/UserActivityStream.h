@@ -30,9 +30,12 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic) NSString *prevCursor;
 @property (nonatomic) NSString *nextCursor;
 
+- (void)markAllAsRead;
+- (NSInteger)unreadCount;
+
 @end
 
-@interface UserActivityStreamPage : JSONModel
+@interface UserActivityStreamPage : BFJSONModel
 
 @property (nonatomic) NSArray <UserActivity *> *data;
 @property (nonatomic) GenericStreamPageMeta <Optional> *meta;

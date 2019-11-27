@@ -12,6 +12,7 @@
 #import "BFAvatarView.h"
 #import "PrivacySelectorTableViewController.h"
 #import "ComposeTextViewCell.h"
+#import "BFAttachmentView.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -19,7 +20,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic, strong) Camp *postingIn;
 @property (nonatomic, strong) Post *replyingTo;
-@property (nonatomic, strong) BFLink *quotedLink;
+@property (nonatomic, strong) id quotedObject;
 @property (nonatomic, strong) NSString * _Nullable prefillMessage;
 
 @property (nonatomic) BOOL replyingToIcebreaker;

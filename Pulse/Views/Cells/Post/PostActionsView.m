@@ -35,31 +35,47 @@
     self.replyButton.titleLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightSemibold];
     self.replyButton.adjustsImageWhenHighlighted = false;
     self.replyButton.adjustsImageWhenDisabled = false;
-    [self.replyButton setTitleEdgeInsets:UIEdgeInsetsMake(1, 6, 0, 0)];
-    [self.replyButton setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 6)];
+    [self.replyButton setTitleEdgeInsets:UIEdgeInsetsMake(1, 5, 0, 0)];
+    [self.replyButton setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 5)];
     [self.replyButton setImage:[[UIImage imageNamed:@"postActionReply"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
     [self.replyButton setTitleColor:[UIColor bonfireSecondaryColor] forState:UIControlStateNormal];
     self.replyButton.tintColor = self.replyButton.currentTitleColor;
     [self.replyButton setTitle:@"Reply" forState:UIControlStateNormal];
     self.replyButton.frame = CGRectMake(0, 0, self.replyButton.intrinsicContentSize.width + self.replyButton.currentImage.size.width - self.replyButton.titleEdgeInsets.left, POST_ACTIONS_VIEW_HEIGHT);
+//    self.replyButton.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
     [self addTapHandlersToAction:self.replyButton];
     [self addSubview:self.replyButton];
     
     self.voteButton = [UIButton buttonWithType:UIButtonTypeCustom];
     self.voteButton.titleLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightSemibold];
     self.voteButton.adjustsImageWhenHighlighted = false;
-    [self.voteButton setTitleEdgeInsets:UIEdgeInsetsMake(1, 6, 0, 0)];
-    [self.voteButton setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 6)];
+    [self.voteButton setTitleEdgeInsets:UIEdgeInsetsMake(1, 5, 0, 0)];
+    [self.voteButton setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 5)];
     [self.voteButton setTitleColor:[UIColor bonfireSecondaryColor] forState:UIControlStateNormal];
     [self.voteButton setTitle:@"Spark" forState:UIControlStateNormal];
     [self.voteButton setImage:[[UIImage imageNamed:@"postActionBolt"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
-    self.voteButton.frame = CGRectMake(92, 0, self.voteButton.intrinsicContentSize.width + self.voteButton.currentImage.size.width - self.voteButton.titleEdgeInsets.left, POST_ACTIONS_VIEW_HEIGHT);
+    self.voteButton.frame = CGRectMake(68, 0, self.voteButton.intrinsicContentSize.width + self.voteButton.currentImage.size.width - self.voteButton.titleEdgeInsets.left, POST_ACTIONS_VIEW_HEIGHT);
+//    self.voteButton.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
     [self addTapHandlersToAction:self.voteButton];
     [self addSubview:self.voteButton];
+    
+    self.shareButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    self.shareButton.titleLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightSemibold];
+    self.shareButton.adjustsImageWhenHighlighted = false;
+    self.shareButton.adjustsImageWhenDisabled = false;
+    [self.shareButton setTitleEdgeInsets:UIEdgeInsetsMake(0, 5, 0, 0)];
+    [self.shareButton setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 5)];
+    [self.shareButton setImage:[[UIImage imageNamed:@"postActionShare"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+    [self.shareButton setTitleColor:[UIColor bonfireSecondaryColor] forState:UIControlStateNormal];
+    self.shareButton.tintColor = self.shareButton.currentTitleColor;
+    [self.shareButton setTitle:@"Share" forState:UIControlStateNormal];
+    self.shareButton.frame = CGRectMake(0, 0, self.shareButton.intrinsicContentSize.width + self.replyButton.currentImage.size.width - self.shareButton.titleEdgeInsets.left, POST_ACTIONS_VIEW_HEIGHT);
+//    self.shareButton.contentHorizontalAlignment = UIControlContentHorizontalAlignmentRight;
+    [self addTapHandlersToAction:self.shareButton];
+    [self addSubview:self.shareButton];
 }
 - (void)addTapHandlersToAction:(UIButton *)action {
     [action bk_addEventHandler:^(id sender) {
-        [HapticHelper generateFeedback:FeedbackType_Selection];
         [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
             action.transform = CGAffineTransformMakeScale(0.8, 0.8);
             action.alpha = 0.5;
@@ -108,37 +124,24 @@
         
         NSInteger maxAvatars = 3;
         NSInteger avatars = (filteredSummaryReplies.count > maxAvatars ? maxAvatars : filteredSummaryReplies.count);
-        CGFloat avatarDiameter = 20;
-        NSInteger avatarOffset = 8;
+        CGFloat avatarDiameter = 18;
+        NSInteger avatarOffset = 4;
         
-        UIImage *icon;
-        if (self.actionsType == PostActionsViewTypeConversation) {
-            icon = [UIImage imageNamed:@"postConversationIcon"];
-        }
-        else if (self.actionsType == PostActionsViewTypeQuote) {
-            icon = [UIImage imageNamed:@"postQuotesIcon"];
-        }
-        UIImageView *repliesIcon = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, icon.size.width, self.repliesSnaphotView.frame.size.height)];
-        repliesIcon.contentMode = UIViewContentModeCenter;
-        repliesIcon.image = [icon imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-        repliesIcon.tintColor = self.tintColor;
-        [self.repliesSnaphotView addSubview:repliesIcon];
+//        UILabel *repliesLabel = [[UILabel alloc] init];
+//        repliesLabel.textAlignment = NSTextAlignmentRight;
+//        repliesLabel.textColor = self.tintColor;
+//        repliesLabel.font = [UIFont systemFontOfSize:self.replyButton.titleLabel.font.pointSize weight:UIFontWeightRegular];
+//        repliesLabel.text = [NSString stringWithFormat:@"%lu", repliesCount];
+//
+//        CGFloat repliesLabelWidth = [repliesLabel.text boundingRectWithSize:CGSizeMake(self.repliesSnaphotView.frame.size.width,  self.replyButton.titleLabel.font.lineHeight) options:(NSStringDrawingUsesFontLeading|NSStringDrawingUsesLineFragmentOrigin) attributes:@{NSFontAttributeName: repliesLabel.font} context:nil].size.width;
+//        repliesLabel.frame = CGRectMake(repliesIcon.frame.origin.x + repliesIcon.frame.size.width + 3, 0, repliesLabelWidth, POST_ACTIONS_VIEW_HEIGHT);
+//        repliesSnapshotViewWidth = repliesLabel.frame.origin.x + repliesLabel.frame.size.width;
+//        [self.repliesSnaphotView addSubview:repliesLabel];
         
-        UILabel *repliesLabel = [[UILabel alloc] init];
-        repliesLabel.textAlignment = NSTextAlignmentRight;
-        repliesLabel.textColor = self.tintColor;
-        repliesLabel.font = [UIFont systemFontOfSize:self.replyButton.titleLabel.font.pointSize weight:UIFontWeightRegular];
-        repliesLabel.text = [NSString stringWithFormat:@"%lu", repliesCount];
-        
-        CGFloat repliesLabelWidth = [repliesLabel.text boundingRectWithSize:CGSizeMake(self.repliesSnaphotView.frame.size.width,  self.replyButton.titleLabel.font.lineHeight) options:(NSStringDrawingUsesFontLeading|NSStringDrawingUsesLineFragmentOrigin) attributes:@{NSFontAttributeName: repliesLabel.font} context:nil].size.width;
-        repliesLabel.frame = CGRectMake(repliesIcon.frame.origin.x + repliesIcon.frame.size.width + 3, 0, repliesLabelWidth, POST_ACTIONS_VIEW_HEIGHT);
-        repliesSnapshotViewWidth = repliesLabel.frame.origin.x + repliesLabel.frame.size.width;
-        [self.repliesSnaphotView addSubview:repliesLabel];
-        
-        CGFloat avatarBaselineX = repliesLabel.frame.origin.x + repliesLabel.frame.size.width + 4;
+        CGFloat avatarBaselineX = 0;
         for (NSInteger i = 0; i < avatars; i++) {
             BFAvatarView *avatarView = [[BFAvatarView alloc] initWithFrame:CGRectMake(2, 2, avatarDiameter, avatarDiameter)];
-            avatarView.user = ((Post *)filteredSummaryReplies[i]).attributes.creator;
+            avatarView.user = ((Post *)filteredSummaryReplies[i]).attributes.creatorUser;
             
             UIView *containerView = [[UIView alloc] initWithFrame:CGRectMake(avatarBaselineX + (i * avatarOffset), (self.repliesSnaphotView.frame.size.height / 2 - avatarDiameter / 2) - 2, avatarDiameter + 4, avatarDiameter + 4)];
             containerView.backgroundColor = [UIColor contentBackgroundColor];
@@ -153,7 +156,7 @@
         
         self.repliesSnaphotView.frame = CGRectMake(self.frame.size.width - repliesSnapshotViewWidth, self.repliesSnaphotView.frame.origin.y, repliesSnapshotViewWidth, self.repliesSnaphotView.frame.size.height);
         
-        [self addSubview:self.repliesSnaphotView];
+//        [self addSubview:self.repliesSnaphotView];
     }
 }
 
@@ -161,13 +164,21 @@
     [super setFrame:frame];
     
     CGFloat buttonWidth = ceilf(self.frame.size.width / 3);
-    SetX(self.voteButton, buttonWidth);
+    CGFloat buttonPadding = 8;
+    
+    SetWidth(self.replyButton, self.replyButton.intrinsicContentSize.width + self.replyButton.currentImage.size.width + (buttonPadding * 2) - self.replyButton.titleEdgeInsets.left);
+    SetWidth(self.voteButton, self.voteButton.intrinsicContentSize.width + self.voteButton.currentImage.size.width - self.voteButton.titleEdgeInsets.left);
+    SetWidth(self.shareButton, self.shareButton.intrinsicContentSize.width + self.shareButton.currentImage.size.width + (buttonPadding * 2) - self.shareButton.titleEdgeInsets.left);
+    
+    SetX(self.replyButton, -buttonPadding);
+    SetX(self.voteButton, buttonWidth + 4);
+    SetX(self.shareButton, self.frame.size.width - self.shareButton.frame.size.width + buttonPadding + self.shareButton.titleEdgeInsets.left);
 }
 
 - (void)layoutSubviews {
     [super layoutSubviews];
     
-    self.repliesSnaphotView.frame = CGRectMake(self.frame.size.width - self.repliesSnaphotView.frame.size.width, 0, self.repliesSnaphotView.frame.size.width, POST_ACTIONS_VIEW_HEIGHT);
+    self.repliesSnaphotView.frame = CGRectMake(self.replyButton.frame.origin.x + self.replyButton.frame.size.width - 10, 0, self.repliesSnaphotView.frame.size.width, POST_ACTIONS_VIEW_HEIGHT);
 }
 
 - (void)setTintColor:(UIColor *)tintColor {
@@ -202,18 +213,18 @@
     if (actionsType != _actionsType) {
         _actionsType = actionsType;
     }
-    
-    if (actionsType == PostActionsViewTypeConversation) {
-        [self.replyButton setTitle:@"Reply" forState:UIControlStateNormal];
-        [self.replyButton setImage:[[UIImage imageNamed:@"postActionReply"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
-    }
-    else if (actionsType == PostActionsViewTypeQuote) {
-        [self.replyButton setTitle:@"Quote" forState:UIControlStateNormal];
-        [self.replyButton setImage:[[UIImage imageNamed:@"postActionQuote"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
-        self.replyButton.alpha = 1;
-        self.replyButton.userInteractionEnabled = true;
-    }
-    self.replyButton.frame = CGRectMake(self.replyButton.frame.origin.x, 0, self.replyButton.intrinsicContentSize.width + self.replyButton.currentImage.size.width - self.replyButton.titleEdgeInsets.left, POST_ACTIONS_VIEW_HEIGHT);
+//
+//    if (actionsType == PostActionsViewTypeConversation) {
+//        [self.replyButton setTitle:@"Reply" forState:UIControlStateNormal];
+//        [self.replyButton setImage:[[UIImage imageNamed:@"postActionReply"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+//    }
+//    else if (actionsType == PostActionsViewTypeQuote) {
+//        [self.replyButton setTitle:@"Quote" forState:UIControlStateNormal];
+//        [self.replyButton setImage:[[UIImage imageNamed:@"postActionQuote"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+//        self.replyButton.alpha = 1;
+//        self.replyButton.userInteractionEnabled = true;
+//    }
+//    self.replyButton.frame = CGRectMake(self.replyButton.frame.origin.x, 0, self.replyButton.intrinsicContentSize.width + self.replyButton.currentImage.size.width - self.replyButton.titleEdgeInsets.left, POST_ACTIONS_VIEW_HEIGHT);
 }
 
 @end

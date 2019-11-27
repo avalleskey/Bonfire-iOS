@@ -45,7 +45,7 @@ NS_ASSUME_NONNULL_BEGIN
 + (ProfileViewController *)profileViewControllerForUser:(User *)user;
 
 + (void)openBot:(Bot *)bot;
-+ (BotViewController *)botViewControllerForBot:(Bot *)bot;
++ (ProfileViewController *)profileViewControllerForBot:(Bot *)bot;
 
 + (void)openCampMembersForCamp:(Camp *)camp;
 + (void)openLinkConversations:(BFLink *)link withKeyboard:(BOOL)withKeyboard;
@@ -53,7 +53,7 @@ NS_ASSUME_NONNULL_BEGIN
 + (void)openProfileCampsJoined:(User *)user;
 + (void)openProfileUsersFollowing:(User *)user;
 + (void)openCreateCamp;
-+ (void)openComposePost:(Camp * _Nullable)camp inReplyTo:(Post * _Nullable)replyingTo withMessage:(NSString * _Nullable)message media:(NSArray * _Nullable)media;
++ (void)openComposePost:(Camp * _Nullable)camp inReplyTo:(Post * _Nullable)replyingTo withMessage:(NSString * _Nullable)message media:(NSArray * _Nullable)media quotedObject:(NSObject * _Nullable)quotedObject;
 + (void)openEditProfile;
 + (void)openInviteFriends:(id)sender;
 + (void)openInviteToCamp:(Camp *)camp;
@@ -70,8 +70,7 @@ NS_ASSUME_NONNULL_BEGIN
 // share sheets
 + (void)sharePost:(Post *)post;
 + (void)shareCamp:(Camp *)camp;
-+ (void)shareUser:(User *)user;
-+ (void)shareBot:(Bot *)bot;
++ (void)shareIdentity:(Identity *)identity;
 + (void)shareOniMessage:(NSString *)message image:(UIImage * _Nullable)image;
 + (void)openActionsForPost:(Post *)post;
 

@@ -7,6 +7,7 @@
 //
 
 #import "Defaults.h"
+#import "HAWebService.h"
 
 @implementation Defaults
 
@@ -80,7 +81,48 @@
 
 @end
 
-@implementation DefaultsFeed
+@implementation DefaultsAnnouncement
+
++ (JSONKeyMapper *)keyMapper
+{
+    return [[JSONKeyMapper alloc] initWithModelToJSONDictionary:@{
+                @"identifier": @"id"
+                                                                  }];
+}
+
++ (BOOL)propertyIsOptional:(NSString *)propertyName {
+    return TRUE;
+}
+
+- (void)dismissWithCompletion:(void (^_Nullable)(BOOL success, id __nullable responseObject))completion {
+    NSString *url = [NSString stringWithFormat:@"clients/announcements/%@", self.identifier];
+    [[HAWebService authenticatedManager] DELETE:url parameters:nil success:^(NSURLSessionDataTask * _Nonnull task, id  __nullable responseObject) {
+        if (completion) {
+            completion(true, @{@"dismissed": @true});
+        }
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        if (completion) {
+            completion(false, @{});
+        }
+    }];
+}
+
+- (void)ctaTappedWithCompletion:(void (^_Nullable)(BOOL success, id __nullable responseObject))completion {
+    NSString *url = [NSString stringWithFormat:@"clients/announcements/%@", self.identifier];
+    [[HAWebService authenticatedManager] POST:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  __nullable responseObject) {
+        if (completion) {
+            completion(true, @{@"cta_tapped": @true});
+        }
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        if (completion) {
+            completion(false, @{});
+        }
+    }];
+}
+
+@end
+
+@implementation DefaultsAnnouncementAttributes
 
 + (JSONKeyMapper *)keyMapper {
     return [JSONKeyMapper mapperForSnakeCase];
@@ -91,18 +133,7 @@
 
 @end
 
-@implementation DefaultsFeedMotd
-
-+ (JSONKeyMapper *)keyMapper {
-    return [JSONKeyMapper mapperForSnakeCase];
-}
-+ (BOOL)propertyIsOptional:(NSString *)propertyName {
-    return TRUE;
-}
-
-@end
-
-@implementation DefaultsFeedMotdCta
+@implementation DefaultsAnnouncementAttributesCta
 
 + (JSONKeyMapper *)keyMapper {
     return [JSONKeyMapper mapperForSnakeCase];

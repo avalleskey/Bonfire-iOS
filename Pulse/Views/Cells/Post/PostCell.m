@@ -42,25 +42,13 @@
         self.contentView.clipsToBounds = true;
         
         self.backgroundColor = [UIColor contentBackgroundColor];
-        self.contentView.backgroundColor = [UIColor clearColor];
+        self.contentView.backgroundColor = [UIColor contentBackgroundColor];
         
         self.post = [[Post alloc] init];
         
         self.primaryAvatarView = [[BFAvatarView alloc] initWithFrame:CGRectMake(12, 12, 48, 48)];
-        self.primaryAvatarView.openOnTap = false;
-        self.primaryAvatarView.dimsViewOnTap = true;
+        self.primaryAvatarView.openOnTap = true;
         self.primaryAvatarView.allowOnlineDot = true;
-        [self.primaryAvatarView bk_whenTapped:^{
-            if (self.primaryAvatarView.camp) {
-                [Launcher openCamp:self.primaryAvatarView.camp];
-            }
-            else if (self.primaryAvatarView.user) {
-                [Launcher openProfile:self.primaryAvatarView.user];
-            }
-            else if (self.primaryAvatarView.bot) {
-                [Launcher openBot:self.primaryAvatarView.bot];
-            }
-        }];
         [self.contentView addSubview:self.primaryAvatarView];
         
         self.secondaryAvatarView = [[BFAvatarView alloc] initWithFrame:CGRectMake(self.primaryAvatarView.frame.size.width - 20, self.primaryAvatarView.frame.size.height - 20, 20, 20)];
@@ -82,7 +70,7 @@
         [self.contentView addSubview:self.nameLabel];
         
         self.dateLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, self.nameLabel.frame.origin.y, 21, self.nameLabel.frame.size.height)];
-        self.dateLabel.font = [UIFont systemFontOfSize:self.nameLabel.font.pointSize weight:UIFontWeightRegular];
+        self.dateLabel.font = [UIFont systemFontOfSize:15.f weight:UIFontWeightRegular];
         self.dateLabel.textAlignment = NSTextAlignmentRight;
         self.dateLabel.textColor = [UIColor bonfireSecondaryColor];
         [self.contentView addSubview:self.dateLabel];
@@ -166,7 +154,6 @@
         [self.contentView addSubview:self.smartLinkAttachmentView];
     }
     
-    self.post.attributes.attachments.link.attributes.attribution = self.post.attributes.postedIn;
     self.smartLinkAttachmentView.link = self.post.attributes.attachments.link;
 }
 
@@ -212,6 +199,20 @@
     self.postRemovedAttachmentView.message = self.post.attributes.removedReason;
 }
 
+- (void)removePostAttachment {
+    [self.postAttachmentView removeFromSuperview];
+    self.postAttachmentView = nil;
+}
+- (void)initPostAttachment {
+    if (!self.postAttachmentView) {
+        // need to initialize a user preview view
+        self.postAttachmentView = [[BFPostAttachmentView alloc] init];
+        [self.contentView addSubview:self.postAttachmentView];
+    }
+    
+    self.postAttachmentView.post = self.post.attributes.attachments.post;
+}
+
 + (NSAttributedString *)attributedCreatorStringForPost:(Post *)post includeTimestamp:(BOOL)includeTimestamp showCamptag:(BOOL)showCamptag primaryColor:(UIColor * _Nullable)primaryColor {
     UIFont *font = [UIFont systemFontOfSize:15.f weight:UIFontWeightRegular];
     
@@ -224,6 +225,9 @@
     }
     
     BOOL showUsername = !([post.attributes.display.creator isEqualToString:POST_DISPLAY_CREATOR_CAMP] && post.attributes.postedIn != nil);
+    if (!showUsername && !showCamptag) {
+        showCamptag = true;
+    }
     
     NSMutableAttributedString *creatorString = [[NSMutableAttributedString alloc] init];
     if (showUsername) {
@@ -231,17 +235,24 @@
         NSString *username = post.attributes.creator.attributes.identifier != nil ? [NSString stringWithFormat:@"@%@", post.attributes.creator.attributes.identifier] : @"anonymous";
         
         [creatorString appendAttributedString:[[NSAttributedString alloc] initWithString:username]];
-        PatternTapResponder creatorTapResponder = ^(NSString *string) {
-            [Launcher openProfile:post.attributes.creator];
-        };
-        [creatorString addAttribute:RLTapResponderAttributeName value:creatorTapResponder range:NSMakeRange(0, creatorString.length)];
         [creatorString addAttribute:NSForegroundColorAttributeName value:primaryColor range:NSMakeRange(0, creatorString.length)];
         
         [creatorString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:font.pointSize weight:UIFontWeightSemibold] range:NSMakeRange(0, creatorString.length)];
         [creatorString addAttribute:RLHighlightedForegroundColorAttributeName value:[primaryColor colorWithAlphaComponent:0.5] range:NSMakeRange(0, creatorString.length)];
     }
     
-    if (includeTimestamp) {
+    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+    [formatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ssZ"];
+    NSCalendar *gregorian = [[NSCalendar alloc]
+                             initWithCalendarIdentifier:NSCalendarIdentifierGregorian];
+    NSDateComponents *comps;
+    if (post.attributes.createdAt.length > 0) {
+        comps = [gregorian components: NSCalendarUnitDay
+                             fromDate: [formatter dateFromString:post.attributes.createdAt]
+                               toDate: [NSDate date]
+                              options: 0];
+    }
+    if (includeTimestamp && comps && [comps day] < 1) {
         NSMutableAttributedString *connector = [[NSMutableAttributedString alloc] initWithString:@"  "];
         [connector addAttribute:NSFontAttributeName value:font range:NSMakeRange(0, connector.length)];
         [creatorString appendAttributedString:connector];
@@ -266,7 +277,7 @@
             [creatorString appendAttributedString:spacer];
             
             NSTextAttachment *attachment = [[NSTextAttachment alloc] init];
-            attachment.image = [UIImage imageNamed:@"postedInTriangleIcon-1"];
+            attachment.image = [UIImage imageNamed:@"postedInTriangleIcon"];
             [attachment setBounds:CGRectMake(0, roundf(font.capHeight - attachment.image.size.height)/2.f, attachment.image.size.width, attachment.image.size.height)];
             
             NSAttributedString *attachmentString = [NSAttributedString attributedStringWithAttachment:attachment];
@@ -287,12 +298,12 @@
         
         [creatorString appendAttributedString:campTitleString];
         
-        if ([post.attributes.postedIn.attributes.visibility isPrivate]) {
+        if ([post.attributes.postedIn isPrivate]) {
             // spacer
             [creatorString appendAttributedString:spacer];
             
             NSTextAttachment *lockAttachment = [[NSTextAttachment alloc] init];
-            lockAttachment.image = [[UIImage imageNamed:@"details_label_private"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+            lockAttachment.image = [self colorImage:[UIImage imageNamed:@"details_label_private"] color:[UIColor bonfirePrimaryColor]];
             
             CGFloat attachmentHeight = MIN(ceilf(font.lineHeight * 0.7), lockAttachment.image.size.height);
             CGFloat attachmentWidth = attachmentHeight * (lockAttachment.image.size.width / lockAttachment.image.size.height);
@@ -307,7 +318,7 @@
             [creatorString appendAttributedString:spacer];
             
             NSTextAttachment *sourceAttachment = [[NSTextAttachment alloc] init];
-            sourceAttachment.image = [[UIImage imageNamed:@"details_label_source"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+            sourceAttachment.image = [self colorImage:[UIImage imageNamed:@"details_label_source"] color:[UIColor bonfirePrimaryColor]];
             
             CGFloat attachmentHeight = MIN(ceilf(font.lineHeight * 0.7), sourceAttachment.image.size.height);
             CGFloat attachmentWidth = attachmentHeight * (sourceAttachment.image.size.width / sourceAttachment.image.size.height);
@@ -317,11 +328,9 @@
             NSAttributedString *lockAttachmentString = [NSAttributedString attributedStringWithAttachment:sourceAttachment];
             [creatorString appendAttributedString:lockAttachmentString];
         }
-        
-        return creatorString;
     }
     
-    return [NSAttributedString new];
+    return creatorString;
 }
 
 + (UIImage *)colorImage:(UIImage *)image color:(UIColor *)color
@@ -349,13 +358,25 @@
 - (void)setHighlighted:(BOOL)highlighted animated:(BOOL)animated {
     [super setHighlighted:highlighted animated:animated];
     
-    if (self.selectable) {
-        [UIView animateWithDuration:animated?0.15f:0 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-            if (highlighted) {
-                self.backgroundColor = [UIColor contentHighlightedColor];
+    if (!self.selectable) return;
+    
+    if (self.post && highlighted) {
+        [UIView animateWithDuration:0.15f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+            if (!self.unread) {
+                self.contentView.backgroundColor = [UIColor contentHighlightedColor];
             }
             else {
-                self.backgroundColor = [UIColor contentBackgroundColor];
+                self.contentView.backgroundColor = [UIColor colorNamed:@"NewBackgroundColor_Highlighted"];
+            }
+        } completion:nil];
+    }
+    else {
+        [UIView animateWithDuration:0.15f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+            if (!self.unread) {
+                self.contentView.backgroundColor = [UIColor contentBackgroundColor];
+            }
+            else {
+                self.contentView.backgroundColor = [UIColor colorNamed:@"NewBackgroundColor"];
             }
         } completion:nil];
     }

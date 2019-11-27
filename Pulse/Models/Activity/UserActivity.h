@@ -6,7 +6,7 @@
 //  Copyright © 2019 Austin Valleskey. All rights reserved.
 //
 
-#import "JSONModel.h"
+#import "BFJSONModel.h"
 #import "User.h"
 #import "Camp.h"
 #import "Post.h"
@@ -16,7 +16,7 @@ NS_ASSUME_NONNULL_BEGIN
 @class UserActivity;
 @class UserActivityAttributes;
 
-@interface UserActivity : JSONModel
+@interface UserActivity : BFJSONModel
 
 @property (nonatomic) NSString <Optional> *identifier;
 @property (nonatomic) NSString <Optional> *type;
@@ -25,14 +25,13 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic) NSString <Optional> *prevCursor;
 @property (nonatomic) NSString <Optional> *nextCursor;
 
-@property (nonatomic) BOOL unread;
+- (void)markAsRead;
 
 @end
 
-@interface UserActivityAttributes : JSONModel
+@interface UserActivityAttributes : BFJSONModel
 
 typedef enum {
-    USER_ACTIVITY_TYPE_BONFIRE_MOTD = -1,
     USER_ACTIVITY_TYPE_UNKNOWN = 0,
     
     // Result of a user action
@@ -61,7 +60,7 @@ typedef enum {
 
 @property (nonatomic) Camp <Optional> *camp;
 
-@property (nonatomic) NSString <Optional> *seenAt;
+@property (nonatomic) BOOL read;
 
 // the NSAttributed string we create, using the JSON defaults format and information given to use during initWithDictionary
 @property (nonatomic) NSAttributedString <Optional> *attributedString;

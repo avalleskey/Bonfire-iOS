@@ -49,19 +49,19 @@ static Session *session;
         
         if ([session getAccessTokenWithVerification:true] != nil && session.currentUser.identifier != nil) {
             // update user object
-            [BFAPI getUser:^(BOOL success) {
-                
-            }];
-            [session syncDeviceToken];
+            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+                [BFAPI getUser:nil];
+                [session syncDeviceToken];
+            });
         }
         
-        [session initDefaults];
+        [session initDefaultsWithCompletion:nil];
         [session resetTemporaryDefaults];
     }
     return session;
 }
 
-- (void)initDefaults {
+- (void)initDefaultsWithCompletion:(void (^_Nullable)(BOOL success))handler {
     if([[NSUserDefaults standardUserDefaults] dictionaryForKey:@"app_defaults"] == nil) {
         NSString *bundlePath = [[NSBundle mainBundle] pathForResource:@"LocalDefaults" ofType:@"json"];
         NSData *data = [NSData dataWithContentsOfFile:bundlePath];
@@ -73,8 +73,13 @@ static Session *session;
     NSError* error;
     NSDictionary* dictionaryJSON = [[NSUserDefaults standardUserDefaults] dictionaryForKey:@"app_defaults"];
     
-    session.defaults = [[Defaults alloc] initWithDictionary:dictionaryJSON error:&error];
-    if (error) {
+    if ([dictionaryJSON isKindOfClass:[NSDictionary class]]) {
+        session.defaults = [[Defaults alloc] initWithDictionary:dictionaryJSON error:&error];
+    }
+    
+    if (error || !session.defaults) {
+        [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"app_defaults"];
+        session.defaults = [[Defaults alloc] init];
         NSLog(@"⚠️ session defaults error: %@", error);
     }
     
@@ -89,33 +94,41 @@ static Session *session;
             
             if (!error) {
                 NSLog(@"set new defaults because there weren't any errors");
-                NSError *error;
-                newDefaults.feed = [[DefaultsFeed alloc] initWithDictionary:@{@"motd": @{@"title": @"Message from Bonfire MOTD", @"text": @"The text would go here. ⭐️", @"image_url": @"https://images.unsplash.com/photo-1550534791-2677533605ab?ixlib=rb-1.2.1&auto=format&fit=crop&w=2700&q=80", @"cta": @{@"type": @"1", @"action_url": @"https://producthunt.com", @"display_text": @"Go to Product Hunt"}}} error:&error];
-                NSLog(@"feed error: %@", error);
                 
-                session.defaults = newDefaults;
-                                
-                // save to local file
-                [session updateDefaultsJSON:responseObject];
-                
-                if (session.defaults.feed.motd) {
-                    if ([Launcher tabController]) {
-                        TabController *tabVC = [Launcher tabController];
-                        
-                        NSString *badgeValue = @"1"; //[NSString stringWithFormat:@"%@", [[userInfo objectForKey:@"aps"] objectForKey:@"badge"]];
+                if (session.defaults.announcement) {
+                    TabController *tabVC = [Launcher tabController];
+                    if (tabVC) {
+                        NSString *badgeValue = @"1";
                         [tabVC setBadgeValue:badgeValue forItem:tabVC.notificationsNavVC.tabBarItem];
                         if (badgeValue && badgeValue.length > 0 && [badgeValue intValue] > 0) {
                             AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
                         }
                     }
                 }
+                
+                session.defaults = newDefaults;
+                                
+                // save to local file
+                [session updateDefaultsJSON:responseObject];
             }
             else {
                 NSLog(@"⚠️ error with new json: %@", error);
             }
+            
+            if (handler) {
+                handler(true);
+            }
         } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
             NSLog(@"😞 darn. error getting the new defaults");
+            if (handler) {
+                handler(true);
+            }
         }];
+    }
+    else {
+        if (handler) {
+            handler(false);
+        }
     }
 }
 - (void)updateDefaultsJSON:(NSDictionary *)json {
@@ -365,9 +378,6 @@ static Session *session;
     [[NSUserDefaults standardUserDefaults] setBool:TRUE forKey:@"kHasLaunchedBefore"];
     [[NSUserDefaults standardUserDefaults] setInteger:launches forKey:@"launches"];
     
-    // set the device token again
-    [[NSUserDefaults standardUserDefaults] setObject:deviceToken forKey:@"device_token"];
-    
     // clear Lockbox
     [Lockbox archiveObject:nil forKey:@"access_token"];
     
@@ -399,14 +409,14 @@ static Session *session;
     NSCalendar *gregorian = [[NSCalendar alloc]
                              initWithCalendarIdentifier:NSCalendarIdentifierGregorian];
     NSDateComponents *comps = [gregorian components: NSCalendarUnitMinute
-                                           fromDate: [NSDate date]
-                                             toDate: tokenExpiration
+                                           fromDate: now
+                                             toDate: (tokenExpiration==nil?now:tokenExpiration)
                                             options: 0];
      NSLog(@"minutes until token expiration:: %ld", (long)[comps minute]);
      NSLog(@"token app version: %@", token[@"app_version"]);
     
     NSString *version = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
-    if ([now compare:tokenExpiration] == NSOrderedDescending || ![token[@"app_version"] isEqualToString:version]) {
+    if ([comps minute] <= 0 || ![token[@"app_version"] isEqualToString:version]) {
         // loginExpiration in the future
         token = nil;
         
@@ -445,7 +455,7 @@ static Session *session;
     
     // GET NEW ACCESS TOKEN
     NSDictionary *currentAccessToken = [[Session sharedInstance] getAccessTokenWithVerification:YES];
-    if (currentAccessToken || ([[Session sharedInstance] getAccessTokenWithVerification:YES] && ![HAWebService hasInternet])) {
+    if (currentAccessToken || (![HAWebService hasInternet] && [[Session sharedInstance] getAccessTokenWithVerification:NO])) {
         // access token is already valid -- must have already been refreshed
         NSLog(@"🔑✅ getNewAccessToken: NO NEED");
         
@@ -458,7 +468,6 @@ static Session *session;
         if ([self refreshingToken]) {
             // NSLog(@"already refreshing....");
             [self fireOnRefreshingTokenCompletion:^(void) {
-                NSLog(@"hello from the other side!! just received the completion handler for fire on refresh token completion");
                 // NSLog(@"all requests finished!");
                 // NSLog(@"done refreshing and the verdict is.....");
                 NSDictionary *accessToken = [[Session sharedInstance] getAccessTokenWithVerification:true];
@@ -550,6 +559,9 @@ static Session *session;
     [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"temporary_defaults"];
     NSMutableDictionary *temporaryDefaults = [[NSMutableDictionary alloc] init];
     [[NSUserDefaults standardUserDefaults] setObject:temporaryDefaults forKey:@"temporary_defaults"];
+    
+    // clear temporary pin cache items
+    [[PINCache sharedCache] removeObjectForKey:MY_CAMPS_CAN_POST_KEY];
 }
 + (int)getTempId {
     int tempId = 1;

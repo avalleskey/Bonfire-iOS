@@ -64,15 +64,12 @@
 }
 - (void)addTapHandlersToAction:(UIButton *)action {
     [action bk_addEventHandler:^(id sender) {
-        [HapticHelper generateFeedback:FeedbackType_Selection];
         [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-            action.transform = CGAffineTransformMakeScale(0.8, 0.8);
             action.alpha = 0.5;
         } completion:nil];
     } forControlEvents:UIControlEventTouchDown];
     [action bk_addEventHandler:^(id sender) {
         [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-            action.transform = CGAffineTransformIdentity;
             action.alpha = 1;
         } completion:nil];
     } forControlEvents:(UIControlEventTouchUpInside|UIControlEventTouchCancel|UIControlEventTouchDragExit)];
@@ -85,19 +82,6 @@
     _replyButton.frame = CGRectMake(0, 0, buttonWidth, self.frame.size.height);
     _voteButton.frame = CGRectMake(_replyButton.frame.origin.x + _replyButton.frame.size.width, 0, buttonWidth, self.frame.size.height);
     _moreButton.frame = CGRectMake(self.frame.size.width - buttonWidth, 0, buttonWidth, self.frame.size.height);
-    
-    
-}
-
-- (void)pushButtonDown:(UIButton *)button {
-    [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-        button.transform = CGAffineTransformMakeScale(0.9, 0.9);
-    } completion:nil];
-}
-- (void)pushButtonUp:(UIButton *)button {
-    [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-        button.transform = CGAffineTransformMakeScale(1, 1);
-    } completion:nil];
 }
 
 @end

@@ -39,7 +39,9 @@ typedef enum : NSUInteger {
     ErrorViewTypeNoNotifications,
     ErrorViewTypeContactsDenied,
     ErrorViewTypeClock,
-    ErrorViewTypeSearch
+    ErrorViewTypeSearch,
+    ErrorViewTypeRepliesDisabled,
+    ErrorViewTypeFirstPost
 } ErrorViewType;
 
 + (BFVisualError *)visualErrorOfType:(NSInteger)errorType title:(NSString * _Nullable)errorTitle description:(NSString * _Nullable)errorDescription actionTitle:(NSString * _Nullable)actionTitle actionBlock:(void (^ __nullable)(void))actionBlock;

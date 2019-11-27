@@ -222,7 +222,9 @@
 }
 
 - (void)addEntities {
-    if (self.message.length == 0 || !self.entities || self.entities.count == 0) return;
+    if (!self.message || self.message.length == 0 || !self.entities || self.entities.count == 0) return;
+    
+    [self.messageLabel.textStorage removeAttribute:NSLinkAttributeName range:NSMakeRange(0, self.messageLabel.text.length)];
     
     for (PostEntity *entity in self.entities) {
         if ([entity.type isEqualToString:POST_ENTITY_TYPE_PROFILE]) {
@@ -273,7 +275,6 @@
             NSInteger endSpot = range.location + range.length;
             
             if (endSpot <= self.entityBasedMaxCharacters && endSpot > range.location && endSpot <= self.message.length && range.location >= 0 && [NSURL URLWithString:entity.actionUrl]) {
-                NSLog(@"NSRange(%lu, %lu)", (unsigned long)range.location, (unsigned long)range.length);
                 [self.messageLabel setCustomLink:[NSURL URLWithString:entity.actionUrl] forTextAtRange:range];
             }
             

@@ -18,7 +18,6 @@
 		D904283C233937C40051D3AF /* LinkPostCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D904283B233937C40051D3AF /* LinkPostCell.m */; };
 		D904283F233BE3800051D3AF /* LinkConversationsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D904283E233BE3800051D3AF /* LinkConversationsViewController.m */; };
 		D9042842233C17180051D3AF /* BFSmartLinkAttachmentView.m in Sources */ = {isa = PBXBuildFile; fileRef = D9042840233C17170051D3AF /* BFSmartLinkAttachmentView.m */; };
-		D906C854220E0AA6005D283C /* PostReplySnapshotView.m in Sources */ = {isa = PBXBuildFile; fileRef = D906C853220E0AA6005D283C /* PostReplySnapshotView.m */; };
 		D907B082214EEC5000A59712 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = D907B081214EEC5000A59712 /* AppDelegate.m */; };
 		D907B088214EEC5000A59712 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D907B086214EEC5000A59712 /* Main.storyboard */; };
 		D907B08A214EEC5300A59712 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D907B089214EEC5300A59712 /* Assets.xcassets */; };
@@ -93,11 +92,8 @@
 		D94FD1EC216D730300B84E45 /* CampAttributes.m in Sources */ = {isa = PBXBuildFile; fileRef = D94FD1B9216D730300B84E45 /* CampAttributes.m */; };
 		D94FD1F4216D730300B84E45 /* CampSummaries.m in Sources */ = {isa = PBXBuildFile; fileRef = D94FD1C3216D730300B84E45 /* CampSummaries.m */; };
 		D94FD1F5216D730300B84E45 /* Camp.m in Sources */ = {isa = PBXBuildFile; fileRef = D94FD1C4216D730300B84E45 /* Camp.m */; };
-		D94FD1F6216D730300B84E45 /* CampVisibility.m in Sources */ = {isa = PBXBuildFile; fileRef = D94FD1C7216D730300B84E45 /* CampVisibility.m */; };
 		D94FD1FE216D730300B84E45 /* Post.m in Sources */ = {isa = PBXBuildFile; fileRef = D94FD1D3216D730300B84E45 /* Post.m */; };
 		D94FD202216D730300B84E45 /* User.m in Sources */ = {isa = PBXBuildFile; fileRef = D94FD1DA216D730300B84E45 /* User.m */; };
-		D94FD205216D730300B84E45 /* UserAttributes.m in Sources */ = {isa = PBXBuildFile; fileRef = D94FD1DF216D730300B84E45 /* UserAttributes.m */; };
-		D94FD20B216D730300B84E45 /* UserMedia.m in Sources */ = {isa = PBXBuildFile; fileRef = D94FD1E8216D730300B84E45 /* UserMedia.m */; };
 		D9504D32221F59AB00DD35B0 /* StreamPostCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D9504D30221F59AB00DD35B0 /* StreamPostCell.m */; };
 		D9504D382223328600DD35B0 /* QuickReplyViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9504D372223328600DD35B0 /* QuickReplyViewController.m */; };
 		D9504D3E22284D8000DD35B0 /* PostActivityView.m in Sources */ = {isa = PBXBuildFile; fileRef = D9504D3D22284D8000DD35B0 /* PostActivityView.m */; };
@@ -114,10 +110,13 @@
 		D96A06EE223CBED100406C81 /* HelloViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D96A06ED223CBED100406C81 /* HelloViewController.m */; };
 		D96A06F12241E45E00406C81 /* ComposeTextViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D96A06F02241E45E00406C81 /* ComposeTextViewCell.m */; };
 		D96A50772344E844006D76C4 /* CampCardCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D96A50762344E844006D76C4 /* CampCardCell.m */; };
-		D96A508723464828006D76C4 /* BotSummaries.m in Sources */ = {isa = PBXBuildFile; fileRef = D96A507A23464827006D76C4 /* BotSummaries.m */; };
 		D96A508923464828006D76C4 /* Bot.m in Sources */ = {isa = PBXBuildFile; fileRef = D96A507C23464827006D76C4 /* Bot.m */; };
-		D96A508B23464828006D76C4 /* BotMedia.m in Sources */ = {isa = PBXBuildFile; fileRef = D96A508023464828006D76C4 /* BotMedia.m */; };
-		D96A508C23464828006D76C4 /* BotAttributes.m in Sources */ = {isa = PBXBuildFile; fileRef = D96A508423464828006D76C4 /* BotAttributes.m */; };
+		D96AB12D2372739E00838D58 /* Identity.m in Sources */ = {isa = PBXBuildFile; fileRef = D96AB12C2372739E00838D58 /* Identity.m */; };
+		D96AB1312374BAB700838D58 /* BFPostAttachmentView.m in Sources */ = {isa = PBXBuildFile; fileRef = D96AB12F2374BAB700838D58 /* BFPostAttachmentView.m */; };
+		D96AB134237DEF2200838D58 /* BFJSONModel.m in Sources */ = {isa = PBXBuildFile; fileRef = D96AB133237DEF2100838D58 /* BFJSONModel.m */; };
+		D96AB137237DF8E100838D58 /* NSNull+JSON.m in Sources */ = {isa = PBXBuildFile; fileRef = D96AB136237DF8E100838D58 /* NSNull+JSON.m */; };
+		D96AB13A237DF9AB00838D58 /* NSDictionary+JSON.m in Sources */ = {isa = PBXBuildFile; fileRef = D96AB139237DF9AB00838D58 /* NSDictionary+JSON.m */; };
+		D96AB13E2380810D00838D58 /* OrientationViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D96AB13D2380810D00838D58 /* OrientationViewController.m */; };
 		D96AD7922180DA3D00849F6B /* EditProfileViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D96AD7912180DA3D00849F6B /* EditProfileViewController.m */; };
 		D96AD7962181029600849F6B /* ProfilePictureCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D96AD7952181029600849F6B /* ProfilePictureCell.m */; };
 		D96AD799218102A200849F6B /* ThemeSelectorCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D96AD798218102A200849F6B /* ThemeSelectorCell.m */; };
@@ -220,14 +219,12 @@
 		D9D9B19221D01B6A00B5003B /* SmallCampCardCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D9D9B19121D01B6A00B5003B /* SmallCampCardCell.m */; };
 		D9D9C44E21F1037900E16815 /* BFDetailsLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = D9D9C44D21F1037900E16815 /* BFDetailsLabel.m */; };
 		D9DCACC821B9E0EA0038C7ED /* PostStream.m in Sources */ = {isa = PBXBuildFile; fileRef = D9DCACC721B9E0EA0038C7ED /* PostStream.m */; };
-		D9E3803523318F0100839D31 /* MyCampsTableViewController2.m in Sources */ = {isa = PBXBuildFile; fileRef = D9E3803323318F0100839D31 /* MyCampsTableViewController2.m */; };
 		D9E5EB7821FBBB1900B9F5FD /* favicon_filled.png in Resources */ = {isa = PBXBuildFile; fileRef = D9E5EB7721FBBB1900B9F5FD /* favicon_filled.png */; };
 		D9E5EB7B21FBED7300B9F5FD /* ProfileCampsListViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9E5EB7A21FBED7300B9F5FD /* ProfileCampsListViewController.m */; };
 		D9E5EB7E21FC199000B9F5FD /* ProfileFollowingListViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9E5EB7C21FC198F00B9F5FD /* ProfileFollowingListViewController.m */; };
 		D9E5EB8121FF6AE000B9F5FD /* ThemedViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9E5EB8021FF6AE000B9F5FD /* ThemedViewController.m */; };
 		D9E5EB8421FF6AEE00B9F5FD /* ThemedTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9E5EB8321FF6AEE00B9F5FD /* ThemedTableViewController.m */; };
 		D9E5EB8A2203D1DB00B9F5FD /* ReplyCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D9E5EB892203D1DB00B9F5FD /* ReplyCell.m */; };
-		D9E8E87921C0709A00DDFEBA /* UserSummaries.m in Sources */ = {isa = PBXBuildFile; fileRef = D9E8E87821C0709A00DDFEBA /* UserSummaries.m */; };
 		D9E8E87C21C1C9D600DDFEBA /* ToggleCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D9E8E87A21C1C9D600DDFEBA /* ToggleCell.m */; };
 		D9E8E88021C2014000DDFEBA /* NSString+Validation.m in Sources */ = {isa = PBXBuildFile; fileRef = D9E8E87F21C2014000DDFEBA /* NSString+Validation.m */; };
 		D9E8E88221C2F63F00DDFEBA /* SafariServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9E8E88121C2F63F00DDFEBA /* SafariServices.framework */; };
@@ -291,9 +288,7 @@
 		D904283E233BE3800051D3AF /* LinkConversationsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LinkConversationsViewController.m; sourceTree = "<group>"; };
 		D9042840233C17170051D3AF /* BFSmartLinkAttachmentView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BFSmartLinkAttachmentView.m; sourceTree = "<group>"; };
 		D9042841233C17180051D3AF /* BFSmartLinkAttachmentView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BFSmartLinkAttachmentView.h; sourceTree = "<group>"; };
-		D906C852220E0AA6005D283C /* PostReplySnapshotView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PostReplySnapshotView.h; sourceTree = "<group>"; };
-		D906C853220E0AA6005D283C /* PostReplySnapshotView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PostReplySnapshotView.m; sourceTree = "<group>"; };
-		D907B07D214EEC5000A59712 /* Bonfire b1.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Bonfire b1.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		D907B07D214EEC5000A59712 /* Bonfire b 9.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Bonfire b 9.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D907B080214EEC5000A59712 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		D907B081214EEC5000A59712 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; wrapsLines = 0; };
 		D907B087214EEC5000A59712 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -427,20 +422,14 @@
 		D94FD1B5216D730300B84E45 /* Camp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Camp.h; sourceTree = "<group>"; };
 		D94FD1B8216D730300B84E45 /* CampCounts.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CampCounts.m; sourceTree = "<group>"; };
 		D94FD1B9216D730300B84E45 /* CampAttributes.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CampAttributes.m; sourceTree = "<group>"; };
-		D94FD1BB216D730300B84E45 /* CampVisibility.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CampVisibility.h; sourceTree = "<group>"; };
 		D94FD1C1216D730300B84E45 /* CampCounts.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CampCounts.h; sourceTree = "<group>"; };
 		D94FD1C3216D730300B84E45 /* CampSummaries.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CampSummaries.m; sourceTree = "<group>"; };
 		D94FD1C4216D730300B84E45 /* Camp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Camp.m; sourceTree = "<group>"; };
 		D94FD1C6216D730300B84E45 /* CampAttributes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CampAttributes.h; sourceTree = "<group>"; };
-		D94FD1C7216D730300B84E45 /* CampVisibility.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CampVisibility.m; sourceTree = "<group>"; };
 		D94FD1C9216D730300B84E45 /* Post.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Post.h; sourceTree = "<group>"; };
 		D94FD1D3216D730300B84E45 /* Post.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Post.m; sourceTree = "<group>"; };
 		D94FD1DA216D730300B84E45 /* User.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = User.m; sourceTree = "<group>"; };
-		D94FD1DE216D730300B84E45 /* UserMedia.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UserMedia.h; sourceTree = "<group>"; };
-		D94FD1DF216D730300B84E45 /* UserAttributes.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UserAttributes.m; sourceTree = "<group>"; };
 		D94FD1E3216D730300B84E45 /* User.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = User.h; sourceTree = "<group>"; };
-		D94FD1E7216D730300B84E45 /* UserAttributes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UserAttributes.h; sourceTree = "<group>"; };
-		D94FD1E8216D730300B84E45 /* UserMedia.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UserMedia.m; sourceTree = "<group>"; };
 		D9504D30221F59AB00DD35B0 /* StreamPostCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = StreamPostCell.m; sourceTree = "<group>"; };
 		D9504D31221F59AB00DD35B0 /* StreamPostCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StreamPostCell.h; sourceTree = "<group>"; };
 		D9504D362223328600DD35B0 /* QuickReplyViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = QuickReplyViewController.h; sourceTree = "<group>"; };
@@ -473,14 +462,20 @@
 		D96A06F02241E45E00406C81 /* ComposeTextViewCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ComposeTextViewCell.m; sourceTree = "<group>"; };
 		D96A50752344E844006D76C4 /* CampCardCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CampCardCell.h; sourceTree = "<group>"; };
 		D96A50762344E844006D76C4 /* CampCardCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CampCardCell.m; sourceTree = "<group>"; };
-		D96A507923464827006D76C4 /* BotAttributes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BotAttributes.h; sourceTree = "<group>"; };
-		D96A507A23464827006D76C4 /* BotSummaries.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BotSummaries.m; sourceTree = "<group>"; };
 		D96A507C23464827006D76C4 /* Bot.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Bot.m; sourceTree = "<group>"; };
-		D96A507E23464827006D76C4 /* BotMedia.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BotMedia.h; sourceTree = "<group>"; };
-		D96A508023464828006D76C4 /* BotMedia.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BotMedia.m; sourceTree = "<group>"; };
-		D96A508223464828006D76C4 /* BotSummaries.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BotSummaries.h; sourceTree = "<group>"; };
 		D96A508323464828006D76C4 /* Bot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Bot.h; sourceTree = "<group>"; };
-		D96A508423464828006D76C4 /* BotAttributes.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BotAttributes.m; sourceTree = "<group>"; };
+		D96AB12B2372739E00838D58 /* Identity.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Identity.h; sourceTree = "<group>"; };
+		D96AB12C2372739E00838D58 /* Identity.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Identity.m; sourceTree = "<group>"; };
+		D96AB12F2374BAB700838D58 /* BFPostAttachmentView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BFPostAttachmentView.m; sourceTree = "<group>"; };
+		D96AB1302374BAB700838D58 /* BFPostAttachmentView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BFPostAttachmentView.h; sourceTree = "<group>"; };
+		D96AB132237DEF2100838D58 /* BFJSONModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BFJSONModel.h; sourceTree = "<group>"; };
+		D96AB133237DEF2100838D58 /* BFJSONModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BFJSONModel.m; sourceTree = "<group>"; };
+		D96AB135237DF8E100838D58 /* NSNull+JSON.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSNull+JSON.h"; sourceTree = "<group>"; };
+		D96AB136237DF8E100838D58 /* NSNull+JSON.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSNull+JSON.m"; sourceTree = "<group>"; };
+		D96AB138237DF9AB00838D58 /* NSDictionary+JSON.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSDictionary+JSON.h"; sourceTree = "<group>"; };
+		D96AB139237DF9AB00838D58 /* NSDictionary+JSON.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSDictionary+JSON.m"; sourceTree = "<group>"; };
+		D96AB13C2380810D00838D58 /* OrientationViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OrientationViewController.h; sourceTree = "<group>"; };
+		D96AB13D2380810D00838D58 /* OrientationViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = OrientationViewController.m; sourceTree = "<group>"; };
 		D96AD7902180DA3D00849F6B /* EditProfileViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EditProfileViewController.h; sourceTree = "<group>"; };
 		D96AD7912180DA3D00849F6B /* EditProfileViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EditProfileViewController.m; sourceTree = "<group>"; };
 		D96AD7942181029600849F6B /* ProfilePictureCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ProfilePictureCell.h; sourceTree = "<group>"; };
@@ -670,8 +665,6 @@
 		D9D9C44D21F1037900E16815 /* BFDetailsLabel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BFDetailsLabel.m; sourceTree = "<group>"; };
 		D9DCACC621B9E0EA0038C7ED /* PostStream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PostStream.h; sourceTree = "<group>"; };
 		D9DCACC721B9E0EA0038C7ED /* PostStream.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PostStream.m; sourceTree = "<group>"; };
-		D9E3803323318F0100839D31 /* MyCampsTableViewController2.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MyCampsTableViewController2.m; sourceTree = "<group>"; };
-		D9E3803423318F0100839D31 /* MyCampsTableViewController2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MyCampsTableViewController2.h; sourceTree = "<group>"; };
 		D9E5EB7721FBBB1900B9F5FD /* favicon_filled.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = favicon_filled.png; sourceTree = "<group>"; };
 		D9E5EB7921FBED7300B9F5FD /* ProfileCampsListViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ProfileCampsListViewController.h; path = Pulse/Controllers/User/ProfileCampsListViewController.h; sourceTree = SOURCE_ROOT; };
 		D9E5EB7A21FBED7300B9F5FD /* ProfileCampsListViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ProfileCampsListViewController.m; path = Pulse/Controllers/User/ProfileCampsListViewController.m; sourceTree = SOURCE_ROOT; };
@@ -683,8 +676,6 @@
 		D9E5EB8321FF6AEE00B9F5FD /* ThemedTableViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ThemedTableViewController.m; sourceTree = "<group>"; };
 		D9E5EB882203D1DB00B9F5FD /* ReplyCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ReplyCell.h; sourceTree = "<group>"; };
 		D9E5EB892203D1DB00B9F5FD /* ReplyCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ReplyCell.m; sourceTree = "<group>"; };
-		D9E8E87721C0709A00DDFEBA /* UserSummaries.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UserSummaries.h; sourceTree = "<group>"; };
-		D9E8E87821C0709A00DDFEBA /* UserSummaries.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UserSummaries.m; sourceTree = "<group>"; };
 		D9E8E87A21C1C9D600DDFEBA /* ToggleCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ToggleCell.m; sourceTree = "<group>"; };
 		D9E8E87B21C1C9D600DDFEBA /* ToggleCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ToggleCell.h; sourceTree = "<group>"; };
 		D9E8E87E21C2014000DDFEBA /* NSString+Validation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSString+Validation.h"; sourceTree = "<group>"; };
@@ -809,7 +800,7 @@
 		D907B07E214EEC5000A59712 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				D907B07D214EEC5000A59712 /* Bonfire b1.app */,
+				D907B07D214EEC5000A59712 /* Bonfire b 9.app */,
 				D907B095214EEC5300A59712 /* PulseTests.xctest */,
 				D907B0A0214EEC5300A59712 /* PulseUITests.xctest */,
 			);
@@ -1103,12 +1094,6 @@
 			children = (
 				D94FD1E3216D730300B84E45 /* User.h */,
 				D94FD1DA216D730300B84E45 /* User.m */,
-				D94FD1DE216D730300B84E45 /* UserMedia.h */,
-				D94FD1E8216D730300B84E45 /* UserMedia.m */,
-				D94FD1E7216D730300B84E45 /* UserAttributes.h */,
-				D94FD1DF216D730300B84E45 /* UserAttributes.m */,
-				D9E8E87721C0709A00DDFEBA /* UserSummaries.h */,
-				D9E8E87821C0709A00DDFEBA /* UserSummaries.m */,
 			);
 			path = User;
 			sourceTree = "<group>";
@@ -1172,14 +1157,28 @@
 			children = (
 				D96A508323464828006D76C4 /* Bot.h */,
 				D96A507C23464827006D76C4 /* Bot.m */,
-				D96A507923464827006D76C4 /* BotAttributes.h */,
-				D96A508423464828006D76C4 /* BotAttributes.m */,
-				D96A507E23464827006D76C4 /* BotMedia.h */,
-				D96A508023464828006D76C4 /* BotMedia.m */,
-				D96A508223464828006D76C4 /* BotSummaries.h */,
-				D96A507A23464827006D76C4 /* BotSummaries.m */,
 			);
 			path = Bot;
+			sourceTree = "<group>";
+		};
+		D96AB12E237273A600838D58 /* Identity */ = {
+			isa = PBXGroup;
+			children = (
+				D96AB12B2372739E00838D58 /* Identity.h */,
+				D96AB12C2372739E00838D58 /* Identity.m */,
+				D96A5078234647BF006D76C4 /* Bot */,
+				D94FD1D9216D730300B84E45 /* User */,
+			);
+			path = Identity;
+			sourceTree = "<group>";
+		};
+		D96AB13B238080F300838D58 /* Orientation (WIP) */ = {
+			isa = PBXGroup;
+			children = (
+				D96AB13C2380810D00838D58 /* OrientationViewController.h */,
+				D96AB13D2380810D00838D58 /* OrientationViewController.m */,
+			);
+			path = "Orientation (WIP)";
 			sourceTree = "<group>";
 		};
 		D96AD7932181028100849F6B /* Edit Profile */ = {
@@ -1204,8 +1203,6 @@
 			children = (
 				D93C5E0E22E53D2900A9F827 /* MyCampsTableViewController.h */,
 				D93C5E0F22E53D2900A9F827 /* MyCampsTableViewController.m */,
-				D9E3803423318F0100839D31 /* MyCampsTableViewController2.h */,
-				D9E3803323318F0100839D31 /* MyCampsTableViewController2.m */,
 				D9C0394B215DF17000B30A41 /* MyFeedViewController.h */,
 				D9C0394C215DF17000B30A41 /* MyFeedViewController.m */,
 				D93C5E0522E396DC00A9F827 /* CombinedHomeViewController.h */,
@@ -1278,8 +1275,8 @@
 				D9504D3D22284D8000DD35B0 /* PostActivityView.m */,
 				D9A1CC1021E52950006D377C /* PostContextView.h */,
 				D9A1CC1121E52950006D377C /* PostContextView.m */,
-				D906C852220E0AA6005D283C /* PostReplySnapshotView.h */,
-				D906C853220E0AA6005D283C /* PostReplySnapshotView.m */,
+				D96AB1302374BAB700838D58 /* BFPostAttachmentView.h */,
+				D96AB12F2374BAB700838D58 /* BFPostAttachmentView.m */,
 				D952CAD122F9DB4800BAE564 /* BFLinkAttachmentView.h */,
 				D952CAD222F9DB4800BAE564 /* BFLinkAttachmentView.m */,
 				D9042841233C17180051D3AF /* BFSmartLinkAttachmentView.h */,
@@ -1309,13 +1306,6 @@
 			path = Discover;
 			sourceTree = "<group>";
 		};
-		D974B74621614BDA00C03269 /* Feed */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Feed;
-			sourceTree = "<group>";
-		};
 		D983D72C216D7F3E00F9D201 /* Camp */ = {
 			isa = PBXGroup;
 			children = (
@@ -1325,8 +1315,6 @@
 				D94FD1B9216D730300B84E45 /* CampAttributes.m */,
 				D94FD1B4216D730300B84E45 /* CampSummaries.h */,
 				D94FD1C3216D730300B84E45 /* CampSummaries.m */,
-				D94FD1BB216D730300B84E45 /* CampVisibility.h */,
-				D94FD1C7216D730300B84E45 /* CampVisibility.m */,
 				D94FD1C1216D730300B84E45 /* CampCounts.h */,
 				D94FD1B8216D730300B84E45 /* CampCounts.m */,
 				D9FFFB4B227C9778004E3779 /* CampMedia.h */,
@@ -1338,8 +1326,8 @@
 		D983D72D216D80A500F9D201 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				D96AB12E237273A600838D58 /* Identity */,
 				41FED4342369FC3000CBAD26 /* Link */,
-				D96A5078234647BF006D76C4 /* Bot */,
 				D912BD7A2232F2FB00F9F4EC /* Activity */,
 				D944456722E784CC00C75615 /* CampsList */,
 				D9267C6121D6B38D00E21862 /* Smart Lists */,
@@ -1347,13 +1335,14 @@
 				D9C8B57A21A5F38A00A9A282 /* Colors */,
 				D9C8B57721A5F31100A9A282 /* Errors */,
 				D95CBC2E2177DF63001E6D2D /* Defaults */,
-				D94FD1D9216D730300B84E45 /* User */,
 				D94FD1C8216D730300B84E45 /* Post */,
 				D983D72C216D7F3E00F9D201 /* Camp */,
 				D9FFFB48227C9664004E3779 /* BFHostedVersions.h */,
 				D9FFFB49227C9664004E3779 /* BFHostedVersions.m */,
 				D9C9DF1A22BC4C0000ADDC65 /* BFContext.h */,
 				D9C9DF1B22BC4C0000ADDC65 /* BFContext.m */,
+				D96AB132237DEF2100838D58 /* BFJSONModel.h */,
+				D96AB133237DEF2100838D58 /* BFJSONModel.m */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -1377,6 +1366,10 @@
 				D9133B4B226650D800B5D65C /* API */,
 				D9133B4C226650DF00B5D65C /* Session */,
 				D9133B4D226650E800B5D65C /* HTTP Session Manager */,
+				D96AB135237DF8E100838D58 /* NSNull+JSON.h */,
+				D96AB136237DF8E100838D58 /* NSNull+JSON.m */,
+				D96AB138237DF9AB00838D58 /* NSDictionary+JSON.h */,
+				D96AB139237DF9AB00838D58 /* NSDictionary+JSON.m */,
 			);
 			path = "Bonfire Helper Classes";
 			sourceTree = "<group>";
@@ -1489,6 +1482,7 @@
 		D9C8B57121A5F15E00A9A282 /* Controllers */ = {
 			isa = PBXGroup;
 			children = (
+				D96AB13B238080F300838D58 /* Orientation (WIP) */,
 				D9BD47C8235A3F9F001E027E /* Bot */,
 				D96C1FAA22D131C1000DAF99 /* Home */,
 				D95EE388229C47CE006E4D8E /* In App Notifications */,
@@ -1640,7 +1634,6 @@
 				D9E5EB8221FF6AEE00B9F5FD /* ThemedTableViewController.h */,
 				D9E5EB8321FF6AEE00B9F5FD /* ThemedTableViewController.m */,
 				D916430A2162C37B00523770 /* Navigation Controllers */,
-				D974B74621614BDA00C03269 /* Feed */,
 			);
 			path = "Multi-Use";
 			sourceTree = "<group>";
@@ -1846,7 +1839,7 @@
 			);
 			name = Pulse;
 			productName = Pulse;
-			productReference = D907B07D214EEC5000A59712 /* Bonfire b1.app */;
+			productReference = D907B07D214EEC5000A59712 /* Bonfire b 9.app */;
 			productType = "com.apple.product-type.application";
 		};
 		D907B094214EEC5300A59712 /* PulseTests */ = {
@@ -2096,6 +2089,7 @@
 				D93F7F1F225BA8D500450D9E /* FeatureInfoSheetViewController.h in Sources */,
 				D904283C233937C40051D3AF /* LinkPostCell.m in Sources */,
 				D9373E9422D90F9400EB18E9 /* CampListStream.m in Sources */,
+				D96AB1312374BAB700838D58 /* BFPostAttachmentView.m in Sources */,
 				D9D9B18221CC494100B5003B /* MediumCampCardCell.m in Sources */,
 				D94FD19821685D6000B84E45 /* CreateCampViewController.m in Sources */,
 				D98F193F234E2E5900635846 /* SpacerCell.m in Sources */,
@@ -2106,7 +2100,6 @@
 				D921172521AC5F9700853F3F /* CampFollowButton.m in Sources */,
 				D95EE37C2295A491006E4D8E /* BFHeaderView.m in Sources */,
 				D9FFFB50227DFC4E004E3779 /* UIImage+WithColor.m in Sources */,
-				D96A508C23464828006D76C4 /* BotAttributes.m in Sources */,
 				D9742E7321C34140002CBEFC /* TappableButton.m in Sources */,
 				D9B2D58F21B1F3A4007B3C0C /* BFSearchView.m in Sources */,
 				D9824236219CAA0D003626DA /* EditCampViewController.m in Sources */,
@@ -2137,6 +2130,7 @@
 				D91F13EA228DDC590010E032 /* BFTappableLabel.m in Sources */,
 				D9E5EB7B21FBED7300B9F5FD /* ProfileCampsListViewController.m in Sources */,
 				D9C03941215AD4AC00B30A41 /* ComposeInputView.m in Sources */,
+				D96AB13A237DF9AB00838D58 /* NSDictionary+JSON.m in Sources */,
 				D9267C7721D7FB2B00E21862 /* ChangePasswordTableViewController.m in Sources */,
 				D93F7F1E225BA69700450D9E /* FeatureInfoSheetViewController.m in Sources */,
 				D9EDE5DA216FC76000A869F8 /* ErrorCodes.m in Sources */,
@@ -2152,7 +2146,6 @@
 				D90047D32286100D006B4B3D /* EFCircularSlider.m in Sources */,
 				41EB16E5236FCD5300116C90 /* ThemeSelectorInputCell.m in Sources */,
 				D9FFFB60227E5E08004E3779 /* KSPhotoView.m in Sources */,
-				D9E3803523318F0100839D31 /* MyCampsTableViewController2.m in Sources */,
 				D9373E9722D92F1900EB18E9 /* UserListStream.m in Sources */,
 				D907B1052150697400A59712 /* NSDictionary+Clean.m in Sources */,
 				D9504D382223328600DD35B0 /* QuickReplyViewController.m in Sources */,
@@ -2181,11 +2174,11 @@
 				D9C9DF1C22BC4C0000ADDC65 /* BFContext.m in Sources */,
 				D971623A21DBF91100138BF9 /* InsightsLogger.m in Sources */,
 				D9742E7A21C47B71002CBEFC /* TappableView.m in Sources */,
-				D96A508723464828006D76C4 /* BotSummaries.m in Sources */,
 				D9C2AC902367913D00FB9623 /* UIFont+App.m in Sources */,
 				D9BD47B923563D57001E027E /* JKRichTextViewLinkBlockDataHandler.m in Sources */,
 				D9C03944215D6F1900B30A41 /* ComplexNavigationController.m in Sources */,
 				D9FFFB4D227C9778004E3779 /* CampMedia.m in Sources */,
+				D96AB134237DEF2200838D58 /* BFJSONModel.m in Sources */,
 				D912BD80223314B900F9F4EC /* UserActivityStream.m in Sources */,
 				D91643142164143700523770 /* CampHeaderCell.m in Sources */,
 				D94FD1F5216D730300B84E45 /* Camp.m in Sources */,
@@ -2193,6 +2186,7 @@
 				D9FFFB5E227E5E08004E3779 /* KSSDImageManager.m in Sources */,
 				D9C0394D215DF17000B30A41 /* MyFeedViewController.m in Sources */,
 				D94FD1FE216D730300B84E45 /* Post.m in Sources */,
+				D96AB137237DF8E100838D58 /* NSNull+JSON.m in Sources */,
 				D94F3317221A247A00331ADC /* ExpandThreadCell.m in Sources */,
 				D9164310216407C300523770 /* ProfileViewController.m in Sources */,
 				D9D9B19221D01B6A00B5003B /* SmallCampCardCell.m in Sources */,
@@ -2215,10 +2209,10 @@
 				D9267C6421D6B3A600E21862 /* SmartList.m in Sources */,
 				D94FD1EC216D730300B84E45 /* CampAttributes.m in Sources */,
 				D9D9B18521CECCA300B5003B /* MiniAvatarListCell.m in Sources */,
-				D9E8E87921C0709A00DDFEBA /* UserSummaries.m in Sources */,
 				D9FFFB5F227E5E08004E3779 /* UIImage+KS.m in Sources */,
 				D9E5EB8121FF6AE000B9F5FD /* ThemedViewController.m in Sources */,
 				D952CAD322F9DB4800BAE564 /* BFLinkAttachmentView.m in Sources */,
+				D96AB12D2372739E00838D58 /* Identity.m in Sources */,
 				D9BD47D2235A4BFE001E027E /* BotFollowButton.m in Sources */,
 				D9133B552267EBD600B5D65C /* KTCenterFlowLayout.m in Sources */,
 				D97681CC22F604E3001F1BFC /* BFCampAttachmentView.m in Sources */,
@@ -2249,8 +2243,6 @@
 				D9FFFB63227E5E08004E3779 /* KSPhotoBrowser.m in Sources */,
 				D9B2D57721AE3265007B3C0C /* Reachability.m in Sources */,
 				D9DCACC821B9E0EA0038C7ED /* PostStream.m in Sources */,
-				D96A508B23464828006D76C4 /* BotMedia.m in Sources */,
-				D94FD1F6216D730300B84E45 /* CampVisibility.m in Sources */,
 				D9B2D57F21B0AB4B007B3C0C /* SimpleNavigationController.m in Sources */,
 				D990F30A23106B0800184B58 /* NSString+UTF.m in Sources */,
 				D98FD22122B016C100F1D947 /* UIImage+fixOrientation.m in Sources */,
@@ -2260,16 +2252,14 @@
 				D98F1942234E35B400635846 /* BFErrorViewCell.m in Sources */,
 				D9FFFB43227B5A3F004E3779 /* BFTipsManager.m in Sources */,
 				D904283F233BE3800051D3AF /* LinkConversationsViewController.m in Sources */,
-				D94FD205216D730300B84E45 /* UserAttributes.m in Sources */,
 				D9C8B56B21A1E33B00A9A282 /* UIColor+Palette.m in Sources */,
 				D9267C7121D7FB0D00E21862 /* NotificationsSettingsTableViewController.m in Sources */,
 				D98767CC2304B4B9007320C6 /* InviteFriendsViewController.m in Sources */,
 				D944456A22E7882F00C75615 /* CampsList.m in Sources */,
 				D96A508923464828006D76C4 /* Bot.m in Sources */,
 				D96A06EE223CBED100406C81 /* HelloViewController.m in Sources */,
-				D906C854220E0AA6005D283C /* PostReplySnapshotView.m in Sources */,
+				D96AB13E2380810D00838D58 /* OrientationViewController.m in Sources */,
 				D9B2D59221B86C6B007B3C0C /* ActivityCell.m in Sources */,
-				D94FD20B216D730300B84E45 /* UserMedia.m in Sources */,
 				D998462921934309000B901F /* CampMembersViewController.m in Sources */,
 				D9B2D58621B1F09E007B3C0C /* SearchNavigationController.m in Sources */,
 				D9C8B58421A5F6A600A9A282 /* PostViewController.m in Sources */,
@@ -2470,7 +2460,7 @@
 				CODE_SIGN_ENTITLEMENTS = Pulse/Pulse.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = " 9";
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 4WLQG965T9;
 				EXCLUDED_SOURCE_FILE_NAMES = "*.value";
@@ -2507,7 +2497,7 @@
 				CODE_SIGN_ENTITLEMENTS = Pulse/Pulse.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = " 9";
 				DEVELOPMENT_TEAM = 4WLQG965T9;
 				EXCLUDED_SOURCE_FILE_NAMES = "*.value";
 				FRAMEWORK_SEARCH_PATHS = (
@@ -2679,7 +2669,7 @@
 				CODE_SIGN_ENTITLEMENTS = Pulse/Pulse.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = " 9";
 				DEVELOPMENT_TEAM = 4WLQG965T9;
 				EXCLUDED_SOURCE_FILE_NAMES = "*.value";
 				FRAMEWORK_SEARCH_PATHS = (

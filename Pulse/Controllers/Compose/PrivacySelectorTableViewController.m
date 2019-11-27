@@ -17,13 +17,22 @@
 #import "BFHeaderView.h"
 #import "CampListStream.h"
 #import <PINCache/PINCache.h>
+#import "BFSearchView.h"
+#import "SpacerCell.h"
+#import <BlocksKit/BlocksKit.h>
+#import <BlocksKit/BlocksKit+UIKit.h>
 @import Firebase;
 
-@interface PrivacySelectorTableViewController ()
+#define AVAILABLE_CAMPS_DESCRIPTION @"Only Camps which you are allowed to start conversations in are shown above."
+
+@interface PrivacySelectorTableViewController () <UITextFieldDelegate>
 
 @property (nonatomic, strong) CampListStream *stream;
 @property (nonatomic) BOOL loadingCamps;
 @property (nonatomic) BOOL loadingMoreCamps;
+
+@property (nonatomic, strong) NSString *searchPhrase;
+@property (nonatomic, strong) BFSearchView *searchView;
 
 @end
 
@@ -31,6 +40,7 @@
 
 static NSString * const blankReuseIdentifier = @"BlankCell";
 static NSString * const myProfileCellReuseIdentifier = @"MyProfileCell";
+static NSString * const spacerCellReuseIdentifier = @"SpacerCell";
 
 static NSString * const campCellIdentifier = @"CampCell";
 static NSString * const loadingCellIdentifier = @"LoadingCell";
@@ -72,19 +82,19 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
     self.navigationItem.leftBarButtonItem = self.cancelButton;
 }
 - (void)setupTableView {
-    self.tableView.backgroundColor = [UIColor tableViewBackgroundColor];
-    self.tableView.separatorStyle = UITableViewCellSeparatorStyleSingleLine;
-    self.tableView.separatorColor = [UIColor tableViewSeparatorColor];
-    self.tableView.separatorInset = UIEdgeInsetsMake(0, 70, 0, 0);
+    self.tableView.backgroundColor = [UIColor contentBackgroundColor];
+    self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+    self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
     
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:loadingCellIdentifier];
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:blankReuseIdentifier];
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:myProfileCellReuseIdentifier];
+    [self.tableView registerClass:[SpacerCell class] forCellReuseIdentifier:spacerCellReuseIdentifier];
     [self.tableView registerClass:[SearchResultCell class] forCellReuseIdentifier:campCellIdentifier];
 }
 
 - (void)loadCache {
-    NSArray *cache = [[PINCache sharedCache] objectForKey:@"my_camps_paged_cache"];
+    NSArray *cache = [[PINCache sharedCache] objectForKey:MY_CAMPS_CAN_POST_KEY];
     
     self.stream = [[CampListStream alloc] init];
     if (cache.count > 0) {
@@ -102,8 +112,18 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
     }
 }
 
+- (void)saveCacheIfNeeded {
+    NSMutableArray *newCache = [[NSMutableArray alloc] init];
+    
+    for (NSInteger i = 0; i < self.stream.pages.count; i++) {
+        [newCache addObject:[self.stream.pages[i] toDictionary]];
+    }
+    
+    [[PINCache sharedCache] setObject:[newCache copy] forKey:MY_CAMPS_CAN_POST_KEY];
+}
+
 - (void)getCampsWithCursor:(StreamPagingCursorType)cursorType {
-    NSString *url = [NSString stringWithFormat:@"users/%@/camps", [Session sharedInstance].currentUser.identifier];
+    NSString *url = [NSString stringWithFormat:@"users/%@/camps?filter_types=can_post", [Session sharedInstance].currentUser.identifier];
     
     NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
     
@@ -119,9 +139,19 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
     }
     else {
         self.loadingCamps = true;
+        [self.tableView reloadData];
+    }
+    
+    if (self.searchPhrase && self.searchPhrase.length > 0) {
+        [params setObject:self.searchPhrase forKey:@"s"];
     }
     
     [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        if (params[@"s"] && ![params[@"s"] isEqualToString:self.searchPhrase]) {
+            NSLog(@"search phrase has changed");
+            return;
+        }
+        
         CampListStreamPage *page = [[CampListStreamPage alloc] initWithDictionary:responseObject error:nil];
         
         if (page.data.count > 0) {
@@ -133,6 +163,8 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
                 self.stream = [[CampListStream alloc] init];
             }
             [self.stream appendPage:page];
+            
+            [self saveCacheIfNeeded];
         }
         
         self.loadingCamps = false;
@@ -168,13 +200,14 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (indexPath.section == 0) {
+    if (indexPath.section == 0 && indexPath.row == 0) {
         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:myProfileCellReuseIdentifier forIndexPath:indexPath];
         
         cell.selectionStyle = UITableViewCellSelectionStyleNone;
         
         UILabel *label = [cell viewWithTag:10];
         UIImageView *checkIcon = [cell viewWithTag:11];
+        UIView *separator = [cell viewWithTag:12];
         if (!label) {
             cell.contentView.backgroundColor = [UIColor contentBackgroundColor];
             
@@ -197,8 +230,14 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
             checkIcon.tintColor = self.view.tintColor;
             checkIcon.hidden = true;
             [cell.contentView addSubview:checkIcon];
+            
+            separator = [[UIView alloc] initWithFrame:CGRectMake(label.frame.origin.x, cell.frame.size.height - HALF_PIXEL, self.view.frame.size.width - label.frame.origin.x, HALF_PIXEL)];
+            separator.backgroundColor = [UIColor tableViewSeparatorColor];
+            separator.tag = 12;
+            [cell.contentView addSubview:separator];
         }
         checkIcon.hidden = (self.currentSelection != nil);
+        separator.hidden = self.stream.camps.count == 0;
         
         return cell;
     }
@@ -215,6 +254,7 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
         cell.tintColor = self.view.tintColor;
         cell.checkIcon.hidden = ![camp.identifier isEqualToString:self.currentSelection.identifier];
         cell.checkIcon.tintColor = self.view.tintColor;
+        cell.lineSeparator.hidden = (self.stream.camps.count == indexPath.row + 1);
         
         return cell;
     }
@@ -244,40 +284,72 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    if (section == 0) return 0;
-    if (section == 1 && (self.loadingCamps || self.stream.camps.count > 0)) return [BFHeaderView height];
+    if (section == -1) {
+        return 52;
+    }
     
     return 0;
 }
 
 - (nullable UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
-    if (section == 0) return nil;
-    
-    if (section == 1) {
-        BFHeaderView *header = [[BFHeaderView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, [BFHeaderView height])];
+    if (section == -1) {
+        UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 52)];
+        header.backgroundColor = [UIColor whiteColor];
         
-        header.bottomLineSeparator.hidden = true;
-        
-        if (section == 1) {
-            if (self.loadingCamps || self.stream.camps.count > 0) {
-               header.title = @"My Camps";
-            }
-            else {
-                header.title = @"";
-            }
-        }
+        // search view
+        self.searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(12, 8, self.view.frame.size.width - (12 * 2), 36)];
+        self.searchView.placeholder = @"Search Available Camps";
+        [self.searchView updateSearchText:self.searchPhrase];
+        self.searchView.textField.tintColor = self.view.tintColor;
+        self.searchView.textField.delegate = self;
+        [self.searchView.textField bk_addEventHandler:^(id sender) {
+            self.searchPhrase = self.searchView.textField.text;
+            
+            [self.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:NO];
+            [self getCampsWithCursor:StreamPagingCursorTypeNone];
+            [self.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:NO];
+        } forControlEvents:UIControlEventEditingChanged];
+        [header addSubview:self.searchView];
         
         return header;
     }
     
     return nil;
 }
+
+- (void)textFieldDidBeginEditing:(UITextField *)textField {
+    [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.8f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+        [self.searchView setPosition:BFSearchTextPositionLeft];
+    } completion:nil];
+}
+- (void)textFieldDidEndEditing:(UITextField *)textField {
+    self.searchView.textField.userInteractionEnabled = false;
+    
+    [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.8f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+        [self.searchView setPosition:BFSearchTextPositionCenter];
+    } completion:^(BOOL finished) {
+        
+    }];
+}
+- (BOOL)textFieldShouldReturn:(UITextField *)textField {
+    [self.searchView.textField resignFirstResponder];
+    
+    return FALSE;
+}
+
 - (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
     if (section == 1) {
         BOOL hasAnotherPage = self.stream.pages.count > 0 && self.stream.nextCursor.length > 0;
         BOOL showLoadingFooter = self.loadingCamps || ((self.loadingMoreCamps || hasAnotherPage) && ![self.stream hasLoadedCursor:self.stream.nextCursor]);
         
-        return showLoadingFooter ? 52 : 0;
+        if  (showLoadingFooter) {
+            return 52;
+        }
+        else if (self.stream.camps.count > 0) {
+            CGSize labelSize = [AVAILABLE_CAMPS_DESCRIPTION boundingRectWithSize:CGSizeMake(self.view.frame.size.width - 24, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:12.f weight:UIFontWeightRegular]} context:nil].size;
+            
+            return labelSize.height + (12 * 2); // 24 padding on top and bottom
+        }
     }
     
     return CGFLOAT_MIN;
@@ -301,6 +373,25 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
             if (!self.loadingMoreCamps && self.stream.pages.count > 0 && self.stream.nextCursor.length > 0) {
                 [self getCampsWithCursor:StreamPagingCursorTypeNext];
             }
+            
+            return footer;
+        }
+        else {
+            UIView *footer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 90)];
+            
+            UILabel *descriptionLabel = [[UILabel alloc] initWithFrame:CGRectMake(12, 12, footer.frame.size.width - 24, 42)];
+            descriptionLabel.text = AVAILABLE_CAMPS_DESCRIPTION;
+            descriptionLabel.textColor = [UIColor bonfireSecondaryColor];
+            descriptionLabel.font = [UIFont systemFontOfSize:12.f weight:UIFontWeightRegular];
+            descriptionLabel.textAlignment = NSTextAlignmentLeft;
+            descriptionLabel.numberOfLines = 0;
+            descriptionLabel.lineBreakMode = NSLineBreakByWordWrapping;
+            
+            CGSize labelSize = [descriptionLabel.text boundingRectWithSize:CGSizeMake(descriptionLabel.frame.size.width, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:descriptionLabel.font} context:nil].size;
+            descriptionLabel.frame = CGRectMake(descriptionLabel.frame.origin.x, descriptionLabel.frame.origin.y, descriptionLabel.frame.size.width, labelSize.height);
+            [footer addSubview:descriptionLabel];
+            
+            footer.frame = CGRectMake(0, 0, footer.frame.size.width, descriptionLabel.frame.size.height + (descriptionLabel.frame.origin.y*2));
             
             return footer;
         }

@@ -29,6 +29,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (strong, nonatomic) UIImageView *customColorView;
 @property (strong, nonatomic) UITextField *customColorTextField;
 
+@property (strong, nonatomic) UIView *bottomSeparator;
+
 @property (nonatomic, weak) id <ThemeSelectorDelegate> delegate;
 
 @end

@@ -213,11 +213,9 @@
         
         NSMutableArray *details = [[NSMutableArray alloc] init];
         if (camp.attributes.identifier.length > 0 || camp.identifier.length > 0) {
-            if (self.camp.attributes.visibility != nil) {
-                BFDetailItem *visibility = [[BFDetailItem alloc] initWithType:(camp.attributes.visibility.isPrivate ? BFDetailItemTypePrivacyPrivate : BFDetailItemTypePrivacyPublic) value:(camp.attributes.visibility.isPrivate ? @"Private" : @"Public") action:nil];
-                visibility.selectable = false;
-                [details addObject:visibility];
-            }
+            BFDetailItem *visibility = [[BFDetailItem alloc] initWithType:([camp isPrivate] ? BFDetailItemTypePrivacyPrivate : BFDetailItemTypePrivacyPublic) value:([camp isPrivate] ? @"Private" : @"Public") action:nil];
+            visibility.selectable = false;
+            [details addObject:visibility];
             
             if (self.camp.attributes.summaries.counts != nil) {
                 BFDetailItem *members = [[BFDetailItem alloc] initWithType:BFDetailItemTypeMembers value:[NSString stringWithFormat:@"%ld", (long)camp.attributes.summaries.counts.members] action:nil];
@@ -234,6 +232,10 @@
         
         [self resizeHeight];
     }
+}
+
+- (CGFloat)height {
+    return [BFCampAttachmentView heightForCamp:self.camp width:self.frame.size.width];
 }
 
 + (CGFloat)heightForCamp:(Camp *)camp  width:(CGFloat)width {
@@ -283,34 +285,28 @@
         height += CAMP_ATTACHMENT_USERNAME_BOTTOM_PADDING + bioHeight;
     }
     
-    if (camp.attributes.visibility != nil || camp.attributes.summaries.counts != nil) {
-        CGFloat detailsHeight = 0;
-        NSMutableArray *details = [[NSMutableArray alloc] init];
-        
-        if (camp.attributes.visibility != nil) {
-            BFDetailItem *visibility = [[BFDetailItem alloc] initWithType:(camp.attributes.visibility.isPrivate ? BFDetailItemTypePrivacyPrivate : BFDetailItemTypePrivacyPublic) value:(camp ? @"Private" : @"Public") action:nil];
-            [details addObject:visibility];
-        }
-        
-        if (camp.attributes.summaries.counts != nil) {
-            BFDetailItem *members = [[BFDetailItem alloc] initWithType:BFDetailItemTypeMembers value:[NSString stringWithFormat:@"%ld", (long)camp.attributes.summaries.counts.members] action:nil];
-            [details addObject:members];
-        }
-                
-        if (details.count > 0) {
-            BFDetailsCollectionView *detailCollectionView = [[BFDetailsCollectionView alloc] initWithFrame:CGRectMake(CAMP_ATTACHMENT_EDGE_INSETS.left, 0, width - CAMP_ATTACHMENT_EDGE_INSETS.left - CAMP_ATTACHMENT_EDGE_INSETS.right, 16)];
-            detailCollectionView.delegate = detailCollectionView;
-            detailCollectionView.dataSource = detailCollectionView;
-            [detailCollectionView setDetails:details];
-            
-            detailsHeight = detailCollectionView.collectionViewLayout.collectionViewContentSize.height;
-            NSLog(@"details height: %f", detailsHeight);
-            height = height + (camp.attributes.theDescription.length > 0 ? CAMP_ATTACHMENT_DESCRIPTION_BOTTOM_PADDING : CAMP_ATTACHMENT_USERNAME_BOTTOM_PADDING) + detailsHeight;
-        }
+    CGFloat detailsHeight = 0;
+    NSMutableArray *details = [[NSMutableArray alloc] init];
+    
+    BFDetailItem *visibility = [[BFDetailItem alloc] initWithType:([camp isPrivate] ? BFDetailItemTypePrivacyPrivate : BFDetailItemTypePrivacyPublic) value:([camp isPrivate] ? @"Private" : @"Public") action:nil];
+    [details addObject:visibility];
+    
+    if (camp.attributes.summaries.counts != nil) {
+        BFDetailItem *members = [[BFDetailItem alloc] initWithType:BFDetailItemTypeMembers value:[NSString stringWithFormat:@"%ld", (long)camp.attributes.summaries.counts.members] action:nil];
+        [details addObject:members];
     }
     
-    NSLog(@"camp height: %f", height + CAMP_ATTACHMENT_EDGE_INSETS.bottom);
-    
+    if (details.count > 0) {
+        BFDetailsCollectionView *detailCollectionView = [[BFDetailsCollectionView alloc] initWithFrame:CGRectMake(CAMP_ATTACHMENT_EDGE_INSETS.left, 0, width - CAMP_ATTACHMENT_EDGE_INSETS.left - CAMP_ATTACHMENT_EDGE_INSETS.right, 16)];
+        detailCollectionView.delegate = detailCollectionView;
+        detailCollectionView.dataSource = detailCollectionView;
+        [detailCollectionView setDetails:details];
+        
+        detailsHeight = detailCollectionView.collectionViewLayout.collectionViewContentSize.height;
+
+        height = height + (camp.attributes.theDescription.length > 0 ? CAMP_ATTACHMENT_DESCRIPTION_BOTTOM_PADDING : CAMP_ATTACHMENT_USERNAME_BOTTOM_PADDING) + detailsHeight;
+    }
+        
     return height + CAMP_ATTACHMENT_EDGE_INSETS.bottom;
 }
 

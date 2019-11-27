@@ -4,18 +4,17 @@
  */
 
 #import <Foundation/Foundation.h>
-#import <JSONModel/JSONModel.h>
+#import "BFJSONModel.h"
 #import "CampSummaries.h"
 #import "BFContext.h"
 #import "CampMedia.h"
-#import "CampVisibility.h"
 #import "BFLink.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 @class CampDisplay;
 
-@interface CampAttributes : JSONModel
+@interface CampAttributes : BFJSONModel
 
 @property (nonatomic) CampSummaries <Optional> *summaries;
 @property (nonatomic) BFContext <Optional> *context;
@@ -30,7 +29,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 // status
 @property (nonatomic) BOOL isSuspended; // derived from "suspended"
-@property (nonatomic) CampVisibility *visibility;
 @property (nonatomic) NSString <Optional> *createdAt;
 @property (nonatomic) BOOL isVerified; // derived from "verified"
 
@@ -39,7 +37,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @end
 
-@interface CampDisplay : JSONModel
+@interface CampDisplay : BFJSONModel
 
 extern NSString * const CAMP_DISPLAY_FORMAT_CHANNEL;
 @property (nonatomic) NSString <Optional> *format;

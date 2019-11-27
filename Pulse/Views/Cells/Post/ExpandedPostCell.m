@@ -52,8 +52,11 @@
             if ([self.post.attributes.display.creator isEqualToString:POST_DISPLAY_CREATOR_CAMP] && self.post.attributes.postedIn != nil) {
                 [Launcher openCamp:self.post.attributes.postedIn];
             }
-            else if (self.post.attributes.creator != nil) {
-                [Launcher openProfile:self.post.attributes.creator];
+            else if (self.post.attributes.creatorBot != nil) {
+                [Launcher openBot:self.post.attributes.creatorBot];
+            }
+            else if (self.post.attributes.creatorUser != nil) {
+                [Launcher openProfile:self.post.attributes.creatorUser];
             }
         }];
         [self.contentView addSubview:self.creatorView];
@@ -68,7 +71,7 @@
         self.creatorTagLabel.textColor = [UIColor bonfireSecondaryColor];
         [self.creatorView addSubview:self.creatorTagLabel];
         
-        self.postedInArrow = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"postedInTriangleIcon-1"]];
+        self.postedInArrow = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"postedInTriangleIcon"]];
         self.postedInArrow.hidden = true;
         [self.contentView addSubview:self.postedInArrow];
         
@@ -109,6 +112,7 @@
         self.textView.frame = CGRectMake(expandedPostContentOffset.left, self.primaryAvatarView.frame.origin.y + self.primaryAvatarView.frame.size.height + 12, [UIScreen mainScreen].bounds.size.width - expandedPostContentOffset.right - expandedPostContentOffset.left, 200);
         self.textView.messageLabel.font = expandedTextViewFont;
         self.textView.messageLabel.selectable = true;
+        self.textView.messageLabel.editable = true;
         self.textView.delegate = self;
         self.textView.maxCharacters = 10000;
         self.textView.postId = self.post.identifier;
@@ -146,9 +150,7 @@
         [self.contentView addSubview:self.actionsView];
         
         self.moreButton.hidden = true;
-        
-        self.imagesView.layer.cornerRadius = 0;
-        
+                
         self.lineSeparator.hidden = false;
         self.lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
         [self bringSubviewToFront:self.lineSeparator];
@@ -230,7 +232,7 @@
         if (hasImage) {
             self.imagesView.hidden = false;
             
-            CGFloat imageWidth = self.frame.size.width;
+            CGFloat imageWidth = self.frame.size.width - (expandedPostContentOffset.left + expandedPostContentOffset.right);
             CGFloat imageHeight = expandedImageHeightDefault;
             
             if (self.post.attributes.attachments.media.count == 1 && [[self.post.attributes.attachments.media firstObject] isKindOfClass:[PostAttachmentsMedia class]]) {
@@ -272,7 +274,7 @@
                 }
             }
             
-            self.imagesView.frame = CGRectMake(0, yBottom + (self.textView.message.length > 0 || ![self.replyingToButton isHidden] ? 8 : 0), imageWidth, imageHeight);
+            self.imagesView.frame = CGRectMake(expandedPostContentOffset.left, yBottom + (self.textView.message.length > 0 || ![self.replyingToButton isHidden] ? 8 : 0), imageWidth, imageHeight);
             
             yBottom = self.imagesView.frame.origin.y + self.imagesView.frame.size.height;
         }
@@ -285,6 +287,34 @@
             self.linkAttachmentView.frame = CGRectMake(expandedPostContentOffset.left, yBottom + 8, self.frame.size.width - expandedPostContentOffset.left - expandedPostContentOffset.right, [BFLinkAttachmentView heightForLink:self.linkAttachmentView.link width: self.frame.size.width-(expandedPostContentOffset.left+expandedPostContentOffset.right)]);
             
             yBottom = self.linkAttachmentView.frame.origin.y + self.linkAttachmentView.frame.size.height;
+        }
+        
+        if (self.smartLinkAttachmentView) {
+            [self.smartLinkAttachmentView layoutSubviews];
+            self.smartLinkAttachmentView.frame = CGRectMake(expandedPostContentOffset.left, yBottom + 8, self.frame.size.width - expandedPostContentOffset.left - expandedPostContentOffset.right, [BFSmartLinkAttachmentView heightForSmartLink:self.smartLinkAttachmentView.link width: self.frame.size.width-(expandedPostContentOffset.left+expandedPostContentOffset.right) showActionButton:true]);
+            
+            yBottom = self.smartLinkAttachmentView.frame.origin.y + self.smartLinkAttachmentView.frame.size.height;
+        }
+        
+        if (self.userAttachmentView) {
+            [self.userAttachmentView layoutSubviews];
+            self.userAttachmentView.frame = CGRectMake(expandedPostContentOffset.left, yBottom + 8, self.frame.size.width - expandedPostContentOffset.left - expandedPostContentOffset.right, [BFUserAttachmentView heightForUser:self.userAttachmentView.user width: self.frame.size.width-(expandedPostContentOffset.left+expandedPostContentOffset.right)]);
+            
+            yBottom = self.userAttachmentView.frame.origin.y + self.userAttachmentView.frame.size.height;
+        }
+        
+        if (self.campAttachmentView) {
+            [self.campAttachmentView layoutSubviews];
+            self.campAttachmentView.frame = CGRectMake(expandedPostContentOffset.left, yBottom + 8, self.frame.size.width - expandedPostContentOffset.left - expandedPostContentOffset.right, [BFCampAttachmentView heightForCamp:self.campAttachmentView.camp width: self.frame.size.width-(expandedPostContentOffset.left+expandedPostContentOffset.right)]);
+            
+            yBottom = self.campAttachmentView.frame.origin.y + self.campAttachmentView.frame.size.height;
+        }
+        
+        if (self.postAttachmentView) {
+            [self.postAttachmentView layoutSubviews];
+            self.postAttachmentView.frame = CGRectMake(expandedPostContentOffset.left, yBottom + 8, self.frame.size.width - expandedPostContentOffset.left - expandedPostContentOffset.right, [BFPostAttachmentView heightForPost:self.postAttachmentView.post width: self.frame.size.width-(expandedPostContentOffset.left+expandedPostContentOffset.right)]);
+            
+            yBottom = self.postAttachmentView.frame.origin.y + self.postAttachmentView.frame.size.height;
         }
         
         self.actionsView.frame = CGRectMake(expandedPostContentOffset.left, yBottom + 20, self.frame.size.width - (expandedPostContentOffset.left + expandedPostContentOffset.right), self.actionsView.frame.size.height);
@@ -333,16 +363,6 @@
     if (!animated || (animated && isVoted != self.voted)) {
         self.voted = isVoted;
         
-        if (animated && self.voted) {
-            [UIView animateWithDuration:1.9f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:(UIViewAnimationOptionCurveEaseOut|UIViewAnimationOptionAllowUserInteraction) animations:^{
-                self.actionsView.voteButton.transform = CGAffineTransformMakeScale(1.2, 1.2);
-            } completion:^(BOOL finished) {
-                [UIView animateWithDuration:1.2f delay:0.2f usingSpringWithDamping:0.4f initialSpringVelocity:0.5f options:(UIViewAnimationOptionCurveEaseOut|UIViewAnimationOptionAllowUserInteraction) animations:^{
-                    self.actionsView.voteButton.transform = CGAffineTransformMakeScale(1, 1);
-                } completion:nil];
-            }];
-        }
-        
         if (self.voted) {
             [self.actionsView.voteButton setImage:[[UIImage imageNamed:@"boltIcon_active"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
         }
@@ -380,11 +400,25 @@
         BOOL removed = [self.post isRemoved];
         self.actionsView.hidden = removed;
         self.activityView.hidden = removed;
+        self.textView.hidden = removed;
         if (removed) {
             [self initPostRemovedAttachment];
             
+            // remove unnceeded attachment views, if needed
             if (self.linkAttachmentView) {
                 [self removeLinkAttachment];
+            }
+            if (self.smartLinkAttachmentView) {
+                [self removeSmartLinkAttachment];
+            }
+            if (self.campAttachmentView) {
+                [self removeCampAttachment];
+            }
+            if (self.userAttachmentView) {
+                [self removeUserAttachment];
+            }
+            if (self.postAttachmentView) {
+                [self removePostAttachment];
             }
         }
         else {
@@ -406,13 +440,47 @@
             }
             [self.imagesView setMedia:media];
             
+            // smart link attachment
             if ([self.post hasLinkAttachment]) {
-                [self initLinkAttachment];
+                if ([self.post.attributes.attachments.link isSmartLink]) {
+                    [self initSmartLinkAttachment];
+                    [self removeLinkAttachment];
+                }
+                else {
+                    [self initLinkAttachment];
+                    [self removeSmartLinkAttachment];
+                }
             }
-            else if (self.linkAttachmentView) {
+            else {
+                [self removeSmartLinkAttachment];
                 [self removeLinkAttachment];
             }
             
+            // camp attachment
+            if ([self.post hasCampAttachment]) {
+                [self initCampAttachment];
+            }
+            else if (self.campAttachmentView) {
+                [self removeCampAttachment];
+            }
+            
+            // user attachment
+            if ([self.post hasUserAttachment]) {
+                [self initUserAttachment];
+            }
+            else if (self.userAttachmentView) {
+                [self removeUserAttachment];
+            }
+            
+            // post attachment
+            if ([self.post hasPostAttachment]) {
+                [self initPostAttachment];
+            }
+            else if (self.postAttachmentView) {
+                [self removePostAttachment];
+            }
+            
+            // post removed attachment
             if (self.postRemovedAttachmentView) {
                 [self removePostRemovedAttachment];
             }
@@ -505,8 +573,13 @@
             }
         }
         else {
-            if (self.primaryAvatarView.user != _post.attributes.creator) {
-                self.primaryAvatarView.user = _post.attributes.creator;
+            if (self.primaryAvatarView.user != _post.attributes.creator && self.primaryAvatarView.bot != _post.attributes.creator) {
+                if (_post.attributes.creatorUser) {
+                    self.primaryAvatarView.user = _post.attributes.creatorUser;
+                }
+                else if (_post.attributes.creatorBot) {
+                    self.primaryAvatarView.bot = _post.attributes.creatorBot;
+                }
             }
         }
         self.primaryAvatarView.online = false;
@@ -558,7 +631,7 @@
             height = height + 8;
         }
         
-        CGFloat imageWidth = contentWidth;
+        CGFloat imageWidth = contentWidth - (expandedPostContentOffset.left + expandedPostContentOffset.right);
         CGFloat imageHeight = expandedImageHeightDefault;
         
         if (post.attributes.attachments.media.count == 1 && [[post.attributes.attachments.media firstObject] isKindOfClass:[PostAttachmentsMedia class]]) {
@@ -603,10 +676,37 @@
         }
         
         // 4 on top and 4 on bottom
-        BOOL hasLinkPreview = [post hasLinkAttachment];
-        if (hasLinkPreview) {
-            CGFloat linkPreviewHeight = hasLinkPreview ? [BFLinkAttachmentView heightForLink:post.attributes.attachments.link  width:contentWidth-expandedPostContentOffset.left-expandedPostContentOffset.right] : 0; // 8 above
+        if ([post hasLinkAttachment]) {
+            CGFloat linkPreviewHeight;
+            if ([post.attributes.attachments.link isSmartLink]) {
+                linkPreviewHeight = [BFSmartLinkAttachmentView heightForSmartLink:post.attributes.attachments.link  width:contentWidth-expandedPostContentOffset.left-expandedPostContentOffset.right showActionButton:true];
+            }
+            else {
+                linkPreviewHeight = [BFLinkAttachmentView heightForLink:post.attributes.attachments.link  width:contentWidth-expandedPostContentOffset.left-expandedPostContentOffset.right];
+            }
+            
             height += linkPreviewHeight + 8; // 8 above
+        }
+        
+        if ([post hasCampAttachment]) {
+            Camp *camp = post.attributes.attachments.camp;
+            
+            CGFloat campAttachmentHeight = [BFCampAttachmentView heightForCamp:camp width:contentWidth-expandedPostContentOffset.left-expandedPostContentOffset.right];
+            height = height + campAttachmentHeight + 8; // 8 above
+        }
+        
+        if ([post hasUserAttachment]) {
+            User *user = post.attributes.attachments.user;
+            
+            CGFloat userAttachmentHeight = [BFUserAttachmentView heightForUser:user width:contentWidth-expandedPostContentOffset.left-expandedPostContentOffset.right];
+            height = height + userAttachmentHeight + 8; // 8 above
+        }
+        
+        if ([post hasPostAttachment]) {
+            Post *quotedPost = post.attributes.attachments.post;
+            
+            CGFloat postAttachmentHeight = [BFPostAttachmentView heightForPost:quotedPost width:contentWidth-expandedPostContentOffset.left-expandedPostContentOffset.right];
+            height += postAttachmentHeight + 8; // 8 above
         }
         
         // actions

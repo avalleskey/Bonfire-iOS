@@ -12,6 +12,7 @@
 #import <HapticHelper/HapticHelper.h>
 #import "Session.h"
 #import "UIColor+Palette.h"
+#import "BFAlertController.h"
 
 #define UIViewParentController(__view) ({ \
                                         UIResponder *__responder = __view; \
@@ -136,7 +137,7 @@
             
             if ([self.followButton.status isEqualToString:CAMP_STATUS_MEMBER]) {
                 // confirm action
-                BOOL privateCamp = self.camp.attributes.visibility.isPrivate;
+                BOOL privateCamp = [self.camp isPrivate];
                 BOOL lastMember = self.camp.attributes.summaries.counts.members <= 1;
                 
                 void (^leave)(void) = ^(){
@@ -158,17 +159,17 @@
                         message = @"You will no longer have access to this Camp's posts";
                     }
                     
-                    UIAlertController *confirmDeletePostActionSheet = [UIAlertController alertControllerWithTitle:@"Leave Camp?" message:message preferredStyle:UIAlertControllerStyleAlert];
+                    BFAlertController *confirmDeletePostActionSheet = [BFAlertController alertControllerWithTitle:@"Leave Camp?" message:message preferredStyle:BFAlertControllerStyleAlert];
                     
-                    UIAlertAction *confirmLeaveCamp = [UIAlertAction actionWithTitle:@"Leave" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+                    BFAlertAction *confirmLeaveCamp = [BFAlertAction actionWithTitle:@"Leave" style:BFAlertActionStyleDestructive handler:^{
                         leave();
                     }];
                     [confirmDeletePostActionSheet addAction:confirmLeaveCamp];
                     
-                    UIAlertAction *cancelLeaveCamp = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
+                    BFAlertAction *cancelLeaveCamp = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
                     [confirmDeletePostActionSheet addAction:cancelLeaveCamp];
                     
-                    [UIViewParentController(self) presentViewController:confirmDeletePostActionSheet animated:YES completion:nil];
+                    [UIViewParentController(self) presentViewController:confirmDeletePostActionSheet animated:true completion:nil];
                 }
                 else {
                     leave();
@@ -185,7 +186,7 @@
                  [self.followButton.status isEqualToString:CAMP_STATUS_INVITED] ||
                  self.followButton.status.length == 0) {
             // join the camp
-            if (self.camp.attributes.visibility.isPrivate &&
+            if ([self.camp isPrivate] &&
                 ![self.followButton.status isEqualToString:CAMP_STATUS_INVITED]) {
                 [self.followButton updateStatus:CAMP_STATUS_REQUESTED];
             }

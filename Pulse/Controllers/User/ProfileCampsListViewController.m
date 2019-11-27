@@ -19,7 +19,7 @@
 
 #define MY_CAMPS_CACHE_KEY @"my_camps_paged_cache"
 
-@interface ProfileCampsListViewController ()
+@interface ProfileCampsListViewController () <CampListStreamDelegate>
 
 @property (nonatomic, strong) CampListStream *stream;
 
@@ -64,6 +64,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
     self.tableView.separatorInset = UIEdgeInsetsMake(0, 70, 0, 0);
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
     self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
+    self.tableView.refreshControl = nil;
     
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:blankReuseIdentifier];
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:emptySectionCellIdentifier];
@@ -71,10 +72,15 @@ static NSString * const memberCellIdentifier = @"MemberCell";
     [self.tableView registerClass:[SearchResultCell class] forCellReuseIdentifier:memberCellIdentifier];
 
     self.stream = [[CampListStream alloc] init];
+    self.stream.delegate = self;
     // load cache
     if ([self isCurrentUser]) {
         [self loadCache];
     }
+}
+
+- (void)campListStreamDidUpdate:(CampListStream *)stream {
+    [self.tableView reloadData];
 }
 
 - (void)setupErrorView {
@@ -93,6 +99,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
     NSArray *cache = [[PINCache sharedCache] objectForKey:MY_CAMPS_CACHE_KEY];
     
     self.stream = [[CampListStream alloc] init];
+    self.stream.delegate = self;
     if (cache.count > 0) {
         for (NSDictionary *pageDict in cache) {
             CampListStreamPage *page = [[CampListStreamPage alloc] initWithDictionary:pageDict error:nil];
@@ -152,6 +159,12 @@ static NSString * const memberCellIdentifier = @"MemberCell";
             
             [self saveCacheIfNeeded];
         }
+        else if (cursorType == StreamPagingCursorTypeNone) {
+            self.stream = [[CampListStream alloc] init];
+            
+            [self saveCacheIfNeeded];
+        }
+        self.stream.delegate = self;
         
         if (self.stream.camps.count == 0) {
             self.errorView.hidden = false;
@@ -218,6 +231,8 @@ static NSString * const memberCellIdentifier = @"MemberCell";
         if (cell == nil) {
             cell = [[SearchResultCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:memberCellIdentifier];
         }
+        
+        cell.showActionButton = true;
         
         Camp *camp = self.stream.camps[indexPath.row];
         cell.camp = camp;

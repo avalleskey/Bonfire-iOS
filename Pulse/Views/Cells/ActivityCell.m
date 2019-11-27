@@ -42,21 +42,21 @@
         self.profilePicture.openOnTap = true;
         [self.contentView addSubview:self.profilePicture];
         
-        self.typeIndicator = [[UIImageView alloc] initWithFrame:CGRectMake(self.profilePicture.frame.origin.x + self.profilePicture.frame.size.width - 20, self.profilePicture.frame.origin.y + self.profilePicture.frame.size.height - 20, 20, 20)];
+        self.typeIndicator = [[UIImageView alloc] initWithFrame:CGRectMake(2, 2, 20, 20)];
         self.typeIndicator.layer.cornerRadius = self.typeIndicator.frame.size.height / 2;
         self.typeIndicator.layer.masksToBounds = false;
         self.typeIndicator.backgroundColor = [UIColor bonfirePrimaryColor];
         self.typeIndicator.contentMode = UIViewContentModeCenter;
         self.typeIndicator.tintColor = [UIColor contentBackgroundColor];
-        [self.contentView addSubview:self.typeIndicator];
         
         // blur bg
         UIView *typeBackgroundBlurView = [[UIView alloc] init];
-        typeBackgroundBlurView.frame = CGRectMake(self.typeIndicator.frame.origin.x - 2, self.typeIndicator.frame.origin.y - 2, self.typeIndicator.frame.size.width + 4, self.typeIndicator.frame.size.height + 4);
+        typeBackgroundBlurView.frame = CGRectMake(self.profilePicture.frame.origin.x + self.profilePicture.frame.size.width - 20, self.profilePicture.frame.origin.y + self.profilePicture.frame.size.height - (self.typeIndicator.frame.size.height + 4) + 4, self.typeIndicator.frame.size.width + 4, self.typeIndicator.frame.size.height + 4);
         typeBackgroundBlurView.backgroundColor = [UIColor contentBackgroundColor];
         typeBackgroundBlurView.layer.cornerRadius = typeBackgroundBlurView.frame.size.height / 2;
         typeBackgroundBlurView.layer.masksToBounds = true;
-        [self.contentView insertSubview:typeBackgroundBlurView belowSubview:self.typeIndicator];
+        [typeBackgroundBlurView addSubview:self.typeIndicator];
+        [self.contentView addSubview:typeBackgroundBlurView];
         
         self.textLabel.frame = CGRectMake(ACTIVITY_CELL_CONTENT_INSET.left, ACTIVITY_CELL_CONTENT_INSET.top + 6, self.frame.size.width - ACTIVITY_CELL_CONTENT_INSET.left - ACTIVITY_CELL_CONTENT_INSET.right, 32);
         self.textLabel.font = [UIFont systemFontOfSize:15.f];
@@ -142,7 +142,7 @@
 
 - (void)updateActivityType {
     // if type is unknown, hide the indicator
-    self.typeIndicator.hidden = (self.activity.type == USER_ACTIVITY_TYPE_UNKNOWN);
+    self.typeIndicator.superview.hidden = (self.activity.type == USER_ACTIVITY_TYPE_UNKNOWN);
     if (self.activity.attributes.type == USER_ACTIVITY_TYPE_USER_FOLLOW) {
         self.typeIndicator.image = [UIImage imageNamed:@"notificationIndicator_profile"];
         self.typeIndicator.backgroundColor = [UIColor bonfireBlue];
@@ -172,10 +172,6 @@
         self.typeIndicator.image = [UIImage imageNamed:@"notificationIndicator_mention"];
         self.typeIndicator.backgroundColor = [UIColor colorWithRed:0.07 green:0.78 blue:1.00 alpha:1.0];
     }
-    else {
-        // unknown
-        self.typeIndicator.hidden = true;
-    }
     
     // init/remove attachments
     if ([ActivityCell includeUserAttachmentForActivity:self.activity]) {
@@ -193,7 +189,7 @@
 }
 
 + (BOOL)includeUserAttachmentForActivity:(UserActivity *)activity {
-    return activity.attributes.type == USER_ACTIVITY_TYPE_USER_FOLLOW && (activity.attributes.actioner.attributes.bio.length > 0 || activity.attributes.actioner.attributes.location.displayText.length > 0 || activity.attributes.actioner.attributes.website.displayText.length > 0);
+    return activity.attributes.type == USER_ACTIVITY_TYPE_USER_FOLLOW && (activity.attributes.actioner.attributes.bio.length > 0 || activity.attributes.actioner.attributes.location.displayText.length > 0 || activity.attributes.actioner.attributes.website.displayUrl.length > 0);
 }
 + (BOOL)includeCampAttachmentForActivity:(UserActivity *)activity {
     return activity.attributes.type == USER_ACTIVITY_TYPE_USER_ACCEPTED_ACCESS;
@@ -230,6 +226,13 @@
             else {
                 [self.imagePreview sd_setImageWithURL:[NSURL URLWithString:self.activity.attributes.post.attributes.attachments.media[0].attributes.hostedVersions.suggested.url]];
             }
+        }
+        
+        if (activity.attributes.read) {
+            self.contentView.backgroundColor = [UIColor contentBackgroundColor];
+        }
+        else {
+            self.contentView.backgroundColor = [UIColor colorNamed:@"NewBackgroundColor"];
         }
     }
 }
@@ -337,12 +340,22 @@
 - (void)setHighlighted:(BOOL)highlighted animated:(BOOL)animated {
     if (self.activity && highlighted) {
         [UIView animateWithDuration:0.15f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-            self.contentView.backgroundColor = [UIColor contentHighlightedColor];
+            if (self.activity.attributes.read) {
+                self.contentView.backgroundColor = [UIColor contentHighlightedColor];
+            }
+            else {
+                self.contentView.backgroundColor = [UIColor colorNamed:@"NewBackgroundColor_Highlighted"];
+            }
         } completion:nil];
     }
     else {
         [UIView animateWithDuration:0.15f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-            self.contentView.backgroundColor = [UIColor contentBackgroundColor];
+            if (self.activity.attributes.read) {
+                self.contentView.backgroundColor = [UIColor contentBackgroundColor];
+            }
+            else {
+                self.contentView.backgroundColor = [UIColor colorNamed:@"NewBackgroundColor"];
+            }
         } completion:nil];
     }
 }

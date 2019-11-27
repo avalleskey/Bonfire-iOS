@@ -15,6 +15,7 @@
 #import "UIColor+Palette.h"
 #import "NSString+Validation.h"
 #import "HAWebService.h"
+#import "BFAlertController.h"
 
 #import <JGProgressHUD/JGProgressHUD.h>
 #import <HapticHelper/HapticHelper.h>
@@ -409,12 +410,10 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
             self.nextButton.backgroundColor = self.view.tintColor;
             self.nextButton.userInteractionEnabled = true;
             
-            UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Password Doesn't Match" message:@"The passwords you provided don't match. Please try again or go back to set a new one." preferredStyle:UIAlertControllerStyleAlert];
-            UIAlertAction *gotItAction = [UIAlertAction actionWithTitle:@"Okay" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-                [alert dismissViewControllerAnimated:true completion:nil];
-            }];
+            BFAlertController *alert = [BFAlertController alertControllerWithTitle:@"Password Doesn't Match" message:@"The passwords you provided don't match. Please try again or go back to set a new one." preferredStyle:BFAlertControllerStyleAlert];
+            BFAlertAction *gotItAction = [BFAlertAction actionWithTitle:@"Okay" style:BFAlertActionStyleCancel handler:nil];
             [alert addAction:gotItAction];
-            [self presentViewController:alert animated:YES completion:nil];
+            [self presentViewController:alert animated:true completion:nil];
         }
     }
 }

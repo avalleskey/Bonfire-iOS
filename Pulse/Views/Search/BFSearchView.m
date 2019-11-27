@@ -193,6 +193,16 @@
     }
 }
 
+- (void)setPlaceholder:(NSString *)placeholder {
+    if (![self.textField.placeholder isEqualToString:placeholder]) {        
+        self.textField.placeholder = placeholder;
+        
+        [self updateTextFieldRect];
+        
+        [self.textField layoutIfNeeded];
+    }
+}
+
 - (void)updateTextFieldRect {
     CGRect textLabelRect = [self textFieldRect];
     
@@ -237,7 +247,7 @@
         
         self.tintColor =
         self.textField.textColor = [UIColor blackColor];
-        self.searchIcon.alpha = 0.25;
+        self.searchIcon.alpha = 0.5;
     }
     else {
         // auto

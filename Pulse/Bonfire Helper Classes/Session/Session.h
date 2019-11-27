@@ -21,7 +21,10 @@ NS_ASSUME_NONNULL_BEGIN
 + (Session *)sharedInstance;
 
 @property (nonatomic, strong) HAWebService *manager;
+
+#pragma mark - Defaults
 @property (nonatomic, strong) Defaults *defaults;
+- (void)initDefaultsWithCompletion:(void (^_Nullable)(BOOL success))handler;
 
 
 #pragma mark - User

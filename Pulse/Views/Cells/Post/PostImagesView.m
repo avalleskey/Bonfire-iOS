@@ -39,6 +39,7 @@
 }
 
 - (void)setup {
+    self.backgroundColor = [UIColor colorWithWhite:0.5 alpha:0.2];
     self.layer.shouldRasterize = true;
     self.layer.rasterizationScale = [UIScreen mainScreen].scale;
     
@@ -67,7 +68,7 @@
     // Lay things out again
     [self layoutImageViews];
     
-    self.layer.borderColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.1f].CGColor;
+    self.layer.borderColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.12f].CGColor;
 }
 
 - (void)setMedia:(NSArray *)media {

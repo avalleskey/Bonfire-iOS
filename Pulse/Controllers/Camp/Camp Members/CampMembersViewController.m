@@ -24,6 +24,7 @@
 #import "AddManagerTableViewController.h"
 #import <JGProgressHUD/JGProgressHUD.h>
 #import "BFHeaderView.h"
+#import "BFAlertController.h"
 @import Firebase;
 
 #define section(section) self.tabs[activeTab].sections[section]
@@ -36,7 +37,9 @@
 
 @property (nonatomic, strong) ComplexNavigationController *launchNavVC;
 @property (nonatomic, strong) NSMutableArray <SmartList *> *tabs;
+
 @property (nonatomic, strong) NSString *searchPhrase;
+@property (nonatomic, strong) BFSearchView *searchView;
 
 @end
 
@@ -137,7 +140,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
         
         if ([list.identifier isEqualToString:@"pending"]) {
             // don't include the pending tab if the person isn't a member or the camp is public
-            if (![self isMember] || ![self isPrivate]) continue;
+            if (![self isMember] || ![self.camp isPrivate]) continue;
         }
         
         [self.tabs addObject:list];
@@ -273,14 +276,14 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
             }
         }
         
-        [self loadTabData];
+        [self loadTabData:false];
     }
 }
-- (void)loadTabData {
+- (void)loadTabData:(BOOL)forceRefresh {
     for (NSInteger i = 0; i < self.tabs[activeTab].sections.count; i++) {
         // load each section as needed
         SmartListSection *section = self.tabs[activeTab].sections[i];
-        if (section.state == SmartListStateEmpty) {
+        if (section.state == SmartListStateEmpty || forceRefresh) {
             // need to load it!
             [self loadDataForSection:section cursorType:StreamPagingCursorTypeNone];
         }
@@ -320,13 +323,8 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     NSLog(@"final url: %@", url);
     
     NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
-    [params setObject:[NSNumber numberWithInt:10] forKey:@"limit"];
     if (self.searchPhrase && self.searchPhrase.length > 0) {
         [params setObject:self.searchPhrase forKey:@"s"];
-    }
-    if (section.data.count > 0) {
-        // add cursor ish so it pages
-        
     }
     
     NSString *nextCursor = [section.userStream nextCursor];
@@ -396,9 +394,6 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
 }
 - (BOOL)isAdmin {
     return [self.camp.attributes.context.camp.membership.role.type isEqualToString:CAMP_ROLE_ADMIN];
-}
-- (BOOL)isPrivate {
-    return [self.camp.attributes.visibility isPrivate];
 }
 
 #pragma mark - Table view data source
@@ -729,10 +724,9 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
         s.data.count == 0) {
         return 110;
     }
-    /* MEMBERS SEARCH CAPABILITY -- currently blocked by backend
-    else if ([s.identifier isEqualToString:@"members_current"]) {
+    else if ([s.identifier isEqualToString:@"members_current"] && (self.searchPhrase.length > 0 || [self.tableView numberOfRowsInSection:0] > 100000)) {
         return 52;
-    }*/
+    }
     
     if (s.title) return [BFHeaderView height];
     
@@ -779,25 +773,31 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
         
         return header;
     }
-    /* MEMBERS SEARCH CAPABILITY -- currently blocked by backend
-    else if ([s.identifier isEqualToString:@"members_current"]) {
+    else if ([s.identifier isEqualToString:@"members_current"] && (self.searchPhrase.length > 0 || [self.tableView numberOfRowsInSection:0] > 100000)) {
         UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 52)];
         header.backgroundColor = [UIColor whiteColor];
         
         // search view
-        BFSearchView *searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(12, 8, self.view.frame.size.width - (12 * 2), 36)];
-        searchView.textField.placeholder = @"Search Members";
-        [searchView updateSearchText:@""];
-        searchView.textField.tintColor = self.view.tintColor;
-        [searchView.textField bk_addEventHandler:^(id sender) {
-            self.searchPhrase = searchView.textField.text;
-            [self loadTabData];
-            [self.tableView setContentOffset:CGPointMake(0, 0)];
+        self.searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(12, 8, self.view.frame.size.width - (12 * 2), 36)];
+        self.searchView.placeholder = @"Search Members";
+        [self.searchView updateSearchText:self.searchPhrase];
+        self.searchView.textField.tintColor = self.view.tintColor;
+        self.searchView.textField.delegate = self;
+        [self.searchView.textField bk_addEventHandler:^(id sender) {
+            self.searchPhrase = self.searchView.textField.text;
+            
+            [self.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:NO];
+            [self loadTabData:true];
+            [self.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:NO];
         } forControlEvents:UIControlEventEditingChanged];
-        [header addSubview:searchView];
+        [header addSubview:self.searchView];
+        
+        UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, header.frame.size.width, HALF_PIXEL)];
+        separator.backgroundColor = [UIColor tableViewSeparatorColor];
+        [header addSubview:separator];
         
         return header;
-    }*/
+    }
     
     if (!s.title) return nil;
     
@@ -820,6 +820,27 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     
     return CGFLOAT_MIN;
 }
+
+- (void)textFieldDidBeginEditing:(UITextField *)textField {
+    [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.8f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+        [self.searchView setPosition:BFSearchTextPositionLeft];
+    } completion:nil];
+}
+- (void)textFieldDidEndEditing:(UITextField *)textField {
+    self.searchView.textField.userInteractionEnabled = false;
+    
+    [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.8f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+        [self.searchView setPosition:BFSearchTextPositionCenter];
+    } completion:^(BOOL finished) {
+        
+    }];
+}
+- (BOOL)textFieldShouldReturn:(UITextField *)textField {
+    [self.searchView.textField resignFirstResponder];
+    
+    return FALSE;
+}
+
 - (UIView *)tableView:(UITableView *)tableView viewForFooterInSection:(NSInteger)section {
     SmartListSection *s = section(section);
     
@@ -872,28 +893,15 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
         
         if (user) {
             if ([self isAdmin]) {
-                UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"\n\n\n\n\n\n" message:nil preferredStyle:UIAlertControllerStyleActionSheet];
+                BFAlertController *actionSheet = [BFAlertController alertControllerWithTitle:user.attributes.displayName message:[@"@" stringByAppendingString:user.attributes.identifier] preferredStyle:BFAlertControllerStyleActionSheet];
                 
-                CGFloat margin = 8.0f;
-                UIView *customView = [[UIView alloc] initWithFrame:CGRectMake(margin, 0, actionSheet.view.bounds.size.width - margin * 4, 140.f)];
-                BFAvatarView *userAvatar = [[BFAvatarView alloc] initWithFrame:CGRectMake(customView.frame.size.width / 2 - 32, 24, 64, 64)];
-                userAvatar.user = user;
-                [customView addSubview:userAvatar];
-                UILabel *nameLabel = [[UILabel alloc] initWithFrame:CGRectMake(16, 96, customView.frame.size.width - 32, 20)];
-                nameLabel.textAlignment = NSTextAlignmentCenter;
-                nameLabel.font = [UIFont systemFontOfSize:17.f weight:UIFontWeightSemibold];
-                nameLabel.textColor = [UIColor bonfirePrimaryColor];
-                nameLabel.text = user.attributes.displayName;
-                [customView addSubview:nameLabel];
-                [actionSheet.view addSubview:customView];
-                
-                UIAlertAction *viewProfile = [UIAlertAction actionWithTitle:@"View Profile" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                BFAlertAction *viewProfile = [BFAlertAction actionWithTitle:@"View Profile" style:BFAlertActionStyleDefault handler:^{
                     [Launcher openProfile:user];
                 }];
                 [actionSheet addAction:viewProfile];
       
                 if ([s.identifier isEqualToString:@"members_admin"] || [s.identifier isEqualToString:@"members_moderator"]) {
-                    UIAlertAction *removeRole = [UIAlertAction actionWithTitle:[NSString stringWithFormat:@"Remove as %@", [s.identifier isEqualToString:@"members_admin"] ? @"Director" : @"Manager"] style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                    BFAlertAction *removeRole = [BFAlertAction actionWithTitle:[NSString stringWithFormat:@"Remove as %@", [s.identifier isEqualToString:@"members_admin"] ? @"Director" : @"Manager"] style:BFAlertActionStyleDefault handler:^{
                         if ([s.identifier isEqualToString:@"members_admin"]) {
                             [self removeManagerRole:CAMP_ROLE_ADMIN user:user];
                         }
@@ -904,10 +912,10 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
                     [actionSheet addAction:removeRole];
                 }
                 
-                UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
+                BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
                 [actionSheet addAction:cancel];
                 
-                [[Launcher activeViewController] presentViewController:actionSheet animated:YES completion:nil];
+                [[Launcher topMostViewController] presentViewController:actionSheet animated:true completion:nil];
             }
             else {
                 [Launcher openProfile:user];
@@ -924,7 +932,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
         navController.modalPresentationStyle = UIModalPresentationFullScreen;
         navController.currentTheme = [UIColor clearColor];
         
-        [[Launcher activeViewController] presentViewController:navController animated:YES completion:nil];
+        [[Launcher topMostViewController] presentViewController:navController animated:YES completion:nil];
     }
 }
 

@@ -22,6 +22,8 @@
 #import <HapticHelper/HapticHelper.h>
 #import "NSString+Validation.h"
 #import "SearchResultCell.h"
+#import "BFAlertController.h"
+#import "NSString+Validation.h"
 
 #define headerHeight 58
 #define postButtonShrinkScale 0.9
@@ -36,7 +38,9 @@
     (UIViewController *)__responder; \
     })
 
-@interface ComposeInputView () <UITextViewDelegate, UITableViewDelegate, UITableViewDataSource>
+@interface ComposeInputView () <UITextViewDelegate, UITableViewDelegate, UITableViewDataSource> {
+    NSInteger maxLength;
+}
 
 @property (nonatomic, strong) NSMutableArray *tagSuggestions;
 
@@ -76,9 +80,15 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     CGFloat screenWidth = screenRect.size.width;
     self.frame = CGRectMake(0, self.frame.origin.y, screenWidth, self.frame.size.height);
     
-    self.contentView = [[UIView alloc] initWithFrame:self.bounds];
-    self.contentView.backgroundColor = [UIColor contentBackgroundColor];
+    self.contentView = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleProminent]];
+    self.contentView.frame = self.bounds;
+    self.contentView.backgroundColor = [[UIColor contentBackgroundColor] colorWithAlphaComponent:0.8];
     [self addSubview:self.contentView];
+    
+//    self.layer.shadowOffset = CGSizeMake(0, 0);
+//    self.layer.shadowRadius = 2.f;
+//    self.layer.shadowColor = [UIColor blackColor].CGColor;
+//    self.layer.shadowOpacity = 0.08;
     
     self.layer.masksToBounds = false;
     
@@ -86,7 +96,11 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     _textView = [[UITextView alloc] initWithFrame:CGRectMake(TEXT_VIEW_WITH_IMAGE_X, 6, self.frame.size.width - TEXT_VIEW_WITH_IMAGE_X - 12, 40)];
     _textView.delegate = self;
     _textView.editable = true;
-    _textView.scrollEnabled = false;
+    _textView.scrollEnabled = true;
+    if (@available(iOS 11.1, *)) {
+        _textView.verticalScrollIndicatorInsets = UIEdgeInsetsMake(6, 0, 52, 6);
+    }
+    _textView.showsHorizontalScrollIndicator = false;
     _textView.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightRegular];
     _textView.textContainer.lineFragmentPadding = 0;
     _textView.contentInset = UIEdgeInsetsZero;
@@ -95,12 +109,12 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     _textView.textColor = [UIColor bonfirePrimaryColor];
     _textView.layer.cornerRadius = 20.f;
     _textView.backgroundColor = [[UIColor fromHex:@"9FA6AD"] colorWithAlphaComponent:0.1];
-    _textView.layer.borderWidth = HALF_PIXEL;
+//    _textView.layer.borderWidth = HALF_PIXEL;
     _textView.placeholder = self.defaultPlaceholder;
     _textView.placeholderColor = [UIColor bonfireSecondaryColor];
 //    _textView.keyboardAppearance = UIKeyboardAppearanceLight;
     _textView.keyboardType = UIKeyboardTypeTwitter;
-    [self.contentView addSubview:_textView];
+    [self.contentView.contentView addSubview:_textView];
     
     _mediaScrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 8, _textView.frame.size.width, 140 - 16)];
     _mediaScrollView.hidden = true;
@@ -158,15 +172,14 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     [self.addMediaButton bk_whenTapped:^{
         [self showImagePicker];
     }];
-    [self.contentView addSubview:self.addMediaButton];
+    [self.contentView.contentView addSubview:self.addMediaButton];
     
     self.postButton = [TappableButton buttonWithType:UIButtonTypeCustom];
     self.postButton.padding = UIEdgeInsetsMake(5, 5, 5, 5);
     self.postButton.adjustsImageWhenHighlighted = false;
     self.postButton.frame = CGRectMake(self.frame.size.width - 12 - 32 - 4, _textView.frame.origin.y + 4, 32, 32);
     self.postButton.contentMode = UIViewContentModeCenter;
-    [self.postButton setImage:[UIImage imageNamed:@"sendButtonIcon"] forState:UIControlStateNormal];
-    [self.postButton setImage:[UIImage new] forState:UIControlStateDisabled];
+    [self.postButton setImage:[[UIImage imageNamed:@"sendButtonIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
     self.postButton.userInteractionEnabled = false;
     self.postButton.alpha = 0;
     self.postButton.layer.cornerRadius = 16.f;
@@ -192,7 +205,14 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         }
     } forControlEvents:(UIControlEventTouchCancel|UIControlEventTouchDragExit)];
     
-    [self.contentView addSubview:self.postButton];
+    [self.contentView.contentView addSubview:self.postButton];
+    
+    self.charRemainingLabel = [[UILabel alloc] initWithFrame:CGRectMake(self.frame.size.width - 12 - 32 - 4, self.postButton.frame.origin.y - self.postButton.frame.size.height, 32, 20)];
+    self.charRemainingLabel.hidden = true;
+    self.charRemainingLabel.textColor = [UIColor bonfireSecondaryColor];
+    self.charRemainingLabel.textAlignment = NSTextAlignmentCenter;
+    self.charRemainingLabel.font = [UIFont systemFontOfSize:11.f weight:UIFontWeightRegular];
+    [self.contentView.contentView addSubview:self.charRemainingLabel];
     
     self.expandButton = [UIButton buttonWithType:UIButtonTypeCustom];
     self.expandButton.adjustsImageWhenHighlighted = false;
@@ -218,7 +238,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         }
     } forControlEvents:(UIControlEventTouchCancel|UIControlEventTouchDragExit)];
     
-    [self.contentView insertSubview:self.expandButton belowSubview:self.postButton];
+    [self.contentView.contentView insertSubview:self.expandButton belowSubview:self.postButton];
     
     self.replyingToLabel = [UIButton buttonWithType:UIButtonTypeCustom];
     self.replyingToLabel.hidden = true;
@@ -275,6 +295,8 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     self.topSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, -HALF_PIXEL, screenWidth, HALF_PIXEL)];
     self.topSeparator.backgroundColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.12f];
     [self addSubview:self.topSeparator];
+    
+    maxLength = [Session sharedInstance].defaults.post.maxLength;
 }
 
 - (void)layoutSubviews
@@ -293,6 +315,8 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     
     // added in layoutSubviews for Dark Mode support
     _textView.layer.borderColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.06].CGColor;
+    
+    self.postButton.tintColor = [UIColor highContrastForegroundForBackground:self.postButton.backgroundColor];
 }
 
 - (void)setMediaTypes:(NSArray *)mediaTypes {
@@ -430,8 +454,8 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 - (void)resize:(BOOL)animated {
     CGRect textViewRect = [self.textView.text.length == 0 ? @"Quintessential" : self.textView.text boundingRectWithSize:CGSizeMake(self.textView.frame.size.width - self.textView.textContainerInset.left - self.textView.textContainerInset.right, 800) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:self.textView.font} context:nil];
     
-    CGFloat textHeight = ceil(textViewRect.size.height) + self.textView.textContainerInset.top + self.textView.textContainerInset.bottom;
-    
+    CGFloat textHeight = MIN(ceil(textViewRect.size.height) + self.textView.textContainerInset.top + self.textView.textContainerInset.bottom, 240);
+        
     CGFloat textViewPadding = self.textView.frame.origin.y;
     
     CGFloat bottomPadding = [[[UIApplication sharedApplication] delegate] window].safeAreaInsets.bottom;
@@ -446,6 +470,8 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         self.textView.frame = CGRectMake(self.textView.frame.origin.x, self.textView.frame.origin.y, self.textView.frame.size.width, textHeight);
         
         self.postButton.center = CGPointMake(self.textView.frame.origin.x + self.textView.frame.size.width - 20, self.textView.frame.origin.y + self.textView.frame.size.height - 20);
+        self.charRemainingLabel.center = CGPointMake(self.postButton.center.x, self.postButton.frame.origin.y - self.charRemainingLabel.frame.size.height / 2);
+        self.charRemainingLabel.hidden = (self.charRemainingLabel.frame.origin.y < self.textView.frame.origin.y);
         self.expandButton.center = self.postButton.center;
         
         self.addMediaButton.frame = CGRectMake(self.addMediaButton.frame.origin.x, self.frame.size.height - self.addMediaButton.frame.size.height - (self.textView.frame.origin.y + ((40 - self.addMediaButton.frame.size.height) / 2)) - bottomPadding, self.addMediaButton.frame.size.width, self.addMediaButton.frame.size.height);
@@ -482,23 +508,22 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 }
     
 - (void)showImagePicker {
-    UIAlertController *imagePickerOptions = [UIAlertController alertControllerWithTitle:nil message:nil preferredStyle:UIAlertControllerStyleActionSheet];
+    BFAlertController *imagePickerOptions = [BFAlertController alertControllerWithTitle:nil message:nil preferredStyle:BFAlertControllerStyleActionSheet];
     
-    UIAlertAction *takePhoto = [UIAlertAction actionWithTitle:@"Take Photo" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+    BFAlertAction *takePhoto = [BFAlertAction actionWithTitle:@"Take Photo" style:BFAlertActionStyleDefault handler:^{
         [self takePhotoToAttach:nil];
     }];
     [imagePickerOptions addAction:takePhoto];
     
-    UIAlertAction *chooseFromLibrary = [UIAlertAction actionWithTitle:@"Choose from Library" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+    BFAlertAction *chooseFromLibrary = [BFAlertAction actionWithTitle:@"Choose from Library" style:BFAlertActionStyleDefault handler:^{
         [self chooseFromLibraryForProfilePicture:nil];
     }];
     [imagePickerOptions addAction:chooseFromLibrary];
     
-    UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-    }];
+    BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
     [imagePickerOptions addAction:cancel];
     
-    [UIViewParentController(self) presentViewController:imagePickerOptions animated:YES completion:nil];
+    [UIViewParentController(self) presentViewController:imagePickerOptions animated:true completion:nil];
 }
 
 - (void)takePhotoToAttach:(id)sender {
@@ -537,16 +562,16 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     });
 }
 - (void)showNoCameraAccess {
-    UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"Allow Bonfire to access your camera" message:@"To allow Bonfire to access your camera, go to Settings > Privacy > Camera > Set Bonfire to ON" preferredStyle:UIAlertControllerStyleAlert];
+    BFAlertController *actionSheet = [BFAlertController alertControllerWithTitle:@"Allow Bonfire to access your camera" message:@"To allow Bonfire to access your camera, go to Settings > Privacy > Camera > Set Bonfire to ON" preferredStyle:BFAlertControllerStyleAlert];
 
-    UIAlertAction *openSettingsAction = [UIAlertAction actionWithTitle:@"Open Settings" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+    BFAlertAction *openSettingsAction = [BFAlertAction actionWithTitle:@"Open Settings" style:BFAlertActionStyleDefault handler:^{
         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString] options:@{} completionHandler:nil];
     }];
     [actionSheet addAction:openSettingsAction];
 
-    UIAlertAction *closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleCancel handler:nil];
+    BFAlertAction *closeAction = [BFAlertAction actionWithTitle:@"Close" style:BFAlertActionStyleCancel handler:nil];
     [actionSheet addAction:closeAction];
-    [[Launcher topMostViewController] presentViewController:actionSheet animated:YES completion:nil];
+    [[Launcher topMostViewController] presentViewController:actionSheet animated:true completion:nil];
 }
 
 - (void)chooseFromLibraryForProfilePicture:(id)sender {
@@ -571,16 +596,16 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                 NSLog(@"PHAuthorizationStatusDenied");
                 // confirm action
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"Allow Bonfire to access your phtoos" message:@"To allow Bonfire to access your photos, go to Settings > Privacy > Camera > Set Bonfire to ON" preferredStyle:UIAlertControllerStyleAlert];
+                    BFAlertController *actionSheet = [BFAlertController alertControllerWithTitle:@"Allow Bonfire to access your phtoos" message:@"To allow Bonfire to access your photos, go to Settings > Privacy > Camera > Set Bonfire to ON" preferredStyle:BFAlertControllerStyleAlert];
 
-                    UIAlertAction *openSettingsAction = [UIAlertAction actionWithTitle:@"Open Settings" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                    BFAlertAction *openSettingsAction = [BFAlertAction actionWithTitle:@"Open Settings" style:BFAlertActionStyleDefault handler:^{
                         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString] options:@{} completionHandler:nil];
                     }];
                     [actionSheet addAction:openSettingsAction];
                 
-                    UIAlertAction *closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleCancel handler:nil];
+                    BFAlertAction *closeAction = [BFAlertAction actionWithTitle:@"Close" style:BFAlertActionStyleCancel handler:nil];
                     [actionSheet addAction:closeAction];
-                    [[Launcher topMostViewController] presentViewController:actionSheet animated:YES completion:nil];
+                    [[Launcher topMostViewController] presentViewController:actionSheet animated:true completion:nil];
                 });
 
                 break;
@@ -714,39 +739,22 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 }
 
 - (void)updateMediaAvailability {
-//    NSLog(@"self.media canAddImages? %@", [self.media canAddImage] ? @"YES" : @"NO");
-//    NSLog(@"self.media canAddGIFs? %@", [self.media canAddGIF] ? @"YES" : @"NO");
-//    NSLog(@"self.media canAddMedia? %@", [self.media canAddMedia] ? @"YES" : @"NO");
+    NSLog(@"self.media canAddImages? %@", [self.media canAddImage] ? @"YES" : @"NO");
+    NSLog(@"self.media canAddGIFs? %@", [self.media canAddGIF] ? @"YES" : @"NO");
+    NSLog(@"self.media canAddMedia? %@", [self.media canAddMedia] ? @"YES" : @"NO");
     
-    self.addMediaButton.hidden = false;
     self.addMediaButton.enabled = [self.media canAddMedia];
     [UIView animateWithDuration:0.3f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
         self.addMediaButton.alpha = (self.addMediaButton.enabled ? 1 : 0.25);
     } completion:nil];
     
-    /*
-    if ([self.mediaTypes containsObject:BFMediaTypeImage] ||
-        [self.mediaTypes containsObject:BFMediaTypeGIF]) {
-        // determine add media button
-        self.addMediaButton.hidden = false;
-        self.addMediaButton.enabled = (self.media.count < self.maxImages);
-        
-        [UIView animateWithDuration:0.3f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-            self.addMediaButton.alpha = (self.addMediaButton.enabled ? 1 : 0.25);
-        } completion:nil];
-        
-        if ([self.mediaTypes containsObject:BFMediaTypeText]) {
-            self.textView.frame = CGRectMake(TEXT_VIEW_WITH_IMAGE_X, self.textView.frame.origin.y, self.frame.size.width - TEXT_VIEW_WITH_IMAGE_X - 12, self.textView.frame.size.height);
-        }
-        else {
-            
-        }
+    self.addMediaButton.hidden = (self.mediaTypes.count == 0 || (self.mediaTypes.count == 1 && [self.mediaTypes containsObject:BFMediaTypeText]));
+    if (![self.addMediaButton isHidden]) {
+        self.textView.frame = CGRectMake(TEXT_VIEW_WITH_IMAGE_X, self.textView.frame.origin.y, self.frame.size.width - TEXT_VIEW_WITH_IMAGE_X - 12, self.textView.frame.size.height);
     }
     else {
-        self.addMediaButton.hidden = true;
-        
         self.textView.frame = CGRectMake(TEXT_VIEW_WITHOUT_IMAGE_X, self.textView.frame.origin.y, self.frame.size.width - TEXT_VIEW_WITHOUT_IMAGE_X - 12, self.textView.frame.size.height);
-    }*/
+    }
     
     [self resize:false];
 }
@@ -853,17 +861,75 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         
         if (textView.text.length > 0 || self.media.objects.count > 0) {
             [self showPostButton];
+            
+            BOOL enableButton =  (self.media.objects.count > 0) || [self charactersRemainingWithStirng:textView.text] >= 0;
+            self.postButton.enabled = enableButton;
+            self.postButton.alpha = enableButton ? 1 : 0.5;
         }
         else {
             [self hidePostButton];
         }
-        
+
+        CGFloat textViewHeightBefore = textView.frame.size.height;
         [self detectEntities];
+        CGFloat textViewHeightAfter = textView.frame.size.height;
+        
+        if (diff(textViewHeightBefore, textViewHeightAfter)) {
+            [textView setContentOffset:CGPointMake(0, textView.contentSize.height - textView.frame.size.height) animated:NO];
+        }
+        
+        NSInteger charactersRemaining = [self charactersRemainingWithStirng:self.textView.text];
+        self.charRemainingLabel.text = [NSString stringWithFormat:@"%ld", (long)charactersRemaining];
+        if (charactersRemaining <= 20) {
+            self.charRemainingLabel.textColor = [UIColor bonfireRed];
+        }
+        else {
+            self.charRemainingLabel.textColor = [UIColor bonfireSecondaryColor];
+        }
         
         if ([self.delegate respondsToSelector:@selector(composeInputViewMessageDidChange:)]) {
             [self.delegate composeInputViewMessageDidChange:textView];
         }
     }
+}
+- (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text
+{
+    NSString *proposedNewString = [[textView text] stringByReplacingCharactersInRange:range withString:text];
+    BOOL shouldChange = [self charactersRemainingWithStirng:proposedNewString] >= 0;
+    
+    if (!shouldChange) {
+        if ([self charactersRemainingWithStirng:self.textView.text] >= 0) {
+            // only do this if it *just* went over
+            [HapticHelper generateFeedback:FeedbackType_Notification_Warning];
+            [UIView animateWithDuration:0.2f delay:0 options:(UIViewAnimationOptionCurveEaseOut) animations:^{
+                self.textView.alpha = 0.5;
+            } completion:^(BOOL finished) {
+                [UIView animateWithDuration:0.15f delay:0 options:(UIViewAnimationOptionCurveEaseOut) animations:^{
+                    self.textView.alpha = 1;
+                } completion:nil];
+            }];
+        }
+    }
+    else if (self.textView.alpha != 1) {
+        [self.textView.layer removeAllAnimations];
+        self.textView.alpha = 1;
+    }
+    
+    return true;
+}
+- (NSInteger)charactersRemainingWithStirng:(NSString *)string {
+    NSInteger length = string.length;
+    
+    for (NSValue *value in [string rangesForLinkMatches]) {
+        NSRange range = [value rangeValue];
+        
+        // links take up, at max, 25 decoded characters
+        if (range.length > 25) {
+            length -= (range.length - 25);
+        }
+    }
+    
+    return maxLength - length;
 }
 
 - (void)detectEntities {
@@ -911,6 +977,13 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         for (NSValue *value in urlRanges) {
             [attributedText addAttribute:NSForegroundColorAttributeName value:self.textView.tintColor range:[value rangeValue]];
         }
+    }
+    
+    NSInteger remainingCharacters = [self charactersRemainingWithStirng:self.textView.text];
+    if (remainingCharacters < 0) {
+        NSInteger length = labs(remainingCharacters);
+        [attributedText addAttribute:NSForegroundColorAttributeName value:[UIColor bonfireRed] range:NSMakeRange(MIN(self.textView.text.length - length, self.textView.text.length), length)];
+        [attributedText addAttribute:NSBackgroundColorAttributeName value:[[UIColor bonfireRed] colorWithAlphaComponent:0.1] range:NSMakeRange(MIN(self.textView.text.length -  length, self.textView.text.length), length)];
     }
     
     self.activeAttributedString = attributedText;

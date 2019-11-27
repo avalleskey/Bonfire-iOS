@@ -44,6 +44,7 @@ const NSInteger RESOURCE_VALIDITY_FAILURE     = 700;
 const NSInteger CAMP_NOT_EXISTS               = 701;
 const NSInteger USER_NOT_EXISTS               = 702;
 const NSInteger POST_NOT_EXISTS               = 703;
+const NSInteger LINK_NOT_EXISTS               = 704;
 const NSInteger CAMP_INACCESSIBLE_BLOCKED     = 711;
 const NSInteger USER_INACCESSIBLE_BLOCKED     = 712;
 const NSInteger POST_INACCESSIBLE             = 713;

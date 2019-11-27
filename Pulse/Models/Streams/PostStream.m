@@ -90,7 +90,9 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
     
     self.posts = [mutableArray copy];
     
-    [self.delegate postStreamDidUpdate:self];
+    if ([self.delegate respondsToSelector:@selector(postStreamDidUpdate:)]) {
+        [self.delegate postStreamDidUpdate:self];
+    }
 }
 
 - (void)prependPage:(PostStreamPage *)page {
@@ -191,50 +193,40 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
     BOOL foundMatch = false;
     for (NSInteger i = 0; i < self.pages.count; i++) {
         PostStreamPage *page = self.pages[i];
-        for (int p = 0; p < page.data.count; p++) {
-            // go through each reply, checking to see if the sub reply parent  == identifier of post
-            Post *reply = page.data[p];
+        NSMutableArray<Post *> *mutableData = [[NSMutableArray<Post *> alloc] initWithArray:page.data];
+        
+        for (int p = 0; p < mutableData.count; p++) {
+            // go through each reply, checking to see if the sub reply parent == identifier of post
+            Post *reply = mutableData[p];
             if ([reply.identifier isEqualToString:subReply.attributes.parent.identifier]) {
                 // match!
                 NSLog(@"reply.attributes.summaries.replies BEFORE: %lu", reply.attributes.summaries.replies.count);
                 
                 NSMutableArray<Post *><Post, Optional> *mutableArray = [[NSMutableArray<Post *><Post, Optional> alloc] initWithArray:reply.attributes.summaries.replies];
                 [mutableArray addObject:subReply];
-                                
                 reply.attributes.summaries.replies = mutableArray;
                 
-                NSLog(@"reply.attributes.summaries.replies AFTER: %lu", reply.attributes.summaries.replies.count);
-                
-                
-                
-                NSLog(@"reply.attributes.summaries.counts.replies BEFORE: %lu", reply.attributes.summaries.counts.replies);
-                
                 if (reply.attributes.summaries.counts && reply.attributes.summaries.counts.replies) {
-                    reply.attributes.summaries.counts.replies = reply.attributes.summaries.counts.replies + 1;
+                    reply.attributes.summaries.counts.replies++;
                 }
                 
-                NSLog(@"reply.attributes.summaries.counts.replies BEFORE: %lu", reply.attributes.summaries.counts.replies);
-                
-                
-                NSMutableArray<Post *> *mutableData = [[NSMutableArray<Post *> alloc] initWithArray:page.data];
                 [mutableData replaceObjectAtIndex:p withObject:reply];
-                page.data = mutableData;
                 
                 foundMatch = true;
                 
                 break;
             }
-            
-            if (foundMatch)
-                break;
         }
-        if (foundMatch)
-            break;
+        
+        if (foundMatch) {
+            page.data = mutableData;
+        }
     }
     
-    if (foundMatch)
+    if (foundMatch) {
         [self updatePostsArray];
-    
+    }
+
     return tempId;
 }
 - (BOOL)updateTempSubReply:(NSString *)tempId withFinalSubReply:(Post *)finalSubReply {
@@ -271,6 +263,7 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
         if (foundMatch)
             break;
     }
+    
     [self updatePostsArray];
     
     return true;
@@ -452,7 +445,6 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
             Post *postAtIndex = mutableArray[i];
             if ([postAtIndex.attributes.postedIn.identifier isEqualToString:camp.identifier]) {
                 postAtIndex.attributes.postedIn = camp;
-                NSLog(@"👀 updated camp postedIn");
                 
                 // update replies
                 NSMutableArray *mutableReplies = [[NSMutableArray alloc] initWithArray:postAtIndex.attributes.summaries.replies];

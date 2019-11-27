@@ -16,6 +16,8 @@
         self.pages = [[NSMutableArray alloc] init];
         
         self.users = @[];
+        
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userUpdated:) name:@"UserUpdated" object:nil];
     }
     return self;
 }
@@ -31,6 +33,40 @@
     [encoder encodeObject:self.users forKey:@"users"];
 }
 
+- (void)userUpdated:(NSNotification *)notification {
+    User *user = notification.object;
+    
+    if (user != nil) {
+        BOOL foundChange = false;
+        
+        for (int p = 0; p < self.pages.count; p++) {
+            UserListStreamPage *page = self.pages[p];
+            
+            NSMutableArray <User *> *mutableArray = [[NSMutableArray alloc] initWithArray:page.data];
+            for (NSInteger i = mutableArray.count - 1; i >= 0; i--) {
+                User *userAtIndex = mutableArray[i];
+                
+                // update post creator
+                if ([userAtIndex.identifier isEqualToString:user.identifier]) {
+                    userAtIndex = user;
+                    
+                    foundChange = true;
+                    
+                    [mutableArray replaceObjectAtIndex:i withObject:userAtIndex];
+                }
+            }
+            
+            page.data = [mutableArray copy];
+            
+            [self.pages replaceObjectAtIndex:p withObject:page];
+        }
+        
+        if (foundChange) {
+            [self updateUsersArray];
+        }
+    }
+}
+
 - (void)updateUsersArray {
     NSMutableArray *mutableArray = [[NSMutableArray alloc] init];
     
@@ -41,6 +77,10 @@
     }
     
     self.users = [mutableArray copy];
+    
+    if ([self.delegate respondsToSelector:@selector(userListStreamDidUpdate:)]) {
+        [self.delegate userListStreamDidUpdate:self];
+    }
 }
 
 - (void)prependPage:(UserListStreamPage *)page {

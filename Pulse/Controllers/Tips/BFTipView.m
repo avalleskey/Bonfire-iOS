@@ -110,7 +110,8 @@
     [self.cta setTitle:@"CTA" forState:UIControlStateNormal];
     [self.cta setTitleColor:[UIColor bonfireBrand] forState:UIControlStateNormal];
     UIView *ctaSeparator = [[UIView alloc] initWithFrame:CGRectMake(self.titleLabel.frame.origin.x, 0, self.frame.size.width - (self.titleLabel.frame.origin.x * 2), HALF_PIXEL)];
-    ctaSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
+    ctaSeparator.backgroundColor = [UIColor colorNamed:@"FullContrastColor"];
+    ctaSeparator.alpha = 0.08;
     ctaSeparator.tag = 99;
     [self.cta bk_whenTapped:^{
         if (self.object.action) {

@@ -156,7 +156,7 @@ NSString * const LOCAL_APP_URI = @"bonfireapp";
     // Check if the URL is a supported type
     if ([url.host isEqualToString:@"user"]) {
         User *user = [[User alloc] init];
-        UserAttributes *attributes = [[UserAttributes alloc] init];
+        IdentityAttributes *attributes = [[IdentityAttributes alloc] init];
         
         if ([params objectForKey:@"id"]) {
             user.identifier = params[@"id"];
@@ -233,39 +233,55 @@ NSString * const LOCAL_APP_URI = @"bonfireapp";
      */
     
     // Check if the URL is a supported type
-    
-    if (user && [parent validateBonfireUsername] == BFValidationErrorNone) {
-        // https://bonfire.camp/u/username
-
-        User *user = [[User alloc] init];
-        UserAttributes *attributes = [[UserAttributes alloc] init];
-        attributes.identifier = [parent stringByReplacingOccurrencesOfString:@"@" withString:@""];
-        
-        user.attributes = attributes;
+    if (parent && parent.length > 0) {
+        if (user) {
+            User *user = [[User alloc] init];
+            if ([parent validateBonfireUsername] == BFValidationErrorNone) {
+                // https://bonfire.camp/u/{username}
                 
-        return user;
-    }
-    if (camp && [parent validateBonfireCampTag] == BFValidationErrorNone) {
-        // https://bonfire.camp/c/camptag
-        
-        Camp *camp = [[Camp alloc] init];
-        CampAttributes *attributes = [[CampAttributes alloc] init];
-        attributes.identifier = parent;
-        
-        camp.attributes = attributes;
+                // load using the username
+                IdentityAttributes *attributes = [[IdentityAttributes alloc] init];
+                attributes.identifier = [parent stringByReplacingOccurrencesOfString:@"@" withString:@""];
                 
-        return camp;
-    }
-    if (post) {
-        // https://bonfire.camp/p/{post_id}
-        
-        if (parent == NULL || parent.length == 0) return nil;
-        
-        // open post
-        Post *post =  [[Post alloc] init];
-        post.identifier = parent;
+                user.attributes = attributes;
+            }
+            else {
+                // https://bonfire.camp/u/{id}
                 
-        return post;
+                // load using the id
+                user.identifier = parent;
+            }
+                    
+            return user;
+        }
+        else if (camp) {
+            Camp *camp = [[Camp alloc] init];
+            if ([parent validateBonfireCampTag] == BFValidationErrorNone) {
+                // https://bonfire.camp/c/{camptag}
+                
+                CampAttributes *attributes = [[CampAttributes alloc] init];
+                attributes.identifier = parent;
+                
+                camp.attributes = attributes;
+            }
+            else {
+                // https://bonfire.camp/c/{id}
+                
+                // load using the id
+                camp.identifier = parent;
+            }
+                    
+            return camp;
+        }
+        else if (post) {
+            // https://bonfire.camp/p/{post_id}
+                    
+            // open post
+            Post *post =  [[Post alloc] init];
+            post.identifier = parent;
+                    
+            return post;
+        }
     }
 
     // unkown internal link type

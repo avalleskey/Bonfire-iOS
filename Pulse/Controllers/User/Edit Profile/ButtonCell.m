@@ -67,6 +67,8 @@
 - (void)layoutSubviews {
     [super layoutSubviews];
     
+    self.contentView.frame = self.bounds;
+    
     UIEdgeInsets contentEdgeInsets = UIEdgeInsetsMake(0, self.gutterPadding, 0, self.gutterPadding);
     
     if (self.imageView.image != nil) {

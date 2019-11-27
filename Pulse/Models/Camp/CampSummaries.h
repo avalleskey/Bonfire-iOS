@@ -4,11 +4,11 @@
  */
 
 #import <Foundation/Foundation.h>
-#import <JSONModel/JSONModel.h>
+#import "BFJSONModel.h"
 #import "CampCounts.h"
 #import "User.h"
 
-@interface CampSummaries : JSONModel
+@interface CampSummaries : BFJSONModel
 
 @property (nonatomic) NSArray <User *> <User, Optional> *members;
 @property (nonatomic) CampCounts <Optional> *counts;

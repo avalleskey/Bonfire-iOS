@@ -11,10 +11,16 @@
 
 @interface SearchResultCell : UITableViewCell
 
+// ---- OPTIONS ----
+
+@property (nonatomic) BOOL showActionButton;
+
+
 // ---- VALUES ----
 
 @property (nonatomic, strong) BFAvatarView *profilePicture;
 @property (nonatomic, strong) UIImageView *checkIcon;
+@property (nonatomic, strong) UIButton *actionButton;
 
 @property (nonatomic, strong) UIView *lineSeparator;
 

@@ -4,9 +4,9 @@
  */
 
 #import <Foundation/Foundation.h>
-#import <JSONModel/JSONModel.h>
+#import "BFJSONModel.h"
 
-@interface CampCounts : JSONModel
+@interface CampCounts : BFJSONModel
 
 @property (nonatomic) NSInteger icebreakers;
 @property (nonatomic) NSInteger posts;

@@ -21,17 +21,27 @@
 @import Firebase;
 #import <Photos/Photos.h>
 #import "GTMNSString+HTML.h"
+#import "BFAlertController.h"
+
+#import "BFPostAttachmentView.h"
+#import "BFUserAttachmentView.h"
+#import "BFBotAttachmentView.h"
+#import "BFCampAttachmentView.h"
+#import "BFLinkAttachmentView.h"
+#import "BFSmartLinkAttachmentView.h"
 
 #define composeToolbarHeight 56
 
 @interface ComposeViewController () {
     NSInteger maxLength;
-    ComposeTextViewCell *textViewCell;
 }
 
 @property (nonatomic) NSAttributedString *activeAttributedString;
 @property (nonatomic) NSRange activeTagRange;
 @property (nonatomic) NSMutableArray *autoCompleteResults;
+
+@property (nonatomic) BFAttachmentView *quotedAttachmentView;
+@property (nonatomic) ComposeTextViewCell *textViewCell;
 
 @end
 
@@ -56,7 +66,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     if (self.replyingTo) {
         [FIRAnalytics setScreenName:@"Reply" screenClass:nil];
     }
-    else if (self.quotedLink) {
+    else if (self.quotedObject) {
         [FIRAnalytics setScreenName:@"Quote" screenClass:nil];
     }
     else {
@@ -88,36 +98,32 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         
         [((SimpleNavigationController *)self.navigationController).leftActionView bk_removeAllBlockObservers];
         [((SimpleNavigationController *)self.navigationController).leftActionView bk_whenTapped:^{
-            if (self->textViewCell.textView.text.length > 0 || self->textViewCell.media.objects.count > 0 || self->textViewCell.url) {
+            
+            if (self.textViewCell.textView.text.length > 0 || self.textViewCell.media.objects.count > 0) {
                 // confirm discard changes
-                UIAlertController *confirmActionSheet = [UIAlertController alertControllerWithTitle:nil message:@"Are you sure you want to discard your post?" preferredStyle:UIAlertControllerStyleActionSheet];
+                BFAlertController *confirmActionSheet = [BFAlertController alertControllerWithTitle:nil message:@"Are you sure you want to discard your post?" preferredStyle:BFAlertControllerStyleActionSheet];
                 
-                UIAlertAction *confirmAction = [UIAlertAction actionWithTitle:@"Discard Post" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+                BFAlertAction *confirmAction = [BFAlertAction actionWithTitle:@"Discard Post" style:BFAlertActionStyleDestructive handler:^{
                     [confirmActionSheet dismissViewControllerAnimated:YES completion:nil];
                     
                     [self.navigationController dismissViewControllerAnimated:YES completion:nil];
                 }];
                 [confirmActionSheet addAction:confirmAction];
                 
-                UIAlertAction *cancelActionSheet = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
+                BFAlertAction *cancelActionSheet = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
                 [confirmActionSheet addAction:cancelActionSheet];
                 
-                [self.navigationController presentViewController:confirmActionSheet animated:YES completion:nil];
+                [self.navigationController presentViewController:confirmActionSheet animated:true completion:nil];
             }
             else {
                 [self.navigationController dismissViewControllerAnimated:YES completion:nil];
             }
         }];
         
-        textViewCell.media.maxImages = (self.replyingTo == nil ? 4 : 1);
+        self.textViewCell.media.maxImages = (self.replyingTo == nil ? 4 : 1);
         if (self.replyingTo && !self.replyingToIcebreaker) {
             self.navigationItem.titleView = nil;
             self.title = @"Reply";
-            [self updatePlaceholder];
-        }
-        else if (self.quotedLink) {
-            self.navigationItem.titleView = nil;
-            self.title = @"Quote";
             [self updatePlaceholder];
         }
         else if (self.postingIn) {
@@ -131,12 +137,11 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         }
         
         [self updateTintColor];
-        self.navigationItem.rightBarButtonItem.enabled = false;
         [self checkRequirements];
     }
     
-    if (![textViewCell.textView isFirstResponder]) {
-        [textViewCell.textView becomeFirstResponder];
+    if (![self.textViewCell.textView isFirstResponder]) {
+        [self.textViewCell.textView becomeFirstResponder];
     }
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillChangeFrame:) name:UIKeyboardWillChangeFrameNotification object:nil];
@@ -145,7 +150,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
     
-    [textViewCell.textView resignFirstResponder];
+    [self.textViewCell.textView resignFirstResponder];
     
     [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillChangeFrameNotification object:nil];
     [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillHideNotification object:nil];
@@ -212,29 +217,16 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 }
 - (void)privacySelectionDidChange:(Camp * _Nullable)selection {
     self.postingIn = selection;
-    
-    if (self.postingIn) {
-        [self updateTitleText:self.postingIn.attributes.title];
-        self.titleAvatar.camp = self.postingIn;
-    }
-    else {
-        [self updateTitleText:@"My Profile"];
-        self.titleAvatar.camp = nil;
-        self.titleAvatar.imageView.image = nil;
-        self.titleAvatar.user = [[Session sharedInstance] currentUser];
-    }
-    [self updatePlaceholder];
-    [self updateTintColor];
 }
 - (void)updateTintColor {
     Camp *camp;
-    User *user;
+    Identity *identity;
     if (self.replyingTo) {
         if (self.replyingTo.attributes.postedIn) {
             camp = self.replyingTo.attributes.postedIn;
         }
         else {
-            user = self.replyingTo.attributes.creator;
+            identity = self.replyingTo.attributes.creator;
         }
     }
     else {
@@ -242,25 +234,26 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             camp = self.postingIn;
         }
         else {
-            user = [Session sharedInstance].currentUser;
+            identity = [Session sharedInstance].currentUser;
         }
     }
     
     if (camp) {
         self.view.tintColor = [UIColor fromHex:camp.attributes.color adjustForOptimalContrast:true];
     }
-    else if (user) {
-        self.view.tintColor = [UIColor fromHex:user.attributes.color adjustForOptimalContrast:true];
+    else if (identity) {
+        self.view.tintColor = [UIColor fromHex:identity.attributes.color adjustForOptimalContrast:true];
     }
     else {
         self.view.tintColor = [UIColor bonfirePrimaryColor];
     }
-    if (textViewCell) {
-        [self textViewDidChange:textViewCell.textView];
-        textViewCell.textView.tintColor = self.view.tintColor;
+    
+    if (self.textViewCell) {
+        [self textViewDidChange:self.textViewCell.textView];
+        self.textViewCell.textView.tintColor = self.view.tintColor;
         // hack to update caret color
-        [textViewCell.textView resignFirstResponder];
-        [textViewCell.textView becomeFirstResponder];
+        [self.textViewCell.textView resignFirstResponder];
+        [self.textViewCell.textView becomeFirstResponder];
     }
     
     if ([self.navigationController isKindOfClass:[SimpleNavigationController class]]) {
@@ -339,6 +332,8 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     [self.autoCompleteTableView registerClass:[SearchResultCell class] forCellReuseIdentifier:searchResultCellIdentifier];
     
     [self.toolbarView.contentView addSubview:self.autoCompleteTableView];
+    
+    [self updateToolbarAvailability];
 }
 
 - (UIView *)roundCornersOnView:(UIView *)view onTopLeft:(BOOL)tl topRight:(BOOL)tr bottomLeft:(BOOL)bl bottomRight:(BOOL)br radius:(float)radius {
@@ -367,7 +362,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     self.activeAttributedString = textView.attributedText;
     
     // update countdown
-    NSInteger charactersLeft = [self charactersRemaining];
+    NSInteger charactersLeft = [self charactersRemainingWithStirng:self.activeAttributedString.string];
     self.characterCountdownLabel.text = [NSString stringWithFormat:@"%ld", charactersLeft];
     
     if (charactersLeft <= 20) {
@@ -378,36 +373,20 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     }
     
     /* MAKE YOUR CHANGES TO THE FIELD CONTENTS AS NEEDED HERE */
+    CGFloat textViewHeightBefore = textView.frame.size.height;
     [self detectEntities];
+    CGFloat textViewHeightAfter = textView.frame.size.height;
     
-    /*
-     if (textViewCell.url.absoluteString.length == 0 && [text hasSuffix:@" "]) {
-     NSDataDetector *detector = [NSDataDetector dataDetectorWithTypes:NSTextCheckingTypeLink error:nil];
-     if ([detector numberOfMatchesInString:text options:0 range:NSMakeRange(0, text.length)] > 0) {
-     NSArray *matches = [detector matchesInString:text options:0 range:NSMakeRange(0, text.length)];
-     for (NSTextCheckingResult *match in matches) {
-     if ([match resultType] == NSTextCheckingTypeLink) {
-     NSURL *url = [match URL];
-     
-     textViewCell.url = url;
-     [self updateToolbarAvailability];
-     [self.tableView beginUpdates];
-     [self.tableView endUpdates];
-     
-     break;
-     }
-     }
-     }
-     }
-     */
-    
-    //[textViewCell layoutSubviews];
+    if (diff(textViewHeightBefore, textViewHeightAfter)) {
+        [self.tableView layoutIfNeeded];
+        [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:1] atScrollPosition:UITableViewScrollPositionBottom animated:YES];
+    }
 }
 
-- (NSInteger)charactersRemaining {
-    NSInteger length = textViewCell.textView.attributedText.string.length;
+- (NSInteger)charactersRemainingWithStirng:(NSString *)string {
+    NSInteger length = string.length;
     
-    for (NSValue *value in [textViewCell.textView.text rangesForLinkMatches]) {
+    for (NSValue *value in [string rangesForLinkMatches]) {
         NSRange range = [value rangeValue];
         
         // links take up, at max, 25 decoded characters
@@ -420,18 +399,17 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 }
 
 - (void)detectEntities {
-    NSRange s_range = textViewCell.textView.selectedRange;
+    NSRange s_range = self.textViewCell.textView.selectedRange;
     NSUInteger s_loc = s_range.location;
     
     BOOL insideUsername = false;
     BOOL insideCampTag = false;
     
-    NSMutableAttributedString *attributedText = [[NSMutableAttributedString alloc] initWithString:textViewCell.textView.text attributes:@{NSFontAttributeName: textViewCell.textView.font, NSForegroundColorAttributeName:[UIColor colorNamed:@"FullContrastColor"]}];
-    NSArray *usernameRanges = [textViewCell.textView.text rangesForUsernameMatches];
-    NSArray *campTagRanges = [textViewCell.textView.text rangesForCampTagMatches];
-    NSArray *urlRanges = [textViewCell.textView.text rangesForLinkMatches];
+    NSMutableAttributedString *attributedText = [[NSMutableAttributedString alloc] initWithString:self.textViewCell.textView.text attributes:@{NSFontAttributeName: self.textViewCell.textView.font, NSForegroundColorAttributeName:[UIColor colorNamed:@"FullContrastColor"]}];
+    NSArray *usernameRanges = [self.textViewCell.textView.text rangesForUsernameMatches];
+    NSArray *campTagRanges = [self.textViewCell.textView.text rangesForCampTagMatches];
+    NSArray *urlRanges = [self.textViewCell.textView.text rangesForLinkMatches];
     if (usernameRanges.count > 0) {
-        NSLog(@"usernameRanges: %@", usernameRanges);
         for (NSValue *value in usernameRanges) {
             NSRange range = [value rangeValue];
             [attributedText addAttribute:NSForegroundColorAttributeName value:self.view.tintColor range:range];
@@ -466,15 +444,22 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         }
     }
     
+    NSInteger remainingCharacters = [self charactersRemainingWithStirng:self.textViewCell.textView.text];
+    if (remainingCharacters < 0) {
+        NSInteger length = labs(remainingCharacters);
+        [attributedText addAttribute:NSForegroundColorAttributeName value:[UIColor bonfireRed] range:NSMakeRange(MIN(self.textViewCell.textView.text.length - length, self.textViewCell.textView.text.length), length)];
+        [attributedText addAttribute:NSBackgroundColorAttributeName value:[[UIColor bonfireRed] colorWithAlphaComponent:0.1] range:NSMakeRange(MIN(self.textViewCell.textView.text.length -  length, self.textViewCell.textView.text.length), length)];
+    }
+    
     self.activeAttributedString = attributedText;
-    textViewCell.textView.attributedText = self.activeAttributedString;
+    self.textViewCell.textView.attributedText = self.activeAttributedString;
     
     // environment issue
     // -> set selected range using the range before updating the attributed text
-    [textViewCell.textView setSelectedRange:s_range];
+    [self.textViewCell.textView setSelectedRange:s_range];
     
     // update height of the cell
-    [textViewCell resizeTextView];
+    [self.textViewCell resizeTextView];
     [self.tableView beginUpdates];
     [self.tableView endUpdates];
     
@@ -482,7 +467,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     if (insideCampTag) NSLog(@"insideCampTag ==> true");
     
     if (insideUsername || insideCampTag) {
-        [self getAutoCompleteResults:[textViewCell.textView.text substringWithRange:self.activeTagRange]];
+        [self getAutoCompleteResults:[self.textViewCell.textView.text substringWithRange:self.activeTagRange]];
     }
     else {
         self.activeTagRange = NSMakeRange(NSNotFound, 0);
@@ -490,20 +475,43 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     }
 }
 - (void)checkRequirements {
-    if (!textViewCell) return;
+    if (!self.textViewCell) return;
     
-    if (textViewCell.textView.text.length > 0 || textViewCell.url || textViewCell.media.objects.count > 0) {
+    if ((self.textViewCell.textView.text.length > 0 && [self charactersRemainingWithStirng:self.textViewCell.textView.text] >= 0) || self.textViewCell.media.objects.count > 0 || self.quotedAttachmentView != nil) {
         // enable share button
-        self.navigationItem.rightBarButtonItem.enabled = true;
+        ((SimpleNavigationController *)self.navigationController).rightActionView.userInteractionEnabled = true;
+        ((SimpleNavigationController *)self.navigationController).rightActionView.alpha = 1;
     }
     else {
         // disable share button
-        self.navigationItem.rightBarButtonItem.enabled = false;
+        ((SimpleNavigationController *)self.navigationController).rightActionView.userInteractionEnabled = false;
+        ((SimpleNavigationController *)self.navigationController).rightActionView.alpha = 0.5;
     }
 }
 - (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text
 {
-    return textView.text.length + (text.length - range.length) <= maxLength;
+    NSString *proposedNewString = [[textView text] stringByReplacingCharactersInRange:range withString:text];
+    BOOL shouldChange = [self charactersRemainingWithStirng:proposedNewString] >= 0;
+    
+    if (!shouldChange) {
+        if ([self charactersRemainingWithStirng:self.textViewCell.textView.text] >= 0) {
+            // only do this if it *just* went over
+            [HapticHelper generateFeedback:FeedbackType_Notification_Warning];
+            [UIView animateWithDuration:0.2f delay:0 options:(UIViewAnimationOptionCurveEaseOut) animations:^{
+                self.textViewCell.textView.alpha = 0.5;
+            } completion:^(BOOL finished) {
+                [UIView animateWithDuration:0.15f delay:0 options:(UIViewAnimationOptionCurveEaseOut) animations:^{
+                    self.textViewCell.textView.alpha = 1;
+                } completion:nil];
+            }];
+        }
+    }
+    else if (_textViewCell.textView.alpha != 1) {
+        [_textViewCell.textView.layer removeAllAnimations];
+        _textViewCell.textView.alpha = 1;
+    }
+    
+    return true;
 }
 - (void)updateContentSize {
     /*
@@ -523,7 +531,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
      */
 }
 - (void)updatePlaceholder {
-    if (!textViewCell) return;
+    if (!self.textViewCell) return;
     
     NSString *publicPostPlaceholder = @"Share with everyone...";
     
@@ -550,14 +558,11 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     }
     mediaPlaceholder = @"Add caption or Share";
     
-    if (textViewCell.media.objects.count > 0) {
-        textViewCell.textView.placeholder = mediaPlaceholder;
-    }
-    else if (textViewCell.url.absoluteString.length > 0) {
-        textViewCell.textView.placeholder = @"Share on your profile...";
+    if (self.textViewCell.media.objects.count > 0) {
+        self.textViewCell.textView.placeholder = mediaPlaceholder;
     }
     else {
-        textViewCell.textView.placeholder = defaultPlaceholder;
+        self.textViewCell.textView.placeholder = defaultPlaceholder;
     }
 }
 - (NSString *)stringByDeletingWordsFromString:(NSString *)string
@@ -596,9 +601,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 }
 
 // adjust the y position of the toolbar when keyboard frame changes
-- (void)keyboardWillChangeFrame:(NSNotification *)notification {
-    NSLog(@"keyboardWillChangeFrame");
-    
+- (void)keyboardWillChangeFrame:(NSNotification *)notification {    
     NSDictionary* keyboardInfo = [notification userInfo];
     NSValue* keyboardFrameBegin = [keyboardInfo valueForKey:UIKeyboardFrameEndUserInfoKey];
     CGRect keyboardFrameBeginRect = [keyboardFrameBegin CGRectValue];
@@ -668,16 +671,16 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     });
 }
 - (void)showNoCameraAccess {
-    UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"Allow Bonfire to access your camera" message:@"To allow Bonfire to access your camera, go to Settings > Privacy > Camera > Set Bonfire to ON" preferredStyle:UIAlertControllerStyleAlert];
+    BFAlertController *actionSheet = [BFAlertController alertControllerWithTitle:@"Allow Bonfire to access your camera" message:@"To allow Bonfire to access your camera, go to Settings > Privacy > Camera > Set Bonfire to ON" preferredStyle:BFAlertControllerStyleAlert];
 
-    UIAlertAction *openSettingsAction = [UIAlertAction actionWithTitle:@"Open Settings" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+    BFAlertAction *openSettingsAction = [BFAlertAction actionWithTitle:@"Open Settings" style:BFAlertActionStyleDefault handler:^{
         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString] options:@{} completionHandler:nil];
     }];
     [actionSheet addAction:openSettingsAction];
 
-    UIAlertAction *closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleCancel handler:nil];
+    BFAlertAction *closeAction = [BFAlertAction actionWithTitle:@"Close" style:BFAlertActionStyleCancel handler:nil];
     [actionSheet addAction:closeAction];
-    [[Launcher topMostViewController] presentViewController:actionSheet animated:YES completion:nil];
+    [[Launcher topMostViewController] presentViewController:actionSheet animated:true completion:nil];
 }
 - (void)chooseFromLibrary:(id)sender {
     [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
@@ -701,16 +704,16 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                 NSLog(@"PHAuthorizationStatusDenied");
                 // confirm action
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"Allow Bonfire to access your phtoos" message:@"To allow Bonfire to access your photos, go to Settings > Privacy > Camera > Set Bonfire to ON" preferredStyle:UIAlertControllerStyleAlert];
+                    BFAlertController *actionSheet = [BFAlertController alertControllerWithTitle:@"Allow Bonfire to access your phtoos" message:@"To allow Bonfire to access your photos, go to Settings > Privacy > Camera > Set Bonfire to ON" preferredStyle:BFAlertControllerStyleAlert];
 
-                    UIAlertAction *openSettingsAction = [UIAlertAction actionWithTitle:@"Open Settings" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                    BFAlertAction *openSettingsAction = [BFAlertAction actionWithTitle:@"Open Settings" style:BFAlertActionStyleDefault handler:^{
                         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString] options:@{} completionHandler:nil];
                     }];
                     [actionSheet addAction:openSettingsAction];
                 
-                    UIAlertAction *closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleCancel handler:nil];
+                    BFAlertAction *closeAction = [BFAlertAction actionWithTitle:@"Close" style:BFAlertActionStyleCancel handler:nil];
                     [actionSheet addAction:closeAction];
-                    [[Launcher topMostViewController] presentViewController:actionSheet animated:YES completion:nil];
+                    [[Launcher topMostViewController] presentViewController:actionSheet animated:true completion:nil];
                 });
 
                 break;
@@ -729,13 +732,11 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     // determine file type
     PHAsset *asset = info[UIImagePickerControllerPHAsset];
     if (asset) {
-        NSLog(@"ph asset");
-        NSLog(@"asset: %@", asset);
-        [textViewCell.media addAsset:asset];
+        [self.textViewCell.media addAsset:asset];
     }
     else {
         UIImage *chosenImage = info[UIImagePickerControllerOriginalImage];
-        [textViewCell.media addImage:chosenImage];
+        [self.textViewCell.media addImage:chosenImage];
     }
     
     [self updateToolbarAvailability];
@@ -745,7 +746,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     
     [picker dismissViewControllerAnimated:YES completion:nil];
     
-    [textViewCell.textView becomeFirstResponder];
+    [self.textViewCell.textView becomeFirstResponder];
 }
 
 - (void)mediaDidChange {
@@ -757,10 +758,29 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 }
 
 - (void)updateToolbarAvailability {
-    if (!textViewCell) return;
+    if (!self.textViewCell) return;
     
-    self.takePictureButton.enabled = ([textViewCell.media canAddMedia] && textViewCell.url.absoluteString.length == 0);
-    self.choosePictureButton.enabled = ([textViewCell.media canAddMedia] && textViewCell.url.absoluteString.length == 0);
+    self.takePictureButton.enabled = [self.textViewCell.media canAddMedia];
+    self.choosePictureButton.enabled = [self.textViewCell.media canAddMedia];
+    
+    BOOL mediaAllowed = true; // default: assume it's allowed
+    if (self.replyingTo || self.postingIn)  {
+        NSArray *mediaTypesAllowed = @[];
+        
+        if (self.replyingTo) {
+            mediaTypesAllowed = self.replyingTo.attributes.context.post.permissions.reply;
+        }
+        else if (self.postingIn) {
+            mediaTypesAllowed = self.postingIn.attributes.context.camp.permissions.post;
+        }
+        
+        mediaAllowed = !(mediaTypesAllowed.count == 0 || (mediaTypesAllowed.count == 1 && [mediaTypesAllowed containsObject:BFMediaTypeText]));
+    }
+    
+    NSLog(@"media allowed ? %@", mediaAllowed ? @"YES" : @"NO");
+    
+    self.takePictureButton.hidden = !mediaAllowed;
+    self.choosePictureButton.hidden = !mediaAllowed;
     
     [UIView animateWithDuration:0.3f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
         self.takePictureButton.alpha = (self.takePictureButton.enabled ? 1 : 0.25);
@@ -769,23 +789,41 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 }
 
 - (void)postMessage {
-    if (!textViewCell) return;
+    if (!self.textViewCell) return;
     
     NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
-    NSString *message = textViewCell.textView.text;
+    NSString *message = self.textViewCell.textView.text;
     if (message.length > 0) {
         [params setObject:[Post trimString:message] forKey:@"message"];
     }
-    if (textViewCell.media.objects.count > 0) {
-        [params setObject:textViewCell.media forKey:@"media"];
+    if (self.textViewCell.media.objects.count > 0) {
+        [params setObject:self.textViewCell.media forKey:@"media"];
     }
-    if (textViewCell.url > 0) {
-        [params setObject:textViewCell.url forKey:@"url"];
+    if (self.quotedObject) {
+        NSDictionary *attachment;
+        
+        if ([self.quotedObject isKindOfClass:[Post class]]) {
+            attachment = @{@"post_id": ((Post *)self.quotedObject).identifier};
+        }
+        else if ([self.quotedObject isKindOfClass:[Identity class]]) {
+            attachment = @{@"user_id": ((Identity *)self.quotedObject).identifier};
+        }
+        else if ([self.quotedObject isKindOfClass:[Camp class]]) {
+            attachment = @{@"camp_id": ((Camp *)self.quotedObject).identifier};
+        }
+        else if ([self.quotedObject isKindOfClass:[BFLink class]]) {
+            attachment = @{@"link": ((BFLink *)self.quotedObject).attributes.actionUrl};
+        }
+        
+        if (attachment) {
+            [params setObject:attachment forKey:@"attachments"];
+        }
     }
     
     if ([params allKeys].count > 0) {
+        NSLog(@"create params:: %@", params);
         // meets min. requirements
-        [BFAPI createPost:params postingIn:self.postingIn replyingTo:self.replyingTo];
+        [BFAPI createPost:params postingIn:self.postingIn replyingTo:self.replyingTo attachments:nil];
         
         [self.navigationController dismissViewControllerAnimated:YES completion:^{
             if (self.replyingToIcebreaker) {
@@ -830,7 +868,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     }
     
     [[HAWebService authenticatedManager] GET:url parameters:@{@"q": q} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        NSString *currentSearchTerm = self.activeTagRange.location != NSNotFound ? [self->textViewCell.textView.text substringWithRange:self.activeTagRange] : @"";
+        NSString *currentSearchTerm = self.activeTagRange.location != NSNotFound ? [self.textViewCell.textView.text substringWithRange:self.activeTagRange] : @"";
         if ([tag isEqualToString:currentSearchTerm]) {
             NSDictionary *responseData = (NSDictionary *)responseObject[@"data"];
                     
@@ -863,8 +901,99 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         _replyingTo = replyingTo;
         
         [self updatePlaceholder];
+        [self updateToolbarAvailability];
+        [self updateTintColor];
     }
 }
+- (void)setPostingIn:(Camp *)postingIn {
+    if (postingIn != _postingIn) {
+        _postingIn = postingIn;
+        
+        if (self.postingIn) {
+            [self updateTitleText:self.postingIn.attributes.title];
+            self.titleAvatar.camp = self.postingIn;
+        }
+        else {
+            [self updateTitleText:@"My Profile"];
+            self.titleAvatar.camp = nil;
+            self.titleAvatar.imageView.image = nil;
+            self.titleAvatar.user = [[Session sharedInstance] currentUser];
+        }
+        [self updatePlaceholder];
+        [self updateToolbarAvailability];
+        [self updateTintColor];
+    }
+}
+- (void)setQuotedObject:(id)quotedObject {
+    if (quotedObject != _quotedObject) {
+        // validate quoted object is currently supported
+        NSArray *supportedTypes = @[[Post class], [User class], [Bot class], [Camp class], [BFLink class]];
+        if ([supportedTypes containsObject:[quotedObject class]]) {
+            _quotedObject = quotedObject;
+            
+            if ([quotedObject isKindOfClass:[Post class]]) {
+                BFPostAttachmentView *attachmentView = [[BFPostAttachmentView alloc] init];
+                attachmentView.post = quotedObject;
+                self.quotedAttachmentView = attachmentView;
+            }
+            else if ([quotedObject isKindOfClass:[User class]]) {
+                BFUserAttachmentView *attachmentView = [[BFUserAttachmentView alloc] init];
+                attachmentView.user = quotedObject;
+                self.quotedAttachmentView = attachmentView;
+            }
+            else if ([quotedObject isKindOfClass:[Bot class]]) {
+                BFBotAttachmentView *attachmentView = [[BFBotAttachmentView alloc] init];
+                attachmentView.bot = quotedObject;
+                self.quotedAttachmentView = attachmentView;
+            }
+            else if ([quotedObject isKindOfClass:[Camp class]]) {
+                BFCampAttachmentView *attachmentView = [[BFCampAttachmentView alloc] init];
+                attachmentView.camp = quotedObject;
+                self.quotedAttachmentView = attachmentView;
+            }
+            else if ([quotedObject isKindOfClass:[BFLink class]]) {
+                if ([(BFLink *)quotedObject isSmartLink]) {
+                    BFSmartLinkAttachmentView *attachmentView = [[BFSmartLinkAttachmentView alloc] init];
+                    attachmentView.shareLinkButton.hidden = true;
+                    attachmentView.shareLinkButtonSeparator.hidden = true;
+                    attachmentView.link = quotedObject;
+                    self.quotedAttachmentView = attachmentView;
+                }
+                else  {
+                    BFLinkAttachmentView *attachmentView = [[BFLinkAttachmentView alloc] init];
+                    attachmentView.link = quotedObject;
+                    self.quotedAttachmentView = attachmentView;
+                }
+            }
+        }
+        else {
+            self.quotedAttachmentView = nil;
+        }
+        
+        [self.tableView reloadData];
+    }
+}
+
+//- (void)updateContentInsets {
+//    CGFloat bottomPadding = UIApplication.sharedApplication.keyWindow.safeAreaInsets.bottom;
+//
+//    CGFloat newComposeInputViewY = self.view.frame.size.height;
+//
+//    CGFloat parentPostOffset = 0;
+//
+//    if (self.replyingTo) {
+//        BOOL requiresParentPostPadding = true;
+//
+//        CGFloat textViewHeight = [self.textViewCell height];
+//        CGFloat replyHeight = [self tableView:self.tableView heightForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
+//
+//        parentPostOffset = (self.composeInputView.frame.origin.y - textViewHeight - replyHeight - self.tableView.adjustedContentInset.top);
+//        parentPostOffset = MAX(0, parentPostOffset);
+//    }
+//
+//    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, self.view.frame.size.height - newComposeInputViewY + parentPostOffset, 0);
+//    self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, self.view.frame.size.height - newComposeInputViewY, 0);
+//}
 
 - (void)showAutoCompleteView {
     UIWindow *window = UIApplication.sharedApplication.delegate.window;
@@ -928,14 +1057,15 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             
             cell.post = self.replyingTo;
             
-            cell.lineSeparator.hidden = !self.replyingTo;
+            cell.lineSeparator.hidden = true;
             cell.selectable = false;
             cell.moreButton.hidden = true;
+            cell.bottomLine.hidden = false;
             
             return cell;
         }
         else if (indexPath.section == 1 && indexPath.row == 0) {
-            if (textViewCell) return textViewCell;
+            if (self.textViewCell) return self.textViewCell;
             
             ComposeTextViewCell *cell = [tableView dequeueReusableCellWithIdentifier:composeTextViewCellReuseIdentifier forIndexPath:indexPath];
             
@@ -946,21 +1076,25 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             cell.tintColor = self.view.tintColor;
             
             cell.lineSeparator.hidden = true;
+            cell.topLine.hidden = !self.replyingTo;
                         
             if (cell.tag != 1) {
                 cell.tag = 1;
                 [cell.textView becomeFirstResponder];
                 cell.textView.delegate = self;
                 cell.textView.tintColor = cell.tintColor;
+                cell.textView.text = _prefillMessage;
                 cell.delegate = self;
             }
             else {
                 cell.textView.attributedText = self.activeAttributedString;
             }
             
-            textViewCell = cell;
+            cell.quotedAttachmentView = self.quotedAttachmentView;
             
+            self.textViewCell = cell;
             [self updatePlaceholder];
+            [self detectEntities];
             
             return cell;
         }
@@ -1026,7 +1160,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     if (tableView == self.tableView) {
         if (indexPath.section == 0 && indexPath.row == 0 && self.replyingTo) {
-            float height = [StreamPostCell heightForPost:self.replyingTo showContext:false showActions:false] + 8; // removed action bar (32pt + 8pt)
+            float height = [StreamPostCell heightForPost:self.replyingTo showContext:false showActions:false minimizeLinks:false] + 8; // removed action bar (32pt + 8pt)
             float minHeight = 48 + (postContentOffset.top + postContentOffset.bottom); // 48 = avatar height
             if (height < minHeight) {
                 height = minHeight;
@@ -1035,9 +1169,9 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             return height;
         }
         else if (indexPath.section == 1 && indexPath.row == 0) {
-            if (!textViewCell) return CGFLOAT_MIN;
+            if (!self.textViewCell) return CGFLOAT_MIN;
             
-            return [textViewCell height];
+            return [self.textViewCell height];
         }
     }
     else if (tableView == self.autoCompleteTableView) {
@@ -1069,17 +1203,13 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    if (tableView == self.tableView && section == 0) {
-        if (self.replyingTo) {
-            return (self.replyingToIcebreaker ? 100 : 52);
-        }
+    if (tableView == self.tableView && section == 0 && self.replyingToIcebreaker) {
+        return 100;
     }
-    return (tableView == self.tableView && section == 0 && self.replyingTo ? 40 : CGFLOAT_MIN);
+    return CGFLOAT_MIN;
 }
 - (UIView * _Nullable)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
-    if (tableView != self.tableView || section != 0 || !self.replyingTo) return nil;
-    
-    if (self.replyingToIcebreaker) {
+    if (tableView == self.tableView && section == 0 && self.replyingToIcebreaker) {
         UIView *header = [UIView new];
         header.frame = CGRectMake(0, 0, self.view.frame.size.width, 104);
         
@@ -1107,47 +1237,48 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         
         return header;
     }
-    else {
-        UIView *header = [UIView new];
-        header.frame = CGRectMake(0, 0, self.view.frame.size.width, 52);
-        
-        UIView *replyingToView = [[UIView alloc] initWithFrame:CGRectMake(12, 8, header.frame.size.width - 12 - 12, header.frame.size.height - 12)];
-        replyingToView.backgroundColor = [UIColor bonfireDetailColor];
-        replyingToView.layer.cornerRadius = 8.f;
-        replyingToView.layer.masksToBounds = true;
-        [header addSubview:replyingToView];
-        
-        UIImage *replyIconImage = [[UIImage imageNamed:@"postActionReply"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-        UIImageView *replyIcon = [[UIImageView alloc] initWithFrame:CGRectMake(12, replyingToView.frame.size.height / 2 - 7.5, replyIconImage.size.width, 15)];
-        replyIcon.image = replyIconImage;
-        replyIcon.tintColor = [UIColor bonfirePrimaryColor];
-        replyIcon.contentMode = UIViewContentModeScaleAspectFill;
-        [replyingToView addSubview:replyIcon];
-        
-        CGFloat replyingToLabelX = replyIcon.frame.origin.x + replyIcon.frame.size.width + 8;
-        UILabel *replyingToLabel = [[UILabel alloc] initWithFrame:CGRectMake(replyingToLabelX, 0, replyingToView.frame.size.width - replyingToLabelX - 12, replyingToView.frame.size.height)];
-        replyingToLabel.textColor = [UIColor bonfirePrimaryColor];
-        if ([self.replyingTo.attributes.creator.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
-            replyingToLabel.text = [NSString stringWithFormat:@"Replying to yourself"];
-        }
-        else {
-            replyingToLabel.text = [NSString stringWithFormat:@"Replying to @%@", self.replyingTo.attributes.creator.attributes.identifier];
-        }
-        replyingToLabel.textAlignment = NSTextAlignmentLeft;
-        replyingToLabel.lineBreakMode = NSLineBreakByTruncatingMiddle;
-        replyingToLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightMedium];
-        [replyingToView addSubview:replyingToLabel];
-        
-        UIView *lineSeparator_t = [[UIView alloc] initWithFrame:CGRectMake(0, 0, replyingToView.frame.size.width, (1 / [UIScreen mainScreen].scale))];
-        lineSeparator_t.backgroundColor = [UIColor tableViewSeparatorColor];
-        //[replyingToView addSubview:lineSeparator_t];
-        
-        UIView *lineSeparator_b = [[UIView alloc] initWithFrame:CGRectMake(0, replyingToView.frame.size.height - (1 / [UIScreen mainScreen].scale), replyingToView.frame.size.width, (1 / [UIScreen mainScreen].scale))];
-        lineSeparator_b.backgroundColor = [UIColor tableViewSeparatorColor];
-        //[replyingToView addSubview:lineSeparator_b];
-        
-        return header;
-    }
+//    else {
+//        UIView *header = [UIView new];
+//        header.frame = CGRectMake(0, 0, self.view.frame.size.width, 52);
+//
+//        UIView *replyingToView = [[UIView alloc] initWithFrame:CGRectMake(12, 8, header.frame.size.width - 12 - 12, header.frame.size.height - 12)];
+//        replyingToView.backgroundColor = [UIColor bonfireDetailColor];
+//        replyingToView.layer.cornerRadius = 8.f;
+//        replyingToView.layer.masksToBounds = true;
+//        [header addSubview:replyingToView];
+//
+//        UIImage *replyIconImage = [[UIImage imageNamed:@"postActionReply"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+//        UIImageView *replyIcon = [[UIImageView alloc] initWithFrame:CGRectMake(12, replyingToView.frame.size.height / 2 - 7.5, replyIconImage.size.width, 15)];
+//        replyIcon.image = replyIconImage;
+//        replyIcon.tintColor = [UIColor bonfirePrimaryColor];
+//        replyIcon.contentMode = UIViewContentModeScaleAspectFill;
+//        [replyingToView addSubview:replyIcon];
+//
+//        CGFloat replyingToLabelX = replyIcon.frame.origin.x + replyIcon.frame.size.width + 8;
+//        UILabel *replyingToLabel = [[UILabel alloc] initWithFrame:CGRectMake(replyingToLabelX, 0, replyingToView.frame.size.width - replyingToLabelX - 12, replyingToView.frame.size.height)];
+//        replyingToLabel.textColor = [UIColor bonfirePrimaryColor];
+//        if ([self.replyingTo.attributes.creator.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
+//            replyingToLabel.text = [NSString stringWithFormat:@"Replying to yourself"];
+//        }
+//        else {
+//            replyingToLabel.text = [NSString stringWithFormat:@"Replying to @%@", self.replyingTo.attributes.creator.attributes.identifier];
+//        }
+//        replyingToLabel.textAlignment = NSTextAlignmentLeft;
+//        replyingToLabel.lineBreakMode = NSLineBreakByTruncatingMiddle;
+//        replyingToLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightMedium];
+//        [replyingToView addSubview:replyingToLabel];
+//
+//        UIView *lineSeparator_t = [[UIView alloc] initWithFrame:CGRectMake(0, 0, replyingToView.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+//        lineSeparator_t.backgroundColor = [UIColor tableViewSeparatorColor];
+//        //[replyingToView addSubview:lineSeparator_t];
+//
+//        UIView *lineSeparator_b = [[UIView alloc] initWithFrame:CGRectMake(0, replyingToView.frame.size.height - (1 / [UIScreen mainScreen].scale), replyingToView.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+//        lineSeparator_b.backgroundColor = [UIColor tableViewSeparatorColor];
+//        //[replyingToView addSubview:lineSeparator_b];
+//
+//        return header;
+//    }
+    return nil;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
@@ -1159,16 +1290,16 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     if (tableView == self.autoCompleteTableView) {
-        if (textViewCell && textViewCell.textView && self.activeTagRange.location != NSNotFound) {
+        if (self.textViewCell && self.textViewCell.textView && self.activeTagRange.location != NSNotFound) {
             SearchResultCell *cell = [self.autoCompleteTableView cellForRowAtIndexPath:indexPath];
             if (self.autoCompleteResults.count > indexPath.row) {
                 BOOL changes = false;
-                NSString *finalString = textViewCell.textView.text;
+                NSString *finalString = self.textViewCell.textView.text;
                 if (cell.user) {
                     NSString *usernameSelected = cell.user.attributes.identifier;
                     
                     if (usernameSelected.length > 0) {
-                        finalString = [textViewCell.textView.text stringByReplacingCharactersInRange:self.activeTagRange withString:[NSString stringWithFormat:@"@%@ ", usernameSelected]];
+                        finalString = [self.textViewCell.textView.text stringByReplacingCharactersInRange:self.activeTagRange withString:[NSString stringWithFormat:@"@%@ ", usernameSelected]];
                         changes = true;
                     }
                 }
@@ -1176,17 +1307,17 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                     NSString *campTagSelected = cell.camp.attributes.identifier;
                     
                     if (campTagSelected.length > 0) {
-                        finalString = [textViewCell.textView.text stringByReplacingCharactersInRange:self.activeTagRange withString:[NSString stringWithFormat:@"#%@ ", campTagSelected]];
+                        finalString = [self.textViewCell.textView.text stringByReplacingCharactersInRange:self.activeTagRange withString:[NSString stringWithFormat:@"#%@ ", campTagSelected]];
                         changes = true;
                     }
                 }
                 
                 if (changes) {
                     // set it twice to avoid autocorrection from overriding our changes
-                    textViewCell.textView.text = finalString;
-                    textViewCell.textView.text = finalString;
+                    self.textViewCell.textView.text = finalString;
+                    self.textViewCell.textView.text = finalString;
                     
-                    [self textViewDidChange:textViewCell.textView];
+                    [self textViewDidChange:self.textViewCell.textView];
                     [HapticHelper generateFeedback:FeedbackType_Selection];
                 }
             }

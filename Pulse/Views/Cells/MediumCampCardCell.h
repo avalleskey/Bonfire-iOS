@@ -18,8 +18,11 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic, strong) UIView *campHeaderView;
 
-@property (nonatomic, strong) UIView *profilePictureContainerView;
-@property (nonatomic, strong) BFAvatarView *profilePicture;
+@property (nonatomic, strong) UIView *campAvatarContainer;
+@property (nonatomic, strong) BFAvatarView *campAvatar;
+@property (nonatomic, strong) UIView *campAvatarReasonView;
+@property (nonatomic, strong) UILabel *campAvatarReasonLabel;
+@property (nonatomic, strong) UIImageView *campAvatarReasonImageView;
 
 @property (nonatomic, strong) BFAvatarView *member1;
 @property (nonatomic, strong) BFAvatarView *member2;

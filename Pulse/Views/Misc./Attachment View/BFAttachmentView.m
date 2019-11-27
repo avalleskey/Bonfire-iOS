@@ -71,7 +71,7 @@
     
     self.highlightView.frame = self.contentView.bounds;
     
-    self.contentView.layer.borderColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.12f].CGColor;
+    self.contentView.layer.borderColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.14f].CGColor;
     self.highlightView.backgroundColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.08f];
 }
 
@@ -111,6 +111,10 @@
             [self touchCancel];
         }
     }
+}
+
+- (CGFloat)height {
+    return 200;
 }
 
 @end

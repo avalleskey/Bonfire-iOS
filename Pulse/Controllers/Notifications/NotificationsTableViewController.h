@@ -17,6 +17,9 @@ enum {
     MAX_CACHED_ACTIVITIES = 40
 };
 
+@property (nonatomic, strong) NSDate *lastFetch;
+- (void)refreshIfNeeded;
+
 @end
 
 NS_ASSUME_NONNULL_END

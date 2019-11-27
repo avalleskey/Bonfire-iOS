@@ -20,11 +20,12 @@
 #import "UIColor+Palette.h"
 #import "NSString+Validation.h"
 #import "HAWebService.h"
+#import "BFAlertController.h"
 
 #import <JGProgressHUD/JGProgressHUD.h>
 #import <HapticHelper/HapticHelper.h>
 #include <stdlib.h>
-#import <FBSDKShareKit/FBSDKShareKit.h>
+//#import <FBSDKShareKit/FBSDKShareKit.h>
 #import <RSKImageCropper/RSKImageCropper.h>
 
 
@@ -128,7 +129,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 - (void)setupViews {
     self.closeButton = [UIButton buttonWithType:UIButtonTypeSystem];
     [self.closeButton setImage:[[UIImage imageNamed:@"navCloseIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
-    self.closeButton.tintColor = self.view.tintColor;
+    self.closeButton.tintColor = [UIColor fromHex:[UIColor toHex:self.view.tintColor] adjustForOptimalContrast:true];
     self.closeButton.contentMode = UIViewContentModeCenter;
     self.closeButton.adjustsImageWhenHighlighted = false;
     [self.closeButton bk_whenTapped:^{
@@ -485,8 +486,8 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         [shareField addSubview:copyLabel];
         
         NSArray *buttons = @[
-//                            @{@"id": @"bonfire", @"image": [UIImage imageNamed:@"share_bonfire"], @"color": [UIColor fromHex:@"FF513C" adjustForDarkMode:false]},
-                            @{@"id": @"facebook", @"image": [UIImage imageNamed:@"share_facebook"], @"color": [UIColor fromHex:@"3B5998" adjustForOptimalContrast:false]},
+                            @{@"id": @"bonfire", @"image": [UIImage imageNamed:@"share_bonfire"], @"color": [UIColor fromHex:@"FF513C" adjustForOptimalContrast:false]},
+//                            @{@"id": @"facebook", @"image": [UIImage imageNamed:@"share_facebook"], @"color": [UIColor fromHex:@"3B5998" adjustForOptimalContrast:false]},
                             @{@"id": @"twitter", @"image": [UIImage imageNamed:@"share_twitter"], @"color": [UIColor fromHex:@"1DA1F2" adjustForOptimalContrast:false]},
                             @{@"id": @"imessage", @"image": [UIImage imageNamed:@"share_imessage"], @"color": [UIColor fromHex:@"36DB52" adjustForOptimalContrast:false]},
                             @{@"id": @"more", @"image": [UIImage imageNamed:@"share_more"], @"color": [UIColor tableViewSeparatorColor]}
@@ -526,7 +527,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             [button bk_whenTapped:^{
                 NSString *campShareLink = [NSString stringWithFormat:@"https://bonfire.camp/c/%@", self.camp.identifier];
                 if ([identifier isEqualToString:@"bonfire"]) {
-                    [Launcher openInviteToCamp:self.camp];
+                    [Launcher openComposePost:nil inReplyTo:nil withMessage:nil media:nil quotedObject:self.camp];
                 }
                 else if ([identifier isEqualToString:@"twitter"]) {
                     if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"twitter://post"]]) {
@@ -536,12 +537,12 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                     }
                 }
                 else if ([identifier isEqualToString:@"facebook"]) {
-                    FBSDKShareLinkContent *content = [[FBSDKShareLinkContent alloc] init];
-                    content.contentURL = [NSURL URLWithString:campShareLink];
-                    content.hashtag = [FBSDKHashtag hashtagWithString:@"#Bonfire"];
-                    [FBSDKShareDialog showFromViewController:self
-                                                  withContent:content
-                                                     delegate:nil];
+//                    FBSDKShareLinkContent *content = [[FBSDKShareLinkContent alloc] init];
+//                    content.contentURL = [NSURL URLWithString:campShareLink];
+//                    content.hashtag = [FBSDKHashtag hashtagWithString:@"#Bonfire"];
+//                    [FBSDKShareDialog showFromViewController:self
+//                                                  withContent:content
+//                                                     delegate:nil];
                 }
                 else if ([identifier isEqualToString:@"imessage"]) {
                     [Launcher shareOniMessage:[NSString stringWithFormat:@"I created a Camp on Bonfire! Join %@: %@", self.camp.attributes.title, campShareLink] image:nil];
@@ -621,7 +622,13 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         
         [UIView animateWithDuration:0.6f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
             self.nextButton.backgroundColor = sender.backgroundColor;
-            self.closeButton.tintColor = sender.backgroundColor;
+            if ([UIColor useWhiteForegroundForColor:sender.backgroundColor]) {
+                [self.nextButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+            }
+            else {
+                [self.nextButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+            }
+            self.closeButton.tintColor = [UIColor fromHex:[UIColor toHex:sender.backgroundColor] adjustForOptimalContrast:true];
             
             checkView.transform = CGAffineTransformMakeScale(1, 1);
             checkView.alpha = 1;
@@ -768,17 +775,17 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         }
         else if ([nextStep[@"id"] isEqualToString:@"camp_color"]) {
             [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-                [self enableNextButton];
                 self.view.tintColor = [self currentColor];
-                self.closeButton.tintColor = [self currentColor];
+                self.closeButton.tintColor = [UIColor fromHex:[UIColor toHex:[self currentColor]] adjustForOptimalContrast:true];
                 self.nextButton.backgroundColor = [self currentColor];
+                [self enableNextButton];
             } completion:nil];
         }
         else if ([nextStep[@"id"] isEqualToString:@"camp_share"]) {
             // remove previously selected color
             UILabel *copyLabel = [nextBlock viewWithTag:12];
             UIButton *shareCampButton = [nextBlock viewWithTag:11];
-            copyLabel.textColor = [self currentColor];
+            copyLabel.textColor = [UIColor fromHex:[UIColor toHex:[self currentColor]] adjustForOptimalContrast:true];
             shareCampButton.tintColor = copyLabel.textColor;
             [shareCampButton setTitleColor:copyLabel.textColor forState:UIControlStateNormal];
             shareCampButton.layer.borderColor = [copyLabel.textColor colorWithAlphaComponent:0.2f].CGColor;
@@ -977,7 +984,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     NSInteger themeAndPrivacyStep = [self getIndexOfStepWithId:@"camp_color"];
     UIView *nextBlock = self.steps[themeAndPrivacyStep][@"block"];
     UISwitch *isPrivateSwitch = [nextBlock viewWithTag:10];
-    BOOL visibility = !isPrivateSwitch.on;
+    BOOL private = isPrivateSwitch.on;
     
     NSInteger campPictureStep = [self getIndexOfStepWithId:@"camp_picture"];
     UIView *campPictureView = self.steps[campPictureStep][@"block"];
@@ -987,13 +994,13 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     CIImage *cim = [campPicture CIImage];
     BOOL hasCampPicture = (cim != nil || cgref != NULL) && campPictureView.tag == 1;
     
-    NSLog(@"params: %@", @{@"title": campTitle, @"description": campDescription, @"color": campColor, @"visibility": [NSNumber numberWithBool:visibility]});
+    NSLog(@"params: %@", @{@"title": campTitle, @"description": campDescription, @"color": campColor, @"private": [NSNumber numberWithBool:private]});
     
     void (^createCamp)(NSString *uploadedImage) = ^(NSString *uploadedImage) {
-        NSMutableDictionary *params = @{@"title": campTitle, @"description": campDescription, @"color": campColor, @"visibility": [NSNumber numberWithBool:visibility]}.mutableCopy;
+        NSMutableDictionary *params = @{@"title": campTitle, @"description": campDescription, @"color": campColor, @"private": [NSNumber numberWithBool:private]}.mutableCopy;
         
         if (uploadedImage.length > 0) {
-            [params setObject:uploadedImage forKey:@"camp_avatar"];
+            [params setObject:uploadedImage forKey:@"avatar"];
         }
         
         [[HAWebService authenticatedManager] POST:@"camps" parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
@@ -1026,7 +1033,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             // Google Analytics
             [FIRAnalytics logEventWithName:@"camp_created"
                                 parameters:@{
-                                             @"public": (visibility) ? @"YES" : @"NO",
+                                             @"public": (private) ? @"NO" : @"FALSE",
                                              @"color": campColor
                                              }];
             //[self.createTrace stop];
@@ -1272,23 +1279,22 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 }
 
 - (void)showImagePicker {
-    UIAlertController *imagePickerOptions = [UIAlertController alertControllerWithTitle:@"Set Camp Picture" message:nil preferredStyle:UIAlertControllerStyleActionSheet];
+    BFAlertController *imagePickerOptions = [BFAlertController alertControllerWithTitle:@"Set Camp Picture" message:nil preferredStyle:BFAlertControllerStyleActionSheet];
     
-    UIAlertAction *takePhoto = [UIAlertAction actionWithTitle:@"Take Photo" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+    BFAlertAction *takePhoto = [BFAlertAction actionWithTitle:@"Take Photo" style:BFAlertActionStyleDefault handler:^{
         [self takePhotoForProfilePicture:nil];
     }];
     [imagePickerOptions addAction:takePhoto];
     
-    UIAlertAction *chooseFromLibrary = [UIAlertAction actionWithTitle:@"Choose from Library" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+    BFAlertAction *chooseFromLibrary = [BFAlertAction actionWithTitle:@"Choose from Library" style:BFAlertActionStyleDefault handler:^{
         [self chooseFromLibraryForProfilePicture:nil];
     }];
     [imagePickerOptions addAction:chooseFromLibrary];
     
-    UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-    }];
+    BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
     [imagePickerOptions addAction:cancel];
     
-    [self presentViewController:imagePickerOptions animated:YES completion:nil];
+    [self presentViewController:imagePickerOptions animated:true completion:nil];
 }
 
 
@@ -1329,16 +1335,16 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     });
 }
 - (void)showNoCameraAccess {
-    UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"Allow Bonfire to access your camera" message:@"To allow Bonfire to access your camera, go to Settings > Privacy > Camera > Set Bonfire to ON" preferredStyle:UIAlertControllerStyleAlert];
+    BFAlertController *actionSheet = [BFAlertController alertControllerWithTitle:@"Allow Bonfire to access your camera" message:@"To allow Bonfire to access your camera, go to Settings > Privacy > Camera > Set Bonfire to ON" preferredStyle:BFAlertControllerStyleAlert];
 
-    UIAlertAction *openSettingsAction = [UIAlertAction actionWithTitle:@"Open Settings" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+    BFAlertAction *openSettingsAction = [BFAlertAction actionWithTitle:@"Open Settings" style:BFAlertActionStyleDefault handler:^{
         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString] options:@{} completionHandler:nil];
     }];
     [actionSheet addAction:openSettingsAction];
 
-    UIAlertAction *closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleCancel handler:nil];
+    BFAlertAction *closeAction = [BFAlertAction actionWithTitle:@"Close" style:BFAlertActionStyleCancel handler:nil];
     [actionSheet addAction:closeAction];
-    [[Launcher topMostViewController] presentViewController:actionSheet animated:YES completion:nil];
+    [[Launcher topMostViewController] presentViewController:actionSheet animated:true completion:nil];
 }
 
 - (void)chooseFromLibraryForProfilePicture:(id)sender {
@@ -1363,16 +1369,16 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                 NSLog(@"PHAuthorizationStatusDenied");
                 // confirm action
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"Allow Bonfire to access your phtoos" message:@"To allow Bonfire to access your photos, go to Settings > Privacy > Camera > Set Bonfire to ON" preferredStyle:UIAlertControllerStyleAlert];
+                    BFAlertController *actionSheet = [BFAlertController alertControllerWithTitle:@"Allow Bonfire to access your phtoos" message:@"To allow Bonfire to access your photos, go to Settings > Privacy > Camera > Set Bonfire to ON" preferredStyle:BFAlertControllerStyleAlert];
 
-                    UIAlertAction *openSettingsAction = [UIAlertAction actionWithTitle:@"Open Settings" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                    BFAlertAction *openSettingsAction = [BFAlertAction actionWithTitle:@"Open Settings" style:BFAlertActionStyleDefault handler:^{
                         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString] options:@{} completionHandler:nil];
                     }];
                     [actionSheet addAction:openSettingsAction];
                 
-                    UIAlertAction *closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleCancel handler:nil];
+                    BFAlertAction *closeAction = [BFAlertAction actionWithTitle:@"Close" style:BFAlertActionStyleCancel handler:nil];
                     [actionSheet addAction:closeAction];
-                    [[Launcher topMostViewController] presentViewController:actionSheet animated:YES completion:nil];
+                    [[Launcher topMostViewController] presentViewController:actionSheet animated:true completion:nil];
                 });
 
                 break;

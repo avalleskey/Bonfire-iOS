@@ -110,6 +110,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
             }
             
             self.recentSearchResults = [[NSMutableArray alloc] initWithArray:searchRecents];
+            [self objectifyRsultsArray:self.recentSearchResults];
             
             return;
         }
@@ -176,6 +177,31 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
 - (void)populateSearchResults:(NSDictionary *)responseData {
     [self.searchResults addObjectsFromArray:responseData[@"results"][@"camps"]];
     [self.searchResults addObjectsFromArray:responseData[@"results"][@"users"]];
+    [self objectifyRsultsArray:self.searchResults];
+}
+
+-  (void)objectifyRsultsArray:(NSMutableArray *)array {
+    if (![array isKindOfClass:[NSMutableArray class]]) {
+        return;
+    }
+    
+    for (NSInteger i = 0; i < array.count; i++) {
+        if ([array[i] isKindOfClass:[NSDictionary class]]) {
+            NSDictionary *object = array[i];
+            
+            if ([object objectForKey:@"type"] && [[object objectForKey:@"type"] isKindOfClass:[NSString class]]) {
+                if ([object[@"type"] isEqualToString:@"camp"]) {
+                    [array replaceObjectAtIndex:i withObject:[[Camp alloc] initWithDictionary:object error:nil]];
+                }
+                else if ([object[@"type"] isEqualToString:@"user"]) {
+                    [array replaceObjectAtIndex:i withObject:[[User alloc] initWithDictionary:object error:nil]];
+                }
+                else if ([object[@"type"] isEqualToString:@"bot"]) {
+                    [array replaceObjectAtIndex:i withObject:[[Bot alloc] initWithDictionary:object error:nil]];
+                }
+            }
+        }
+    }
 }
 
 - (void)determineErrorViewVisibility {
@@ -273,38 +299,35 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
         if (cell == nil) {
             cell = [[SearchResultCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:reuseIdentifier];
         }
-        
-        NSDictionary *json;
+                
+        NSObject *object;
         // mix of types
         if (indexPath.section == 0) {
-            json = self.recentSearchResults[indexPath.row];
+            object = self.recentSearchResults[indexPath.row];
             cell.lineSeparator.hidden = (indexPath.row == self.recentSearchResults.count - 1);
         }
         else {
-            json = self.searchResults[indexPath.row];
+            object = self.searchResults[indexPath.row];
             cell.lineSeparator.hidden = (indexPath.row == self.searchResults.count - 1);
         }
         
-        if ([json[@"type"] isEqualToString:@"camp"]) {
-            NSError *error;
-            Camp *camp = [[Camp alloc] initWithDictionary:json error:&error];
-            cell.camp = camp;
+        if ([object isKindOfClass:[Camp class]]) {
+            cell.camp = (Camp *)object;
         }
-        else if ([json[@"type"] isEqualToString:@"user"]) {
-            NSError *error;
-            User *user = [[User alloc] initWithDictionary:json error:&error];
-            cell.user = user;
+        else if ([object isKindOfClass:[User class]]) {
+            cell.user = (User *)object;
         }
-        else if ([json[@"type"] isEqualToString:@"bot"]) {
-            NSError *error;
-            Bot *bot = [[Bot alloc] initWithDictionary:json error:&error];
-            cell.bot = bot;
+        else if ([object isKindOfClass:[Bot class]]) {
+            cell.bot = (Bot *)object;
         }
         else {
-            // 0 = page inside Home (e.g. Timeline, My Camps, Trending)
+            cell.camp = nil;
+            cell.user = nil;
+            cell.bot = nil;
+            
             cell.textLabel.text = @"";
-            cell.imageView.image = [UIImage new];
-            cell.imageView.backgroundColor = [UIColor blueColor];
+            cell.imageView.image = nil;
+            cell.imageView.backgroundColor = [UIColor bonfireSecondaryColor];
         }
         
         return cell;
@@ -367,7 +390,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
             // Go to @{username}
             User *user = [[User alloc] init];
             user.type = @"user";
-            UserAttributes *attributes = [[UserAttributes alloc] init];
+            IdentityAttributes *attributes = [[IdentityAttributes alloc] init];
             attributes.identifier = [searchText stringByReplacingOccurrencesOfString:@"@" withString:@""];
             user.attributes = attributes;
             
@@ -375,30 +398,23 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
         }
     }
     else {
-        NSDictionary *json;
+        NSObject *object;
         
         if (indexPath.section == 0) {
-            json = self.recentSearchResults[indexPath.row];
+            object = self.recentSearchResults[indexPath.row];
         }
         else {
-            json = self.searchResults[indexPath.row];
+            object = self.searchResults[indexPath.row];
         }
-        if (json[@"type"]) {
-            if ([json[@"type"] isEqualToString:@"camp"]) {
-                Camp *camp = [[Camp alloc] initWithDictionary:json error:nil];
-                
-                [Launcher openCamp:camp];
-            }
-            else if ([json[@"type"] isEqualToString:@"user"]) {
-                User *user = [[User alloc] initWithDictionary:json error:nil];
-                
-                [Launcher openProfile:user];
-            }
-            else if ([json[@"type"] isEqualToString:@"bot"]) {
-                Bot *bot = [[Bot alloc] initWithDictionary:json error:nil];
-                
-                [Launcher openBot:bot];
-            }
+        
+        if ([object isKindOfClass:[Camp class]]) {
+            [Launcher openCamp:(Camp *)object];
+        }
+        else if ([object isKindOfClass:[User class]]) {
+            [Launcher openProfile:(User *)object];
+        }
+        else if ([object isKindOfClass:[Bot class]]) {
+            [Launcher openBot:(Bot *)object];
         }
     }
     
@@ -455,89 +471,16 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    /*
-    NSString *searchText;
-    if ([self.navigationController isKindOfClass:[SearchNavigationController class]]) {
-        searchText = ((SearchNavigationController *)self.navigationController).searchView.textField.text;
-    }
-    else if ([self.navigationController isKindOfClass:[ComplexNavigationController class]]) {
-        searchText = ((ComplexNavigationController *)self.navigationController).searchView.textField.text;
-    }
-    
-    if (section == 0 && (self.recentSearchResults.count == 0 ||
-                         searchText.length != 0)) return CGFLOAT_MIN;
-    if (section == 1 && (self.searchResults.count > 0 ||
-                         searchText.length == 0)) return CGFLOAT_MIN;
-    if (section == 1 && searchText.length > 0 &&
-        self.searchResults.count == 0 &&
-        [searchText componentsSeparatedByString:@" "].count == 1) return CGFLOAT_MIN;
-    
-    return 48;*/
     return CGFLOAT_MIN;
 }
 
 - (nullable UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
     return nil;
-    /*
-    NSString *searchText;
-    if ([self.navigationController isKindOfClass:[SearchNavigationController class]]) {
-        searchText = ((SearchNavigationController *)self.navigationController).searchView.textField.text;
-    }
-    else if ([self.navigationController isKindOfClass:[ComplexNavigationController class]]) {
-        searchText = ((ComplexNavigationController *)self.navigationController).searchView.textField.text;
-    }
-    
-    if (section == 0 && (self.recentSearchResults.count == 0 ||
-                         searchText.length > 0)) return nil;
-    if (section == 1 && self.searchResults.count > 0) return nil;
-    if (section == 1 && searchText.length > 0 &&
-                        self.searchResults.count == 0 &&
-                        [searchText componentsSeparatedByString:@" "].count == 1) return nil;
-    
-    UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 48)];
-    
-    UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(16, 21, self.view.frame.size.width - 32, 19)];
-    title.textAlignment = NSTextAlignmentLeft;
-    title.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightBold];
-    title.textColor = [UIColor colorWithWhite:0.07f alpha:1];
-    if (section == 1 &&
-        searchText.length > 0 &&
-        self.searchResults.count == 0)
-    {
-        title.text = @"No results found";
-        title.alpha = 0.5;
-    }
-    else {
-        title.text = section == 0 ? @"Recents" : @"Trending Searches";
-        title.alpha = 1;
-    }
-    [header addSubview:title];
-    
-    UIView *hairline = [[UIView alloc] initWithFrame:CGRectMake(0, header.frame.size.height - (1 / [UIScreen mainScreen].scale), header.frame.size.width, (1 / [UIScreen mainScreen].scale))];
-    hairline.backgroundColor = [UIColor colorWithWhite:0 alpha:0.08f];
-    //[header addSubview:hairline];
-    
-    return header;*/
 }
 - (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
-    /*
-    if (section == 0 && self.recentSearchResults.count == 0) return CGFLOAT_MIN;
-    if (section == 1 && self.searchResults.count == 0) return CGFLOAT_MIN;
-    
-    return (1 / [UIScreen mainScreen].scale);*/
-    
     return CGFLOAT_MIN;
 }
 - (UIView*)tableView:(UITableView*)tableView viewForFooterInSection:(NSInteger)section {
-    /*
-    if (section == 0 && self.recentSearchResults.count == 0) return nil;
-    if (section == 1 && self.searchResults.count == 0) return nil;
-    
-    UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, (1 / [UIScreen mainScreen].scale))];
-    view.backgroundColor = [UIColor colorWithWhite:0.85 alpha:1];
-    
-    return view; */
-    
     return nil;
 }
 
@@ -594,20 +537,6 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     if (searchView.textField.text.length == 0) {
         [self.navigationController popToRootViewControllerAnimated:NO];
     }
-    /*
-    if ([self showRecents]) {
-        [self tableView:self.tableView didSelectRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
-    }
-    else {
-        if (self.searchResults && [self.searchResults objectForKey:@"results"] && [[self.searchResults objectForKey:@"results"] objectForKey:@"camps"] && [self.searchResults[@"results"][@"camps"] count] > 0) {
-            // has at least one camp
-            [self tableView:self.tableView didSelectRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:1]];
-        }
-        else if (self.searchResults && [self.searchResults objectForKey:@"results"] && [[self.searchResults objectForKey:@"results"] objectForKey:@"users"] && [self.searchResults[@"results"][@"users"] count] > 0) {
-            [self tableView:self.tableView didSelectRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:2]];
-        }
-    }
-     */
 }
 
 - (void)keyboardWillChangeFrame:(NSNotification *)notification {

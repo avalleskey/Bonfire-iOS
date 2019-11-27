@@ -16,6 +16,8 @@
 #import "UIImage+fixOrientation.h"
 #import "CampViewController.h"
 #import "UIColor+Palette.h"
+#import <PINCache/PINCache.h>
+#import "BFAlertController.h"
 @import Firebase;
 
 @interface BFAPI ()
@@ -47,8 +49,74 @@
     return [Session sharedInstance];
 }
 
+#pragma mark - Identity
++ (void)blockIdentity:(Identity *)identity completion:(void (^ _Nullable)(BOOL success, id responseObject))handler {
+    [FIRAnalytics logEventWithName:@"block_user"
+                        parameters:@{}];
+    
+    NSString *url = [NSString stringWithFormat:@"users/%@/block", identity.identifier]; // sample data
+    
+    [[HAWebService authenticatedManager] POST:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        NSLog(@"--------");
+        NSLog(@"success: blockUser");
+        NSLog(@"--------");
+        
+        handler(true, @{@"blocked": @true});
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        NSLog(@"error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);
+        NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+        NSLog(@"%@",ErrorResponse);
+        
+        handler(false, @{@"error": ErrorResponse});
+    }];
+}
++ (void)unblockIdentity:(Identity *)identity completion:(void (^ _Nullable)(BOOL success, id responseObject))handler {
+    [FIRAnalytics logEventWithName:@"unblock_user"
+                        parameters:@{}];
+    
+    NSString *url = [NSString stringWithFormat:@"users/%@/block", identity.identifier]; // sample data
+    
+    [[HAWebService authenticatedManager] DELETE:url parameters:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        NSLog(@"--------");
+        NSLog(@"success: unblockUser");
+        NSLog(@"--------");
+                
+        handler(true, @{@"blocked": @false});
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        NSLog(@"error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);
+        NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+        NSLog(@"%@",ErrorResponse);
+        
+        handler(false, @{@"error": ErrorResponse});
+    }];
+}
++ (void)reportIdentity:(Identity *)identity completion:(void (^ _Nullable)(BOOL success, id responseObject))handler {
+    [FIRAnalytics logEventWithName:@"report_user"
+                        parameters:@{}];
+    
+    NSString *url = [NSString stringWithFormat:@"users/%@/report", identity.identifier]; // sample data
+    
+    // -> report also blocks the user
+    
+    [[HAWebService authenticatedManager] POST:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        NSLog(@"--------");
+        NSLog(@"success: reportUser");
+        NSLog(@"--------");
+        
+        handler(true, @{@"reported": @true});
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        NSLog(@"error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);
+        NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+        NSLog(@"%@",ErrorResponse);
+        
+        handler(true, @{@"reported": @true});
+        // TODO: Uncomment and remove the above line, once this exists on the backend
+//        handler(false, @{@"error": ErrorResponse});
+    }];
+}
+
 #pragma mark - User
-+ (void)getUser:(void (^)(BOOL success))handler {
++ (void)getUser:(void (^ _Nullable)(BOOL success))handler {
     NSString *url = @"users/me";
         
     [[HAWebService authenticatedManager] GET:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
@@ -59,13 +127,17 @@
         
         [[Session sharedInstance] updateUser:user];
         
-        handler(TRUE);
+        if (handler) {
+            handler(TRUE);
+        }
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         NSLog(@"❌ Failed to get User ID");
         NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
         NSLog(@"%@", ErrorResponse);
         
-        handler(FALSE);
+        if (handler) {
+            handler(FALSE);
+        }
     }];
 }
 + (void)followUser:(User *)user completion:(void (^ _Nullable)(BOOL success, id responseObject))handler {
@@ -118,77 +190,13 @@
         handler(false, @{@"error": ErrorResponse});
     }];
 }
-+ (void)blockUser:(User *)user completion:(void (^ _Nullable)(BOOL success, id responseObject))handler {
-    [FIRAnalytics logEventWithName:@"block_user"
-                        parameters:@{}];
-    
-    NSString *url = [NSString stringWithFormat:@"users/%@/block", user.identifier]; // sample data
-    
-    [[HAWebService authenticatedManager] POST:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        NSLog(@"--------");
-        NSLog(@"success: blockUser");
-        NSLog(@"--------");
-        
-        handler(true, @{@"blocked": @true});
-    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-        NSLog(@"error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);
-        NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-        NSLog(@"%@",ErrorResponse);
-        
-        handler(false, @{@"error": ErrorResponse});
-    }];
-}
-+ (void)unblockUser:(User *)user completion:(void (^ _Nullable)(BOOL success, id responseObject))handler {
-    [FIRAnalytics logEventWithName:@"unblock_user"
-                        parameters:@{}];
-    
-    NSString *url = [NSString stringWithFormat:@"users/%@/block", user.identifier]; // sample data
-    
-    [[HAWebService authenticatedManager] DELETE:url parameters:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        NSLog(@"--------");
-        NSLog(@"success: unblockUser");
-        NSLog(@"--------");
-                
-        handler(true, @{@"blocked": @false});
-    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-        NSLog(@"error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);
-        NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-        NSLog(@"%@",ErrorResponse);
-        
-        handler(false, @{@"error": ErrorResponse});
-    }];
-}
-+ (void)reportUser:(User *)user completion:(void (^ _Nullable)(BOOL success, id responseObject))handler {
-    [FIRAnalytics logEventWithName:@"report_user"
-                        parameters:@{}];
-    
-    NSString *url = [NSString stringWithFormat:@"users/%@/report", user.identifier]; // sample data
-    
-    // -> report also blocks the user
-    
-    [[HAWebService authenticatedManager] POST:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        NSLog(@"--------");
-        NSLog(@"success: reportUser");
-        NSLog(@"--------");
-        
-        handler(true, @{@"reported": @true});
-    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-        NSLog(@"error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);
-        NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-        NSLog(@"%@",ErrorResponse);
-        
-        handler(true, @{@"reported": @true});
-        // TODO: Uncomment and remove the above line, once this exists on the backend
-//        handler(false, @{@"error": ErrorResponse});
-    }];
-}
 + (void)subscribeToUser:(User *_Nonnull)user completion:(void (^_Nullable)(BOOL success, User *_Nullable user))handler {
     [FIRAnalytics logEventWithName:@"subscribe_to_user"
                         parameters:@{}];
     
     NSString *url = [NSString stringWithFormat:@"users/%@/notifications/subscription", user.identifier];
     
-    [[HAWebService authenticatedManager] POST:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+    [[HAWebService authenticatedManager] POST:url parameters:@{@"vendor": @"APNS", @"token": [[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"]} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSLog(@"--------");
         NSLog(@"success: subscribeToUser");
         NSLog(@"--------");
@@ -230,10 +238,6 @@
         
         handler(true, user);
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-        NSLog(@"error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);
-        NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-        NSLog(@"%@",ErrorResponse);
-        
         handler(false, nil);
     }];
 }
@@ -247,47 +251,6 @@
     
     [[HAWebService authenticatedManager] POST:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         handler(true, @{@"blocked": @true});
-    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-        NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-        handler(false, @{@"error": ErrorResponse});
-    }];
-}
-+ (void)reportBot:(Bot *_Nonnull)bot completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler {
-    [FIRAnalytics logEventWithName:@"report_bot"
-                            parameters:@{}];
-        
-    NSString *url = [NSString stringWithFormat:@"users/%@/report", bot.identifier]; // sample data
-        
-    [[HAWebService authenticatedManager] POST:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        handler(true, @{@"reported": @true});
-    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-        handler(true, @{@"reported": @true});
-        // TODO: Uncomment and remove the above line, once this exists on the backend
-//        NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-//        handler(false, @{@"error": ErrorResponse});
-    }];
-}
-+ (void)blockBot:(Bot *_Nonnull)bot completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler {
-    [FIRAnalytics logEventWithName:@"block_bot"
-                        parameters:@{}];
-    
-    NSString *url = [NSString stringWithFormat:@"users/%@/block", bot.identifier]; // sample data
-    
-    [[HAWebService authenticatedManager] POST:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        handler(true, @{@"blocked": @true});
-    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-        NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-        handler(false, @{@"error": ErrorResponse});
-    }];
-}
-+ (void)unblockBot:(Bot *_Nonnull)bot completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler {
-    [FIRAnalytics logEventWithName:@"unblock_bot"
-                        parameters:@{}];
-    
-    NSString *url = [NSString stringWithFormat:@"users/%@/block", bot.identifier]; // sample data
-    
-    [[HAWebService authenticatedManager] DELETE:url parameters:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        handler(true, @{@"blocked": @false});
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
         handler(false, @{@"error": ErrorResponse});
@@ -313,6 +276,7 @@
         
         // refresh my camps
         [[NSNotificationCenter defaultCenter] postNotificationName:@"refreshMyCamps" object:nil];
+        [[PINCache sharedCache] removeObjectForKey:MY_CAMPS_CAN_POST_KEY];
         
         if ([responseObject objectForKey:@"data"]) {
             if ([responseObject[@"data"] objectForKey:@"context"]) {
@@ -394,6 +358,7 @@
         
         // refresh my camps
         [[NSNotificationCenter defaultCenter] postNotificationName:@"refreshMyCamps" object:nil];
+        [[PINCache sharedCache] removeObjectForKey:MY_CAMPS_CAN_POST_KEY];
         
         NSError *error;
         BFContextCamp *campContextResponse = [[BFContextCamp alloc] initWithDictionary:responseObject[@"data"][@"context"] error:&error];
@@ -433,7 +398,7 @@
 }
 
 #pragma mark - Post
-+ (void)createPost:(NSDictionary *)params postingIn:(Camp * _Nullable)postingIn replyingTo:(Post * _Nullable)replyingTo {
++ (void)createPost:(NSDictionary *)params postingIn:(Camp * _Nullable)postingIn replyingTo:(Post * _Nullable)replyingTo attachments:(PostAttachments * _Nullable)attachments {
     [FIRAnalytics logEventWithName:@"create_post"
                         parameters:@{
                                      @"posted_to": (postingIn != nil) ? @"camp" : @"profile",
@@ -444,7 +409,7 @@
     // --> This will place a temporary post at the top of related streams
     // --> Once the post has been created, we send a notification telling the View Controllers to remove the temporary post and replace it with the new post
     Post *tempPost = [[Post alloc] init];
-    [tempPost createTempWithMessage:params[@"message"] media:params[@"media"] postedIn:postingIn parent:replyingTo];
+    [tempPost createTempWithMessage:params[@"message"] media:params[@"media"] postedIn:postingIn parent:replyingTo attachments:attachments];
     [[NSNotificationCenter defaultCenter] postNotificationName:@"NewPostBegan" object:tempPost];
     
     [self uploadImages:params[@"media"] copmletion:^(BOOL imageSuccess, NSArray *images) {
@@ -468,18 +433,18 @@
             NSMutableDictionary *mutableParams = [[NSMutableDictionary alloc] initWithDictionary:params];
             [mutableParams removeObjectForKey:@"media"];
             
-            NSMutableDictionary *attachments = [[NSMutableDictionary alloc] init];
-            if (images.count > 0) {
-                [attachments setObject:images forKey:@"media"];
-            }
-            if (params[@"url"]) {
-                [attachments setObject:mutableParams[@"url"] forKey:@"link"];
-                [mutableParams removeObjectForKey:@"url"];
+            NSMutableDictionary *attachmentsDict = [NSMutableDictionary new];
+            if (params[@"attachments"]) {
+                [attachmentsDict addEntriesFromDictionary:params[@"attachments"]];
             }
             
-            if ([attachments allKeys].count > 0) {
-                [mutableParams setObject:attachments forKey:@"attachments"];
+            if (images.count > 0) {
+                [attachmentsDict setObject:images forKey:@"media"];
+                
+                [mutableParams setObject:attachmentsDict forKey:@"attachments"];
             }
+            
+            NSLog(@"params: %@", mutableParams);
             
             [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] POST:url parameters:mutableParams progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 // NSLog(@"CommonTableViewController / getPosts() success! ✅");
@@ -494,27 +459,27 @@
                 NSLog(@"Session / createPost() - error: %@", error);
                 // NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
                 
-                [BFAPI createPost_failed:params postingIn:postingIn replyingTo:replyingTo tempPost:tempPost];
+                [BFAPI createPost_failed:params postingIn:postingIn replyingTo:replyingTo tempPost:tempPost attachments:attachments];
             }];
         }
         else {
             NSLog(@"image failure");
-            [BFAPI createPost_failed:params postingIn:postingIn replyingTo:replyingTo tempPost:tempPost];
+            [BFAPI createPost_failed:params postingIn:postingIn replyingTo:replyingTo tempPost:tempPost attachments:attachments];
         }
     }];
 }
-+ (void)createPost_failed:(NSDictionary *)params postingIn:(Camp * _Nullable)postingIn replyingTo:(Post * _Nullable)replyingTo tempPost:(Post *)tempPost {
++ (void)createPost_failed:(NSDictionary *)params postingIn:(Camp * _Nullable)postingIn replyingTo:(Post * _Nullable)replyingTo tempPost:(Post *)tempPost attachments:(PostAttachments * _Nullable)attachments {
     // confirm action
-    UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"Issue Creating Post" message:@"Check your network settings and tap the button below to try again" preferredStyle:UIAlertControllerStyleAlert];
+    BFAlertController *actionSheet = [BFAlertController alertControllerWithTitle:@"Issue Creating Post" message:@"Check your network settings and tap the button below to try again" preferredStyle:BFAlertControllerStyleAlert];
     
-    UIAlertAction *tryAgain = [UIAlertAction actionWithTitle:@"Try Again" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+    BFAlertAction *tryAgain = [BFAlertAction actionWithTitle:@"Try Again" style:BFAlertActionStyleDefault handler:^{
         [[NSNotificationCenter defaultCenter] postNotificationName:@"NewPostFailed" object:tempPost];
         NSLog(@"try again with create params:: %@", params);
-        [BFAPI createPost:params postingIn:postingIn replyingTo:replyingTo];
+        [BFAPI createPost:params postingIn:postingIn replyingTo:replyingTo attachments:attachments];
     }];
     [actionSheet addAction:tryAgain];
     
-    UIAlertAction *cancelActionSheet = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+    BFAlertAction *cancelActionSheet = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:^{
         [[NSNotificationCenter defaultCenter] postNotificationName:@"NewPostFailed" object:tempPost];
     }];
     [actionSheet addAction:cancelActionSheet];

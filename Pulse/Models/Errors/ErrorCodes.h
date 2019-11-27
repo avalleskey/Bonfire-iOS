@@ -46,6 +46,7 @@ extern const NSInteger RESOURCE_VALIDITY_FAILURE;
 extern const NSInteger CAMP_NOT_EXISTS;
 extern const NSInteger USER_NOT_EXISTS;
 extern const NSInteger POST_NOT_EXISTS;
+extern const NSInteger LINK_NOT_EXISTS;
 extern const NSInteger CAMP_INACCESSIBLE_BLOCKED;
 extern const NSInteger USER_INACCESSIBLE_BLOCKED;
 extern const NSInteger POST_INACCESSIBLE;

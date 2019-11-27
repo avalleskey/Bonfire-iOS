@@ -126,19 +126,20 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     [self layoutIfNeeded];
     CGSize beforeContentSize = self.contentSize;
     
+    NSLog(@"first visible cell blah: %@", [[self.visibleCells firstObject] class]);
     BOOL wasLoading = ([[self.visibleCells firstObject] isKindOfClass:[LoadingCell class]]);
     
     [self reloadData];
     [self layoutIfNeeded];
         
-    if (!self.loading && !wasLoading) {
+    if (!self.loading) {
         [self.refreshControl performSelector:@selector(endRefreshing) withObject:nil afterDelay:0.0];
         
-        if (self.dataType == RSTableViewTypeFeed) {
+        if (!wasLoading && self.dataType == RSTableViewTypeFeed) {
             CGSize afterContentSize = self.contentSize;
 
             CGPoint afterContentOffset = self.contentOffset;
-            CGPoint newContentOffset = CGPointMake(afterContentOffset.x, afterContentOffset.y + afterContentSize.height - beforeContentSize.height);
+            CGPoint newContentOffset = CGPointMake(afterContentOffset.x, MAX(afterContentOffset.y + afterContentSize.height - beforeContentSize.height, -1 * self.adjustedContentInset.top));
             
             self.contentOffset = newContentOffset;
         }
@@ -171,7 +172,9 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
 }
 
 - (void)scrollToTop {
-    [self scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:YES];
+    [self layoutIfNeeded];
+//    [self reloadData];
+    [self scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:true];
 }
 
 - (void)setup {
@@ -361,7 +364,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         // (x+1)+2 : --- "add a reply..."
         
         BOOL showViewMore = post.attributes.summaries.replies.count > 0 && (replies < post.attributes.summaries.counts.replies);
-        BOOL showAddReply = post.attributes.summaries.replies.count > 0;
+        BOOL showAddReply = [post.attributes.context.post.permissions canReply] &&  post.attributes.summaries.replies.count > 0;
         //BOOL lastCell = (indexPath.section == [tableView numberOfSections] - 1);
         
         NSInteger firstReplyIndex = 1;
@@ -404,7 +407,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
 
             if (cell.actionsView.replyButton.gestureRecognizers.count == 0) {
                 [cell.actionsView.replyButton bk_whenTapped:^{
-                    [Launcher openComposePost:cell.post.attributes.postedIn inReplyTo:cell.post withMessage:nil media:nil];
+                    [Launcher openComposePost:cell.post.attributes.postedIn inReplyTo:cell.post withMessage:nil media:nil quotedObject:nil];
                 }];
             }
             
@@ -423,7 +426,9 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                 cell = [[ReplyCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:postReplyReuseIdentifier];
             }
             
-            cell.levelsDeep = 1; // must set this BEFORE the 'post' setter
+            cell.contentView.backgroundColor = [UIColor contentBackgroundColor];
+            
+            cell.levelsDeep = -1; // must set this BEFORE the 'post' setter
             
             NSString *identifierBefore = cell.post.identifier;
             
@@ -450,7 +455,6 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             
             BOOL hasExistingReplies = post.attributes.summaries.replies.count != 0;
             cell.textLabel.text = [NSString stringWithFormat:@"View%@ replies (%ld)", (hasExistingReplies ? @" more" : @""), (long)post.attributes.summaries.counts.replies - post.attributes.summaries.replies.count];
-            cell.textLabel.textColor = [UIColor bonfirePrimaryColor];
             
             if (hasExistingReplies) {
                 // view more replies
@@ -462,6 +466,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             }
             
             cell.lineSeparator.hidden = showAddReply;
+            cell.levelsDeep = -1;
             
             return cell;
         }
@@ -478,7 +483,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             [attributedString setAttributes:@{NSFontAttributeName: [UIFont systemFontOfSize:cell.addReplyButton.titleLabel.font.pointSize weight:UIFontWeightSemibold]} range:[attributedString.string rangeOfString:[NSString stringWithFormat:@"@%@", username]]];
             [cell.addReplyButton setAttributedTitle:attributedString forState:UIControlStateNormal];
             
-            cell.levelsDeep = 1;
+            cell.levelsDeep = -1;
             
             return cell;
         }
@@ -495,12 +500,21 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         
         if (post) {
             NSMutableArray *actions = [NSMutableArray new];
-            UIAction *replyAction = [UIAction actionWithTitle:@"Reply" image:[UIImage systemImageNamed:@"arrowshape.turn.up.left"] identifier:@"reply" handler:^(__kindof UIAction * _Nonnull action) {
-                wait(0, ^{
-                    [Launcher openComposePost:post.attributes.postedIn inReplyTo:post withMessage:nil media:nil];
-                });
-            }];
-            [actions addObject:replyAction];
+            if ([post.attributes.context.post.permissions canReply]) {
+                UIAction *replyAction = [UIAction actionWithTitle:@"Reply" image:[UIImage systemImageNamed:@"arrowshape.turn.up.left"] identifier:@"reply" handler:^(__kindof UIAction * _Nonnull action) {
+                    wait(0, ^{
+                        [Launcher openComposePost:post.attributes.postedIn inReplyTo:post withMessage:nil media:nil  quotedObject:nil];
+                    });
+                }];
+                [actions addObject:replyAction];
+            }
+            
+//            UIAction *quoteAction = [UIAction actionWithTitle:@"Quote" image:[UIImage systemImageNamed:@"quote.bubble"] identifier:@"quote" handler:^(__kindof UIAction * _Nonnull action) {
+//                wait(0, ^{
+//                    [Launcher openComposePost:nil inReplyTo:nil withMessage:nil media:nil  quotedObject:post];
+//                });
+//            }];
+//            [actions addObject:quoteAction];
             
             if (post.attributes.postedIn) {
                 UIAction *openCamp = [UIAction actionWithTitle:@"Open Camp" image:[UIImage systemImageNamed:@"number"] identifier:@"open_camp" handler:^(__kindof UIAction * _Nonnull action) {
@@ -586,18 +600,23 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         CGFloat replies = post.attributes.summaries.replies.count;
         
         BOOL showViewMore = (replies < post.attributes.summaries.counts.replies);
-        BOOL showAddReply = post.attributes.summaries.replies.count > 0;
+        BOOL showAddReply = [post.attributes.context.post.permissions canReply] &&  post.attributes.summaries.replies.count > 0;
         
         NSInteger firstReplyIndex = 1;
         
         if (indexPath.row == 0) {
             // BOOL showActions = (reply.attributes.summaries.replies.count == 0);
-            return [StreamPostCell heightForPost:post showContext:true showActions:true];
+            return [StreamPostCell heightForPost:post showContext:true showActions:true minimizeLinks:false];
         }
-        else if ((indexPath.row - firstReplyIndex) <  post.attributes.summaries.replies.count) {
+        else if ((indexPath.row - firstReplyIndex) < replies) {
             NSInteger replyIndex = indexPath.row - firstReplyIndex;
             Post *reply = post.attributes.summaries.replies[replyIndex];
-            height = [ReplyCell heightForPost:reply levelsDeep:1];
+            height = [ReplyCell heightForPost:reply levelsDeep:-1];
+            
+            if ((replyIndex == replies - 1) && !showViewMore && showAddReply) {
+                // remove the bottom padding of the cell, since the add reply cell includes that padding
+                height -= replyContentOffset.bottom;
+            }
         }
         else if (showViewMore && indexPath.row == post.attributes.summaries.replies.count + firstReplyIndex) {
             // "view more replies"
@@ -673,7 +692,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         // x+2 : "add a reply..."
         
         BOOL showViewMore = reply.attributes.summaries.replies.count > 0 && (replies < reply.attributes.summaries.counts.replies);
-        BOOL showAddReply = reply.attributes.summaries.replies.count > 0;
+        BOOL showAddReply = [reply.attributes.context.post.permissions canReply] &&  reply.attributes.summaries.replies.count > 0;
         
         NSInteger rows = 1 + replies + (showViewMore ? 1 : 0) + (showAddReply ? 1 : 0);
         
@@ -705,7 +724,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     if ([cell isKindOfClass:[AddReplyCell class]]) {
         Post *postReplyingTo = self.stream.posts[indexPath.section-1];
         
-        [Launcher openComposePost:postReplyingTo.attributes.postedIn inReplyTo:postReplyingTo withMessage:nil media:nil];
+        [Launcher openComposePost:postReplyingTo.attributes.postedIn inReplyTo:postReplyingTo withMessage:nil media:nil quotedObject:nil];
     }
     
     if (post) {

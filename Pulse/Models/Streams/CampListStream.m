@@ -16,6 +16,8 @@
         self.pages = [[NSMutableArray alloc] init];
         
         self.camps = @[];
+        
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(campUpdated:) name:@"CampUpdated" object:nil];
     }
     return self;
 }
@@ -31,6 +33,40 @@
     [encoder encodeObject:self.camps forKey:@"camps"];
 }
 
+- (void)campUpdated:(NSNotification *)notification {
+    Camp *camp = notification.object;
+    
+    if (camp != nil) {
+        BOOL foundChange = false;
+        
+        for (int p = 0; p < self.pages.count; p++) {
+            CampListStreamPage *page = self.pages[p];
+            
+            NSMutableArray <Camp *> *mutableArray = [[NSMutableArray alloc] initWithArray:page.data];
+            for (NSInteger i = mutableArray.count - 1; i >= 0; i--) {
+                Camp *campAtIndex = mutableArray[i];
+                
+                // update post creator
+                if ([campAtIndex.identifier isEqualToString:camp.identifier]) {
+                    campAtIndex = camp;
+                    
+                    foundChange = true;
+                    
+                    [mutableArray replaceObjectAtIndex:i withObject:campAtIndex];
+                }
+            }
+            
+            page.data = [mutableArray copy];
+            
+            [self.pages replaceObjectAtIndex:p withObject:page];
+        }
+        
+        if (foundChange) {
+            [self updateCampsArray];
+        }
+    }
+}
+
 - (void)updateCampsArray {
     NSMutableArray *mutableArray = [[NSMutableArray alloc] init];
     
@@ -41,6 +77,10 @@
     }
     
     self.camps = [mutableArray copy];
+    
+    if ([self.delegate respondsToSelector:@selector(campListStreamDidUpdate:)]) {
+        [self.delegate campListStreamDidUpdate:self];
+    }
 }
 
 - (void)prependPage:(CampListStreamPage *)page {

@@ -20,6 +20,7 @@
 #import "BFVisualErrorView.h"
 #import "BFTipsManager.h"
 #import "CampsList.h"
+#import <Shimmer/FBShimmeringView.h>
 @import Firebase;
 
 @interface CampStoreTableViewController ()
@@ -33,6 +34,8 @@
 @property (nonatomic) BOOL showAllCamps;
 
 @property (nonatomic, strong) BFVisualErrorView *errorView;
+
+@property (nonatomic, strong) FBShimmeringView *titleView;
 
 @end
 
@@ -60,6 +63,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     
     [self setupTableView];
     
+    self.loading = true;
     [self getAll];
     [self setSpinning:true];
         
@@ -69,24 +73,37 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
 
 - (void)initDefaults {
     self.lists = [[NSMutableArray <CampsList *> <CampsList> alloc] initWithArray:[[[NSUserDefaults standardUserDefaults] arrayForKey:@"camps_lists_cache"] toCampsListArray]];
-    
-    self.loading = true;
-    
+        
     self.errorLoadingLists = false;
 }
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     
-//    if ([self isBeingPresented] || [self isMovingToParentViewController]) {
-//        CGFloat navigationHeight = self.navigationController != nil ? self.navigationController.navigationBar.frame.origin.y + self.navigationController.navigationBar.frame.size.height : 0;
-//        self.tableView.frame = CGRectMake(0, 0, self.view.frame.size.width, [UIScreen mainScreen].bounds.size.height - navigationHeight);
-//    }
+    if ([self isBeingPresented] || [self isMovingToParentViewController]) {
+        [self setupTitleView];
+    }
 }
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
 }
 
+- (void)setupTitleView {
+    UIButton *titleButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    [titleButton setTitleColor:[UIColor bonfirePrimaryColor] forState:UIControlStateNormal];
+    titleButton.titleLabel.font = ([self.navigationController.navigationBar.titleTextAttributes objectForKey:NSFontAttributeName] ? self.navigationController.navigationBar.titleTextAttributes[NSFontAttributeName] : [UIFont systemFontOfSize:18.f weight:UIFontWeightBold]);
+    [titleButton setTitle:self.title forState:UIControlStateNormal];
+    titleButton.frame = CGRectMake(0, 0, [titleButton intrinsicContentSize].width, self.navigationController.navigationBar.frame.size.height);
+    [titleButton bk_whenTapped:^{
+        [self.tableView scrollRectToVisible:CGRectZero animated:YES];
+    }];
+    
+    self.titleView = [[FBShimmeringView alloc] initWithFrame:titleButton.frame];
+    [self.titleView addSubview:titleButton];
+    self.titleView.contentView = titleButton;
+    
+    self.navigationItem.titleView = titleButton;
+}
 - (void)setupErrorView {
     self.errorView = [[BFVisualErrorView alloc] initWithFrame:CGRectMake(16, 0, self.view.frame.size.width - 32, 100)];
     [self showErrorViewWithType:ErrorViewTypeNotFound title:@"Error Loading" description:@"Check your network settings and tap below to try again" actionTitle:@"Refresh" actionBlock:^{
@@ -135,6 +152,14 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     }
 }
 
+- (void)setLoading:(BOOL)loading {
+    [super setLoading:loading];
+    
+    if (!self.loading) {
+        self.titleView.shimmering = false;
+    }
+}
+
 - (void)showErrorViewWithType:(ErrorViewType)type title:(NSString *)title description:(NSString *)description actionTitle:(nullable NSString *)actionTitle actionBlock:(void (^ __nullable)(void))actionBlock {
     BFVisualError *visualError = [BFVisualError visualErrorOfType:type title:title description:description actionTitle:actionTitle actionBlock:actionBlock];
     self.errorView.visualError = visualError;
@@ -159,6 +184,13 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
 }
 
 - (void)getLists {
+    if (self.lists.count > 0) {
+        self.titleView.shimmering = true;
+    }
+    else  {
+        self.loading = true;
+    }
+    
     [[HAWebService authenticatedManager] GET:@"users/me/camps/lists" parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSArray *responseData = [responseObject[@"data"] toCampsListArray];
         
@@ -169,9 +201,10 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
             self.lists = [[NSMutableArray <CampsList *> <CampsList> alloc] init];
         }
         [[NSUserDefaults standardUserDefaults] setObject:[self.lists toCampsListDictionaryArray] forKey:@"camps_lists_cache"];
-        
+                
         self.loading = false;
         self.errorLoadingLists = false;
+        [self.refreshControl endRefreshing];
         
         [self update];
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
@@ -180,6 +213,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
         
         self.loading = false;
         self.errorLoadingLists = true;
+        [self.refreshControl endRefreshing];
         
         [self update];
     }];
@@ -219,7 +253,10 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
             }
         }
         
-        if (campsList.count > 3) {
+        if (indexPath.section == 1) {
+            cell.size = CAMP_CARD_SIZE_MEDIUM;
+        }
+        else if (indexPath.section == 2 || campsList.count > 3) {
             cell.size = CAMP_CARD_SIZE_SMALL_MEDIUM;
         }
         else {
@@ -289,12 +326,13 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
             campsList = self.lists[index].attributes.camps;
         }
         
-        if (campsList.count > 3) {
-            // Size: small
+        if (indexPath.section == 1) {
+            return MEDIUM_CARD_HEIGHT;
+        }
+        else if (indexPath.section == 2 || campsList.count > 3) {
             return SMALL_MEDIUM_CARD_HEIGHT;
         }
         else {
-            // Size: medium
             return MEDIUM_CARD_HEIGHT;
         }
     }
@@ -311,7 +349,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     }
     if (section >= 1 + self.lists.count) return CGFLOAT_MIN;
     
-    return 60;
+    return 56;
 }
 - (nullable UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
     if (section == 0) {
@@ -340,7 +378,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     
     if (section >= 1 + self.lists.count) return nil;
     
-    UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 60)];
+    UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 56)];
     
     NSString *title;
     UIImage *icon;

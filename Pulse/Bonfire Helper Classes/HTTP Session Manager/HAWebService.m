@@ -39,12 +39,8 @@ static HAWebService *manager;
         contentType = kCONTENT_TYPE_URL_ENCODED;
     }
     
-    [manager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", [Configuration API_KEY]] forHTTPHeaderField:@"Authorization"];
+    [manager addBonfireHeaders];
     [manager.requestSerializer setValue:contentType forHTTPHeaderField:@"Content-Type"];
-    
-    NSDictionary *infoDict = [[NSBundle mainBundle] infoDictionary];
-    NSString *appVersion = [infoDict objectForKey:@"CFBundleShortVersionString"];
-    [manager.requestSerializer setValue:[NSString stringWithFormat:@"%@", [NSString stringWithFormat:@"iosClient/%@", appVersion]] forHTTPHeaderField:@"x-bonfire-client"];
     [manager.requestSerializer setTimeoutInterval:15];
     
     return manager;
@@ -61,8 +57,18 @@ static HAWebService *manager;
         
         self.requestSerializer = [AFHTTPRequestSerializer serializer];
         self.responseSerializer = [AFJSONResponseSerializer serializer];
+        
+        [self addBonfireHeaders];
     }
     return self;
+}
+
+- (void)addBonfireHeaders {
+    // add standard bonfire headers
+    [self.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", [Configuration API_KEY]] forHTTPHeaderField:@"Authorization"];
+    NSDictionary *infoDict = [[NSBundle mainBundle] infoDictionary];
+    NSString *appVersion = [infoDict objectForKey:@"CFBundleShortVersionString"];
+    [self.requestSerializer setValue:[NSString stringWithFormat:@"%@", [NSString stringWithFormat:@"iosClient/%@", appVersion]] forHTTPHeaderField:@"x-bonfire-client"];
 }
 
 // In order to update the  the manager instance,

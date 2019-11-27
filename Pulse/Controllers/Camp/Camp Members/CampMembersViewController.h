@@ -12,7 +12,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface CampMembersViewController : ThemedViewController <UITableViewDelegate, UITableViewDataSource>
+@interface CampMembersViewController : ThemedViewController <UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate>
 
 @property (nonatomic, strong) UITableView *tableView;
 

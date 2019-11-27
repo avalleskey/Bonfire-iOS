@@ -64,8 +64,8 @@ NSString * const CAMP_DISPLAY_FORMAT_CHANNEL = @"channel";
     else if ([type isEqualToString:@"link"]) {
         BFLink *link = [[BFLink alloc] initWithDictionary:dictionary error:nil];
         self.source = link;
-        self.sourceLink = link;
         self.sourceUser = nil;
+        self.sourceLink = link;
         
         return;
     }

@@ -16,6 +16,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) BFAvatarView *profilePicture;
 
 @property (nonatomic) NSInteger levelsDeep;
+@property (nonatomic) BOOL unread;
 
 @property (nonatomic, strong) UIButton *addReplyButton;
 

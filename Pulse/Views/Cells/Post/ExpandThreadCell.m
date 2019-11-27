@@ -28,7 +28,9 @@
         self.contentView.backgroundColor = [UIColor clearColor];
         
         self.textLabel.font = [UIFont systemFontOfSize:15.f weight:UIFontWeightSemibold];
-        self.textLabel.textColor = [UIColor colorWithWhite:0.33 alpha:1];
+        self.textLabel.textColor = [UIColor bonfireSecondaryColor];
+        
+        self.levelsDeep = 1;
         
         self.morePostsIcon = [[UIImageView alloc] initWithImage:[[UIImage imageNamed:@"showMorePostsIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
         self.morePostsIcon.tintColor = [UIColor bonfireSecondaryColor];
@@ -41,8 +43,6 @@
         self.lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
         self.lineSeparator.hidden = true;
         [self addSubview:self.lineSeparator];
-        
-        // [self createLineView];
     }
     
     return self;
@@ -51,52 +51,26 @@
 - (void)layoutSubviews {
     [super layoutSubviews];
     
-    self.contentView.frame = CGRectMake(0, 0, self.frame.size.width, [ExpandThreadCell height] - replyContentOffset.bottom);
+    self.contentView.frame = CGRectMake(0, 0, self.frame.size.width, [ExpandThreadCell height]);
     
     self.lineSeparator.frame = CGRectMake(0, self.contentView.frame.size.height - (1 / [UIScreen mainScreen].scale), self.frame.size.width, (1 / [UIScreen mainScreen].scale));
     
-    CGFloat morePostsIconSize = [ReplyCell avatarSizeForLevel:1];
-    UIEdgeInsets contentEdgeInsets = [ReplyCell contentEdgeInsetsForLevel:1];
-    self.textLabel.frame = CGRectMake(contentEdgeInsets.left + 10, 0, self.frame.size.width - contentEdgeInsets.left - contentEdgeInsets.right - 10, self.contentView.frame.size.height);
+    CGFloat morePostsIconSize = [ReplyCell avatarSizeForLevel:self.levelsDeep];
+    UIEdgeInsets contentEdgeInsets = [ReplyCell contentEdgeInsetsForLevel:self.levelsDeep];
+    self.textLabel.frame = CGRectMake(contentEdgeInsets.left + REPLY_BUBBLE_INSETS.left, 0, self.frame.size.width - contentEdgeInsets.left - contentEdgeInsets.right - REPLY_BUBBLE_INSETS.right - REPLY_BUBBLE_INSETS.left, self.contentView.frame.size.height);
     
-    self.morePostsIcon.frame = CGRectMake([ReplyCell edgeInsetsForLevel:1].left, self.contentView.frame.size.height / 2 - morePostsIconSize / 2, morePostsIconSize, morePostsIconSize);
+    self.morePostsIcon.frame = CGRectMake([ReplyCell edgeInsetsForLevel:self.levelsDeep].left, self.contentView.frame.size.height / 2 - morePostsIconSize / 2, morePostsIconSize, morePostsIconSize);
     self.morePostsIcon.layer.cornerRadius = self.morePostsIcon.frame.size.width / 2;
 }
 
 - (void)setHighlighted:(BOOL)highlighted animated:(BOOL)animated {
    [UIView animateWithDuration:0.15f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-        self.contentView.alpha = highlighted ? 0.5 : 1;
+       self.contentView.backgroundColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:highlighted?0.04:0];
     } completion:nil];
 }
 
-- (void)createLineView {
-    CGFloat lineWidth = 3;
-    CGFloat x = 12 + (48 / 2) - (lineWidth / 2);
-    
-    CGFloat dotSpacing = 3;
-    UIView *stackedDotView = [[UIView alloc] initWithFrame:CGRectMake(x, 0, lineWidth, lineWidth * 3 + (dotSpacing * 2))];
-    for (NSInteger i = 0; i < 3; i++) {
-        UIView *dot = [[UIView alloc] initWithFrame:CGRectMake(0, i * lineWidth + (dotSpacing * i), lineWidth, lineWidth)];
-        dot.backgroundColor = [UIColor threadLineColor];
-        dot.layer.cornerRadius = lineWidth / 2;
-        [stackedDotView addSubview:dot];
-    }
-    stackedDotView.center = CGPointMake(stackedDotView.center.x, self.contentView.frame.size.height / 2);
-    [self.contentView addSubview:stackedDotView];
-    
-    UIView *topLine = [[UIView alloc] initWithFrame:CGRectMake(x, -2, lineWidth, stackedDotView.frame.origin.y - 4 + 2)];
-    topLine.layer.cornerRadius = lineWidth / 2;
-    topLine.backgroundColor = [UIColor threadLineColor];
-    [self.contentView addSubview:topLine];
-    
-    UIView *bottomLine = [[UIView alloc] initWithFrame:CGRectMake(x, stackedDotView.frame.origin.y + stackedDotView.frame.size.height + 4, lineWidth, stackedDotView.frame.origin.y - 4 + 2)];
-    bottomLine.layer.cornerRadius = lineWidth / 2;
-    bottomLine.backgroundColor = [UIColor threadLineColor];
-    [self.contentView addSubview:bottomLine];
-}
-
 + (CGFloat)height {
-    return 40 + replyContentOffset.bottom;
+    return 32;
 }
 
 @end

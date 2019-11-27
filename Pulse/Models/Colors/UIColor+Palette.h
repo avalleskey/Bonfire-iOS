@@ -50,6 +50,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (BOOL)useWhiteForegroundForColor:(UIColor*)backgroundColor;
 
++ (UIColor *)highContrastForegroundForBackground:(UIColor*)backgroundColor;
 
 + (UIColor * _Nonnull) contentBackgroundColor;
 

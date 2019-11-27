@@ -74,6 +74,10 @@ static CGSize const JKRichTextViewInvalidedIntrinsicContentSize = (CGSize){-1, -
     return nil;
 }
 
+- (BOOL)shouldChangeTextInRange:(UITextRange *)range replacementText:(NSString *)text {
+    return false;
+}
+
 - (void)_setup {
     [super setDelegate:(id <UITextViewDelegate>)self.delegateProxy];
     self.shouldPassthoughUntouchableText = true;
@@ -86,6 +90,7 @@ static CGSize const JKRichTextViewInvalidedIntrinsicContentSize = (CGSize){-1, -
     self.textContainerInset = UIEdgeInsetsZero;
     self.textContainer.lineFragmentPadding = 0;
     self.tintColor = [UIColor linkColor];
+    self.inputView = [[UIView alloc] initWithFrame:CGRectZero];
     [self setDataDetectorTypes:UIDataDetectorTypeNone];
     
     if (@available(iOS 13.0, *)) {
@@ -166,12 +171,15 @@ static CGSize const JKRichTextViewInvalidedIntrinsicContentSize = (CGSize){-1, -
                 Post *post = (Post *)linkObject;
                 
                 NSMutableArray *actions = [NSMutableArray new];
-                UIAction *replyAction = [UIAction actionWithTitle:@"Reply" image:[UIImage systemImageNamed:@"arrowshape.turn.up.left"] identifier:@"reply" handler:^(__kindof UIAction * _Nonnull action) {
-                    wait(0, ^{
-                        [Launcher openComposePost:post.attributes.postedIn inReplyTo:post withMessage:nil media:nil];
-                    });
-                }];
-                [actions addObject:replyAction];
+                if ([post.attributes.context.post.permissions canReply]) {
+                    NSMutableArray *actions = [NSMutableArray new];
+                    UIAction *replyAction = [UIAction actionWithTitle:@"Reply" image:[UIImage systemImageNamed:@"arrowshape.turn.up.left"] identifier:@"reply" handler:^(__kindof UIAction * _Nonnull action) {
+                        wait(0, ^{
+                            [Launcher openComposePost:post.attributes.postedIn inReplyTo:post withMessage:nil media:nil  quotedObject:nil];
+                        });
+                    }];
+                    [actions addObject:replyAction];
+                }
                 
                 if (post.attributes.postedIn) {
                     UIAction *openCamp = [UIAction actionWithTitle:@"Open Camp" image:[UIImage systemImageNamed:@"number"] identifier:@"open_camp" handler:^(__kindof UIAction * _Nonnull action) {
@@ -237,27 +245,26 @@ static CGSize const JKRichTextViewInvalidedIntrinsicContentSize = (CGSize){-1, -
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch {
     NSRange range = [self rangeOfLinkAtPoint:[touch locationInView:self]];
-    if (range.length > 0) {
-        CAShapeLayer *shapeView = [[CAShapeLayer alloc] init];
-        shapeView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.4].CGColor;
-        UIBezierPath *path = [self pathForRange:range];
-        NSLog(@"path: %@", path);
-        path.lineJoinStyle = kCGLineJoinRound;
-        [path fill];
-        [path stroke];
-        [shapeView setPath:path.CGPath];
-        [[self layer] addSublayer:shapeView];
-    }
-    NSLog(@"yo range we're seeing rn:: (%lu, %lu)", range.location, range.length);
+//    if (range.length > 0) {
+//        CAShapeLayer *shapeView = [[CAShapeLayer alloc] init];
+//        shapeView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.4].CGColor;
+//        UIBezierPath *path = [self pathForRange:range];
+//        NSLog(@"path: %@", path);
+//        path.lineJoinStyle = kCGLineJoinRound;
+//        [path fill];
+//        [path stroke];
+//        [shapeView setPath:path.CGPath];
+//        [[self layer] addSublayer:shapeView];
+//    }
     
-    return true;
+    return (range.location == 0 && range.length > 0);
 }
 - (BOOL)containslinkAtPoint:(CGPoint)point {
     return [self linkAtPoint:point] != nil;
 }
 - (NSURL *)linkAtPoint:(CGPoint)point {
     // Stop quickly if none of the points to be tested are in the bounds.
-    if (!CGRectContainsPoint(CGRectInset(self.bounds, -15.f, -15.f), point)) {
+    if (!CGRectContainsPoint(CGRectInset(self.bounds, -5.f, -5.f), point)) {
         return nil;
     }
     
@@ -448,11 +455,18 @@ static CGSize const JKRichTextViewInvalidedIntrinsicContentSize = (CGSize){-1, -
     
     if(!self.shouldPassthoughUntouchableText || !pointInside) return pointInside;
     
-    NSUInteger characterIndex = [self.layoutManager characterIndexForPoint:point inTextContainer:self.textContainer fractionOfDistanceBetweenInsertionPoints:NULL];
+    CGFloat fraction = 0;
+    NSUInteger characterIndex = [self.layoutManager characterIndexForPoint:point inTextContainer:self.textContainer fractionOfDistanceBetweenInsertionPoints:&fraction];
     
-    NSURL *linkURL = [self.attributedText attribute:NSLinkAttributeName atIndex:characterIndex effectiveRange:NULL];
+    NSURL *linkURL;
+    if (characterIndex < self.attributedText.length) {
+        linkURL = [self.attributedText attribute:NSLinkAttributeName atIndex:characterIndex effectiveRange:NULL];
+    }
+    else {
+        return NO;
+    }
     
-    pointInside = linkURL ? YES : NO;
+    pointInside = linkURL && fraction != 1 ? YES : NO;
     
     return pointInside;
 }

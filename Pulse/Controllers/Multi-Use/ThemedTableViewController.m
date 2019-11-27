@@ -71,13 +71,13 @@ NSString * const rotationAnimationKey = @"rotationAnimation";
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     
-    if (self.spinning) {
-        [self.bigSpinner.layer removeAnimationForKey:rotationAnimationKey];
-        [self addAnimationToBigSpinner];
-    }
-    
     if (!self.loading) {
         [self setSpinning:false animated:false];
+    }
+    
+    if (![self.bigSpinner isHidden]) {
+        [self.bigSpinner.layer removeAnimationForKey:rotationAnimationKey];
+        [self addAnimationToBigSpinner];
     }
 }
 
@@ -93,7 +93,7 @@ NSString * const rotationAnimationKey = @"rotationAnimation";
 - (void)initBigSpinner {
     self.bigSpinner = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 52, 52)];
     self.bigSpinner.image = [[UIImage imageNamed:@"spinner"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-    self.bigSpinner.tintColor = self.theme;
+    self.bigSpinner.tintColor = [UIColor fromHex:[UIColor toHex:self.theme] adjustForOptimalContrast:true];
     self.bigSpinner.center = self.view.center;
     self.bigSpinner.alpha = 0;
     self.bigSpinner.tag = 1111;
@@ -115,7 +115,7 @@ NSString * const rotationAnimationKey = @"rotationAnimation";
         
         self.tableView.userInteractionEnabled = false;
         [UIView animateWithDuration:animated?0.4f:0 delay:0 usingSpringWithDamping:0.75f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
-            self.tableView.transform = CGAffineTransformMakeTranslation(0, 32);
+            self.tableView.transform = CGAffineTransformMakeTranslation(0, 56);
             self.tableView.alpha = 0;
             self.bigSpinner.alpha = 1;
             self.bigSpinner.transform = CGAffineTransformMakeScale(1, 1);
@@ -130,7 +130,7 @@ NSString * const rotationAnimationKey = @"rotationAnimation";
         } completion:^(BOOL finished) {
             [self.bigSpinner.layer removeAnimationForKey:rotationAnimationKey];
         }];
-        [UIView animateWithDuration:animated?0.4f:0 delay:0.1f usingSpringWithDamping:0.75f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        [UIView animateWithDuration:animated?0.56f:0 delay:0.1f usingSpringWithDamping:0.7f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
             self.tableView.transform = CGAffineTransformMakeTranslation(0, 0);
             self.tableView.alpha = 1;
         } completion:^(BOOL finished) {
@@ -158,6 +158,8 @@ NSString * const rotationAnimationKey = @"rotationAnimation";
 }
 
 - (void)addAnimationToBigSpinner {
+    [self.bigSpinner.layer removeAnimationForKey:rotationAnimationKey];
+    
     CABasicAnimation *rotationAnimation;
     rotationAnimation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.z"];
     rotationAnimation.toValue = [NSNumber numberWithFloat: M_PI * 2.0 /* full rotation*/ * 1 * 1.f ];

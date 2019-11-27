@@ -11,4 +11,6 @@
 
 @property (nonatomic, strong) UISwitch *toggle;
 
+@property (nonatomic, strong) UIView *bottomSeparator;
+
 @end

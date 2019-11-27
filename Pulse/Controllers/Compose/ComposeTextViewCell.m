@@ -16,6 +16,10 @@
 #import "UITextView+Placeholder.h"
 #import "Launcher.h"
 
+@interface ComposeTextViewCell ()
+
+@end
+
 @implementation ComposeTextViewCell
 
 - (void)awakeFromNib {
@@ -30,7 +34,7 @@
         self.selectionStyle = UITableViewCellSelectionStyleNone;
         
         self.backgroundColor = [UIColor contentBackgroundColor];
-        self.contentView.backgroundColor = [UIColor contentBackgroundColor];
+        self.contentView.backgroundColor = [UIColor contentBackgroundColor  ];
         self.tintColor = [UIColor bonfireBrand];
         
         self.textView = [[UITextView alloc] initWithFrame:CGRectMake(70, 12, self.frame.size.width - 70 - 12, self.frame.size.height)];
@@ -53,6 +57,12 @@
         [self.contentView addSubview:self.creatorAvatar];
         
         [self setupImagesView];
+        
+        self.topLine = [[UIView alloc] initWithFrame:CGRectMake(self.creatorAvatar.frame.origin.x + self.creatorAvatar.frame.size.width / 2 - (3 / 2), 0, 3, 0)];
+        self.topLine.backgroundColor = [UIColor threadLineColor];
+        self.topLine.layer.cornerRadius = self.topLine.frame.size.width / 2;
+        self.topLine.hidden = true;
+        [self.contentView addSubview:self.topLine];
         
         self.lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, self.frame.size.height, self.frame.size.width, (1 / [UIScreen mainScreen].scale))];
         self.lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
@@ -90,25 +100,14 @@
     [self.mediaContainerView.heightAnchor constraintEqualToAnchor:_mediaScrollView.heightAnchor].active = true;
 }
 
-//- (void)removeSmartLinkAttachment {
-//    [self.smartLinkAttachmentView removeFromSuperview];
-//    self.smartLinkAttachmentView = nil;
-//}
-//- (void)initSmartLinkAttachment {
-//    if (!self.smartLinkAttachmentView) {
-//        // need to initialize a user preview view
-//        self.smartLinkAttachmentView = [[BFSmartLinkAttachmentView alloc] init];
-//        [self.contentView addSubview:self.smartLinkAttachmentView];
-//    }
-//    
-//    self.post.attributes.attachments.link.attributes.postedIn = self.post.attributes.postedIn;
-//    self.smartLinkAttachmentView.link = self.post.attributes.attachments.link;
-//}
-
 - (void)layoutSubviews {
     [super layoutSubviews];
     
     [self resize];
+    
+    if (![self.topLine isHidden]) {
+        self.topLine.frame = CGRectMake(self.creatorAvatar.frame.origin.x + (self.creatorAvatar.frame.size.width / 2) - (self.topLine.frame.size.width / 2), -2, 3, (self.creatorAvatar.frame.origin.y - 4) + 2);
+    }
     
     if (!self.lineSeparator.isHidden) {
         self.lineSeparator.frame = CGRectMake(0, self.frame.size.height - self.lineSeparator.frame.size.height, self.frame.size.width, self.lineSeparator.frame.size.height);
@@ -141,10 +140,46 @@
     if (self.media.objects.count > 0) {
         [self resizeImagesView];
     }
+    
+    if (self.quotedAttachmentView) {
+        [self resizeQuotedAttachment];
+    }
 }
+
 - (void)resizeImagesView {
     // resize image scroll view
     self.mediaScrollView.frame = CGRectMake(0, self.textView.frame.origin.y + self.textView.frame.size.height + 8, self.frame.size.width, 180);
+}
+
+- (void)resizeQuotedAttachment {
+    if (!self.quotedAttachmentView) {
+        return;
+    }
+    
+    if (self.media.objects.count == 0) {
+        self.quotedAttachmentView.frame = CGRectMake(self.textView.frame.origin.x, self.textView.frame.origin.y + self.textView.frame.size.height + 8, self.textView.frame.size.width, self.quotedAttachmentView.frame.size.height);
+    }
+    else {
+        self.quotedAttachmentView.frame = CGRectMake(self.textView.frame.origin.x, self.mediaScrollView.frame.origin.y + self.mediaScrollView.frame.size.height + 8, self.textView.frame.size.width, self.quotedAttachmentView.frame.size.height);
+    }
+    SetHeight(self.quotedAttachmentView, [self.quotedAttachmentView height]);
+    [self.quotedAttachmentView layoutSubviews];
+}
+- (void)setQuotedAttachmentView:(BFAttachmentView *)quotedAttachmentView {
+    if (quotedAttachmentView != _quotedAttachmentView) {
+        if (_quotedAttachmentView) {
+            // remove existing, changed attachment view from the view hierarchy
+            [_quotedAttachmentView removeFromSuperview];
+        }
+        
+        _quotedAttachmentView = quotedAttachmentView;
+        _quotedAttachmentView.userInteractionEnabled = false;
+        
+        [self.contentView addSubview:quotedAttachmentView];
+        
+        [self layoutSubviews];
+        [self.delegate mediaDidChange];
+    }
 }
 
 - (void)mediaObjectAdded:(BFMediaObject *)object {
@@ -254,15 +289,23 @@
     
     float height = self.textView.textContainerInset.top; // top padding
     float textViewHeight = self.textView.frame.size.height;
-    height = height + textViewHeight;
+    height += textViewHeight;
     
     if (self.media.objects.count > 0) {
         float imagesHeight = 8 + 180;
-        height = height + imagesHeight;
+        height += imagesHeight;
+    }
+    
+    // add height of attachments
+    if (self.quotedAttachmentView) {
+        float attachmentViewHeight = 8 + self.quotedAttachmentView.frame.size.height;
+        height += attachmentViewHeight;
+        
+        NSLog(@"quoted attachment view height: %f", self.quotedAttachmentView.frame.size.height);
     }
     
     // add bottom padding
-    height = height + 12;
+    height += 12;
     
     return (height > minHeight ? height : minHeight);
 }

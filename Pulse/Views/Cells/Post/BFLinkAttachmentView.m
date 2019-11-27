@@ -12,12 +12,14 @@
 #import "Launcher.h"
 #import "NSURL+WebsiteTypeValidation.h"
 #import <SafariServices/SafariServices.h>
+#import <SDWebImage/UIImageView+WebCache.h>
+#import <SDWebImage/UIView+WebCache.h>
 
 #define LINK_ATTACHMENT_EDGE_INSETS UIEdgeInsetsMake(12, 12, 13, 12)
 
 // title macros
 #define LINK_ATTACHMENT_TITLE_FONT [UIFont systemFontOfSize:[UIFont preferredFontForTextStyle:UIFontTextStyleBody].pointSize weight:UIFontWeightSemibold]
-#define LINK_ATTACHMENT_TITLE_BOTTOM_PADDING roundf(ceilf(LINK_ATTACHMENT_TITLE_FONT.lineHeight)/7)
+#define LINK_ATTACHMENT_TITLE_BOTTOM_PADDING 0
 // detail macros
 #define LINK_ATTACHMENT_DETAIL_FONT [UIFont systemFontOfSize:[UIFont preferredFontForTextStyle:UIFontTextStyleBody].pointSize-2.f weight:UIFontWeightRegular]
 #define LINK_ATTACHMENT_DETAIL_BOTTOM_PADDING 3
@@ -69,6 +71,7 @@
     self.imageView.contentMode = UIViewContentModeScaleAspectFill;
     self.imageView.clipsToBounds = true;
     self.imageView.backgroundColor = [UIColor colorWithRed:0.77 green:0.77 blue:0.79 alpha:1];
+    self.imageView.sd_imageTransition = [SDWebImageTransition fadeTransition];
     UIView *imageSeparator = [[UIView alloc] initWithFrame:CGRectMake(self.sourceImageView.layer.borderWidth, self.imageView.frame.size.height - self.contentView.layer.borderWidth, self.imageView.frame.size.width - (self.contentView.layer.borderWidth), self.contentView.layer.borderWidth)];
     imageSeparator.tag = 1;
     [self.imageView addSubview:imageSeparator];
@@ -77,6 +80,7 @@
     blankImage.center = CGPointMake(self.imageView.frame.size.width / 2, self.imageView.frame.size.height/ 2);
     blankImage.tag = 2;
     blankImage.alpha = 0.5;
+    blankImage.contentMode = UIViewContentModeCenter;
     [self addPlayIconToView:self.imageView];
     [self.imageView addSubview:blankImage];
     
@@ -139,8 +143,6 @@
     if (@available(iOS 13.0, *)) {
         UIContextMenuInteraction *interaction = [[UIContextMenuInteraction alloc] initWithDelegate:self];
         [self addInteraction:interaction];
-    } else {
-        // Fallback on earlier versions
     }
 }
 
@@ -369,21 +371,37 @@
         self.detailTextLabel.hidden = true;
         
         self.iconImageView.hidden = false;
-        [self.iconImageView sd_setImageWithURL:[NSURL URLWithString:self.link.attributes.iconUrl] placeholderImage:[UIImage imageNamed:@"emptyLinkIcon"] completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
-            if (error) {
-                self.iconImageView.image = [UIImage imageNamed:@"emptyLinkIcon"];
-                self.iconImageView.contentMode = UIViewContentModeCenter;
+        if (self.link.attributes.iconUrl.length == 0) {
+            self.iconImageView.image = [[UIImage imageNamed:@"emptyLinkIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+            self.iconImageView.tintColor = [UIColor bonfireSecondaryColor];
+            self.iconImageView.contentMode = UIViewContentModeCenter;
+        }
+        else {
+            NSLog(@"iconurl: %@", self.link.attributes.iconUrl);
+            
+            NSString *iconUrl = self.link.attributes.iconUrl;
+            if ([iconUrl rangeOfString:@"http://"].length == 0 && [iconUrl rangeOfString:@"https://"].length == 0) {
+                // prepend http:// if needed
+                iconUrl = [@"http://" stringByAppendingString:iconUrl];
             }
-            else {
-                self.iconImageView.image = image;
-                if (image.size.width < self.iconImageView.frame.size.width && image.size.height < self.iconImageView.frame.size.height) {
+            self.iconImageView.contentMode = UIViewContentModeCenter;
+            [self.iconImageView sd_setImageWithURL:[NSURL URLWithString:iconUrl] placeholderImage:[UIImage imageNamed:@"emptyLinkIcon"] completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
+                if (error) {
+                    self.iconImageView.image = [[UIImage imageNamed:@"emptyLinkIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+                    self.iconImageView.tintColor = [UIColor bonfireSecondaryColor];
                     self.iconImageView.contentMode = UIViewContentModeCenter;
                 }
                 else {
-                    self.iconImageView.contentMode = UIViewContentModeScaleAspectFill;
+                    self.iconImageView.image = image;
+                    if (image.size.width < self.iconImageView.frame.size.width && image.size.height < self.iconImageView.frame.size.height) {
+                        self.iconImageView.contentMode = UIViewContentModeCenter;
+                    }
+                    else {
+                        self.iconImageView.contentMode = UIViewContentModeScaleAspectFill;
+                    }
                 }
-            }
-        }];
+            }];
+        }
         [self.iconImageView viewWithTag:LINK_ATTACHMENT_PLAY_VIEW_TAG].hidden = true;
     }
     else if (contentType == BFLinkAttachmentContentTypeAudio) {
@@ -411,6 +429,7 @@
             NSString *imageURL = self.link.attributes.images.count > 0 ? self.link.attributes.images[0] : @"";
             [self.imageView sd_setImageWithURL:[NSURL URLWithString:imageURL] completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
                 UIImageView *blankImage = [self.imageView viewWithTag:2];
+                blankImage.contentMode = UIViewContentModeCenter;
                 blankImage.hidden = !error;
             }];
         }
@@ -420,6 +439,10 @@
         
         self.iconImageView.hidden = true;
     }
+}
+
+- (CGFloat)height {
+    return [BFLinkAttachmentView heightForLink:self.link width:self.frame.size.width];
 }
 
 + (CGFloat)heightForLink:(BFLink *)link width:(CGFloat)width {

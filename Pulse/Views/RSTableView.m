@@ -126,7 +126,6 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     [self layoutIfNeeded];
     CGSize beforeContentSize = self.contentSize;
     
-    NSLog(@"first visible cell blah: %@", [[self.visibleCells firstObject] class]);
     BOOL wasLoading = ([[self.visibleCells firstObject] isKindOfClass:[LoadingCell class]]);
     
     [self reloadData];
@@ -329,7 +328,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                 cell = [[LoadingCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:loadingCellIdentifier];
             }
             
-            NSInteger postType = (indexPath.section) % 3;
+            NSInteger postType = (indexPath.section - 1 % 3);
             cell.type = postType;
             
             cell.userInteractionEnabled = false;
@@ -398,8 +397,6 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             cell.showContext = true;
             cell.showCamptag = true;
             cell.post = post;
-
-            [cell.actionsView setSummaries:post.attributes.summaries];
 
             if (cell.post.identifier != 0 && [identifierBefore isEqualToString:cell.post.identifier]) {
                 [self didBeginDisplayingCell:cell];
@@ -572,10 +569,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     }
     else if (self.stream.posts.count == 0) {
         if (self.loading) {
-            // 107: 1 line post
-            // 128: 2 line post
-            // 295: 1 line w/ image post
-            switch (indexPath.section % 3) {
+            switch ((indexPath.section - 1) % 3) {
                 case 0:
                     height = 102;
                     break;
@@ -910,7 +904,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     if (section != 0 && section == self.stream.posts.count) {
         // last row
         BOOL hasAnotherPage = self.stream.pages.count > 0 && self.stream.nextCursor.length > 0;
-        BOOL showLoadingFooter = (self.loadingMore || hasAnotherPage) && ![self.stream hasLoadedCursor:self.stream.nextCursor];
+        BOOL showLoadingFooter = (self.loadingMore || (hasAnotherPage && ![self.stream hasLoadedCursor:self.stream.nextCursor]));
         
         return showLoadingFooter ? 52 : 0;
     }
@@ -947,7 +941,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     if (section != 0 && section == self.stream.posts.count) {
         // last row
         BOOL hasAnotherPage = self.stream.pages.count > 0 && self.stream.nextCursor.length > 0;
-        BOOL showLoadingFooter = (self.loadingMore || hasAnotherPage) && ![self.stream hasLoadedCursor:self.stream.nextCursor];
+        BOOL showLoadingFooter = (self.loadingMore || (hasAnotherPage && ![self.stream hasLoadedCursor:self.stream.nextCursor]));
         
         if (showLoadingFooter) {
             UIView *footer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, 52)];

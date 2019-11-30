@@ -18,6 +18,7 @@
 #import "UIColor+Palette.h"
 #import "EditCampViewController.h"
 #import "BFAlertController.h"
+#import "NSDate+NVTimeAgo.h"
 
 #define UIViewParentController(__view) ({ \
         UIResponder *__responder = __view; \
@@ -25,6 +26,11 @@
         __responder = [__responder nextResponder]; \
         (UIViewController *)__responder; \
         })
+
+#define CAMP_CONTEXT_BUBBLE_TAG_ACTIVE 1
+#define CAMP_CONTEXT_BUBBLE_TAG_NEW_CAMP 2
+#define CAMP_CONTEXT_BUBBLE_TAG_ADMIN 3
+#define CAMP_CONTEXT_BUBBLE_TAG_MODERATOR 4
 
 @implementation CampHeaderCell
 
@@ -133,6 +139,51 @@
         self.campAvatarReasonView.layer.shadowOffset = CGSizeMake(0, 1);
         self.campAvatarReasonView.layer.shadowRadius = 2.f;
         self.campAvatarReasonView.layer.shadowOpacity = 0.12;
+        [self.campAvatarReasonView bk_whenTapped:^{
+            if (self.campAvatarReasonView.tag != 0) {
+                NSString *title;
+                NSString *message;
+                BFAlertAction *cta;
+                
+                if (self.campAvatarReasonView.tag == CAMP_CONTEXT_BUBBLE_TAG_ACTIVE) {
+                    title = @"On Fire";
+                    message = @"More than 5 users were active in the last 24hr.";
+                }
+                else if (self.campAvatarReasonView.tag == CAMP_CONTEXT_BUBBLE_TAG_NEW_CAMP) {
+                    title = @"New Camp";
+                    message = [NSString stringWithFormat:@"This Camp was created %@.", [NSDate mysqlDatetimeFormattedAsTimeAgo:self.camp.attributes.createdAt withForm:TimeAgoLongForm]];
+                }
+                else if (self.campAvatarReasonView.tag == CAMP_CONTEXT_BUBBLE_TAG_MODERATOR) {
+                    title = @"Manager";
+                    message = @"You can accept new member requests, block members, remove posts, and more.";
+                    
+                    cta = [BFAlertAction actionWithTitle:@"Manage Members" style:BFAlertActionStyleDefault handler:^{
+                        [Launcher openCampMembersForCamp:self.camp];
+                    }];
+                }
+                else if (self.campAvatarReasonView.tag == CAMP_CONTEXT_BUBBLE_TAG_ADMIN) {
+                    title = @"Director";
+                    message = @"You can customize the Camp settings, accept new member requests, block members, remove posts, and more.";
+                    
+                    cta = [BFAlertAction actionWithTitle:@"Edit Camp" style:BFAlertActionStyleDefault handler:^{
+                        [self openEditCamp];
+                    }];
+                }
+                
+                if (!title && !message && !cta) return;
+                
+                BFAlertController *actionSheet = [BFAlertController alertControllerWithTitle:title message:message preferredStyle:BFAlertControllerStyleActionSheet];
+                
+                if (cta) {
+                    [actionSheet addAction:cta];
+                }
+                
+                BFAlertAction *cancelActionSheet = [BFAlertAction actionWithTitle:@"Close" style:BFAlertActionStyleCancel handler:nil];
+                [actionSheet addAction:cancelActionSheet];
+                
+                [[Launcher topMostViewController] presentViewController:actionSheet animated:true completion:nil];
+            }
+        }];
         [self.contentView addSubview:self.campAvatarReasonView];
         
         self.campAvatarReasonLabel = [[UILabel alloc] initWithFrame:self.campAvatarReasonView.bounds];
@@ -519,8 +570,9 @@
         if (camp.attributes.summaries.counts.live > 5) {
             showIndicator = true;
             self.campAvatarReasonLabel.text = @"🔥";
+            self.campAvatarReasonView.tag = CAMP_CONTEXT_BUBBLE_TAG_ACTIVE;
         }
-        else if (camp.attributes.createdAt.length > 0) {
+        if (!showIndicator && camp.attributes.createdAt.length > 0) {
             NSDateFormatter *inputFormatter = [[NSDateFormatter alloc] init];
                 [inputFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ssZ"];
             NSDate *date = [inputFormatter dateFromString:camp.attributes.createdAt];
@@ -532,7 +584,18 @@
             if ([components day] < 7) {
                 showIndicator = true;
                 self.campAvatarReasonLabel.text = @"🆕";
+                self.campAvatarReasonView.tag = CAMP_CONTEXT_BUBBLE_TAG_NEW_CAMP;
             }
+        }
+        if (!showIndicator && [camp.attributes.context.camp.membership.role.type isEqualToString:CAMP_ROLE_ADMIN]) {
+            showIndicator = true;
+            self.campAvatarReasonLabel.text = @"🤠";
+            self.campAvatarReasonView.tag = CAMP_CONTEXT_BUBBLE_TAG_ADMIN;
+        }
+        if (!showIndicator && [camp.attributes.context.camp.membership.role.type isEqualToString:CAMP_ROLE_MODERATOR]) {
+            showIndicator = true;
+            self.campAvatarReasonLabel.text = @"🛡";
+            self.campAvatarReasonView.tag = CAMP_CONTEXT_BUBBLE_TAG_MODERATOR;
         }
         if ([self.campAvatarReasonView isHidden] && showIndicator) {
             self.campAvatarReasonView.alpha = 0;

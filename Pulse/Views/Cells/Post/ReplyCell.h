@@ -11,7 +11,7 @@
 
 #define replyTextViewFont [UIFont systemFontOfSize:textViewFont.pointSize+1.f weight:UIFontWeightRegular]
 #define REPLY_BUBBLE_INSETS UIEdgeInsetsMake(replyTextViewFont.pointSize*.4, replyTextViewFont.pointSize*.65, replyTextViewFont.pointSize*.4, replyTextViewFont.pointSize*.65)
-#define replyContentOffset UIEdgeInsetsMake(0, 12, replyTextViewFont.pointSize*.5, 12)
+#define replyContentOffset UIEdgeInsetsMake(0, 12, ceilf(replyTextViewFont.pointSize*.6), 12)
 
 @interface ReplyCell : PostCell <UITextFieldDelegate, PostTextViewDelegate>
 

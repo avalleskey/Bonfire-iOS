@@ -62,7 +62,6 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
     
     self.view.backgroundColor = [UIColor contentBackgroundColor];
     
-//    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(recentsUpdated:) name:@"RecentsUpdated" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userUpdated:) name:@"UserUpdated" object:nil];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(newPostBegan:) name:@"NewPostBegan" object:nil];
@@ -127,6 +126,12 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
             [self fetchNewPosts];
         }
     }
+    
+    if (self.morePostsIndicator.tag == 1) {
+        // more posts indicator is visible
+        // ensure the animation didn't get caught off
+        [self showMorePostsIndicator:false];
+    }
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -168,7 +173,6 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
     tv.separatorColor = [UIColor tableViewSeparatorColor];
     tv.dataType = RSTableViewTypeFeed;
     tv.tableViewStyle = RSTableViewStyleDefault;
-    tv.loading = true;
     tv.loadingMore = false;
     tv.extendedDelegate = self;
     tv.backgroundColor = [UIColor contentBackgroundColor];
@@ -232,19 +236,19 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
 }
 - (void)setupMorePostsIndicator {
     self.morePostsIndicator = [UIButton buttonWithType:UIButtonTypeCustom];
-    self.morePostsIndicator.frame = CGRectMake(self.view.frame.size.width / 2 - (156 / 2), self.navigationController.navigationBar.frame.origin.y + self.navigationController.navigationBar.frame.size.height + 12, 156, 40);
+    self.morePostsIndicator.frame = CGRectMake(self.view.frame.size.width / 2 - (116 / 2), self.navigationController.navigationBar.frame.origin.y + self.navigationController.navigationBar.frame.size.height + 12, 116, 38);
     self.morePostsIndicator.layer.masksToBounds = false;
     self.morePostsIndicator.layer.shadowOffset = CGSizeMake(0, 1);
-    self.morePostsIndicator.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.12].CGColor;
+    self.morePostsIndicator.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.08].CGColor;
     self.morePostsIndicator.layer.shadowOpacity = 1.f;
-    self.morePostsIndicator.layer.shadowRadius = 2.f;
+    self.morePostsIndicator.layer.shadowRadius = 3.f;
     self.morePostsIndicator.tag = 0; // inactive
     self.morePostsIndicator.hidden = true;
     self.morePostsIndicator.layer.cornerRadius = self.morePostsIndicator.frame.size.height / 2;
     self.morePostsIndicator.backgroundColor = [UIColor cardBackgroundColor];
     [self.morePostsIndicator setTitle:@"New Posts" forState:UIControlStateNormal];
     [self.morePostsIndicator setTitleColor:[UIColor bonfirePrimaryColor] forState:UIControlStateNormal];
-    self.morePostsIndicator.titleLabel.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightBold];
+    self.morePostsIndicator.titleLabel.font = [UIFont systemFontOfSize:15.f weight:UIFontWeightSemibold];
     self.morePostsIndicator.layer.shouldRasterize = true;
     self.morePostsIndicator.layer.rasterizationScale = [UIScreen mainScreen].scale;
     CGFloat intrinsticWidth = self.morePostsIndicator.intrinsicContentSize.width + (18*2);
@@ -297,9 +301,6 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
     NSDictionary *info = notification.object;
     NSString *tempId = info[@"tempId"];
     Post *post = info[@"post"];
-    
-    NSLog(@"temp id: %@", tempId);
-    NSLog(@"new post:: %@", post.identifier);
     
     if (post != nil) {
         // TODO: Check for image as well
@@ -366,7 +367,7 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
 #pragma mark - Cache Management
 - (void)loadCache {
     tv.stream = [[PostStream alloc] init];
-    tv.stream.delegate = self;
+    tv.stream.delegate = nil;
     
     // load feed cache
     NSArray *cache = [[PINCache sharedCache] objectForKey:@"home_feed_cache"];
@@ -377,11 +378,18 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
         }
         
         dispatch_async(dispatch_get_main_queue(), ^{
-            [tv refreshAtTop];
+            tv.stream.delegate = self;
+            tv.loading = (tv.stream.posts.count == 0);
+            [tv hardRefresh];
         });
     }
+    else {
+        tv.stream.delegate = self;
+    }
+    
 }
 - (void)saveCache {
+    DLog(@"save cache !");
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         NSString *cacheKey = @"home_feed_cache";
         
@@ -399,6 +407,7 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
     });
 }
 - (void)postStreamDidUpdate:(PostStream *)stream {
+    DLog(@"postStreamDidUpdate");
     [self saveCache];
 }
 
@@ -457,9 +466,9 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
         }
     }
     
-    if ([self.tableView isKindOfClass:[RSTableView class]] && tv.stream.posts.count == 0) {
+    tv.loading = (tv.stream.posts.count == 0);
+    if (tv.loading) {
         self.errorView.hidden = true;
-        tv.loading = true;
         [tv hardRefresh];
     }
     
@@ -576,22 +585,6 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
 }
 
 #pragma mark - RSTableViewDelegate
-- (UIView *)viewForFirstSectionHeader {
-//    if (tv.stream.posts.count > 0) {
-//        UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, HALF_PIXEL)];
-//        separator.backgroundColor = [UIColor tableViewSeparatorColor];
-//        return separator;
-//    }
-    
-    return nil;
-}
-- (CGFloat)heightForFirstSectionHeader {
-//    if (tv.stream.posts.count > 0) {
-//        return HALF_PIXEL;
-//    }
-    
-    return CGFLOAT_MIN; //52;
-}
 - (UITableViewCell * _Nullable)cellForRowInFirstSection:(NSInteger)row {
     if (row == 0 && self.suggestedCamps.count > 0) {
         CampCardsListCell *cell = [self.tableView dequeueReusableCellWithIdentifier:recentCardsCellReuseIdentifier forIndexPath:[NSIndexPath indexPathForRow:row inSection:0]];

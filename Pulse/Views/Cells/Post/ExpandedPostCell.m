@@ -376,14 +376,16 @@
     if ([post toDictionary] != [_post toDictionary]) {
         _post = post;
         
-        self.replyingToButton.hidden = !self.post.attributes.parent;
+        self.replyingToButton.hidden = !self.post.attributes.parent && self.post.attributes.thread.prevCursor.length == 0;
         if (![self.replyingToButton isHidden]) {
             UIFont *font = [UIFont systemFontOfSize:14.f weight:UIFontWeightRegular];
                     
-            NSMutableAttributedString *attributedText = [[NSMutableAttributedString alloc] initWithString:@"Replying to " attributes:@{NSFontAttributeName: font, NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
+            NSMutableAttributedString *attributedText = [[NSMutableAttributedString alloc] initWithString:(self.post.attributes.parent ? @"Replying to " : @"Loading...") attributes:@{NSFontAttributeName: font, NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
             
-            NSAttributedString *attributedCreatorText = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"@%@", post.attributes.parent.attributes.creator.attributes.identifier] attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:font.pointSize weight:UIFontWeightSemibold], NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
-            [attributedText appendAttributedString:attributedCreatorText];
+            if (self.post.attributes.parent) {
+                NSAttributedString *attributedCreatorText = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"@%@", post.attributes.parent.attributes.creator.attributes.identifier] attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:font.pointSize weight:UIFontWeightSemibold], NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
+                [attributedText appendAttributedString:attributedCreatorText];
+            }
             
             [self.replyingToButton setAttributedTitle:attributedText forState:UIControlStateNormal];
         }
@@ -604,9 +606,9 @@
     
     CGFloat height = avatarHeight + avatarBottomPadding;
     
-    BOOL hasParentPost = post.attributes.parent;
+    BOOL hasParentPost = post.attributes.parent || post.attributes.thread.prevCursor.length > 0;
     if (hasParentPost) {
-        height += 24;
+        height += 24 + (post.attributes.message.length > 0 ? 0 : 4);
     }
     
     BOOL removed = [post isRemoved];

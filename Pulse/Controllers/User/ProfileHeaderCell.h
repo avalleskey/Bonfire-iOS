@@ -42,6 +42,10 @@ NS_ASSUME_NONNULL_BEGIN
 @property (strong, nonatomic) BFAvatarView *profilePicture;
 @property (strong, nonatomic) UIView *profilePictureContainer;
 
+@property (nonatomic, strong) UIView *campAvatarReasonView;
+@property (nonatomic, strong) UILabel *campAvatarReasonLabel;
+@property (nonatomic, strong) UIImageView *campAvatarReasonImageView;
+
 // @property (strong, nonatomic) UILabel *textLabel
 // @property (strong, nonatomic) UILabel *detailTextLabel
 

@@ -27,7 +27,6 @@
 #import <PINCache/PINCache.h>
 #import <Shimmer/FBShimmeringView.h>
 
-#import <Crashlytics/Crashlytics.h>
 @import Firebase;
 
 @interface AppDelegate ()
@@ -85,6 +84,16 @@
     [self setupRoundedCorners];
     
     return YES;
+}
+
+- (void)applicationWillEnterForeground:(UIApplication *)application {
+    if ([Launcher tabController]) {
+        NSArray *notificationNavVCViewControllers = [Launcher tabController].notificationsNavVC.viewControllers;
+        if (notificationNavVCViewControllers.count > 0 && [[notificationNavVCViewControllers firstObject] isKindOfClass:[NotificationsTableViewController class]]) {
+            // check if there are any new notifications and update the tab bar
+            [((NotificationsTableViewController *)[notificationNavVCViewControllers firstObject]) refreshIfNeeded];
+        }
+    }
 }
 
 - (void)setupRoundedCorners {
@@ -365,6 +374,11 @@
                 tableView = ((ProfileViewController *)currentNavigationController.visibleViewController).tableView;
             }
             
+            if ([currentNavigationController.visibleViewController isKindOfClass:[NotificationsTableViewController class]]) {
+                // check if there are any new notifications and update the tab bar
+                [((NotificationsTableViewController *)currentNavigationController.visibleViewController) markAllAsRead];
+            }
+            
             if (tableView) {
                 if (currentNavigationController.navigationBar.prefersLargeTitles) {
                     [tableView setContentOffset:CGPointMake(0, -140) animated:YES];
@@ -447,9 +461,6 @@
         
         NSString *badgeValue = @"1"; //[NSString stringWithFormat:@"%@", [[userInfo objectForKey:@"aps"] objectForKey:@"badge"]];
         [tabVC setBadgeValue:badgeValue forItem:tabVC.notificationsNavVC.tabBarItem];
-        if (badgeValue && badgeValue.length > 0 && [badgeValue intValue] > 0) {
-            AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
-        }
     }
         
     if(application.applicationState == UIApplicationStateActive) {
@@ -486,6 +497,8 @@
         [[BFNotificationManager manager] presentNotification:notificationObject completion:^{
             NSLog(@"presentNotification() completion");
         }];
+        
+        AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
     }
     else if(application.applicationState == UIApplicationStateInactive) {
         // app is transitioning from background to foreground (user taps notification), do what you need when user taps here

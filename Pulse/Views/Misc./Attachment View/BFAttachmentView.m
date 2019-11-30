@@ -39,12 +39,12 @@
 - (void)setup {
     self.layer.cornerRadius = 14.f;
     self.layer.masksToBounds = false;
-    self.backgroundColor = [UIColor clearColor];
+    self.backgroundColor = [UIColor contentBackgroundColor];
     
     self.contentView = [[UIView alloc] initWithFrame:self.bounds];
     self.contentView.layer.cornerRadius = self.layer.cornerRadius;
     self.contentView.layer.masksToBounds = true;
-    self.contentView.layer.borderWidth = (1 / [UIScreen mainScreen].scale);
+    self.contentView.layer.borderWidth = HALF_PIXEL;
     [self addSubview:self.contentView];
     
     self.highlightView = [UIButton buttonWithType:UIButtonTypeCustom];

@@ -115,6 +115,7 @@
         CGFloat buttonSidePadding = 14;
         CGFloat actionButtonWidth = (self.actionButton.intrinsicContentSize.width + (buttonSidePadding * 2));
         self.actionButton.frame = CGRectMake(self.frame.size.width - actionButtonWidth - textEdgeInsets.right, self.frame.size.height / 2 - (34 / 2), actionButtonWidth, 34);
+        textEdgeInsets.right = (self.frame.size.width - self.actionButton.frame.origin.x) + 10;
     }
     
     // text label

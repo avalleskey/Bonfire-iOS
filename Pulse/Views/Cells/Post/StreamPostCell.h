@@ -21,6 +21,14 @@
 @property (nonatomic) BOOL hideActions;
 @property (nonatomic) BOOL minimizeLinks;
 
+@property (nonatomic, strong) CALayer *avatarOutline;
+
+@property (nonatomic, strong) UIView *repliesSnaphotView;
+@property (nonatomic, strong) BFAvatarView *repliesSnaphotViewAvatar1;
+@property (nonatomic, strong) BFAvatarView *repliesSnaphotViewAvatar2;
+@property (nonatomic, strong) BFAvatarView *repliesSnaphotViewAvatar3;
+@property (nonatomic, strong) UILabel *repliesSnaphotViewLabel;
+
 @property (nonatomic, strong) PostActionsView *actionsView;
 
 - (void)setVoted:(BOOL)isVoted animated:(BOOL)animated;

@@ -92,9 +92,7 @@ static Session *session;
             
             Defaults *newDefaults = [[Defaults alloc] initWithDictionary:responseObject error:&error];
             
-            if (!error) {
-                NSLog(@"set new defaults because there weren't any errors");
-                
+            if (!error) {                
                 if (session.defaults.announcement) {
                     TabController *tabVC = [Launcher tabController];
                     if (tabVC) {

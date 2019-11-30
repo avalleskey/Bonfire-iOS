@@ -202,7 +202,8 @@
         }
         else {
             // unknown
-            // TODO: General notification icon & background
+            self.notificationTypeImageView.image = [UIImage imageNamed:@"Tip_Bonfire"];
+            self.notificationTypeImageView.backgroundColor = [UIColor bonfireBrand];
         }
         self.creatorTitleLabel.text = [_object.creatorText uppercaseString];
         

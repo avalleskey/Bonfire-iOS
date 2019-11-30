@@ -82,6 +82,21 @@
     
     self.tabBar.tintColor = [UIColor bonfirePrimaryColor]; //[UIColor fromHex:[Session sharedInstance].currentUser.attributes.color];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userUpdated:) name:@"UserUpdated" object:nil];
+    
+    UILongPressGestureRecognizer *longPress = [[UILongPressGestureRecognizer alloc] bk_initWithHandler:^(UIGestureRecognizer *sender, UIGestureRecognizerState state, CGPoint location) {
+        if (state == UIGestureRecognizerStateBegan) {
+            UIView *exploreTabItemView = [self viewForTabInTabBar:self.tabBar withIndex:[self.tabBar.items indexOfObject:self.storeNavVC.tabBarItem]];
+            if (CGRectContainsPoint(exploreTabItemView.frame, location)) {
+                DLog(@"booooya");
+                
+                self.selectedIndex = [self.tabBar.items indexOfObject:self.storeNavVC.tabBarItem];
+                [self tabBar:self.tabBar didSelectItem:self.storeNavVC.tabBarItem];
+                
+                [Launcher openSearch];
+            }
+        }
+    }];
+    [self.tabBar addGestureRecognizer:longPress];
 }
 
 - (void)userUpdated:(NSNotification *)notification {

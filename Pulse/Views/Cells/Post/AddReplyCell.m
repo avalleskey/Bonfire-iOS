@@ -42,7 +42,7 @@
         self.addReplyButton.userInteractionEnabled = false;
         self.addReplyButton.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
         self.addReplyButton.contentEdgeInsets = UIEdgeInsetsMake(0, REPLY_BUBBLE_INSETS.left, 0, REPLY_BUBBLE_INSETS.right);
-        self.addReplyButton.layer.borderWidth = HALF_PIXEL;
+        self.addReplyButton.layer.borderWidth = 1;
         [self.contentView addSubview:self.addReplyButton];
         
         self.lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, (1 / [UIScreen mainScreen].scale))];
@@ -58,7 +58,7 @@
     [super layoutSubviews];
     
     UIEdgeInsets contentEdgeInsets = [ReplyCell contentEdgeInsetsForLevel:self.levelsDeep];
-    self.addReplyButton.frame = CGRectMake(contentEdgeInsets.left, replyContentOffset.bottom, self.frame.size.width - contentEdgeInsets.left - contentEdgeInsets.right, [AddReplyCell baseHeight]);
+    self.addReplyButton.frame = CGRectMake(contentEdgeInsets.left, self.frame.size.height / 2 - self.addReplyButton.frame.size.height / 2, self.frame.size.width - contentEdgeInsets.left - contentEdgeInsets.right, [AddReplyCell baseHeight]);
     
     self.profilePicture.frame = CGRectMake([ReplyCell edgeInsetsForLevel:self.levelsDeep].left, self.addReplyButton.frame.origin.y + self.addReplyButton.frame.size.height / 2 - self.profilePicture.frame.size.height / 2, self.profilePicture.frame.size.width, self.profilePicture.frame.size.height);
         
@@ -87,7 +87,7 @@
     return REPLY_BUBBLE_INSETS.top + REPLY_BUBBLE_INSETS.bottom + replyTextViewFont.lineHeight;
 }
 + (CGFloat)height {
-    return [AddReplyCell baseHeight] + (replyContentOffset.bottom * 2);
+    return [AddReplyCell baseHeight] + ceilf(replyContentOffset.bottom * 1.5);
 }
 
 - (void)setHighlighted:(BOOL)highlighted animated:(BOOL)animated {

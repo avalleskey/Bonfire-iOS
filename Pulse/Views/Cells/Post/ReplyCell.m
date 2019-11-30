@@ -135,14 +135,14 @@
         self.bubbleBackgroundDot1.layer.masksToBounds = true;
         self.bubbleBackgroundDot1.backgroundColor = [UIColor whiteColor];
         self.bubbleBackgroundDot1.alpha = 1;
-        [self.contentView addSubview:self.bubbleBackgroundDot1];
+        [self.contentView insertSubview:self.bubbleBackgroundDot1 belowSubview:self.bubbleBackgroundView];
         
         self.bubbleBackgroundDot2 = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 6, 6)];
         self.bubbleBackgroundDot2.layer.cornerRadius = self.bubbleBackgroundDot2.frame.size.height / 2;
         self.bubbleBackgroundDot2.layer.masksToBounds = true;
         self.bubbleBackgroundDot2.backgroundColor = [UIColor whiteColor];
         self.bubbleBackgroundDot2.alpha = 0.25;
-        [self.contentView addSubview:self.bubbleBackgroundDot2];
+        [self.contentView insertSubview:self.bubbleBackgroundDot2 belowSubview:self.bubbleBackgroundView];
     }
     
     return self;

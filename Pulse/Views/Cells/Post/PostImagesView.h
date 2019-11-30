@@ -15,6 +15,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic, strong) NSMutableArray *imageViews;
 
+@property (nonatomic, strong) UIView *containerView;
+
 // array of URLs and/or UIImages
 @property (nonatomic, strong) NSArray *media;
 

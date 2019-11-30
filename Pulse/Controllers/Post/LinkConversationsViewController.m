@@ -713,9 +713,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             cell.showCamptag = true;
             cell.minimizeLinks = true;
             cell.post = post;
-            
-            [cell.actionsView setSummaries:post.attributes.summaries];
-            
+                        
             if (cell.post.identifier != 0 && [identifierBefore isEqualToString:cell.post.identifier]) {
                 [self didBeginDisplayingCell:cell];
             }

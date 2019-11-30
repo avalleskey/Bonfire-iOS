@@ -126,7 +126,7 @@
 - (void)initImagesView {
     // image view
     self.imagesView = [[PostImagesView alloc] initWithFrame:CGRectMake(self.textView.frame.origin.x, 56, self.textView.frame.size.width, [PostImagesView streamImageHeight])];
-    [self.contentView addSubview:self.imagesView];
+    [self.contentView insertSubview:self.imagesView belowSubview:self.primaryAvatarView];
 }
 
 - (void)removeLinkAttachment {

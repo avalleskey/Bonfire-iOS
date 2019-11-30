@@ -43,7 +43,7 @@
 - (void)setup {
     [super setup];
     
-    self.backgroundColor = [UIColor clearColor];
+//    self.backgroundColor = [UIColor clearColor];
     
     self.avatarView = [[BFAvatarView alloc] initWithFrame:CGRectMake(POST_ATTACHMENT_EDGE_INSETS.left, POST_ATTACHMENT_EDGE_INSETS.top, POST_ATTACHMENT_HEADER_HEIGHT, POST_ATTACHMENT_HEADER_HEIGHT)];
     self.avatarView.openOnTap = true;
@@ -179,7 +179,7 @@
         self.textLabel.text = [BFPostAttachmentView attachmentMessageForPost:post];
         
         // set image attachments
-        self.imagesView.layer.cornerRadius = 0;
+        self.imagesView.containerView.layer.cornerRadius = 0;
         if (self.post.attributes.attachments.media.count > 0) {
             [self.imagesView setMedia:self.post.attributes.attachments.media];
         }
@@ -276,9 +276,7 @@
     else {
         height +=  POST_ATTACHMENT_EDGE_INSETS.bottom;
     }
-    
-    NSLog(@"height for post attachment view: %f", height);
-    
+        
     return height;
 }
 

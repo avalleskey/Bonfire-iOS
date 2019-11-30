@@ -19,6 +19,7 @@ enum {
 
 @property (nonatomic, strong) NSDate *lastFetch;
 - (void)refreshIfNeeded;
+- (void)markAllAsRead;
 
 @end
 

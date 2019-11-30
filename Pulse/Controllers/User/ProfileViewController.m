@@ -22,12 +22,13 @@
 #import "BFHeaderView.h"
 #import "SpacerCell.h"
 #import "BFAlertController.h"
+#import "L360ConfettiArea.h"
 
 #import <BlocksKit/BlocksKit.h>
 #import <BlocksKit/BlocksKit+UIKit.h>
 @import Firebase;
 
-@interface ProfileViewController () {
+@interface ProfileViewController () <L360ConfettiAreaDelegate> {
     int previousTableViewYOffset;
 }
 
@@ -459,6 +460,21 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
             self.user = user;
             self.bot = nil;
             
+            // blast some confetti!
+            if ([self.user isBirthday]) {
+                [UIView animateWithDuration:0 animations:^{
+                    L360ConfettiArea *confettiArea = [[L360ConfettiArea alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height)];
+                    confettiArea.userInteractionEnabled = false;
+                                
+                    [self.navigationController.view addSubview:confettiArea];
+                    confettiArea.blastSpread = 0;
+                    confettiArea.delegate = self;
+                    confettiArea.swayLength = 120.f;
+                    [confettiArea burstAt:CGPointMake(self.view.frame.size.width / 2, -80) confettiWidth:12.f numberOfConfetti:60];
+                } completion:^(BOOL finished) {
+                }];
+            }
+            
             if (![self isCurrentUser]) [[Session sharedInstance] addToRecents:self.user];
             
             if ([self isCurrentUser]) {
@@ -881,6 +897,21 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
     }
     
     return rows;
+}
+
+// birthday cellebration lol
+- (NSArray *)colorsForConfettiArea:(L360ConfettiArea *)confettiArea {
+    return @[[UIColor bonfireBlue],  // 0
+    [UIColor bonfireViolet],  // 1
+    [UIColor bonfireRed],  // 2
+    [UIColor bonfireOrange],  // 3
+    [UIColor colorWithRed:0.16 green:0.72 blue:0.01 alpha:1.00], // cash green
+    [UIColor brownColor],  // 5
+    [UIColor colorWithRed:0.96 green:0.76 blue:0.23 alpha:1.00],  // 6
+    [UIColor bonfireCyanWithLevel:800],  // 7
+    [UIColor fromHex:self.user.attributes.color],
+    [UIColor fromHex:self.user.attributes.color],
+    [UIColor fromHex:self.user.attributes.color]]; // 8
 }
 
 @end

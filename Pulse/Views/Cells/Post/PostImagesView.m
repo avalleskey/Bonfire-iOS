@@ -39,18 +39,22 @@
 }
 
 - (void)setup {
-    self.backgroundColor = [UIColor colorWithWhite:0.5 alpha:0.2];
-    self.layer.shouldRasterize = true;
-    self.layer.rasterizationScale = [UIScreen mainScreen].scale;
+    self.containerView = [[UIView alloc] initWithFrame:self.bounds];
+//    [self.containerView bk_whenTapped:^{
+//        if ([self.imageViews firstObject]) {
+//            [Launcher exapndImageView:(UIImageView *)[self.imageViews firstObject] media:self.media imageViews:self.imageViews selectedIndex:((UIImageView *)[self.imageViews firstObject]).tag];
+//        }
+//    }];
+    [self addSubview:self.containerView];
     
-    self.layer.cornerRadius = 14.f;
-    self.layer.masksToBounds = true;
-    self.layer.borderWidth = HALF_PIXEL;
+    self.containerView.backgroundColor = [UIColor colorWithWhite:0.5 alpha:0.2];
+    self.containerView.layer.shouldRasterize = true;
+    self.containerView.layer.rasterizationScale = [UIScreen mainScreen].scale;
     
-    self.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.08f].CGColor;
-    self.layer.shadowOpacity = 1.f;
-    self.layer.shadowOffset = CGSizeMake(0, 1);
-    self.layer.shadowRadius = 1.f;
+    self.containerView.layer.cornerRadius = 14.f;
+    self.containerView.layer.masksToBounds = true;
+    
+    self.containerView.layer.borderWidth = HALF_PIXEL;
     
     self.imageViews = [[NSMutableArray alloc] init];
     self.media = @[];
@@ -66,9 +70,10 @@
     [super layoutSubviews];
     
     // Lay things out again
+    self.containerView.frame = self.bounds;
     [self layoutImageViews];
     
-    self.layer.borderColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.12f].CGColor;
+    self.containerView.layer.borderColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.12f].CGColor;
 }
 
 - (void)setMedia:(NSArray *)media {
@@ -123,12 +128,13 @@
                 
                 if ([[self MIMETypeFromFileName:imageURL] isEqualToString:@"image/gif"]) {
                     [animatedImageView sd_setImageWithURL:url placeholderImage:nil options:SDWebImageFromLoaderOnly completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
-                        //[self hideImageViewSpinner:animatedImageView];
+//                        [self layoutImageViews];
                     }];
-                    
                 }
                 else {
-                    [animatedImageView sd_setImageWithURL:url placeholderImage:nil options:0 completed:nil];
+                    [animatedImageView sd_setImageWithURL:url placeholderImage:nil options:0 completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
+//                        [self layoutImageViews];
+                    }];
                 }
             }
             else {
@@ -172,7 +178,7 @@
     [self setupImageView:imageView];
 
     [self.imageViews addObject:imageView];
-    [self addSubview:imageView];
+    [self.containerView addSubview:imageView];
     [imageView addSubview:[self highlightButtonForImageView:imageView]];
     
     return imageView;
@@ -193,7 +199,7 @@
     [self setupImageView:imageView];
     
     [self.imageViews addObject:imageView];
-    [self addSubview:imageView];
+    [self.containerView addSubview:imageView];
     [imageView addSubview:[self highlightButtonForImageView:imageView]];
     
     return imageView;
@@ -222,13 +228,11 @@
 - (void)setupImageView:(UIImageView *)imageView {
     imageView.backgroundColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.05f];
     imageView.contentMode = UIViewContentModeScaleAspectFill;
-    //imageView.layer.borderWidth = (1 / [UIScreen mainScreen].scale);
-    //imageView.layer.borderColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.12f].CGColor;
     imageView.layer.masksToBounds = true;
     imageView.userInteractionEnabled = true;
     imageView.tag = self.imageViews.count;
     imageView.sd_imageTransition = [SDWebImageTransition fadeTransition];
-    //[self addSpinnerToImageView:imageView];
+    //[self.containerView addSpinnerToImageView:imageView];
 }
 - (void)addSpinnerToImageView:(UIImageView *)imageView {
     if ([imageView viewWithTag:SPINNER_TAG])
@@ -300,8 +304,29 @@
         UIImageView *onlyImageView = [self.imageViews firstObject];
         onlyImageView.frame = self.bounds;
         [self resizeInnerViewsForImageView:onlyImageView];
+        
+//        // preserve aspect ratio
+//        if (onlyImageView.image) {
+//            CGFloat height = onlyImageView.frame.size.height;
+//            CGFloat width = CLAMP(height * (onlyImageView.image.size.width / onlyImageView.image.size.height), 80, self.frame.size.width);
+//            SetWidth(onlyImageView, width);
+////            SetWidth(self.containerView, width);
+//            SetX(onlyImageView, self.frame.size.width / 2 - width / 2);
+//
+//            UIColor *color = [self averageColorForImage:onlyImageView.image];
+//            self.containerView.backgroundColor = [UIColor darkerColorForColor:color amount:0.08];
+//        }
+//        else {
+//            SetWidth(onlyImageView, self.frame.size.width);
+////            SetWidth(self.containerView, self.frame.size.width);
+////            SetX(onlyImageView, 0);
+//
+//            self.containerView.backgroundColor = [UIColor colorWithWhite:0.5 alpha:0.2];
+//        }
     }
     else {
+//        self.containerView.backgroundColor = [UIColor colorWithWhite:0.5 alpha:0.2];
+        
         CGFloat halfWidth = (self.frame.size.width - 2) / 2;
         CGFloat halfHeight = (self.frame.size.height - 2) / 2;
         
@@ -328,6 +353,31 @@
     
     //[self startSpinners];
 }
+- (UIColor *)averageColorForImage:(UIImage *)image {
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+    unsigned char rgba[4];
+    CGContextRef context = CGBitmapContextCreate(rgba, 1, 1, 8, 4, colorSpace, kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
+
+    CGContextDrawImage(context, CGRectMake(0, 0, 1, 1), image.CGImage);
+    CGColorSpaceRelease(colorSpace);
+    CGContextRelease(context);
+
+    if(rgba[3] > 0) {
+        CGFloat alpha = ((CGFloat)rgba[3])/255.0;
+        CGFloat multiplier = alpha/255.0;
+        return [UIColor colorWithRed:((CGFloat)rgba[0])*multiplier
+                               green:((CGFloat)rgba[1])*multiplier
+                                blue:((CGFloat)rgba[2])*multiplier
+                               alpha:alpha];
+    }
+    else {
+        return [UIColor colorWithRed:((CGFloat)rgba[0])/255.0
+                               green:((CGFloat)rgba[1])/255.0
+                                blue:((CGFloat)rgba[2])/255.0
+                               alpha:((CGFloat)rgba[3])/255.0];
+    }
+}
+
 - (void)resizeInnerViewsForImageView:(UIImageView *)imageView {
     UIButton *highlightButton = [imageView viewWithTag:10];
     highlightButton.frame = imageView.bounds;
@@ -337,7 +387,7 @@
 }
 
 + (CGFloat)streamImageHeight {
-    return [Session sharedInstance].defaults.post.imgHeight.max;
+    return [Session sharedInstance].defaults.post.imgHeight.max + 56;
 }
 
 - (void)startSpinners {

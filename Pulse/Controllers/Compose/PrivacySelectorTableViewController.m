@@ -169,7 +169,12 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
         
         self.loadingCamps = false;
         
+        
+        [self.tableView layoutIfNeeded];
         [self.tableView reloadData];
+        [self.tableView layoutIfNeeded];
+        
+//        [self.tableView reloadData];
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         NSLog(@"CampViewController / getRequests() - error: %@", error);
         //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];

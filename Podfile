@@ -36,8 +36,6 @@ target 'Pulse' do
   pod 'SEJSONViewController'  
   
   # analytics
-  pod 'Fabric'
-  pod 'Crashlytics'
   pod 'Firebase/Analytics'
   # pod 'Firebase/MLNLSmartReply'
   

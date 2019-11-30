@@ -378,11 +378,12 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     CGFloat textViewHeightAfter = textView.frame.size.height;
     
     if (diff(textViewHeightBefore, textViewHeightAfter)) {
-        [self.tableView layoutIfNeeded];
-        [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:1] atScrollPosition:UITableViewScrollPositionBottom animated:YES];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:1] atScrollPosition:UITableViewScrollPositionBottom animated:false];
+            [self scrollViewDidScroll:self.tableView];
+        });
     }
 }
-
 - (NSInteger)charactersRemainingWithStirng:(NSString *)string {
     NSInteger length = string.length;
     
@@ -1011,6 +1012,10 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         self.tableView.contentInset = UIEdgeInsetsMake(0, 0, contentInset, 0);
         self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, contentInset, 0);
         
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:1] atScrollPosition:UITableViewScrollPositionBottom animated:true];
+        });
+        
         self.toolbarButtonsContainer.transform = CGAffineTransformMakeScale(0.95, 0.95);
         self.toolbarButtonsContainer.alpha = 0;
         
@@ -1033,6 +1038,10 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         CGFloat contentInset = (self.tableView.frame.size.height - self.toolbarView.frame.origin.y) - bottomPadding;
         self.tableView.contentInset = UIEdgeInsetsMake(0, 0, contentInset, 0);
         self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, contentInset, 0);
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:1] atScrollPosition:UITableViewScrollPositionBottom animated:true];
+        });
         
         self.toolbarButtonsContainer.transform = CGAffineTransformIdentity;
         self.toolbarButtonsContainer.alpha = 1;
@@ -1203,81 +1212,89 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    if (tableView == self.tableView && section == 0 && self.replyingToIcebreaker) {
-        return 100;
+    if (tableView == self.tableView && section == 0) {
+        if (self.replyingToIcebreaker) {
+            return 100;
+        }
+        else if (self.replyingTo) {
+            return 52;
+        }
     }
     return CGFLOAT_MIN;
 }
 - (UIView * _Nullable)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
-    if (tableView == self.tableView && section == 0 && self.replyingToIcebreaker) {
-        UIView *header = [UIView new];
-        header.frame = CGRectMake(0, 0, self.view.frame.size.width, 104);
-        
-        UIView *replyingToView = [[UIView alloc] initWithFrame:CGRectMake(12, 8, header.frame.size.width - 12 - 12, header.frame.size.height - 12)];
-        replyingToView.backgroundColor = [UIColor bonfireDetailColor];
-        replyingToView.layer.cornerRadius = 8.f;
-        replyingToView.layer.masksToBounds = true;
-        [header addSubview:replyingToView];
-        
-        UILabel *welcomeLabel = [[UILabel alloc] initWithFrame:CGRectMake(12, 16, replyingToView.frame.size.width - 24, 19)];
-        welcomeLabel.textColor = [UIColor bonfirePrimaryColor];
-        welcomeLabel.text = @"Welcome to the Camp! 👋";
-        welcomeLabel.textAlignment = NSTextAlignmentCenter;
-        welcomeLabel.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightSemibold];
-        [replyingToView addSubview:welcomeLabel];
-        
-        UILabel *infoLabel = [[UILabel alloc] initWithFrame:CGRectMake(12, 40, replyingToView.frame.size.width - 24, 34)];
-        infoLabel.textColor = [UIColor bonfireSecondaryColor];
-        infoLabel.text = @"Answer the Camp Icebreaker to help\nothers get to know you better";
-        infoLabel.textAlignment = NSTextAlignmentCenter;
-        infoLabel.numberOfLines = 0;
-        infoLabel.lineBreakMode = NSLineBreakByWordWrapping;
-        infoLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightMedium];
-        [replyingToView addSubview:infoLabel];
-        
-        return header;
+    if (tableView == self.tableView && section == 0) {
+        if (self.replyingToIcebreaker) {
+            UIView *header = [UIView new];
+            header.frame = CGRectMake(0, 0, self.view.frame.size.width, 104);
+            
+            UIView *replyingToView = [[UIView alloc] initWithFrame:CGRectMake(12, 8, header.frame.size.width - 12 - 12, header.frame.size.height - 12)];
+            replyingToView.backgroundColor = [UIColor bonfireDetailColor];
+            replyingToView.layer.cornerRadius = 8.f;
+            replyingToView.layer.masksToBounds = true;
+            [header addSubview:replyingToView];
+            
+            UILabel *welcomeLabel = [[UILabel alloc] initWithFrame:CGRectMake(12, 16, replyingToView.frame.size.width - 24, 19)];
+            welcomeLabel.textColor = [UIColor bonfirePrimaryColor];
+            welcomeLabel.text = @"Welcome to the Camp! 👋";
+            welcomeLabel.textAlignment = NSTextAlignmentCenter;
+            welcomeLabel.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightSemibold];
+            [replyingToView addSubview:welcomeLabel];
+            
+            UILabel *infoLabel = [[UILabel alloc] initWithFrame:CGRectMake(12, 40, replyingToView.frame.size.width - 24, 34)];
+            infoLabel.textColor = [UIColor bonfireSecondaryColor];
+            infoLabel.text = @"Answer the Camp Icebreaker to help\nothers get to know you better";
+            infoLabel.textAlignment = NSTextAlignmentCenter;
+            infoLabel.numberOfLines = 0;
+            infoLabel.lineBreakMode = NSLineBreakByWordWrapping;
+            infoLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightMedium];
+            [replyingToView addSubview:infoLabel];
+            
+            return header;
+        }
+        else if (self.replyingTo) {
+            UIView *header = [UIView new];
+            header.frame = CGRectMake(0, 0, self.view.frame.size.width, 52);
+
+            UIView *replyingToView = [[UIView alloc] initWithFrame:CGRectMake(12, 8, header.frame.size.width - 12 - 12, header.frame.size.height - 12)];
+            replyingToView.backgroundColor = [UIColor bonfireDetailColor];
+            replyingToView.layer.cornerRadius = 8.f;
+            replyingToView.layer.masksToBounds = true;
+            [header addSubview:replyingToView];
+
+            UIImage *replyIconImage = [[UIImage imageNamed:@"postActionReply"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+            UIImageView *replyIcon = [[UIImageView alloc] initWithFrame:CGRectMake(12, replyingToView.frame.size.height / 2 - 7.5, replyIconImage.size.width, 15)];
+            replyIcon.image = replyIconImage;
+            replyIcon.tintColor = [UIColor bonfirePrimaryColor];
+            replyIcon.contentMode = UIViewContentModeScaleAspectFill;
+            [replyingToView addSubview:replyIcon];
+
+            CGFloat replyingToLabelX = replyIcon.frame.origin.x + replyIcon.frame.size.width + 8;
+            UILabel *replyingToLabel = [[UILabel alloc] initWithFrame:CGRectMake(replyingToLabelX, 0, replyingToView.frame.size.width - replyingToLabelX - 12, replyingToView.frame.size.height)];
+            replyingToLabel.textColor = [UIColor bonfirePrimaryColor];
+            if ([self.replyingTo.attributes.creator.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
+                replyingToLabel.text = [NSString stringWithFormat:@"Replying to yourself"];
+            }
+            else {
+                replyingToLabel.text = [NSString stringWithFormat:@"Replying to @%@", self.replyingTo.attributes.creator.attributes.identifier];
+            }
+            replyingToLabel.textAlignment = NSTextAlignmentLeft;
+            replyingToLabel.lineBreakMode = NSLineBreakByTruncatingMiddle;
+            replyingToLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightMedium];
+            [replyingToView addSubview:replyingToLabel];
+
+            UIView *lineSeparator_t = [[UIView alloc] initWithFrame:CGRectMake(0, 0, replyingToView.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+            lineSeparator_t.backgroundColor = [UIColor tableViewSeparatorColor];
+            //[replyingToView addSubview:lineSeparator_t];
+
+            UIView *lineSeparator_b = [[UIView alloc] initWithFrame:CGRectMake(0, replyingToView.frame.size.height - (1 / [UIScreen mainScreen].scale), replyingToView.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+            lineSeparator_b.backgroundColor = [UIColor tableViewSeparatorColor];
+            //[replyingToView addSubview:lineSeparator_b];
+
+            return header;
+        }
     }
-//    else {
-//        UIView *header = [UIView new];
-//        header.frame = CGRectMake(0, 0, self.view.frame.size.width, 52);
-//
-//        UIView *replyingToView = [[UIView alloc] initWithFrame:CGRectMake(12, 8, header.frame.size.width - 12 - 12, header.frame.size.height - 12)];
-//        replyingToView.backgroundColor = [UIColor bonfireDetailColor];
-//        replyingToView.layer.cornerRadius = 8.f;
-//        replyingToView.layer.masksToBounds = true;
-//        [header addSubview:replyingToView];
-//
-//        UIImage *replyIconImage = [[UIImage imageNamed:@"postActionReply"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-//        UIImageView *replyIcon = [[UIImageView alloc] initWithFrame:CGRectMake(12, replyingToView.frame.size.height / 2 - 7.5, replyIconImage.size.width, 15)];
-//        replyIcon.image = replyIconImage;
-//        replyIcon.tintColor = [UIColor bonfirePrimaryColor];
-//        replyIcon.contentMode = UIViewContentModeScaleAspectFill;
-//        [replyingToView addSubview:replyIcon];
-//
-//        CGFloat replyingToLabelX = replyIcon.frame.origin.x + replyIcon.frame.size.width + 8;
-//        UILabel *replyingToLabel = [[UILabel alloc] initWithFrame:CGRectMake(replyingToLabelX, 0, replyingToView.frame.size.width - replyingToLabelX - 12, replyingToView.frame.size.height)];
-//        replyingToLabel.textColor = [UIColor bonfirePrimaryColor];
-//        if ([self.replyingTo.attributes.creator.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
-//            replyingToLabel.text = [NSString stringWithFormat:@"Replying to yourself"];
-//        }
-//        else {
-//            replyingToLabel.text = [NSString stringWithFormat:@"Replying to @%@", self.replyingTo.attributes.creator.attributes.identifier];
-//        }
-//        replyingToLabel.textAlignment = NSTextAlignmentLeft;
-//        replyingToLabel.lineBreakMode = NSLineBreakByTruncatingMiddle;
-//        replyingToLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightMedium];
-//        [replyingToView addSubview:replyingToLabel];
-//
-//        UIView *lineSeparator_t = [[UIView alloc] initWithFrame:CGRectMake(0, 0, replyingToView.frame.size.width, (1 / [UIScreen mainScreen].scale))];
-//        lineSeparator_t.backgroundColor = [UIColor tableViewSeparatorColor];
-//        //[replyingToView addSubview:lineSeparator_t];
-//
-//        UIView *lineSeparator_b = [[UIView alloc] initWithFrame:CGRectMake(0, replyingToView.frame.size.height - (1 / [UIScreen mainScreen].scale), replyingToView.frame.size.width, (1 / [UIScreen mainScreen].scale))];
-//        lineSeparator_b.backgroundColor = [UIColor tableViewSeparatorColor];
-//        //[replyingToView addSubview:lineSeparator_b];
-//
-//        return header;
-//    }
+    
     return nil;
 }
 

@@ -59,7 +59,7 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
     [self loadCache];
     
     if (self.stream.activities.count == 0) {
-        [self setSpinning:true];
+        self.loading = true;
     }
     else {
         self.tableView.alpha = 1;
@@ -179,8 +179,6 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
             UserActivityStreamPage *page = [[UserActivityStreamPage alloc] initWithDictionary:pageDict error:nil];
             [self.stream appendPage:page];
         }
-        
-        NSLog(@"self.stream.activities.count :: %lu", (unsigned long)self.stream.activities.count);
         
         [self refresh];
     }
@@ -302,7 +300,7 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
         [self.markAsReadTimer invalidate];
         self.markAsReadTimer = nil;
         self.markAsReadTimer = [NSTimer bk_scheduledTimerWithTimeInterval:5.0 block:^(NSTimer *timer) {
-            [self markAllAsRead];
+        [self markAllAsRead];
         } repeats:false];
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         NSLog(@"Notificaitons  / getMembers() - error: %@", error);
@@ -331,7 +329,7 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
 #pragma mark - Table view data source
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    if (self.stream.activities.count == 0 && ![self announcementTipObject]) {
+    if (!self.loading && self.stream.activities.count == 0 && ![self announcementTipObject]) {
         self.errorView.hidden = false;
         
         BFVisualError *visualError = [BFVisualError visualErrorOfType:ErrorViewTypeNoNotifications title:@"No Notifications" description:nil actionTitle:nil actionBlock:nil];

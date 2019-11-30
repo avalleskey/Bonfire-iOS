@@ -19,6 +19,8 @@
 - (void)subscribeToPostNotifications;
 - (void)unsubscribeFromPostNotifications;
 
+- (BOOL)isBirthday;
+
 @end
 
 @interface IdentityAttributes ()

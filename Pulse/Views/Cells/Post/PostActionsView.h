@@ -10,7 +10,7 @@
 #import "BFAvatarView.h"
 #import "Post.h"
 
-#define POST_ACTIONS_VIEW_HEIGHT 24
+#define POST_ACTIONS_VIEW_HEIGHT 34
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -21,8 +21,6 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) UIButton *shareButton;
 
 @property (nonatomic, strong) UIView *repliesSnaphotView;
-
-@property (nonatomic, strong) PostSummaries *summaries;
 
 @property BOOL voted;
 - (void)setVoted:(BOOL)isVoted animated:(BOOL)animated;

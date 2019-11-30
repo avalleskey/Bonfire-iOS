@@ -54,11 +54,10 @@
         [self.shimmerContentView addSubview:self.textView];
                 
         // image view
-        self.imagesView.backgroundColor = [[UIColor tableViewSeparatorColor] colorWithAlphaComponent:0.5];
-        // self.imagesView.image = nil;
+        self.imagesView.containerView.backgroundColor = [[UIColor tableViewSeparatorColor] colorWithAlphaComponent:0.5];
         [self.imagesView removeFromSuperview];
-        self.imagesView.layer.borderColor = [UIColor clearColor].CGColor;
-        self.imagesView.layer.borderWidth = 0;
+        self.imagesView.containerView.layer.borderColor = [UIColor clearColor].CGColor;
+        self.imagesView.containerView.layer.borderWidth = 0;
         [self.shimmerContentView addSubview:self.imagesView];
         
         self.shimmerContainer.contentView = self.shimmerContentView;
@@ -102,6 +101,14 @@
 
     // self.repliesSnapshotView.hidden = true;
     // self.usernameLabel.frame = CGRectMake(self.usernameLabel.frame.origin.x, self.usernameLabel.frame.origin.y + 2, (self.frame.size.width - self.usernameLabel.frame.origin.x - postContentOffset.right) * (.2 + (.1 * self.type)), 11);
+}
+
+- (void)setType:(NSInteger)type {
+    if (type != _type) {
+        _type = type;
+        
+        [self layoutSubviews];
+    }
 }
 
 - (void)continuityRadiusForView:(UIView *)sender withRadius:(CGFloat)radius {

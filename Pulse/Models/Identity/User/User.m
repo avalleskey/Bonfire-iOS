@@ -42,6 +42,22 @@
     }];
 }
 
+- (BOOL)isBirthday {
+    if (self.attributes.dob.length == 0 || [self.attributes.dob componentsSeparatedByString:@"-"].count != 3) return false;
+    
+    NSDateFormatter *todayFormatter = [[NSDateFormatter alloc] init];
+    [todayFormatter setDateFormat:@"yyyy-MM-dd"];
+    NSString *todayString = [todayFormatter stringFromDate:[NSDate date]];
+    
+    NSInteger todayMonth = [[todayString componentsSeparatedByString:@"-"][1] integerValue];
+    NSInteger todayDay = [[todayString componentsSeparatedByString:@"-"][2] integerValue];
+    
+    NSInteger birthdayMonth = [[self.attributes.dob componentsSeparatedByString:@"-"][1] integerValue];
+    NSInteger birthdayDay = [[self.attributes.dob componentsSeparatedByString:@"-"][2] integerValue];
+    
+    return todayMonth == birthdayMonth && todayDay == birthdayDay;
+}
+
 @end
 
 @implementation UserDetailsLocation

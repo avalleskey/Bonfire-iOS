@@ -1094,48 +1094,6 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    SearchResultCell *cell = [tableView dequeueReusableCellWithIdentifier:searchResultCellIdentifier forIndexPath:indexPath];
-    
-    if (cell == nil) {
-        cell = [[SearchResultCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:searchResultCellIdentifier];
-    }
-    
-    // hide the last row
-    cell.lineSeparator.hidden = indexPath.row == self.autoCompleteResults.count - 1;
-
-    if (cell.gestureRecognizers.count == 0) {
-        [cell bk_whenTapped:^{
-            BOOL changes = false;
-            NSString *finalString = self.textView.text;
-            if (cell.user) {
-                NSString *usernameSelected = cell.user.attributes.identifier;
-                
-                if (usernameSelected.length > 0) {
-                    finalString = [self.textView.text stringByReplacingCharactersInRange:self.activeTagRange withString:[NSString stringWithFormat:@"@%@ ", usernameSelected]];
-                    changes = true;
-                }
-            }
-            else if (cell.camp) {
-                NSString *campTagSelected = cell.camp.attributes.identifier;
-                
-                if (campTagSelected.length > 0) {
-                    finalString = [self.textView.text stringByReplacingCharactersInRange:self.activeTagRange withString:[NSString stringWithFormat:@"#%@ ", campTagSelected]];
-                    changes = true;
-                }
-            }
-            
-            if (changes) {
-                // set it twice to avoid autocorrection from overriding our changes
-                self.textView.text = finalString;
-                self.textView.text = finalString;
-                
-                [self hideAutoCompleteView:false];
-                [self textViewDidChange:self.textView];
-                [HapticHelper generateFeedback:FeedbackType_Selection];
-            }
-        }];
-    }
-    
     // -- Type --
     int type = 0;
     
@@ -1147,18 +1105,68 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         else if ([json[@"type"] isEqualToString:@"user"]) {
             type = 2;
         }
+        else if ([json[@"type"] isEqualToString:@"bot"]) {
+            type = 3;
+        }
     }
     
     if (type != 0) {
+        SearchResultCell *cell = [tableView dequeueReusableCellWithIdentifier:searchResultCellIdentifier forIndexPath:indexPath];
+        
+        if (cell == nil) {
+            cell = [[SearchResultCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:searchResultCellIdentifier];
+        }
+        
+        // hide the last row
+        cell.lineSeparator.hidden = indexPath.row == self.autoCompleteResults.count - 1;
+
+        if (cell.gestureRecognizers.count == 0) {
+            [cell bk_whenTapped:^{
+                BOOL changes = false;
+                NSString *finalString = self.textView.text;
+                if (cell.user) {
+                    NSString *usernameSelected = cell.user.attributes.identifier;
+                    
+                    if (usernameSelected.length > 0) {
+                        finalString = [self.textView.text stringByReplacingCharactersInRange:self.activeTagRange withString:[NSString stringWithFormat:@"@%@ ", usernameSelected]];
+                        changes = true;
+                    }
+                }
+                else if (cell.camp) {
+                    NSString *campTagSelected = cell.camp.attributes.identifier;
+                    
+                    if (campTagSelected.length > 0) {
+                        finalString = [self.textView.text stringByReplacingCharactersInRange:self.activeTagRange withString:[NSString stringWithFormat:@"#%@ ", campTagSelected]];
+                        changes = true;
+                    }
+                }
+                
+                if (changes) {
+                    // set it twice to avoid autocorrection from overriding our changes
+                    self.textView.text = finalString;
+                    self.textView.text = finalString;
+                    
+                    [self hideAutoCompleteView:false];
+                    [self textViewDidChange:self.textView];
+                    [HapticHelper generateFeedback:FeedbackType_Selection];
+                }
+            }];
+        }
+        
         if (type == 1) {
             NSError *error;
             Camp *camp = [[Camp alloc] initWithDictionary:json error:&error];
             cell.camp = camp;
         }
-        else {
+        else if (type == 2) {
             //NSError *error;
             User *user = [[User alloc] initWithDictionary:self.autoCompleteResults[indexPath.row] error:nil];
             cell.user = user;
+        }
+        else if (type == 3) {
+            //NSError *error;
+            Bot *bot = [[Bot alloc] initWithDictionary:self.autoCompleteResults[indexPath.row] error:nil];
+            cell.bot = bot;
         }
         
         return cell;

@@ -16,6 +16,11 @@
 #import "UIColor+Palette.h"
 #import "NSString+Validation.h"
 #import "BFAlertController.h"
+#import "NSDate+NVTimeAgo.h"
+
+#define USER_CONTEXT_BUBBLE_TAG_NEW_USER 1
+#define USER_CONTEXT_BUBBLE_TAG_BIRTHDAY 2
+#define USER_CONTEXT_BUBBLE_TAG_CAMP_CRAZY 3
 
 @implementation ProfileHeaderCell
 
@@ -87,6 +92,66 @@
             }
         }
         [self.profilePictureContainer addSubview:self.profilePicture];
+        
+        self.campAvatarReasonView = [[UIView alloc] initWithFrame:CGRectMake(self.profilePicture.frame.size.width - 40 + 6, self.profilePicture.frame.size.height - 40 + 6, 40, 40)];
+        self.campAvatarReasonView.hidden = true;
+        self.campAvatarReasonView.backgroundColor = [UIColor bonfireDetailColor];
+        self.campAvatarReasonView.layer.cornerRadius = self.campAvatarReasonView.frame.size.height / 2;
+        self.campAvatarReasonView.layer.shadowColor = [UIColor blackColor].CGColor;
+        self.campAvatarReasonView.layer.shadowOffset = CGSizeMake(0, 1);
+        self.campAvatarReasonView.layer.shadowRadius = 2.f;
+        self.campAvatarReasonView.layer.shadowOpacity = 0.12;
+        [self.campAvatarReasonView bk_whenTapped:^{
+            if (self.campAvatarReasonView.tag != 0) {
+                NSString *title;
+                NSString *message;
+                BFAlertAction *cta;
+                
+                if (self.campAvatarReasonView.tag == USER_CONTEXT_BUBBLE_TAG_NEW_USER) {
+                    title = @"New User";
+                    message = [NSString stringWithFormat:@"%@ joined %@.", [self isCurrentUser] ? @"You" : @"This user", [NSDate mysqlDatetimeFormattedAsTimeAgo:self.user.attributes.createdAt withForm:TimeAgoLongForm]];
+                }
+                else if (self.campAvatarReasonView.tag == USER_CONTEXT_BUBBLE_TAG_BIRTHDAY) {
+                    title = [self isCurrentUser] ? @"Happy Birthday!" : @"Birthday";
+                    message = [self isCurrentUser] ? @"From all of us at Bonfire,\nwe hope you have a great one!" : @"Today is their birthday!";
+                    
+                    if (![self isCurrentUser]) {
+                        cta = [BFAlertAction actionWithTitle:@"Say Happy Birthday" style:BFAlertActionStyleDefault handler:^{
+                            [Launcher openComposePost:nil inReplyTo:nil withMessage:[NSString stringWithFormat:@"@%@ ", self.user.attributes.identifier] media:nil quotedObject:nil];
+                        }];
+                    }
+                }
+                else if (self.campAvatarReasonView.tag == USER_CONTEXT_BUBBLE_TAG_CAMP_CRAZY) {
+                    title = @"Crazy for Camps";
+                    message = [self isCurrentUser] ? @"You have joined 50 or more Camps." : @"This user has joined 50 or more Camps.";
+                }
+                
+                if (!title && !message && !cta) return;
+                
+                BFAlertController *actionSheet = [BFAlertController alertControllerWithTitle:title message:message preferredStyle:BFAlertControllerStyleActionSheet];
+                
+                if (cta) {
+                    [actionSheet addAction:cta];
+                }
+                
+                BFAlertAction *cancelActionSheet = [BFAlertAction actionWithTitle:@"Close" style:BFAlertActionStyleCancel handler:nil];
+                [actionSheet addAction:cancelActionSheet];
+                
+                [[Launcher topMostViewController] presentViewController:actionSheet animated:true completion:nil];
+            }
+        }];
+        [self.contentView addSubview:self.campAvatarReasonView];
+        
+        self.campAvatarReasonLabel = [[UILabel alloc] initWithFrame:self.campAvatarReasonView.bounds];
+        self.campAvatarReasonLabel.textAlignment = NSTextAlignmentCenter;
+        self.campAvatarReasonLabel.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightSemibold];
+        self.campAvatarReasonLabel.text = @"🆕";
+        [self.campAvatarReasonView addSubview:self.campAvatarReasonLabel];
+        
+        self.campAvatarReasonImageView = [[UIImageView alloc] initWithFrame:self.campAvatarReasonView.bounds];
+        self.campAvatarReasonImageView.contentMode = UIViewContentModeCenter;
+        self.campAvatarReasonImageView.hidden = true;
+        [self.campAvatarReasonView addSubview:self.campAvatarReasonImageView];
         
         self.textLabel.font = PROFILE_HEADER_DISPLAY_NAME_FONT;
         self.textLabel.textColor = [UIColor bonfirePrimaryColor];
@@ -265,6 +330,10 @@
     self.profilePictureContainer.center = CGPointMake(self.contentView.frame.size.width / 2, self.profilePictureContainer.center.y);
     bottomY = PROFILE_HEADER_EDGE_INSETS.top + self.profilePicture.frame.size.height;
     
+    if (![self.campAvatarReasonView isHidden]) {
+        self.campAvatarReasonView.frame = CGRectMake(self.profilePictureContainer.frame.origin.x + self.profilePictureContainer.frame.size.width - 40 - 6, self.profilePictureContainer.frame.origin.y + self.profilePictureContainer.frame.size.height - 40 - 6, 40, 40);
+    }
+    
     // text label
     CGRect textLabelRect = [self.textLabel.attributedText boundingRectWithSize:CGSizeMake(maxWidth, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) context:nil];
     self.textLabel.frame = CGRectMake(self.frame.size.width / 2 - maxWidth / 2, bottomY + PROFILE_HEADER_AVATAR_BOTTOM_PADDING, maxWidth, ceilf(textLabelRect.size.height));
@@ -304,6 +373,37 @@
         self.tintColor = [UIColor fromHex:user.attributes.color];
         
         self.profilePicture.user = user;
+        
+        // set camp indicator
+        BOOL showIndicator = false;
+        if (user.attributes.createdAt.length > 0) {
+            NSDateFormatter *inputFormatter = [[NSDateFormatter alloc] init];
+                [inputFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ssZ"];
+            NSDate *date = [inputFormatter dateFromString:user.attributes.createdAt];
+            
+            NSUInteger unitFlags = NSCalendarUnitDay;
+            NSCalendar *calendar = [[NSCalendar alloc] initWithCalendarIdentifier:NSCalendarIdentifierGregorian];
+            NSDateComponents *components = [calendar components:unitFlags fromDate:date toDate:[NSDate new] options:0];
+            
+            if ([components day] < 30) {
+                showIndicator = true;
+                self.campAvatarReasonLabel.text = @"🆕";
+                self.campAvatarReasonView.tag = USER_CONTEXT_BUBBLE_TAG_NEW_USER;
+            }
+        }
+        if (!showIndicator && [user isBirthday]) {
+            showIndicator = true;
+            self.campAvatarReasonLabel.text = @"🥳";
+            self.campAvatarReasonView.tag = USER_CONTEXT_BUBBLE_TAG_BIRTHDAY;
+        }
+        if (!showIndicator && user.attributes.summaries.counts.camps > 50) {
+            showIndicator = true;
+            self.campAvatarReasonLabel.text = @"🏕";
+            self.campAvatarReasonView.tag = USER_CONTEXT_BUBBLE_TAG_CAMP_CRAZY;
+        }
+        self.campAvatarReasonView.hidden = !showIndicator;
+        self.campAvatarReasonImageView.hidden = showIndicator;
+        self.campAvatarReasonLabel.hidden = !showIndicator;
         
         // display name
         NSString *displayName;

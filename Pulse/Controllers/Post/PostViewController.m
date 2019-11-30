@@ -31,6 +31,7 @@
 }
 
 @property (nonatomic) BOOL loading;
+@property (nonatomic) BOOL loadingParentPosts;
 @property (nonatomic) BOOL loadingReplies;
 @property (nonatomic) BOOL loadingMore;
 
@@ -337,7 +338,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
 
 #pragma mark - Load post
 - (BOOL)hasParentPost {
-    return self.post.attributes.parent;
+    return self.post.attributes.parent || self.post.attributes.thread.prevCursor.length > 0;
 }
 - (void)setupParentPostScrollIndicator {
     self.parentPostScrollIndicator = [[TappableView alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 51 - 12, self.tableView.adjustedContentInset.top - 29 - 12, 61, 39)];
@@ -378,7 +379,10 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         [self.tableView layoutSubviews];
         
         [self getPost];
-        [self loadPostReplies];
+        
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5.f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [self loadPostReplies];
+        });
     }
     else {
         self.visualError = [BFVisualError visualErrorOfType:ErrorViewTypeNotFound title:@"Post Not Found" description:@"We couldn't find the post\nyou were looking for" actionTitle:nil actionBlock:nil];
@@ -428,7 +432,12 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             [self loadPostReplies];
         }
         
-        [self updateContentInsets];
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(CGFLOAT_MIN * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [self.tableView reloadData];
+            [self.tableView layoutIfNeeded];
+            [self updateContentInsets];
+        });
+        
         if ([self hasParentPost] && !self.isPreview) {
             [self setupParentPostScrollIndicator];
             [self getParentPosts];
@@ -466,20 +475,22 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     // call this in order to handle the scroll down effect
     void (^reloadWithParentPosts)(void) = ^void() {
         // force on the main thread to make sure it updates without lag
-        [UIView animateWithDuration:0 animations:^{
-//            self.parentPost = self.post.attributes.parent;
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(CGFLOAT_MIN * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
             [self.tableView reloadData];
             [self.tableView layoutIfNeeded];
-            [self updateContentInsets];
+//            [self updateContentInsets];
+            
             if (self.tableView.contentOffset.y == -(self.tableView.adjustedContentInset.top)) {
                 [self.tableView setContentOffset:CGPointMake(0, [self parentPostsHeight] - self.tableView.adjustedContentInset.top)];
                 self.parentPostScrollIndicator.transform = CGAffineTransformMakeTranslation(0, 0);
             }
-        } completion:^(BOOL finished) {
-            self.tableView.scrollEnabled = true;
             
-            [self showParentPostScrollIndicator];
-        }];
+            [self updateContentInsets];
+            
+            self.tableView.scrollEnabled = true;
+                       
+           [self showParentPostScrollIndicator];
+        });
     };
     
     if (self.post.attributes.thread.prevCursor.length > 0) {
@@ -599,7 +610,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
 }
 - (void)setupPostHasBeenDeleted {
     self.post = nil;
-    self.parentPosts = nil;
+    self.parentPosts = @[];
     [self hideComposeInputView];
     self.parentPostScrollIndicator.hidden = true;
     
@@ -702,7 +713,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                          self.post.attributes.removedAt.length > 0);
         return showPost ? 1 : 0;
     }
-    else if (section < self.stream.posts.count + 2) {
+    else if (section >= 2 && section < self.stream.posts.count + 2) {
         // don't show any replies if there isn't an expanded post yet
         if (self.post == nil || (self.post.attributes.createdAt.length == 0 && self.post.attributes.removedAt.length == 0)) return 0;
         
@@ -717,7 +728,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         // x+2 : "add a reply..."
         
         BOOL showHideReplies = false;// (subReplies >= reply.attributes.summaries.counts.replies) && reply.attributes.summaries.counts.replies > 2;
-        BOOL showViewMore = (subReplies < reply.attributes.summaries.counts.replies);
+        BOOL showViewMore = false;//(subReplies < reply.attributes.summaries.counts.replies);
         BOOL showAddReply = reply.attributes.summaries.replies.count > 0;
         
         NSInteger rows = 1 + (showHideReplies ? 1 : 0) + subReplies + (showViewMore ? 1 : 0) + (showAddReply ? 1 : 0);
@@ -828,7 +839,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         // (x+1)+1 : --- "view more replies"
         // (x+1)+2 : --- "add a reply..."
         
-        BOOL showViewMore = (subReplies < reply.attributes.summaries.counts.replies);
+        BOOL showViewMore = false;//(subReplies < reply.attributes.summaries.counts.replies);
         BOOL showAddReply = reply.attributes.summaries.replies.count > 0;
         
         NSInteger firstSubReplyIndex = 1;
@@ -923,6 +934,8 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             }
             cell.backgroundColor = [UIColor contentBackgroundColor];
             cell.contentView.backgroundColor = [UIColor contentBackgroundColor];
+            
+            cell.levelsDeep = -1;
             
             BOOL hasExistingSubReplies = reply.attributes.summaries.replies.count != 0;
             cell.textLabel.text = [NSString stringWithFormat:@"View%@ replies (%ld)", (hasExistingSubReplies ? @" more" : @""), (long)reply.attributes.summaries.counts.replies - reply.attributes.summaries.replies.count];
@@ -1090,7 +1103,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         // (x+1)+1 : --- "view more replies"
         // (x+1)+2 : --- "add a reply..."
         
-        BOOL showViewMore = (subReplies < reply.attributes.summaries.counts.replies);
+        BOOL showViewMore = false;//(subReplies < reply.attributes.summaries.counts.replies);
         BOOL showAddReply = reply.attributes.summaries.replies.count > 0;
         
         NSInteger firstSubReplyIndex = 1;
@@ -1252,6 +1265,8 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     }
 }
 - (CGFloat)parentPostsHeight {
+    if (self.parentPosts.count == 0) return 0;
+    
     CGFloat height = 0;
     for (NSInteger i = 0; i < [self.tableView numberOfRowsInSection:0]; i++) {
         height += [self tableView:self.tableView heightForRowAtIndexPath:[NSIndexPath indexPathForRow:i inSection:0]];
@@ -1268,6 +1283,8 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         }
         height += [self tableView:self.tableView heightForFooterInSection:s];
     }
+    
+    DLog(@"replyPostsHeight: %f", height);
     
     return height;
 }
@@ -1489,17 +1506,23 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     CGFloat bottomPadding = UIApplication.sharedApplication.keyWindow.safeAreaInsets.bottom;
     
     CGFloat newComposeInputViewY = (self.currentKeyboardHeight > 0 ? self.composeInputView.frame.origin.y + bottomPadding : self.view.frame.size.height + ([self.composeInputView isHidden] ? 0 : -self.composeInputView.frame.size.height + bottomPadding));
-    
-    CGFloat parentPostOffset = 0;
-    
-    if ([self hasParentPost]) {
-        BOOL requiresParentPostPadding = true; //(self.tableView.contentSize.height < self.tableView.frame.size.height - self.tableView.adjustedContentInset.top - self.tableView.adjustedContentInset.bottom);
         
-//        CGFloat parentPostHeight = [self parentPostsHeight];
+    CGFloat parentPostOffset = 0;
+    if ([self hasParentPost]) {
         CGFloat expandedPostHeight = [ExpandedPostCell heightForPost:self.post width:[UIScreen mainScreen].bounds.size.width];
         CGFloat repliesHeight = [self replyPostsHeight];
+        DLog(@"reply posts height:: %f", repliesHeight);
         
-        parentPostOffset = requiresParentPostPadding ? (self.composeInputView.frame.origin.y - expandedPostHeight - repliesHeight - self.tableView.adjustedContentInset.top) : 0;
+        CGFloat y1 = self.composeInputView.frame.origin.y - self.tableView.adjustedContentInset.top;
+        DLog(@"self.composeInputView.frame.origin.y: %f", self.composeInputView.frame.origin.y);
+        DLog(@"self.tableView.adjustedContentInset.top: %f", self.tableView.adjustedContentInset.top);
+        
+        DLog(@"y1: %f", y1);
+        CGFloat y2 = expandedPostHeight + repliesHeight;
+        DLog(@"y2: %f", y2);
+        DSpacer();
+        
+        parentPostOffset = y1 - y2;
         parentPostOffset = MAX(0, parentPostOffset);
     }
     

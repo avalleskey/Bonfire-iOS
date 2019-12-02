@@ -270,9 +270,11 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
             
             if (button.tag == tabIndex) {
                 [button setTitleColor:[UIColor fromHex:[UIColor toHex:self.view.tintColor] adjustForOptimalContrast:true] forState:UIControlStateNormal];
+                button.titleLabel.font = [UIFont systemFontOfSize:button.titleLabel.font.pointSize weight:UIFontWeightBold];
             }
             else {
                 [button setTitleColor:[UIColor bonfireSecondaryColor] forState:UIControlStateNormal];
+                button.titleLabel.font = [UIFont systemFontOfSize:button.titleLabel.font.pointSize weight:UIFontWeightSemibold];
             }
         }
         

@@ -21,6 +21,9 @@ PODS:
   - BlocksKit/UIKit (2.2.5):
     - BlocksKit/Core
     - BlocksKit/DynamicDelegate
+  - Crashlytics (3.14.0):
+    - Fabric (~> 1.10.2)
+  - Fabric (1.10.2)
   - Firebase/Analytics (6.13.0):
     - Firebase/Core
   - Firebase/Core (6.13.0):
@@ -125,6 +128,8 @@ DEPENDENCIES:
   - AFNetworking/Security (~> 3.0)
   - AFNetworking/Serialization (~> 3.0)
   - BlocksKit
+  - Crashlytics (~> 3.14.0)
+  - Fabric (~> 1.10.2)
   - Firebase/Analytics
   - GoogleFontsiOS/Poppins
   - HapticHelper
@@ -152,6 +157,8 @@ SPEC REPOS:
   trunk:
     - AFNetworking
     - BlocksKit
+    - Crashlytics
+    - Fabric
     - Firebase
     - FirebaseAnalytics
     - FirebaseCore
@@ -189,6 +196,8 @@ SPEC REPOS:
 SPEC CHECKSUMS:
   AFNetworking: b6f891fdfaed196b46c7a83cf209e09697b94057
   BlocksKit: 7f422b971407001178d181a43b99014ea2591fe6
+  Crashlytics: 540b7e5f5da5a042647227a5e3ac51d85eed06df
+  Fabric: 706c8b8098fff96c33c0db69cbf81f9c551d0d74
   Firebase: 458d109512200d1aca2e1b9b6cf7d68a869a4a46
   FirebaseAnalytics: 45f36d9c429fc91d206283900ab75390cd05ee8a
   FirebaseCore: 307ea2508df730c5865334e41965bd9ea344b0e5
@@ -223,6 +232,6 @@ SPEC CHECKSUMS:
   "UINavigationItem+Margin": 7368d506fb2f7daa0c0489846cc8c2384ab1ab6d
   "UITextView+Placeholder": c407b27599ea23cca425946fee3cf1db5d547008
 
-PODFILE CHECKSUM: 7154f0f98d21c6c55043cd57c56f3bdf2cae2396
+PODFILE CHECKSUM: 36fa0c286cf4d243f5621bcf10bffbf85bbb29df
 
 COCOAPODS: 1.8.4

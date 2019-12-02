@@ -46,6 +46,8 @@
         if (self.direction == SOLTransitionDirectionUp || self.direction == SOLTransitionDirectionDown) {
             toView.center = CGPointMake(toView.center.x, containerView.frame.size.height * 1.5);
             toView.layer.cornerRadius = HAS_ROUNDED_CORNERS ? 32.f : 8.f;
+            fromView.layer.cornerRadius = HAS_ROUNDED_CORNERS ? 32.f : 8.f;
+            fromView.layer.masksToBounds = true;
             animationDuration = 0.4;
             animationDamping = 0.98;
             toView.layer.masksToBounds = true;
@@ -62,7 +64,8 @@
                 fromView.alpha = 0.8;
             }
             else {
-                fromView.alpha = 0.6;
+                fromView.transform = CGAffineTransformMakeScale(0.9, 0.9);
+                fromView.alpha = 0.8;
             }
             
             toView.center = CGPointMake(containerView.frame.size.width / 2, containerView.frame.size.height / 2);
@@ -70,6 +73,7 @@
             [fromView removeFromSuperview];
             toView.userInteractionEnabled = YES;
             toView.layer.cornerRadius = 0;
+            fromView.layer.cornerRadius = 0;
             [transitionContext completeTransition:![transitionContext transitionWasCancelled]];
         }];
     }
@@ -89,7 +93,10 @@
             toView.alpha = 0.8;
         }
         else {
-            toView.alpha = 0.6;
+            toView.alpha = 0.8;
+            toView.transform = CGAffineTransformMakeScale(0.9, 0.9);
+            toView.layer.cornerRadius = HAS_ROUNDED_CORNERS ? 32.f : 8.f;
+            toView.layer.masksToBounds = true;
             fromView.layer.cornerRadius = HAS_ROUNDED_CORNERS ? 32.f : 8.f;
             fromView.layer.masksToBounds = true;
         }
@@ -97,16 +104,15 @@
         CGFloat animationDuration = 0.55f;
         [UIView animateWithDuration:animationDuration delay:0 usingSpringWithDamping:0.9 initialSpringVelocity:0.5f options:(UIViewAnimationOptionCurveEaseInOut|UIViewAnimationOptionAllowUserInteraction) animations:^{
             toView.alpha = 1;
+            toView.transform = CGAffineTransformIdentity;
             
-            if (self.direction == SOLTransitionDirectionLeft || self.direction == SOLTransitionDirectionRight) {
-                toView.transform = CGAffineTransformIdentity;
-            }
-            else if (self.direction == SOLTransitionDirectionUp || self.direction == SOLTransitionDirectionDown) {
+            if (self.direction == SOLTransitionDirectionUp || self.direction == SOLTransitionDirectionDown) {
                 fromView.center = CGPointMake(fromView.center.x, containerView.frame.size.height * 1.5);
             }
         } completion:^(BOOL finished) {
             [fromView removeFromSuperview];
             toView.userInteractionEnabled = YES;
+            toView.layer.cornerRadius = 0;
             fromView.layer.cornerRadius = 0;
             [transitionContext completeTransition:![transitionContext transitionWasCancelled]];
         }];

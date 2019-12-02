@@ -16,6 +16,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) UIButton *nextButton;
 
 @property (nonatomic, strong) UIView *infoView;
+@property (nonatomic, strong) UILabel *invitesLeftLabel;
+@property (nonatomic, strong) UILabel *inviteDescriptionLabel;
 
 @end
 

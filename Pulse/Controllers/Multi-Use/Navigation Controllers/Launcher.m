@@ -32,6 +32,7 @@
 #import "InviteToCampTableViewController.h"
 #import "BFBotAttachmentView.h"
 #import "BFAlertController.h"
+#import "InviteFriendsViewController.h"
 #import <SEJSONViewController/SEJSONViewController.h>
 
 #import <SafariServices/SafariServices.h>
@@ -361,13 +362,7 @@ static Launcher *launcher;
     activity.eligibleForSearch = true;
     if (@available(iOS 12.0, *)) {
         activity.eligibleForPrediction = true;
-    } else {
-        // Fallback on earlier versions
-    }
-    if (@available(iOS 12.0, *)) {
         activity.persistentIdentifier = @"com.Ingenious.bonfire.open-camp-activity-type";
-    } else {
-        // Fallback on earlier versions
     }
     r.view.userActivity = activity;
     [activity becomeCurrent];
@@ -658,7 +653,10 @@ static Launcher *launcher;
         [self shareCamp:sender];
     }
     else {
-        [self shareOniMessage:[NSString stringWithFormat:@"Join me on Bonfire! 🔥 %@", APP_DOWNLOAD_LINK] image:nil];
+//        [self shareOniMessage:[NSString stringWithFormat:@"Join me on Bonfire! 🔥 %@", APP_DOWNLOAD_LINK] image:nil];
+
+        InviteFriendsViewController *inviteFriends = [[InviteFriendsViewController alloc] init];
+        [self present:inviteFriends animated:YES];
     }
     
     /*
@@ -1032,6 +1030,45 @@ static Launcher *launcher;
     controller.modalPresentationStyle = UIModalPresentationFullScreen;
     
     [[Launcher topMostViewController] presentViewController:controller animated:YES completion:nil];
+}
++ (void)openPostActions:(Post *)post {
+    BFAlertController *confirmDeletePostActionSheet = [BFAlertController alertControllerWithTitle:nil message:nil preferredStyle:BFAlertControllerStyleActionSheet];
+    
+    BFAlertAction *quotePost = [BFAlertAction actionWithTitle:@"Quote Post" style:BFAlertActionStyleDefault handler:^{
+        [Launcher openComposePost:nil inReplyTo:nil withMessage:nil media:nil quotedObject:post];
+    }];
+    [confirmDeletePostActionSheet addAction:quotePost];
+    
+    BFAlertAction *copyLink = [BFAlertAction actionWithTitle:@"Copy link to Post" style:BFAlertActionStyleDefault handler:^{
+        NSString *url = [NSString stringWithFormat:@"https://bonfire.camp/p/%@", post.identifier];
+        UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
+        pasteboard.string = url;
+        
+        JGProgressHUD *HUD = [JGProgressHUD progressHUDWithStyle:JGProgressHUDStyleExtraLight];
+        HUD.indicatorView = [[JGProgressHUDSuccessIndicatorView alloc] init];
+        HUD.tintColor = [UIColor colorWithWhite:0 alpha:0.6f];
+        HUD.textLabel.text = @"Copied!";
+        HUD.vibrancyEnabled = false;
+        HUD.animation = [[JGProgressHUDFadeZoomAnimation alloc] init];
+        HUD.textLabel.textColor = [UIColor colorWithWhite:0 alpha:0.6f];
+        HUD.backgroundColor = [UIColor colorWithWhite:0 alpha:0.1f];
+        
+        [HUD showInView:[Launcher topMostViewController].view animated:YES];
+        [HapticHelper generateFeedback:FeedbackType_Notification_Success];
+        
+        [HUD dismissAfterDelay:1.5f];
+    }];
+    [confirmDeletePostActionSheet addAction:copyLink];
+    
+    BFAlertAction *shareVia = [BFAlertAction actionWithTitle:@"Share via..." style:BFAlertActionStyleDefault handler:^{
+        [Launcher sharePost:post];
+    }];
+    [confirmDeletePostActionSheet addAction:shareVia];
+    
+    BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
+    [confirmDeletePostActionSheet addAction:cancel];
+    
+    [[Launcher topMostViewController] presentViewController:confirmDeletePostActionSheet animated:true completion:nil];
 }
 + (void)shareIdentity:(Identity *)identity {
     UIImage *image;

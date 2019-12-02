@@ -10,7 +10,7 @@
 #import "PostActionsView.h"
 #import "PostContextView.h"
 
-#define postContentOffset UIEdgeInsetsMake(12, 70, 10, 12)
+#define postContentOffset UIEdgeInsetsMake(12, 70, 8, 12)
 
 @interface StreamPostCell : PostCell <UITextFieldDelegate, PostTextViewDelegate>
 
@@ -20,14 +20,6 @@
 @property (nonatomic) BOOL showCamptag;
 @property (nonatomic) BOOL hideActions;
 @property (nonatomic) BOOL minimizeLinks;
-
-@property (nonatomic, strong) CALayer *avatarOutline;
-
-@property (nonatomic, strong) UIView *repliesSnaphotView;
-@property (nonatomic, strong) BFAvatarView *repliesSnaphotViewAvatar1;
-@property (nonatomic, strong) BFAvatarView *repliesSnaphotViewAvatar2;
-@property (nonatomic, strong) BFAvatarView *repliesSnaphotViewAvatar3;
-@property (nonatomic, strong) UILabel *repliesSnaphotViewLabel;
 
 @property (nonatomic, strong) PostActionsView *actionsView;
 

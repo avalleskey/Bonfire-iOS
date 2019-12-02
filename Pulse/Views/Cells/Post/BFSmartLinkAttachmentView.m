@@ -196,7 +196,9 @@
         self.shareLinkButtonSeparator.frame = CGRectMake(SMART_LINK_ATTACHMENT_EDGE_INSETS.left, bottomY + SMART_LINK_ATTACHMENT_EDGE_INSETS.bottom, self.frame.size.width - (SMART_LINK_ATTACHMENT_EDGE_INSETS.left + SMART_LINK_ATTACHMENT_EDGE_INSETS.right), self.shareLinkButtonSeparator.frame.size.height);
         self.shareLinkButton.frame = CGRectMake(0, self.shareLinkButtonSeparator.frame.origin.y, self.frame.size.width, self.shareLinkButton.frame.size.height);
     }
-    
+}
+
+- (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection {
     self.iconImageView.layer.borderColor = self.contentView.layer.borderColor;
     
     [self drawAttributionButton];
@@ -250,6 +252,8 @@
 
 - (void)drawAttributionButton {
     Camp *postedInCamp = self.link.attributes.attribution;
+    
+    if (!postedInCamp) return;
     
     // create camp attributed string
     NSMutableAttributedString *creatorString = [[NSMutableAttributedString alloc] init];

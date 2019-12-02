@@ -137,8 +137,8 @@
     if (message.length > self.entityBasedMaxCharacters) {
         NSLog(@"needs to be truncated");
         
-        NSString *truncatedMessage = [[[message substringToIndex:self.entityBasedMaxCharacters] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]] stringByAppendingString:@"... "];
-        NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:truncatedMessage attributes:@{NSFontAttributeName: self.messageLabel.font, NSForegroundColorAttributeName: self.textColor}];
+        NSString *truncatedMessage = message ? [[[message substringToIndex:self.entityBasedMaxCharacters] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]] stringByAppendingString:@"... "] : @"";
+        NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:(truncatedMessage?truncatedMessage:@"") attributes:@{NSFontAttributeName: self.messageLabel.font, NSForegroundColorAttributeName: self.textColor}];
                 
         NSAttributedString *seeMore = [[NSAttributedString alloc] initWithString:@"See More" attributes:@{NSFontAttributeName: self.messageLabel.font, NSForegroundColorAttributeName: [self.textColor colorWithAlphaComponent:0.7]}];
         
@@ -317,7 +317,7 @@
         
     }
     else {
-        attributedMessage = [[NSMutableAttributedString alloc] initWithString:message  attributes:@{NSFontAttributeName: font}];
+        attributedMessage = [[NSMutableAttributedString alloc] initWithString:message?message:@""  attributes:@{NSFontAttributeName: font}];
     }
     
     CGSize size = [attributedMessage boundingRectWithSize:constraints options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) context:nil].size;

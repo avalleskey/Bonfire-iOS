@@ -15,6 +15,7 @@
 #import "Launcher.h"
 #import "UIColor+Palette.h"
 #import <SDWebImage/SDImageCache.h>
+#import "BFAlertController.h"
 
 @implementation ExpandedPostCell
 
@@ -144,12 +145,12 @@
                 }];
             }
         }];
-        [self.actionsView.moreButton bk_whenTapped:^{
-            [Launcher openActionsForPost:self.post];
+        [self.actionsView.shareButton bk_whenTapped:^{
+            [Launcher openPostActions:self.post];
         }];
         [self.contentView addSubview:self.actionsView];
         
-        self.moreButton.hidden = true;
+        self.moreButton.hidden = false;
                 
         self.lineSeparator.hidden = false;
         self.lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
@@ -174,6 +175,10 @@
         self.replyingToButton.frame = CGRectMake(expandedPostContentOffset.left, yBottom, self.frame.size.width - (expandedPostContentOffset.left + expandedPostContentOffset.right), self.replyingToButton.frame.size.height);
         [self.replyingToButton viewWithTag:1].frame = CGRectMake(0, self.replyingToButton.frame.size.height - (1 / [UIScreen mainScreen].scale), self.replyingToButton.frame.size.width, (1 / [UIScreen mainScreen].scale));
         yBottom = self.replyingToButton.frame.origin.y + self.replyingToButton.frame.size.height;
+    }
+    
+    if (![self.moreButton isHidden]) {
+        self.moreButton.frame = CGRectMake(self.frame.size.width - 40, self.primaryAvatarView.frame.origin.y + self.primaryAvatarView.frame.size.height / 2 - 20, 40, 40);
     }
     
     CGFloat headerDetailsMaxWidth = (self.moreButton.frame.origin.x - self.creatorView.frame.origin.x);
@@ -329,7 +334,7 @@
         
         self.actionsView.replyButton.frame = CGRectMake(0, 0, self.actionsView.frame.size.width / 3, self.actionsView.frame.size.height);
         self.actionsView.voteButton.frame = CGRectMake(self.actionsView.replyButton.frame.size.width, 0, self.actionsView.frame.size.width / 3, self.actionsView.frame.size.height);
-        self.actionsView.moreButton.frame = CGRectMake(self.actionsView.frame.size.width - (self.actionsView.frame.size.width / 3), 0, self.actionsView.frame.size.width / 3, self.actionsView.frame.size.height);
+        self.actionsView.shareButton.frame = CGRectMake(self.actionsView.frame.size.width - (self.actionsView.frame.size.width / 3), 0, self.actionsView.frame.size.width / 3, self.actionsView.frame.size.height);
     }
         
     self.lineSeparator.frame = CGRectMake(0, self.frame.size.height - self.lineSeparator.frame.size.height,  self.frame.size.width, self.lineSeparator.frame.size.height);
@@ -424,7 +429,7 @@
             }
         }
         else {
-            UIFont *font = [post isEmojiPost] ? [UIFont systemFontOfSize:expandedTextViewFont.pointSize*POST_EMOJI_SIZE_MULTIPLIER] : expandedTextViewFont;
+            UIFont *font = [post isEmojiPost] ? [UIFont systemFontOfSize:ceilf(expandedTextViewFont.pointSize*POST_EMOJI_SIZE_MULTIPLIER)] : expandedTextViewFont;
             self.textView.messageLabel.font = font;
             self.textView.postId = self.post.identifier;
             
@@ -621,7 +626,7 @@
         // message
         BOOL hasMessage = post.attributes.simpleMessage.length > 0;
         if (hasMessage) {
-            UIFont *font = [post isEmojiPost] ? [UIFont systemFontOfSize:expandedTextViewFont.pointSize*POST_EMOJI_SIZE_MULTIPLIER] : expandedTextViewFont;
+           UIFont *font = [post isEmojiPost] ? [UIFont systemFontOfSize:ceilf(expandedTextViewFont.pointSize*POST_EMOJI_SIZE_MULTIPLIER)] : expandedTextViewFont;
             CGFloat messageHeight = [PostTextView sizeOfBubbleWithMessage:post.attributes.simpleMessage withConstraints:CGSizeMake(contentWidth - expandedPostContentOffset.left - expandedPostContentOffset.right, CGFLOAT_MAX) font:font maxCharacters:[PostTextView entityBasedMaxCharactersForMessage:post.attributes.simpleMessage maxCharacters:CGFLOAT_MAX entities:post.attributes.entities] styleAsBubble:false].height;
             height = height + messageHeight + (hasParentPost ? 4 : 0);
         }

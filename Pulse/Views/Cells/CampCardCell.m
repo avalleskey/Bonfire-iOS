@@ -22,6 +22,7 @@
         self.camp = [[Camp alloc] init];
         
         self.layer.borderWidth = (1 / [UIScreen mainScreen].scale);
+        self.layer.borderColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.1].CGColor;
     }
     
     return self;
@@ -29,7 +30,10 @@
 
 - (void)layoutSubviews {
     [super layoutSubviews];
-    
+}
+
+- (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection {
+    // support dark mode
     self.layer.borderColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.1].CGColor;
 }
 

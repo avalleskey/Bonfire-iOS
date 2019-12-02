@@ -38,14 +38,6 @@
     if (self) {
         self.selectable = true;
         
-        _avatarOutline = [CALayer layer];
-        _avatarOutline.frame = CGRectMake(-4, -4, self.primaryAvatarView.frame.size.width+8, self.primaryAvatarView.frame.size.height+8);
-        _avatarOutline.borderWidth = 4;
-        _avatarOutline.cornerRadius = _avatarOutline.frame.size.height / 2;
-
-        [self.primaryAvatarView.layer addSublayer:_avatarOutline];
-        self.primaryAvatarView.layer.masksToBounds = NO;
-        
         self.contextView = [[PostContextView alloc] init];
         [self.contextView.highlightView bk_whenTapped:^{
             if (self.post.attributes.parent) {
@@ -97,27 +89,18 @@
             }
         }];
         [self.actionsView.shareButton bk_whenTapped:^{
-            BFAlertController *confirmDeletePostActionSheet = [BFAlertController alertControllerWithTitle:nil message:nil preferredStyle:BFAlertControllerStyleActionSheet];
-            
-            BFAlertAction *quotePost = [BFAlertAction actionWithTitle:@"Quote Post" style:BFAlertActionStyleDefault handler:^{
-                [Launcher openComposePost:nil inReplyTo:nil withMessage:nil media:nil quotedObject:self.post];
-            }];
-            [confirmDeletePostActionSheet addAction:quotePost];
-            
-            BFAlertAction *shareVia = [BFAlertAction actionWithTitle:@"Share via..." style:BFAlertActionStyleDefault handler:^{
-                [Launcher sharePost:self.post];
-            }];
-            [confirmDeletePostActionSheet addAction:shareVia];
-            
-            BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
-            [confirmDeletePostActionSheet addAction:cancel];
-            
-            [[Launcher topMostViewController] presentViewController:confirmDeletePostActionSheet animated:true completion:nil];
+            [Launcher openPostActions:self.post];
         }];
         [self.contentView addSubview:self.actionsView];
         
         self.lineSeparator.hidden = true;
     }
+    [self.actionsView.repliesSnaphotView bk_whenTapped:^{
+        [Launcher openPost:self.post withKeyboard:false];
+    }];
+    [self.actionsView.replyButton bk_whenTapped:^{
+        [Launcher openComposePost:self.post.attributes.postedIn inReplyTo:self.post withMessage:nil media:nil quotedObject:nil];
+    }];
     
     return self;
 }
@@ -139,7 +122,6 @@
     if (![self.secondaryAvatarView isHidden]) {
         self.secondaryAvatarView.frame = CGRectMake(self.primaryAvatarView.frame.origin.x + self.primaryAvatarView.frame.size.width - self.secondaryAvatarView.frame.size.width, self.primaryAvatarView.frame.origin.y + self.primaryAvatarView.frame.size.height - self.secondaryAvatarView.frame.size.height, self.secondaryAvatarView.frame.size.width, self.secondaryAvatarView.frame.size.height);
     }
-    _avatarOutline.borderColor = [UIColor contentBackgroundColor].CGColor;
     
     if (![self.moreButton isHidden]) {
         CGFloat moreButtonPadding = 12;
@@ -213,11 +195,6 @@
         yBottom = self.postRemovedAttachmentView.frame.origin.y + self.postRemovedAttachmentView.frame.size.height;
     }
     
-    if (self.repliesSnaphotView) {
-        self.repliesSnaphotView.frame = CGRectMake(postContentOffset.left, yBottom + 8, self.frame.size.width - offset.left - postContentOffset.right, self.repliesSnaphotView.frame.size.height);
-        yBottom = self.repliesSnaphotView.frame.origin.y + self.repliesSnaphotView.frame.size.height;
-    }
-    
     self.actionsView.frame = CGRectMake(self.nameLabel.frame.origin.x, yBottom + 8, self.frame.size.width - offset.left - postContentOffset.right, self.actionsView.frame.size.height);
     
     if (!self.lineSeparator.isHidden) {
@@ -232,15 +209,17 @@
         self.bottomLine.frame = CGRectMake(self.primaryAvatarView.frame.origin.x + (self.primaryAvatarView.frame.size.width / 2) - (self.bottomLine.frame.size.width / 2), self.primaryAvatarView.frame.origin.y + self.primaryAvatarView.frame.size.height + 4, 3, self.frame.size.height - (self.primaryAvatarView.frame.origin.y + self.primaryAvatarView.frame.size.height + 4) + 2);
     }
     
-    // support dark mode
-    [self drawNameLabel];
-    
     BOOL canReply = !_post.attributes.creatorBot && [_post.attributes.context.post.permissions canReply] && self.post.tempId.length == 0;
     BOOL canShare = ![_post.attributes.postedIn isPrivate] && _post.tempId.length == 0;
     
     self.actionsView.userInteractionEnabled = !self.loading && !self.post.tempId;
     self.actionsView.replyButton.userInteractionEnabled = canReply;
     self.actionsView.shareButton.userInteractionEnabled = canShare;
+}
+
+- (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection {
+    // support dark mode
+    [self drawNameLabel];
 }
 
 - (void)setVoted:(BOOL)isVoted animated:(BOOL)animated {
@@ -310,114 +289,6 @@
     
     return false;
 }
-- (void)drawRepliesSnapshotSubviews {
-    CGFloat repliesSnapshotViewWidth = self.frame.size.width;
-    
-    CGFloat avatarDiameter = self.repliesSnaphotView.frame.size.height;
-    NSInteger avatarOffset = ceilf(avatarDiameter * 0.8);
-    
-    CGFloat avatarBaselineX = 0;
-    for (NSInteger i = 0; i < 3; i++) {
-        BFAvatarView *avatarView  = [[BFAvatarView alloc] initWithFrame:CGRectMake(2, 2, avatarDiameter, avatarDiameter)];
-        
-        if (i == 0) {
-            self.repliesSnaphotViewAvatar1 = avatarView;
-        }
-        else if (i == 1) {
-            self.repliesSnaphotViewAvatar2 = avatarView;
-        }
-        else if (i == 2) {
-            self.repliesSnaphotViewAvatar3 = avatarView;
-        }
-        
-        UIView *containerView = [[UIView alloc] initWithFrame:CGRectMake(avatarBaselineX + (i * avatarOffset), (self.repliesSnaphotView.frame.size.height / 2 - avatarDiameter / 2) - 2, avatarDiameter + 4, avatarDiameter + 4)];
-        containerView.backgroundColor = [UIColor contentBackgroundColor];
-        containerView.layer.cornerRadius = containerView.frame.size.height / 2;
-        containerView.layer.masksToBounds = true;
-        [containerView addSubview:avatarView];
-        
-        repliesSnapshotViewWidth = containerView.frame.origin.x + containerView.frame.size.width - 2;
-        
-        [self.repliesSnaphotView insertSubview:containerView atIndex:0];
-    }
-    
-    self.repliesSnaphotViewLabel = [[UILabel alloc] init];
-    self.repliesSnaphotViewLabel.textAlignment = NSTextAlignmentLeft;
-    [self.repliesSnaphotView addSubview:self.repliesSnaphotViewLabel];
-}
-
-- (void)initRepliesSnapshotView {
-    NSArray *summaryReplies = self.post.attributes.summaries.replies;
-    
-    if (!self.repliesSnaphotView) {
-        // need to initialize the snapshot view
-        self.repliesSnaphotView = [[UIView alloc] init];
-        self.repliesSnaphotView.frame = CGRectMake(0, self.nameLabel.frame.origin.y, self.frame.size.width - postContentOffset.left - postContentOffset.right, 24);
-        [self drawRepliesSnapshotSubviews];
-        [self.contentView addSubview:self.repliesSnaphotView];
-    }
-    
-    NSMutableArray <Post *> *filteredSummaryReplies = [NSMutableArray array];
-    if (summaryReplies.count > 1) {
-        NSMutableSet *existingCreatorIds = [NSMutableSet set];
-        for (Post *object in summaryReplies) {
-            if (![existingCreatorIds containsObject:object.attributes.creator.identifier]) {
-                [existingCreatorIds addObject:object.attributes.creator.identifier];
-                [filteredSummaryReplies addObject:object];
-            }
-        }
-    }
-    else {
-        // don't run the loop since there can't be any duplicates by default
-        filteredSummaryReplies = [summaryReplies mutableCopy];
-    }
-        
-    for (NSInteger i = 0; i < 3; i++) {
-        BFAvatarView *avatarView;
-        
-        if (i == 0) {
-            avatarView = self.repliesSnaphotViewAvatar1;
-        }
-        else if (i == 1) {
-            avatarView = self.repliesSnaphotViewAvatar2;
-        }
-        else if (i == 2) {
-            avatarView = self.repliesSnaphotViewAvatar3;
-        }
-        
-        if (avatarView) {
-            if (filteredSummaryReplies.count > i) {
-                avatarView.user = filteredSummaryReplies[i].attributes.creatorUser;
-                avatarView.hidden = false;
-            }
-            else {
-                avatarView.user = nil;
-                avatarView.hidden = true;
-            }
-        }
-    }
-    
-    NSMutableAttributedString *attributedString = [NSMutableAttributedString new];
-    NSDictionary *attributes = @{NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor], NSFontAttributeName: [UIFont systemFontOfSize:self.nameLabel.font.pointSize weight:UIFontWeightRegular]};
-    
-    NSInteger replies = self.post.attributes.summaries.counts.replies;
-    if (replies > 0) {
-        attributedString = [NSMutableAttributedString new];
-        
-        NSAttributedString *replyCount = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%lu Repl%@", (long)replies, (replies == 1 ? @"y" : @"ies")] attributes:attributes];
-        [attributedString appendAttributedString:replyCount];
-        
-        self.repliesSnaphotViewLabel.attributedText = attributedString;
-    }
-    
-    CGFloat xEnd = filteredSummaryReplies.count * 24 + 4;
-    DLog(@"xEnd: %f", xEnd);
-    self.repliesSnaphotViewLabel.frame = CGRectMake(xEnd, 0, self.repliesSnaphotView.frame.size.width - xEnd, self.repliesSnaphotView.frame.size.height);
-}
-- (void)removeRepliesSnaphotView {
-    [self.repliesSnaphotView removeFromSuperview];
-    self.repliesSnaphotView = nil;
-}
 
 - (void)setPost:(Post *)post {
     if ([post toDictionary] != [_post toDictionary]) {
@@ -432,7 +303,7 @@
         
         NSString *date = @"";
         if (_post.tempId) {
-            date = @"Just now";
+            date = @"1s";
         }
         else if (_post.attributes.createdAt.length > 0 && [StreamPostCell showDateLabelForPost:self.post]) {
             date = [NSDate mysqlDatetimeFormattedAsTimeAgo:_post.attributes.createdAt withForm:TimeAgoShortForm];
@@ -453,8 +324,8 @@
             [UIView animateWithDuration:0.15f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
                 self.contentView.alpha = 1;
                 
-                self.actionsView.replyButton.alpha = canReply ? 1 : 0.5;
-                self.actionsView.shareButton.alpha = canShare ? 1 : 0.5;
+                self.actionsView.replyButton.alpha = canReply ? 1 : 0.25;
+                self.actionsView.shareButton.alpha = canShare ? 1 : 0.25;
             } completion:^(BOOL finished) {
                 
             }];
@@ -462,8 +333,8 @@
         else {
             self.contentView.alpha = (temporary ? 0.5 : 1);
             
-            self.actionsView.replyButton.alpha = temporary || canReply ? 1 : 0.5;
-            self.actionsView.shareButton.alpha = temporary || canShare ? 1 : 0.5;
+            self.actionsView.replyButton.alpha = temporary || canReply ? 1 : 0.25;
+            self.actionsView.shareButton.alpha = temporary || canShare ? 1 : 0.25;
         }
                 
         if ([self.post.attributes.display.creator isEqualToString:POST_DISPLAY_CREATOR_CAMP] && self.post.attributes.postedIn) {
@@ -492,6 +363,9 @@
         self.secondaryAvatarView.hidden = !showSecondaryAvatarView;
 
         self.actionsView.hidden = self.hideActions;
+        if (![self.actionsView isHidden]) {
+            [self.actionsView setSummaries:self.post.attributes.summaries];
+        }
         
         BOOL removed = [self.post isRemoved];
         self.textView.hidden = removed;
@@ -519,9 +393,6 @@
             if (self.postAttachmentView) {
                 [self removePostAttachment];
             }
-            if (self.repliesSnaphotView) {
-                [self removeRepliesSnaphotView];
-            }
         }
         else {
             NSDictionary *context = (self.showContext ? [StreamPostCell contextForPost:post] : nil);
@@ -531,7 +402,7 @@
                 self.contextView.icon = context[BFPostContextIconKey];
             }
             
-            UIFont *font = [post isEmojiPost] ? [UIFont systemFontOfSize:textViewFont.pointSize*POST_EMOJI_SIZE_MULTIPLIER] : textViewFont;
+            UIFont *font = [post isEmojiPost] ? [UIFont systemFontOfSize:ceilf(textViewFont.pointSize*POST_EMOJI_SIZE_MULTIPLIER)] : textViewFont;
             self.textView.messageLabel.font = font;
             self.textView.postId = self.post.identifier;
             
@@ -601,14 +472,6 @@
                 [self removePostAttachment];
             }
             
-            // replies snapshot view
-            if ([StreamPostCell showRepliesSnapshotForPost:post]) {
-                [self initRepliesSnapshotView];
-            }
-            else if (self.repliesSnaphotView) {
-                [self removeRepliesSnaphotView];
-            }
-            
             if (![self.actionsView isHidden]) {
                 self.actionsView.actionsType = PostActionsViewTypeConversation;
                 
@@ -641,12 +504,6 @@
     return coloredImage;
 }
 
-+ (BOOL)showRepliesSnapshotForPost:(Post *)post {
-    NSInteger repliesCount = post.attributes.summaries.counts.replies;
-    NSInteger summariesCount = post.attributes.summaries.replies.count;
-    
-    return (repliesCount > 1 && repliesCount > summariesCount);
-}
 + (CGFloat)heightForPost:(Post *)post showContext:(BOOL)showContext showActions:(BOOL)showActions minimizeLinks:(BOOL)minimizeLinks {
     CGFloat height = postContentOffset.top;
     
@@ -667,7 +524,7 @@
     
     if (post.attributes.simpleMessage.length > 0) {
         // message
-        UIFont *font = [post isEmojiPost] ? [UIFont systemFontOfSize:textViewFont.pointSize*POST_EMOJI_SIZE_MULTIPLIER] : textViewFont;
+        UIFont *font = [post isEmojiPost] ? [UIFont systemFontOfSize:ceilf(textViewFont.pointSize*POST_EMOJI_SIZE_MULTIPLIER)] : textViewFont;
         
         CGFloat messageHeight = [PostTextView sizeOfBubbleWithMessage:post.attributes.simpleMessage withConstraints:CGSizeMake(screenWidth - postContentOffset.left - postContentOffset.right, CGFLOAT_MAX) font:font maxCharacters:[PostTextView entityBasedMaxCharactersForMessage:post.attributes.simpleMessage maxCharacters:STREAM_POST_MAX_CHARACTERS entities:post.attributes.entities] styleAsBubble:false].height;
         
@@ -728,10 +585,6 @@
         CGFloat postRemovedAttachmentHeight = [BFPostDeletedAttachmentView heightForMessage:message width:screenWidth-postContentOffset.left-postContentOffset.right];
         height = height + postRemovedAttachmentHeight + 3 + 8; // 3 above (remember, there's no content if the post has been removed). add an additional 8 padding on the bottom
     }
-    
-    if ([self showRepliesSnapshotForPost:post]) {
-        height += 24 + 8;
-     }
     
     // details view
     if (showActions) {

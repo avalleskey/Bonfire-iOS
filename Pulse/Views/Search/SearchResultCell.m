@@ -100,7 +100,7 @@
 - (void)layoutSubviews {
     [super layoutSubviews];
     
-    UIEdgeInsets textEdgeInsets = UIEdgeInsetsMake(14, 70, 14, 12);
+    UIEdgeInsets textEdgeInsets = UIEdgeInsetsMake(15, 70, 17, 12);
     
     // image view
     self.profilePicture.frame = CGRectMake(12, self.frame.size.height / 2 - 24, 48, 48);

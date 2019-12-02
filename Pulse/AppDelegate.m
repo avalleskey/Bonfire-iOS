@@ -359,6 +359,11 @@
     }
     
     static UIViewController *previousController = nil;
+    
+    if (!previousController) {
+        previousController = tabBarController.selectedViewController;
+    }
+    
     if (previousController == viewController) {
         // the same tab was tapped a second time
         if ([viewController isKindOfClass:[UINavigationController class]]) {
@@ -393,8 +398,11 @@
                         [(RSTableView *)tableView scrollToTop];
                     }
                     else {
-                        [tableView layoutIfNeeded];
-                        [tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:true];
+                        [tableView reloadData];
+                        dispatch_async(dispatch_get_main_queue(), ^{
+                            NSIndexPath *rowIndexPath = [NSIndexPath indexPathForRow:0 inSection:0];
+                            [tableView scrollToRowAtIndexPath:rowIndexPath atScrollPosition:UITableViewScrollPositionNone animated:YES];
+                        });
                     }
                 }
                 
@@ -417,35 +425,6 @@
     
     previousController = viewController;
 }
-
-//- (BOOL)tabBarController:(UITabBarController *)tabBarController shouldSelectViewController:(UIViewController *)viewController {
-//    NSLog(@"hellllooooooo");
-//
-//    NSArray *tabViewControllers = tabBarController.viewControllers;
-//    UIView *selectedView = tabBarController.selectedViewController.view;
-//    UIView *fromView = [selectedView snapshotViewAfterScreenUpdates:true];
-//    UIView *toView = viewController.view;
-//    [tabBarController.view insertSubview:fromView belowSubview:tabBarController.tabBar];
-//    if (fromView == toView)
-//        return false;
-//    NSUInteger fromIndex = [tabViewControllers indexOfObject:tabBarController.selectedViewController];
-//    NSUInteger toIndex = [tabViewControllers indexOfObject:viewController];
-//
-//    BOOL fromRight = toIndex < fromIndex;
-//    fromView.center = CGPointMake([UIScreen mainScreen].bounds.size.width / 2, fromView.center.y);
-//    toView.center = CGPointMake([UIScreen mainScreen].bounds.size.width * (fromRight ? -.5 : 1.5), toView.center.y);
-//    [UIView animateWithDuration:0.3 delay:0 usingSpringWithDamping:1 initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-//        fromView.center = CGPointMake([UIScreen mainScreen].bounds.size.width * (fromRight ? 1.5 : -.5), fromView.center.y);
-//        toView.center = CGPointMake([UIScreen mainScreen].bounds.size.width / 2, toView.center.y);
-//    } completion:^(BOOL finished) {
-//        if (finished && selectedView == tabBarController.selectedViewController.view) {
-//           tabBarController.selectedIndex = toIndex;
-//            [fromView removeFromSuperview];
-//       }
-//    }];
-//
-//    return true;
-//}
 
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo fetchCompletionHandler:(void (^)(UIBackgroundFetchResult result))completionHandler {
     // only open if there is a user signed in
@@ -555,12 +534,15 @@
                           ntohl(tokenBytes[6]), ntohl(tokenBytes[7])];
     NSLog(@"token:: %@", token);
 
+    #ifdef DEBUG
+    #else
     if ([[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"] == nil || ([[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"] != nil &&
         ![[[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"] isEqualToString:token]))
     {
         [[NSUserDefaults standardUserDefaults] setObject:token forKey:@"device_token"];
         [[Session sharedInstance] syncDeviceToken];
     }
+    #endif
     
     UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
     center.delegate = self;
@@ -639,7 +621,6 @@
         }
     }
     else if ([userActivity.activityType isEqualToString:NSUserActivityTypeBrowsingWeb]) {
-        DLog(@"nice ok cooooool");
         // only allow universal links to be opened if there is a user signed in
         if (![Session sharedInstance].currentUser) {
             return false;
@@ -647,7 +628,7 @@
         
         // Universal Links
         id objectFromURL = [Configuration objectFromExternalBonfireURL:userActivity.webpageURL];
-        
+
         if ([objectFromURL isKindOfClass:[User class]]) {
             [Launcher openProfile:(User *)objectFromURL];
         }

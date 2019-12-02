@@ -12,7 +12,8 @@
 
 @property (nonatomic, strong) UIButton *replyButton;
 @property (nonatomic, strong) UIButton *voteButton;
-@property (nonatomic, strong) UIButton *moreButton;
+@property (nonatomic, strong) UIButton *shareButton;
+//@property (nonatomic, strong) UIButton *moreButton;
 
 @property (nonatomic, strong) UIView *middleSeparator;
 @property (nonatomic, strong) UIView *topSeparator;

@@ -1012,7 +1012,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             NSInteger shareStep = [self getIndexOfStepWithId:@"camp_share"];
             UIView *shareBlock = self.steps[shareStep][@"block"];
             UIButton *shareField = [shareBlock viewWithTag:10];
-            [shareField setTitle:[NSString stringWithFormat:@"https://bonfire.camp/c/%@", camp.attributes.identifier] forState:UIControlStateNormal];
+            [shareField setTitle:[NSString stringWithFormat:@"https://bonfire.camp/c/%@", camp.identifier] forState:UIControlStateNormal];
             
             UIButton *shareCampButton = [shareBlock viewWithTag:11];
             [shareCampButton bk_whenTapped:^{

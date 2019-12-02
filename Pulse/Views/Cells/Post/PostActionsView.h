@@ -10,7 +10,7 @@
 #import "BFAvatarView.h"
 #import "Post.h"
 
-#define POST_ACTIONS_VIEW_HEIGHT 34
+#define POST_ACTIONS_VIEW_HEIGHT 28
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -20,10 +20,19 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) UIButton *voteButton;
 @property (nonatomic, strong) UIButton *shareButton;
 
+@property (nonatomic, strong) UIView *replyActionView;
 @property (nonatomic, strong) UIView *repliesSnaphotView;
+@property (nonatomic, strong) BFAvatarView *repliesSnaphotViewAvatar1;
+@property (nonatomic, strong) BFAvatarView *repliesSnaphotViewAvatar2;
+@property (nonatomic, strong) BFAvatarView *repliesSnaphotViewAvatar3;
+@property (nonatomic, strong) UILabel *repliesSnaphotViewLabel;
+
+@property (nonatomic, strong) PostSummaries *summaries;
 
 @property BOOL voted;
 - (void)setVoted:(BOOL)isVoted animated:(BOOL)animated;
+
+@property BOOL showReplyAction;
 
 typedef enum {
     PostActionsViewTypeConversation,

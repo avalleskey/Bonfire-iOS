@@ -585,34 +585,6 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
 }
 
 #pragma mark - RSTableViewDelegate
-- (UITableViewCell * _Nullable)cellForRowInFirstSection:(NSInteger)row {
-    if (row == 0 && self.suggestedCamps.count > 0) {
-        CampCardsListCell *cell = [self.tableView dequeueReusableCellWithIdentifier:recentCardsCellReuseIdentifier forIndexPath:[NSIndexPath indexPathForRow:row inSection:0]];
-        
-        if (cell == nil) {
-            cell = [[CampCardsListCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:recentCardsCellReuseIdentifier];
-        }
-        
-        cell.size = CAMP_CARD_SIZE_SMALL_MEDIUM;
-        
-        cell.loading = false;
-        cell.camps = [[NSMutableArray alloc] initWithArray:self.suggestedCamps];
-        
-        return cell;
-    }
-    
-    return nil;
-}
-- (CGFloat)heightForRowInFirstSection:(NSInteger)row {
-    if (row == 0 && self.suggestedCamps.count > 0) {
-        return SMALL_MEDIUM_CARD_HEIGHT;
-    }
-    
-    return 0;
-}
-- (CGFloat)numberOfRowsInFirstSection {
-    return 1;
-}
 - (UIView *)viewForFirstSectionFooter {
     return nil;
 }

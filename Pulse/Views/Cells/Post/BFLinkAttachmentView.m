@@ -230,7 +230,10 @@
     if (self.sourceLabel.text.length > 0) {
         self.sourceLabel.frame = CGRectMake(contentX, bottomY + LINK_ATTACHMENT_DETAIL_BOTTOM_PADDING, contentWidth, ceilf(self.sourceLabel.font.lineHeight));
     }
-    
+}
+
+- (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection {
+    // support dark mode
     self.iconImageView.layer.borderColor = self.contentView.layer.borderColor;
 }
 

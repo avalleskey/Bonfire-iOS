@@ -197,13 +197,14 @@ NSString * const LOCAL_APP_URI = @"bonfireapp";
     return nil;
 }
 + (BOOL)isExternalBonfireURL:(NSURL *)url {
-    if ([url matches:@"^(?:https?:\\/\\/)?(?:www\\.)?bonfire\\.camp\\b\\/((?:u\\/(?:[a-zA-Z0-9\\_]{1,30}|-[a-zA-Z0-9]{18,}))|(?:c\\/(?:[a-zA-Z0-9\\_]{1,30}|-[a-zA-Z0-9]{18,}))|(?:p\\/(?:[0-9]{1,})))$"]) {
+    if ([url matches:@"^(?:https?:\\/\\/)?(?:www\\.)?bonfire\\.camp\\b\\/((?:u\\/(?:[a-zA-Z0-9\\_]{1,30}|-[a-zA-Z0-9]{12,}))|(?:c\\/(?:[a-zA-Z0-9\\_]{1,30}|-[a-zA-Z0-9]{12,}))|(?:p\\/(?:[0-9]{1,})))$"]) {
         return true;
     }
     
     return false;
 }
 + (id)objectFromExternalBonfireURL:(NSURL *)url {
+    
     if (![self isExternalBonfireURL:url]) {
         return false;
     }

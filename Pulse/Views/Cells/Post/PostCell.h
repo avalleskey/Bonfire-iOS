@@ -27,7 +27,7 @@
 #import <ResponsiveLabel/ResponsiveLabel.H>
 #import <UIFont+Poppins.h>
 
-#define POST_EMOJI_SIZE_MULTIPLIER 2
+#define POST_EMOJI_SIZE_MULTIPLIER 2.5
 
 NS_ASSUME_NONNULL_BEGIN
 

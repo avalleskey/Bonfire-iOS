@@ -69,6 +69,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 // share sheets
 + (void)sharePost:(Post *)post;
++ (void)openPostActions:(Post *)post;
 + (void)shareCamp:(Camp *)camp;
 + (void)shareIdentity:(Identity *)identity;
 + (void)shareOniMessage:(NSString *)message image:(UIImage * _Nullable)image;

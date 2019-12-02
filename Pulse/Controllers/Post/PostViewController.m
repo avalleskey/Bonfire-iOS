@@ -380,9 +380,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         
         [self getPost];
         
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5.f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            [self loadPostReplies];
-        });
+        [self loadPostReplies];
     }
     else {
         self.visualError = [BFVisualError visualErrorOfType:ErrorViewTypeNotFound title:@"Post Not Found" description:@"We couldn't find the post\nyou were looking for" actionTitle:nil actionBlock:nil];
@@ -1458,7 +1456,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     
     UIColor *themeAdjustedForDarkMode = [UIColor fromHex:[UIColor toHex:theme] adjustForOptimalContrast:true];
     [UIView animateWithDuration:0.35f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-        if (self.launchNavVC.topViewController == self) {
+        if ([Launcher activeViewController] == self) {
             [self.launchNavVC updateBarColor:theme animated:false];
         }
         

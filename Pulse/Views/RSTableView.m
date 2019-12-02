@@ -50,8 +50,10 @@ static NSString * const expandedPostReuseIdentifier = @"ExpandedPost";
 static NSString * const streamPostReuseIdentifier = @"StreamPost";
 static NSString * const streamMediaPostReuseIdentifier = @"StreamPost_media";
 static NSString * const streamLinkPostReuseIdentifier = @"StreamPost_link";
+static NSString * const streamSmartLinkPostReuseIdentifier = @"StreamPost_smart_link";
 static NSString * const streamCampPostReuseIdentifier = @"StreamPost_camp";
 static NSString * const streamUserPostReuseIdentifier = @"StreamPost_user";
+static NSString * const streamPostPostReuseIdentifier = @"StreamPost_post";
 
 static NSString * const postReplyReuseIdentifier = @"ReplyReuseIdentifier";
 static NSString * const expandRepliesCellIdentifier = @"ExpandRepliesReuseIdentifier";
@@ -201,6 +203,8 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     [self registerClass:[StreamPostCell class] forCellReuseIdentifier:streamLinkPostReuseIdentifier];
     [self registerClass:[StreamPostCell class] forCellReuseIdentifier:streamCampPostReuseIdentifier];
     [self registerClass:[StreamPostCell class] forCellReuseIdentifier:streamUserPostReuseIdentifier];
+    [self registerClass:[StreamPostCell class] forCellReuseIdentifier:streamPostPostReuseIdentifier];
+    [self registerClass:[StreamPostCell class] forCellReuseIdentifier:streamSmartLinkPostReuseIdentifier];
     
     [self registerClass:[ReplyCell class] forCellReuseIdentifier:postReplyReuseIdentifier];
     [self registerClass:[ExpandThreadCell class] forCellReuseIdentifier:expandRepliesCellIdentifier];
@@ -370,20 +374,25 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         
         if (indexPath.row == 0) {
             NSString *reuseIdentifier = streamPostReuseIdentifier;
-            if (!post.attributes.attachments) {
-                reuseIdentifier = streamPostReuseIdentifier;
-            }
-            else if (post.attributes.attachments.media) {
+            if (post.attributes.attachments.media) {
                 reuseIdentifier = streamMediaPostReuseIdentifier;
             }
             else if (post.attributes.attachments.link) {
-                reuseIdentifier = streamLinkPostReuseIdentifier;
+                if ([post.attributes.attachments.link isSmartLink]) {
+                    reuseIdentifier = streamSmartLinkPostReuseIdentifier;
+                }
+                else {
+                    reuseIdentifier = streamLinkPostReuseIdentifier;
+                }
             }
             else if (post.attributes.attachments.user) {
                 reuseIdentifier = streamUserPostReuseIdentifier;
             }
             else if (post.attributes.attachments.camp) {
                 reuseIdentifier = streamCampPostReuseIdentifier;
+            }
+            else if (post.attributes.attachments.post) {
+                reuseIdentifier = streamPostPostReuseIdentifier;
             }
 
             StreamPostCell *cell = [tableView dequeueReusableCellWithIdentifier:reuseIdentifier forIndexPath:indexPath];

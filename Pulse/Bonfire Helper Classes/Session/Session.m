@@ -51,7 +51,11 @@ static Session *session;
             // update user object
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
                 [BFAPI getUser:nil];
+                
+                #ifdef DEBUG
+                #else
                 [session syncDeviceToken];
+                #endif
             });
         }
         
@@ -150,7 +154,6 @@ static Session *session;
             session.deviceToken = [[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"];
         } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
             NSLog(@"😞 darn. error updating the device token");
-            // NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
         }];
     }
     else {

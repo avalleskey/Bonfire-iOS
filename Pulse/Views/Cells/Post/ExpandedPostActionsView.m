@@ -37,15 +37,22 @@
         [self addTapHandlersToAction:_replyButton];
         [self addSubview:_replyButton];
         
-        _moreButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        _moreButton.frame = CGRectMake(0, 0, 48, 48);
-        [_moreButton setImage:[[UIImage imageNamed:@"navMoreIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
-        _moreButton.adjustsImageWhenHighlighted = false;
-        [self addTapHandlersToAction:_moreButton];
-        [self addSubview:_moreButton];
+//        _moreButton = [UIButton buttonWithType:UIButtonTypeCustom];
+//        _moreButton.frame = CGRectMake(0, 0, 48, 48);
+//        [_moreButton setImage:[[UIImage imageNamed:@"navMoreIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+//        _moreButton.adjustsImageWhenHighlighted = false;
+//        [self addTapHandlersToAction:_moreButton];
+//        [self addSubview:_moreButton];
+        
+        _shareButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        _shareButton.frame = CGRectMake(0, 0, 48, 48);
+        [_shareButton setImage:[[UIImage imageNamed:@"shareIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+        _shareButton.adjustsImageWhenHighlighted = false;
+        [self addTapHandlersToAction:_shareButton];
+        [self addSubview:_shareButton];
         
         _voteButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        _voteButton.frame = CGRectMake(_moreButton.frame.origin.x + _moreButton.frame.size.width + 10, 0, 48, 48);
+        _voteButton.frame = CGRectMake(_shareButton.frame.origin.x + _shareButton.frame.size.width + 10, 0, 48, 48);
         [_voteButton setImage:[[UIImage imageNamed:@"boltIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
         _voteButton.adjustsImageWhenHighlighted = false;
         [self addTapHandlersToAction:_voteButton];
@@ -81,7 +88,7 @@
     CGFloat buttonWidth = self.frame.size.width / 3;
     _replyButton.frame = CGRectMake(0, 0, buttonWidth, self.frame.size.height);
     _voteButton.frame = CGRectMake(_replyButton.frame.origin.x + _replyButton.frame.size.width, 0, buttonWidth, self.frame.size.height);
-    _moreButton.frame = CGRectMake(self.frame.size.width - buttonWidth, 0, buttonWidth, self.frame.size.height);
+    _shareButton.frame = CGRectMake(self.frame.size.width - buttonWidth, 0, buttonWidth, self.frame.size.height);
 }
 
 @end

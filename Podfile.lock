@@ -24,6 +24,16 @@ PODS:
   - Crashlytics (3.14.0):
     - Fabric (~> 1.10.2)
   - Fabric (1.10.2)
+  - FBSDKCoreKit (5.11.1):
+    - FBSDKCoreKit/Basics (= 5.11.1)
+    - FBSDKCoreKit/Core (= 5.11.1)
+  - FBSDKCoreKit/Basics (5.11.1)
+  - FBSDKCoreKit/Core (5.11.1):
+    - FBSDKCoreKit/Basics
+  - FBSDKShareKit (5.11.1):
+    - FBSDKShareKit/Share (= 5.11.1)
+  - FBSDKShareKit/Share (5.11.1):
+    - FBSDKCoreKit (~> 5.0)
   - Firebase/Analytics (6.13.0):
     - Firebase/Core
   - Firebase/Core (6.13.0):
@@ -130,6 +140,8 @@ DEPENDENCIES:
   - BlocksKit
   - Crashlytics (~> 3.14.0)
   - Fabric (~> 1.10.2)
+  - FBSDKCoreKit
+  - FBSDKShareKit
   - Firebase/Analytics
   - GoogleFontsiOS/Poppins
   - HapticHelper
@@ -159,6 +171,8 @@ SPEC REPOS:
     - BlocksKit
     - Crashlytics
     - Fabric
+    - FBSDKCoreKit
+    - FBSDKShareKit
     - Firebase
     - FirebaseAnalytics
     - FirebaseCore
@@ -198,6 +212,8 @@ SPEC CHECKSUMS:
   BlocksKit: 7f422b971407001178d181a43b99014ea2591fe6
   Crashlytics: 540b7e5f5da5a042647227a5e3ac51d85eed06df
   Fabric: 706c8b8098fff96c33c0db69cbf81f9c551d0d74
+  FBSDKCoreKit: 5aada61a229054694810f3cee231f986004b3c49
+  FBSDKShareKit: 2b4435ecb134e2af8a636524e43b7813e3d60a0b
   Firebase: 458d109512200d1aca2e1b9b6cf7d68a869a4a46
   FirebaseAnalytics: 45f36d9c429fc91d206283900ab75390cd05ee8a
   FirebaseCore: 307ea2508df730c5865334e41965bd9ea344b0e5
@@ -232,6 +248,6 @@ SPEC CHECKSUMS:
   "UINavigationItem+Margin": 7368d506fb2f7daa0c0489846cc8c2384ab1ab6d
   "UITextView+Placeholder": c407b27599ea23cca425946fee3cf1db5d547008
 
-PODFILE CHECKSUM: 36fa0c286cf4d243f5621bcf10bffbf85bbb29df
+PODFILE CHECKSUM: f7aed5f6e8001a219b8ea0678f0eb335a575d284
 
 COCOAPODS: 1.8.4

@@ -33,7 +33,10 @@ target 'Pulse' do
   pod 'SearchEmojiOnString', '~> 1.0'
   pod 'ISAlternativeRefreshControl'
   pod 'GoogleFontsiOS/Poppins'
-  pod 'SEJSONViewController'  
+  pod 'SEJSONViewController'
+  
+  pod 'FBSDKCoreKit'
+  pod 'FBSDKShareKit'
   
   # analytics
   pod 'Fabric', '~> 1.10.2'

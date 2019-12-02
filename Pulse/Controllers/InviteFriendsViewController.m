@@ -13,6 +13,7 @@
 #import <BlocksKit/BlocksKit.h>
 #import <BlocksKit/BlocksKit+UIKit.h>
 #import <JGProgressHUD/JGProgressHUD.h>
+#import <FBSDKShareKit/FBSDKShareKit.h>
 
 @interface InviteFriendsViewController ()
 
@@ -177,21 +178,29 @@
         } forControlEvents:(UIControlEventTouchUpInside|UIControlEventTouchCancel|UIControlEventTouchDragExit)];
         
         [button bk_whenTapped:^{
-//            NSString *message = [NSString stringWithFormat:@"Join me on Bonfire, a new app for communities here: "]
-//            NSString *campShareLink = [NSString stringWithFormat:@"https://bonfire.camp/c/%@", self.camp.identifier];
-//            if ([identifier isEqualToString:@"twitter"]) {
-//                if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"twitter://post"]]) {
-//                    NSString *message = [[NSString stringWithFormat:@"I just created a Camp on @yourbonfire! Join %@: %@", self.camp.attributes.title, campShareLink] stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet characterSetWithCharactersInString:@"!*'();:@&=+$,/?%#[]"]];
-//
-//                    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[NSString stringWithFormat:@"twitter://post?message=%@", message]] options:@{} completionHandler:nil];
-//                }
-//            }
-//            else if ([identifier isEqualToString:@"imessage"]) {
-//                [Launcher shareOniMessage:[NSString stringWithFormat:@"I created a Camp on Bonfire! Join %@: %@", self.camp.attributes.title, campShareLink] image:nil];
-//            }
-//            else if ([identifier isEqualToString:@"more"]) {
-//                [Launcher shareCamp:self.camp];
-//            }
+            NSString *message = [NSString stringWithFormat:@"Join me on Bonfire 🔥 https://bonfire.camp/download"];
+            if ([identifier isEqualToString:@"twitter"]) {
+                if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"twitter://post"]]) {
+                    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[NSString stringWithFormat:@"twitter://post?message=%@", message]] options:@{} completionHandler:nil];
+                }
+            }
+            else if ([identifier isEqualToString:@"facebook"]) {
+                FBSDKShareLinkContent *content = [[FBSDKShareLinkContent alloc] init];
+                content.contentURL = [NSURL URLWithString:@"https://bonfire.camp/download"];
+                content.hashtag = [FBSDKHashtag hashtagWithString:@"#Bonfire"];
+                [FBSDKShareDialog showFromViewController:self
+                                              withContent:content
+                                                                 delegate:nil];
+            }
+            else if ([identifier isEqualToString:@"imessage"]) {
+                [Launcher shareOniMessage:message image:nil];
+            }
+            else if ([identifier isEqualToString:@"more"]) {
+                UIActivityViewController *controller = [[UIActivityViewController alloc]initWithActivityItems:@[message] applicationActivities:nil];
+                controller.modalPresentationStyle = UIModalPresentationOverCurrentContext;
+                
+                [[Launcher topMostViewController] presentViewController:controller animated:YES completion:nil];
+            }
         }];
     }
 }

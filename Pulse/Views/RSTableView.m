@@ -586,7 +586,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                     height = 123;
                     break;
                 case 2:
-                    height = 310;
+                    height = 310 + 56;
                     break;
                     
                 default:

@@ -653,10 +653,10 @@ static Launcher *launcher;
         [self shareCamp:sender];
     }
     else {
-//        [self shareOniMessage:[NSString stringWithFormat:@"Join me on Bonfire! 🔥 %@", APP_DOWNLOAD_LINK] image:nil];
+        [self shareOniMessage:[NSString stringWithFormat:@"Join me on Bonfire! 🔥 %@", APP_DOWNLOAD_LINK] image:nil];
 
-        InviteFriendsViewController *inviteFriends = [[InviteFriendsViewController alloc] init];
-        [self present:inviteFriends animated:YES];
+//        InviteFriendsViewController *inviteFriends = [[InviteFriendsViewController alloc] init];
+//        [self present:inviteFriends animated:YES];
     }
     
     /*

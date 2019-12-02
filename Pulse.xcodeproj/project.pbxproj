@@ -288,7 +288,7 @@
 		D904283E233BE3800051D3AF /* LinkConversationsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LinkConversationsViewController.m; sourceTree = "<group>"; };
 		D9042840233C17170051D3AF /* BFSmartLinkAttachmentView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BFSmartLinkAttachmentView.m; sourceTree = "<group>"; };
 		D9042841233C17180051D3AF /* BFSmartLinkAttachmentView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BFSmartLinkAttachmentView.h; sourceTree = "<group>"; };
-		D907B07D214EEC5000A59712 /* Bonfire b15.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Bonfire b15.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		D907B07D214EEC5000A59712 /* Bonfire b16.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Bonfire b16.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D907B080214EEC5000A59712 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		D907B081214EEC5000A59712 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; wrapsLines = 0; };
 		D907B087214EEC5000A59712 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -800,7 +800,7 @@
 		D907B07E214EEC5000A59712 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				D907B07D214EEC5000A59712 /* Bonfire b15.app */,
+				D907B07D214EEC5000A59712 /* Bonfire b16.app */,
 				D907B095214EEC5300A59712 /* PulseTests.xctest */,
 				D907B0A0214EEC5300A59712 /* PulseUITests.xctest */,
 			);
@@ -1839,7 +1839,7 @@
 			);
 			name = Pulse;
 			productName = Pulse;
-			productReference = D907B07D214EEC5000A59712 /* Bonfire b15.app */;
+			productReference = D907B07D214EEC5000A59712 /* Bonfire b16.app */;
 			productType = "com.apple.product-type.application";
 		};
 		D907B094214EEC5300A59712 /* PulseTests */ = {
@@ -2471,7 +2471,7 @@
 				CODE_SIGN_ENTITLEMENTS = Pulse/Pulse.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 16;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 4WLQG965T9;
 				EXCLUDED_SOURCE_FILE_NAMES = "*.value";
@@ -2508,7 +2508,7 @@
 				CODE_SIGN_ENTITLEMENTS = Pulse/Pulse.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = 4WLQG965T9;
 				EXCLUDED_SOURCE_FILE_NAMES = "*.value";
 				FRAMEWORK_SEARCH_PATHS = (
@@ -2680,7 +2680,7 @@
 				CODE_SIGN_ENTITLEMENTS = Pulse/Pulse.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = 4WLQG965T9;
 				EXCLUDED_SOURCE_FILE_NAMES = "*.value";
 				FRAMEWORK_SEARCH_PATHS = (

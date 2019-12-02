@@ -399,10 +399,16 @@
                     }
                     else {
                         [tableView reloadData];
-                        dispatch_async(dispatch_get_main_queue(), ^{
-                            NSIndexPath *rowIndexPath = [NSIndexPath indexPathForRow:0 inSection:0];
-                            [tableView scrollToRowAtIndexPath:rowIndexPath atScrollPosition:UITableViewScrollPositionNone animated:YES];
-                        });
+                        
+                        for (NSInteger s = 0; s < [tableView numberOfSections]; s++) {
+                            if ([tableView numberOfRowsInSection:s] > 0) {
+                                dispatch_async(dispatch_get_main_queue(), ^{
+                                    NSIndexPath *rowIndexPath = [NSIndexPath indexPathForRow:0 inSection:s];
+                                    [tableView scrollToRowAtIndexPath:rowIndexPath atScrollPosition:UITableViewScrollPositionNone animated:YES];
+                                });
+                                break;
+                            }
+                        }
                     }
                 }
                 

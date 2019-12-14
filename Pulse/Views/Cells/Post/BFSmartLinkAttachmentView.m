@@ -234,7 +234,7 @@
         self.summaryLabel.textColor = [UIColor bonfireSecondaryColor];
         
         Camp *postedInCamp = self.link.attributes.attribution;
-        if (postedInCamp) {
+        if (postedInCamp && (postedInCamp.attributes.title.length > 0 || postedInCamp.attributes.identifier.length > 0)) {
             [self drawAttributionButton];
             
             BFAvatarView *postedInAvatarView = [self.postedInButton viewWithTag:10];
@@ -264,10 +264,17 @@
     
     NSString *identifier = postedInCamp.attributes.title;
     if (postedInCamp.attributes.identifier.length > 0) {
-        identifier = [@"#" stringByAppendingString:self.link.attributes.attribution.attributes.identifier];
+        identifier = [@"#" stringByAppendingString:postedInCamp.attributes.identifier];
     }
     
-    NSMutableAttributedString *campTitleString = [[NSMutableAttributedString alloc] initWithString:identifier];
+    // safe guard to prevent initializing a string with a nil value
+    self.postedInButton.hidden = (!identifier || identifier.length == 0);
+    if ([self.postedInButton isHidden]) {
+        [self.postedInButton setTitle:@"" forState:UIControlStateNormal];
+        return;
+    }
+    
+    NSMutableAttributedString *campTitleString = [[NSMutableAttributedString alloc] initWithString:(identifier ? identifier : @"")];
     [campTitleString addAttribute:NSForegroundColorAttributeName value:[UIColor bonfirePrimaryColor] range:NSMakeRange(0, campTitleString.length)];
     [campTitleString addAttribute:NSFontAttributeName value:font range:NSMakeRange(0, campTitleString.length)];
     

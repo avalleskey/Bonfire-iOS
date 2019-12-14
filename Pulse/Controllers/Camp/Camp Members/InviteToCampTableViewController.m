@@ -212,15 +212,15 @@ static NSString * const memberCellIdentifier = @"MemberCell";
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
     if (section != 0 || ![self.errorView isHidden]) return CGFLOAT_MIN;
     
-    return 52;
+    return 56;
 }
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
     if (section != 0 || ![self.errorView isHidden]) return nil;
     
-    UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 52)];
+    UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 56)];
     
     // search view
-    self.searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(12, 8, self.view.frame.size.width - (12 * 2), 36)];
+    self.searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(12, 10, self.view.frame.size.width - (12 * 2), 36)];
     self.searchView.textField.placeholder = @"Search Friends";
     [self.searchView updateSearchText:self.searchPhrase];
     self.searchView.textField.tintColor = self.view.tintColor;

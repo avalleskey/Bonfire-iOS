@@ -60,6 +60,19 @@
 
 @end
 
+@implementation UserAttributesInvites
+
++ (JSONKeyMapper *)keyMapper
+{
+    return [JSONKeyMapper mapperForSnakeCase];
+}
+
++ (BOOL)propertyIsOptional:(NSString *)propertyName {
+    return true;
+}
+
+@end
+
 @implementation UserDetailsLocation
 
 + (JSONKeyMapper *)keyMapper

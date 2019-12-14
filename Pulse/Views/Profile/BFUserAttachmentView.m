@@ -100,9 +100,10 @@
     if (@available(iOS 13.0, *)) {
         UIContextMenuInteraction *interaction = [[UIContextMenuInteraction alloc] initWithDelegate:self];
         [self addInteraction:interaction];
-    } else {
-        // Fallback on earlier versions
     }
+    
+    self.showBio = true;
+    self.showDetails = true;
 }
 
 - (void)layoutSubviews {
@@ -131,7 +132,7 @@
     }
     
     BOOL hasBio = self.bioLabel.attributedText.length > 0;
-    self.bioLabel.hidden = !hasBio;
+    self.bioLabel.hidden = !self.showBio || !hasBio;
     if (hasBio) {
         CGRect bioLabelRect = [self.bioLabel.attributedText boundingRectWithSize:CGSizeMake(maxWidth, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) context:nil];
         self.bioLabel.frame = CGRectMake(USER_ATTACHMENT_EDGE_INSETS.left, bottomY + USER_ATTACHMENT_USERNAME_BOTTOM_PADDING, maxWidth, ceilf(bioLabelRect.size.height));
@@ -139,7 +140,7 @@
     }
     
     BOOL hasDetails = self.detailsCollectionView.details.count > 0;
-    self.detailsCollectionView.hidden = !hasDetails;
+    self.detailsCollectionView.hidden = !self.showDetails || !hasDetails;
     if (hasDetails) {
         self.detailsCollectionView.frame = CGRectMake(USER_ATTACHMENT_EDGE_INSETS.left, bottomY + (hasBio ? USER_ATTACHMENT_BIO_BOTTOM_PADDING : USER_ATTACHMENT_USERNAME_BOTTOM_PADDING), self.frame.size.width - (USER_ATTACHMENT_EDGE_INSETS.left + USER_ATTACHMENT_EDGE_INSETS.right), self.detailsCollectionView.collectionViewLayout.collectionViewContentSize.height);
         // bottomY = self.detailsCollectionView.frame.origin.y + self.detailsCollectionView.frame.size.height;
@@ -192,7 +193,7 @@
         }
         
         // bio
-        self.bioLabel.hidden = (user.attributes.bio.length == 0);
+        self.bioLabel.hidden = !self.showBio || (user.attributes.bio.length == 0);
         if ([self.bioLabel isHidden]) {
             self.bioLabel.text = @"";
         }
@@ -209,19 +210,22 @@
             self.bioLabel.attributedText = attrString;
         }
         
-        NSMutableArray *details = [[NSMutableArray alloc] init];
-        if (user.attributes.location.displayText.length > 0) {
-            BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeLocation value:user.attributes.location.displayText action:nil];
-            [details addObject:item];
+        self.detailsCollectionView.hidden = !self.showDetails;
+        if (![self.detailsCollectionView isHidden]) {
+            NSMutableArray *details = [[NSMutableArray alloc] init];
+            if (user.attributes.location.displayText.length > 0) {
+                BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeLocation value:user.attributes.location.displayText action:nil];
+                [details addObject:item];
+            }
+            if (user.attributes.website.displayUrl.length > 0) {
+                BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeWebsite value:user.attributes.website.displayUrl action:^{
+                    [Launcher openURL:user.attributes.website.actionUrl];
+                }];
+                [details addObject:item];
+            }
+            
+            self.detailsCollectionView.details = [details copy];
         }
-        if (user.attributes.website.displayUrl.length > 0) {
-            BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeWebsite value:user.attributes.website.displayUrl action:^{
-                [Launcher openURL:user.attributes.website.actionUrl];
-            }];
-            [details addObject:item];
-        }
-        
-        self.detailsCollectionView.details = [details copy];
     }
 }
 
@@ -229,7 +233,7 @@
     return [BFUserAttachmentView heightForUser:self.user width:self.frame.size.width];
 }
 
-+ (CGFloat)heightForUser:(User *)user width:(CGFloat)width {
++ (CGFloat)heightForUser:(User *)user width:(CGFloat)width showBio:(BOOL)showBio showDetails:(BOOL)showDetails {
     if (!user) {
         return 0;
     }
@@ -269,7 +273,7 @@
         height += USER_ATTACHMENT_DISPLAY_NAME_BOTTOM_PADDING + usernameHeight;
     }
     
-    if (user.attributes.bio.length > 0) {
+    if (showBio && user.attributes.bio.length > 0) {
         NSMutableAttributedString *attrString = [[NSMutableAttributedString  alloc] initWithString:user.attributes.bio];
         NSMutableParagraphStyle *style = [[NSMutableParagraphStyle alloc] init];
         [style setLineSpacing:3.f];
@@ -284,7 +288,7 @@
         height += USER_ATTACHMENT_USERNAME_BOTTOM_PADDING + bioHeight;
     }
     
-    if (user.identifier.length > 0) {
+    if (showDetails && user.identifier.length > 0) {
         NSMutableArray *details = [[NSMutableArray alloc] init];
         if (user.attributes.location.displayText.length > 0) {
             BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeLocation value:user.attributes.location.displayText action:nil];
@@ -306,6 +310,10 @@
     }
     
     return height + USER_ATTACHMENT_EDGE_INSETS.bottom;
+}
+
++ (CGFloat)heightForUser:(User *)user width:(CGFloat)width {
+    return [self heightForUser:user width:width showBio:true showDetails:true];
 }
 
 - (nullable UIContextMenuConfiguration *)contextMenuInteraction:(nonnull UIContextMenuInteraction *)interaction configurationForMenuAtLocation:(CGPoint)location  API_AVAILABLE(ios(13.0)){

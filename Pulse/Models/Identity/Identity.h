@@ -30,9 +30,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 // helper methods
 - (BOOL)isVerified;
-
-
-- (void)report;
+- (BOOL)isBot;
+- (BOOL)isCurrentIdentity;
 
 @end
 

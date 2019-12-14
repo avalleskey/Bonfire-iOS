@@ -17,11 +17,8 @@
 #import "ProfileViewController.h"
 #import "NotificationsTableViewController.h"
 #import "BFAvatarView.h"
-#import "BFTabBar.h"
 
 @interface TabController : UITabBarController
-
-@property (nonatomic, strong) BFTabBar *bf_tabBar;
 
 @property (nonatomic, strong) SimpleNavigationController *myFeedNavVC;
 @property (nonatomic, strong) SimpleNavigationController *homeNavVC;
@@ -34,8 +31,6 @@
 
 @property (nonatomic, strong) BFAvatarView *navigationAvatarView;
 
-@property (nonatomic, strong) UIVisualEffectView *notification;
-@property (nonatomic, strong) UILabel *notificationLabel;
 @property (nonatomic, strong) UIView *tabIndicator;
 @property (nonatomic, strong) UIVisualEffectView *blurView;
 

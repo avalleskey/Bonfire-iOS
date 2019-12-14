@@ -378,14 +378,14 @@
 }
 
 - (void)setPost:(Post *)post {
-    if ([post toDictionary] != [_post toDictionary]) {
+    if (post != _post) {
         _post = post;
         
         self.replyingToButton.hidden = !self.post.attributes.parent && self.post.attributes.thread.prevCursor.length == 0;
         if (![self.replyingToButton isHidden]) {
             UIFont *font = [UIFont systemFontOfSize:14.f weight:UIFontWeightRegular];
                     
-            NSMutableAttributedString *attributedText = [[NSMutableAttributedString alloc] initWithString:(self.post.attributes.parent ? @"Replying to " : @"Loading...") attributes:@{NSFontAttributeName: font, NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
+            NSMutableAttributedString *attributedText = [[NSMutableAttributedString alloc] initWithString:((self.post.attributes.parent || self.post.attributes.thread.prevCursor) ? @"Replying to " : @"Loading...") attributes:@{NSFontAttributeName: font, NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
             
             if (self.post.attributes.parent) {
                 NSAttributedString *attributedCreatorText = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"@%@", post.attributes.parent.attributes.creator.attributes.identifier] attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:font.pointSize weight:UIFontWeightSemibold], NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];

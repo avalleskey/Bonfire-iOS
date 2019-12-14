@@ -116,7 +116,7 @@
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowWithId:(NSString *)rowId {
-    if ([rowId isEqualToString:@"reset_password"]) {
+    if ([rowId isEqualToString:@"forgot_password"]) {
         ResetPasswordViewController *resetPasswordVC = [[ResetPasswordViewController alloc] init];
         resetPasswordVC.transitioningDelegate = [Launcher sharedInstance];
         [Launcher present:resetPasswordVC animated:YES];

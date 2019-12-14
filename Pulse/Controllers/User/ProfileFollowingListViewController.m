@@ -211,7 +211,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
     if (section == 0 && self.stream.users.count >100000) {
-        return 52;
+        return 56;
     }
     
     return 0;
@@ -219,11 +219,11 @@ static NSString * const memberCellIdentifier = @"MemberCell";
 
 - (nullable UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
     if (section == 0 && self.stream.users.count > 100000) {
-        UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 52)];
+        UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 56)];
         header.backgroundColor = [UIColor whiteColor];
         
         // search view
-        self.searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(12, 8, self.view.frame.size.width - (12 * 2), 36)];
+        self.searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(12, 10, self.view.frame.size.width - (12 * 2), 36)];
         self.searchView.placeholder = @"Search";
         [self.searchView updateSearchText:self.searchPhrase];
         self.searchView.textField.tintColor = self.view.tintColor;

@@ -93,6 +93,7 @@ extern NSString * const CAMP_ROLE_ADMIN;
 @interface BFContextCampMembershipSubscription : BFJSONModel
 
 @property (nonatomic) NSString <Optional> *createdAt;
+//@property (nonatomic) NSString <Optional> *level;
 
 @end
 
@@ -124,7 +125,7 @@ extern NSString * const CAMP_ROLE_ADMIN;
 // can they invite new members
 @property (nonatomic) BOOL invite;
 
-// can they remove existing members
+// can they remove existing members and accept/decline
 @property (nonatomic) BOOL manage;
 
 @end
@@ -135,6 +136,7 @@ extern NSString * const CAMP_ROLE_ADMIN;
 @property (nonatomic) BFContextPostReplies <Optional> *replies;
 @property (nonatomic) BFContextPostPermissions <Optional> *permissions;
 @property (nonatomic) BFContextPostVote <Optional> * _Nullable vote;
+@property (nonatomic) BOOL muted;
 
 @end
 

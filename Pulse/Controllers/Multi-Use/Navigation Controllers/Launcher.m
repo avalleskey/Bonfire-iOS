@@ -28,16 +28,19 @@
 #import "KSPhotoBrowser.h"
 #import "OutOfDateClientViewController.h"
 #import "ExpandedPostCell.h"
-#import "BFTableViewCellExporter.h"
+#import "BFViewExporter.h"
 #import "InviteToCampTableViewController.h"
 #import "BFBotAttachmentView.h"
 #import "BFAlertController.h"
 #import "InviteFriendsViewController.h"
 #import <SEJSONViewController/SEJSONViewController.h>
+#import "WaitlistViewController.h"
 
 #import <SafariServices/SafariServices.h>
 #import <StoreKit/StoreKit.h>
 #import <JGProgressHUD.h>
+#import <SCSDKCreativeKit/SCSDKCreativeKit.h>
+#import <FBSDKShareKit/FBSDKShareKit.h>
 @import Firebase;
 
 #if !TARGET_OS_MACCATALYST
@@ -52,13 +55,10 @@
     (UIViewController *)__responder; \
 })
 
-#if TARGET_OS_MACCATALYST
-@interface Launcher () <SFSafariViewControllerDelegate>
-#else
 @interface Launcher () <MFMessageComposeViewControllerDelegate, SFSafariViewControllerDelegate>
 
-#endif
 @property (nonatomic, strong) SFSafariViewController *safariVC;
+@property (nonatomic) SCSDKSnapAPI *scSdkSnapApi;
 
 @end
 
@@ -71,6 +71,8 @@ static Launcher *launcher;
         launcher = [[Launcher alloc] init];
         
         launcher.animator = [[SOLOptionsTransitionAnimator alloc] init];
+        
+        launcher.scSdkSnapApi = [SCSDKSnapAPI new];
     }
     return launcher;
 }
@@ -243,9 +245,31 @@ static Launcher *launcher;
 }
 
 + (void)launchLoggedIn:(BOOL)animated replaceRootViewController:(BOOL)replaceRootViewController {
-    if (![Launcher activeViewController].navigationController.tabBarController) {
-        AppDelegate *ad = (AppDelegate *)[UIApplication sharedApplication].delegate;
+    AppDelegate *ad = (AppDelegate *)[UIApplication sharedApplication].delegate;
+    
+    if ([Session sharedInstance].currentUser.attributes.requiresInvite) {
+        WaitlistViewController *waitlistVC = [[WaitlistViewController alloc] init];
+        waitlistVC.transitioningDelegate = [Launcher sharedInstance];
         
+        UIViewController *presentingViewController;
+        if ([Launcher activeViewController].parentViewController != nil) {
+            presentingViewController = [Launcher activeViewController].parentViewController;
+        }
+        else {
+            presentingViewController = [Launcher activeViewController];
+        }
+        
+        if (replaceRootViewController) {
+            waitlistVC.modalPresentationStyle = UIModalPresentationOverCurrentContext;
+            [[UIApplication sharedApplication] delegate].window.rootViewController = waitlistVC;
+            [[[UIApplication sharedApplication] delegate].window makeKeyAndVisible];
+        }
+        else {
+            waitlistVC.modalPresentationStyle = UIModalPresentationFullScreen;
+            [presentingViewController presentViewController:waitlistVC animated:animated completion:nil];
+        }
+    }
+    else if (![Launcher activeViewController].navigationController.tabBarController) {
         TabController *tbc = [[TabController alloc] init];
         tbc.delegate = ad;
         tbc.transitioningDelegate = [Launcher sharedInstance];
@@ -653,10 +677,10 @@ static Launcher *launcher;
         [self shareCamp:sender];
     }
     else {
-//        [self shareOniMessage:[NSString stringWithFormat:@"Join me on Bonfire! 🔥 %@", APP_DOWNLOAD_LINK] image:nil];
+        [self shareOniMessage:[NSString stringWithFormat:@"Join me on Bonfire! 🔥 %@", APP_DOWNLOAD_LINK] image:nil];
 
-        InviteFriendsViewController *inviteFriends = [[InviteFriendsViewController alloc] init];
-        [self present:inviteFriends animated:YES];
+//        InviteFriendsViewController *inviteFriends = [[InviteFriendsViewController alloc] init];
+//        [self present:inviteFriends animated:YES];
     }
     
     /*
@@ -747,6 +771,7 @@ static Launcher *launcher;
     
     SimpleNavigationController *simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:settingsVC];
     simpleNav.transitioningDelegate = [Launcher sharedInstance];
+    simpleNav.currentTheme = [UIColor tableViewBackgroundColor];
     [UIView performWithoutAnimation:^{
         [simpleNav setRightAction:SNActionTypeDone];
     }];
@@ -766,17 +791,17 @@ static Launcher *launcher;
         launcher.safariVC.modalPresentationStyle = UIModalPresentationFullScreen;
         launcher.safariVC.preferredBarTintColor = [UIColor contentBackgroundColor];
         launcher.safariVC.preferredControlTintColor = [UIColor bonfirePrimaryColor];
-        //self.safariVC.preferredStatusBarStyle = UIStatusBarStyleDarkContent;
         [[Launcher topMostViewController] presentViewController:launcher.safariVC animated:YES completion:nil];
     }
 }
-+ (void)safariViewControllerDidFinish:(SFSafariViewController *)controller {
+- (void)safariViewControllerDidFinish:(SFSafariViewController *)controller {
     if ([[Launcher activeViewController] isKindOfClass:[UINavigationController class]]) {
         [[Launcher activeViewController] setNeedsStatusBarAppearanceUpdate];
     }
     else if ([Launcher activeViewController].navigationController) {
         [[Launcher activeViewController].navigationController setNeedsStatusBarAppearanceUpdate];
     }
+    launcher.safariVC = nil;
 }
 
 + (void)openOutOfDateClient {
@@ -859,6 +884,96 @@ static Launcher *launcher;
     
     BFAlertController *actionSheet = [BFAlertController alertControllerWithTitle:nil message:nil preferredStyle:BFAlertControllerStyleActionSheet];
     
+    if (canDelete) {
+        BFAlertAction *deletePost = [BFAlertAction actionWithTitle:@"Delete" style:BFAlertActionStyleDestructive handler:^{
+            NSLog(@"delete post");
+            // confirm action
+            BFAlertController *confirmDeletePostActionSheet = [BFAlertController alertControllerWithTitle:@"Delete Post" message:@"Are you sure you want to delete this post?" preferredStyle:BFAlertControllerStyleAlert];
+            
+            BFAlertAction *confirmDeletePost = [BFAlertAction actionWithTitle:@"Delete" style:BFAlertActionStyleDestructive handler:^{
+                JGProgressHUD *HUD = [JGProgressHUD progressHUDWithStyle:JGProgressHUDStyleExtraLight];
+                HUD.textLabel.text = @"Deleting...";
+                HUD.vibrancyEnabled = false;
+                HUD.textLabel.textColor = [UIColor colorWithWhite:0 alpha:0.6f];
+                HUD.backgroundColor = [UIColor colorWithWhite:0 alpha:0.1f];
+                [HUD showInView:[Launcher topMostViewController].view animated:YES];
+                
+                NSLog(@"confirm delete post");
+                [BFAPI deletePost:post completion:^(BOOL success, id responseObject) {
+                    if (success) {
+                        NSLog(@"deleted post!");
+                        
+                        // success
+                        [HUD dismissAfterDelay:0];
+                        
+                        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.2f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                            if ([[Launcher activeViewController] isKindOfClass:[PostViewController class]]) {
+                                PostViewController *postVC = (PostViewController *)[Launcher activeViewController];
+                                if ([postVC.post.identifier isEqualToString:post.identifier] || [postVC.post.attributes.parent.identifier isEqualToString:post.identifier]) {
+                                    if ([Launcher activeNavigationController] && [Launcher activeNavigationController].viewControllers.count > 1) {
+                                        [[Launcher activeNavigationController] popViewControllerAnimated:YES];
+                                        
+                                        if ([[Launcher activeNavigationController] isKindOfClass:[ComplexNavigationController class]]) {
+                                            [(ComplexNavigationController *)[Launcher activeNavigationController] goBack];
+                                        }
+                                    }
+                                    else {
+                                        [[Launcher activeViewController] dismissViewControllerAnimated:YES completion:nil];
+                                    }
+                                }
+                            }
+                        });
+                    }
+                    else {
+                        HUD.indicatorView = [[JGProgressHUDErrorIndicatorView alloc] init];
+                        HUD.textLabel.text = @"Error Deleting";
+                        
+                        [HUD dismissAfterDelay:1.f];
+                    }
+                }];
+            }];
+            [confirmDeletePostActionSheet addAction:confirmDeletePost];
+            
+            BFAlertAction *cancelDeletePost = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
+            [confirmDeletePostActionSheet addAction:cancelDeletePost];
+            
+            [[Launcher topMostViewController] presentViewController:confirmDeletePostActionSheet animated:YES completion:nil];
+        }];
+        [actionSheet addAction:deletePost];
+    }
+    
+    if (!isCreator) {
+        BFAlertAction *reportPost = [BFAlertAction actionWithTitle:@"Report" style:BFAlertActionStyleDestructive handler:^{
+            NSLog(@"report post");
+            // confirm action
+            BFAlertController *confirmReportPostActionSheet = [BFAlertController alertControllerWithTitle:@"Report Post" message:@"Are you sure you want to report this post?" preferredStyle:BFAlertControllerStyleAlert];
+            
+            BFAlertAction *confirmReportPost = [BFAlertAction actionWithTitle:@"Report" style:BFAlertActionStyleDestructive handler:^{
+                [post report];
+            }];
+            [confirmReportPostActionSheet addAction:confirmReportPost];
+            
+            BFAlertAction *cancelDeletePost = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
+            [confirmReportPostActionSheet addAction:cancelDeletePost];
+            
+            [[Launcher topMostViewController] presentViewController:confirmReportPostActionSheet animated:YES completion:nil];
+        }];
+        [actionSheet addAction:reportPost];
+    }
+    
+    BOOL isMuted = post.attributes.context.post.muted;
+    BFAlertAction *postMuteAction = [BFAlertAction actionWithTitle:(isMuted ? @"Unmute Conversation" : @"Mute Conversation") style:BFAlertActionStyleDefault handler:^{
+        NSLog(@"mute updates");
+        
+        if (isMuted) {
+            [post unMute];
+        }
+        else {
+            [post mute];
+        }
+    }];
+    [actionSheet addAction:postMuteAction];
+    
     // 1.B.* -- Any user, outside camp, any following state
     if (post.attributes.postedIn == nil) {
         BOOL insideProfile = ([Launcher activeNavigationController] &&
@@ -919,88 +1034,6 @@ static Launcher *launcher;
     }];
     [actionSheet addAction:sharePost];
     
-    // !2.A.* -- Not Creator, any page, any following state
-    if (!isCreator) {
-        BFAlertAction *reportPost = [BFAlertAction actionWithTitle:@"Report" style:BFAlertActionStyleDefault handler:^{
-            NSLog(@"report post");
-            // confirm action
-            BFAlertController *confirmReportPostActionSheet = [BFAlertController alertControllerWithTitle:@"Report Post" message:@"Are you sure you want to report this post?" preferredStyle:BFAlertControllerStyleAlert];
-            
-            BFAlertAction *confirmReportPost = [BFAlertAction actionWithTitle:@"Report" style:BFAlertActionStyleDestructive handler:^{
-                NSLog(@"confirm report post");
-                [BFAPI reportPost:post.identifier completion:^(BOOL success, id responseObject) {
-                    NSLog(@"reported post!");
-                }];
-            }];
-            [confirmReportPostActionSheet addAction:confirmReportPost];
-            
-            BFAlertAction *cancelDeletePost = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
-            [confirmReportPostActionSheet addAction:cancelDeletePost];
-            
-            [[Launcher topMostViewController] presentViewController:confirmReportPostActionSheet animated:YES completion:nil];
-        }];
-        [actionSheet addAction:reportPost];
-    }
-    
-    // 2|3.A.* -- Creator or camp admin, any page, any following state
-    if (canDelete) {
-        BFAlertAction *deletePost = [BFAlertAction actionWithTitle:@"Delete" style:BFAlertActionStyleDefault handler:^{
-            NSLog(@"delete post");
-            // confirm action
-            BFAlertController *confirmDeletePostActionSheet = [BFAlertController alertControllerWithTitle:@"Delete Post" message:@"Are you sure you want to delete this post?" preferredStyle:BFAlertControllerStyleAlert];
-            
-            BFAlertAction *confirmDeletePost = [BFAlertAction actionWithTitle:@"Delete" style:BFAlertActionStyleDestructive handler:^{
-                JGProgressHUD *HUD = [JGProgressHUD progressHUDWithStyle:JGProgressHUDStyleExtraLight];
-                HUD.textLabel.text = @"Deleting...";
-                HUD.vibrancyEnabled = false;
-                HUD.textLabel.textColor = [UIColor colorWithWhite:0 alpha:0.6f];
-                HUD.backgroundColor = [UIColor colorWithWhite:0 alpha:0.1f];
-                [HUD showInView:[Launcher topMostViewController].view animated:YES];
-                
-                NSLog(@"confirm delete post");
-                [BFAPI deletePost:post completion:^(BOOL success, id responseObject) {
-                    if (success) {
-                        NSLog(@"deleted post!");
-                        
-                        // success
-                        [HUD dismissAfterDelay:0];
-                        
-                        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.2f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                            if ([[Launcher activeViewController] isKindOfClass:[PostViewController class]]) {
-                                PostViewController *postVC = (PostViewController *)[Launcher activeViewController];
-                                if ([postVC.post.identifier isEqualToString:post.identifier] || [postVC.post.attributes.parent.identifier isEqualToString:post.identifier]) {
-                                    if ([Launcher activeNavigationController] && [Launcher activeNavigationController].viewControllers.count > 1) {
-                                        [[Launcher activeNavigationController] popViewControllerAnimated:YES];
-                                        
-                                        if ([[Launcher activeNavigationController] isKindOfClass:[ComplexNavigationController class]]) {
-                                            [(ComplexNavigationController *)[Launcher activeNavigationController] goBack];
-                                        }
-                                    }
-                                    else {
-                                        [[Launcher activeViewController] dismissViewControllerAnimated:YES completion:nil];
-                                    }
-                                }
-                            }
-                        });
-                    }
-                    else {
-                        HUD.indicatorView = [[JGProgressHUDErrorIndicatorView alloc] init];
-                        HUD.textLabel.text = @"Error Deleting";
-                        
-                        [HUD dismissAfterDelay:1.f];
-                    }
-                }];
-            }];
-            [confirmDeletePostActionSheet addAction:confirmDeletePost];
-            
-            BFAlertAction *cancelDeletePost = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
-            [confirmDeletePostActionSheet addAction:cancelDeletePost];
-            
-            [[Launcher topMostViewController] presentViewController:confirmDeletePostActionSheet animated:YES completion:nil];
-        }];
-        [actionSheet addAction:deletePost];
-    }
-    
     #ifdef DEBUG
     BFAlertAction *debugPost = [BFAlertAction actionWithTitle:@"Debug Post" style:BFAlertActionStyleDefault handler:^{
         [Launcher openDebugView:post];
@@ -1013,6 +1046,7 @@ static Launcher *launcher;
     
     [[Launcher topMostViewController] presentViewController:actionSheet animated:true completion:nil];
 }
+
 + (void)sharePost:(Post *)post {
     UIImage *image = [Launcher imageForPost:post];
     
@@ -1069,6 +1103,75 @@ static Launcher *launcher;
     [confirmDeletePostActionSheet addAction:cancel];
     
     [[Launcher topMostViewController] presentViewController:confirmDeletePostActionSheet animated:true completion:nil];
+}
++ (void)shareCurrentUser {
+    User *user = [Session sharedInstance].currentUser;
+        
+    NSString *userShareLink = [NSString stringWithFormat:@"https://bonfire.camp/u/%@", user.identifier];
+    BOOL hasSnapchat = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"snapchat://"]];
+    BOOL hasInstagram = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"instagram-stories://"]];
+    BOOL hasTwitter = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"twitter://"]];
+    
+    if (hasSnapchat || hasInstagram || hasTwitter) {
+        NSString *message = [[NSString stringWithFormat:@"I'm @%@ on @yourbonfire! Find me here: %@", user.attributes.identifier, userShareLink] stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet characterSetWithCharactersInString:@"!*'();:@&=+$,/?%#[]"]];
+        
+        BFAlertController *moreOptions = [BFAlertController alertControllerWithTitle:@"Share your profile via..." message:nil preferredStyle:BFAlertControllerStyleActionSheet];
+        
+        if (hasTwitter) {
+            BFAlertAction *shareOnTwitter = [BFAlertAction actionWithTitle:@"Twitter" style:BFAlertActionStyleDefault handler:^{
+                NSLog(@"share on snapchat");
+                
+                if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"twitter://post"]]) {
+                    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[NSString stringWithFormat:@"twitter://post?message=%@", message]] options:@{} completionHandler:nil];
+                }
+            }];
+            [moreOptions addAction:shareOnTwitter];
+        }
+        
+        BFAlertAction *shareOnFacebook = [BFAlertAction actionWithTitle:@"Facebook" style:BFAlertActionStyleDefault handler:^{
+            FBSDKShareLinkContent *content = [[FBSDKShareLinkContent alloc] init];
+            content.contentURL = [NSURL URLWithString:userShareLink];
+            content.hashtag = [FBSDKHashtag hashtagWithString:@"#Bonfire"];
+            [FBSDKShareDialog showFromViewController:[Launcher topMostViewController]
+                                         withContent:content
+                                            delegate:nil];
+        }];
+        [moreOptions addAction:shareOnFacebook];
+        
+        if (hasSnapchat) {
+            BFAlertAction *shareOnSnapchat = [BFAlertAction actionWithTitle:@"Snapchat" style:BFAlertActionStyleDefault handler:^{
+                [Launcher shareUserOnSnapchat:user];
+            }];
+            [moreOptions addAction:shareOnSnapchat];
+        }
+        if (hasInstagram) {
+            BFAlertAction *shareOnInstagram = [BFAlertAction actionWithTitle:@"Instagram Stories" style:BFAlertActionStyleDefault handler:^{
+                [Launcher shareUserOnInstagram:user];
+            }];
+            [moreOptions addAction:shareOnInstagram];
+        }
+        
+        BOOL hasiMessage = [MFMessageComposeViewController canSendText];
+        if (hasiMessage) {
+            BFAlertAction *shareOniMessage = [BFAlertAction actionWithTitle:@"iMessage" style:BFAlertActionStyleDefault handler:^{
+                [Launcher shareOniMessage:message image:nil];
+            }];
+            [moreOptions addAction:shareOniMessage];
+        }
+        
+        BFAlertAction *moreShareOptions = [BFAlertAction actionWithTitle:@"Other" style:BFAlertActionStyleDefault handler:^{
+            [Launcher shareIdentity:user];
+        }];
+        [moreOptions addAction:moreShareOptions];
+        
+        BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
+        [moreOptions addAction:cancel];
+        
+        [[Launcher topMostViewController] presentViewController:moreOptions animated:YES completion:nil];
+    }
+    else {
+        [Launcher shareIdentity:user];
+    }
 }
 + (void)shareIdentity:(Identity *)identity {
     UIImage *image;
@@ -1130,28 +1233,286 @@ static Launcher *launcher;
     cell.lineSeparator.hidden = true;
     cell.moreButton.hidden = true;
     
-    return [BFTableViewCellExporter imageForCell:cell size:frame.size];
+    return [BFViewExporter imageForCell:cell size:frame.size];
 }
 + (UIImage *)imageForCamp:(Camp *)camp {
     CGRect frame = CGRectMake(0, 0, 360, [BFCampAttachmentView heightForCamp:camp width:360]);
     BFCampAttachmentView *campAttachmentView = [[BFCampAttachmentView alloc] initWithCamp:camp frame:frame];
     campAttachmentView.backgroundColor = [UIColor whiteColor];
     
-    return [BFTableViewCellExporter imageForView:campAttachmentView];
+    return [BFViewExporter imageForView:campAttachmentView];
 }
 + (UIImage *)imageForUser:(User *)user {
     CGRect frame = CGRectMake(0, 0, 360, [BFUserAttachmentView heightForUser:user width:360]);
     BFUserAttachmentView *userAttachmentView = [[BFUserAttachmentView alloc] initWithUser:user frame:frame];
     userAttachmentView.backgroundColor = [UIColor whiteColor];
     
-    return [BFTableViewCellExporter imageForView:userAttachmentView];
+    return [BFViewExporter imageForView:userAttachmentView];
 }
 + (UIImage *)imageForBot:(Bot *)bot {
     CGRect frame = CGRectMake(0, 0, 360, [BFBotAttachmentView heightForBot:bot width:360]);
     BFBotAttachmentView *botAttachmentView = [[BFBotAttachmentView alloc] initWithBot:bot frame:frame];
     botAttachmentView.backgroundColor = [UIColor whiteColor];
     
-    return [BFTableViewCellExporter imageForView:botAttachmentView];
+    return [BFViewExporter imageForView:botAttachmentView];
+}
+
+// sticker share
++ (void)shareOnSnapchat {
+    /* Stickers to be used in Snap */
+    UIView *snapchatShareView = [Launcher shareViewForObject:[Session sharedInstance].currentUser showSwipeUp:true];
+    snapchatShareView.transform = CGAffineTransformMakeScale(0.4, 0.4);
+    
+    UIImage *stickerImage = [BFViewExporter imageForView:snapchatShareView container:false];
+    SCSDKSnapSticker *sticker = [[SCSDKSnapSticker alloc] initWithStickerImage:stickerImage];
+
+    SCSDKNoSnapContent *snap = [[SCSDKNoSnapContent alloc] init];
+    snap.sticker = sticker;
+    if ([Session sharedInstance].currentUser.attributes.invites.friendCode) {
+        snap.caption = [@"Join Bonfire with my friend code: " stringByAppendingString:[Session sharedInstance].currentUser.attributes.invites.friendCode];
+    }
+    else {
+        snap.caption = @"Join me on Bonfire! 🔥";;
+    }
+    snap.attachmentUrl = @"https://bonfire.camp/download";
+
+    [launcher.scSdkSnapApi startSendingContent:snap completionHandler:^(NSError * _Nullable error) {
+        NSLog(@"error: %@", error);
+    }];
+}
++ (void)shareUserOnSnapchat:(User *)user {
+    /* Stickers to be used in Snap */
+    UIView *snapchatShareView = [Launcher shareViewForObject:user showSwipeUp:true];
+    snapchatShareView.transform = CGAffineTransformMakeScale(0.4, 0.4);
+    
+    UIImage *stickerImage = [BFViewExporter imageForView:snapchatShareView container:false];
+    SCSDKSnapSticker *sticker = [[SCSDKSnapSticker alloc] initWithStickerImage:stickerImage];
+
+    SCSDKNoSnapContent *snap = [[SCSDKNoSnapContent alloc] init];
+    snap.sticker = sticker;
+    if ([Session sharedInstance].currentUser.attributes.invites.friendCode) {
+        snap.caption = [@"Join Bonfire with my friend code: " stringByAppendingString:[Session sharedInstance].currentUser.attributes.invites.friendCode];
+    }
+    else {
+        snap.caption = @"Join me on Bonfire! 🔥";;
+    }
+    snap.attachmentUrl = [@"https://bonfire.camp/u/" stringByAppendingString:user.identifier];
+
+    [launcher.scSdkSnapApi startSendingContent:snap completionHandler:^(NSError * _Nullable error) {
+        NSLog(@"error: %@", error);
+    }];
+}
++ (void)shareCampOnSnapchat:(Camp *)camp {
+    /* Stickers to be used in Snap */
+    UIView *snapchatShareView = [Launcher shareViewForObject:camp showSwipeUp:true];
+    snapchatShareView.transform = CGAffineTransformMakeScale(0.4, 0.4);
+    
+    UIImage *stickerImage = [BFViewExporter imageForView:snapchatShareView container:false];
+    SCSDKSnapSticker *sticker = [[SCSDKSnapSticker alloc] initWithStickerImage:stickerImage];
+
+    SCSDKNoSnapContent *snap = [[SCSDKNoSnapContent alloc] init];
+    snap.sticker = sticker;
+    snap.caption = [NSString stringWithFormat:@"Join Bonfire with my friend code: %@ 🔥", [Session sharedInstance].currentUser.attributes.invites.friendCode];
+    snap.attachmentUrl = [@"https://bonfire.camp/c/" stringByAppendingString:camp.identifier];
+
+    [launcher.scSdkSnapApi startSendingContent:snap completionHandler:^(NSError * _Nullable error) {
+        NSLog(@"error: %@", error);
+    }];
+}
+
++ (void)shareOnInstagram {
+    // Verify app can open custom URL scheme. If able,
+    // assign assets to pasteboard, open scheme.
+    NSURL *urlScheme = [NSURL URLWithString:@"instagram-stories://share"];
+    if ([[UIApplication sharedApplication] canOpenURL:urlScheme]) {
+        User *user = [Session sharedInstance].currentUser;
+        
+        UIView *snapchatShareView = [Launcher shareViewForObject:user showSwipeUp:false];
+        UIImage *stickerImage = [BFViewExporter imageForView:snapchatShareView container:false];
+        
+        // Assign sticker image asset and attribution link URL to pasteboard
+        NSArray *pasteboardItems = @[@{@"com.instagram.sharedSticker.backgroundImage": [UIImage imageNamed:@"InstagramShareBG"],
+                                         @"com.instagram.sharedSticker.stickerImage" : stickerImage,
+                                       @"com.instagram.sharedSticker.backgroundTopColor" : [@"#" stringByAppendingString:user.attributes.color],
+                                       @"com.instagram.sharedSticker.backgroundBottomColor" : [@"#" stringByAppendingString:[UIColor toHex:[UIColor lighterColorForColor:[UIColor fromHex:user.attributes.color] amount:0.3]]],
+                                       @"com.instagram.sharedSticker.contentURL" : [NSString stringWithFormat:@"https://bonfire.camp/download"]}];
+        NSDictionary *pasteboardOptions = @{UIPasteboardOptionExpirationDate : [[NSDate date] dateByAddingTimeInterval:60 * 5]};
+        // This call is iOS 10+, can use 'setItems' depending on what versions you support
+        [[UIPasteboard generalPasteboard] setItems:pasteboardItems options:pasteboardOptions];
+
+        [[UIApplication sharedApplication] openURL:urlScheme options:@{} completionHandler:nil];
+    }
+}
++ (void)shareUserOnInstagram:(User *)user {
+    // Verify app can open custom URL scheme. If able,
+    // assign assets to pasteboard, open scheme.
+    NSURL *urlScheme = [NSURL URLWithString:@"instagram-stories://share"];
+    if ([[UIApplication sharedApplication] canOpenURL:urlScheme]) {
+
+        UIView *snapchatShareView = [Launcher shareViewForObject:user showSwipeUp:false];
+        UIImage *stickerImage = [BFViewExporter imageForView:snapchatShareView container:false];
+        
+    // Assign sticker image asset and attribution link URL to pasteboard
+        NSArray *pasteboardItems = @[@{@"com.instagram.sharedSticker.backgroundImage": [UIImage imageNamed:@"InstagramShareBG"],
+                                         @"com.instagram.sharedSticker.stickerImage" : stickerImage,
+                                       @"com.instagram.sharedSticker.backgroundTopColor" : [@"#" stringByAppendingString:user.attributes.color],
+                                       @"com.instagram.sharedSticker.backgroundBottomColor" : [@"#" stringByAppendingString:[UIColor toHex:[UIColor lighterColorForColor:[UIColor fromHex:user.attributes.color] amount:0.3]]],
+                                       @"com.instagram.sharedSticker.contentURL" : [NSString stringWithFormat:@"https://bonfire.camp/u/%@", user.identifier]}];
+        NSDictionary *pasteboardOptions = @{UIPasteboardOptionExpirationDate : [[NSDate date] dateByAddingTimeInterval:60 * 5]};
+        // This call is iOS 10+, can use 'setItems' depending on what versions you support
+        [[UIPasteboard generalPasteboard] setItems:pasteboardItems options:pasteboardOptions];
+
+        [[UIApplication sharedApplication] openURL:urlScheme options:@{} completionHandler:nil];
+    } else {
+        // Handle older app versions or app not installed case
+    }
+}
++ (void)shareCampOnInstagram:(Camp *)camp {
+    // Verify app can open custom URL scheme. If able,
+    // assign assets to pasteboard, open scheme.
+    NSURL *urlScheme = [NSURL URLWithString:@"instagram-stories://share"];
+    if ([[UIApplication sharedApplication] canOpenURL:urlScheme]) {
+
+        UIView *snapchatShareView = [Launcher shareViewForObject:camp showSwipeUp:false];
+        UIImage *stickerImage = [BFViewExporter imageForView:snapchatShareView container:false];
+        
+    // Assign sticker image asset and attribution link URL to pasteboard
+        NSArray *pasteboardItems = @[@{@"com.instagram.sharedSticker.backgroundImage": [UIImage imageNamed:@"InstagramShareBG"],
+                                         @"com.instagram.sharedSticker.stickerImage" : stickerImage,
+                                       @"com.instagram.sharedSticker.backgroundTopColor" : [@"#" stringByAppendingString:camp.attributes.color],
+                                       @"com.instagram.sharedSticker.backgroundBottomColor" : [@"#" stringByAppendingString:[UIColor toHex:[UIColor lighterColorForColor:[UIColor fromHex:camp.attributes.color] amount:0.3]]],
+                                       @"com.instagram.sharedSticker.contentURL" : [NSString stringWithFormat:@"https://bonfire.camp/c/%@", camp.identifier]}];
+        NSDictionary *pasteboardOptions = @{UIPasteboardOptionExpirationDate : [[NSDate date] dateByAddingTimeInterval:60 * 5]};
+        // This call is iOS 10+, can use 'setItems' depending on what versions you support
+        [[UIPasteboard generalPasteboard] setItems:pasteboardItems options:pasteboardOptions];
+
+        [[UIApplication sharedApplication] openURL:urlScheme options:@{} completionHandler:nil];
+    } else {
+        // Handle older app versions or app not installed case
+    }
+}
++ (UIView *)shareViewForObject:(id)object showSwipeUp:(BOOL)showSwipeUp {
+    UIView *container = [UIView new];
+    
+    UIView *contentView = [[UIView alloc] initWithFrame:CGRectMake(0, 128, 400, 404)];
+    contentView.backgroundColor = [UIColor whiteColor];
+    contentView.layer.cornerRadius = 66.f;
+    contentView.layer.shadowOffset = CGSizeMake(0, 4.f);
+    contentView.layer.shadowColor = [UIColor blackColor].CGColor;
+    contentView.layer.shadowRadius = 8.f;
+    contentView.layer.shadowOpacity = 0.16f;
+    if (@available(iOS 13.0, *)) {
+        contentView.overrideUserInterfaceStyle = UIUserInterfaceStyleLight;
+    }
+    [container addSubview:contentView];
+    
+    UIView *imageViewContainer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 374, 374)];
+    imageViewContainer.backgroundColor = [UIColor whiteColor];
+    imageViewContainer.layer.cornerRadius = imageViewContainer.frame.size.width / 2;
+    imageViewContainer.layer.shadowOffset = CGSizeMake(0, 6);
+    imageViewContainer.layer.shadowColor = [UIColor blackColor].CGColor;
+    imageViewContainer.layer.shadowRadius = 10.f;
+    imageViewContainer.layer.shadowOpacity = 0.08f;
+    [container addSubview:imageViewContainer];
+    
+    BFAvatarView *avatar = [[BFAvatarView alloc] initWithFrame:CGRectMake(24, 24, imageViewContainer.frame.size.width - (24 * 2), imageViewContainer.frame.size.height - (24 * 2))];
+    avatar.dimsViewOnTap = false;
+    [imageViewContainer addSubview:avatar];
+    
+    UIImageView *bonfireLogo;
+    if (showSwipeUp) {
+        bonfireLogo = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"InstagramBonfireReferenceImage"]];
+        bonfireLogo.frame = CGRectMake(imageViewContainer.frame.origin.x + imageViewContainer.frame.size.width - 132 - 8, imageViewContainer.frame.origin.y + imageViewContainer.frame.size.height - 132 - 8, 132, 132);
+        bonfireLogo.layer.cornerRadius = bonfireLogo.frame.size.height / 2;
+        bonfireLogo.layer.shadowColor = [UIColor blackColor].CGColor;
+        bonfireLogo.layer.shadowOpacity = 0.12f;
+        bonfireLogo.layer.shadowOffset = CGSizeMake(0, 4);
+        bonfireLogo.layer.shadowRadius = 12.f;
+        [container addSubview:bonfireLogo];
+    }
+    
+    UILabel *titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, imageViewContainer.frame.origin.y + imageViewContainer.frame.size.height + 18 - contentView.frame.origin.y, 1, 84)];
+    titleLabel.textColor = [UIColor blackColor];
+    titleLabel.font = [UIFont systemFontOfSize:70.f weight:UIFontWeightHeavy];
+    titleLabel.textAlignment = NSTextAlignmentCenter;
+    [contentView addSubview:titleLabel];
+    
+    NSString *tag = @"";
+    UIColor *color;
+    if ([object isKindOfClass:[User class]]) {
+        User *user = (User *)object;
+        avatar.user = user;
+        titleLabel.text = user.attributes.displayName;
+        
+        tag = user.attributes.identifier ? [@"@" stringByAppendingString:user.attributes.identifier] : @"";
+        color = [UIColor fromHex:user.attributes.color adjustForOptimalContrast:true];
+    }
+    else if ([object isKindOfClass:[Bot class]]) {
+        Bot *bot = (Bot *)object;
+        avatar.bot = bot;
+        titleLabel.text = bot.attributes.displayName;
+        
+        tag = bot.attributes.identifier ? [@"@" stringByAppendingString:bot.attributes.identifier] : @"";
+        color = [UIColor fromHex:bot.attributes.color adjustForOptimalContrast:true];
+    }
+    else if ([object isKindOfClass:[Camp class]]) {
+        Camp *camp = (Camp *)object;
+        avatar.camp = camp;
+        titleLabel.text = camp.attributes.title;
+        
+        tag = camp.attributes.identifier ? [@"#" stringByAppendingString:camp.attributes.identifier] : @"";
+        color = [UIColor fromHex:camp.attributes.color adjustForOptimalContrast:true];
+    }
+    else {
+        return nil;
+    }
+    CGFloat bubbleLabelWidth = ceilf([titleLabel.text boundingRectWithSize:CGSizeMake(CGFLOAT_MAX, titleLabel.frame.size.height) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName: titleLabel.font} context:nil].size.width);
+    SetWidth(titleLabel, bubbleLabelWidth + (128 * 2));
+    
+    // add the message label
+    UILabel *tagLabel;
+    if (tag.length > 0) {
+        tagLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, titleLabel.frame.origin.y + titleLabel.frame.size.height + 16, contentView.frame.size.width, 67)];
+        tagLabel.text = tag;
+        tagLabel.textAlignment = NSTextAlignmentCenter;
+        tagLabel.textColor = [UIColor bonfireSecondaryColor];
+        tagLabel.font = [UIFont systemFontOfSize:56.f weight:UIFontWeightBold];
+        CGFloat messageLabelWidth = ceilf([tagLabel.text boundingRectWithSize:CGSizeMake(CGFLOAT_MAX, tagLabel.frame.size.height) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName: tagLabel.font} context:nil].size.width);
+        SetWidth(tagLabel, messageLabelWidth + (128 * 2));
+        [contentView addSubview:tagLabel];
+    }
+    
+    // add the pull up icon
+    UIImageView *swipeUpIcon;
+    if (showSwipeUp) {
+        swipeUpIcon = [[UIImageView alloc] initWithImage:[[UIImage imageNamed:@"InstagramSwipeUpIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
+        swipeUpIcon.tintColor = [UIColor bonfireBrand];
+    }
+    else {
+        swipeUpIcon = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"InstagramDownloadLabel"]];
+    }
+    swipeUpIcon.frame = CGRectMake(contentView.frame.size.width / 2 - swipeUpIcon.image.size.width / 2, (tag.length > 0 ? tagLabel.frame.origin.y + tagLabel.frame.size.height + 16 : titleLabel.frame.origin.y + titleLabel.frame.size.height) + 48, swipeUpIcon.image.size.width, swipeUpIcon.image.size.height);
+    [contentView addSubview:swipeUpIcon];
+    
+    // resize the content view
+    contentView.frame = CGRectMake(contentView.frame.origin.x, contentView.frame.origin.y,  MAX(MAX(MAX(titleLabel.frame.size.width, tagLabel.frame.size.width), imageViewContainer.frame.size.width + (32 * 2)), 680), swipeUpIcon.frame.origin.y + swipeUpIcon.frame.size.height + 48);
+        
+    // center all the views !
+    imageViewContainer.center = CGPointMake(contentView.center.x, imageViewContainer.center.y);
+    bonfireLogo.frame = CGRectMake(imageViewContainer.frame.origin.x + imageViewContainer.frame.size.width - 132 - 8, imageViewContainer.frame.origin.y + imageViewContainer.frame.size.height - 132 - 8, 132, 132);
+    titleLabel.center = CGPointMake(contentView.center.x, titleLabel.center.y);
+    tagLabel.center = CGPointMake(contentView.center.x, tagLabel.center.y);
+    swipeUpIcon.center = CGPointMake(contentView.center.x, swipeUpIcon.center.y);
+    
+    // resize the container frame
+    container.frame = CGRectMake(0, 0, contentView.frame.size.width, contentView.frame.origin.y + contentView.frame.size.height);
+    
+    CGFloat padding = 64;
+    UIView *containerContainer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, container.frame.size.width + (padding * 2), container.frame.size.height + (padding * 2))];
+    [containerContainer addSubview:container];
+    container.center = CGPointMake(containerContainer.frame.size.width / 2, containerContainer.frame.size.height / 2);
+        
+    return containerContainer;
 }
 
 + (void)expandImageView:(UIImageView *)imageView {
@@ -1215,6 +1576,44 @@ static Launcher *launcher;
     if (@available(iOS 10.3, *)) {
         [SKStoreReviewController requestReview];
     }
+}
+
++ (void)requestNotifications {
+    [[UNUserNotificationCenter currentNotificationCenter] getNotificationSettingsWithCompletionHandler:^(UNNotificationSettings * _Nonnull settings) {
+        if (settings.authorizationStatus == UNAuthorizationStatusNotDetermined && ![[NSUserDefaults standardUserDefaults] objectForKey:@"push_notifications_last_requested"]) {
+            BFAlertController *accessRequest = [BFAlertController alertControllerWithIcon:[UIImage imageNamed:@"alert_icon_notifications"] title:@"Receive Instant Updates" message:@"Turn on Push Notifications to get instant updates from Bonfire" preferredStyle:BFAlertControllerStyleAlert];
+            
+            BFAlertAction *okAction = [BFAlertAction actionWithTitle:@"Okay" style:BFAlertActionStyleDefault handler:^{
+                [[UNUserNotificationCenter currentNotificationCenter] requestAuthorizationWithOptions:(UNAuthorizationOptionAlert|UNAuthorizationOptionSound|UNAuthorizationOptionBadge) completionHandler:^(BOOL granted, NSError * _Nullable error) {
+                    // 1. check if permisisons granted
+                    if (granted) {
+                        // do work here
+                        dispatch_async(dispatch_get_main_queue(), ^{
+                            NSLog(@"inside dispatch async block main thread from main thread");
+                            [[UIApplication sharedApplication] registerForRemoteNotifications];
+                        });
+                    }
+                }];
+            }];
+            [accessRequest addAction:okAction];
+            
+            BFAlertAction *notNowAction = [BFAlertAction actionWithTitle:@"Not Now" style:BFAlertActionStyleCancel handler:nil];
+            [accessRequest addAction:notNowAction];
+            
+            accessRequest.preferredAction = okAction;
+            
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [[NSUserDefaults standardUserDefaults] setObject:[NSDate new] forKey:@"push_notifications_last_requested"];
+                [[Launcher topMostViewController] presentViewController:accessRequest animated:YES completion:nil];
+            });
+        }
+        else if (settings.authorizationStatus != UNAuthorizationStatusDenied) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                NSLog(@"inside dispatch async block main thread from main thread");
+                [[UIApplication sharedApplication] registerForRemoteNotifications];
+            });
+        }
+    }];
 }
 
 + (void)present:(UIViewController *)viewController animated:(BOOL)animated {

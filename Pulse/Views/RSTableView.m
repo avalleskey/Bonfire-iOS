@@ -485,9 +485,15 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             }
             
             NSString *username = post.attributes.creator.attributes.identifier;
-            NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"Reply to @%@...", username] attributes:@{NSFontAttributeName: cell.addReplyButton.titleLabel.font, NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
-            [attributedString setAttributes:@{NSFontAttributeName: [UIFont systemFontOfSize:cell.addReplyButton.titleLabel.font.pointSize weight:UIFontWeightSemibold]} range:[attributedString.string rangeOfString:[NSString stringWithFormat:@"@%@", username]]];
-            [cell.addReplyButton setAttributedTitle:attributedString forState:UIControlStateNormal];
+            if (post.attributes.summaries.replies.count == 0) {
+                NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"Reply to @%@...", username] attributes:@{NSFontAttributeName: cell.addReplyButton.titleLabel.font, NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
+                [attributedString setAttributes:@{NSFontAttributeName: [UIFont systemFontOfSize:cell.addReplyButton.titleLabel.font.pointSize weight:UIFontWeightSemibold]} range:[attributedString.string rangeOfString:[NSString stringWithFormat:@"@%@", username]]];
+                [cell.addReplyButton setAttributedTitle:attributedString forState:UIControlStateNormal];
+            }
+            else {
+                NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"Add a reply..."] attributes:@{NSFontAttributeName: cell.addReplyButton.titleLabel.font, NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
+                [cell.addReplyButton setAttributedTitle:attributedString forState:UIControlStateNormal];
+            }
             
             cell.levelsDeep = -1;
             
@@ -600,6 +606,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     }
     else if (indexPath.section - 1 < self.stream.posts.count && [self.stream.posts[indexPath.section-1].type isEqualToString:@"post"]) {
         Post *post = self.stream.posts[indexPath.section-1];
+            
         CGFloat replies = post.attributes.summaries.replies.count;
         
         BOOL showViewMore = (replies < post.attributes.summaries.counts.replies);
@@ -682,7 +689,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             return 1;
         }
     }
-    else if (section <= self.stream.posts.count) {
+    else if (!self.loading && section <= self.stream.posts.count) {
         // content
         NSInteger adjustedIndex = section - 1;
         

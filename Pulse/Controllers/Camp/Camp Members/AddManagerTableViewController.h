@@ -19,7 +19,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic, strong) UIBarButtonItem *cancelButton;
 @property (nonatomic, strong) UIBarButtonItem *saveButton;
-@property (nonatomic, strong) BFSearchView *searchView;
 
 @property (nonatomic, strong) Camp *camp;
 

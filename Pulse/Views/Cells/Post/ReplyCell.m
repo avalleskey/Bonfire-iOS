@@ -219,7 +219,7 @@
         CGFloat bubbleWidth = self.textView.messageLabel.frame.size.width;
         
         bubbleWidth += (REPLY_BUBBLE_INSETS.left + REPLY_BUBBLE_INSETS.right);
-        self.bubbleBackgroundView.frame = CGRectMake(contentEdgeInsets.left, self.textView.frame.origin.y - REPLY_BUBBLE_INSETS.top, bubbleWidth, self.textView.messageLabel.intrinsicContentSize.height + REPLY_BUBBLE_INSETS.top + REPLY_BUBBLE_INSETS.bottom);
+        self.bubbleBackgroundView.frame = CGRectMake(contentEdgeInsets.left, self.textView.frame.origin.y - REPLY_BUBBLE_INSETS.top, bubbleWidth, self.textView.messageLabel.frame.size.height + REPLY_BUBBLE_INSETS.top + REPLY_BUBBLE_INSETS.bottom);
         [self continuityRadiusForView:self.bubbleBackgroundView withRadius:bubbleCornerRadius];
         yBottom = self.bubbleBackgroundView.frame.origin.y + self.bubbleBackgroundView.frame.size.height;
         

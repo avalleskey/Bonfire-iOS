@@ -9,9 +9,10 @@
 #import "SettingsTableViewController.h"
 #import "Legal/LegalTableViewController.h"
 #import "Notifications/NotificationsSettingsTableViewController.h"
-#import "Change Password/ChangePasswordTableViewController.h"
+#import "ChangePasswordTableViewController.h"
 #import "BFAlertController.h"
 
+#import "BFUserAttachmentView.h"
 #import <JGProgressHUD/JGProgressHUD.h>
 #import <HapticHelper/HapticHelper.h>
 
@@ -40,6 +41,7 @@
 
 - (void)setup {
     self.title = @"Settings";
+    [self.navigationController.navigationBar setTitleTextAttributes:@{NSForegroundColorAttributeName: [UIColor clearColor]}];
     //self.navigationController.navigationBar.prefersLargeTitles = true;
     //self.navigationItem.largeTitleDisplayMode = UINavigationItemLargeTitleDisplayModeAutomatic;
     self.smartListDelegate = self;
@@ -65,12 +67,12 @@
         [Launcher openEditProfile];
     }
     if ([rowId isEqualToString:@"change_password"]) {
-        // push change password
+//        // push change password
         ChangePasswordTableViewController *changePasswordTableVC = [[ChangePasswordTableViewController alloc] init];
         [Launcher push:changePasswordTableVC animated:YES];
     }
     if ([rowId isEqualToString:@"share_profile"]) {
-        [Launcher shareIdentity:[Session sharedInstance].currentUser];
+        [Launcher shareCurrentUser];
     }
     if ([rowId isEqualToString:@"notifications"]) {
         // push notifications settings
@@ -132,6 +134,30 @@
         camp.identifier = @"-wWoxVq1VBA6R";
         [Launcher openCamp:camp];
     }
+}
+
+- (UIView *)alternativeViewForHeaderInSection:(NSInteger)section {
+    if (section == 0) {
+        BFUserAttachmentView *attachmentView = [[BFUserAttachmentView alloc] initWithUser:[Session sharedInstance].currentUser frame:CGRectMake(0, 0, self.view.frame.size.width, 100)];
+        attachmentView.backgroundColor = [UIColor clearColor];
+        attachmentView.userInteractionEnabled = false;
+        attachmentView.layer.cornerRadius = 0;
+        attachmentView.contentView.layer.cornerRadius = 0;
+        attachmentView.contentView.layer.borderWidth = 0;
+        attachmentView.headerBackdrop.hidden = true;
+        attachmentView.showBio = false;
+        attachmentView.showDetails = false;
+        return attachmentView;
+    }
+    
+    return nil;
+}
+- (CGFloat)alternativeHeightForHeaderInSection:(NSInteger)section {
+    if (section == 0) {
+        return [BFUserAttachmentView heightForUser:[Session sharedInstance].currentUser width:self.view.frame.size.width showBio:false showDetails:false];
+    }
+    
+    return 0;
 }
 
 @end

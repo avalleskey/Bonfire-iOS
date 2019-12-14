@@ -176,8 +176,8 @@ NSString * const LOCAL_APP_URI = @"bonfireapp";
         if ([params objectForKey:@"id"]) {
             camp.identifier = params[@"id"];
         }
-        if ([params objectForKey:@"display_id"]) {
-            attributes.identifier = [params[@"display_id"] stringByReplacingOccurrencesOfString:@"#" withString:@""];
+        if ([params objectForKey:@"camptag"]) {
+            attributes.identifier = [params[@"camptag"] stringByReplacingOccurrencesOfString:@"#" withString:@""];
         }
         
         camp.attributes = attributes;

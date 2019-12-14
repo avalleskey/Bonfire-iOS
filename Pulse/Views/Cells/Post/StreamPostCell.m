@@ -291,7 +291,7 @@
 }
 
 - (void)setPost:(Post *)post {
-    if ([post toDictionary] != [_post toDictionary]) {
+    if (post != _post) {
         _post = post;
         
         BOOL temporary = _post.tempId;

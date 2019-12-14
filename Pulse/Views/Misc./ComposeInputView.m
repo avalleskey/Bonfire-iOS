@@ -40,6 +40,7 @@
 
 @interface ComposeInputView () <UITextViewDelegate, UITableViewDelegate, UITableViewDataSource> {
     NSInteger maxLength;
+    CGFloat textViewMaxHeight;
 }
 
 @property (nonatomic, strong) NSMutableArray *tagSuggestions;
@@ -114,7 +115,9 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     _textView.placeholderColor = [UIColor bonfireSecondaryColor];
 //    _textView.keyboardAppearance = UIKeyboardAppearanceLight;
     _textView.keyboardType = UIKeyboardTypeTwitter;
+    _textView.keyboardDismissMode = UIScrollViewKeyboardDismissModeNone;
     [self.contentView.contentView addSubview:_textView];
+    textViewMaxHeight = roundf([UIScreen mainScreen].bounds.size.height * 0.3);
     
     _mediaScrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 8, _textView.frame.size.width, 140 - 16)];
     _mediaScrollView.hidden = true;
@@ -169,7 +172,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         } completion:nil];
     } forControlEvents:(UIControlEventTouchUpInside|UIControlEventTouchCancel|UIControlEventTouchDragExit)];
     
-    [self.addMediaButton bk_whenTapped:^{
+    [self.addMediaButton bk_whenTapped:^{        
         [self showImagePicker];
     }];
     [self.contentView.contentView addSubview:self.addMediaButton];
@@ -452,9 +455,9 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 }
 
 - (void)resize:(BOOL)animated {
-    CGRect textViewRect = [self.textView.text.length == 0 ? @"Quintessential" : self.textView.text boundingRectWithSize:CGSizeMake(self.textView.frame.size.width - self.textView.textContainerInset.left - self.textView.textContainerInset.right, 800) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:self.textView.font} context:nil];
+    CGRect textViewRect = [self.textView.text.length == 0 ? @"Bonfire" : self.textView.text boundingRectWithSize:CGSizeMake(self.textView.frame.size.width - self.textView.textContainerInset.left - self.textView.textContainerInset.right, 800) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:self.textView.font} context:nil];
     
-    CGFloat textHeight = MIN(ceil(textViewRect.size.height) + self.textView.textContainerInset.top + self.textView.textContainerInset.bottom, 240);
+    CGFloat textHeight = MIN(ceil(textViewRect.size.height) + self.textView.textContainerInset.top + self.textView.textContainerInset.bottom, textViewMaxHeight);
         
     CGFloat textViewPadding = self.textView.frame.origin.y;
     
@@ -464,14 +467,14 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     CGRect frame = self.frame;
     CGFloat bottomY = frame.origin.y + frame.size.height;
     
-    [UIView animateWithDuration:animated?0.6:0 delay:0 usingSpringWithDamping:0.75f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+    [UIView animateWithDuration:animated?0.6:0 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
         self.frame = CGRectMake(frame.origin.x, bottomY - barHeight, frame.size.width, barHeight);
         self.contentView.frame = self.bounds;
         self.textView.frame = CGRectMake(self.textView.frame.origin.x, self.textView.frame.origin.y, self.textView.frame.size.width, textHeight);
         
         self.postButton.center = CGPointMake(self.textView.frame.origin.x + self.textView.frame.size.width - 20, self.textView.frame.origin.y + self.textView.frame.size.height - 20);
         self.charRemainingLabel.center = CGPointMake(self.postButton.center.x, self.postButton.frame.origin.y - self.charRemainingLabel.frame.size.height / 2);
-        self.charRemainingLabel.hidden = (self.charRemainingLabel.frame.origin.y < self.textView.frame.origin.y);
+        self.charRemainingLabel.hidden = (self.charRemainingLabel.frame.origin.y < self.textView.frame.origin.y + (![self.mediaScrollView isHidden] ? self.mediaLineSeparator.frame.origin.y : 0));
         self.expandButton.center = self.postButton.center;
         
         self.addMediaButton.frame = CGRectMake(self.addMediaButton.frame.origin.x, self.frame.size.height - self.addMediaButton.frame.size.height - (self.textView.frame.origin.y + ((40 - self.addMediaButton.frame.size.height) / 2)) - bottomPadding, self.addMediaButton.frame.size.width, self.addMediaButton.frame.size.height);
@@ -874,10 +877,14 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         [self detectEntities];
         CGFloat textViewHeightAfter = textView.frame.size.height;
         
-        if (diff(textViewHeightBefore, textViewHeightAfter)) {
-            [textView setContentOffset:CGPointMake(0, textView.contentSize.height - textView.frame.size.height) animated:NO];
+        if (diff(textViewHeightBefore, textViewHeightAfter) && textView.frame.size.height == textViewMaxHeight) {
+            NSRange bottom = NSMakeRange(textView.text.length -1, 1);
+            [textView scrollRangeToVisible:bottom];
+
+            [textView setScrollEnabled:NO];
+            [textView setScrollEnabled:YES];
         }
-        
+
         NSInteger charactersRemaining = [self charactersRemainingWithStirng:self.textView.text];
         self.charRemainingLabel.text = [NSString stringWithFormat:@"%ld", (long)charactersRemaining];
         if (charactersRemaining <= 20) {
@@ -994,7 +1001,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     [self.textView setSelectedRange:s_range];
     
     // update height of the cell
-    [self resize:true];
+    [self resize:false];
     
     if (insideUsername) NSLog(@"insideUsername ==> true");
     if (insideCampTag) NSLog(@"insideCampTag ==> true");

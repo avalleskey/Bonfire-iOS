@@ -20,6 +20,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface PrivacySelectorTableViewController : UITableViewController
 
 @property (nonatomic, strong) Camp *currentSelection;
+@property (nonatomic) BOOL shareOnProfile;
 @property (nonatomic, strong) UIBarButtonItem *cancelButton;
 @property (nonatomic, weak) id <PrivacySelectorDelegate> delegate;
 

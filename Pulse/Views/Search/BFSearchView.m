@@ -182,7 +182,7 @@
     [self updateTextFieldRect];
 }
 - (void)updateSearchText:(NSString *)newSearchText {
-    if (![self.textField.text isEqualToString:newSearchText]) {
+    if (newSearchText.length == 0 || ![self.textField.text isEqualToString:newSearchText]) {
         [self showSearchIcon:false];
         
         self.textField.text = newSearchText;

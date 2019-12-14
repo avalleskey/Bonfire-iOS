@@ -66,7 +66,7 @@ static Session *session;
 }
 
 - (void)initDefaultsWithCompletion:(void (^_Nullable)(BOOL success))handler {
-    if([[NSUserDefaults standardUserDefaults] dictionaryForKey:@"app_defaults"] == nil) {
+    if ([[NSUserDefaults standardUserDefaults] dictionaryForKey:@"app_defaults"] == nil) {
         NSString *bundlePath = [[NSBundle mainBundle] pathForResource:@"LocalDefaults" ofType:@"json"];
         NSData *data = [NSData dataWithContentsOfFile:bundlePath];
         NSDictionary *json = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:nil];

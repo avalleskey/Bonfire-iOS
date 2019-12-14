@@ -50,6 +50,13 @@
         self.checkIcon.hidden = true;
         [self.contentView addSubview:self.checkIcon];
         
+        self.iconImageView = [[UIImageView alloc] initWithFrame:CGRectMake(12, 0, 24, 24)];
+        self.iconImageView.tintColor = [UIColor bonfireSecondaryColor];
+        self.iconImageView.alpha = 0.5;
+        self.iconImageView.hidden = true;
+        self.iconImageView.contentMode = UIViewContentModeScaleAspectFit;
+        [self.contentView addSubview:self.iconImageView];
+        
         self.topSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, HALF_PIXEL)];
         self.topSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
         self.topSeparator.hidden = true;
@@ -71,11 +78,15 @@
     
     UIEdgeInsets contentEdgeInsets = UIEdgeInsetsMake(0, self.gutterPadding, 0, self.gutterPadding);
     
-    if (self.imageView.image != nil) {
-        self.imageView.frame = CGRectMake(contentEdgeInsets.left, self.frame.size.height / 2 - 14, 28, 28);
-        self.imageView.layer.cornerRadius = self.imageView.frame.size.height / 2;
+    self.iconImageView.hidden = !(self.iconImageView.image);
+    if (![self.iconImageView isHidden]) {
+        CGFloat iconImageWidth = 32;
+        CGFloat iconImageHeight = ceilf(MIN(self.frame.size.height * 0.7, self.iconImageView.image.size.height));
+        self.iconImageView.frame = CGRectMake(contentEdgeInsets.left + 4, (self.frame.size.height / 2) - (iconImageHeight / 2), iconImageWidth, iconImageHeight);
+        self.iconImageView.layer.cornerRadius = self.imageView.frame.size.height / 2;
         
-        contentEdgeInsets.left = self.imageView.frame.origin.x + self.imageView.frame.size.width + 12;
+        contentEdgeInsets.left = self.iconImageView.frame.origin.x + self.iconImageView.frame.size.width + 12;
+        contentEdgeInsets.right = contentEdgeInsets.left;
     }
     
     self.detailTextLabel.hidden = self.detailTextLabel.text.length == 0 || [self.detailTextLabel.text isEqualToString:@"0"] || self.detailTextLabel.text.length == 0;

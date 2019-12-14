@@ -488,6 +488,9 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
                 [cell.profilePictureContainer bk_whenTapped:^{
                     [self showImagePicker];
                 }];
+                [cell.editPictureImageViewContainer bk_whenTapped:^{
+                    [self showImagePicker];
+                }];
             }
             
             if (newAvatar) {

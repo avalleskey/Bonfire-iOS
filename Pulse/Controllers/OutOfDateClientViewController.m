@@ -83,7 +83,7 @@
     self.nextButton.backgroundColor = [self.view tintColor];
     self.nextButton.titleLabel.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightSemibold];
     [self.nextButton setTitleColor:[UIColor bonfireSecondaryColor] forState:UIControlStateDisabled];
-    [self continuityRadiusForView:self.nextButton withRadius:12.f];
+    [self continuityRadiusForView:self.nextButton withRadius:14.f];
     if ([Configuration isRelease]) {
         [self.nextButton setTitle:@"Open App Store" forState:UIControlStateNormal];
     }

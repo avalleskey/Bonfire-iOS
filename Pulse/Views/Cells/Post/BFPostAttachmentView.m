@@ -51,7 +51,7 @@
     
     // display name
     self.textLabel = [[UILabel alloc] init];
-    self.textLabel.text = @"Link Title that goes on and on and on blahb allollb blah blah lah blah";
+    self.textLabel.text = @"Link Title";
     self.textLabel.font = POST_ATTACHMENT_MESSAGE_FONT;
     self.textLabel.textColor = [UIColor bonfirePrimaryColor];
     self.textLabel.textAlignment = NSTextAlignmentLeft;
@@ -62,7 +62,7 @@
     
     // username
     self.creatorLabel = [[UILabel alloc] init];
-    self.creatorLabel.text = @"Link detail text here";
+    self.creatorLabel.text = @"Link detail";
     self.creatorLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightRegular];
     self.creatorLabel.textAlignment = NSTextAlignmentLeft;
     self.creatorLabel.textColor = [UIColor bonfireSecondaryColor];

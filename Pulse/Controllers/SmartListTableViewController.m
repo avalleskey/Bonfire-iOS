@@ -32,12 +32,7 @@ static NSString * const toggleReuseIdentifier = @"ToggleCell";
 static NSString * const blankReuseIdentifier = @"BlankCell";
 
 - (id)init {
-    if (@available(iOS 13.0, *)) {
-        self = [super initWithStyle:UITableViewStyleInsetGrouped];
-    } else {
-        // Fallback on earlier versions
-        self = [super initWithStyle:UITableViewStyleGrouped];
-    }
+    self = [super initWithStyle:UITableViewStyleGrouped];
     
     if (self) {
         
@@ -213,6 +208,12 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
+    if ([self.smartListDelegate respondsToSelector:@selector(alternativeHeightForHeaderInSection:)]) {
+        if ([self.smartListDelegate alternativeHeightForHeaderInSection:section]) {
+            return [self.smartListDelegate alternativeHeightForHeaderInSection:section];
+        }
+    }
+    
     SmartListSection *s = section(section);
     
     CGFloat headerHeight = [BFHeaderView height];
@@ -223,6 +224,13 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
 }
 
 - (nullable UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
+    // check if an alternative section header exists
+    if ([self.smartListDelegate respondsToSelector:@selector(alternativeViewForHeaderInSection:)]) {
+        if ([self.smartListDelegate alternativeViewForHeaderInSection:section]) {
+            return [self.smartListDelegate alternativeViewForHeaderInSection:section];
+        }
+    }
+    
     SmartListSection *s = section(section);
     
     if (!s.title || s.title.length == 0) return nil;
@@ -234,6 +242,12 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
     return header;
 }
 - (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
+    if ([self.smartListDelegate respondsToSelector:@selector(alternativeHeightForFooterInSection:)]) {
+        if ([self.smartListDelegate alternativeHeightForFooterInSection:section]) {
+            return [self.smartListDelegate alternativeHeightForFooterInSection:section];
+        }
+    }
+    
     SmartListSection *s = section(section);
     
     if (s.footer) {
@@ -245,6 +259,13 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
     return CGFLOAT_MIN;
 }
 - (UIView *)tableView:(UITableView *)tableView viewForFooterInSection:(NSInteger)section {
+    // check if an alternative section header exists
+    if ([self.smartListDelegate respondsToSelector:@selector(alternativeViewForFooterInSection:)]) {
+        if ([self.smartListDelegate alternativeViewForFooterInSection:section]) {
+            return [self.smartListDelegate alternativeViewForFooterInSection:section];
+        }
+    }
+    
     SmartListSection *s = section(section);
     
     if (s.footer) {
@@ -358,4 +379,10 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
     return string;
 }
 
+
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    if (scrollView == self.tableView && [self.navigationController isKindOfClass:[SimpleNavigationController class]]) {
+        [(SimpleNavigationController *)self.navigationController childTableViewDidScroll:self.tableView];
+    }
+}
 @end

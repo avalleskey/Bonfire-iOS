@@ -11,6 +11,7 @@
 @end
 
 @class User;
+@class UserAttributesInvites;
 @class UserDetailsLocation;
 
 @interface User : Identity
@@ -25,10 +26,18 @@
 
 @interface IdentityAttributes ()
 
-// details
+@property (nonatomic) BOOL requiresInvite;
 @property (nonatomic) NSString <Optional> *bio;
 @property (nonatomic) UserDetailsLocation <Optional> *location;
 @property (nonatomic) NSString <Optional> *dob;
+@property (nonatomic) UserAttributesInvites <Optional> *invites;
+
+@end
+
+@interface UserAttributesInvites : BFJSONModel
+
+@property (nonatomic) NSInteger numAvailable;
+@property (nonatomic) NSString <Optional> *friendCode;
 
 @end
 

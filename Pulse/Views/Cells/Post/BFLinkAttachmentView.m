@@ -100,6 +100,7 @@
     self.iconImageView.backgroundColor = [UIColor tableViewBackgroundColor];
     self.iconImageView.layer.cornerRadius = LINK_ATTACHMENT_ICON_IMAGE_SIZE / 8;
     self.iconImageView.layer.borderWidth = HALF_PIXEL;
+    self.iconImageView.layer.borderColor = self.contentView.layer.borderColor;
     [self addPlayIconToView:self.iconImageView];
     [self.contentView addSubview:self.iconImageView];
     

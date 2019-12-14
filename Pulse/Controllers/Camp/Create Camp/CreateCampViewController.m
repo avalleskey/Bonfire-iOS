@@ -25,7 +25,7 @@
 #import <JGProgressHUD/JGProgressHUD.h>
 #import <HapticHelper/HapticHelper.h>
 #include <stdlib.h>
-//#import <FBSDKShareKit/FBSDKShareKit.h>
+#import <FBSDKShareKit/FBSDKShareKit.h>
 #import <RSKImageCropper/RSKImageCropper.h>
 
 
@@ -485,13 +485,36 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         copyLabel.tag = 12;
         [shareField addSubview:copyLabel];
         
-        NSArray *buttons = @[
-                            @{@"id": @"bonfire", @"image": [UIImage imageNamed:@"share_bonfire"], @"color": [UIColor fromHex:@"FF513C" adjustForOptimalContrast:false]},
-//                            @{@"id": @"facebook", @"image": [UIImage imageNamed:@"share_facebook"], @"color": [UIColor fromHex:@"3B5998" adjustForOptimalContrast:false]},
-                            @{@"id": @"twitter", @"image": [UIImage imageNamed:@"share_twitter"], @"color": [UIColor fromHex:@"1DA1F2" adjustForOptimalContrast:false]},
-                            @{@"id": @"imessage", @"image": [UIImage imageNamed:@"share_imessage"], @"color": [UIColor fromHex:@"36DB52" adjustForOptimalContrast:false]},
-                            @{@"id": @"more", @"image": [UIImage imageNamed:@"share_more"], @"color": [UIColor tableViewSeparatorColor]}
-                            ];
+        NSMutableArray *buttons = [NSMutableArray new];
+        
+        [buttons addObject:@{@"id": @"bonfire", @"image": [UIImage imageNamed:@"share_bonfire"], @"color": [UIColor fromHex:@"FF513C" adjustForOptimalContrast:false]}];
+
+        BOOL hasInstagram = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"instagram-stories://"]];
+        BOOL hasSnapchat = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"snapchat://"]];
+        BOOL hasTwitter = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"twitter://"]];
+      
+        if (hasInstagram) {
+            [buttons addObject:@{@"id": @"instagram", @"image": [UIImage imageNamed:@"share_instagram"], @"color": [UIColor fromHex:@"DC3075" adjustForOptimalContrast:false]}];
+        }
+
+        if (hasTwitter && (![self.camp.attributes isPrivate] || !hasSnapchat)) {
+            [buttons addObject:@{@"id": @"twitter", @"image": [UIImage imageNamed:@"share_twitter"], @"color": [UIColor fromHex:@"1DA1F2" adjustForOptimalContrast:false]}];
+        }
+      
+        if (hasSnapchat) {
+            [buttons addObject:@{@"id": @"snapchat", @"image": [UIImage imageNamed:@"share_snapchat"], @"color": [UIColor fromHex:@"fffc00" adjustForOptimalContrast:false]}];
+        }
+      
+        if ([self.camp.attributes isPrivate] || !hasTwitter || !hasSnapchat) {
+            [buttons addObject:@{@"id": @"imessage", @"image": [UIImage imageNamed:@"share_imessage"], @"color": [UIColor fromHex:@"36DB52" adjustForOptimalContrast:false]}];
+        }
+            
+        if (buttons.count < 4) {
+            // add facebook
+            [buttons addObject:@{@"id": @"facebook", @"image": [UIImage imageNamed:@"share_facebook"], @"color": [UIColor fromHex:@"3B5998" adjustForOptimalContrast:false]}];
+        }
+      
+        [buttons addObject:@{@"id": @"more", @"image": [[UIImage imageNamed:@"share_more"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate], @"color": [UIColor tableViewSeparatorColor]}];
         
         CGFloat buttonPadding = 12;
         CGFloat buttonDiameter = (self.view.frame.size.width - (shareField.frame.origin.x * 2) - (20 * 2) - ((buttons.count - 1) * buttonPadding)) / buttons.count;
@@ -507,6 +530,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             button.backgroundColor = buttonDict[@"color"];
             button.adjustsImageWhenHighlighted = false;
             button.layer.masksToBounds = true;
+            button.tintColor = [UIColor bonfirePrimaryColor];
             [button setImage:buttonDict[@"image"] forState:UIControlStateNormal];
             button.contentMode = UIViewContentModeCenter;
             [shareBlock addSubview:button];
@@ -529,23 +553,29 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                 if ([identifier isEqualToString:@"bonfire"]) {
                     [Launcher openComposePost:nil inReplyTo:nil withMessage:nil media:nil quotedObject:self.camp];
                 }
+                else if ([identifier isEqualToString:@"instagram"]) {
+                    [Launcher shareCampOnInstagram:self.camp];
+                }
                 else if ([identifier isEqualToString:@"twitter"]) {
                     if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"twitter://post"]]) {
-                        NSString *message = [[NSString stringWithFormat:@"I just created a Camp on @yourbonfire! Join %@: %@", self.camp.attributes.title, campShareLink] stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet characterSetWithCharactersInString:@"!*'();:@&=+$,/?%#[]"]];
+                        NSString *message = [[NSString stringWithFormat:@"Help me start a Camp on @yourbonfire! Join %@: %@", self.camp.attributes.title, campShareLink] stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet characterSetWithCharactersInString:@"!*'();:@&=+$,/?%#[]"]];
                         
                         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[NSString stringWithFormat:@"twitter://post?message=%@", message]] options:@{} completionHandler:nil];
                     }
                 }
-                else if ([identifier isEqualToString:@"facebook"]) {
-//                    FBSDKShareLinkContent *content = [[FBSDKShareLinkContent alloc] init];
-//                    content.contentURL = [NSURL URLWithString:campShareLink];
-//                    content.hashtag = [FBSDKHashtag hashtagWithString:@"#Bonfire"];
-//                    [FBSDKShareDialog showFromViewController:self
-//                                                  withContent:content
-//                                                     delegate:nil];
+                else if ([identifier isEqualToString:@"snapchat"]) {
+                    [Launcher shareCampOnSnapchat:self.camp];
                 }
                 else if ([identifier isEqualToString:@"imessage"]) {
-                    [Launcher shareOniMessage:[NSString stringWithFormat:@"I created a Camp on Bonfire! Join %@: %@", self.camp.attributes.title, campShareLink] image:nil];
+                    [Launcher shareOniMessage:[NSString stringWithFormat:@"Help me start a Camp on Bonfire! Join %@: %@", self.camp.attributes.title, campShareLink] image:nil];
+                }
+                else if ([identifier isEqualToString:@"facebook"]) {
+                    FBSDKShareLinkContent *content = [[FBSDKShareLinkContent alloc] init];
+                    content.contentURL = [NSURL URLWithString:campShareLink];
+                    content.hashtag = [FBSDKHashtag hashtagWithString:@"#Bonfire"];
+                    [FBSDKShareDialog showFromViewController:[Launcher topMostViewController]
+                                                 withContent:content
+                                                    delegate:nil];
                 }
                 else if ([identifier isEqualToString:@"more"]) {
                     [Launcher shareCamp:self.camp];

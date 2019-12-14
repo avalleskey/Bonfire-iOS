@@ -189,7 +189,7 @@
 }
 
 - (void)setLink:(BFLink *)link {
-    if ([link toDictionary] != [_link toDictionary]) {
+    if (link != _link) {
         _link = link;
         
         // set tint color

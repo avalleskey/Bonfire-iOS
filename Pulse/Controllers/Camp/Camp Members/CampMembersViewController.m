@@ -226,7 +226,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     self.shareButton.frame = CGRectMake(12, 8, self.view.frame.size.width - (12 * 2), baseHeight - (8 * 2));
     self.shareButton.layer.cornerRadius = 12.f;
     self.shareButton.layer.masksToBounds = true;
-    self.shareButton.backgroundColor = [UIColor fromHex:[UIColor toHex:self.view.tintColor] adjustForOptimalContrast:true];
+    self.shareButton.backgroundColor = [UIColor fromHex:[UIColor toHex:self.view.tintColor]];
     self.shareButton.adjustsImageWhenHighlighted = false;
     if ([UIColor useWhiteForegroundForColor:self.shareButton.backgroundColor]) {
         self.shareButton.tintColor = [UIColor whiteColor];
@@ -727,7 +727,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
         return 110;
     }
     else if ([s.identifier isEqualToString:@"members_current"] && (self.searchPhrase.length > 0 || [self.tableView numberOfRowsInSection:0] > 100000)) {
-        return 52;
+        return 56;
     }
     
     if (s.title) return [BFHeaderView height];
@@ -776,11 +776,11 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
         return header;
     }
     else if ([s.identifier isEqualToString:@"members_current"] && (self.searchPhrase.length > 0 || [self.tableView numberOfRowsInSection:0] > 100000)) {
-        UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 52)];
+        UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 56)];
         header.backgroundColor = [UIColor whiteColor];
         
         // search view
-        self.searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(12, 8, self.view.frame.size.width - (12 * 2), 36)];
+        self.searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(12, 10, self.view.frame.size.width - (12 * 2), 36)];
         self.searchView.placeholder = @"Search Members";
         [self.searchView updateSearchText:self.searchPhrase];
         self.searchView.textField.tintColor = self.view.tintColor;

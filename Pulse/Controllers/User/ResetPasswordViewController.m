@@ -55,6 +55,10 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
     self.view.backgroundColor = [UIColor contentBackgroundColor];
     self.view.tintColor = [UIColor bonfireBrand];
     
+    if (self.prefillLookup.length == 0 && [Session sharedInstance].currentUser) {
+        self.prefillLookup = [Session sharedInstance].currentUser.attributes.email;
+    }
+    
     [self addListeners];
     [self setupViews];
     [self setupSteps];
@@ -62,6 +66,12 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
     // –––– show the first step ––––
     self.currentStep = -1;
     [self nextStep:false];
+    if (self.prefillCode.length > 0 && self.prefillLookup.length > 0) {
+        self.currentStep = 0;
+        [self nextStep:false];
+        self.currentStep = 1;
+        [self nextStep:false];
+    }
     
     safeAreaInsets.top = 1; // set to 1 so we only set it once in viewWillAppear
     
@@ -74,6 +84,20 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
     if (safeAreaInsets.top == 1) {
         safeAreaInsets = [UIApplication sharedApplication].keyWindow.safeAreaInsets;
         [self updateWithSafeAreaInsets];
+    }
+}
+
+- (void)setPrefillCode:(NSString *)prefillCode {
+    if (![prefillCode isEqualToString:_prefillCode]) {
+        _prefillCode = prefillCode;
+    }
+    
+    // fill in the text field (if possible)
+    NSInteger codeStep = [self getIndexOfStepWithId:@"reset_code"];
+    if (prefillCode.length > 0 && self.steps.count > codeStep) {
+        UITextField *codeTextField = self.steps[codeStep][@"textField"];
+        codeTextField.text = self.prefillCode;
+        [self textFieldChanged:codeTextField];
     }
 }
 
@@ -121,7 +145,7 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
     self.nextButton.backgroundColor = [self.view tintColor];
     self.nextButton.titleLabel.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightSemibold];
     [self.nextButton setTitleColor:[UIColor bonfireSecondaryColor] forState:UIControlStateDisabled];
-    [self continuityRadiusForView:self.nextButton withRadius:12.f];
+    [self continuityRadiusForView:self.nextButton withRadius:14.f];
     [self.nextButton setTitle:@"Next" forState:UIControlStateNormal];
     [self.view addSubview:self.nextButton];
     [self greyOutNextButton];
@@ -146,20 +170,12 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
 }
 
 - (void)setupSteps {
-    CGFloat inputCenterY = (self.view.frame.size.height / 2) - (self.view.frame.size.height * .15);
-    self.instructionLabel = [[UILabel alloc] initWithFrame:CGRectMake(24, self.view.frame.size.height, self.view.frame.size.width - 48, 42)];
-    self.instructionLabel.center = CGPointMake(self.instructionLabel.center.x, (inputCenterY / 2) + 16);
-    self.instructionLabel.textAlignment = NSTextAlignmentCenter;
-    self.instructionLabel.text = @"";
-    self.instructionLabel.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightMedium];
-    self.instructionLabel.textColor = [UIColor bonfirePrimaryColor];
-    self.instructionLabel.numberOfLines = 0;
-    self.instructionLabel.lineBreakMode = NSLineBreakByWordWrapping;
+    self.instructionLabel = [self instructionLabelWithText:@""];
     [self.view addSubview:self.instructionLabel];
     
     self.steps = [[NSMutableArray alloc] init];
     
-    [self.steps addObject:@{@"id": @"reset_lookup", @"skip": [NSNumber numberWithBool:false], @"next": @"Next", @"instruction": [self hasExistingLookup] ? @"Tap Next to send a password reset code to the email below" : @"Let’s reset your password!\nWhat’s your email or username?", @"placeholder": @"Email or username", @"sensitive": [NSNumber numberWithBool:false], @"keyboard": @"text", @"answer": [NSNull null], @"textField": [NSNull null], @"block": [NSNull null]}];
+    [self.steps addObject:@{@"id": @"reset_lookup", @"skip": [NSNumber numberWithBool:false], @"next": @"Next", @"instruction": [self hasExistingLookup] ? @"Tap Next to send a password reset code to your email" : @"Let’s reset your password!\nWhat’s your email or username?", @"placeholder": @"Email or username", @"sensitive": [NSNumber numberWithBool:false], @"keyboard": @"text", @"answer": [NSNull null], @"textField": [NSNull null], @"block": [NSNull null]}];
     [self.steps addObject:@{@"id": @"reset_code", @"skip": [NSNumber numberWithBool:false], @"next": @"Next", @"instruction": @"Please enter the 6 digit code\nwe sent to your email", @"placeholder":@"6 digit code", @"sensitive": [NSNumber numberWithBool:false], @"keyboard": @"number", @"answer": [NSNull null], @"textField": [NSNull null], @"block": [NSNull null]}];
     [self.steps addObject:@{@"id": @"reset_new_password", @"skip": [NSNumber numberWithBool:false], @"next": @"Next", @"instruction": [NSString stringWithFormat:@"Set a new password that’s at least %i characters", MIN_PASSWORD_LENGTH], @"placeholder":@"New Password", @"sensitive": [NSNumber numberWithBool:true], @"keyboard": @"text", @"answer": [NSNull null], @"textField": [NSNull null], @"block": [NSNull null]}];
     [self.steps addObject:@{@"id": @"reset_confirm_new_password", @"skip": [NSNumber numberWithBool:false], @"next": @"Confirm", @"instruction": @"Please confirm your\nnew password", @"placeholder":@"Confirm New Password", @"sensitive": [NSNumber numberWithBool:true], @"keyboard": @"text", @"answer": [NSNull null], @"textField": [NSNull null], @"block": [NSNull null]}];
@@ -210,6 +226,12 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
         }
         else if ([mutatedStep[@"id"] isEqualToString:@"reset_code"]) {
             textField.tag = RESET_CODE_FIELD;
+            textField.text = self.prefillCode;
+            if (self.prefillCode.length > 0) {
+                [self textFieldChanged:textField];
+                
+                [self greyOutNextButton];
+            }
         }
         else if ([mutatedStep[@"id"] isEqualToString:@"reset_new_password"]) {
             textField.tag = NEW_PASSWORD_FIELD;
@@ -417,6 +439,19 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
         }
     }
 }
+- (UILabel *)instructionLabelWithText:(NSString *)text {
+    CGFloat inputCenterY = (self.view.frame.size.height / 2) - (self.view.frame.size.height * .15);
+    
+    UILabel *instructionLabel = [[UILabel alloc] initWithFrame:CGRectMake(24, self.view.frame.size.height, self.view.frame.size.width - 48, 42)];
+    instructionLabel.center = CGPointMake(instructionLabel.center.x, (inputCenterY / 2) + 16);
+    instructionLabel.textAlignment = NSTextAlignmentCenter;
+    instructionLabel.text = text;
+    instructionLabel.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightMedium];
+    instructionLabel.textColor = [UIColor bonfirePrimaryColor];
+    instructionLabel.numberOfLines = 0;
+    instructionLabel.lineBreakMode = NSLineBreakByWordWrapping;
+    return instructionLabel;
+}
 - (void)nextStep:(BOOL)withAnimation {
     /*
      
@@ -457,10 +492,12 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
             // now we need to find if there are any remaining steps (that have skip='false')
             if (![step[@"skip"] boolValue]) {
                 isComplete = false;
+                next = i;
                 break;
             }
         }
     }
+    DLog(@"next step :%ld", (long)next);
     
     if (isComplete) {
         [self.view endEditing:YES];
@@ -511,31 +548,38 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
         // make any instruction changes as needed
         if (![nextStep[@"instruction"] isEqualToString:activeStep[@"instruction"]]) {
             // title change
-            NSData *tempInstructionArchive = [NSKeyedArchiver archivedDataWithRootObject:self.instructionLabel];
-            UILabel *instructionCopy = [NSKeyedUnarchiver unarchiveObjectWithData:tempInstructionArchive];
-            instructionCopy.alpha = 0;
-            
             NSString *nextStepTitle = nextStep[@"instruction"];
-            instructionCopy.text = nextStepTitle;
+            DLog(@"Next step title: %@", nextStepTitle);
             
-            CGRect instructionsDynamicFrame = [instructionCopy.text boundingRectWithSize:CGSizeMake(self.instructionLabel.frame.size.width, 100) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:instructionCopy.font} context:nil];
-            instructionCopy.frame = CGRectMake(self.instructionLabel.frame.origin.x, self.instructionLabel.frame.origin.y, self.instructionLabel.frame.size.width, instructionsDynamicFrame.size.height);
+            CGRect instructionsDynamicFrame = [nextStepTitle boundingRectWithSize:CGSizeMake(self.instructionLabel.frame.size.width, 100) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:self.instructionLabel.font} context:nil];
+            CGPoint instructionLabelCenter = self.instructionLabel.center;
             
-            instructionCopy.transform = CGAffineTransformMakeTranslation(self.view.frame.size.width, 0);
-            
-            [self.view addSubview:instructionCopy];
-            
-            [UIView animateWithDuration:animationDuration delay:0 usingSpringWithDamping:0.8f initialSpringVelocity:0.4f options:UIViewAnimationOptionCurveEaseIn animations:^{
-                self.instructionLabel.transform = CGAffineTransformMakeTranslation(-1 * self.view.frame.size.width, 0);
-                self.instructionLabel.alpha = 0;
+            if (withAnimation) {
+                UILabel *instructionCopy = [self instructionLabelWithText:nextStepTitle];
+                instructionCopy.alpha = 0;
                 
-                instructionCopy.transform = CGAffineTransformMakeTranslation(0, 0);
-                instructionCopy.alpha = 1;
-            } completion:^(BOOL finished) {
-                // save copy as the original mainNavLabel
-                [self.instructionLabel removeFromSuperview];
-                self.instructionLabel = instructionCopy;
-            }];
+                SetHeight(instructionCopy, ceilf(instructionsDynamicFrame.size.height));
+                instructionCopy.center = CGPointMake(self.view.frame.size.width / 2, instructionLabelCenter.y);
+                instructionCopy.transform = CGAffineTransformMakeTranslation(self.view.frame.size.width, 0);
+                [self.view addSubview:instructionCopy];
+                
+                [UIView animateWithDuration:animationDuration delay:0 usingSpringWithDamping:0.8f initialSpringVelocity:0.4f options:UIViewAnimationOptionCurveEaseIn animations:^{
+                    instructionCopy.transform = CGAffineTransformMakeTranslation(0, 0);
+                    instructionCopy.alpha = 1;
+                    
+                    self.instructionLabel.transform = CGAffineTransformMakeTranslation(-1 * self.view.frame.size.width, 0);
+                    self.instructionLabel.alpha = 0;
+                } completion:^(BOOL finished) {
+                    // save copy as the original mainNavLabel
+                    [self.instructionLabel removeFromSuperview];
+                    self.instructionLabel = instructionCopy;
+                }];
+            }
+            else {
+                self.instructionLabel.text = nextStepTitle;
+                SetHeight(self.instructionLabel, ceilf(instructionsDynamicFrame.size.height));
+                self.instructionLabel.center = CGPointMake(self.view.frame.size.width / 2, instructionLabelCenter.y);
+            }
         }
         
         if ([nextStep[@"next"] isEqual:[NSNull null]]) {

@@ -7,11 +7,11 @@
 //
 
 #import "TabController.h"
-#import "Session.h"
 #import <BlocksKit/BlocksKit+UIKit.h>
 #import "UIColor+Palette.h"
 #import "Launcher.h"
 #import <HapticHelper/HapticHelper.h>
+#import "Session.h"
 #import "MyCampsTableViewController.h"
 
 @interface TabController () <UITabBarControllerDelegate>
@@ -62,13 +62,11 @@
     self.viewControllers = vcArray;
     
     NSInteger defaultIndex = 0;
+//    if ([Session sharedInstance].currentUser.attributes.summaries.counts.camps == 0) {
+//        defaultIndex = [self.viewControllers indexOfObject:self.storeNavVC];
+//    }
     self.selectedIndex = defaultIndex;
     [self setSelectedViewController:vcArray[defaultIndex]];
-    
-//    [self.tabBar.items objectAtIndex:0].titlePositionAdjustment = UIOffsetMake((self.view.bounds.size.width / 12), 0.0);
-//    [self.tabBar.items objectAtIndex:1].titlePositionAdjustment = UIOffsetMake(0, 0.0);
-//    [self.tabBar.items objectAtIndex:2].titlePositionAdjustment = UIOffsetMake(-(self.view.bounds.size.width / 12), 0.0);
-//    [self.tabBar.items objectAtIndex:3].titlePositionAdjustment = UIOffsetMake(-(self.view.bounds.size.width / 8), 0.0);
     
     self.badges = [NSMutableDictionary new];
     
@@ -76,11 +74,11 @@
     [self addPillToController:self.storeNavVC title:@"Create Camp" image:[[UIImage imageNamed:@"pillPlusIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] action:^(void) {
         [Launcher openCreateCamp];
     }];
-//    [self addPillToController:self.discoverNavVC title:@"Discover Camps" image:[UIImage imageNamed:@"discoverCampsIcon"] action:^(void) {
-//        [Launcher openDiscover];
+//    [self addPillToController:self.myProfileNavVC title:@"Edit Profile" image:nil action:^{
+//        [Launcher openEditProfile];
 //    }];
     
-    self.tabBar.tintColor = [UIColor bonfirePrimaryColor]; //[UIColor fromHex:[Session sharedInstance].currentUser.attributes.color];
+    self.tabBar.tintColor = [UIColor bonfirePrimaryColor];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userUpdated:) name:@"UserUpdated" object:nil];
     
     UILongPressGestureRecognizer *longPress = [[UILongPressGestureRecognizer alloc] bk_initWithHandler:^(UIGestureRecognizer *sender, UIGestureRecognizerState state, CGPoint location) {
@@ -226,13 +224,13 @@
     [self.tabBar setShadowImage:[UIImage new]];
     [self.tabBar setTranslucent:true];
     self.tabBar.layer.borderWidth = 0.0f;
-    [self.tabBar setBarTintColor:[UIColor clearColor]];
+    [self.tabBar setBarTintColor:[UIColor colorNamed:@"FullContrastColor_inverted"]];
     [self.tabBar setTintColor:[UIColor bonfireBrand]];
     [[UITabBar appearance] setShadowImage:nil];
         
     self.blurView = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleProminent]];
     self.blurView.frame = CGRectMake(0, 0, self.tabBar.frame.size.width, self.tabBar.frame.size.height);
-    self.blurView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.01];
+    self.blurView.backgroundColor = [[UIColor contentBackgroundColor] colorWithAlphaComponent:0.75];
     self.blurView.contentView.backgroundColor = [UIColor clearColor];
     self.blurView.layer.masksToBounds = true;
     self.blurView.tintColor = [UIColor clearColor];
@@ -240,8 +238,8 @@
 
     // tab bar hairline
     UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, (1 / [UIScreen mainScreen].scale))];
-    separator.backgroundColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.06f];
-    //[self.tabBar addSubview:separator];
+    separator.backgroundColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.12f];
+    [self.tabBar addSubview:separator];
     
     self.tabBar.clipsToBounds = true;
     self.tabBar.tintColor = [UIColor bonfirePrimaryColor];
@@ -495,11 +493,11 @@
         [pill setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 8)];
         [pill setTitleEdgeInsets:UIEdgeInsetsMake(0, 8, 0, 0)];
     }
-    pill.backgroundColor = [[UIColor cardBackgroundColor] colorWithAlphaComponent:0.96];
+    pill.backgroundColor = [[UIColor cardBackgroundColor] colorWithAlphaComponent:1];
     pill.layer.cornerRadius = pill.frame.size.height / 2;
-    pill.layer.shadowOffset = CGSizeMake(0, 1);
-    pill.layer.shadowRadius = 2.f;
-    pill.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.12f].CGColor;
+    pill.layer.shadowOffset = CGSizeMake(0, 2);
+    pill.layer.shadowRadius = 3.f;
+    pill.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.16f].CGColor;
     pill.layer.shadowOpacity = 1.f;
     pill.layer.shouldRasterize = true;
     pill.layer.rasterizationScale = [[UIScreen mainScreen] scale];

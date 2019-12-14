@@ -46,9 +46,8 @@
         if (self.direction == SOLTransitionDirectionUp || self.direction == SOLTransitionDirectionDown) {
             toView.center = CGPointMake(toView.center.x, containerView.frame.size.height * 1.5);
             toView.layer.cornerRadius = HAS_ROUNDED_CORNERS ? 32.f : 8.f;
-            fromView.layer.cornerRadius = HAS_ROUNDED_CORNERS ? 32.f : 8.f;
             fromView.layer.masksToBounds = true;
-            animationDuration = 0.4;
+            animationDuration = 0.5;
             animationDamping = 0.98;
             toView.layer.masksToBounds = true;
         }
@@ -64,7 +63,6 @@
                 fromView.alpha = 0.8;
             }
             else {
-                fromView.transform = CGAffineTransformMakeScale(0.9, 0.9);
                 fromView.alpha = 0.8;
             }
             
@@ -73,7 +71,6 @@
             [fromView removeFromSuperview];
             toView.userInteractionEnabled = YES;
             toView.layer.cornerRadius = 0;
-            fromView.layer.cornerRadius = 0;
             [transitionContext completeTransition:![transitionContext transitionWasCancelled]];
         }];
     }
@@ -86,25 +83,26 @@
         
         fromView.alpha = 1;
         
+        CGFloat animationDuration;
+        
         if (self.direction == SOLTransitionDirectionLeft || self.direction == SOLTransitionDirectionRight) {
             toView.transform = CGAffineTransformMakeTranslation((self.direction == SOLTransitionDirectionLeft ? -1 : 1) * .25 * containerView.frame.size.width, 0);
             [self addLeftSideShadowWithFading:toView];
             fromView.layer.masksToBounds = false;
             toView.alpha = 0.8;
+            
+            animationDuration = 0.55f;
         }
         else {
             toView.alpha = 0.8;
-            toView.transform = CGAffineTransformMakeScale(0.9, 0.9);
-            toView.layer.cornerRadius = HAS_ROUNDED_CORNERS ? 32.f : 8.f;
-            toView.layer.masksToBounds = true;
             fromView.layer.cornerRadius = HAS_ROUNDED_CORNERS ? 32.f : 8.f;
             fromView.layer.masksToBounds = true;
+            
+            animationDuration = 0.45f;
         }
         
-        CGFloat animationDuration = 0.55f;
         [UIView animateWithDuration:animationDuration delay:0 usingSpringWithDamping:0.9 initialSpringVelocity:0.5f options:(UIViewAnimationOptionCurveEaseInOut|UIViewAnimationOptionAllowUserInteraction) animations:^{
             toView.alpha = 1;
-            toView.transform = CGAffineTransformIdentity;
             
             if (self.direction == SOLTransitionDirectionUp || self.direction == SOLTransitionDirectionDown) {
                 fromView.center = CGPointMake(fromView.center.x, containerView.frame.size.height * 1.5);
@@ -112,7 +110,6 @@
         } completion:^(BOOL finished) {
             [fromView removeFromSuperview];
             toView.userInteractionEnabled = YES;
-            toView.layer.cornerRadius = 0;
             fromView.layer.cornerRadius = 0;
             [transitionContext completeTransition:![transitionContext transitionWasCancelled]];
         }];

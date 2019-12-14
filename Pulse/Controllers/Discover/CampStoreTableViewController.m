@@ -357,7 +357,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
         UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 56)];
         // header.backgroundColor = [UIColor colorNamed:@"Navigation_ClearBackgroundColor"];
         
-        BFSearchView *searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(12, 12, self.view.frame.size.width - (12 * 2), 36)];
+        BFSearchView *searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(12, 10, self.view.frame.size.width - (12 * 2), 36)];
         searchView.theme = BFTextFieldThemeAuto;
         [searchView.textField bk_removeAllBlockObservers];
         searchView.textField.userInteractionEnabled = false;

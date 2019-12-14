@@ -630,6 +630,9 @@ static int const EMAIL_FIELD = 206;
                 [cell.profilePictureContainer bk_whenTapped:^{
                     [self showImagePicker];
                 }];
+                [cell.editPictureImageViewContainer bk_whenTapped:^{
+                    [self showImagePicker];
+                }];
             }
             
             if (newAvatar) {

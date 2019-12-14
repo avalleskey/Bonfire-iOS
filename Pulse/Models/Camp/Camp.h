@@ -25,7 +25,6 @@ NS_ASSUME_NONNULL_BEGIN
 #pragma mark - API Methods
 - (void)subscribeToCamp;
 - (void)unsubscribeFromCamp;
-- (void)report;
 
 @end
 

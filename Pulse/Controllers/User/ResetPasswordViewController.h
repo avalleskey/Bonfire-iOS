@@ -20,6 +20,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) UIButton *nextButton;
 
 @property (nonatomic, strong) NSString *prefillLookup;
+@property (nonatomic, strong) NSString *prefillCode;
 
 @end
 

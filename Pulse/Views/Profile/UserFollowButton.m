@@ -34,7 +34,7 @@
     }
     else if ([status isEqualToString:USER_STATUS_ME]) {
         [self setImage:nil forState:UIControlStateNormal];
-        [self setTitle:@"Edit Profile" forState:UIControlStateNormal];
+        [self setTitle:@"Share Profile" forState:UIControlStateNormal];
     }
     else {
         // USER_STATUS_NO_RELATION

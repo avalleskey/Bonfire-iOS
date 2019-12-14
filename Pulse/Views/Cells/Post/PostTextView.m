@@ -255,7 +255,7 @@
                 NSURL *url;
                 
                 #ifdef DEBUG
-                url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://camp?display_id=%@", LOCAL_APP_URI, [[self.message substringWithRange:range] stringByReplacingOccurrencesOfString:@"#" withString:@""]]];
+                url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://camp?camptag=%@", LOCAL_APP_URI, [[self.message substringWithRange:range] stringByReplacingOccurrencesOfString:@"#" withString:@""]]];
                 #else
                 url = [NSURL URLWithString:entity.actionUrl];
                 #endif

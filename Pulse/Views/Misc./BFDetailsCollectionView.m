@@ -59,7 +59,6 @@
     if (details != _details) {
         _details = details;
         
-        // reload collection view with new details
         [self reloadData];
         [self setNeedsLayout];
         [self layoutSubviews];
@@ -122,6 +121,15 @@
              item.type == BFDetailItemTypeSourceUser) {
         iconView.image = [[UIImage imageNamed:@"details_label_source"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
     }
+    else if (item.type == BFDetailItemTypePostNotificationsOn) {
+        iconView.image = [[UIImage imageNamed:@"details_label_notifications"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+    }
+    else if (item.type == BFDetailItemTypePostNotificationsOff) {
+        iconView.image = [[UIImage imageNamed:@"details_label_notifications_off"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+    }
+    else if (item.type == BFDetailItemTypeEdit) {
+        iconView.image = [[UIImage imageNamed:@"details_label_edit"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+    }
     iconView.tintColor = [UIColor bonfireSecondaryColor];
     
     UILabel *valueLabel = [cell.contentView viewWithTag:20];
@@ -141,11 +149,15 @@
 
 - (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout*)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath
 {
-    CGFloat width = BFDetail_PADDING_INSETS.left + (16 + 6) + BFDetail_PADDING_INSETS.right;
-    
     BFDetailItem *item = [self.details objectAtIndex:indexPath.item];
-    CGFloat labelWidth = [[item prettyValue] boundingRectWithSize:CGSizeMake(200, 36) options:(NSStringDrawingUsesFontLeading|NSStringDrawingUsesLineFragmentOrigin) attributes:@{NSFontAttributeName:BFDetail_FONT} context:nil].size.width;
-    width += labelWidth;
+    NSString *label = [item prettyValue];
+    
+    CGFloat width = BFDetail_PADDING_INSETS.left + (16 + (label.length > 0 ? 6 : 0)) + BFDetail_PADDING_INSETS.right;
+    
+    if (label.length > 0) {
+        CGFloat labelWidth = [label boundingRectWithSize:CGSizeMake(200, 36) options:(NSStringDrawingUsesFontLeading|NSStringDrawingUsesLineFragmentOrigin) attributes:@{NSFontAttributeName:BFDetail_FONT} context:nil].size.width;
+        width += labelWidth;
+    }
     
     return CGSizeMake(width, BFDetail_PADDING_INSETS.top + 16 + BFDetail_PADDING_INSETS.bottom);
 }

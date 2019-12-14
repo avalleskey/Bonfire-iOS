@@ -135,11 +135,13 @@ NSString * const BFMediaObjectMIME_GIF = @"image/gif";
             imageRequestOptions.synchronous = YES;
             [[PHImageManager defaultManager] requestImageDataForAsset:asset options:imageRequestOptions resultHandler:^(NSData *imageData, NSString *dataUTI, UIImageOrientation orientation, NSDictionary *info)
              {
-//                 NSLog(@"info = %@", info);
-//                 NSLog(@"data uti: %@", dataUTI);
                  self.MIME = (__bridge NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)dataUTI, kUTTagClassMIMEType);
 
-                 if ([self.MIME isEqualToString:BFMediaObjectMIME_JPEG] || [self.MIME isEqualToString:BFMediaObjectMIME_PNG] || [self.MIME isEqualToString:BFMediaObjectMIME_GIF]) {
+                 if ([self.MIME isEqualToString:BFMediaObjectMIME_JPEG] || [self.MIME isEqualToString:BFMediaObjectMIME_PNG]) {
+                     self.MIME = BFMediaObjectMIME_JPEG;
+                     self.data = [BFMediaObject compressData:imageData mimeType:self.MIME];
+                 }
+                 else if ([self.MIME isEqualToString:BFMediaObjectMIME_GIF]) {
                      self.data = imageData;
                  }
                  else {
@@ -150,7 +152,7 @@ NSString * const BFMediaObjectMIME_GIF = @"image/gif";
                      NSData *jpgData = UIImageJPEGRepresentation(imageFromData, 1.0);
                      
                      self.MIME = BFMediaObjectMIME_JPEG;
-                     self.data = jpgData;
+                     self.data = [BFMediaObject compressData:jpgData mimeType:self.MIME];
                  }
              }];
         }
@@ -178,14 +180,80 @@ NSString * const BFMediaObjectMIME_GIF = @"image/gif";
     return self;
 }
 
-- (NSString *)MIMETypeFromFileName:(NSString *)fileName {
-    CFStringRef UTI = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, (__bridge CFStringRef)[fileName pathExtension], NULL);
-    CFStringRef MIMEType = UTTypeCopyPreferredTagWithClass(UTI, kUTTagClassMIMEType);
-    CFRelease(UTI);
-    if (!MIMEType) {
-        return @"application/octet-stream";
++ (NSData *)compressData:(NSData *)data mimeType:(NSString *)mimeType {
+    __block NSData *imageData = data;
+    
+    UIImage *image = [UIImage imageWithData:imageData];
+    
+    float actualHeight = image.size.height;
+    float actualWidth = image.size.width;
+    float maxHeight = 2436;
+    float maxWidth = 2436;
+    float imgRatio = actualWidth/actualHeight;
+    float maxRatio = maxWidth/maxHeight;
+    float compressionQuality = 0.5;//50 percent compression
+    
+    if (actualHeight > maxHeight || actualWidth > maxWidth) {
+        if(imgRatio < maxRatio){
+            //adjust width according to maxHeight
+            imgRatio = maxHeight / actualHeight;
+            actualWidth = imgRatio * actualWidth;
+            actualHeight = maxHeight;
+        }
+        else if(imgRatio > maxRatio){
+            //adjust height according to maxWidth
+            imgRatio = maxWidth / actualWidth;
+            actualHeight = imgRatio * actualHeight;
+            actualWidth = maxWidth;
+        }else{
+            actualHeight = maxHeight;
+            actualWidth = maxWidth;
+        }
     }
-    return (__bridge NSString *)(MIMEType);
+    
+    CGRect rect = CGRectMake(0.0, 0.0, actualWidth, actualHeight);
+    
+    NSLog(@"Actual Image Size (before): %.2f MB",(float)imageData.length/1024.0f/1024.0f);
+    
+    UIGraphicsBeginImageContext(rect.size);
+    
+    CGContextRef ctx = UIGraphicsGetCurrentContext();
+    [[UIColor whiteColor] setFill];
+    CGContextSetFillColorWithColor(ctx, [UIColor blackColor].CGColor);
+    
+    [image drawInRect:rect];
+    
+    UIImage *img = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    
+    NSData *newData;
+    if ([mimeType isEqualToString:@"image/jpeg"] ||
+        [mimeType isEqualToString:@"image/png"]) {
+        NSLog(@"treat as jpeg");
+        
+        newData = UIImageJPEGRepresentation(img, compressionQuality);
+        if (newData && newData.length < imageData.length) {
+            imageData = newData;
+        }
+    }
+    else if ([mimeType isEqualToString:@"image/gif"]) {
+        NSLog(@"it's a gif we can't do anything about it.....");
+    }
+    
+    DLog(@"size(%f, %f)", actualWidth, actualHeight);
+    NSLog(@"Actual Image Size (after): %.2f MB",(float)imageData.length/1024.0f/1024.0f);
+        
+    return imageData;
 }
+
+//- (NSString *)MIMETypeFromFileName:(NSString *)fileName {
+//    CFStringRef UTI = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, (__bridge CFStringRef)[fileName pathExtension], NULL);
+//    CFStringRef MIMEType = UTTypeCopyPreferredTagWithClass(UTI, kUTTagClassMIMEType);
+//    CFRelease(UTI);
+//    if (!MIMEType) {
+//        return @"application/octet-stream";
+//    }
+//    return (__bridge NSString *)(MIMEType);
+//}
 
 @end

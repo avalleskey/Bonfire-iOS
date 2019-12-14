@@ -59,6 +59,14 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic) NSString <Optional> *prevCursor;
 @property (nonatomic) NSString <Optional> *nextCursor;
 
+- (void)report;
+
+- (void)mute;
+- (void)muteWithCmpletion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
+
+- (void)unMute;
+- (void)unMuteWithCmpletion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
+
 @end
 
 @interface PostAttributes : BFJSONModel

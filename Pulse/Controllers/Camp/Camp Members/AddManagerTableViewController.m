@@ -23,6 +23,7 @@
 
 @interface AddManagerTableViewController ()
 
+@property (nonatomic, strong) BFSearchView *searchView;
 @property (nonatomic, strong) NSString *searchPhrase;
 
 @property (nonatomic, strong) UserListStream *stream;
@@ -48,6 +49,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
     self.view.tintColor = [UIColor fromHex:self.camp.attributes.color];
     self.navigationController.view.tintColor = self.view.tintColor;
     
+    self.searchPhrase = @"";
     self.theme = self.view.tintColor;
     
     [self setupNavigationBar];
@@ -115,8 +117,10 @@ static NSString * const memberCellIdentifier = @"MemberCell";
     
     NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
     
+    NSString *filterQuery = @"";
     if (self.searchPhrase && self.searchPhrase.length > 0) {
-        [params setObject:self.searchPhrase forKey:@"filter_query"];
+        filterQuery = self.searchPhrase;
+        [params setObject:filterQuery forKey:@"filter_query"];
     }
     
     NSString *nextCursor = [self.stream nextCursor];
@@ -129,7 +133,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
         [self.stream addLoadedCursor:nextCursor];
         [params setObject:nextCursor forKey:@"cursor"];
     }
-    else {
+    else if (![self.searchView.textField isFirstResponder]) {
         self.loading = true;
     }
     
@@ -138,6 +142,10 @@ static NSString * const memberCellIdentifier = @"MemberCell";
     [params setObject:filterTypes forKey:@"filter_types"];
     
     [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        if (![self.searchPhrase isEqualToString:filterQuery]) {
+            return;
+        }
+        
         UserListStreamPage *page = [[UserListStreamPage alloc] initWithDictionary:responseObject error:nil];
         
         if (page.data.count > 0) {
@@ -149,6 +157,9 @@ static NSString * const memberCellIdentifier = @"MemberCell";
                 self.stream = [[UserListStream alloc] init];
             }
             [self.stream appendPage:page];
+        }
+        else if (cursorType == StreamPagingCursorTypeNone) {
+            self.stream = [[UserListStream alloc] init];
         }
         
         self.loading = false;
@@ -210,19 +221,20 @@ static NSString * const memberCellIdentifier = @"MemberCell";
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    if (section != 0 || ![self.errorView isHidden]) return CGFLOAT_MIN;
+    if (section != 0 || (self.searchPhrase.length == 0 && ![self.errorView isHidden])) return CGFLOAT_MIN;
     
-    return 52;
+    return 56;
 }
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
-    if (section != 0 || ![self.errorView isHidden]) return nil;
+    if (section != 0 || (self.searchPhrase.length == 0 && ![self.errorView isHidden])) return nil;
     
-    UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 52)];
+    UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 56)];
     
     // search view
-    self.searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(12, 8, self.view.frame.size.width - (12 * 2), 36)];
+    self.searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(12, 10, self.view.frame.size.width - (12 * 2), 36)];
     self.searchView.textField.placeholder = @"Search Members";
     [self.searchView updateSearchText:self.searchPhrase];
+    [self.searchView setPosition:BFSearchTextPositionCenter];
     self.searchView.textField.tintColor = self.view.tintColor;
     self.searchView.textField.delegate = self;
     [self.searchView.textField bk_addEventHandler:^(id sender) {

@@ -53,7 +53,7 @@ typedef enum {
 @property (nonatomic) USER_ACTIVITY_TYPE type;
 @property (nonatomic) NSString <Optional> *createdAt;
 
-@property (nonatomic) User <Optional> *actioner;
+@property (nonatomic) Identity <Optional> *actioner;
 
 @property (nonatomic) Post <Optional> *post;
 @property (nonatomic) Post <Optional> *replyPost;

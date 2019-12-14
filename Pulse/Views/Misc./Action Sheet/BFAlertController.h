@@ -24,17 +24,41 @@ typedef NS_ENUM(NSInteger, BFAlertControllerStyle) {
 @interface BFAlertAction : NSObject <NSCopying>
 
 + (instancetype)actionWithTitle:(nullable NSString *)title style:(BFAlertActionStyle)style handler:(void (^ __nullable)(void))actionHandler;
++ (instancetype)actionWithTitle:(nullable NSString *)title iconName:(nullable NSString *)iconName style:(BFAlertActionStyle)style handler:(void (^ __nullable)(void))actionHandler;
 
 @property (nullable, nonatomic, strong) NSString *title;
+@property (nullable, nonatomic, strong) UIImage *icon;
 @property (nonatomic, readonly) BFAlertActionStyle style;
 @property (nonatomic, strong) void (^actionHandler)(void);
 @property (nonatomic, getter=isEnabled) BOOL enabled;
 
 @end
 
+@interface BFAlertActionIcon : NSObject
+
+extern NSString * const BFAlertActionIconCamera;
+extern NSString * const BFAlertActionIconPhotoLibrary;
+extern NSString * const BFAlertActionIconTwitter;
+extern NSString * const BFAlertActionIconFacebook;
+extern NSString * const BFAlertActionIconSnapchat;
+extern NSString * const BFAlertActionIconInstagramStories;
+extern NSString * const BFAlertActionIconImessage;
+extern NSString * const BFAlertActionIconCopyLink;
+extern NSString * const BFAlertActionIconCamp;
+extern NSString * const BFAlertActionIconQuote;
+extern NSString * const BFAlertActionIconReport;
+extern NSString * const BFAlertActionIconMute;
+extern NSString * const BFAlertActionIconUnMute;
+extern NSString * const BFAlertActionIconOther;
++ (NSString *)iconNameWithTitle:(NSString *)title;
+
+@end
+
 @interface BFAlertController : UIViewController
 
++ (instancetype)alertControllerWithPreferredStyle:(BFAlertControllerStyle)preferredStyle;
 + (instancetype)alertControllerWithTitle:(nullable NSString *)title message:(nullable NSString *)message preferredStyle:(BFAlertControllerStyle)preferredStyle;
++ (instancetype)alertControllerWithIcon:(UIImage *)icon title:(nullable NSString *)title message:(nullable NSString *)message preferredStyle:(BFAlertControllerStyle)preferredStyle;
 
 - (void)addAction:(BFAlertAction *)action;
 @property (nonatomic, strong) NSMutableArray<BFAlertAction *> *actions;
@@ -43,7 +67,11 @@ typedef NS_ENUM(NSInteger, BFAlertControllerStyle) {
 @property (nonatomic, strong, nullable) BFAlertAction *preferredAction;
 
 @property (nonatomic, strong, nullable) UIView *headerView;
+@property (nullable, nonatomic, copy) UIImage *icon;
 @property (nullable, nonatomic, copy) NSString *message;
+@property (nonatomic, strong, nullable) UITextField *textField;
+
+@property (nonatomic) CGFloat currentKeyboardHeight;
 
 @property (nonatomic, readonly) BFAlertControllerStyle preferredStyle;
 

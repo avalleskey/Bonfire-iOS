@@ -23,11 +23,16 @@
 
 #define MY_CAMPS_CACHE_KEY @"my_camps_paged_cache"
 
-@interface MyCampsTableViewController ()
+@interface MyCampsTableViewController () <UITextFieldDelegate>
 
 @property (nonatomic, strong) FBShimmeringView *titleView;
 
+@property (nonatomic, strong) BFSearchView *searchView;
+@property (nonatomic, strong) NSString *searchPhrase;
+@property (nonatomic) BOOL isSearching;
+
 @property (nonatomic, strong) CampListStream *stream;
+@property (nonatomic, strong) CampListStream *searchStream;
 
 @property (nonatomic, strong) NSMutableArray <Camp *> *suggestedCamps;
 
@@ -54,8 +59,11 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
     
     [self setupTableView];
     [self setupTitleView];
+    
+    self.searchPhrase = @"";
 
     self.stream = [[CampListStream alloc] init];
+    self.searchStream = [[CampListStream alloc] init];
     // load cache
     [self loadCache];
     [self loadSuggestedCamps];
@@ -255,46 +263,63 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
     
     NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
     
-    NSString *nextCursor = [self.stream nextCursor];
+    NSString *filterQuery = @"";
+    BOOL isSearch = _isSearching;
+    if (isSearch) {
+        filterQuery = self.searchPhrase;
+        [params setObject:filterQuery forKey:@"filter_query"];
+    }
+    
+    __block CampListStream *stream = [self activeStream];
+    
+    NSString *nextCursor = [stream nextCursor];
     if (cursorType == StreamPagingCursorTypeNext && nextCursor.length > 0) {
-        if ([self.stream hasLoadedCursor:nextCursor]) {
+        if ([stream hasLoadedCursor:nextCursor]) {
             return;
         }
         
         self.loadingMoreCamps = true;
-        [self.stream addLoadedCursor:nextCursor];
+        [stream addLoadedCursor:nextCursor];
         [params setObject:nextCursor forKey:@"cursor"];
     }
-    
-
-    if (cursorType == StreamPagingCursorTypeNone) {
-        if (self.stream.camps.count > 0) {
-            self.titleView.shimmering = true;
-        }
-        else  {
-            self.loading = true;
-        }
+    else if (_isSearching || [self.searchView.textField isFirstResponder] || (cursorType == StreamPagingCursorTypeNone && stream.camps.count > 0)) {
+        self.titleView.shimmering = true;
+    }
+    else {
+        self.loading = true;
     }
     
     [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         CampListStreamPage *page = [[CampListStreamPage alloc] initWithDictionary:responseObject error:nil];
         
-        if (cursorType == StreamPagingCursorTypeNone || !self.stream) {
-            self.stream = [[CampListStream alloc] init];
-        }
-        
-        if (page.data.count > 0) {
-            if ([params objectForKey:@"cursor"]) {
-                self.loadingMoreCamps = false;
+        if (!isSearch || (isSearch && [filterQuery isEqualToString:self.searchPhrase])) {
+            if (cursorType == StreamPagingCursorTypeNone || !stream) {
+                stream = [[CampListStream alloc] init];
             }
             
-            [self.stream appendPage:page];
+            if (page.data.count > 0) {
+                if ([params objectForKey:@"cursor"]) {
+                    self.loadingMoreCamps = false;
+                }
+                
+                [stream appendPage:page];
+            }
             
-            [self saveCacheIfNeeded];
+            if (isSearch) {
+                self.searchStream = stream;
+            }
+            else {
+                self.stream = stream;
+            }
+            
+            if (!isSearch) {
+                if (page.data.count > 0) {
+                    [self saveCacheIfNeeded];
+                }
+                // update the suggested camps
+                [self loadSuggestedCamps];
+            }
         }
-            
-        // update the suggested camps
-        [self loadSuggestedCamps];
                         
         self.loading = false;
         
@@ -303,7 +328,7 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
         NSLog(@"CampViewController / getRequests() - error: %@", error);
         //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
         if (nextCursor.length > 0) {
-            [self.stream removeLoadedCursor:nextCursor];
+            [stream removeLoadedCursor:nextCursor];
         }
         self.loading = false;
         
@@ -311,10 +336,32 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
     }];
 }
 
+- (void)setSearchPhrase:(NSString *)searchPhrase {
+    if (![searchPhrase isEqualToString:_searchPhrase]) {
+        _searchPhrase = searchPhrase;
+        
+        _isSearching = (searchPhrase && searchPhrase.length > 0);
+        
+        [self.tableView reloadData];
+    }
+}
+- (CampListStream *)activeStream {
+    CampListStream *stream;
+    if (_isSearching) {
+        stream = self.searchStream;
+    }
+    else {
+        stream = self.stream;
+    }
+    
+    return stream;
+}
+
 - (void)update {
     [self.tableView reloadData];
     
-    if (!self.loading && self.stream.camps.count == 0) {
+    CampListStream *stream = [self activeStream];
+    if (!self.loading && stream.camps.count == 0) {
         // empty state
         if (!self.errorView) {
             [self setupErrorView];
@@ -323,16 +370,23 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
         self.errorView.hidden = false;
         
         if ([HAWebService hasInternet]) {
-            [self showErrorViewWithType:ErrorViewTypeHeart title:@"My Camps" description:@"The Camps you join or subscribe to will show up here" actionTitle:@"Discover Camps" actionBlock:^{
-                TabController *tabVC = (TabController *)[Launcher activeTabController];
-                if (tabVC) {
-                    tabVC.selectedIndex = [tabVC.viewControllers indexOfObject:tabVC.storeNavVC];
-                    [tabVC tabBar:tabVC.tabBar didSelectItem:tabVC.storeNavVC.tabBarItem];
-                }
-                else {
+            if (_isSearching) {
+                [self showErrorViewWithType:ErrorViewTypeNotFound title:@"No Camps Found" description:@"You aren't in any Camps that match your search" actionTitle:@"Discover Camps" actionBlock:^{
                     [Launcher openDiscover];
-                }
-            }];
+                }];
+            }
+            else {
+                [self showErrorViewWithType:ErrorViewTypeHeart title:@"My Camps" description:@"The Camps you join or subscribe to will show up here" actionTitle:@"Discover Camps" actionBlock:^{
+                    TabController *tabVC = (TabController *)[Launcher activeTabController];
+                    if (tabVC) {
+                        tabVC.selectedIndex = [tabVC.viewControllers indexOfObject:tabVC.storeNavVC];
+                        [tabVC tabBar:tabVC.tabBar didSelectItem:tabVC.storeNavVC.tabBarItem];
+                    }
+                    else {
+                        [Launcher openDiscover];
+                    }
+                }];
+            }
         }
         else {
             [self showErrorViewWithType:ErrorViewTypeNoInternet title:@"No Internet" description:@"Check your network settings and tap below to try again" actionTitle:@"Refresh" actionBlock:^{
@@ -352,12 +406,13 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
     return 3;
 }
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    if (self.stream.camps.count > 0) {
+    CampListStream *stream = [self activeStream];
+    if (stream.camps.count > 0) {
         if (section == 1 && self.suggestedCamps.count > 0) {
-            return 1;
+            return _isSearching ? 0 : 1;
         }
         else if (section == 2) {
-            return self.stream.camps.count;
+            return stream.camps.count;
         }
     }
     
@@ -365,6 +420,8 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    CampListStream *stream = [self activeStream];
+    
     if (indexPath.section == 1 && self.suggestedCamps.count > 0) {
         CampCardsListCell *cell = [tableView dequeueReusableCellWithIdentifier:cardsListCellReuseIdentifier forIndexPath:indexPath];
         
@@ -380,17 +437,17 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
         return cell;
     }
     
-    if (indexPath.section == 2 && indexPath.row < self.stream.camps.count) {
+    if (indexPath.section == 2 && indexPath.row < stream.camps.count) {
         SearchResultCell *cell = [tableView dequeueReusableCellWithIdentifier:memberCellIdentifier forIndexPath:indexPath];
         
         if (cell == nil) {
             cell = [[SearchResultCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:memberCellIdentifier];
         }
         
-        Camp *camp = self.stream.camps[indexPath.row];
+        Camp *camp = stream.camps[indexPath.row];
         cell.camp = camp;
         
-        cell.lineSeparator.hidden = (indexPath.row == self.stream.camps.count - 1);
+        cell.lineSeparator.hidden = (indexPath.row == stream.camps.count - 1);
         
         return cell;
     }
@@ -439,13 +496,14 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (self.stream.camps.count > 0) {
-        if (indexPath.section == 1) {
+    CampListStream *stream = [self activeStream];
+    if (stream.camps.count > 0) {
+        if (!_isSearching && indexPath.section == 1) {
             if (indexPath.row == 0) {
                 return self.suggestedCamps.count > 0 ? SMALL_MEDIUM_CARD_HEIGHT - 8 : 0;
             }
         }
-        else if (indexPath.section == 2 && self.stream.camps.count > 0) {
+        else if (indexPath.section == 2 && stream.camps.count > 0) {
             return 68;
         }
     }
@@ -454,12 +512,13 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    if (!self.loading && self.stream.camps.count == 0) return CGFLOAT_MIN;
+    CampListStream *stream = [self activeStream];
+    if (!self.loading && stream.camps.count == 0) return CGFLOAT_MIN;
     
     if (section == 0) {
         return 56;
     }
-    else if (section == 1 && self.suggestedCamps.count > 0) {
+    else if (!_isSearching && section == 1 && self.suggestedCamps.count > 0) {
         return 56; // [BFHeaderView heightWithTopBlock:false];
     }
     
@@ -467,33 +526,46 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
 }
 
 - (nullable UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
-    if (!self.loading && self.stream.camps.count == 0) return nil;
+    CampListStream *stream = [self activeStream];
+    
+    if (!self.loading && stream.camps.count == 0) return nil;
     
     if (section == 0) {
-        // search bar
-        UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 48)];
-        //header.backgroundColor = [UIColor colorNamed:@"Navigation_ClearBackgroundColor"];
+        UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 56)];
         
-        CGFloat buttonWidth = self.view.frame.size.width - 24;
-        buttonWidth = buttonWidth > IPAD_CONTENT_MAX_WIDTH ? IPAD_CONTENT_MAX_WIDTH : buttonWidth;
+        // search view
+        self.searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(12, 10, self.view.frame.size.width - (12 * 2), 36)];
+//        self.searchView.textField.placeholder = @"Search Camps";
+//        [self.searchView updateSearchText:self.searchPhrase];
+        [self.searchView setPosition:BFSearchTextPositionCenter];
+        self.searchView.textField.tintColor = self.view.tintColor;
+        self.searchView.textField.delegate = self;
+//        [self.searchView.textField bk_addEventHandler:^(id sender) {
+//            self.searchPhrase = self.searchView.textField.text;
+//
+//            [self.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:NO];
+//            [self getCampsWithCursor:StreamPagingCursorTypeNone];
+//            [self.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:NO];
+//        } forControlEvents:UIControlEventEditingChanged];
         
-        BFSearchView *searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(self.view.frame.size.width / 2 - buttonWidth / 2, 12, buttonWidth, 36)];
-        searchView.theme = BFTextFieldThemeAuto;
-        [searchView.textField bk_removeAllBlockObservers];
-        searchView.textField.userInteractionEnabled = false;
-        for (UIGestureRecognizer *gestureRecognizer in searchView.gestureRecognizers) {
-            [searchView removeGestureRecognizer:gestureRecognizer];
+        self.searchView.textField.userInteractionEnabled = false;
+        self.searchView.theme = BFTextFieldThemeAuto;
+        [self.searchView.textField bk_removeAllBlockObservers];
+        self.searchView.textField.userInteractionEnabled = false;
+        for (UIGestureRecognizer *gestureRecognizer in self.searchView.gestureRecognizers) {
+            [self.searchView removeGestureRecognizer:gestureRecognizer];
         }
-        [header bk_whenTapped:^{
+        [self.searchView bk_whenTapped:^{
             [Launcher openSearch];
         }];
-        [header addSubview:searchView];
+        
+        [header addSubview:self.searchView];
         
         return header;
     }
     
-    if (self.stream.camps.count > 0) {
-        if (section == 1) {
+    if (stream.camps.count > 0) {
+        if (!_isSearching && section == 1) {
             UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 56)];
 
             NSString *bigTitle;
@@ -553,17 +625,19 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
     return nil;
 }
 - (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
+    CampListStream *stream = [self activeStream];
+    
     if (section == 0) return CGFLOAT_MIN;
-    if (section == 1 && self.suggestedCamps.count == 0) return CGFLOAT_MIN;
+    if (section == 1 && (_isSearching || self.suggestedCamps.count == 0)) return CGFLOAT_MIN;
     
     if (section == 2) {
-        BOOL hasAnotherPage = self.stream.pages.count > 0 && self.stream.nextCursor.length > 0;
-        BOOL showLoadingFooter = self.loading || ((self.loadingMoreCamps || hasAnotherPage) && ![self.stream hasLoadedCursor:self.stream.nextCursor]);
+        BOOL hasAnotherPage = stream.pages.count > 0 && stream.nextCursor.length > 0;
+        BOOL showLoadingFooter = self.loading || ((self.loadingMoreCamps || hasAnotherPage) && ![stream hasLoadedCursor:stream.nextCursor]);
         
         if (showLoadingFooter) {
             return 52;
         }
-        else if (self.stream.camps.count == 0) {
+        else if (stream.camps.count == 0) {
             return CGFLOAT_MIN;
         }
     }
@@ -573,12 +647,14 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
     return (section == 2 ? 16 : 24);
 }
 - (UIView*)tableView:(UITableView*)tableView viewForFooterInSection:(NSInteger)section {
+    CampListStream *stream = [self activeStream];
+    
     if (section == 0 || section == 1) return nil;
     
     if (section == 2) {
         // last row
-        BOOL hasAnotherPage = self.stream.pages.count > 0 && self.stream.nextCursor.length > 0;
-        BOOL showLoadingFooter = self.loading || ((self.loadingMoreCamps || hasAnotherPage) && ![self.stream hasLoadedCursor:self.stream.nextCursor]);
+        BOOL hasAnotherPage = stream.pages.count > 0 && stream.nextCursor.length > 0;
+        BOOL showLoadingFooter = self.loading || ((self.loadingMoreCamps || hasAnotherPage) && ![stream hasLoadedCursor:stream.nextCursor]);
         
         if (showLoadingFooter) {
             UIView *footer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 52)];
@@ -590,13 +666,13 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
             
             [spinner startAnimating];
             
-            if (!self.loadingMoreCamps && self.stream.pages.count > 0 && self.stream.nextCursor.length > 0) {
+            if (!self.loadingMoreCamps && stream.pages.count > 0 && stream.nextCursor.length > 0) {
                 [self getCampsWithCursor:StreamPagingCursorTypeNext];
             }
             
             return footer;
         }
-        else if (self.stream.camps.count == 0) {
+        else if (stream.camps.count == 0) {
             return nil;
         }
     }
@@ -615,17 +691,39 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    CampListStream *stream = [self activeStream];
+    
     if (indexPath.section == 2) {
         Camp *camp;
         
-        if (indexPath.row < self.stream.camps.count) {
-            camp = self.stream.camps[indexPath.row];
+        if (indexPath.row < stream.camps.count) {
+            camp = stream.camps[indexPath.row];
         }
         
         if (camp) {
             [Launcher openCamp:camp];
         }
     }
+}
+
+- (void)textFieldDidBeginEditing:(UITextField *)textField {
+    [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.8f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+        [self.searchView setPosition:BFSearchTextPositionLeft];
+    } completion:nil];
+}
+- (void)textFieldDidEndEditing:(UITextField *)textField {
+    self.searchView.textField.userInteractionEnabled = false;
+    
+    [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.8f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+        [self.searchView setPosition:BFSearchTextPositionCenter];
+    } completion:^(BOOL finished) {
+        
+    }];
+}
+- (BOOL)textFieldShouldReturn:(UITextField *)textField {
+    [self.searchView.textField resignFirstResponder];
+    
+    return FALSE;
 }
 
 @end

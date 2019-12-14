@@ -23,6 +23,12 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)textFieldDidChange:(UITextField *)textField withRowId:(NSString *)rowId;
 - (void)toggleValueDidChange:(UISwitch *)toggle withRowId:(NSString *)rowId;
 
+- (UIView * _Nullable)alternativeViewForHeaderInSection:(NSInteger)section;
+- (CGFloat)alternativeHeightForHeaderInSection:(NSInteger)section;
+
+- (UIView * _Nullable)alternativeViewForFooterInSection:(NSInteger)section;
+- (CGFloat)alternativeHeightForFooterInSection:(NSInteger)section;
+
 @end
 
 @interface SmartListTableViewController : UITableViewController <UITextFieldDelegate>

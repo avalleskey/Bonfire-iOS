@@ -157,6 +157,10 @@ NSString * const CAMP_ROLE_ADMIN = @"admin";
 + (JSONKeyMapper *)keyMapper {
     return [JSONKeyMapper mapperForSnakeCase];
 }
++ (BOOL)propertyIsOptional:(NSString*)propertyName
+{
+    return YES; // all are optional
+}
 
 @end
 

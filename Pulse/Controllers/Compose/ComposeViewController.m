@@ -42,6 +42,7 @@
 
 @property (nonatomic) BFAttachmentView *quotedAttachmentView;
 @property (nonatomic) ComposeTextViewCell *textViewCell;
+@property (nonatomic) BOOL isScrolling;
 
 @end
 
@@ -76,8 +77,6 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     [self setupTableView];
     [self setupTitleView];
     [self setupToolbar];
-    
-    [self checkRequirements];
 }
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
@@ -90,7 +89,6 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     
     if ([self isBeingPresented] || [self isMovingToParentViewController]) {
         // Prevents code inside this block from running more than once
-        
         [((SimpleNavigationController *)self.navigationController).rightActionView bk_removeAllBlockObservers];
         [((SimpleNavigationController *)self.navigationController).rightActionView bk_whenTapped:^{
             [self postMessage];
@@ -98,7 +96,6 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         
         [((SimpleNavigationController *)self.navigationController).leftActionView bk_removeAllBlockObservers];
         [((SimpleNavigationController *)self.navigationController).leftActionView bk_whenTapped:^{
-            
             if (self.textViewCell.textView.text.length > 0 || self.textViewCell.media.objects.count > 0) {
                 // confirm discard changes
                 BFAlertController *confirmActionSheet = [BFAlertController alertControllerWithTitle:nil message:@"Are you sure you want to discard your post?" preferredStyle:BFAlertControllerStyleActionSheet];
@@ -121,19 +118,27 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         }];
         
         self.textViewCell.media.maxImages = (self.replyingTo == nil ? 4 : 1);
+        [self updatePlaceholder];
         if (self.replyingTo && !self.replyingToIcebreaker) {
             self.navigationItem.titleView = nil;
             self.title = @"Reply";
-            [self updatePlaceholder];
+            self.postingIn = self.replyingTo.attributes.postedIn;
+            
+            [self.navigationController.navigationBar setTitleTextAttributes:
+                            @{NSForegroundColorAttributeName:[UIColor bonfirePrimaryColor],
+                                         NSFontAttributeName:[UIFont systemFontOfSize:18.f weight:UIFontWeightBold]}];
         }
         else if (self.postingIn) {
-            [self updatePlaceholder];
             self.titleAvatar.camp = self.postingIn;
             [self updateTitleText:self.postingIn.attributes.title];
         }
-        else {
-            self.titleAvatar.user = [[Session sharedInstance] currentUser];
+        else if (self.postToProfile) {
+            self.titleAvatar.user = [Session sharedInstance].currentUser;
             [self updateTitleText:@"My Profile"];
+        }
+        else {
+            self.titleAvatar.camp = nil;
+            [self updateTitleText:@"Select a Camp"];
         }
         
         [self updateTintColor];
@@ -177,7 +182,6 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     }];
     
     self.titleAvatar = [[BFAvatarView alloc] initWithFrame:CGRectMake(self.titleView.frame.size.width / 2 - 12, 0, 24, 24)];
-    self.titleAvatar.user = [Session sharedInstance].currentUser;
     [self.titleView addSubview:self.titleAvatar];
     
     self.titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 26, 102, 13)];
@@ -217,6 +221,16 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 }
 - (void)privacySelectionDidChange:(Camp * _Nullable)selection {
     self.postingIn = selection;
+    
+    if (!self.postingIn) {
+        self.postToProfile = true;
+        [self updateTitleText:@"My Profile"];
+        self.titleAvatar.user = [[Session sharedInstance] currentUser];
+        
+        [self updatePlaceholder];
+        [self updateToolbarAvailability];
+        [self updateTintColor];
+    }
 }
 - (void)updateTintColor {
     Camp *camp;
@@ -233,7 +247,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         if (self.postingIn) {
             camp = self.postingIn;
         }
-        else {
+        else  if (self.postToProfile) {
             identity = [Session sharedInstance].currentUser;
         }
     }
@@ -245,7 +259,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         self.view.tintColor = [UIColor fromHex:identity.attributes.color adjustForOptimalContrast:true];
     }
     else {
-        self.view.tintColor = [UIColor bonfirePrimaryColor];
+        self.view.tintColor = [UIColor bonfireSecondaryColor];
     }
     
     if (self.textViewCell) {
@@ -377,11 +391,17 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     [self detectEntities];
     CGFloat textViewHeightAfter = textView.frame.size.height;
     
+    // update height of the cell
+    [self.textViewCell resizeTextView];
+    
+    [UIView setAnimationsEnabled:NO];
+    [self.tableView beginUpdates];
+    [self.tableView endUpdates];
+    [UIView setAnimationsEnabled:YES];
+    
     if (diff(textViewHeightBefore, textViewHeightAfter)) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:1] atScrollPosition:UITableViewScrollPositionBottom animated:false];
-            [self scrollViewDidScroll:self.tableView];
-        });
+        [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:1] atScrollPosition:UITableViewScrollPositionBottom animated:false];
+        [self scrollViewDidScroll:self.tableView];
     }
 }
 - (NSInteger)charactersRemainingWithStirng:(NSString *)string {
@@ -459,14 +479,6 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     // -> set selected range using the range before updating the attributed text
     [self.textViewCell.textView setSelectedRange:s_range];
     
-    // update height of the cell
-    [self.textViewCell resizeTextView];
-    [self.tableView beginUpdates];
-    [self.tableView endUpdates];
-    
-    if (insideUsername) NSLog(@"insideUsername ==> true");
-    if (insideCampTag) NSLog(@"insideCampTag ==> true");
-    
     if (insideUsername || insideCampTag) {
         [self getAutoCompleteResults:[self.textViewCell.textView.text substringWithRange:self.activeTagRange]];
     }
@@ -498,18 +510,18 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         if ([self charactersRemainingWithStirng:self.textViewCell.textView.text] >= 0) {
             // only do this if it *just* went over
             [HapticHelper generateFeedback:FeedbackType_Notification_Warning];
-            [UIView animateWithDuration:0.2f delay:0 options:(UIViewAnimationOptionCurveEaseOut) animations:^{
-                self.textViewCell.textView.alpha = 0.5;
-            } completion:^(BOOL finished) {
-                [UIView animateWithDuration:0.15f delay:0 options:(UIViewAnimationOptionCurveEaseOut) animations:^{
-                    self.textViewCell.textView.alpha = 1;
-                } completion:nil];
-            }];
+//            [UIView animateWithDuration:0.2f delay:0 options:(UIViewAnimationOptionCurveEaseOut) animations:^{
+//                self.textViewCell.textView.alpha = 0.5;
+//            } completion:^(BOOL finished) {
+//                [UIView animateWithDuration:0.15f delay:0 options:(UIViewAnimationOptionCurveEaseOut) animations:^{
+//                    self.textViewCell.textView.alpha = 1;
+//                } completion:nil];
+//            }];
         }
     }
     else if (_textViewCell.textView.alpha != 1) {
-        [_textViewCell.textView.layer removeAllAnimations];
-        _textViewCell.textView.alpha = 1;
+//        [_textViewCell.textView.layer removeAllAnimations];
+//        _textViewCell.textView.alpha = 1;
     }
     
     return true;
@@ -546,16 +558,19 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             defaultPlaceholder = creatorIdentifier ? [NSString stringWithFormat:@"Reply to @%@...", creatorIdentifier] : @"Add a reply...";
         }
     }
-    else if (self.postingIn == nil) {
-        defaultPlaceholder = publicPostPlaceholder;
-    }
-    else if (self.postingIn != nil) {
-        if (self.postingIn.attributes.title == nil) {
-            defaultPlaceholder = @"Share something...";
-        }
-        else {
+    else if (self.postingIn) {
+        if (self.postingIn.attributes.title) {
             defaultPlaceholder = [NSString stringWithFormat:@"Share in %@...", self.postingIn.attributes.title];
         }
+        else {
+            defaultPlaceholder = @"Share with the Camp...";
+        }
+    }
+    else if (self.postToProfile) {
+        defaultPlaceholder = publicPostPlaceholder;
+    }
+    else {
+        defaultPlaceholder = @"Share something...";
     }
     mediaPlaceholder = @"Add caption or Share";
     
@@ -751,9 +766,9 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 }
 
 - (void)mediaDidChange {
-    NSLog(@"media did change");
     [self updateToolbarAvailability];
     [self updatePlaceholder];
+    
     [self.tableView beginUpdates];
     [self.tableView endUpdates];
 }
@@ -791,6 +806,23 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 
 - (void)postMessage {
     if (!self.textViewCell) return;
+    
+    if (!self.replyingTo && !self.postToProfile && !self.postingIn) {
+        BFAlertController *selectCampFirst = [BFAlertController alertControllerWithTitle:@"Please Select a Camp" message:nil preferredStyle:BFAlertControllerStyleAlert];
+        
+        BFAlertAction *action = [BFAlertAction actionWithTitle:@"Select a Camp" style:BFAlertActionStyleDefault handler:^{
+            [self openPrivacySelector];
+        }];
+        selectCampFirst.preferredAction = action;
+        [selectCampFirst addAction:action];
+        
+        BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
+        [selectCampFirst addAction:cancel];
+        
+        [[Launcher topMostViewController] presentViewController:selectCampFirst animated:YES completion:nil];
+        
+        return;
+    }
     
     NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
     NSString *message = self.textViewCell.textView.text;
@@ -838,6 +870,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     PrivacySelectorTableViewController *sitvc = [[PrivacySelectorTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
     sitvc.currentSelection = self.postingIn;
     sitvc.delegate = self;
+    sitvc.shareOnProfile = self.postToProfile;
     
     SimpleNavigationController *simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:sitvc];
     simpleNav.transitioningDelegate = [Launcher sharedInstance];
@@ -914,12 +947,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             [self updateTitleText:self.postingIn.attributes.title];
             self.titleAvatar.camp = self.postingIn;
         }
-        else {
-            [self updateTitleText:@"My Profile"];
-            self.titleAvatar.camp = nil;
-            self.titleAvatar.imageView.image = nil;
-            self.titleAvatar.user = [[Session sharedInstance] currentUser];
-        }
+        
         [self updatePlaceholder];
         [self updateToolbarAvailability];
         [self updateTintColor];
@@ -1101,7 +1129,10 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             
             cell.quotedAttachmentView = self.quotedAttachmentView;
             
-            self.textViewCell = cell;
+            if (!self.textViewCell) {
+                self.textViewCell = cell;
+                [self checkRequirements];
+            }
             [self updatePlaceholder];
             [self detectEntities];
             

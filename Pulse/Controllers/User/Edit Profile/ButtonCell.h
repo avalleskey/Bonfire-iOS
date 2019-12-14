@@ -18,6 +18,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic) UIColor *kButtonColorBonfire;
 
 @property (strong, nonatomic) UILabel *buttonLabel;
+@property (strong, nonatomic) UIImageView *iconImageView;
 @property (strong, nonatomic) UIImageView *checkIcon;
 
 @property (nonatomic) NSInteger gutterPadding; // default: 12

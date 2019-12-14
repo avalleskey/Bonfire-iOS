@@ -37,10 +37,11 @@ target 'Pulse' do
   
   pod 'FBSDKCoreKit'
   pod 'FBSDKShareKit'
+  pod 'SnapSDK', :subspecs => ['SCSDKCreativeKit']
   
   # analytics
-  pod 'Fabric', '~> 1.10.2'
-  pod 'Crashlytics', '~> 3.14.0'
+  pod 'Fabric'
+  pod 'Crashlytics'
   pod 'Firebase/Analytics'
   # pod 'Firebase/MLNLSmartReply'
   

@@ -275,47 +275,19 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
         return;
     }
     
-    if (![self isBot] && ![self isCurrentUser] && ([self.user.attributes.context.me.status isEqualToString:USER_STATUS_FOLLOWS] || [self.user.attributes.context.me.status isEqualToString:USER_STATUS_FOLLOW_BOTH])) {
-        BOOL userPostNotificationsOn = self.user.attributes.context.me.follow.me.subscription != nil;
-        BFAlertAction *togglePostNotifications = [BFAlertAction actionWithTitle:[NSString stringWithFormat:@"Turn Post Notifications %@", userPostNotificationsOn ? @"Off" : @"On"] style:BFAlertActionStyleDefault handler:^{
-            NSLog(@"toggle post notifications");
-            // confirm action
-            if ([Session sharedInstance].deviceToken.length > 0) {
-                if (userPostNotificationsOn) {
-                    [self.user unsubscribeFromPostNotifications];
-                }
-                else {
-                    [self.user subscribeToPostNotifications];
-                }
-            }
-            else {
-                // confirm action
-                BFAlertController *notificationsNotice = [BFAlertController alertControllerWithTitle:@"Notifications Not Enabled" message:@"In order to enable Post Notifications, you must turn on notifications for Bonfire in the iOS Settings" preferredStyle:BFAlertControllerStyleAlert];
-                
-                BFAlertAction *alertCancel = [BFAlertAction actionWithTitle:@"Okay" style:BFAlertActionStyleCancel handler:nil];
-                [notificationsNotice addAction:alertCancel];
-                
-                [[Launcher topMostViewController] presentViewController:notificationsNotice animated:true completion:nil];
-            }
+    if ([self isCurrentUser]) {
+        BFAlertAction *openEditProfile = [BFAlertAction actionWithTitle:@"Edit Profile" style:BFAlertActionStyleDefault handler:^{
+            [Launcher openEditProfile];
         }];
-        [actionSheet addAction:togglePostNotifications];
-    }
-    
-    // 1.A.* -- Any user, any page, any following state
-    BFAlertAction *shareUser = [BFAlertAction actionWithTitle:[NSString stringWithFormat:@"Share %@ via...", [self isCurrentUser] ? @"your profile" : [NSString stringWithFormat:@"@%@", identity.attributes.identifier]] style:BFAlertActionStyleDefault handler:^{
-        NSLog(@"share profile");
+        [actionSheet addAction:openEditProfile];
         
-        if (self.user) {
-            [Launcher shareIdentity:self.user];
-        }
-        else if (self.bot) {
-            [Launcher shareIdentity:self.bot];
-        }
-    }];
-    [actionSheet addAction:shareUser];
-    
-    if (![self isCurrentUser]) {
-        BFAlertAction *blockUsername = [BFAlertAction actionWithTitle:[NSString stringWithFormat:@"%@", userIsBlocked ? @"Unblock" : @"Block"] style:BFAlertActionStyleDefault handler:^ {
+        BFAlertAction *openSettings = [BFAlertAction actionWithTitle:@"Settings" style:BFAlertActionStyleDefault handler:^{
+            [Launcher openSettings];
+        }];
+        [actionSheet addAction:openSettings];
+    }
+    else {
+        BFAlertAction *blockUsername = [BFAlertAction actionWithTitle:[NSString stringWithFormat:@"%@", userIsBlocked ? @"Unblock" : @"Block"] style:BFAlertActionStyleDestructive handler:^ {
             // confirm action
             BFAlertController *alertConfirmController = [BFAlertController alertControllerWithTitle:[NSString stringWithFormat:@"%@ %@", userIsBlocked ? @"Unblock" : @"Block" , identity.attributes.displayName] message:[NSString stringWithFormat:@"Are you sure you would like to block @%@?", identity.attributes.identifier] preferredStyle:BFAlertControllerStyleAlert];
             
@@ -351,48 +323,46 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
             [[Launcher topMostViewController] presentViewController:alertConfirmController animated:true completion:nil];
         }];
         [actionSheet addAction:blockUsername];
-        
-        BFAlertAction *reportUsername = [BFAlertAction actionWithTitle:[NSString stringWithFormat:@"Report"] style:BFAlertActionStyleDefault handler:^ {
-            // confirm action
-            BFAlertController *saveAndOpenTwitterConfirm = [BFAlertController alertControllerWithTitle:[NSString stringWithFormat:@"Report %@", identity.attributes.displayName] message:[NSString stringWithFormat:@"Are you sure you would like to report @%@?", identity.attributes.identifier] preferredStyle:BFAlertControllerStyleAlert];
-            
-            BFAlertAction *alertConfirm = [BFAlertAction actionWithTitle:@"Report" style:BFAlertActionStyleDestructive handler:^{
-                NSLog(@"report user");
-                [BFAPI reportIdentity:identity completion:^(BOOL success, id responseObject) {
-                    if (success) {
-                        // update the state to blocked
-                        
-                    }
-                    else {
-                        // error reporting user
-                    }
-                }];
-            }];
-            [saveAndOpenTwitterConfirm addAction:alertConfirm];
-            
-            BFAlertAction *alertCancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:^{
-                NSLog(@"cancel report user");
-                
-                // TODO: Verify this closes both action sheets
-            }];
-            [saveAndOpenTwitterConfirm addAction:alertCancel];
-            
-            [[Launcher topMostViewController] presentViewController:saveAndOpenTwitterConfirm animated:true completion:nil];
-        }];
-        [actionSheet addAction:reportUsername];
     }
     
-    if ([self isCurrentUser]) {
-        BFAlertAction *openEditProfile = [BFAlertAction actionWithTitle:@"Edit Profile" style:BFAlertActionStyleDefault handler:^{
-            [Launcher openEditProfile];
-        }];
-        [actionSheet addAction:openEditProfile];
+//    if (![self isBot] && ![self isCurrentUser] && ([self.user.attributes.context.me.status isEqualToString:USER_STATUS_FOLLOWS] || [self.user.attributes.context.me.status isEqualToString:USER_STATUS_FOLLOW_BOTH])) {
+//        BOOL userPostNotificationsOn = self.user.attributes.context.me.follow.me.subscription != nil;
+//        BFAlertAction *togglePostNotifications = [BFAlertAction actionWithTitle:[NSString stringWithFormat:@"Turn Post Notifications %@", userPostNotificationsOn ? @"Off" : @"On"] style:BFAlertActionStyleDefault handler:^{
+//            NSLog(@"toggle post notifications");
+//            // confirm action
+//            if ([Session sharedInstance].deviceToken.length > 0) {
+//                if (userPostNotificationsOn) {
+//                    [self.user unsubscribeFromPostNotifications];
+//                }
+//                else {
+//                    [self.user subscribeToPostNotifications];
+//                }
+//            }
+//            else {
+//                // confirm action
+//                BFAlertController *notificationsNotice = [BFAlertController alertControllerWithTitle:@"Notifications Not Enabled" message:@"In order to enable Post Notifications, you must turn on notifications for Bonfire in the iOS Settings" preferredStyle:BFAlertControllerStyleAlert];
+//
+//                BFAlertAction *alertCancel = [BFAlertAction actionWithTitle:@"Okay" style:BFAlertActionStyleCancel handler:nil];
+//                [notificationsNotice addAction:alertCancel];
+//
+//                [[Launcher topMostViewController] presentViewController:notificationsNotice animated:true completion:nil];
+//            }
+//        }];
+//        [actionSheet addAction:togglePostNotifications];
+//    }
+    
+    // 1.A.* -- Any user, any page, any following state
+    BFAlertAction *shareUser = [BFAlertAction actionWithTitle:[NSString stringWithFormat:@"Share %@ via...", [self isCurrentUser] ? @"your profile" : [NSString stringWithFormat:@"@%@", identity.attributes.identifier]] style:BFAlertActionStyleDefault handler:^{
+        NSLog(@"share profile");
         
-        BFAlertAction *openSettings = [BFAlertAction actionWithTitle:@"Settings" style:BFAlertActionStyleDefault handler:^{
-            [Launcher openSettings];
-        }];
-        [actionSheet addAction:openSettings];
-    }
+        if (self.user) {
+            [Launcher shareIdentity:self.user];
+        }
+        else if (self.bot) {
+            [Launcher shareIdentity:self.bot];
+        }
+    }];
+    [actionSheet addAction:shareUser];
     
     BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
     [actionSheet addAction:cancel];
@@ -443,6 +413,14 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
         
         // update table view parent object
         self.tableView.parentObject = bot;
+    }
+}
+
+- (void)setLoading:(BOOL)loading {
+    if (loading != _loading) {
+        _loading = loading;
+        
+        self.tableView.loading = _loading;
     }
 }
 
@@ -525,12 +503,12 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
         }
         else {
             [self showErrorViewWithType:([HAWebService hasInternet] ? ErrorViewTypeGeneral : ErrorViewTypeNoInternet) title:([HAWebService hasInternet] ? @"Error Loading" : @"No Internet") description:@"Check your network settings and tap below to try again" actionTitle:@"Refresh" actionBlock:^{
+                self.loading = true;
                 [self refresh];
             }];
         }
         
         self.loading = false;
-        self.tableView.loading = false;
         [self.tableView refreshAtTop];
     }];
 }
@@ -578,7 +556,6 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
     }
     else {
         self.loading = false;
-        self.tableView.loading = false;
         self.tableView.loadingMore = false;
         [self.tableView refreshAtTop];
                 
@@ -669,7 +646,6 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
             
             self.loading = false;
             
-            self.tableView.loading = false;
             self.tableView.loadingMore = false;
             
             if (cursorType == StreamPagingCursorTypeNext) {
@@ -684,12 +660,12 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
             
             if (self.tableView.stream.posts.count == 0) {
                 [self showErrorViewWithType:([HAWebService hasInternet] ? ErrorViewTypeGeneral : ErrorViewTypeNoInternet) title:([HAWebService hasInternet] ? @"Error Loading" : @"No Internet") description:@"Check your network settings and tap below to try again" actionTitle:@"Refresh" actionBlock:^{
+                    self.loading = true;
                     [self refresh];
                 }];
             }
             
             self.loading = false;
-            self.tableView.loading = false;
             self.tableView.loadingMore = false;
             self.tableView.userInteractionEnabled = true;
             self.tableView.scrollEnabled = false;
@@ -698,7 +674,6 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
     }
     else {
         self.loading = false;
-        self.tableView.loading = false;
         self.tableView.loadingMore = false;
         self.tableView.userInteractionEnabled = true;
         self.tableView.scrollEnabled = false;
@@ -718,7 +693,6 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
     self.tableView.dataType = RSTableViewTypeProfile;
     self.tableView.tableViewStyle = RSTableViewStyleGrouped;
     self.tableView.backgroundColor = [UIColor clearColor];
-    self.tableView.loading = true;
     self.tableView.extendedDelegate = self;
     [self.tableView registerClass:[ProfileHeaderCell class] forCellReuseIdentifier:profileHeaderCellIdentifier];
     [self.tableView registerClass:[BotHeaderCell class] forCellReuseIdentifier:botHeaderCellIdentifier];

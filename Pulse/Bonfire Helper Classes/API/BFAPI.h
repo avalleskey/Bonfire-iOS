@@ -17,7 +17,6 @@ NS_ASSUME_NONNULL_BEGIN
 @interface BFAPI : NSObject
 
 #pragma mark - Identity
-+ (void)reportIdentity:(Identity *_Nonnull)identity completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
 + (void)blockIdentity:(Identity *_Nonnull)identity completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
 + (void)unblockIdentity:(Identity *_Nonnull)identity completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
 
@@ -33,7 +32,6 @@ NS_ASSUME_NONNULL_BEGIN
 #pragma mark - Post
 + (void)createPost:(NSDictionary *)params postingIn:(Camp * _Nullable)postingIn replyingTo:(Post * _Nullable)replyingTo attachments:(PostAttachments * _Nullable)attachments;
 + (void)deletePost:(Post *_Nonnull)post completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
-+ (void)reportPost:(NSString *)postId completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
 + (void)votePost:(Post *_Nonnull)post completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
 + (void)unvotePost:(Post *_Nonnull)post completion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
 

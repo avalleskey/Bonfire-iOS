@@ -21,9 +21,11 @@
 
 #ifdef DEBUG
     #define DLog(FORMAT, ...) printf("%s: %s   %s\n", __PRETTY_FUNCTION__, [[NSString stringWithFormat:@"%d", __LINE__] UTF8String], [[NSString stringWithFormat:FORMAT, ##__VA_ARGS__] UTF8String])
+    #define DSimpleLog(FORMAT, ...) printf("%s\n", [[NSString stringWithFormat:FORMAT, ##__VA_ARGS__] UTF8String])
     #define DSpacer() printf("\n")
 #else
     #define DLog(...) {}
+    #define DSimpleLog(...) {}
     #define DSpacer() {}
 #endif
 

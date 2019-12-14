@@ -175,8 +175,15 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     }
 }
 - (void)populateSearchResults:(NSDictionary *)responseData {
-    [self.searchResults addObjectsFromArray:responseData[@"results"][@"camps"]];
-    [self.searchResults addObjectsFromArray:responseData[@"results"][@"users"]];
+    if (responseData[@"results"] && [responseData[@"results"] isKindOfClass:[NSDictionary class]]) {
+        if (responseData[@"results"][@"camps"]) {
+            [self.searchResults addObjectsFromArray:responseData[@"results"][@"camps"]];
+        }
+        if (responseData[@"results"][@"users"]) {
+            [self.searchResults addObjectsFromArray:responseData[@"results"][@"users"]];
+        }
+    }
+    
     [self objectifyRsultsArray:self.searchResults];
 }
 

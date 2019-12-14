@@ -12,6 +12,7 @@
 #import "UIColor+Palette.h"
 #import "ButtonCell.h"
 #import "Launcher.h"
+#import "UIResponder+FirstResponder.h"
 
 @interface BFAlertAction ()
 
@@ -31,9 +32,65 @@
 }
 
 + (instancetype)actionWithTitle:(nullable NSString *)title style:(BFAlertActionStyle)style handler:(void (^ __nullable)(void))actionHandler {
+    return [self actionWithTitle:title iconName:nil style:style handler:actionHandler];
+}
+
++ (instancetype)actionWithTitle:(nullable NSString *)title iconName:(nullable NSString *)iconName style:(BFAlertActionStyle)style handler:(void (^ __nullable)(void))actionHandler {
     BFAlertAction *action = [[self alloc] init];
     action.title = title;
     action.style = style;
+    
+    // set icon
+    if (!iconName || iconName.length == 0) {
+        // check if it matches any automatic icon detection
+        NSString *lowerCaseTitle = [title lowercaseString];
+        if ([lowerCaseTitle isEqualToString:@"take photo"]) {
+            iconName = [BFAlertActionIcon iconNameWithTitle:BFAlertActionIconCamera];
+        }
+        else if ([lowerCaseTitle isEqualToString:@"choose from library"]) {
+            iconName = [BFAlertActionIcon iconNameWithTitle:BFAlertActionIconPhotoLibrary];
+        }
+        else if ([lowerCaseTitle isEqualToString:@"twitter"]) {
+            iconName = [BFAlertActionIcon iconNameWithTitle:BFAlertActionIconTwitter];
+        }
+        else if ([lowerCaseTitle isEqualToString:@"facebook"]) {
+            iconName = [BFAlertActionIcon iconNameWithTitle:BFAlertActionIconFacebook];
+        }
+        else if ([lowerCaseTitle isEqualToString:@"snapchat"]) {
+            iconName = [BFAlertActionIcon iconNameWithTitle:BFAlertActionIconSnapchat];
+        }
+        else if ([lowerCaseTitle isEqualToString:@"instagram stories"]) {
+            iconName = [BFAlertActionIcon iconNameWithTitle:BFAlertActionIconInstagramStories];
+        }
+        else if ([lowerCaseTitle isEqualToString:@"imessage"]) {
+            iconName = [BFAlertActionIcon iconNameWithTitle:BFAlertActionIconImessage];
+        }
+//        else if ([lowerCaseTitle isEqualToString:@"copy link to post"]) {
+//            iconName = [BFAlertActionIcon iconNameWithTitle:BFAlertActionIconCopyLink];
+//        }
+//        else if ([lowerCaseTitle isEqualToString:@"open camp"]) {
+//            iconName = [BFAlertActionIcon iconNameWithTitle:BFAlertActionIconCamp];
+//        }
+//        else if ([lowerCaseTitle isEqualToString:@"quote post"]) {
+//            iconName = [BFAlertActionIcon iconNameWithTitle:BFAlertActionIconQuote];
+//        }
+//        else if ([lowerCaseTitle isEqualToString:@"report"]) {
+//            iconName = [BFAlertActionIcon iconNameWithTitle:BFAlertActionIconReport];
+//        }
+//        else if ([lowerCaseTitle isEqualToString:@"mute conversation"]) {
+//            iconName = [BFAlertActionIcon iconNameWithTitle:BFAlertActionIconMute];
+//        }
+//        else if ([lowerCaseTitle isEqualToString:@"unmute conversation"]) {
+//            iconName = [BFAlertActionIcon iconNameWithTitle:BFAlertActionIconUnMute];
+//        }
+        else if ([lowerCaseTitle isEqualToString:@"other"] || [lowerCaseTitle isEqualToString:@"more options"]) {
+            iconName = [BFAlertActionIcon iconNameWithTitle:BFAlertActionIconOther];
+        }
+    }
+    if (iconName.length > 0 && [UIImage imageNamed:iconName]) {
+        action.icon = [[UIImage imageNamed:iconName] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+    }
+    
     if (actionHandler) {
         action.actionHandler = actionHandler;
     }
@@ -59,6 +116,36 @@
 
 @end
 
+@implementation BFAlertActionIcon
+
+NSString * const BFAlertActionIconCamera = @"camera";
+NSString * const BFAlertActionIconPhotoLibrary = @"photo_library";
+NSString * const BFAlertActionIconTwitter = @"twitter";
+NSString * const BFAlertActionIconFacebook = @"facebook";
+NSString * const BFAlertActionIconSnapchat = @"snapchat";
+NSString * const BFAlertActionIconInstagramStories = @"ig_stories";
+NSString * const BFAlertActionIconImessage = @"imessage";
+NSString * const BFAlertActionIconCopyLink = @"link";
+NSString * const BFAlertActionIconCamp = @"camp";
+NSString * const BFAlertActionIconQuote = @"quote";
+NSString * const BFAlertActionIconReport = @"report";
+NSString * const BFAlertActionIconMute = @"mute";
+NSString * const BFAlertActionIconUnMute = @"unmute";
+NSString * const BFAlertActionIconOther = @"other";
+
++ (NSString *)iconNameWithTitle:(NSString *)title {
+    if (title) {
+        NSString *iconName = [NSString stringWithFormat:@"alert_action_icon_%@", title];
+        if ([UIImage imageNamed:iconName]) {
+            return iconName;
+        }
+    }
+        
+    return @"";
+}
+
+@end
+
 @interface BFAlertController () <UITableViewDelegate, UITableViewDataSource>
 
 @property (readwrite, assign) BFAlertControllerStyle preferredStyle;
@@ -66,6 +153,7 @@
 @property (nonatomic, strong) UIView *contentView;
 @property (nonatomic, strong) UIView *pullTabIndicatorView;
 @property (nonatomic, strong) UITableView *tableView;
+@property (nonatomic, strong) id previousFirstResponder;
 
 @property (nonatomic) CGPoint centerBegin;
 @property (nonatomic) CGPoint centerFinal;
@@ -83,22 +171,62 @@ static NSString * const buttonCellIdentifier = @"ButtonCell";
         self.modalPresentationStyle = UIModalPresentationOverCurrentContext;
         self.transitioningDelegate = nil;
         self.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
+        
+        self.previousFirstResponder = [UIResponder currentFirstResponder];
+        if (self.previousFirstResponder) {
+            NSLog(@"previous first responder: %@", _previousFirstResponder);
+            [self.previousFirstResponder resignFirstResponder];
+        }
     }
     return self;
 }
 
-+ (instancetype)alertControllerWithTitle:(nullable NSString *)title message:(nullable NSString *)message preferredStyle:(BFAlertControllerStyle)preferredStyle {
++ (instancetype)alertControllerWithPreferredStyle:(BFAlertControllerStyle)preferredStyle {
     BFAlertController *alertController = [[self alloc] init];
-    alertController.title = title;
-    alertController.message = message;
     alertController.preferredStyle = preferredStyle;
         
     return alertController;
 }
 
++ (instancetype)alertControllerWithTitle:(nullable NSString *)title message:(nullable NSString *)message preferredStyle:(BFAlertControllerStyle)preferredStyle {
+    BFAlertController *alertController = [self alertControllerWithPreferredStyle:preferredStyle];
+    alertController.title = title;
+    alertController.message = message;
+        
+    return alertController;
+}
+
++ (instancetype)alertControllerWithIcon:(UIImage *)icon title:(nullable NSString *)title message:(nullable NSString *)message preferredStyle:(BFAlertControllerStyle)preferredStyle {
+    BFAlertController *alertController = [self alertControllerWithTitle:title message:message preferredStyle:preferredStyle];
+    alertController.icon = icon;
+        
+    return alertController;
+}
+
+- (id)currentFirstResponder
+{
+    self.previousFirstResponder = nil;
+    [[UIApplication sharedApplication] sendAction:@selector(findFirstResponder:) to:nil from:nil forEvent:nil];
+    return self.previousFirstResponder;
+}
+
+-(void)findFirstResponder:(id)sender {
+   self.previousFirstResponder = self;
+}
+
 - (void)setPreferredStyle:(BFAlertControllerStyle)preferredStyle {
     if (preferredStyle != _preferredStyle) {
         _preferredStyle = preferredStyle;
+    }
+}
+
+- (void)setTextField:(UITextField *)textField {
+    if (textField != _textField) {
+        _textField = textField;
+        
+        [self addListeners];
+        [self.tableView reloadData];
+        [self resize];
     }
 }
 
@@ -149,6 +277,23 @@ static NSString * const buttonCellIdentifier = @"ButtonCell";
             } completion:nil];
         }
     }
+    
+    if (self.textField) {
+        [self addListeners];
+    }
+}
+- (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    
+    [self.view endEditing:true];
+    
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillChangeFrameNotification object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillHideNotification object:nil];
+}
+
+- (void)addListeners {
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillChangeFrame:) name:UIKeyboardWillChangeFrameNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillDismiss:) name:UIKeyboardWillHideNotification object:nil];
 }
 
 - (UIStatusBarStyle)preferredStatusBarStyle {
@@ -217,12 +362,22 @@ static NSString * const buttonCellIdentifier = @"ButtonCell";
     if (self.headerView) {
         return self.headerView;
     }
-    else if (self.title.length > 0 || self.message.length > 0) {
+    else if (self.icon || self.title.length > 0 || self.message.length > 0 || self.textField) {
         UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.tableView.frame.size.width, 0)];
         
         CGFloat bottomY = headerEdgeInsets.top;
+        CGFloat bottomPadding = 0;
+        if (self.icon) {
+            UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(header.frame.size.width / 2 - self.icon.size.width / 2, bottomY, self.icon.size.width, self.icon.size.height)];
+            imageView.image = self.icon;
+            [header addSubview:imageView];
+            
+            bottomY  = imageView.frame.origin.y + imageView.frame.size.height;
+            bottomPadding = roundf(imageView.frame.size.height * 0.25);
+        }
+        
         if (self.title.length > 0) {
-            UILabel *titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(headerEdgeInsets.left, bottomY, header.frame.size.width - (headerEdgeInsets.left + headerEdgeInsets.right), 0)];
+            UILabel *titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(headerEdgeInsets.left, bottomY + bottomPadding, header.frame.size.width - (headerEdgeInsets.left + headerEdgeInsets.right), 0)];
             titleLabel.text = self.title;
             titleLabel.textAlignment = NSTextAlignmentCenter;
             titleLabel.textColor = [UIColor bonfirePrimaryColor];
@@ -233,11 +388,12 @@ static NSString * const buttonCellIdentifier = @"ButtonCell";
             SetHeight(titleLabel, height);
             [header addSubview:titleLabel];
             
-            bottomY += titleLabel.frame.size.height;
+            bottomY = titleLabel.frame.origin.y + titleLabel.frame.size.height;
+            bottomPadding = 6;
         }
         
         if (self.message.length > 0) {
-            UILabel *messageLabel = [[UILabel alloc] initWithFrame:CGRectMake(headerEdgeInsets.left, bottomY + (self.title.length > 0 ? 6 : 0), header.frame.size.width - (headerEdgeInsets.left + headerEdgeInsets.right), 0)];
+            UILabel *messageLabel = [[UILabel alloc] initWithFrame:CGRectMake(headerEdgeInsets.left, bottomY + bottomPadding, header.frame.size.width - (headerEdgeInsets.left + headerEdgeInsets.right), 0)];
             messageLabel.text = self.message;
             messageLabel.textAlignment = NSTextAlignmentCenter;
             messageLabel.textColor = [UIColor bonfireSecondaryColor];
@@ -249,6 +405,27 @@ static NSString * const buttonCellIdentifier = @"ButtonCell";
             [header addSubview:messageLabel];
             
             bottomY = messageLabel.frame.origin.y + messageLabel.frame.size.height;
+            bottomPadding = 6;
+        }
+        
+        if (self.textField) {
+            self.textField.frame = CGRectMake(headerEdgeInsets.left, bottomY + (bottomPadding > 0 ? 16 : 0), header.frame.size.width - (headerEdgeInsets.left + headerEdgeInsets.right), 44);
+//            self.textField.backgroundColor = [UIColor bonfireDetailColor];
+            self.textField.layer.cornerRadius = 10.f;
+            self.textField.layer.borderColor = [UIColor tableViewSeparatorColor].CGColor;
+            self.textField.layer.borderWidth = 1;
+            self.textField.font = [UIFont systemFontOfSize:15.f weight:UIFontWeightRegular];
+            self.textField.textColor = [UIColor bonfirePrimaryColor];
+            
+            UIView *paddingView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 10, 1)];
+            self.textField.leftViewMode = UITextFieldViewModeAlways;
+            self.textField.rightViewMode = UITextFieldViewModeAlways;
+            self.textField.leftView = paddingView;
+            self.textField.rightView = paddingView;
+            
+            [header addSubview:self.textField];
+            
+            bottomY = self.textField.frame.origin.y + self.textField.frame.size.height;
         }
         
         SetHeight(header, bottomY + headerEdgeInsets.bottom);
@@ -262,17 +439,32 @@ static NSString * const buttonCellIdentifier = @"ButtonCell";
     if (self.headerView) {
         return self.headerView.frame.size.height;
     }
-    else if (self.title.length > 0 || self.message.length > 0) {
+    else if (self.title.length > 0 || self.message.length > 0 || self.textField) {
         CGFloat height = headerEdgeInsets.top;
+        CGFloat bottomPadding = 0;
+        
+        if (self.icon) {
+            height += self.icon.size.height;
+            bottomPadding = roundf(self.icon.size.height * 0.25);
+        }
         
         if (self.title.length > 0) {
             CGFloat titleHeight = ceilf([self.title boundingRectWithSize:CGSizeMake(self.tableView.frame.size.width - (headerEdgeInsets.left + headerEdgeInsets.right), CGFLOAT_MAX) options:(NSStringDrawingUsesFontLeading|NSStringDrawingUsesLineFragmentOrigin) attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightSemibold]} context:nil].size.height);
-            height += titleHeight;
+            height += (bottomPadding + titleHeight);
+            
+            bottomPadding = 6;
         }
         
         if (self.message.length > 0) {
             CGFloat messageHeight = ceilf([self.message boundingRectWithSize:CGSizeMake(self.tableView.frame.size.width - (headerEdgeInsets.left + headerEdgeInsets.right), CGFLOAT_MAX) options:(NSStringDrawingUsesFontLeading|NSStringDrawingUsesLineFragmentOrigin) attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:15.f weight:UIFontWeightRegular]} context:nil].size.height);
-            height += (self.title.length > 0 ? 6 : 0) + messageHeight;
+            height += (bottomPadding + messageHeight);
+            
+            bottomPadding = 6;
+        }
+        
+        if (self.textField) {
+            CGFloat textFieldHeight = 44;
+            height += (bottomPadding > 0 ? 16 : 0) + textFieldHeight;
         }
         
         return height + headerEdgeInsets.bottom + (self.preferredStyle == BFAlertControllerStyleActionSheet ? 8 : 0);
@@ -319,6 +511,10 @@ static NSString * const buttonCellIdentifier = @"ButtonCell";
         }
         else {
             cell.buttonLabel.font = [UIFont systemFontOfSize:buttonFontPointSize weight:UIFontWeightRegular];
+        }
+        
+        if (action.icon) {
+            cell.iconImageView.image = action.icon;
         }
         
         return cell;
@@ -461,6 +657,12 @@ static NSString * const buttonCellIdentifier = @"ButtonCell";
             if (handler) {
                 handler();
             }
+            
+            if (self.previousFirstResponder) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [self.previousFirstResponder becomeFirstResponder];
+                });
+            }
         }];
     }];
 }
@@ -474,6 +676,27 @@ static NSString * const buttonCellIdentifier = @"ButtonCell";
                                                  cornerRadii:CGSizeMake(radius, radius)].CGPath;
     
     sender.layer.mask = maskLayer;
+}
+
+- (void)keyboardWillChangeFrame:(NSNotification *)notification {
+    NSDictionary* keyboardInfo = [notification userInfo];
+    NSValue* keyboardFrameBegin = [keyboardInfo valueForKey:UIKeyboardFrameEndUserInfoKey];
+    CGRect keyboardFrameBeginRect = [keyboardFrameBegin CGRectValue];
+    _currentKeyboardHeight = keyboardFrameBeginRect.size.height;
+    
+    UIWindow *window = UIApplication.sharedApplication.keyWindow;
+    UIEdgeInsets safeAreaInsets = window.safeAreaInsets;
+    
+    self.contentView.center = CGPointMake(self.view.frame.size.width / 2, (safeAreaInsets.top + (self.view.frame.size.height - _currentKeyboardHeight)) / 2);
+}
+
+- (void)keyboardWillDismiss:(NSNotification *)notification {
+    _currentKeyboardHeight = 0;
+    
+    NSNumber *duration = [notification.userInfo objectForKey:UIKeyboardAnimationDurationUserInfoKey];
+    [UIView animateWithDuration:[duration floatValue] delay:0 options:[[notification.userInfo objectForKey:UIKeyboardAnimationCurveUserInfoKey] intValue] << 16 animations:^{
+        self.contentView.center = CGPointMake(self.view.frame.size.width / 2, self.view.frame.size.height / 2);
+    } completion:nil];
 }
 
 @end

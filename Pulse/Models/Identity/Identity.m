@@ -10,8 +10,7 @@
 #import "GTMNSString+HTML.h"
 #import "Bot.h"
 #import "User.h"
-#import "HAWebService.h"
-@import Firebase;
+#import "Session.h"
 
 @implementation Identity
 
@@ -30,15 +29,17 @@
 - (BOOL)isVerified {
     return [self.attributes isVerified];
 }
-
-- (void)report {
-    [FIRAnalytics logEventWithName:@"user_report"
-                            parameters:@{}];
-        
-    NSString *url = [NSString stringWithFormat:@"users/%@/report", self.identifier];
+- (BOOL)isBot {
+    return ([self.type isEqualToString:@"bot"]);
+}
+- (BOOL)isCurrentIdentity {
+    if (!self.identifier && !self.attributes.identifier) {
+        return NO;
+    }
     
-    [[HAWebService authenticatedManager] POST:url parameters:@{} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-    } failure:nil];
+    User *currentUser = [Session sharedInstance].currentUser;
+    
+    return ([self.attributes.identifier isEqualToString:currentUser.attributes.identifier] || [self.identifier isEqualToString:currentUser.identifier]);
 }
 
 @end
@@ -52,7 +53,8 @@
                                                                   @"createdAt": @"created_at",
                                                                   @"isSuspended": @"is_suspended",
                                                                   @"isVerified": @"verified",
-                                                                  @"theDescription": @"description"
+                                                                  @"theDescription": @"description",
+                                                                  @"requiresInvite": @"requires_invite"
                                                                   }];
 }
 

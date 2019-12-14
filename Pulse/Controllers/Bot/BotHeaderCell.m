@@ -278,7 +278,7 @@
             NSArray *campRanges = [self.bot.attributes.theDescription rangesForCampTagMatches];
             for (NSValue *value in campRanges) {
                 NSRange range = [value rangeValue];
-                NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://camp?display_id=%@", LOCAL_APP_URI, [[self.bot.attributes.theDescription substringWithRange:range] stringByReplacingOccurrencesOfString:@"#" withString:@""]]];
+                NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://camp?camptag=%@", LOCAL_APP_URI, [[self.bot.attributes.theDescription substringWithRange:range] stringByReplacingOccurrencesOfString:@"#" withString:@""]]];
                 [self.bioLabel addLinkToURL:url withRange:range];
             }
         }

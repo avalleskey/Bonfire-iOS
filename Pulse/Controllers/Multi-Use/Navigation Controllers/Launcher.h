@@ -71,13 +71,23 @@ NS_ASSUME_NONNULL_BEGIN
 + (void)sharePost:(Post *)post;
 + (void)openPostActions:(Post *)post;
 + (void)shareCamp:(Camp *)camp;
++ (void)shareCurrentUser;
 + (void)shareIdentity:(Identity *)identity;
 + (void)shareOniMessage:(NSString *)message image:(UIImage * _Nullable)image;
 + (void)openActionsForPost:(Post *)post;
 
+// sticker share
++ (void)shareOnSnapchat;
++ (void)shareUserOnSnapchat:(User *)user;
++ (void)shareCampOnSnapchat:(Camp *)camp;
++ (void)shareOnInstagram;
++ (void)shareUserOnInstagram:(User *)user;
++ (void)shareCampOnInstagram:(Camp *)camp;
+
 + (void)expandImageView:(UIImageView *)imageView;
 + (void)exapndImageView:(UIImageView *)imageView media:(NSArray *)media imageViews:(NSArray <UIImageView *> *)imageViews selectedIndex:(NSInteger)selectedIndex;
 + (void)requestAppStoreRating;
++ (void)requestNotifications;
 
 + (TabController *)tabController;
 + (UITabBarController *)activeTabController;

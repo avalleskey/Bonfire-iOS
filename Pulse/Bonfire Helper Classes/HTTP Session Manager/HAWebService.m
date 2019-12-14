@@ -122,27 +122,32 @@ static HAWebService *manager;
             completionHandler(response, responseObject, error);
         }
         else {
-            if (code == 0 || (code >= 200 && code < 300)) {
-                NSLog(@"🎉 (code: %lu) %@ → %@", code, request.HTTPMethod, request.URL.absoluteString);
+            if (error) {
+                DSimpleLog(@"[🚩] (code: %lu) %@ → %@", code, request.HTTPMethod, request.URL.absoluteString);
+                                
+                if (error.code == NSURLErrorNotConnectedToInternet) {
+                    DSimpleLog(@"[🚩] error: network connectivity");
+                }
+                else {
+                    NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+                    if (ErrorResponse.length > 0) {
+                        DSimpleLog(@"[🚩] error respone: %@",ErrorResponse);
+                    }
+                }
             }
             else {
-                NSLog(@"🚩 (code: %lu) %@ → %@", code, request.HTTPMethod, request.URL.absoluteString);
-                
-                NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-                if (ErrorResponse.length > 0) {
-                    NSLog(@"🚩 error respone: %@",ErrorResponse);
-                }
+                DSimpleLog(@"[🎉] (code: %lu) %@ → %@", code, request.HTTPMethod, request.URL.absoluteString);
             }
             
             completionHandler(response, responseObject, error);
         }
     };
     
-    NSLog(@"| 👋 %@ → %@", request.HTTPMethod, request.URL.absoluteString);
-    NSLog(@"| 👋 headers: %@", request.allHTTPHeaderFields);
+    DSimpleLog(@"[👋] %@ → %@", request.HTTPMethod, request.URL.absoluteString);
+    DSimpleLog(@"[👋] headers: %@", request.allHTTPHeaderFields);
     NSString *body = [[NSString alloc] initWithData:[request HTTPBody] encoding:NSUTF8StringEncoding];
     if (body.length > 0) {
-        NSLog(@"| 👋 body: %@", [[NSString alloc] initWithData:[request HTTPBody] encoding:NSUTF8StringEncoding]);
+        DSimpleLog(@"[👋] body: %@", [[NSString alloc] initWithData:[request HTTPBody] encoding:NSUTF8StringEncoding]);
     }
     
     NSURLSessionDataTask *task = [super dataTaskWithRequest:request uploadProgress:uploadProgressBlock downloadProgress:downloadProgressBlock completionHandler:authFailBlock];

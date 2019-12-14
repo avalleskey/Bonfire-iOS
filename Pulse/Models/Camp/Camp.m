@@ -1,5 +1,7 @@
 #import "Camp.h"
 #import "HAWebService.h"
+#import <JGProgressHUD.h>
+#import "Launcher.h"
 @import Firebase;
 
 @implementation Camp
@@ -44,8 +46,9 @@
     subscription.createdAt = [dateFormatter stringFromDate:date];
     self.attributes.context.camp.membership.subscription = subscription;
     
+    NSString *deviceToken = [[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"];
     NSString *url = [NSString stringWithFormat:@"camps/%@/members/subscriptions", [self campIdentifier]];
-    [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] POST:url parameters:@{@"vendor": @"APNS", @"token": [[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"]} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {        
+    [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] POST:url parameters:deviceToken?@{@"vendor": @"APNS", @"token": deviceToken}:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         [[NSNotificationCenter defaultCenter] postNotificationName:@"CampUpdated" object:self];
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         
@@ -63,15 +66,6 @@
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         
     }];
-}
-- (void)report {
-    [FIRAnalytics logEventWithName:@"camp_report"
-                            parameters:@{}];
-        
-    NSString *url = [NSString stringWithFormat:@"camps/%@/report", self.identifier];
-    
-    [[HAWebService authenticatedManager] POST:url parameters:@{} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-    } failure:nil];
 }
 
 @end

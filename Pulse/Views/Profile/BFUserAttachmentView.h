@@ -28,7 +28,11 @@ NS_ASSUME_NONNULL_BEGIN
 @property (strong, nonatomic) UILabel *bioLabel;
 @property (strong, nonatomic) BFDetailsCollectionView *detailsCollectionView;
 
-+ (CGFloat)heightForUser:(User *)user width:(CGFloat)width;
+@property (nonatomic) BOOL showBio;
+@property (nonatomic) BOOL showDetails;
+
++ (CGFloat)heightForUser:(User *)user width:(CGFloat)width showBio:(BOOL)showBio showDetails:(BOOL)showDetails;
++ (CGFloat)heightForUser:(User *)user width:(CGFloat)width; // assumes showBio and showDetails are TRUE
 
 @end
 

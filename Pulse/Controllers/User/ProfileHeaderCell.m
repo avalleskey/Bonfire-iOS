@@ -21,6 +21,7 @@
 #define USER_CONTEXT_BUBBLE_TAG_NEW_USER 1
 #define USER_CONTEXT_BUBBLE_TAG_BIRTHDAY 2
 #define USER_CONTEXT_BUBBLE_TAG_CAMP_CRAZY 3
+#define USER_CONTEXT_BUBBLE_TAG_EDIT 4
 
 @implementation ProfileHeaderCell
 
@@ -107,7 +108,10 @@
                 NSString *message;
                 BFAlertAction *cta;
                 
-                if (self.campAvatarReasonView.tag == USER_CONTEXT_BUBBLE_TAG_NEW_USER) {
+                if (self.campAvatarReasonView.tag == USER_CONTEXT_BUBBLE_TAG_EDIT) {
+                    [Launcher openEditProfile];
+                }
+                else if (self.campAvatarReasonView.tag == USER_CONTEXT_BUBBLE_TAG_NEW_USER) {
                     title = @"New User";
                     message = [NSString stringWithFormat:@"%@ joined %@.", [self isCurrentUser] ? @"You" : @"This user", [NSDate mysqlDatetimeFormattedAsTimeAgo:self.user.attributes.createdAt withForm:TimeAgoLongForm]];
                 }
@@ -203,7 +207,7 @@
         [self.followButton bk_whenTapped:^{
             // update state if possible
             if ([self.followButton.status isEqualToString:USER_STATUS_ME]) {
-                [Launcher openEditProfile];
+                [Launcher shareCurrentUser];
             }
             else if ([self.followButton.status isEqualToString:USER_STATUS_FOLLOWS] ||
                      [self.followButton.status isEqualToString:USER_STATUS_FOLLOW_BOTH]) {
@@ -376,7 +380,12 @@
         
         // set camp indicator
         BOOL showIndicator = false;
-        if (user.attributes.createdAt.length > 0) {
+//        if ([user isCurrentUser]) {
+//            showIndicator = true;
+//            self.campAvatarReasonLabel.text = @"✏️";
+//            self.campAvatarReasonView.tag = USER_CONTEXT_BUBBLE_TAG_EDIT;
+//        }
+        if (!showIndicator && user.attributes.createdAt.length > 0) {
             NSDateFormatter *inputFormatter = [[NSDateFormatter alloc] init];
                 [inputFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ssZ"];
             NSDate *date = [inputFormatter dateFromString:user.attributes.createdAt];
@@ -464,7 +473,7 @@
             NSArray *campRanges = [self.user.attributes.bio rangesForCampTagMatches];
             for (NSValue *value in campRanges) {
                 NSRange range = [value rangeValue];
-                NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://camp?display_id=%@", LOCAL_APP_URI, [[self.user.attributes.bio substringWithRange:range] stringByReplacingOccurrencesOfString:@"#" withString:@""]]];
+                NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://camp?camptag=%@", LOCAL_APP_URI, [[self.user.attributes.bio substringWithRange:range] stringByReplacingOccurrencesOfString:@"#" withString:@""]]];
                 [self.bioLabel addLinkToURL:url withRange:range];
             }
         }
@@ -480,6 +489,12 @@
         if (user.attributes.website.displayUrl.length > 0) {
             BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeWebsite value:user.attributes.website.displayUrl action:^{
                 [Launcher openURL:user.attributes.website.actionUrl];
+            }];
+            [details addObject:item];
+        }
+        if ([user isCurrentIdentity]) {
+            BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeEdit value:(details.count==0?@"Edit Profile":@"") action:^{
+                [Launcher openEditProfile];
             }];
             [details addObject:item];
         }
@@ -558,6 +573,10 @@
             }
             if (user.attributes.website.displayUrl.length > 0) {
                 BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeWebsite value:user.attributes.website.displayUrl action:nil];
+                [details addObject:item];
+            }
+            if ([user isCurrentIdentity]) {
+                BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeEdit value:(details.count==0?@"Edit Profile":@"") action:nil];
                 [details addObject:item];
             }
             

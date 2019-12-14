@@ -47,8 +47,8 @@
 @property (nonatomic, strong) NSMutableArray *steps;
 @property (nonatomic, strong) ComplexNavigationController *launchNavVC;
 @property (nonatomic) CGFloat currentKeyboardHeight;
-@property (nonatomic, strong) NSMutableArray *campSuggestions;
 
+@property (nonatomic, strong) NSMutableArray <Camp *> *campSuggestions;
 //@property (nonatomic) FIRTrace *signInTrace;
 //@property (nonatomic) FIRTrace *signUpTrace;
 
@@ -104,12 +104,44 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(receivedNotificationsUpdate:) name:@"NotificationsDidFailToRegister" object:nil];
 }
 
-- (void)requestNotifications {
-    [[UNUserNotificationCenter currentNotificationCenter] requestAuthorizationWithOptions:(UNAuthorizationOptionAlert|UNAuthorizationOptionSound|UNAuthorizationOptionBadge) completionHandler:^(BOOL granted, NSError * _Nullable error) {
-        // 1. check if permisisons granted
-        if (granted) {
-            // do work here
-            [[UIApplication sharedApplication] registerForRemoteNotifications];
+- (void)requestNotifications {    
+    [[UNUserNotificationCenter currentNotificationCenter] getNotificationSettingsWithCompletionHandler:^(UNNotificationSettings * _Nonnull settings) {
+        if (settings.authorizationStatus == UNAuthorizationStatusNotDetermined && ![[NSUserDefaults standardUserDefaults] objectForKey:@"push_notifications_last_requested"]) {
+            BFAlertController *accessRequest = [BFAlertController alertControllerWithIcon:[UIImage imageNamed:@"alert_icon_notifications"] title:@"Receive Instant Updates" message:@"Turn on Push Notifications to get instant updates from Bonfire" preferredStyle:BFAlertControllerStyleAlert];
+            
+            BFAlertAction *okAction = [BFAlertAction actionWithTitle:@"Okay" style:BFAlertActionStyleDefault handler:^{
+                [[UNUserNotificationCenter currentNotificationCenter] requestAuthorizationWithOptions:(UNAuthorizationOptionAlert|UNAuthorizationOptionSound|UNAuthorizationOptionBadge) completionHandler:^(BOOL granted, NSError * _Nullable error) {
+                    // 1. check if permisisons granted
+                    if (granted) {
+                        // do work here
+                        dispatch_async(dispatch_get_main_queue(), ^{
+                            NSLog(@"inside dispatch async block main thread from main thread");
+                            [[UIApplication sharedApplication] registerForRemoteNotifications];
+                        });
+                    }
+                }];
+            }];
+            [accessRequest addAction:okAction];
+            
+            BFAlertAction *notNowAction = [BFAlertAction actionWithTitle:@"Not Now" style:BFAlertActionStyleCancel handler:^{
+                [self receivedNotificationsUpdate:nil];
+            }];
+            [accessRequest addAction:notNowAction];
+            
+            accessRequest.preferredAction = okAction;
+            
+            dispatch_async(dispatch_get_main_queue(), ^{
+                NSLog(@"inside dispatch async block main thread from main thread");
+                [[NSUserDefaults standardUserDefaults] setObject:[NSDate new] forKey:@"push_notifications_last_requested"];
+                
+                [[Launcher topMostViewController] presentViewController:accessRequest animated:YES completion:nil];
+            });
+        }
+        else if (settings.authorizationStatus != UNAuthorizationStatusDenied) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                NSLog(@"inside dispatch async block main thread from main thread");
+                [[UIApplication sharedApplication] registerForRemoteNotifications];
+            });
         }
         else {
             [self receivedNotificationsUpdate:nil];
@@ -550,7 +582,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         [self.campSuggestionsCollectionView registerClass:[SmallMediumCampCardCell class] forCellWithReuseIdentifier:smallMediumCardReuseIdentifier];
         [self.campSuggestionsCollectionView registerClass:[UICollectionViewCell class] forCellWithReuseIdentifier:blankCellIdentifier];
         
-        self.campSuggestions = [[NSMutableArray alloc] init];
+        self.campSuggestions = [[NSMutableArray<Camp *> alloc] init];
         
         [block addSubview:self.campSuggestionsCollectionView];
         
@@ -1293,12 +1325,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             
             [self greyOutNextButton];
             
-            if (self.campSuggestions.count == 0) {
-                [self requestNotifications];
-            }
-            else {
-                [self nextStep:true];
-            }
+            [self nextStep:true];
             
             //[self.signUpTrace stop];
             //self.signInTrace = nil;
@@ -2016,23 +2043,14 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     [[HAWebService authenticatedManager] GET:@"users/me/camps/lists/suggested" parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSArray *responseData = responseObject[@"data"];
         
-        self.campSuggestions = [[NSMutableArray alloc] init];
-        for (NSInteger i = 0; i < responseData.count; i++) {
-            // iterate through each camps_list
-            NSDictionary *camps_list_object = responseData[i];
-            
-            NSMutableArray *ids = [[NSMutableArray alloc] init];
-            NSMutableArray *camps_list = [[NSMutableArray alloc] initWithArray:camps_list_object[@"attributes"][@"camps"]];
-            NSMutableArray *remove_list = [[NSMutableArray alloc] init];
-            for (NSDictionary *campDict in camps_list) {
-                Camp *camp = [[Camp alloc] initWithDictionary:campDict error:nil];
-                if ([ids containsObject:camp.identifier]) {
-                    [remove_list addObject:campDict];
+        if ([responseData isKindOfClass:[NSArray class]]) {
+            self.campSuggestions = [[NSMutableArray<Camp *> alloc] init];
+            for (NSInteger i = 0; i < responseData.count; i++) {
+                if ([responseData[i] isKindOfClass:[NSDictionary class]]) {
+                    Camp *camp = [[Camp alloc] initWithDictionary:responseData[i] error:nil];
+                    [self.campSuggestions addObject:camp];
                 }
             }
-            [camps_list removeObjectsInArray:remove_list];
-            
-            [self.campSuggestions addObjectsFromArray:[camps_list copy]];
         }
         
         if (self.campSuggestions.count == 0) {
@@ -2044,16 +2062,6 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             
             if (stepIndex == self.currentStep) {
                 [self nextStep:true];
-            }
-        }
-        else {
-            // randomly sort
-            NSInteger count = [self.campSuggestions count];
-            for (NSInteger i = 0; i < count; ++i) {
-                // Select a random element between i and end of array to swap with.
-                NSInteger nElements = count - i;
-                NSInteger n = (arc4random() % nElements) + i;
-                [self.campSuggestions exchangeObjectAtIndex:i withObjectAtIndex:n];
             }
         }
         
@@ -2097,7 +2105,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         
         cell.tapToJoin = true;
                 
-        cell.camp = [[Camp alloc] initWithDictionary:self.campSuggestions[indexPath.item] error:nil];
+        cell.camp = self.campSuggestions[indexPath.item];
         [cell layoutSubviews];
         
         [cell setJoined:[campsJoined objectForKey:cell.camp.identifier] animated:false];
@@ -2117,7 +2125,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.row < self.campSuggestions.count) {
         // animate the cell user tapped on
-        Camp *camp = [[Camp alloc] initWithDictionary:self.campSuggestions[indexPath.row] error:nil];
+        Camp *camp = self.campSuggestions[indexPath.row];
                 
         SmallMediumCampCardCell *cell = (SmallMediumCampCardCell *)[self.campSuggestionsCollectionView cellForItemAtIndexPath:indexPath];
         [cell setJoined:!cell.joined animated:true];

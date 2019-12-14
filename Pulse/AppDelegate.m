@@ -20,6 +20,7 @@
 #import "InsightsLogger.h"
 #import "BFNotificationManager.h"
 #import "BFAlertController.h"
+#import "ResetPasswordViewController.h"
 
 #import <Lockbox/Lockbox.h>
 #import <AudioToolbox/AudioServices.h>
@@ -44,13 +45,13 @@
     
     NSDictionary *accessToken = [self.session getAccessTokenWithVerification:true];
     NSString *refreshToken = self.session.refreshToken;
-    NSLog(@"––––– Session –––––");
+    DSpacer();
     // NSLog(@"self.session.currentUser: %@", self.session.currentUser.identifier);
-    NSLog(@"🙎‍♂️ @%@ (id: %@)", [Session sharedInstance].currentUser.attributes.identifier, [Session sharedInstance].currentUser.identifier);
-    NSLog(@"🔑 Access token  : %@", accessToken);
-    NSLog(@"🌀 Refresh token : %@", refreshToken);
-    NSLog(@"🔔 APNS token    : %@", [[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"]);
-    NSLog(@"–––––––––––––––————");
+    DSimpleLog(@"[🙎‍♂️] @%@ (id: %@)", [Session sharedInstance].currentUser.attributes.identifier, [Session sharedInstance].currentUser.identifier);
+    DSimpleLog(@"[🔑] Access token : %@", accessToken);
+    DSimpleLog(@"[🌀] Refresh token : %@", refreshToken);
+    DSimpleLog(@"[🔔] APNS token : %@", [[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"]);
+    DSpacer();
 
     // show loading
     UIViewController *launchScreen = [[UIStoryboard storyboardWithName:@"LaunchScreen" bundle:[NSBundle mainBundle]] instantiateViewControllerWithIdentifier:@"launchScreen"];
@@ -67,12 +68,11 @@
     }
     
     [FIRApp configure];
+    
     #ifdef DEBUG
     NSLog(@"[DEBUG MODE]");
     #else
     NSLog(@"[RELEASE MODE]");
-    // Google Analytics
-    //[FIRApp configure];
     #endif
     
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
@@ -86,6 +86,7 @@
     return YES;
 }
 
+// network monitoring
 - (void)applicationWillEnterForeground:(UIApplication *)application {
     if ([Launcher tabController]) {
         NSArray *notificationNavVCViewControllers = [Launcher tabController].notificationsNavVC.viewControllers;
@@ -94,6 +95,8 @@
             [((NotificationsTableViewController *)[notificationNavVCViewControllers firstObject]) refreshIfNeeded];
         }
     }
+    
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"applicationWillEnterForeground" object:nil];
 }
 
 - (void)setupRoundedCorners {
@@ -127,7 +130,7 @@
 
 - (void)statusBarTouchedAction {
     BOOL isDevelopment = [Configuration isDevelopment];
-    BFAlertController *options = [BFAlertController alertControllerWithTitle:@"Internal Tools" message:(isDevelopment ? @"Bonfire Development" : @"Bonfire Production") preferredStyle:BFAlertControllerStyleAlert];
+    BFAlertController *options = [BFAlertController alertControllerWithIcon:[UIImage imageNamed:@"alert_icon_settings"] title:@"Internal Tools" message:(isDevelopment ? @"Bonfire Development" : @"Bonfire Production") preferredStyle:BFAlertControllerStyleAlert];
     
     if (isDevelopment) {
         BFAlertAction *switchToProduction = [BFAlertAction actionWithTitle:@"Switch to Production Mode" style:BFAlertActionStyleDefault handler:^{
@@ -143,29 +146,29 @@
             [options dismissViewControllerAnimated:YES completion:nil];
             
             // use BFAlertController
-            UIAlertController *alert= [UIAlertController
+            BFAlertController *alert= [BFAlertController
                                        alertControllerWithTitle:@"Set API"
-                                       message:@"Enter the base URI used when prefixing any API requests in the app."
-                                       preferredStyle:UIAlertControllerStyleAlert];
+                                       message:@"Enter the base URI used when prefixing API requests."
+                                       preferredStyle:BFAlertControllerStyleAlert];
             
-            UIAlertAction *ok = [UIAlertAction actionWithTitle:@"Save" style:UIAlertActionStyleDefault
-                                                       handler:^(UIAlertAction * action){
+            BFAlertAction *ok = [BFAlertAction actionWithTitle:@"Save" style:BFAlertActionStyleDefault
+                                                       handler:^(){
                                                            //Do Some action here
-                                                           UITextField *textField = alert.textFields[0];
+                                                           UITextField *textField = alert.textField;
                                                            
                                                            [Configuration replaceDevelopmentURIWith:textField.text];
                                                        }];
-            UIAlertAction *saveAndQuit = [UIAlertAction actionWithTitle:@"Save & Quit" style:UIAlertActionStyleDefault
-                                                                handler:^(UIAlertAction * action){
+            BFAlertAction *saveAndQuit = [BFAlertAction actionWithTitle:@"Save & Quit" style:BFAlertActionStyleDefault
+                                                                handler:^(){
                                                                     //Do Some action here
-                                                                    UITextField *textField = alert.textFields[0];
+                                                                    UITextField *textField = alert.textField;
                                                                     
                                                                     [Configuration replaceDevelopmentURIWith:textField.text];
                                                                     
                                                                     exit(0);
                                                                 }];
-            UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel
-                                                           handler:^(UIAlertAction * action) {
+            BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel
+                                                           handler:^() {
                                                                [alert dismissViewControllerAnimated:YES completion:nil];
                                                            }];
             
@@ -173,11 +176,12 @@
             [alert addAction:saveAndQuit];
             [alert addAction:cancel];
             
-            [alert addTextFieldWithConfigurationHandler:^(UITextField *textField) {
-                textField.placeholder = @"Development Base URI";
-                textField.text = [Configuration DEVELOPMENT_BASE_URI];
-                textField.keyboardType = UIKeyboardTypeURL;
-            }];
+            UITextField *textField = [UITextField new];
+            textField.placeholder = @"Development Base URI";
+            textField.text = [Configuration DEVELOPMENT_BASE_URI];
+            textField.keyboardType = UIKeyboardTypeURL;
+            [alert setTextField:textField];
+            [textField becomeFirstResponder];
             
             [[Launcher topMostViewController] presentViewController:alert animated:true completion:nil];
         }];
@@ -288,7 +292,9 @@
                 ![[NSUserDefaults standardUserDefaults] stringForKey:@"device_token_last_version"] ||
                 ![[[NSUserDefaults standardUserDefaults] stringForKey:@"device_token_last_version"] isEqualToString:notificationTokenLastVersion]) {
                 [[NSUserDefaults standardUserDefaults] setObject:notificationTokenLastVersion forKey:@"device_token_last_version"];
-                [self requestNotifications];
+                wait(2.f, ^{
+                    [Launcher requestNotifications];
+                });
             }
             
             if (handler) {
@@ -561,18 +567,6 @@
     [[NSNotificationCenter defaultCenter] postNotificationName:@"NotificationsDidFailToRegister" object:error];
 }
 
-- (void)requestNotifications {
-    [[UNUserNotificationCenter currentNotificationCenter] requestAuthorizationWithOptions:(UNAuthorizationOptionAlert|UNAuthorizationOptionSound|UNAuthorizationOptionBadge) completionHandler:^(BOOL granted, NSError * _Nullable error) {
-        // 1. check if permisisons granted
-        if (granted) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                NSLog(@"inside dispatch async block main thread from main thread");
-                [[UIApplication sharedApplication] registerForRemoteNotifications];
-            });
-        }
-    }];
-}
-
 - (void)applicationDidEnterBackground:(UIApplication *)application {
     [[InsightsLogger sharedInstance] closeAllPostInsights];
 }
@@ -664,6 +658,8 @@
         [params setObject:item.value forKey:item.name];
     }
     
+    BOOL signedIn = [Session sharedInstance].currentUser;
+    
     id objectFromURL;
     if (internalURL) {
         objectFromURL = [Configuration objectFromInternalURL:url];
@@ -672,37 +668,46 @@
         objectFromURL = [Configuration objectFromExternalBonfireURL:url];
     }
     
-    if ([objectFromURL isKindOfClass:[User class]]) {
+    if (signedIn && [objectFromURL isKindOfClass:[User class]]) {
         [Launcher openProfile:(User *)objectFromURL];
     }
-    else if ([objectFromURL isKindOfClass:[Camp class]]) {
+    else if (signedIn && [objectFromURL isKindOfClass:[Camp class]]) {
         [Launcher openCamp:(Camp *)objectFromURL];
     }
-    else if ([objectFromURL isKindOfClass:[Post class]]) {
+    else if (signedIn && [objectFromURL isKindOfClass:[Post class]]) {
         [Launcher openPost:(Post *)objectFromURL withKeyboard:NO];
     }
-    else if (internalURL && [url.host isEqualToString:@"compose"]) {
-        Camp *camp;
-        if ([params objectForKey:@"camp_id"]) {
-            camp = [[Camp alloc] init];
-            camp.identifier = params[@"camp_id"];
-        }
-        
-        Post *replyingTo;
-        if ([params objectForKey:@"replying_to_post_id"]) {
-            replyingTo = [[Post alloc] init];
-            replyingTo.identifier = [NSString stringWithFormat:@"%@", params[@"replying_to_post_id"]];
-        }
-        
+    else if (signedIn && internalURL && [url.host isEqualToString:@"compose"]) {
         NSString *message;
         if ([params objectForKey:@"message"]) {
             message = params[@"message"];
         }
         
-        [Launcher openComposePost:camp inReplyTo:replyingTo withMessage:message media:nil quotedObject:nil];
+        [Launcher openComposePost:nil inReplyTo:nil withMessage:message media:nil quotedObject:nil];
+    }
+    else if (signedIn && internalURL && [url.host isEqualToString:@"settings"]) {
+        [Launcher openSettings];
+    }
+    else if (internalURL && [url.host isEqualToString:@"reset_password"]) {
+        if ([[Launcher activeViewController] isKindOfClass:[ResetPasswordViewController class]]) {
+            // already open
+            DLog(@"reset password view controller is already open..!");
+            if ([url.path isEqualToString:@"/confirm"] && [params objectForKey:@"code"]) {
+                DLog(@"prefill with code: %@", params[@"code"]);
+                ((ResetPasswordViewController *)[Launcher activeViewController]).prefillCode = params[@"code"];
+            }
+        }
+        else {
+            ResetPasswordViewController *resetPasswordVC = [[ResetPasswordViewController alloc] init];
+            if ([url.path isEqualToString:@"/confirm"] && [params objectForKey:@"code"]) {
+                resetPasswordVC.prefillCode = params[@"code"];
+            }
+            [Launcher present:resetPasswordVC animated:YES];
+        }
     }
     
     return true;
 }
+
 
 @end

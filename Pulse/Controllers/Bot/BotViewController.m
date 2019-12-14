@@ -152,14 +152,6 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
     // @"\n\n\n\n\n\n"
     BFAlertController *actionSheet = [BFAlertController alertControllerWithTitle:nil message:nil preferredStyle:BFAlertControllerStyleActionSheet];
 
-    // 1.A.* -- Any user, any page, any following state
-    BFAlertAction *shareUser = [BFAlertAction actionWithTitle:[NSString stringWithFormat:@"Share %@ via...", [NSString stringWithFormat:@"@%@", self.bot.attributes.identifier]] style:BFAlertActionStyleDefault handler:^{
-        NSLog(@"share bot");
-        
-        [Launcher shareIdentity:self.bot];
-    }];
-    [actionSheet addAction:shareUser];
-    
     BFAlertAction *blockUsername = [BFAlertAction actionWithTitle:[NSString stringWithFormat:@"%@", botIsBlocked ? @"Unblock" : @"Block"] style:BFAlertActionStyleDefault handler:^{
         // confirm action
         BFAlertController *alertConfirmController = [BFAlertController alertControllerWithTitle:[NSString stringWithFormat:@"%@ %@", botIsBlocked ? @"Unblock" : @"Block" , self.bot.attributes.displayName] message:[NSString stringWithFormat:@"Are you sure you would like to block @%@?", self.bot.attributes.identifier] preferredStyle:BFAlertControllerStyleAlert];
@@ -195,34 +187,13 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
     }];
     [actionSheet addAction:blockUsername];
     
-    BFAlertAction *reportUsername = [BFAlertAction actionWithTitle:[NSString stringWithFormat:@"Report"] style:BFAlertActionStyleDefault handler:^{
-        // confirm action
-        BFAlertController *saveAndOpenTwitterConfirm = [BFAlertController alertControllerWithTitle:[NSString stringWithFormat:@"Report %@", self.bot.attributes.displayName] message:[NSString stringWithFormat:@"Are you sure you would like to report @%@?", self.bot.attributes.identifier] preferredStyle:BFAlertControllerStyleAlert];
+    // 1.A.* -- Any user, any page, any following state
+    BFAlertAction *shareUser = [BFAlertAction actionWithTitle:[NSString stringWithFormat:@"Share %@ via...", [NSString stringWithFormat:@"@%@", self.bot.attributes.identifier]] style:BFAlertActionStyleDefault handler:^{
+        NSLog(@"share bot");
         
-        BFAlertAction *alertConfirm = [BFAlertAction actionWithTitle:@"Report" style:BFAlertActionStyleDestructive handler:^{
-            NSLog(@"report bot");
-            [BFAPI reportIdentity:self.bot completion:^(BOOL success, id responseObject) {
-                if (success) {
-                    // update the state to blocked
-                    
-                }
-                else {
-                    // error reporting user
-                }
-            }];
-        }];
-        [saveAndOpenTwitterConfirm addAction:alertConfirm];
-        
-        BFAlertAction *alertCancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:^{
-            NSLog(@"cancel report bot");
-            
-            // TODO: Verify this closes both action sheets
-        }];
-        [saveAndOpenTwitterConfirm addAction:alertCancel];
-        
-        [[Launcher topMostViewController] presentViewController:saveAndOpenTwitterConfirm animated:true completion:nil];
+        [Launcher shareIdentity:self.bot];
     }];
-    [actionSheet addAction:reportUsername];
+    [actionSheet addAction:shareUser];
     
     BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:^{
         NSLog(@"cancel");

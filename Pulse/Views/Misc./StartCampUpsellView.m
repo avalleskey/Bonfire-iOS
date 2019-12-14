@@ -12,7 +12,7 @@
 #import <BlocksKit/BlocksKit+UIKit.h>
 #import <HapticHelper/HapticHelper.h>
 #import "Launcher.h"
-//#import <FBSDKShareKit/FBSDKShareKit.h>
+#import <FBSDKShareKit/FBSDKShareKit.h>
 
 @implementation StartCampUpsellView
 
@@ -87,13 +87,36 @@
     self.actionsView = [[UIView alloc] initWithFrame:CGRectMake(0, self.descriptionLabel.frame.origin.y + self.descriptionLabel.frame.size.height + 24, self.frame.size.width, 42)];
     [self addSubview:self.actionsView];
     
-    NSArray *buttons = @[
-                                @{@"id": @"bonfire", @"image": [UIImage imageNamed:@"share_bonfire"], @"color": [UIColor fromHex:@"FF513C" adjustForOptimalContrast:false]},
-//                                @{@"id": @"snapchat", @"image": [UIImage imageNamed:@"share_snapchat"], @"color": [UIColor fromHex:@"fffc00" adjustForOptimalContrast:false]},
-                                @{@"id": @"twitter", @"image": [UIImage imageNamed:@"share_twitter"], @"color": [UIColor fromHex:@"1DA1F2" adjustForOptimalContrast:false]},
-                                @{@"id": @"imessage", @"image": [UIImage imageNamed:@"share_imessage"], @"color": [UIColor fromHex:@"36DB52" adjustForOptimalContrast:false]},
-                                @{@"id": @"more", @"image": [[UIImage imageNamed:@"share_more"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate], @"color": [UIColor tableViewSeparatorColor]}
-                                ];
+    NSMutableArray *buttons = [NSMutableArray new];
+  
+    [buttons addObject:@{@"id": @"bonfire", @"image": [UIImage imageNamed:@"share_bonfire"], @"color": [UIColor fromHex:@"FF513C" adjustForOptimalContrast:false]}];
+
+    BOOL hasInstagram = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"instagram-stories://"]];
+    BOOL hasSnapchat = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"snapchat://"]];
+    BOOL hasTwitter = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"twitter://"]];
+    
+    if (hasInstagram) {
+        [buttons addObject:@{@"id": @"instagram", @"image": [UIImage imageNamed:@"share_instagram"], @"color": [UIColor fromHex:@"DC3075" adjustForOptimalContrast:false]}];
+    }
+
+    if (hasTwitter && (![self.camp.attributes isPrivate] || !hasSnapchat)) {
+        [buttons addObject:@{@"id": @"twitter", @"image": [UIImage imageNamed:@"share_twitter"], @"color": [UIColor fromHex:@"1DA1F2" adjustForOptimalContrast:false]}];
+    }
+    
+    if (hasSnapchat) {
+        [buttons addObject:@{@"id": @"snapchat", @"image": [UIImage imageNamed:@"share_snapchat"], @"color": [UIColor fromHex:@"fffc00" adjustForOptimalContrast:false]}];
+    }
+    
+    if ([self.camp.attributes isPrivate] || !hasTwitter || !hasSnapchat) {
+        [buttons addObject:@{@"id": @"imessage", @"image": [UIImage imageNamed:@"share_imessage"], @"color": [UIColor fromHex:@"36DB52" adjustForOptimalContrast:false]}];
+    }
+    
+    if (buttons.count < 4) {
+        // add facebook
+        [buttons addObject:@{@"id": @"facebook", @"image": [UIImage imageNamed:@"share_facebook"], @"color": [UIColor fromHex:@"3B5998" adjustForOptimalContrast:false]}];
+    }
+    
+    [buttons addObject:@{@"id": @"more", @"image": [[UIImage imageNamed:@"share_more"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate], @"color": [UIColor tableViewSeparatorColor]}];
     
     for (NSInteger i = 0; i < buttons.count; i++) {
         NSDictionary *buttonDict = buttons[i];
@@ -127,6 +150,9 @@
             if ([identifier isEqualToString:@"bonfire"]) {
                 [Launcher openComposePost:nil inReplyTo:nil withMessage:nil media:nil quotedObject:self.camp];
             }
+            else if ([identifier isEqualToString:@"instagram"]) {
+                [Launcher shareCampOnInstagram:self.camp];
+            }
             else if ([identifier isEqualToString:@"twitter"]) {
                 if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"twitter://post"]]) {
                     NSString *message = [[NSString stringWithFormat:@"Help me start a Camp on @yourbonfire! Join %@: %@", self.camp.attributes.title, campShareLink] stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet characterSetWithCharactersInString:@"!*'();:@&=+$,/?%#[]"]];
@@ -135,10 +161,18 @@
                 }
             }
             else if ([identifier isEqualToString:@"snapchat"]) {
-                
+                [Launcher shareCampOnSnapchat:self.camp];
             }
             else if ([identifier isEqualToString:@"imessage"]) {
                 [Launcher shareOniMessage:[NSString stringWithFormat:@"Help me start a Camp on Bonfire! Join %@: %@", self.camp.attributes.title, campShareLink] image:nil];
+            }
+            else if ([identifier isEqualToString:@"facebook"]) {
+                FBSDKShareLinkContent *content = [[FBSDKShareLinkContent alloc] init];
+                content.contentURL = [NSURL URLWithString:campShareLink];
+                content.hashtag = [FBSDKHashtag hashtagWithString:@"#Bonfire"];
+                [FBSDKShareDialog showFromViewController:[Launcher topMostViewController]
+                                             withContent:content
+                                                delegate:nil];
             }
             else if ([identifier isEqualToString:@"more"]) {
                 [Launcher shareCamp:self.camp];
@@ -170,6 +204,8 @@
         } completion:^(BOOL finished) {
             //[pulse removeFromSuperview];
         }];
+        
+        [self resize];
     }
 }
 
@@ -179,14 +215,22 @@
     NSInteger members = self.camp.attributes.summaries.counts.members;
     NSInteger friendsNeeded = threshold - members;
     
-    if (friendsNeeded == 0) {
-        self.descriptionLabel.text = @"Invite more friends to join the Camp before posting!";
-    }
-    else if (isMember) {
-        self.descriptionLabel.text = [NSString stringWithFormat:@"Invite at least %lu other friend%@ to join the Camp before posting!", friendsNeeded, (friendsNeeded == 1 ? @"" : @"s")];
+    if ([self.camp isPrivate]) {
+        self.titleLabel.text = @"Invite your Friends";
+        self.descriptionLabel.text = @"Private Camps are more fun with friends!";
     }
     else {
-        self.descriptionLabel.text = [NSString stringWithFormat:@"This Camp needs at least %lu other%@ to join the Camp!", friendsNeeded, (friendsNeeded == 1 ? @"" : @"s")];
+        self.titleLabel.text = @"Start the Fire";
+        
+        if (friendsNeeded == 0) {
+            self.descriptionLabel.text = @"Invite more friends to join the Camp before posting!";
+        }
+        else if (isMember) {
+            self.descriptionLabel.text = [NSString stringWithFormat:@"Invite at least %lu other friend%@ to join the Camp before posting!", friendsNeeded, (friendsNeeded == 1 ? @"" : @"s")];
+        }
+        else {
+            self.descriptionLabel.text = [NSString stringWithFormat:@"This Camp needs at least %lu other%@ to join the Camp!", friendsNeeded, (friendsNeeded == 1 ? @"" : @"s")];
+        }
     }
 }
 
@@ -230,7 +274,7 @@
 }
 
 - (void)layoutActionsView {
-    CGFloat actionsViewMaxWidth = self.frame.size.width - (self.frame.origin.x * 2) - (20 * 2);
+    CGFloat actionsViewMaxWidth = self.frame.size.width - (self.frame.origin.x * 2);
     
     NSArray *buttons = self.actionsView.subviews;
     
@@ -249,7 +293,7 @@
     }
     
     CGFloat actionsViewWidth = ((buttonDiameter + buttonPadding) * buttons.count) - buttonPadding; // remove last padding
-    self.actionsView.frame = CGRectMake(self.frame.size.width / 2 - actionsViewWidth / 2, self.actionsView.frame.origin.y, actionsViewWidth, self.actionsView.frame.size.height);
+    self.actionsView.frame = CGRectMake(self.frame.size.width / 2 - actionsViewWidth / 2, self.actionsView.frame.origin.y, actionsViewWidth, buttonDiameter);
 }
 
 @end

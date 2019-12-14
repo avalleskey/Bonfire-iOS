@@ -40,7 +40,7 @@
 @property CGFloat maxHeaderHeight;
 @property (nonatomic, strong) SimpleNavigationController *launchNavVC;
 @property (nonatomic, assign) NSMutableArray *conversation;
-@property (nonatomic, strong) NSArray<Post *> *parentPosts;
+@property (nonatomic, strong) NSMutableArray *parentPosts;
 @property (nonatomic, strong) UIActivityIndicatorView *parentPostSpinner;
 
 @property (nonatomic, strong) UIVisualEffectView *shareUpsellView;
@@ -190,7 +190,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
 - (void)keyboardWillShow:(NSNotification *)notification {
 //    CGFloat parentPostHeight = [StreamPostCell heightForPost:self.parentPost showContext:true showActions:true];
 //    [self.tableView setContentOffset:CGPointMake(0, parentPostHeight) animated:YES];
-    [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:1] atScrollPosition:UITableViewScrollPositionTop animated:true];
+//    [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:1] atScrollPosition:UITableViewScrollPositionTop animated:true];
 }
 - (void)keyboardWillChangeFrame:(NSNotification *)notification {
     NSDictionary* keyboardInfo = [notification userInfo];
@@ -222,13 +222,76 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
 }
 #pragma mark ↳ Post changes
 - (void)postUpdated:(NSNotification *)notification {
-    if ([notification.object isKindOfClass:[Post class]] && ![notification.object isEqual:self.post]) {
-        Post *post = (Post *)notification.object;
-        if ([post.identifier isEqualToString:self.post.identifier]) {
-            NSLog(@"update that ish");
-            // match
-            self.post = post;
+    if ([notification.object isKindOfClass:[Post class]]) {        
+        Post *updatedPost = (Post *)notification.object;
+        
+        if (updatedPost == nil) return;
+        
+        BOOL newMuteStatus = updatedPost.attributes.context.post.muted;
+        
+        BOOL useNewMuteStatus = false;
+        BOOL changes = false;
+        
+        if ([self.post.identifier isEqualToString:updatedPost.identifier] &&
+            ![notification.object isEqual:self.post]) {
+            if (newMuteStatus != self.post.attributes.context.post.muted) {
+                useNewMuteStatus = true;
+            }
+            
+            // set updated expanded post
+            self.post = updatedPost;
+            
+            changes = true;
         }
+        else {
+            Post *replyWithId = [self.stream postWithId:updatedPost.identifier];
+            if (replyWithId) {
+                if (replyWithId != updatedPost) {
+                    if (newMuteStatus != replyWithId.attributes.context.post.muted) {
+                        useNewMuteStatus = true;
+                    }
+                    
+                    [self.stream updatePost:updatedPost removeDuplicates:false];
+                    changes = true;
+                }
+            }
+            else {
+                if (self.parentPosts.count > 0) {
+                    // update parent posts
+                    DSimpleLog(@"self.parentPosts: %@", self.parentPosts);
+                    for (NSInteger i = 0; i < self.parentPosts.count; i++) {
+                        Post *parentPost = self.parentPosts[i];
+                        
+                        DSimpleLog(@"parent post:: %@", parentPost.identifier);
+                        
+                        if ([parentPost.identifier isEqualToString:updatedPost.identifier] &&
+                            parentPost != updatedPost) {
+                            if (newMuteStatus != parentPost.attributes.context.post.muted) {
+                                useNewMuteStatus = true;
+                            }
+                            
+                            DSimpleLog(@"matching updated parent post:: %@", parentPost.identifier);
+                            
+                            [self.parentPosts replaceObjectAtIndex:i withObject:updatedPost];
+                            
+                            changes = true;
+//                            break;
+                        }
+                    }
+                }
+            }
+        }
+        
+//        if (useNewMuteStatus) {
+//            // loop through all posts in the view, updating all of them with the new mute status
+//            for (<#type *object#> in <#collection#>) {
+//                <#statements#>
+//            }
+//        }
+        
+//        if (changes) {
+        [self.tableView reloadData];
+//        }
     }
 }
 - (void)postDeleted:(NSNotification *)notification {
@@ -521,14 +584,14 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                 }];
                 
                 if (useParentPostPrevCursor) {
-                    self.parentPosts = [@[self.post.attributes.parent] arrayByAddingObjectsFromArray:responseData];
+                    self.parentPosts = [[@[self.post.attributes.parent] arrayByAddingObjectsFromArray:responseData] mutableCopy];
                 }
                 else {
                     self.parentPosts = responseData;
                 }
             }
             else {
-                self.parentPosts = @[];
+                self.parentPosts = [@[] mutableCopy];
             }
             
             reloadWithParentPosts();
@@ -538,7 +601,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         }];
     }
     else {
-        self.parentPosts = @[self.post.attributes.parent];
+        self.parentPosts = [@[self.post.attributes.parent] mutableCopy];
         
         reloadWithParentPosts();
     }
@@ -608,7 +671,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
 }
 - (void)setupPostHasBeenDeleted {
     self.post = nil;
-    self.parentPosts = @[];
+    self.parentPosts = [@[] mutableCopy];
     [self hideComposeInputView];
     self.parentPostScrollIndicator.hidden = true;
     
@@ -667,7 +730,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     self.tableView.delegate = self;
     self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, self.view.frame.size.width, 0);
     self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 70, 0);
-    self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
+    self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
     self.tableView.refreshControl = nil;
     self.tableView.backgroundColor = [UIColor tableViewBackgroundColor];
     self.tableView.tintColor = self.theme;
@@ -962,9 +1025,15 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             cell.contentView.backgroundColor = [UIColor contentBackgroundColor];
             
             NSString *username = reply.attributes.creator.attributes.identifier;
-            NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"Reply to @%@...", username] attributes:@{NSFontAttributeName: cell.addReplyButton.titleLabel.font, NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
-            [attributedString setAttributes:@{NSFontAttributeName: [UIFont systemFontOfSize:cell.addReplyButton.titleLabel.font.pointSize weight:UIFontWeightSemibold]} range:[attributedString.string rangeOfString:[NSString stringWithFormat:@"@%@", username]]];
-            [cell.addReplyButton setAttributedTitle:attributedString forState:UIControlStateNormal];
+            if (reply.attributes.summaries.replies.count == 0) {
+                NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"Reply to @%@...", username] attributes:@{NSFontAttributeName: cell.addReplyButton.titleLabel.font, NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
+                [attributedString setAttributes:@{NSFontAttributeName: [UIFont systemFontOfSize:cell.addReplyButton.titleLabel.font.pointSize weight:UIFontWeightSemibold]} range:[attributedString.string rangeOfString:[NSString stringWithFormat:@"@%@", username]]];
+                [cell.addReplyButton setAttributedTitle:attributedString forState:UIControlStateNormal];
+            }
+            else {
+                NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"Add a reply..."] attributes:@{NSFontAttributeName: cell.addReplyButton.titleLabel.font, NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
+                [cell.addReplyButton setAttributedTitle:attributedString forState:UIControlStateNormal];
+            }
             
             cell.lineSeparator.hidden = false;
             cell.levelsDeep = -1;
@@ -1305,19 +1374,19 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             }
         }
         
-        CGPoint fingerLocation = [scrollView.panGestureRecognizer locationInView:scrollView];
-        CGPoint absoluteFingerLocation = [scrollView convertPoint:fingerLocation toView:self.view];
-
-        if (_currentKeyboardHeight > 0 && scrollView.panGestureRecognizer.state == UIGestureRecognizerStateChanged) {
-            CGFloat bottomPadding = UIApplication.sharedApplication.keyWindow.safeAreaInsets.bottom;
-            
-            CGFloat before = _currentKeyboardHeight;
-            _currentKeyboardHeight = MAX(MIN(roundf([[UIScreen mainScreen] bounds].size.height - absoluteFingerLocation.y), _currentKeyboardFrame.size.height), bottomPadding);
-            if (before == _currentKeyboardHeight) return;
-            
-            [self updateComposeInputViewFrame];
-            [self updateContentInsets];
-        }
+//        CGPoint fingerLocation = [scrollView.panGestureRecognizer locationInView:scrollView];
+//        CGPoint absoluteFingerLocation = [scrollView convertPoint:fingerLocation toView:self.view];
+//
+//        if (_currentKeyboardHeight > 0 && scrollView.panGestureRecognizer.state == UIGestureRecognizerStateChanged) {
+//            CGFloat bottomPadding = UIApplication.sharedApplication.keyWindow.safeAreaInsets.bottom;
+//
+//            CGFloat before = _currentKeyboardHeight;
+//            _currentKeyboardHeight = MAX(MIN(roundf([[UIScreen mainScreen] bounds].size.height - absoluteFingerLocation.y), _currentKeyboardFrame.size.height), bottomPadding);
+//            if (before == _currentKeyboardHeight) return;
+//
+//            [self updateComposeInputViewFrame];
+//            [self updateContentInsets];
+//        }
     }
 }
 
@@ -1336,8 +1405,6 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     self.composeInputView = [[ComposeInputView alloc] initWithFrame:CGRectMake(0, self.view.frame.size.height - 52, self.view.frame.size.width, 190)];
     self.composeInputView.delegate = self;
     self.composeInputView.parentViewController = self;
-    self.composeInputView.media.maxImages = 1;
-    self.composeInputView.textView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
     
     [self.composeInputView bk_whenTapped:^{
         if (![self.composeInputView isActive]) {
@@ -1417,6 +1484,10 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     return [self.post.attributes.context.post.permissions canReply];
 }
 - (void)showComposeInputView {
+    if ([self isPreview]) {
+        return;
+    }
+    
     if ([self.composeInputView isHidden]) {
         [self updateComposeInputViewFrame];
         self.composeInputView.transform = CGAffineTransformMakeTranslation(0, self.composeInputView.frame.size.height);

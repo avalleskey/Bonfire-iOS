@@ -73,13 +73,12 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(fetchNewPosts) name:@"FetchNewTimelinePosts" object:nil];
     
-    self.tableView.alpha = 0;
     self.navigationController.view.backgroundColor = [UIColor contentBackgroundColor];
     
-    self.launchLogo = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"bonfire_wordmark"]];
-    self.launchLogo.frame = CGRectMake(self.navigationController.view.frame.size.width / 2 - 102, self.navigationController.view.frame.size.height / 2 - 25, 204, 50);
-    self.launchLogo.alpha = 0.25;
-    [self.navigationController.view addSubview:self.launchLogo];
+//    self.launchLogo = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"bonfire_wordmark"]];
+//    self.launchLogo.frame = CGRectMake(self.navigationController.view.frame.size.width / 2 - 102, self.navigationController.view.frame.size.height / 2 - 25, 204, 50);
+//    self.launchLogo.alpha = 0.25;
+//    [self.navigationController.view addSubview:self.launchLogo];
 }
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
@@ -103,18 +102,18 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
         }
         
         // present
-        self.tableView.transform = CGAffineTransformMakeTranslation(0, 56);
-        self.tableView.userInteractionEnabled = false;
-        [UIView animateWithDuration:0.35f delay:0 usingSpringWithDamping:0.95f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
-            self.launchLogo.alpha = 0;
-            self.launchLogo.transform = CGAffineTransformMakeScale(0.92, 0.92);
-        } completion:nil];
-        [UIView animateWithDuration:0.56f delay:0.3f usingSpringWithDamping:0.7f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
-            self.tableView.transform = CGAffineTransformMakeTranslation(0, 0);
-            self.tableView.alpha = 1;
-        } completion:^(BOOL finished) {
-            self.tableView.userInteractionEnabled = true;
-        }];
+//        self.tableView.transform = CGAffineTransformMakeTranslation(0, 56);
+//        self.tableView.userInteractionEnabled = false;
+//        [UIView animateWithDuration:0.35f delay:0 usingSpringWithDamping:0.95f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
+//            self.launchLogo.alpha = 0;
+//            self.launchLogo.transform = CGAffineTransformMakeScale(0.92, 0.92);
+//        } completion:nil];
+//        [UIView animateWithDuration:0.56f delay:0.3f usingSpringWithDamping:0.7f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
+//            self.tableView.transform = CGAffineTransformMakeTranslation(0, 0);
+//            self.tableView.alpha = 1;
+//        } completion:^(BOOL finished) {
+//            self.tableView.userInteractionEnabled = true;
+//        }];
     }
     else {
         [InsightsLogger.sharedInstance openAllVisiblePostInsightsInTableView:self.tableView seenIn:InsightSeenInHomeView];
@@ -139,6 +138,10 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
     
     if ([self isBeingPresented] || [self isMovingToParentViewController]) {
         [self setupContent];
+    }
+    
+    if (tv.stream.posts.count == 0 && !self.loading) {
+        [self fetchNewPosts];
     }
     
     self.errorView.center = CGPointMake(self.view.frame.size.width / 2, self.tableView.frame.size.height / 2 - self.navigationController.navigationBar.frame.size.height - self.navigationController.navigationBar.frame.origin.y);

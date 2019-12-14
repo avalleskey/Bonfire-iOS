@@ -203,7 +203,12 @@
         [self updateActivityType];
         
         // set profile picture
-        self.profilePicture.user = activity.attributes.actioner;
+        if ([activity.attributes.actioner isBot]) {
+            self.profilePicture.bot = (Bot *)activity.attributes.actioner;
+        }
+        else {
+            self.profilePicture.user = (User *)activity.attributes.actioner;
+        }
         
         // set text
         self.textLabel.attributedText = activity.attributes.attributedString;

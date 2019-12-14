@@ -42,6 +42,7 @@
     self.backgroundColor = [UIColor contentBackgroundColor];
     
     self.contentView = [[UIView alloc] initWithFrame:self.bounds];
+    self.contentView.layer.borderColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.14f].CGColor;
     self.contentView.layer.cornerRadius = self.layer.cornerRadius;
     self.contentView.layer.masksToBounds = true;
     self.contentView.layer.borderWidth = HALF_PIXEL;

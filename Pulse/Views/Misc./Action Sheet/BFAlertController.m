@@ -14,6 +14,13 @@
 #import "Launcher.h"
 #import "UIResponder+FirstResponder.h"
 
+#define UIViewParentController(__view) ({ \
+UIResponder *__responder = __view; \
+while ([__responder isKindOfClass:[UIView class]]) \
+__responder = [__responder nextResponder]; \
+(UIViewController *)__responder; \
+})
+
 @interface BFAlertAction ()
 
 @property (readwrite, assign) BFAlertActionStyle style;
@@ -173,8 +180,9 @@ static NSString * const buttonCellIdentifier = @"ButtonCell";
         self.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
         
         self.previousFirstResponder = [UIResponder currentFirstResponder];
-        if (self.previousFirstResponder) {
-            NSLog(@"previous first responder: %@", _previousFirstResponder);
+        
+        if (self.previousFirstResponder && [self.previousFirstResponder respondsToSelector:@selector(resignFirstResponder)] && ([self.previousFirstResponder isKindOfClass:[UITextField class]] || [self.previousFirstResponder isKindOfClass:[UITextView class]]) && ((UIView *)self.previousFirstResponder).superview != nil) {
+            DLog(@"previous first responder: %@", self.previousFirstResponder);
             [self.previousFirstResponder resignFirstResponder];
         }
     }
@@ -255,7 +263,7 @@ static NSString * const buttonCellIdentifier = @"ButtonCell";
     if ([self isBeingPresented] || [self isMovingToParentViewController]) {
         [[Launcher activeViewController] setEditing:false animated:YES];
         
-        [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:1 initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveLinear animations:^{
+        [UIView animateWithDuration:0.25f delay:0 usingSpringWithDamping:1 initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveLinear animations:^{
             self.view.backgroundColor = [UIColor colorWithWhite:0 alpha:0.4];
         } completion:nil];
         
@@ -264,7 +272,7 @@ static NSString * const buttonCellIdentifier = @"ButtonCell";
             self.contentView.transform = CGAffineTransformMakeScale(1.06, 1.06);
             self.contentView.alpha = 0;
             
-            [UIView animateWithDuration:0.3f delay:0.1f usingSpringWithDamping:0.85f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
+            [UIView animateWithDuration:0.2f delay:0.15f usingSpringWithDamping:0.85f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
                 self.contentView.transform = CGAffineTransformMakeScale(1, 1);
                 self.contentView.alpha = 1;
             } completion:nil];
@@ -272,7 +280,7 @@ static NSString * const buttonCellIdentifier = @"ButtonCell";
         else {
             self.contentView.frame = CGRectMake(self.contentView.frame.origin.x, self.view.frame.size.height, self.contentView.frame.size.width, self.contentView.frame.size.height);
             
-            [UIView animateWithDuration:0.5f delay:0.1f usingSpringWithDamping:0.85f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
+            [UIView animateWithDuration:0.5f+(0.0007 * self.contentView.frame.size.height) delay:0.15f usingSpringWithDamping:0.75f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
                 self.contentView.frame = CGRectMake(self.contentView.frame.origin.x, self.view.frame.size.height - self.contentView.frame.size.height - (HAS_ROUNDED_CORNERS ? 0 : 8) - [UIApplication sharedApplication].keyWindow.safeAreaInsets.bottom, self.contentView.frame.size.width, self.contentView.frame.size.height);
             } completion:nil];
         }
@@ -660,7 +668,9 @@ static NSString * const buttonCellIdentifier = @"ButtonCell";
             
             if (self.previousFirstResponder) {
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    [self.previousFirstResponder becomeFirstResponder];
+                    if ([self.previousFirstResponder respondsToSelector:@selector(becomeFirstResponder)]) {
+                        [self.previousFirstResponder becomeFirstResponder];
+                    }
                 });
             }
         }];

@@ -15,7 +15,7 @@
 #import "Launcher.h"
 #import <SDWebImage/UIImageView+WebCache.h>
 
-#define ACTIVITY_CELL_CONTENT_INSET UIEdgeInsetsMake(12, 70, 12, 12)
+#define ACTIVITY_CELL_CONTENT_INSET UIEdgeInsetsMake(10, 70, 10, 12)
 #define ACTIVITY_CELL_ATTACHMENT_PADDING 8
 
 @implementation ActivityCell
@@ -30,15 +30,11 @@
     
     if (self) {
         self.backgroundColor = [UIColor contentBackgroundColor];
-
-        self.textLabel.numberOfLines = 0;
-        self.textLabel.lineBreakMode = NSLineBreakByWordWrapping;
-        self.textLabel.backgroundColor = [UIColor clearColor];
         
         self.selectionStyle = UITableViewCellSelectionStyleNone;
         self.accessoryType = UITableViewCellAccessoryNone;
         
-        self.profilePicture = [[BFAvatarView alloc] initWithFrame:CGRectMake(12, ACTIVITY_CELL_CONTENT_INSET.top - 2, 48, 48)];
+        self.profilePicture = [[BFAvatarView alloc] initWithFrame:CGRectMake(12, ACTIVITY_CELL_CONTENT_INSET.top, 48, 48)];
         self.profilePicture.openOnTap = true;
         [self.contentView addSubview:self.profilePicture];
         
@@ -51,13 +47,16 @@
         
         // blur bg
         UIView *typeBackgroundBlurView = [[UIView alloc] init];
-        typeBackgroundBlurView.frame = CGRectMake(self.profilePicture.frame.origin.x + self.profilePicture.frame.size.width - 20, self.profilePicture.frame.origin.y + self.profilePicture.frame.size.height - (self.typeIndicator.frame.size.height + 4) + 4, self.typeIndicator.frame.size.width + 4, self.typeIndicator.frame.size.height + 4);
+        typeBackgroundBlurView.frame = CGRectMake(self.profilePicture.frame.origin.x + self.profilePicture.frame.size.width - 22, self.profilePicture.frame.origin.y + self.profilePicture.frame.size.height - (self.typeIndicator.frame.size.height + 4) + 2, self.typeIndicator.frame.size.width + 4, self.typeIndicator.frame.size.height + 4);
         typeBackgroundBlurView.backgroundColor = [UIColor contentBackgroundColor];
         typeBackgroundBlurView.layer.cornerRadius = typeBackgroundBlurView.frame.size.height / 2;
         typeBackgroundBlurView.layer.masksToBounds = true;
         [typeBackgroundBlurView addSubview:self.typeIndicator];
         [self.contentView addSubview:typeBackgroundBlurView];
         
+        self.textLabel.numberOfLines = 0;
+        self.textLabel.lineBreakMode = NSLineBreakByWordWrapping;
+        self.textLabel.backgroundColor = [UIColor clearColor];
         self.textLabel.frame = CGRectMake(ACTIVITY_CELL_CONTENT_INSET.left, ACTIVITY_CELL_CONTENT_INSET.top + 6, self.frame.size.width - ACTIVITY_CELL_CONTENT_INSET.left - ACTIVITY_CELL_CONTENT_INSET.right, 32);
         self.textLabel.font = [UIFont systemFontOfSize:15.f];
         self.textLabel.textColor = [UIColor bonfireGrayWithLevel:900];
@@ -66,11 +65,11 @@
         self.imagePreview.backgroundColor = [UIColor colorWithRed:0.92 green:0.92 blue:0.93 alpha:1];
         self.imagePreview.contentMode = UIViewContentModeScaleAspectFill;
         self.imagePreview.layer.masksToBounds = true;
-        self.imagePreview.layer.cornerRadius = 4.f;
+        [self continuityRadiusForView:self.imagePreview withRadius:5.f];
         [self.contentView addSubview:self.imagePreview];
         
-        self.userPreviewView = [[BFUserAttachmentView alloc] initWithFrame:CGRectMake(self.frame.size.width - (self.profilePicture.frame.size.width - 4) - 12, self.profilePicture.frame.origin.y + 2, self.profilePicture.frame.size.width - 4, self.profilePicture.frame.size.height - 4)];
-         [self.contentView addSubview:self.userPreviewView];
+        self.identityAttachmentView = [[BFIdentityAttachmentView alloc] initWithFrame:CGRectMake(self.frame.size.width - (self.profilePicture.frame.size.width - 4) - 12, self.profilePicture.frame.origin.y + 2, self.profilePicture.frame.size.width - 4, self.profilePicture.frame.size.height - 4)];
+         [self.contentView addSubview:self.identityAttachmentView];
         
         self.campPreviewView = [[BFCampAttachmentView alloc] initWithFrame:CGRectMake(self.frame.size.width - (self.profilePicture.frame.size.width - 4) - 12, self.profilePicture.frame.origin.y + 2, self.profilePicture.frame.size.width - 4, self.profilePicture.frame.size.height - 4)];
          [self.contentView addSubview:self.campPreviewView];
@@ -115,7 +114,7 @@
     long rHeight = lroundf(textLabelHeight);
     int lineCount = roundf(rHeight/charSize);
     
-    if (lineCount > 2 || self.campPreviewView || self.userPreviewView) {
+    if (lineCount > 2 || self.campPreviewView || self.identityAttachmentView) {
         self.textLabel.frame = CGRectMake(leftOffset, ACTIVITY_CELL_CONTENT_INSET.top, textLabelWidth, ceilf(textLabelRect.size.height));
     }
     else if (lineCount == 1) {
@@ -130,9 +129,9 @@
         [self.campPreviewView layoutSubviews];
         self.campPreviewView.frame = CGRectMake(self.textLabel.frame.origin.x, self.textLabel.frame.origin.y + self.textLabel.frame.size.height + ACTIVITY_CELL_ATTACHMENT_PADDING, contentWidth, self.campPreviewView.frame.size.height);
     }
-    else if (self.userPreviewView) {
-        [self.userPreviewView layoutSubviews];
-        self.userPreviewView.frame = CGRectMake(self.textLabel.frame.origin.x, self.textLabel.frame.origin.y + self.textLabel.frame.size.height + ACTIVITY_CELL_ATTACHMENT_PADDING, contentWidth, self.userPreviewView.frame.size.height);
+    else if (self.identityAttachmentView) {
+        [self.identityAttachmentView layoutSubviews];
+        self.identityAttachmentView.frame = CGRectMake(self.textLabel.frame.origin.x, self.textLabel.frame.origin.y + self.textLabel.frame.size.height + ACTIVITY_CELL_ATTACHMENT_PADDING, contentWidth, self.identityAttachmentView.frame.size.height);
     }
     
     if (![self.lineSeparator isHidden]) {
@@ -142,49 +141,62 @@
 
 - (void)updateActivityType {
     // if type is unknown, hide the indicator
-    self.typeIndicator.superview.hidden = (self.activity.type == USER_ACTIVITY_TYPE_UNKNOWN);
-    if (self.activity.attributes.type == USER_ACTIVITY_TYPE_USER_FOLLOW) {
+    if ([self.activity.attributes.icon isEqualToString:@"profile"]) {
         self.typeIndicator.image = [UIImage imageNamed:@"notificationIndicator_profile"];
         self.typeIndicator.backgroundColor = [UIColor bonfireBlue];
     }
-    else if (self.activity.attributes.type == USER_ACTIVITY_TYPE_USER_ACCEPTED_ACCESS) {
+    else if ([self.activity.attributes.icon isEqualToString:@"check"]) {
         self.typeIndicator.image = [UIImage imageNamed:@"notificationIndicator_check"];
         self.typeIndicator.backgroundColor = [UIColor bonfireGreen];
     }
-    else if (self.activity.attributes.type == USER_ACTIVITY_TYPE_CAMP_ACCESS_REQUEST) {
+    else if ([self.activity.attributes.icon isEqualToString:@"clock"]) {
         self.typeIndicator.image = [UIImage imageNamed:@"notificationIndicator_clock"];
         self.typeIndicator.backgroundColor = [UIColor colorWithRed:0.52 green:0.53 blue:0.55 alpha:1.0];
     }
-    else if (self.activity.attributes.type == USER_ACTIVITY_TYPE_POST_REPLY) {
+    else if ([self.activity.attributes.icon isEqualToString:@"reply"]) {
         self.typeIndicator.image = [UIImage imageNamed:@"notificationIndicator_reply"];
         self.typeIndicator.backgroundColor = [UIColor bonfireViolet];
     }
-    else if (self.activity.attributes.type == USER_ACTIVITY_TYPE_POST_VOTED) {
-        self.typeIndicator.image = [UIImage imageNamed:@"notificationIndicator_vote"];
+    else if ([self.activity.attributes.icon isEqualToString:@"vote"]) {
+        self.typeIndicator.image = [UIImage imageNamed:@"notificationIndicator_spark"];
         self.typeIndicator.backgroundColor = [UIColor bonfireBrand];
     }
-    else if (self.activity.attributes.type == USER_ACTIVITY_TYPE_USER_POSTED || self.activity.attributes.type == USER_ACTIVITY_TYPE_USER_POSTED_CAMP) {
+    else if ([self.activity.attributes.icon isEqualToString:@"chat_bubble"]) {
         // TODO: Create user posted icon/color combo
         self.typeIndicator.image = [UIImage imageNamed:@"notificationIndicator_user_posted"];
         self.typeIndicator.backgroundColor = [UIColor bonfireGreen];
     }
-    else if (self.activity.attributes.type == USER_ACTIVITY_TYPE_POST_MENTION) {
+    else if ([self.activity.attributes.icon isEqualToString:@"at_symbol"]) {
         self.typeIndicator.image = [UIImage imageNamed:@"notificationIndicator_mention"];
         self.typeIndicator.backgroundColor = [UIColor colorWithRed:0.07 green:0.78 blue:1.00 alpha:1.0];
     }
+    else if ([self.activity.attributes.icon isEqualToString:@"heart"]) {
+        self.typeIndicator.image = [UIImage imageNamed:@"notificationIndicator_heart"];
+        self.typeIndicator.backgroundColor = [UIColor colorWithDisplayP3Red:1 green:0.07 blue:0.22 alpha:1];
+    }
+    else if ([self.activity.attributes.icon isEqualToString:@"trending"]) {
+        self.typeIndicator.image = [UIImage imageNamed:@"notificationIndicator_trending"];
+        self.typeIndicator.backgroundColor = [UIColor bonfireGreen];
+    }
+    else {
+        self.typeIndicator.image = nil;
+        self.typeIndicator.backgroundColor = [UIColor clearColor];
+    }
+    
+    self.typeIndicator.superview.hidden = !self.typeIndicator.image;
     
     // init/remove attachments
-    if ([ActivityCell includeUserAttachmentForActivity:self.activity]) {
+    if ([self.activity.attributes includeUserAttachment]) {
         [self removeCampAttachment];
-        [self initUserAttachmentWithUser:self.activity.attributes.actioner];
+        [self initUserAttachmentWithIdentity:self.activity.attributes.actioner];
     }
-    else if ([ActivityCell includeCampAttachmentForActivity:self.activity]) {
-        [self removeUserAttachment];
+    else if ([self.activity.attributes includeCampAttachment]) {
+        [self removeIdentityAttachment];
         [self initCampAttachmentWithCamp:self.activity.attributes.camp];
     }
     else {
         [self removeCampAttachment];
-        [self removeUserAttachment];
+        [self removeIdentityAttachment];
     }
 }
 
@@ -215,21 +227,14 @@
         
         // set image preview (if needed)
         BOOL hasImagePreview = false;
-        if (self.activity.attributes.replyPost &&
-            self.activity.attributes.replyPost.attributes.attachments.media.count > 0) {
-            hasImagePreview = true;
-        }
-        else if (!self.activity.attributes.replyPost &&
-                 self.activity.attributes.post.attributes.attachments.media.count > 0) {
+        if (self.activity.attributes.previewPost &&
+            self.activity.attributes.previewPost.attributes.attachments.media.count > 0) {
             hasImagePreview = true;
         }
         self.imagePreview.hidden = !hasImagePreview;
         if (hasImagePreview) {
-            if (self.activity.attributes.replyPost) {
-                [self.imagePreview sd_setImageWithURL:[NSURL URLWithString:self.activity.attributes.replyPost.attributes.attachments.media[0].attributes.hostedVersions.suggested.url]];
-            }
-            else {
-                [self.imagePreview sd_setImageWithURL:[NSURL URLWithString:self.activity.attributes.post.attributes.attachments.media[0].attributes.hostedVersions.suggested.url]];
+            if (self.activity.attributes.previewPost) {
+                [self.imagePreview sd_setImageWithURL:[NSURL URLWithString:self.activity.attributes.previewPost.attributes.attachments.media[0].attributes.hostedVersions.suggested.url]];
             }
         }
         
@@ -265,29 +270,29 @@
     [self.campPreviewView removeFromSuperview];
     self.campPreviewView = nil;
 }
-- (void)initUserAttachmentWithUser:(User *)user {    
+- (void)initUserAttachmentWithIdentity:(Identity *)user {    
     if (!user) {
-        [self removeUserAttachment];
+        [self removeIdentityAttachment];
         return;
     }
     
     // need to initialize a user preview view
     CGFloat width = [UIScreen mainScreen].bounds.size.width - (ACTIVITY_CELL_CONTENT_INSET.left + ACTIVITY_CELL_CONTENT_INSET.right);
-    CGRect frame = CGRectMake(ACTIVITY_CELL_CONTENT_INSET.left, self.textLabel.frame.origin.y + self.textLabel.frame.size.height + ACTIVITY_CELL_ATTACHMENT_PADDING, width, [BFUserAttachmentView heightForUser:user width:width]);
+    CGRect frame = CGRectMake(ACTIVITY_CELL_CONTENT_INSET.left, self.textLabel.frame.origin.y + self.textLabel.frame.size.height + ACTIVITY_CELL_ATTACHMENT_PADDING, width, [BFIdentityAttachmentView heightForIdentity:user width:width]);
     
-    if (self.userPreviewView) {
-        self.userPreviewView.user = user;
-        self.userPreviewView.frame = frame;
+    if (self.identityAttachmentView) {
+        self.identityAttachmentView.identity = user;
+        self.identityAttachmentView.frame = frame;
     }
     else {
-        self.userPreviewView = [[BFUserAttachmentView alloc] initWithUser:user frame:frame];
-        NSLog(@"heightttt: %f", self.userPreviewView.frame.size.height);
-        [self.contentView addSubview:self.userPreviewView];
+        self.identityAttachmentView = [[BFIdentityAttachmentView alloc] initWithIdentity:user frame:frame];
+        NSLog(@"heightttt: %f", self.identityAttachmentView.frame.size.height);
+        [self.contentView addSubview:self.identityAttachmentView];
     }
 }
-- (void)removeUserAttachment {
-    [self.userPreviewView removeFromSuperview];
-    self.userPreviewView = nil;
+- (void)removeIdentityAttachment {
+    [self.identityAttachmentView removeFromSuperview];
+    self.identityAttachmentView = nil;
 }
 
 + (CGFloat)heightForUserActivity:(UserActivity *)activity {
@@ -297,12 +302,8 @@
     CGFloat contentHeight = 0;
     
     BOOL hasImagePreview = false;
-    if (activity.attributes.replyPost &&
-        activity.attributes.replyPost.attributes.attachments.media.count > 0) {
-        hasImagePreview = true;
-    }
-    else if (!activity.attributes.replyPost &&
-             activity.attributes.post.attributes.attachments.media.count > 0) {
+    if (activity.attributes.previewPost &&
+        activity.attributes.previewPost.attributes.attachments.media.count > 0) {
         hasImagePreview = true;
     }
     CGFloat pictureWidth = hasImagePreview ? 44 + 8 : 0;
@@ -329,7 +330,7 @@
     // attachments
     CGFloat attachmentWidth = ([UIScreen mainScreen].bounds.size.width - (ACTIVITY_CELL_CONTENT_INSET.left + ACTIVITY_CELL_CONTENT_INSET.right));
     if ([ActivityCell includeUserAttachmentForActivity:activity]) {
-        contentHeight += (ACTIVITY_CELL_ATTACHMENT_PADDING + [BFUserAttachmentView heightForUser:activity.attributes.actioner width:attachmentWidth]);
+        contentHeight += (ACTIVITY_CELL_ATTACHMENT_PADDING + [BFIdentityAttachmentView heightForIdentity:activity.attributes.actioner width:attachmentWidth]);
     }
     else if ([ActivityCell includeCampAttachmentForActivity:activity]) {
         contentHeight += (ACTIVITY_CELL_ATTACHMENT_PADDING + [BFCampAttachmentView heightForCamp:activity.attributes.camp width:attachmentWidth]);
@@ -367,6 +368,15 @@
 
 - (void)setUnread:(BOOL)unread {
     self.backgroundColor = [UIColor contentBackgroundColor];
+}
+
+- (void)continuityRadiusForView:(UIView *)sender withRadius:(CGFloat)radius {
+    CAShapeLayer * maskLayer = [CAShapeLayer layer];
+    maskLayer.path = [UIBezierPath bezierPathWithRoundedRect:sender.bounds
+                                           byRoundingCorners:UIRectCornerBottomLeft|UIRectCornerBottomRight|UIRectCornerTopLeft|UIRectCornerTopRight
+                                                 cornerRadii:CGSizeMake(radius, radius)].CGPath;
+    
+    sender.layer.mask = maskLayer;
 }
 
 @end

@@ -26,6 +26,8 @@
     view.layer.shadowRadius = 2;
     view.layer.shadowOpacity = 0.4;
     view.layer.shadowColor = [UIColor blackColor].CGColor;
+    view.layer.rasterizationScale = [UIScreen mainScreen].scale;
+    view.layer.shouldRasterize = true;
 }
 
 - (void)animateTransition:(id<UIViewControllerContextTransitioning>)transitionContext
@@ -55,6 +57,8 @@
             toView.center = CGPointMake(containerView.frame.size.width * 1.5, toView.center.y);
             [self addLeftSideShadowWithFading:toView];
             toView.layer.masksToBounds = false;
+            toView.layer.rasterizationScale = [UIScreen mainScreen].scale;
+            toView.layer.shouldRasterize = true;
         }
         
         [UIView animateWithDuration:animationDuration delay:0 usingSpringWithDamping:animationDamping initialSpringVelocity:0.5f options:(UIViewAnimationOptionCurveEaseInOut|UIViewAnimationOptionAllowUserInteraction) animations:^{
@@ -71,6 +75,7 @@
             [fromView removeFromSuperview];
             toView.userInteractionEnabled = YES;
             toView.layer.cornerRadius = 0;
+            toView.layer.shouldRasterize = false;
             [transitionContext completeTransition:![transitionContext transitionWasCancelled]];
         }];
     }
@@ -82,6 +87,9 @@
         [containerView bringSubviewToFront:fromView];
         
         fromView.alpha = 1;
+        
+        toView.layer.rasterizationScale = [UIScreen mainScreen].scale;
+        toView.layer.shouldRasterize = true;
         
         CGFloat animationDuration;
         
@@ -110,6 +118,7 @@
         } completion:^(BOOL finished) {
             [fromView removeFromSuperview];
             toView.userInteractionEnabled = YES;
+            toView.layer.shouldRasterize = false;
             fromView.layer.cornerRadius = 0;
             [transitionContext completeTransition:![transitionContext transitionWasCancelled]];
         }];

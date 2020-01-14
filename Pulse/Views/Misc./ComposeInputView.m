@@ -83,13 +83,13 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     
     self.contentView = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleProminent]];
     self.contentView.frame = self.bounds;
-    self.contentView.backgroundColor = [[UIColor contentBackgroundColor] colorWithAlphaComponent:0.8];
+    self.contentView.backgroundColor = [[UIColor contentBackgroundColor] colorWithAlphaComponent:0.75];
     [self addSubview:self.contentView];
     
 //    self.layer.shadowOffset = CGSizeMake(0, 0);
 //    self.layer.shadowRadius = 2.f;
 //    self.layer.shadowColor = [UIColor blackColor].CGColor;
-//    self.layer.shadowOpacity = 0.08;
+//    self.layer.shadowOpacity = 0.1;
     
     self.layer.masksToBounds = false;
     
@@ -109,8 +109,8 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     _textView.textContainer.lineBreakMode = NSLineBreakByWordWrapping;
     _textView.textColor = [UIColor bonfirePrimaryColor];
     _textView.layer.cornerRadius = 20.f;
-    _textView.backgroundColor = [[UIColor fromHex:@"9FA6AD"] colorWithAlphaComponent:0.1];
-//    _textView.layer.borderWidth = HALF_PIXEL;
+    _textView.backgroundColor = [UIColor cardBackgroundColor]; //[[UIColor fromHex:@"9FA6AD"] colorWithAlphaComponent:0.1];
+    _textView.layer.borderWidth = HALF_PIXEL;
     _textView.placeholder = self.defaultPlaceholder;
     _textView.placeholderColor = [UIColor bonfireSecondaryColor];
 //    _textView.keyboardAppearance = UIKeyboardAppearanceLight;
@@ -152,12 +152,12 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     
     // profile picture
     self.addMediaButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    self.addMediaButton.frame = CGRectMake(12, 12, 30, 30);
+    self.addMediaButton.frame = CGRectMake(12, 11, 32, 32);
     [self.addMediaButton setImage:[[UIImage imageNamed:@"composeAddPicture"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
     self.addMediaButton.layer.masksToBounds = true;
     self.addMediaButton.layer.cornerRadius = self.addMediaButton.frame.size.height / 2;
     self.addMediaButton.tintColor = [UIColor whiteColor];
-    self.addMediaButton.backgroundColor = [UIColor bonfireSecondaryColor];
+    self.addMediaButton.backgroundColor = [[UIColor bonfirePrimaryColor] colorWithAlphaComponent:0.6];
     self.addMediaButton.contentMode = UIViewContentModeScaleAspectFill;
     self.addMediaButton.adjustsImageWhenHighlighted = false;
     [self.addMediaButton bk_addEventHandler:^(id sender) {
@@ -317,7 +317,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     [self resize:false];
     
     // added in layoutSubviews for Dark Mode support
-    _textView.layer.borderColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.06].CGColor;
+    _textView.layer.borderColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.12].CGColor;
     
     self.postButton.tintColor = [UIColor highContrastForegroundForBackground:self.postButton.backgroundColor];
 }
@@ -331,7 +331,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 }
 
 - (void)updatePlaceholders {
-    NSString *publicPostPlaceholder = @"Share with everyone...";
+    NSString *publicPostPlaceholder = @"Start a conversation...";
     
     if (self.defaultPlaceholder == nil) {
         UIViewController *parentController = UIViewParentController(self);
@@ -467,7 +467,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     CGRect frame = self.frame;
     CGFloat bottomY = frame.origin.y + frame.size.height;
     
-    [UIView animateWithDuration:animated?0.6:0 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+    [UIView animateWithDuration:animated?0.3:0 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
         self.frame = CGRectMake(frame.origin.x, bottomY - barHeight, frame.size.width, barHeight);
         self.contentView.frame = self.bounds;
         self.textView.frame = CGRectMake(self.textView.frame.origin.x, self.textView.frame.origin.y, self.textView.frame.size.width, textHeight);
@@ -526,7 +526,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
     [imagePickerOptions addAction:cancel];
     
-    [UIViewParentController(self) presentViewController:imagePickerOptions animated:true completion:nil];
+    [[Launcher topMostViewController] presentViewController:imagePickerOptions animated:true completion:nil];
 }
 
 - (void)takePhotoToAttach:(id)sender {
@@ -742,9 +742,9 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 }
 
 - (void)updateMediaAvailability {
-    NSLog(@"self.media canAddImages? %@", [self.media canAddImage] ? @"YES" : @"NO");
-    NSLog(@"self.media canAddGIFs? %@", [self.media canAddGIF] ? @"YES" : @"NO");
-    NSLog(@"self.media canAddMedia? %@", [self.media canAddMedia] ? @"YES" : @"NO");
+    DLog(@"self.media canAddImages? %@", [self.media canAddImage] ? @"YES" : @"NO");
+    DLog(@"self.media canAddGIFs? %@", [self.media canAddGIF] ? @"YES" : @"NO");
+    DLog(@"self.media canAddMedia? %@", [self.media canAddMedia] ? @"YES" : @"NO");
     
     self.addMediaButton.enabled = [self.media canAddMedia];
     [UIView animateWithDuration:0.3f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
@@ -862,7 +862,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     if ([textView isEqual:self.textView]) {
         [self resize:false];
         
-        if (textView.text.length > 0 || self.media.objects.count > 0) {
+        if (![self textViewIsEmpty] || self.media.objects.count > 0) {
             [self showPostButton];
             
             BOOL enableButton =  (self.media.objects.count > 0) || [self charactersRemainingWithStirng:textView.text] >= 0;
@@ -898,6 +898,11 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             [self.delegate composeInputViewMessageDidChange:textView];
         }
     }
+}
+- (BOOL)textViewIsEmpty {
+    NSString *spacelessString = [self.textView.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+    
+    return spacelessString.length == 0;
 }
 - (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text
 {
@@ -1131,8 +1136,9 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             [cell bk_whenTapped:^{
                 BOOL changes = false;
                 NSString *finalString = self.textView.text;
-                if (cell.user) {
-                    NSString *usernameSelected = cell.user.attributes.identifier;
+                if (cell.user || cell.bot) {
+                    Identity *identity = (cell.user ? cell.user : cell.bot);
+                    NSString *usernameSelected = identity.attributes.identifier;
                     
                     if (usernameSelected.length > 0) {
                         finalString = [self.textView.text stringByReplacingCharactersInRange:self.activeTagRange withString:[NSString stringWithFormat:@"@%@ ", usernameSelected]];

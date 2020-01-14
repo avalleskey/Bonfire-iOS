@@ -91,7 +91,7 @@
 		<string>com.Ingenious.bonfire.open-feed-timeline</string>
 	</array>
 	<key>SCSDKClientId</key>
-	<string>ab6bfe71-3708-45ec-bac6-30c6149a2a80</string>
+	<string>$(SCSDKClientId)</string>
 	<key>SCSDKRedirectUrl</key>
 	<string>bonfireapp$(BUNDLE_ID_SUFFIX)://app</string>
 	<key>UIAppFonts</key>

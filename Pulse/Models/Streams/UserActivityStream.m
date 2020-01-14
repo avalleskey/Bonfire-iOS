@@ -215,6 +215,24 @@
     [self updateActivitiesArray];
 }
 
+- (void)updateAttributedStrings {
+    for (int p = 0; p < self.pages.count; p++) {
+        UserActivityStreamPage *page = self.pages[p];
+        
+        NSMutableArray <UserActivity *> *mutableArray = [[NSMutableArray alloc] initWithArray:page.data];
+        for (NSInteger i = mutableArray.count - 1; i >= 0; i--) {
+            UserActivity *activityAtIndex = mutableArray[i];
+            [activityAtIndex updateAttributedString];
+            [mutableArray replaceObjectAtIndex:i withObject:activityAtIndex];
+        }
+        
+        page.data = [mutableArray copy];
+        
+        [self.pages replaceObjectAtIndex:p withObject:page];
+    }
+    
+    [self updateActivitiesArray];
+}
 
 - (NSString *)prevCursor {
     if (self.pages.count == 0) return @"";

@@ -1047,7 +1047,6 @@ static int const EMAIL_FIELD = 206;
 - (void)imageCropViewControllerDidCancelCrop:(RSKImageCropViewController *)controller
 {
     [controller.navigationController dismissViewControllerAnimated:YES completion:nil];
-    [self takePhotoForProfilePicture:nil];
 }
 
 // The original image has been cropped. Additionally provides a rotation angle used to produce image.
@@ -1084,6 +1083,7 @@ static int const EMAIL_FIELD = 206;
     RSKImageCropViewController *imageCropVC = [[RSKImageCropViewController alloc] initWithImage:chosenImage];
     imageCropVC.delegate = self;
     imageCropVC.dataSource = self;
+    imageCropVC.view.tag = 1;
     imageCropVC.cropMode = RSKImageCropModeCustom;
     
     // move the cancel and choose buttons up

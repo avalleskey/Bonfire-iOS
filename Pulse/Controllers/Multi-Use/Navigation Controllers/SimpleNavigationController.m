@@ -112,6 +112,11 @@
     self.bottomHairline.alpha = 0.12;
     [self.navigationBar addSubview:self.bottomHairline];
     
+    // add progress view inside of the saerch view
+    self.progressView = [UIView new];
+    self.progressView.frame = CGRectMake(0, self.navigationBar.frame.size.height - 2, 0, 2);
+    [self.navigationBar addSubview:self.progressView];
+    
     if (self.currentTheme == nil) {
         self.currentTheme = [UIColor clearColor];
     }
@@ -153,7 +158,7 @@
         [button setImage:[[UIImage imageNamed:@"navPlusIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
     }
     else if (actionType == SNActionTypeShare) {
-        [button setTitle:@"Post" forState:UIControlStateNormal];
+//        [button setTitle:@"Post" forState:UIControlStateNormal];
     }
     else if (actionType == SNActionTypeDone) {
         includeAction = true;
@@ -173,6 +178,9 @@
     }
     else if (actionType == SNActionTypeCamptag) {
         [button setImage:[[UIImage imageNamed:@"navCamptagIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+    }
+    else if (actionType == SNActionTypeSidebar) {
+        [button setImage:[[UIImage imageNamed:@"navSidebarIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
     }
     
     if (actionType == SNActionTypeShare || actionType == SNActionTypeDone) {
@@ -347,6 +355,7 @@
 
     UIColor *foreground;
     UIColor *action;
+    UIColor *progressBar;
     
     if (background == [UIColor clearColor]) {
         [self setShadowVisibility:true withAnimation:false];
@@ -354,6 +363,7 @@
         foreground = [UIColor bonfirePrimaryColor];
         action = [UIColor bonfirePrimaryColor]; //[UIColor fromHex:[Session sharedInstance].currentUser.attributes.color];
         background = [UIColor colorNamed:@"Navigation_ClearBackgroundColor"];
+        progressBar = [[UIColor bonfirePrimaryColor] colorWithAlphaComponent:0.1];
     }
     else {
         [self setShadowVisibility:false withAnimation:false];
@@ -372,6 +382,8 @@
             action =
             foreground = [UIColor blackColor];
         }
+        
+        progressBar = [action colorWithAlphaComponent:0.5];
     }
     
     [UIView animateWithDuration:animated?0.5f:0 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
@@ -390,9 +402,45 @@
         self.navigationItem.rightBarButtonItem.customView.tintColor = action;
 //        [self.navigationBar layoutIfNeeded];
         [self setNeedsStatusBarAppearanceUpdate];
+        
+        self.progressView.backgroundColor = progressBar;
     } completion:^(BOOL finished) {
         [self setNeedsStatusBarAppearanceUpdate];
     }];
+}
+
+- (void)setProgress:(CGFloat)progress {
+    [self setProgress:progress animated:false hideOnCompletion:false];
+}
+- (void)setProgress:(CGFloat)progress animated:(BOOL)animated {
+    [self setProgress:progress animated:animated hideOnCompletion:false];
+}
+- (void)setProgress:(CGFloat)progress animated:(BOOL)animated hideOnCompletion:(BOOL)hideOnCompletion {
+    if (progress != _progress) {
+        // show progress view if needed
+        if (progress > 0) {
+            [UIView animateWithDuration:(self.progressView.frame.size.width > 0 ? 0.25f : 0) delay:0.1f options:UIViewAnimationOptionCurveEaseOut animations:^{
+                self.progressView.alpha = 1;
+            } completion:nil];
+        }
+        
+        CGFloat progressDiff = (_progress - progress);
+        
+        _progress = progress;
+        
+        CGFloat duration = (animated ? 0.15f + (fabs(progressDiff) * 0.5f) : 0);
+        [UIView animateWithDuration:duration delay:0 options:(UIViewAnimationOptionCurveEaseOut|UIViewAnimationOptionBeginFromCurrentState) animations:^{
+            self.progressView.frame = CGRectMake(self.progressView.frame.origin.x, self.progressView.frame.origin.y, roundf(self.progressView.superview.frame.size.width * progress), self.progressView.frame.size.height);
+        } completion:^(BOOL finished) {
+            if (hideOnCompletion) {
+                [UIView animateWithDuration:0.25f delay:0.1f options:UIViewAnimationOptionCurveEaseOut animations:^{
+                    self.progressView.alpha = 0;
+                } completion:^(BOOL finished) {
+                    [self setProgress:0];
+                }];
+            }
+        }];
+    }
 }
 
 - (UIStatusBarStyle)preferredStatusBarStyle {

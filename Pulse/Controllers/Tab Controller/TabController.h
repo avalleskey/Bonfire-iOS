@@ -12,7 +12,7 @@
 #import "ComplexNavigationController.h"
 #import "SearchTableViewController.h"
 #import "CampStoreTableViewController.h"
-#import "MyFeedViewController.h"
+#import "HomeTableViewController.h"
 #import "CombinedHomeViewController.h"
 #import "ProfileViewController.h"
 #import "NotificationsTableViewController.h"
@@ -32,7 +32,8 @@
 @property (nonatomic, strong) BFAvatarView *navigationAvatarView;
 
 @property (nonatomic, strong) UIView *tabIndicator;
-@property (nonatomic, strong) UIVisualEffectView *blurView;
+//@property (nonatomic, strong) UIVisualEffectView *blurView;
+@property (nonatomic, strong) UIView *tabBackgroundView;
 
 - (void)setBadgeValue:(NSString *)badgeValue forItem:(UITabBarItem *)tabBarItem;
 @property (nonatomic, strong) NSMutableDictionary *badges;

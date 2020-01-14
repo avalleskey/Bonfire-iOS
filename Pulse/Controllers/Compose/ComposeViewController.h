@@ -22,6 +22,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) Camp *postingIn;
 @property (nonatomic, strong) Post *replyingTo;
 @property (nonatomic, strong) id quotedObject;
+@property (nonatomic, strong) NSArray * _Nullable media;
 @property (nonatomic, strong) NSString * _Nullable prefillMessage;
 
 @property (nonatomic) BOOL replyingToIcebreaker;
@@ -41,8 +42,11 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) UILabel *characterCountdownLabel;
 @property (nonatomic, strong) UIButton *takePictureButton;
 @property (nonatomic, strong) UIButton *choosePictureButton;
+@property (nonatomic, strong) UIButton *postButton;
 
 @property (nonatomic, strong) UITableView *autoCompleteTableView;
+
+- (void)takePicture:(id)sender;
 
 @end
 

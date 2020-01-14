@@ -24,7 +24,8 @@ typedef enum {
     LNActionTypeMore = 4,
     LNActionTypeAdd = 5,
     LNActionTypeBack = 6,
-    LNActionTypeInfo = 7
+    LNActionTypeInfo = 7,
+    LNActionTypeSettings = 8
 } LNActionType;
 - (void)setLeftAction:(LNActionType)actionType;
 - (void)setRightAction:(LNActionType)actionType;
@@ -32,7 +33,14 @@ typedef enum {
 @property (nonatomic, strong) SloppySwiper *swiper;
 
 @property (nonatomic, strong) UITableView *searchResultsTableView;
+
 @property (nonatomic, strong) BFSearchView *searchView;
+
+@property (nonatomic, strong) UIView *progressView;
+@property (nonatomic) CGFloat progress;
+// Additional progress methods
+- (void)setProgress:(CGFloat)progress animated:(BOOL)animated;
+- (void)setProgress:(CGFloat)progress animated:(BOOL)animated hideOnCompletion:(BOOL)hideOnCompletion;
 
 @property (nonatomic, strong) UIButton *leftActionButton;
 @property (nonatomic, strong) UIButton *rightActionButton;

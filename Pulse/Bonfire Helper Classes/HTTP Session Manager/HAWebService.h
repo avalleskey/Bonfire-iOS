@@ -21,6 +21,8 @@ extern NSString * const kIMAGE_UPLOAD_URL;
 + (HAWebService *)authenticatedManager;
 + (HAWebService *)managerWithContentType:(NSString * _Nullable)contentType;
 
+@property (nonatomic, copy) void (^savedCompletionHandler)(void);
+
 + (void)reset;
 
 + (BOOL)hasInternet;

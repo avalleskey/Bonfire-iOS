@@ -74,4 +74,10 @@ extern const NSInteger DEFAULT_UNKNOWN_ERROR;
 
 @end
 
+@interface NSError (Bonfire)
+
+- (NSInteger)bonfireErrorCode;
+
+@end
+
 NS_ASSUME_NONNULL_END

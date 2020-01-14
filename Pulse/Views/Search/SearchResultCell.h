@@ -14,6 +14,7 @@
 // ---- OPTIONS ----
 
 @property (nonatomic) BOOL showActionButton;
+@property (nonatomic) BOOL hideCampMemberCount;
 
 
 // ---- VALUES ----
@@ -21,6 +22,7 @@
 @property (nonatomic, strong) BFAvatarView *profilePicture;
 @property (nonatomic, strong) UIImageView *checkIcon;
 @property (nonatomic, strong) UIButton *actionButton;
+@property (nonatomic, strong) UIButton *contextButton;
 
 @property (nonatomic, strong) UIView *lineSeparator;
 

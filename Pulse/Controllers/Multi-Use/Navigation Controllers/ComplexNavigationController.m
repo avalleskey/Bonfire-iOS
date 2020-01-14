@@ -25,7 +25,7 @@
 #import "OnboardingViewController.h"
 #import "EditProfileViewController.h"
 #import "CampStoreTableViewController.h"
-#import "MyFeedViewController.h"
+#import "HomeTableViewController.h"
 #import <UIImageView+WebCache.h>
 #import "UIColor+Palette.h"
 #import "UINavigationItem+Margin.h"
@@ -422,17 +422,16 @@
         self.navigationBar.tintColor = action;
         [self.navigationBar layoutIfNeeded];
         [self setNeedsStatusBarAppearanceUpdate];
+        self.progressView.backgroundColor = [action colorWithAlphaComponent:0.5];
     } completion:nil];
 }
 
 - (void)setupNavigationBarItems {
-    CGFloat searchViewWidth = self.view.frame.size.width - (54 * 2);
+    CGFloat searchViewWidth = self.view.frame.size.width - (56 * 2);
     searchViewWidth = searchViewWidth > IPAD_CONTENT_MAX_WIDTH ? IPAD_CONTENT_MAX_WIDTH : searchViewWidth;
     
     // create smart text field
     self.searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(0, 0, searchViewWidth, 34)];
-    // TODO: Search in groups
-    //self.searchView.resultsType = BFSearchResultsTypeTopPosts;
     self.searchView.textField.delegate = self;
     [self.searchView.textField bk_addEventHandler:^(id sender) {
         if ([self.topViewController isKindOfClass:[SearchTableViewController class]]) {
@@ -444,8 +443,12 @@
     } forControlEvents:UIControlEventEditingChanged];
     self.searchView.openSearchControllerOntap = true;
     self.searchView.center = CGPointMake(self.navigationBar.frame.size.width / 2, self.navigationBar.frame.size.height / 2);
-    
     self.searchView.textField.userInteractionEnabled = false;
+    
+    // add progress view inside of the saerch view
+    self.progressView = [UIView new];
+    self.progressView.frame = CGRectMake(0, self.searchView.frame.size.height - 3, 0, 3);
+    [self.searchView addSubview:self.progressView];
     
     [self.navigationBar addSubview:self.searchView];
     
@@ -465,7 +468,7 @@
     }
     
     if ([self.topViewController isKindOfClass:[CampViewController class]]) {
-        [self setRightAction:LNActionTypeInfo];
+        [self setRightAction:LNActionTypeInvite];
         
         CampViewController *campViewController = (CampViewController *)self.topViewController;
         if (campViewController.camp.identifier && campViewController.camp.identifier.length > 0) {
@@ -483,7 +486,12 @@
         [self setRightAction:LNActionTypeNone];
     }
     else if ([self.topViewController isKindOfClass:[ProfileViewController class]]) {
-        [self setRightAction:LNActionTypeInfo];
+        if ([((ProfileViewController *)self.topViewController).user isCurrentIdentity]) {
+            [self setRightAction:LNActionTypeSettings];
+        }
+        else {
+            [self setRightAction:LNActionTypeInfo];
+        }
         
         ProfileViewController *profileViewController = (ProfileViewController *)self.topViewController;
         if (profileViewController.user.identifier && profileViewController.user.identifier.length > 0) {
@@ -516,7 +524,7 @@
             [self.searchView setPosition:BFSearchTextPositionLeft];
         }
         else {
-            CGFloat searchViewWidth = self.view.frame.size.width - (54 * 2);
+            CGFloat searchViewWidth = self.view.frame.size.width - (56 * 2);
             searchViewWidth = searchViewWidth > IPAD_CONTENT_MAX_WIDTH ? IPAD_CONTENT_MAX_WIDTH : searchViewWidth;
             
             self.searchView.frame = CGRectMake(self.view.frame.size.width / 2 - searchViewWidth / 2, self.searchView.frame.origin.y, searchViewWidth, self.searchView.frame.size.height);
@@ -530,6 +538,40 @@
     
     self.navigationController.interactivePopGestureRecognizer.delegate = self;
     self.navigationController.interactivePopGestureRecognizer.enabled = true;
+}
+
+- (void)setProgress:(CGFloat)progress {
+    [self setProgress:progress animated:false hideOnCompletion:false];
+}
+- (void)setProgress:(CGFloat)progress animated:(BOOL)animated {
+    [self setProgress:progress animated:animated hideOnCompletion:false];
+}
+- (void)setProgress:(CGFloat)progress animated:(BOOL)animated hideOnCompletion:(BOOL)hideOnCompletion {
+    if (progress != _progress) {
+        // show progress view if needed
+        if (progress > 0) {
+            [UIView animateWithDuration:(self.progressView.frame.size.width > 0 ? 0.25f : 0) delay:0.1f options:UIViewAnimationOptionCurveEaseOut animations:^{
+                self.progressView.alpha = 1;
+            } completion:nil];
+        }
+        
+        CGFloat progressDiff = (_progress - progress);
+        
+        _progress = progress;
+        
+        CGFloat duration = (animated ? 0.15f + (fabs(progressDiff) * 0.5f) : 0);
+        [UIView animateWithDuration:duration delay:0 options:(UIViewAnimationOptionCurveEaseOut|UIViewAnimationOptionBeginFromCurrentState) animations:^{
+            self.progressView.frame = CGRectMake(self.progressView.frame.origin.x, self.progressView.frame.origin.y, roundf(self.progressView.superview.frame.size.width * progress), self.progressView.frame.size.height);
+        } completion:^(BOOL finished) {
+            if (hideOnCompletion) {
+                [UIView animateWithDuration:0.25f delay:0.1f options:UIViewAnimationOptionCurveEaseOut animations:^{
+                    self.progressView.alpha = 0;
+                } completion:^(BOOL finished) {
+                    [self setProgress:0];
+                }];
+            }
+        }];
+    }
 }
 
 - (void)continuityRadiusForView:(UIView *)sender withRadius:(CGFloat)radius {
@@ -547,25 +589,28 @@
     if (actionType == LNActionTypeCancel) {
         [button setTitle:@"Cancel" forState:UIControlStateNormal];
     }
-    if (actionType == LNActionTypeCompose) {
+    else if (actionType == LNActionTypeCompose) {
         [button setImage:[[UIImage imageNamed:@"composeIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
         [button setImageEdgeInsets:UIEdgeInsetsMake(-2, 0, 0, -3)];
     }
-    if (actionType == LNActionTypeMore) {
+    else if (actionType == LNActionTypeMore) {
         [button setImage:[[UIImage imageNamed:@"navMoreIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
     }
-    if (actionType == LNActionTypeInvite) {
+    else if (actionType == LNActionTypeInvite) {
         [button setImage:[[UIImage imageNamed:@"inviteFriendIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
     }
-    if (actionType == LNActionTypeAdd) {
+    else if (actionType == LNActionTypeAdd) {
         [button setImage:[[UIImage imageNamed:@"navPlusIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
     }
-    if (actionType == LNActionTypeBack) {
+    else if (actionType == LNActionTypeBack) {
         [button setImage:[[UIImage imageNamed:@"leftArrowIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
         [button setImageEdgeInsets:UIEdgeInsetsMake(0, 12, 0, 0)];
     }
-    if (actionType == LNActionTypeInfo) {
+    else if (actionType == LNActionTypeInfo) {
         [button setImage:[[UIImage imageNamed:@"navInfoIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+    }
+    else if (actionType == LNActionTypeSettings) {
+        [button setImage:[[UIImage imageNamed:@"navSettingsIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
     }
     
     if (button.currentTitle.length > 0) {
@@ -617,7 +662,13 @@
                 break;
             }
             case LNActionTypeInvite:
-                [Launcher openInviteFriends:self];
+                if ([self.viewControllers[self.viewControllers.count-1] isKindOfClass:[CampViewController class]]) {
+                    CampViewController *activeCamp = self.viewControllers[self.viewControllers.count-1];
+                    [activeCamp openCampActions];
+                }
+                else {
+                    [Launcher openInviteFriends:self];
+                }
                 break;
             case LNActionTypeAdd:
                 break;
@@ -655,6 +706,10 @@
                     [activeProfile openProfileActions];
                 }
                 
+                break;
+            }
+            case LNActionTypeSettings: {
+                [Launcher openSettings];
                 break;
             }
                 

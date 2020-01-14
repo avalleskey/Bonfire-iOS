@@ -87,7 +87,6 @@ static NSString * const reuseIdentifier = @"Result";
         [self styleOnAppear];
     }
         
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillDismiss:) name:UIKeyboardWillHideNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillChangeFrame:) name:UIKeyboardWillChangeFrameNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillDismiss:) name:UIKeyboardWillHideNotification object:nil];
 }
@@ -97,6 +96,7 @@ static NSString * const reuseIdentifier = @"Result";
     [InsightsLogger.sharedInstance closeAllVisiblePostInsightsInTableView:self.tableView];
     
     [self.view endEditing:true];
+    [self keyboardWillDismiss:nil];
     
     [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillChangeFrameNotification object:nil];
     [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillHideNotification object:nil];
@@ -109,11 +109,22 @@ static NSString * const reuseIdentifier = @"Result";
     self.coverPhotoView.clipsToBounds = true;
     [self.view insertSubview:self.coverPhotoView belowSubview:self.tableView];
     UIView *overlayView = [[UIView alloc] initWithFrame:self.coverPhotoView.bounds];
-    overlayView.backgroundColor = self.theme;
+    overlayView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.2f];
     overlayView.alpha = 0;
     overlayView.tag = 10;
-    //[self.imagePreviewView addSubview:overlayView];
+    [self.coverPhotoView addSubview:overlayView];
     [self updateCoverPhotoView];
+    
+    CABasicAnimation *rotationAnimation;
+    rotationAnimation = [CABasicAnimation animationWithKeyPath:@"opacity"];
+    rotationAnimation.autoreverses = true;
+    rotationAnimation.fromValue = [NSNumber numberWithFloat:0];
+    rotationAnimation.toValue = [NSNumber numberWithFloat:1];
+    rotationAnimation.duration = 0.5f;
+    rotationAnimation.fillMode = kCAFillModeBoth;
+    rotationAnimation.repeatCount = HUGE_VALF;
+    rotationAnimation.removedOnCompletion = false;
+    [overlayView.layer addAnimation:rotationAnimation forKey:@"opacityAnimation"];
 }
 - (void)updateCoverPhotoView {
 //    if (1 == 2) {
@@ -126,7 +137,7 @@ static NSString * const reuseIdentifier = @"Result";
 //    }
     [self.tableView.refreshControl setBounds:CGRectMake(self.tableView.refreshControl.bounds.origin.x, self.tableView.contentInset.top, self.tableView.refreshControl.bounds.size.width, self.tableView.refreshControl.bounds.size.height)];
     self.coverPhotoView.frame = CGRectMake(0, 0, self.view.frame.size.width, self.tableView.contentInset.top + (-1 * self.tableView.contentOffset.y));
-    UIVisualEffectView *overlayView = [self.coverPhotoView viewWithTag:10];
+    UIView *overlayView = [self.coverPhotoView viewWithTag:10];
     overlayView.frame = self.coverPhotoView.bounds;
 }
 
@@ -146,11 +157,14 @@ static NSString * const reuseIdentifier = @"Result";
     
     if (tempPost != nil && [tempPost.attributes.postedIn.identifier isEqualToString:self.camp.identifier] && !tempPost.attributes.parent) {
         // TODO: Check for image as well
-        [self.tableView.stream addTempPost:tempPost];
-        
-        [self determineEmptyStateVisibility];
-        
-        [self.tableView refreshAtTop];
+//        [self.tableView.stream addTempPost:tempPost];
+//
+//        [self determineEmptyStateVisibility];
+//
+//        [self.tableView refreshAtTop];
+        if (self.launchNavVC) {
+            [self.launchNavVC setProgress:0.8 animated:YES];
+        }
     }
 }
 - (void)newPostCompleted:(NSNotification *)notification {
@@ -167,6 +181,10 @@ static NSString * const reuseIdentifier = @"Result";
         [self determineEmptyStateVisibility];
         
         [self getPostsWithCursor:StreamPagingCursorTypePrevious];
+        
+        if (self.launchNavVC) {
+            [self.launchNavVC setProgress:1 animated:YES hideOnCompletion:true];
+        }
     }
 }
 // TODO: Allow tap to retry for posts
@@ -178,6 +196,10 @@ static NSString * const reuseIdentifier = @"Result";
         [self.tableView refreshAtTop];
         
         [self determineEmptyStateVisibility];
+        
+        if (self.launchNavVC) {
+            [self.launchNavVC setProgress:0 animated:YES hideOnCompletion:true];
+        }
     }
 }
 
@@ -236,7 +258,7 @@ static NSString * const reuseIdentifier = @"Result";
             [self showErrorViewWithType:ErrorViewTypeLocked title:@"Private Camp" description:@"Request access above to get access to this Camp’s posts" actionTitle:nil actionBlock:nil];
         }
         
-        [self.tableView hardRefresh];
+        [self.tableView hardRefresh:false];
     }
 }
 - (void)setCamp:(Camp *)camp {
@@ -302,6 +324,8 @@ static NSString * const reuseIdentifier = @"Result";
     NSLog(@"self.camp identifier: %@", [self campIdentifier]);
     NSLog(@"%@", self.camp.attributes.identifier);
     
+    self.shimmering = true;
+    
     NSDictionary *params = @{};
     
     [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
@@ -358,6 +382,8 @@ static NSString * const reuseIdentifier = @"Result";
         }
         
         [self showMoreButton];
+        
+        self.shimmering = false;
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         NSLog(@"CampViewController / getCamp() - error: %@", error);
         //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
@@ -390,6 +416,8 @@ static NSString * const reuseIdentifier = @"Result";
         [self.tableView refreshAtTop];
         
         [self positionErrorView];
+        
+        self.shimmering = false;
     }];
 }
 
@@ -453,6 +481,7 @@ static NSString * const reuseIdentifier = @"Result";
     self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, self.tableView.contentInset.left, self.tableView.contentInset.bottom, self.tableView.contentInset.right);
     
     if (!self.composeInputView.isHidden) {
+        self.composeInputView.transform = CGAffineTransformIdentity;
         [UIView animateWithDuration:0.3f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
             self.composeInputView.transform = CGAffineTransformMakeTranslation(0, self.composeInputView.frame.size.height);
         } completion:^(BOOL finished) {
@@ -542,7 +571,6 @@ static NSString * const reuseIdentifier = @"Result";
     self.composeInputView.delegate = self;
     self.composeInputView.hidden = true;
     
-    self.composeInputView.parentViewController = self;
     UIColor *themeAdjustedForDarkMode = [UIColor fromHex:[UIColor toHex:self.theme] adjustForOptimalContrast:true];
     self.composeInputView.postButton.backgroundColor = themeAdjustedForDarkMode;
     self.composeInputView.postButton.tintColor = [UIColor highContrastForegroundForBackground:self.composeInputView.postButton.backgroundColor];
@@ -594,6 +622,7 @@ static NSString * const reuseIdentifier = @"Result";
     
     CGFloat collapsed_inputViewHeight = ((self.composeInputView.textView.frame.origin.y * 2) + self.composeInputView.textView.frame.size.height) + bottomPadding;
     
+    self.composeInputView.transform = CGAffineTransformIdentity;
     self.composeInputView.frame = CGRectMake(0, self.view.bounds.size.height - collapsed_inputViewHeight, self.view.bounds.size.width, collapsed_inputViewHeight);
 }
 
@@ -867,8 +896,8 @@ static NSString * const reuseIdentifier = @"Result";
 - (void)keyboardWillDismiss:(NSNotification *)notification {
     _currentKeyboardHeight = 0;
     
-    NSNumber *duration = [notification.userInfo objectForKey:UIKeyboardAnimationDurationUserInfoKey];
-    [UIView animateWithDuration:[duration floatValue] delay:0 options:[[notification.userInfo objectForKey:UIKeyboardAnimationCurveUserInfoKey] intValue] << 16 animations:^{
+    NSNumber *duration = notification.userInfo ? [notification.userInfo objectForKey:UIKeyboardAnimationDurationUserInfoKey] : @(0);
+    [UIView animateWithDuration:[duration floatValue] delay:0 options:(notification.userInfo?[[notification.userInfo objectForKey:UIKeyboardAnimationCurveUserInfoKey] intValue] << 16:UIViewAnimationOptionCurveEaseOut) animations:^{
         [self.composeInputView resize:false];
         
         self.composeInputView.frame = CGRectMake(self.composeInputView.frame.origin.x, self.view.frame.size.height - self.composeInputView.frame.size.height, self.composeInputView.frame.size.width, self.composeInputView.frame.size.height);
@@ -893,205 +922,85 @@ static NSString * const reuseIdentifier = @"Result";
             self.coverPhotoView.frame = CGRectMake(0, 0, self.view.frame.size.width, self.tableView.contentInset.top + (-self.tableView.contentOffset.y - self.tableView.contentInset.top));
         }
         
-        CGFloat percentageHidden = ((self.tableView.contentOffset.y + self.tableView.contentInset.top) / (self.tableView.contentInset.top * .75));
         UIView *overlayView = [self.coverPhotoView viewWithTag:10];
         overlayView.frame = CGRectMake(0, 0, self.coverPhotoView.frame.size.width, self.coverPhotoView.frame.size.height);
-        overlayView.alpha = percentageHidden;
     }
 }
 
 - (void)openCampActions {
-    // TODO: check that the user is actually an Admin, not just a member
-    BOOL isMember              = [self.camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_MEMBER];
-    BOOL isAdmin               = [self.camp.attributes.context.camp.membership.role.type isEqualToString:CAMP_ROLE_ADMIN];
-    BOOL canUpdate             = [self.camp.attributes.context.camp.permissions canUpdate];
-    BOOL campPostNotifications = self.camp.attributes.context.camp.membership.subscription != nil;
-    
-    BFAlertController *actionSheet = [BFAlertController alertControllerWithTitle:(self.camp.attributes.identifier.length > 0 ? self.camp.attributes.title : nil) message:(self.camp.attributes.identifier.length > 0 ? [@"#" stringByAppendingString:self.camp.attributes.identifier] : nil) preferredStyle:BFAlertControllerStyleActionSheet]; // old title: @"\n\n\n\n\n\n"
-
-    if (canUpdate) {
-        BFAlertAction *leaveCamp = [BFAlertAction actionWithTitle:([self.camp isChannel] ? @"Unsubscribe" : @"Leave Camp") style:BFAlertActionStyleDestructive handler:^{
-            // confirm action
-            BOOL privateCamp = [self.camp isPrivate];
-            BOOL lastMember = self.camp.attributes.summaries.counts.members <= 1;
-
-            NSString *message;
-            if (privateCamp && lastMember) {
-                message = @"All camps must have at least one member. If you leave, this Camp and all of its posts will be deleted after 30 days of inactivity.";
-            }
-            else if (lastMember) {
-                // leaving as the last member in a public camp
-                message = @"All camps must have at least one member. If you leave, this Camp will be archived and eligible for anyone to reopen.";
-            }
-            else {
-                // leaving a private camp, but the user isn't the last one
-                message = @"You will no longer have access to this Camp's posts";
-            }
-
-            BFAlertController *confirmDeletePostActionSheet = [BFAlertController alertControllerWithTitle:([self.camp isChannel] ? @"Unsubscribe?" : @"Leave Camp?") message:message preferredStyle:BFAlertControllerStyleAlert];
-
-            BFAlertAction *confirmLeaveCamp = [BFAlertAction actionWithTitle:([self.camp isChannel] ? @"Unsubscribe" : @"Leave") style:BFAlertActionStyleDestructive handler:^{
-                [BFAPI unfollowCamp:self.camp completion:^(BOOL success, id responseObject) {
-
-                }];
-
-                BFContext *context = [[BFContext alloc] initWithDictionary:[self.camp.attributes.context toDictionary] error:nil];
-                context.camp.status = CAMP_STATUS_LEFT;
-                self.camp.attributes.context = context;
-
-                [[NSNotificationCenter defaultCenter] postNotificationName:@"CampUpdated" object:self.camp];
-            }];
-            [confirmDeletePostActionSheet addAction:confirmLeaveCamp];
-
-            BFAlertAction *cancelLeaveCamp = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
-            [confirmDeletePostActionSheet addAction:cancelLeaveCamp];
-
-            [UIViewParentController(self) presentViewController:confirmDeletePostActionSheet animated:true completion:nil];
-        }];
-        [actionSheet addAction:leaveCamp];
-        
-        BFAlertAction *editCamp = [BFAlertAction actionWithTitle:@"Edit Camp" style:BFAlertActionStyleDefault handler:^{
-            EditCampViewController *epvc = [[EditCampViewController alloc] init];
-            epvc.themeColor = [UIColor fromHex:self.camp.attributes.color];
-            epvc.view.tintColor = epvc.themeColor;
-            epvc.camp = self.camp;
-            
-            SimpleNavigationController *newNavController = [[SimpleNavigationController alloc] initWithRootViewController:epvc];
-            newNavController.transitioningDelegate = [Launcher sharedInstance];
-            newNavController.modalPresentationStyle = UIModalPresentationFullScreen;
-            
-            [self.launchNavVC presentViewController:newNavController animated:YES completion:nil];
-        }];
-        [actionSheet addAction:editCamp];
-    }
-    
-    if (!isAdmin) {
-        BFAlertAction *reportCamp = [BFAlertAction actionWithTitle:[NSString stringWithFormat:@"Report"] style:BFAlertActionStyleDestructive handler:^ {
-            // confirm action
-            BFAlertController *saveAndOpenTwitterConfirm = [BFAlertController alertControllerWithTitle:[NSString stringWithFormat:@"Report %@", self.camp.attributes.title] message:[NSString stringWithFormat:@"Are you sure you would like to report this Camp?"] preferredStyle:BFAlertControllerStyleAlert];
-            
-            BFAlertAction *alertCancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:^{
-                NSLog(@"cancel report camp");
-            }];
-            [saveAndOpenTwitterConfirm addAction:alertCancel];
-            
-            [[Launcher topMostViewController] presentViewController:saveAndOpenTwitterConfirm animated:true completion:nil];
-        }];
-        [actionSheet addAction:reportCamp];
-    }
-    
     NSString *campShareLink = [NSString stringWithFormat:@"https://bonfire.camp/c/%@", self.camp.identifier];
     BOOL hasSnapchat = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"snapchat://"]];
     BOOL hasInstagram = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"instagram-stories://"]];
     BOOL hasTwitter = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"twitter://"]];
-    
-    BFAlertAction *shareCamp = [BFAlertAction actionWithTitle:@"Share Camp via..." style:BFAlertActionStyleDefault handler:^{
-        if (hasSnapchat || hasInstagram || hasTwitter) {
-            BFAlertController *moreOptions = [BFAlertController alertControllerWithTitle:@"Share Camp via..." message:nil preferredStyle:BFAlertControllerStyleActionSheet];
-            
-            if (hasTwitter) {
-                BFAlertAction *shareOnTwitter = [BFAlertAction actionWithTitle:@"Twitter" style:BFAlertActionStyleDefault handler:^{
-                    NSLog(@"share on snapchat");
-                    
-                    if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"twitter://post"]]) {
-                        NSString *message = [[NSString stringWithFormat:@"Check out this Camp on @yourbonfire! Join %@: %@", self.camp.attributes.title, campShareLink] stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet characterSetWithCharactersInString:@"!*'();:@&=+$,/?%#[]"]];
-                        
-                        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[NSString stringWithFormat:@"twitter://post?message=%@", message]] options:@{} completionHandler:nil];
-                    }
-                }];
-                [moreOptions addAction:shareOnTwitter];
-            }
-            
-            BFAlertAction *shareOnFacebook = [BFAlertAction actionWithTitle:@"Facebook" style:BFAlertActionStyleDefault handler:^{
-                FBSDKShareLinkContent *content = [[FBSDKShareLinkContent alloc] init];
-                content.contentURL = [NSURL URLWithString:campShareLink];
-                content.hashtag = [FBSDKHashtag hashtagWithString:@"#Bonfire"];
-                [FBSDKShareDialog showFromViewController:[Launcher topMostViewController]
-                                             withContent:content
-                                                delegate:nil];
-            }];
-            [moreOptions addAction:shareOnFacebook];
-            
-            if (hasSnapchat) {
-                BFAlertAction *shareOnSnapchat = [BFAlertAction actionWithTitle:@"Snapchat" style:BFAlertActionStyleDefault handler:^{
-                    NSLog(@"share on snapchat");
-                    
-                    [Launcher shareCampOnSnapchat:self.camp];
-                }];
-                [moreOptions addAction:shareOnSnapchat];
-            }
-            if (hasInstagram) {
-                BFAlertAction *shareOnInstagram = [BFAlertAction actionWithTitle:@"Instagram Stories" style:BFAlertActionStyleDefault handler:^{
-                    NSLog(@"share on snapchat");
-                    
-                    [Launcher shareCampOnInstagram:self.camp];
-                }];
-                [moreOptions addAction:shareOnInstagram];
-            }
-            BFAlertAction *shareOnImessage = [BFAlertAction actionWithTitle:@"iMessage" style:BFAlertActionStyleDefault handler:^{
-                NSLog(@"share on imessage");
+    if (hasSnapchat || hasInstagram || hasTwitter) {
+        BFAlertController *moreOptions = [BFAlertController alertControllerWithTitle:@"Share Camp via..." message:nil preferredStyle:BFAlertControllerStyleActionSheet];
+        
+        if (hasTwitter) {
+            BFAlertAction *shareOnTwitter = [BFAlertAction actionWithTitle:@"Twitter" style:BFAlertActionStyleDefault handler:^{
+                NSLog(@"share on snapchat");
                 
-                [Launcher shareOniMessage:[NSString stringWithFormat:@"Join %@ on Bonfire: %@", self.camp.attributes.title, campShareLink] image:nil];
+                if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"twitter://post"]]) {
+                    NSString *message = [[NSString stringWithFormat:@"Check out this Camp on @yourbonfire! Join %@: %@", self.camp.attributes.title, campShareLink] stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet characterSetWithCharactersInString:@"!*'();:@&=+$,/?%#[]"]];
+                    
+                    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[NSString stringWithFormat:@"twitter://post?message=%@", message]] options:@{} completionHandler:nil];
+                }
             }];
-            [moreOptions addAction:shareOnImessage];
-            
-            BFAlertAction *moreShareOptions = [BFAlertAction actionWithTitle:@"Other" style:BFAlertActionStyleDefault handler:^{
-                [Launcher shareCamp:self.camp];
-            }];
-            [moreOptions addAction:moreShareOptions];
-            
-            BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
-            [moreOptions addAction:cancel];
-            
-            [actionSheet dismissViewControllerAnimated:YES completion:^{
-                [[Launcher topMostViewController] presentViewController:moreOptions animated:YES completion:nil];
-            }];
+            [moreOptions addAction:shareOnTwitter];
         }
-        else {
+        
+        BFAlertAction *shareOnFacebook = [BFAlertAction actionWithTitle:@"Facebook" style:BFAlertActionStyleDefault handler:^{
+            FBSDKShareLinkContent *content = [[FBSDKShareLinkContent alloc] init];
+            content.contentURL = [NSURL URLWithString:campShareLink];
+            content.hashtag = [FBSDKHashtag hashtagWithString:@"#Bonfire"];
+            [FBSDKShareDialog showFromViewController:[Launcher topMostViewController]
+                                         withContent:content
+                                            delegate:nil];
+        }];
+        [moreOptions addAction:shareOnFacebook];
+        
+        if (hasSnapchat) {
+            BFAlertAction *shareOnSnapchat = [BFAlertAction actionWithTitle:@"Snapchat" style:BFAlertActionStyleDefault handler:^{
+                NSLog(@"share on snapchat");
+                
+                [Launcher shareCampOnSnapchat:self.camp];
+            }];
+            [moreOptions addAction:shareOnSnapchat];
+        }
+        if (hasInstagram) {
+            BFAlertAction *shareOnInstagram = [BFAlertAction actionWithTitle:@"Instagram Stories" style:BFAlertActionStyleDefault handler:^{
+                NSLog(@"share on snapchat");
+                
+                [Launcher shareCampOnInstagram:self.camp];
+            }];
+            [moreOptions addAction:shareOnInstagram];
+        }
+        BFAlertAction *shareOnImessage = [BFAlertAction actionWithTitle:@"iMessage" style:BFAlertActionStyleDefault handler:^{
+            NSLog(@"share on imessage");
+            
+            [Launcher shareOniMessage:[NSString stringWithFormat:@"Join %@ on Bonfire: %@", self.camp.attributes.title, campShareLink] image:nil];
+        }];
+        [moreOptions addAction:shareOnImessage];
+        
+        BFAlertAction *moreShareOptions = [BFAlertAction actionWithTitle:@"Other" style:BFAlertActionStyleDefault handler:^{
             [Launcher shareCamp:self.camp];
-        }
-    }];
-    [actionSheet addAction:shareCamp];
-    
-    /*
-     if (hasTwitter) {
-     UIAlertAction *shareOnTwitter = [UIAlertAction actionWithTitle:@"Share on Twitter" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-     NSLog(@"share on twitter");
-     // confirm action
-     UIImage *shareImage = [self campShareImage];
-     
-     // confirm action
-     UIAlertController *saveAndOpenTwitterConfirm = [UIAlertController alertControllerWithTitle:@"Share on Twitter" message:@"Would you like to save a personalized Camp picture and open Twitter?" preferredStyle:UIAlertControllerStyleAlert];
-     
-     UIAlertAction *alertConfirm = [UIAlertAction actionWithTitle:@"Yes!" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-     UIImageWriteToSavedPhotosAlbum(shareImage, nil, nil, nil);
-     
-     [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"twitter://post"] options:@{} completionHandler:nil];
-     }];
-     [saveAndOpenTwitterConfirm addAction:alertConfirm];
-     
-     UIAlertAction *alertCancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-     NSLog(@"cancel");
-     }];
-     [saveAndOpenTwitterConfirm addAction:alertCancel];
-     
-     [self.navigationController presentViewController:saveAndOpenTwitterConfirm animated:YES completion:nil];
-     }];
-     [actionSheet addAction:shareOnTwitter];
-     }
-     */
-    
-    BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
-    [actionSheet addAction:cancel];
-    
-    [self.navigationController presentViewController:actionSheet animated:true completion:nil];
+        }];
+        [moreOptions addAction:moreShareOptions];
+        
+        BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
+        [moreOptions addAction:cancel];
+        
+        [[Launcher topMostViewController] presentViewController:moreOptions animated:YES completion:nil];
+    }
+    else {
+        [Launcher shareCamp:self.camp];
+    }
 }
 
 #pragma mark - RSTableViewDelegate
 - (UITableViewCell * _Nullable)cellForRowInFirstSection:(NSInteger)row {
     if (row == 0) {
         CampHeaderCell *cell = [self.tableView dequeueReusableCellWithIdentifier:campHeaderCellIdentifier forIndexPath:[NSIndexPath indexPathForRow:row inSection:0]];
-        
+                
         cell.camp = self.camp;
         
         BOOL emptyCampTitle = cell.camp.attributes.title.length == 0;
@@ -1117,16 +1026,22 @@ static NSString * const reuseIdentifier = @"Result";
             }
         }
         
-        cell.followButton.hidden = (!self.loading && cell.camp.attributes.context == nil);
+        cell.actionButton.hidden = (!self.loading && cell.camp.attributes.context == nil);
         
-        if ([cell.camp.attributes.context.camp.permissions canUpdate]) {
-            [cell.followButton updateStatus:CAMP_STATUS_CAN_EDIT];
-        }
-        else if (self.loading && cell.camp.attributes.context.camp.membership == nil) {
-            [cell.followButton updateStatus:CAMP_STATUS_LOADING];
+        if (self.loading && cell.camp.attributes.context.camp.membership == nil) {
+            [cell.actionButton updateStatus:CAMP_STATUS_LOADING];
         }
         else {
-            [cell.followButton updateStatus:cell.camp.attributes.context.camp.status];
+            [cell.actionButton updateStatus:cell.camp.attributes.context.camp.status];
+        }
+        
+        if (![cell.campAvatarReasonView isHidden] && cell.campAvatarReasonView.alpha == 0) {
+            cell.campAvatarReasonView.transform = CGAffineTransformMakeScale(0.5, 0.5);
+            UIViewPropertyAnimator *propertyAnimator = [[UIViewPropertyAnimator alloc] initWithDuration:4.f dampingRatio:0.8 animations:^{
+                cell.campAvatarReasonView.alpha = 1;
+                cell.campAvatarReasonView.transform = CGAffineTransformMakeScale(1, 1);
+            }];
+            [propertyAnimator startAnimation];
         }
         
         return cell;
@@ -1298,6 +1213,25 @@ static NSString * const reuseIdentifier = @"Result";
     }
     
     return nil;
+}
+
+- (void)setShimmering:(BOOL)shimmering {
+    if (shimmering != _shimmering) {
+        _shimmering = shimmering;
+        
+        UIView *overlayView = [self.coverPhotoView viewWithTag:10];
+        
+        if (!shimmering) {
+            CGFloat value = [[overlayView.layer.presentationLayer valueForKeyPath:@"opacity"] floatValue];
+            
+            [overlayView.layer removeAnimationForKey:@"opacityAnimation"];
+            
+            overlayView.alpha = value;
+            [UIView animateWithDuration:0.5f delay:0 options:UIViewAnimationOptionCurveEaseOut|UIViewAnimationOptionBeginFromCurrentState animations:^{
+                overlayView.alpha = 0;
+            } completion:nil];
+        }
+    }
 }
 
 @end

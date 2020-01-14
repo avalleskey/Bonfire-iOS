@@ -2,9 +2,27 @@
 #import "HAWebService.h"
 #import <JGProgressHUD.h>
 #import "Launcher.h"
+#import "UIColor+Palette.h"
 @import Firebase;
 
 @implementation Camp
+
+- (instancetype)initWithDictionary:(NSDictionary *)dict error:(NSError **)err {
+    Camp *instance = [super initWithDictionary:dict error:err];
+    
+    // generate score color
+    if (instance.attributes.summaries.counts.scoreIndex > 0) {
+        CGFloat R = 0.96 - 0.05 * instance.attributes.summaries.counts.scoreIndex; // 0.96 (yellow) -> 0.91 (red)
+        CGFloat G = 0.80 - 0.77 * instance.attributes.summaries.counts.scoreIndex; // 0.80 (yellow) -> 0.03 (red)
+        CGFloat B = 0.14 - 0.14 * instance.attributes.summaries.counts.scoreIndex; // 0.14 (yellow) -> 0.00 (red)
+        self.scoreColor = [UIColor toHex:[UIColor colorWithRed:R green:G blue:B alpha:1]];
+    }
+    else {
+        self.scoreColor = @"999999";
+    }
+        
+    return instance;
+}
 
 + (BOOL)propertyIsOptional:(NSString *)propertyName {
     return TRUE;
@@ -66,6 +84,60 @@
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         
     }];
+}
+
++ (UIImage *)scoreDotImageForScoreIndex:(float)scoreIndex size:(CGSize)size {
+    CGFloat R = 0.96 - 0.05 * scoreIndex; // 0.96 (yellow) -> 0.91 (red)
+    CGFloat G = 0.80 - 0.77 * scoreIndex; // 0.80 (yellow) -> 0.03 (red)
+    CGFloat B = 0.14 - 0.14 * scoreIndex; // 0.14 (yellow) -> 0.00 (red)
+    
+    if (scoreIndex > 0) {
+        UIView *containerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, size.width, size.height)];
+        containerView.layer.cornerRadius = containerView.frame.size.height / 2;
+        containerView.backgroundColor = [UIColor whiteColor];
+        containerView.layer.masksToBounds = true;
+        
+        NSArray *gradientColors = [NSArray arrayWithObjects:(id)[UIColor lighterColorForColor:[UIColor colorWithDisplayP3Red:R green:G blue:B alpha:1] amount:0.2].CGColor, (id)[UIColor darkerColorForColor:[UIColor colorWithDisplayP3Red:R green:G blue:B alpha:1] amount:0.1].CGColor, nil];
+
+        CAGradientLayer *gradientLayer = [CAGradientLayer layer];
+        gradientLayer.colors = gradientColors;
+        gradientLayer.startPoint = CGPointMake(0, 0);
+        gradientLayer.endPoint = CGPointMake(1, 1);
+        gradientLayer.frame = containerView.bounds;
+        [containerView.layer addSublayer:gradientLayer];
+        
+        UIImageView *imageView = [[UIImageView alloc] initWithFrame:containerView.bounds];
+        imageView.image = [[UIImage imageNamed:@"hotIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+        imageView.tintColor = [UIColor whiteColor];
+        imageView.contentMode = UIViewContentModeScaleAspectFill;
+        [containerView addSubview:imageView];
+//        NSString *imageName;
+//        if (scoreIndex >= .66) {
+//            // red
+//            imageName = @"hotIcon_red";
+//        }
+//        else if (scoreIndex >= .33) {
+//            // red
+//            imageName = @"hotIcon_orange";
+//        }
+//        else {
+//            imageName = @"hotIcon_yellow";
+//        }
+//        
+//        return [UIImage imageNamed:imageName];
+//        
+        // capture screenshot
+        UIGraphicsBeginImageContextWithOptions(containerView.bounds.size, NO, 3.f);
+        CGContextRef context = UIGraphicsGetCurrentContext();
+        CGContextClearRect(context, containerView.bounds);
+        [containerView.layer renderInContext:context];
+        UIImage *snapshotImage = UIGraphicsGetImageFromCurrentImageContext();
+        UIGraphicsEndImageContext();
+        
+        return snapshotImage;
+    }
+    
+    return nil;
 }
 
 @end

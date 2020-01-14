@@ -250,37 +250,41 @@ static InsightsLogger *logger;
     [self addCurrentBatchToQueue];
 }
 - (void)uploadBatches {
-    NSMutableArray *queuedBatchesCopy = [[NSMutableArray alloc] initWithArray:logger.queuedBatches];
-    for (NSDictionary *batch in logger.queuedBatches) {
-        // remove object from queued batches to avoid duplicates
-        [queuedBatchesCopy removeObject:batch];
-        
-        NSDictionary *normalizedBatch = [self normalizeBatch:batch];
-        
-        [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] POST:@"insights/impressions" parameters:@{@"impressions": normalizedBatch} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-            // success
-            NSLog(@"successfully uploaded batch");
-            NSLog(@"response: %@", responseObject);
-            [self sync];
-        } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-            NSLog(@"failed to uploaded insights/impressions batch");
-            NSLog(@"error:");
-            NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-            NSLog(@"%@", ErrorResponse);
-            
-            NSHTTPURLResponse *httpResponse = error.userInfo[AFNetworkingOperationFailingURLResponseErrorKey];
-            NSInteger statusCode = httpResponse.statusCode;
-            
-            NSLog(@"status code:: %ld", (long)statusCode);
-            if (statusCode != 401 && statusCode != 0 && ![logger.queuedBatches containsObject:batch]) {
-                [logger.queuedBatches addObject:batch];
-                [logger updateQueuedDefaults];
+    [Session authenticate:^(BOOL success, NSString * _Nonnull token) {
+        if (success) {
+            NSMutableArray *queuedBatchesCopy = [[NSMutableArray alloc] initWithArray:logger.queuedBatches];
+            for (NSDictionary *batch in logger.queuedBatches) {
+                // remove object from queued batches to avoid duplicates
+                [queuedBatchesCopy removeObject:batch];
+                
+                NSDictionary *normalizedBatch = [self normalizeBatch:batch];
+                
+                [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] POST:@"insights/impressions" parameters:@{@"impressions": normalizedBatch} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+                    // success
+                    NSLog(@"successfully uploaded batch");
+                    NSLog(@"response: %@", responseObject);
+                    [self sync];
+                } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+                    NSLog(@"failed to uploaded insights/impressions batch");
+                    NSLog(@"error:");
+                    NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+                    NSLog(@"%@", ErrorResponse);
+                    
+                    NSHTTPURLResponse *httpResponse = error.userInfo[AFNetworkingOperationFailingURLResponseErrorKey];
+                    NSInteger statusCode = httpResponse.statusCode;
+                    
+                    NSLog(@"status code:: %ld", (long)statusCode);
+                    if (statusCode != 401 && statusCode != 0 && ![logger.queuedBatches containsObject:batch]) {
+                        [logger.queuedBatches addObject:batch];
+                        [logger updateQueuedDefaults];
+                    }
+                }];
             }
-        }];
-    }
-    
-    logger.queuedBatches = queuedBatchesCopy;
-    [logger updateQueuedDefaults];
+            
+            logger.queuedBatches = queuedBatchesCopy;
+            [logger updateQueuedDefaults];
+        }
+    }];
 }
 - (NSDictionary *)normalizeBatch:(NSDictionary *)batch {
     NSMutableDictionary *mutableBatch = [[NSMutableDictionary alloc] init];

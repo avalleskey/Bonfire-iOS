@@ -171,18 +171,18 @@
     self.campAttachmentView.camp = self.post.attributes.attachments.camp;
 }
 
-- (void)removeUserAttachment {
-    [self.userAttachmentView removeFromSuperview];
-    self.userAttachmentView = nil;
+- (void)removeIdentityAttachment {
+    [self.identityAttachmentView removeFromSuperview];
+    self.identityAttachmentView = nil;
 }
-- (void)initUserAttachment {
-    if (!self.userAttachmentView) {
+- (void)initIdentityAttachment {
+    if (!self.identityAttachmentView) {
         // need to initialize a user preview view
-        self.userAttachmentView = [[BFUserAttachmentView alloc] init];
-        [self.contentView addSubview:self.userAttachmentView];
+        self.identityAttachmentView = [[BFIdentityAttachmentView alloc] init];
+        [self.contentView addSubview:self.identityAttachmentView];
     }
     
-    self.userAttachmentView.user = self.post.attributes.attachments.user;
+    self.identityAttachmentView.identity = self.post.attributes.attachments.user;
 }
 
 - (void)removePostRemovedAttachment {

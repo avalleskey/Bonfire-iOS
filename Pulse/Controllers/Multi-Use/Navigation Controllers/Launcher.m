@@ -55,7 +55,7 @@
     (UIViewController *)__responder; \
 })
 
-@interface Launcher () <MFMessageComposeViewControllerDelegate, SFSafariViewControllerDelegate>
+@interface Launcher () <MFMessageComposeViewControllerDelegate, SFSafariViewControllerDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate>
 
 @property (nonatomic, strong) SFSafariViewController *safariVC;
 @property (nonatomic) SCSDKSnapAPI *scSdkSnapApi;
@@ -248,6 +248,10 @@ static Launcher *launcher;
     AppDelegate *ad = (AppDelegate *)[UIApplication sharedApplication].delegate;
     
     if ([Session sharedInstance].currentUser.attributes.requiresInvite) {
+        if ([[Launcher activeViewController] isKindOfClass:[WaitlistViewController class]]) {
+            return;
+        }
+        
         WaitlistViewController *waitlistVC = [[WaitlistViewController alloc] init];
         waitlistVC.transitioningDelegate = [Launcher sharedInstance];
         
@@ -429,6 +433,14 @@ static Launcher *launcher;
     [self push:newLauncher animated:YES];
     
     [newLauncher updateNavigationBarItemsWithAnimation:NO];
+}
++ (void)openIdentity:(Identity *)identity {
+    if ([identity.type isEqualToString:@"user"]) {
+        [self openProfile:(User *)identity];
+    }
+    else if ([identity.type isEqualToString:@"bot"]) {
+        [self openBot:(Bot *)identity];
+    }
 }
 + (void)openProfile:(User *)user {
     BOOL insideProfile = ([Launcher activeNavigationController] &&
@@ -636,6 +648,9 @@ static Launcher *launcher;
     [self present:c animated:YES];
 }
 
++ (void)openComposePost {
+    [self openComposePost:nil inReplyTo:nil withMessage:nil media:nil quotedObject:nil];
+}
 + (void)openComposePost:(Camp * _Nullable)camp inReplyTo:(Post * _Nullable)replyingTo withMessage:(NSString * _Nullable)message media:(NSArray * _Nullable)media quotedObject:(NSObject * _Nullable)quotedObject {
     ComposeViewController *epvc = [[ComposeViewController alloc] init];
     epvc.view.tintColor = [UIColor bonfirePrimaryColor];
@@ -643,6 +658,7 @@ static Launcher *launcher;
     epvc.replyingTo = replyingTo;
     epvc.prefillMessage = message;
     epvc.quotedObject = quotedObject;
+    epvc.media = media;
     
     SimpleNavigationController *newNavController = [[SimpleNavigationController alloc] initWithRootViewController:epvc];
     newNavController.transitioningDelegate = [Launcher sharedInstance];
@@ -654,6 +670,70 @@ static Launcher *launcher;
     newNavController.shadowOnScroll = true;
     [self present:newNavController animated:YES];
 }
+
++ (void)openComposeCamera {
+    NSString *mediaType = AVMediaTypeVideo;
+    AVAuthorizationStatus authStatus = [AVCaptureDevice authorizationStatusForMediaType:mediaType];
+    if(authStatus == AVAuthorizationStatusAuthorized) {
+        [launcher openCamera];
+    } else if(authStatus == AVAuthorizationStatusDenied ||
+              authStatus == AVAuthorizationStatusRestricted) {
+        // denied
+        [launcher showNoCameraAccess];
+    } else if(authStatus == AVAuthorizationStatusNotDetermined){
+        // not determined?!
+        [AVCaptureDevice requestAccessForMediaType:mediaType completionHandler:^(BOOL granted) {
+            if (granted){
+                NSLog(@"Granted access to %@", mediaType);
+                [launcher openCamera];
+            }
+            else {
+                NSLog(@"Not granted access to %@", mediaType);
+                [launcher showNoCameraAccess];
+            }
+        }];
+    }
+}
+- (void)openCamera {
+    UIImagePickerController *picker = [[UIImagePickerController alloc] init];
+    picker.delegate = self;
+    picker.allowsEditing = NO;
+    picker.sourceType = UIImagePickerControllerSourceTypeCamera;
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [[Launcher topMostViewController] presentViewController:picker animated:true completion:nil];
+    });
+}
+- (void)showNoCameraAccess {
+    BFAlertController *actionSheet = [BFAlertController alertControllerWithTitle:@"Allow Bonfire to access your camera" message:@"To allow Bonfire to access your camera, go to Settings > Privacy > Camera > Set Bonfire to ON" preferredStyle:BFAlertControllerStyleAlert];
+
+    BFAlertAction *openSettingsAction = [BFAlertAction actionWithTitle:@"Open Settings" style:BFAlertActionStyleDefault handler:^{
+        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString] options:@{} completionHandler:nil];
+    }];
+    [actionSheet addAction:openSettingsAction];
+
+    BFAlertAction *closeAction = [BFAlertAction actionWithTitle:@"Close" style:BFAlertActionStyleCancel handler:nil];
+    [actionSheet addAction:closeAction];
+    [[Launcher topMostViewController] presentViewController:actionSheet animated:true completion:nil];
+}
+- (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker {
+    [picker dismissViewControllerAnimated:YES completion:nil];
+}
+- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary<UIImagePickerControllerInfoKey,id> *)info {
+    // determine file type
+    PHAsset *asset = info[UIImagePickerControllerPHAsset];
+    
+    [picker dismissViewControllerAnimated:true completion:^{
+        if (asset) {
+            [Launcher openComposePost:nil inReplyTo:nil withMessage:nil media:@[asset] quotedObject:nil];
+        }
+        else {
+            UIImage *chosenImage = info[UIImagePickerControllerOriginalImage];
+            [Launcher openComposePost:nil inReplyTo:nil withMessage:nil media:@[chosenImage] quotedObject:nil];
+        }
+    }];
+}
+
 + (void)openEditProfile {
     EditProfileViewController *epvc = [[EditProfileViewController alloc] init];
     epvc.view.tintColor = [UIColor bonfirePrimaryColor];
@@ -670,10 +750,16 @@ static Launcher *launcher;
 }
 
 + (void)openInviteFriends:(id)sender {
-    [FIRAnalytics logEventWithName:@"invite_friends"
-                                    parameters:@{@"sender_class": [sender class]}];
+    if (sender) {
+        [FIRAnalytics logEventWithName:@"invite_friends"
+        parameters:@{@"sender_class": [sender class]}];
+    }
+    else {
+        [FIRAnalytics logEventWithName:@"invite_friends"
+        parameters:nil];
+    }
     
-    if ([sender isKindOfClass:[Camp class]]) {
+    if (sender && [sender isKindOfClass:[Camp class]]) {
         [self shareCamp:sender];
     }
     else {
@@ -972,7 +1058,7 @@ static Launcher *launcher;
             [post mute];
         }
     }];
-    [actionSheet addAction:postMuteAction];
+//    [actionSheet addAction:postMuteAction];
     
     // 1.B.* -- Any user, outside camp, any following state
     if (post.attributes.postedIn == nil) {
@@ -1243,8 +1329,8 @@ static Launcher *launcher;
     return [BFViewExporter imageForView:campAttachmentView];
 }
 + (UIImage *)imageForUser:(User *)user {
-    CGRect frame = CGRectMake(0, 0, 360, [BFUserAttachmentView heightForUser:user width:360]);
-    BFUserAttachmentView *userAttachmentView = [[BFUserAttachmentView alloc] initWithUser:user frame:frame];
+    CGRect frame = CGRectMake(0, 0, 360, [BFIdentityAttachmentView heightForIdentity:user width:360]);
+    BFIdentityAttachmentView *userAttachmentView = [[BFIdentityAttachmentView alloc] initWithIdentity:user frame:frame];
     userAttachmentView.backgroundColor = [UIColor whiteColor];
     
     return [BFViewExporter imageForView:userAttachmentView];

@@ -217,7 +217,7 @@ static NSString * const errorCampCellReuseIdentifier = @"ErrorCampCell";
     BOOL useFullWidthCell = self.errorLoading || (!self.loading && self.camps.count == 0);
     
     if (self.size == CAMP_CARD_SIZE_SMALL_MEDIUM) {
-        return CGSizeMake(148, 140);
+        return CGSizeMake(148, 138);
     }
     
     return CGSizeMake(useFullWidthCell?self.frame.size.width - 32:268, [self cardHeight]);

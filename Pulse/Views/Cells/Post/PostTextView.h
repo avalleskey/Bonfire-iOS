@@ -12,8 +12,8 @@
 #import "JKRichTextViewLinkBlockDataHandler.h"
 
 #define kDefaultBubbleBackgroundColor [UIColor colorWithRed:0.89 green:0.89 blue:0.92 alpha:1.00]
-#define textViewFont [UIFont preferredFontForTextStyle:UIFontTextStyleBody]
-#define postTextViewInset UIEdgeInsetsZero
+#define textViewFont [UIFont systemFontOfSize:[UIFont preferredFontForTextStyle:UIFontTextStyleBody].pointSize weight:UIFontWeightMedium]
+#define postTextViewInset UIEdgeInsetsMake(10, 10, 10, 10)
 
 NS_ASSUME_NONNULL_BEGIN
 

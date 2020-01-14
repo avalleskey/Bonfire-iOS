@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="15505" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" launchScreen="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="01J-lp-oVM">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="15702" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" launchScreen="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="01J-lp-oVM">
     <device id="retina5_5" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="15510"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="15704"/>
         <capability name="Named colors" minToolsVersion="9.0"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -17,27 +17,19 @@
                         <rect key="frame" x="0.0" y="0.0" width="414" height="736"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <view tag="10" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Yhi-4y-0db">
-                                <rect key="frame" x="105" y="343" width="204" height="50"/>
-                                <subviews>
-                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" tag="11" contentMode="scaleAspectFit" image="bonfire_wordmark" translatesAutoresizingMaskIntoConstraints="NO" id="bxv-ep-ZQL">
-                                        <rect key="frame" x="0.0" y="0.0" width="204" height="50"/>
-                                    </imageView>
-                                </subviews>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" image="LaunchLogo" translatesAutoresizingMaskIntoConstraints="NO" id="Pwc-yN-wXR">
+                                <rect key="frame" x="143" y="304" width="128" height="128"/>
+                                <color key="tintColor" name="SecondaryColor"/>
                                 <constraints>
-                                    <constraint firstItem="bxv-ep-ZQL" firstAttribute="leading" secondItem="Yhi-4y-0db" secondAttribute="leading" id="7vn-nc-YFn"/>
-                                    <constraint firstAttribute="height" constant="50" id="DHU-pt-qrq"/>
-                                    <constraint firstAttribute="bottom" secondItem="bxv-ep-ZQL" secondAttribute="bottom" id="J1k-5D-YAE"/>
-                                    <constraint firstAttribute="width" constant="204" id="LGK-LJ-Yy5"/>
-                                    <constraint firstAttribute="trailing" secondItem="bxv-ep-ZQL" secondAttribute="trailing" id="UuL-mq-z3j"/>
-                                    <constraint firstItem="bxv-ep-ZQL" firstAttribute="top" secondItem="Yhi-4y-0db" secondAttribute="top" id="i7H-gS-eTQ"/>
+                                    <constraint firstAttribute="width" constant="128" id="iTN-WJ-8bI"/>
+                                    <constraint firstAttribute="height" constant="128" id="yN3-WP-Fa2"/>
                                 </constraints>
-                            </view>
+                            </imageView>
                         </subviews>
                         <color key="backgroundColor" name="ContentBackgroundColor"/>
                         <constraints>
-                            <constraint firstItem="Yhi-4y-0db" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="H9R-HN-oYK"/>
-                            <constraint firstItem="Yhi-4y-0db" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="caQ-Rm-Hj8"/>
+                            <constraint firstItem="Pwc-yN-wXR" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="5WF-Jo-h6W"/>
+                            <constraint firstItem="Pwc-yN-wXR" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="WOz-uR-OB1"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                     </view>
@@ -49,9 +41,12 @@
         </scene>
     </scenes>
     <resources>
-        <image name="bonfire_wordmark" width="204" height="50"/>
+        <image name="LaunchLogo" width="128" height="128"/>
         <namedColor name="ContentBackgroundColor">
             <color red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+        </namedColor>
+        <namedColor name="SecondaryColor">
+            <color red="0.38039215686274508" green="0.40392156862745099" blue="0.4392156862745098" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
         </namedColor>
     </resources>
 </document>

@@ -301,11 +301,11 @@
             yBottom = self.smartLinkAttachmentView.frame.origin.y + self.smartLinkAttachmentView.frame.size.height;
         }
         
-        if (self.userAttachmentView) {
-            [self.userAttachmentView layoutSubviews];
-            self.userAttachmentView.frame = CGRectMake(expandedPostContentOffset.left, yBottom + 8, self.frame.size.width - expandedPostContentOffset.left - expandedPostContentOffset.right, [BFUserAttachmentView heightForUser:self.userAttachmentView.user width: self.frame.size.width-(expandedPostContentOffset.left+expandedPostContentOffset.right)]);
+        if (self.identityAttachmentView) {
+            [self.identityAttachmentView layoutSubviews];
+            self.identityAttachmentView.frame = CGRectMake(expandedPostContentOffset.left, yBottom + 8, self.frame.size.width - expandedPostContentOffset.left - expandedPostContentOffset.right, [BFIdentityAttachmentView heightForIdentity:self.identityAttachmentView.identity width: self.frame.size.width-(expandedPostContentOffset.left+expandedPostContentOffset.right)]);
             
-            yBottom = self.userAttachmentView.frame.origin.y + self.userAttachmentView.frame.size.height;
+            yBottom = self.identityAttachmentView.frame.origin.y + self.identityAttachmentView.frame.size.height;
         }
         
         if (self.campAttachmentView) {
@@ -421,8 +421,8 @@
             if (self.campAttachmentView) {
                 [self removeCampAttachment];
             }
-            if (self.userAttachmentView) {
-                [self removeUserAttachment];
+            if (self.identityAttachmentView) {
+                [self removeIdentityAttachment];
             }
             if (self.postAttachmentView) {
                 [self removePostAttachment];
@@ -473,10 +473,10 @@
             
             // user attachment
             if ([self.post hasUserAttachment]) {
-                [self initUserAttachment];
+                [self initIdentityAttachment];
             }
-            else if (self.userAttachmentView) {
-                [self removeUserAttachment];
+            else if (self.identityAttachmentView) {
+                [self removeIdentityAttachment];
             }
             
             // post attachment
@@ -705,8 +705,8 @@
         if ([post hasUserAttachment]) {
             User *user = post.attributes.attachments.user;
             
-            CGFloat userAttachmentHeight = [BFUserAttachmentView heightForUser:user width:contentWidth-expandedPostContentOffset.left-expandedPostContentOffset.right];
-            height = height + userAttachmentHeight + 8; // 8 above
+            CGFloat identityAttachmentHeight = [BFIdentityAttachmentView heightForIdentity:user width:contentWidth-expandedPostContentOffset.left-expandedPostContentOffset.right];
+            height = height + identityAttachmentHeight + 8; // 8 above
         }
         
         if ([post hasPostAttachment]) {

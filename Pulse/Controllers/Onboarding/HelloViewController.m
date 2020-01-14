@@ -43,6 +43,8 @@
     
     currentPage = 0;
     
+    [UIApplication sharedApplication].applicationIconBadgeNumber = 0;
+    
     // Google Analytics
     [FIRAnalytics setScreenName:@"Hello" screenClass:nil];
 }
@@ -74,7 +76,7 @@
         self.signInButton.alpha = 0;
         
         // perform animations
-        [UIView animateWithDuration:0.9f delay:0.5f usingSpringWithDamping:0.75f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+        [UIView animateWithDuration:0.9f delay:0.5f usingSpringWithDamping:0.75f initialSpringVelocity:0.5f options:(UIViewAnimationOptionCurveEaseOut|UIViewAnimationOptionAllowUserInteraction) animations:^{
             self.middleView.layer.cornerRadius = HAS_ROUNDED_CORNERS ? 16.f : 6.f;
             self.middleView.frame = CGRectMake(self.view.frame.size.width / 2 - 82.5, self.view.frame.size.height / 2 - 156 - (IS_IPHONE_5 ? 10 : 29), 165, 312);
             self.middleView.layer.shadowOpacity = 1;
@@ -85,7 +87,7 @@
             self.middleViewImage.frame = CGRectMake(0, self.middleViewContainer.frame.size.height, self.middleViewContainer.frame.size.width, self.middleViewContainer.frame.size.height);
             self.middleViewImage.layer.cornerRadius = self.middleViewContainer.layer.cornerRadius;
             
-            self.launchLogo.frame = CGRectMake(self.middleViewContainer.frame.size.width / 2 - 41, self.middleViewContainer.frame.size.height / 2 - 10, 82, 20);
+            self.launchLogo.frame = CGRectMake(self.middleViewContainer.frame.size.width / 2 - 32, self.middleViewContainer.frame.size.height / 2 - 32, 64, 64);
         } completion:^(BOOL finished) {
             self.leftView.center = self.middleView.center;
             self.rightView.center = self.middleView.center;
@@ -100,7 +102,7 @@
             
             CGFloat secondaryScreenshotOffset = [[UIScreen mainScreen] bounds].size.width > 375 ? 24 : 16;
             
-            [UIView animateWithDuration:1.3f delay:0 usingSpringWithDamping:0.9f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+            [UIView animateWithDuration:1.3f delay:0 usingSpringWithDamping:0.9f initialSpringVelocity:0.5f options:(UIViewAnimationOptionCurveEaseOut|UIViewAnimationOptionAllowUserInteraction) animations:^{
                 self.welcomeLabel.transform = CGAffineTransformIdentity;
                 self.welcomeLabel.alpha = 1;
                 
@@ -271,8 +273,9 @@
     self.middleViewContainer.layer.masksToBounds = true;
     [self.middleView addSubview:self.middleViewContainer];
     
-    self.launchLogo = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"bonfire_wordmark"]];
-    self.launchLogo.frame = CGRectMake(self.view.frame.size.width / 2 - 102, self.view.frame.size.height / 2 - 25, 204, 50);
+    self.launchLogo = [[UIImageView alloc] initWithImage:[[UIImage imageNamed:@"LaunchLogo"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
+    self.launchLogo.tintColor = [UIColor bonfireSecondaryColor];
+    self.launchLogo.frame = CGRectMake(self.view.frame.size.width / 2 - 64, self.view.frame.size.height / 2 - 64, 128, 128);
     [self.middleViewContainer addSubview:self.launchLogo];
     
     self.middleViewImage = [[UIImageView alloc] initWithFrame:CGRectMake(0, self.middleViewContainer.frame.size.height, self.middleViewContainer.frame.size.width, self.middleViewContainer.frame.size.height)];

@@ -21,6 +21,17 @@
     if (self) {
         self.camp = [[Camp alloc] init];
         
+        self.layer.cornerRadius = 15.f;
+        self.layer.masksToBounds = false;
+        self.layer.shadowRadius = 2.f;
+        self.layer.shadowOffset = CGSizeMake(0, 1);
+        self.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.08f].CGColor;
+        self.layer.shadowOpacity = 1.f;
+        self.contentView.layer.cornerRadius = self.layer.cornerRadius;
+        self.contentView.layer.masksToBounds = true;
+        self.layer.shouldRasterize = true;
+        self.layer.rasterizationScale = [UIScreen mainScreen].scale;
+        
         self.layer.borderWidth = (1 / [UIScreen mainScreen].scale);
         self.layer.borderColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.1].CGColor;
     }

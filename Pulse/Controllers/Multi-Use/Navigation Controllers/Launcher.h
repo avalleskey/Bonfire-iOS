@@ -41,6 +41,8 @@ NS_ASSUME_NONNULL_BEGIN
 + (void)openPost:(Post *)post withKeyboard:(BOOL)withKeyboard;
 + (PostViewController *)postViewControllerForPost:(Post *)post;
 
++ (void)openIdentity:(Identity *)identity;
+
 + (void)openProfile:(User *)user;
 + (ProfileViewController *)profileViewControllerForUser:(User *)user;
 
@@ -53,9 +55,11 @@ NS_ASSUME_NONNULL_BEGIN
 + (void)openProfileCampsJoined:(User *)user;
 + (void)openProfileUsersFollowing:(User *)user;
 + (void)openCreateCamp;
++ (void)openComposePost;
 + (void)openComposePost:(Camp * _Nullable)camp inReplyTo:(Post * _Nullable)replyingTo withMessage:(NSString * _Nullable)message media:(NSArray * _Nullable)media quotedObject:(NSObject * _Nullable)quotedObject;
++ (void)openComposeCamera;
 + (void)openEditProfile;
-+ (void)openInviteFriends:(id)sender;
++ (void)openInviteFriends:(id _Nullable)sender;
 + (void)openInviteToCamp:(Camp *)camp;
 + (void)openOnboarding;
 + (void)openSettings;

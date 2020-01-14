@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import "RSTableView.h"
-#import "MyFeedViewController.h"
+#import "HomeTableViewController.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -18,7 +18,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (strong, nonatomic) NSMutableArray *pages;
 
 @property (strong, nonatomic) UIViewController *myCampsVC;
-@property (strong, nonatomic) MyFeedViewController *homeVC;
+@property (strong, nonatomic) HomeTableViewController *homeVC;
 
 @property (strong, nonatomic) UIVisualEffectView *pageControl;
 @property (strong, nonatomic) NSMutableArray *pageControlButtons;

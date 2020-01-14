@@ -5,6 +5,14 @@
 
 @implementation User
 
+- (instancetype)initWithDictionary:(NSDictionary *)dict error:(NSError **)err {
+    User *instance = [super initWithDictionary:dict error:err];
+    
+//    instance.attributes.media.cover = [[BFHostedVersions alloc] initWithDictionary:@{@"full": @{@"url": @"https://cdn.dribbble.com/users/59947/screenshots/7141217/media/1fd099baf2d926d844ca48f837283484.jpg"}} error:nil];
+        
+    return instance;
+}
+
 #pragma mark - API Methods
 - (void)subscribeToPostNotifications {
     [FIRAnalytics logEventWithName:@"subscribe_to_user"

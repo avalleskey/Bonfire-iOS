@@ -201,11 +201,11 @@
         yBottom = self.campAttachmentView.frame.origin.y + self.campAttachmentView.frame.size.height + attachmentBottomPadding;
     }
     
-    if (self.userAttachmentView) {
-        [self.userAttachmentView layoutSubviews];
-        self.userAttachmentView.frame = CGRectMake(contentEdgeInsets.left, yBottom, self.frame.size.width - contentEdgeInsets.left - contentEdgeInsets.right, [BFUserAttachmentView heightForUser:self.userAttachmentView.user width: self.frame.size.width-(contentEdgeInsets.left+contentEdgeInsets.right)]);
+    if (self.identityAttachmentView) {
+        [self.identityAttachmentView layoutSubviews];
+        self.identityAttachmentView.frame = CGRectMake(contentEdgeInsets.left, yBottom, self.frame.size.width - contentEdgeInsets.left - contentEdgeInsets.right, [BFIdentityAttachmentView heightForIdentity:self.identityAttachmentView.identity width: self.frame.size.width-(contentEdgeInsets.left+contentEdgeInsets.right)]);
         
-        yBottom = self.userAttachmentView.frame.origin.y + self.userAttachmentView.frame.size.height + attachmentBottomPadding;
+        yBottom = self.identityAttachmentView.frame.origin.y + self.identityAttachmentView.frame.size.height + attachmentBottomPadding;
     }
     
     // -- text view
@@ -513,10 +513,10 @@
         
         // user attachment
         if ([self.post hasUserAttachment]) {
-            [self initUserAttachment];
+            [self initIdentityAttachment];
         }
-        else if (self.userAttachmentView) {
-            [self removeUserAttachment];
+        else if (self.identityAttachmentView) {
+            [self removeIdentityAttachment];
         }
     }
 }
@@ -573,7 +573,7 @@
     if (hasUserAttachment) {
         User *user = post.attributes.attachments.user;
         
-        CGFloat userAttachmentHeight = [BFUserAttachmentView heightForUser:user width:screenWidth-contentEdgeInsets.left-contentEdgeInsets.right];
+        CGFloat userAttachmentHeight = [BFIdentityAttachmentView heightForIdentity:user width:screenWidth-contentEdgeInsets.left-contentEdgeInsets.right];
         height = height + userAttachmentHeight + attachmentBottomPadding;
     }
     

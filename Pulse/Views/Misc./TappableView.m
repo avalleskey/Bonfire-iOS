@@ -33,6 +33,14 @@
 }
 - (void)setup {
     self.userInteractionEnabled = true;
+    
+    self.contentView = [[UIView alloc] initWithFrame:self.bounds];
+    [self addSubview:self.contentView];
+}
+- (void)setFrame:(CGRect)frame {
+    [super setFrame:frame];
+    
+    self.contentView.frame = self.bounds;
 }
 
 -(BOOL) pointInside:(CGPoint)point withEvent:(UIEvent *)event
@@ -46,9 +54,17 @@
 {
     self.touchDown = YES;
     
-    [UIView animateWithDuration:0.2f animations:^{
-        self.alpha = 0.25;
-    }];
+    if (self.shrink) {
+        [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.8f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
+            self.alpha = 0.25;
+            self.contentView.transform = CGAffineTransformMakeScale(0.8, 0.8);
+        } completion:nil];
+    }
+    else {
+        [UIView animateWithDuration:0.2f animations:^{
+            self.alpha = 0.25;
+        }];
+    }
 }
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
@@ -72,9 +88,17 @@
 }
 
 - (void)touchCancel {
-    [UIView animateWithDuration:0.2f animations:^{
-        self.alpha = 1;
-    }];
+    if (self.shrink) {
+        [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.8f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
+            self.alpha = 1;
+            self.contentView.transform = CGAffineTransformMakeScale(1, 1);
+        } completion:nil];
+    }
+    else {
+        [UIView animateWithDuration:0.2f animations:^{
+            self.alpha = 1;
+        }];
+    }
 }
 
 @end

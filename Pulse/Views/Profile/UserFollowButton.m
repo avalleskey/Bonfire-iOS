@@ -33,8 +33,15 @@
         [self setTitle:@"Loading..." forState:UIControlStateNormal];
     }
     else if ([status isEqualToString:USER_STATUS_ME]) {
-        [self setImage:nil forState:UIControlStateNormal];
-        [self setTitle:@"Share Profile" forState:UIControlStateNormal];
+        [self setImage:[[UIImage imageNamed:@"inviteFriendIcon_small"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+        
+        NSInteger invites = [Session sharedInstance].currentUser.attributes.invites.numAvailable;
+        if (invites > 0) {
+            [self setTitle:[NSString stringWithFormat:@"%lu Invite%@", invites, (invites == 1 ? @"" : @"s")] forState:UIControlStateNormal];
+        }
+        else {
+            [self setTitle:@"Invite Friends" forState:UIControlStateNormal];
+        }
     }
     else {
         // USER_STATUS_NO_RELATION

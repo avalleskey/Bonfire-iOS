@@ -44,7 +44,7 @@
     [self addViewControllerToPages:self.myCampsVC];
 }
 - (void)setupActivityViewController {
-    self.homeVC = [[MyFeedViewController alloc] initWithStyle:UITableViewStyleGrouped];
+    self.homeVC = [[HomeTableViewController alloc] init];
     [self addViewControllerToPages:self.homeVC];
 }
 - (void)setupPageControl {

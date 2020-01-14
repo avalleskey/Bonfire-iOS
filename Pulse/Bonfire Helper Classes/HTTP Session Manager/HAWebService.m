@@ -18,6 +18,8 @@ NSString * const kCONTENT_TYPE_JSON = @"application/json";
 
 NSString * const kIMAGE_UPLOAD_URL = @"https://upload.bonfire.camp/v1/upload";
 
+static NSString * const kBackgroundSessionIdentifier = @"Ingenious.bonfire.backgroundsession";
+
 static HAWebService *manager;
 
 + (instancetype)manager {
@@ -51,13 +53,16 @@ static HAWebService *manager;
 }
 
 - (id)init {
+    NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
+    configuration.waitsForConnectivity = true;
+    
     self = [super init];
     if (self) {
-        self = [[HAWebService alloc] initWithBaseURL:[NSURL URLWithString:[NSString stringWithFormat:@"%@/%@", [Configuration API_BASE_URI], [Configuration API_CURRENT_VERSION]]]];
+        self = [[HAWebService alloc] initWithBaseURL:[NSURL URLWithString:[NSString stringWithFormat:@"%@/%@", [Configuration API_BASE_URI], [Configuration API_CURRENT_VERSION]]] sessionConfiguration:configuration];
         
         self.requestSerializer = [AFHTTPRequestSerializer serializer];
         self.responseSerializer = [AFJSONResponseSerializer serializer];
-        
+                
         [self addBonfireHeaders];
     }
     return self;

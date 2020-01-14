@@ -40,7 +40,9 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) BFDetailsCollectionView *detailsCollectionView;
 
 @property (nonatomic, strong) UILabel *descriptionLabel;
-@property (nonatomic, strong) CampFollowButton *followButton;
+
+@property (nonatomic, strong) CampFollowButton *actionButton;
+@property (strong, nonatomic) UIButton *secondaryActionButton;
 
 @property (nonatomic, strong) BFAvatarView *campAvatar;
 @property (strong, nonatomic) UIView *avatarContainer;

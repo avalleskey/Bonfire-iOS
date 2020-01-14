@@ -31,7 +31,9 @@
 
 @property (nonatomic) CGFloat currentKeyboardHeight;
 @property (nonatomic) BOOL isPreview;
-    
+
+@property (nonatomic) BOOL shimmering;
+
 - (void)openCampActions;
 
 @end

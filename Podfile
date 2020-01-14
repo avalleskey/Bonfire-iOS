@@ -34,6 +34,7 @@ target 'Pulse' do
   pod 'ISAlternativeRefreshControl'
   pod 'GoogleFontsiOS/Poppins'
   pod 'SEJSONViewController'
+  pod 'MarqueeLabel', '~> 3.2.1'
   
   pod 'FBSDKCoreKit'
   pod 'FBSDKShareKit'

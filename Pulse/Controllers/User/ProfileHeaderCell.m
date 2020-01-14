@@ -127,7 +127,12 @@
                 }
                 else if (self.campAvatarReasonView.tag == USER_CONTEXT_BUBBLE_TAG_CAMP_CRAZY) {
                     title = @"Crazy for Camps";
-                    message = [self isCurrentUser] ? @"You have joined 50 or more Camps." : @"This user has joined 50 or more Camps.";
+                    if (self.user.attributes.summaries.counts.camps >= 100) {
+                        message = [self isCurrentUser] ? @"You have joined 100 or more Camps." : @"This user has joined 100 or more Camps.";
+                    }
+                    else {
+                        message = [self isCurrentUser] ? @"You have joined 50 or more Camps." : @"This user has joined 50 or more Camps.";
+                    }
                 }
                 
                 if (!title && !message && !cta) return;
@@ -153,8 +158,10 @@
         [self.campAvatarReasonView addSubview:self.campAvatarReasonLabel];
         
         self.campAvatarReasonImageView = [[UIImageView alloc] initWithFrame:self.campAvatarReasonView.bounds];
-        self.campAvatarReasonImageView.contentMode = UIViewContentModeCenter;
+        self.campAvatarReasonImageView.contentMode = UIViewContentModeScaleAspectFill;
         self.campAvatarReasonImageView.hidden = true;
+        self.campAvatarReasonImageView.layer.cornerRadius = self.campAvatarReasonView.layer.cornerRadius;
+        self.campAvatarReasonImageView.layer.masksToBounds = true;
         [self.campAvatarReasonView addSubview:self.campAvatarReasonImageView];
         
         self.textLabel.font = PROFILE_HEADER_DISPLAY_NAME_FONT;
@@ -202,21 +209,20 @@
         self.detailsCollectionView = [[BFDetailsCollectionView alloc] initWithFrame:CGRectMake(PROFILE_HEADER_EDGE_INSETS.left, 0, [UIScreen mainScreen].bounds.size.width - PROFILE_HEADER_EDGE_INSETS.left - PROFILE_HEADER_EDGE_INSETS.right, 16)];
         [self.contentView addSubview:self.detailsCollectionView];
         
-        self.followButton = [UserFollowButton buttonWithType:UIButtonTypeCustom];
-        
-        [self.followButton bk_whenTapped:^{
+        self.actionButton = [UserFollowButton buttonWithType:UIButtonTypeCustom];
+        [self.actionButton bk_whenTapped:^{
             // update state if possible
-            if ([self.followButton.status isEqualToString:USER_STATUS_ME]) {
-                [Launcher shareCurrentUser];
+            if ([self.actionButton.status isEqualToString:USER_STATUS_ME]) {
+                [Launcher openInviteFriends:nil];
             }
-            else if ([self.followButton.status isEqualToString:USER_STATUS_FOLLOWS] ||
-                     [self.followButton.status isEqualToString:USER_STATUS_FOLLOW_BOTH]) {
+            else if ([self.actionButton.status isEqualToString:USER_STATUS_FOLLOWS] ||
+                     [self.actionButton.status isEqualToString:USER_STATUS_FOLLOW_BOTH]) {
                 // UNFOLLOW User
-                if ([self.followButton.status isEqualToString:USER_STATUS_FOLLOWS]) {
-                    [self.followButton updateStatus:USER_STATUS_NO_RELATION];
+                if ([self.actionButton.status isEqualToString:USER_STATUS_FOLLOWS]) {
+                    [self.actionButton updateStatus:USER_STATUS_NO_RELATION];
                 }
-                else if ([self.followButton.status isEqualToString:USER_STATUS_FOLLOW_BOTH]) {
-                    [self.followButton updateStatus:USER_STATUS_FOLLOWED];
+                else if ([self.actionButton.status isEqualToString:USER_STATUS_FOLLOW_BOTH]) {
+                    [self.actionButton updateStatus:USER_STATUS_FOLLOWED];
                 }
                 [self updateUserStatus];
                 
@@ -226,20 +232,20 @@
                     }
                 }];
             }
-            else if ([self.followButton.status isEqualToString:USER_STATUS_FOLLOWED] ||
-                     [self.followButton.status isEqualToString:USER_STATUS_NO_RELATION] ||
-                     self.followButton.status.length == 0) {
+            else if ([self.actionButton.status isEqualToString:USER_STATUS_FOLLOWED] ||
+                     [self.actionButton.status isEqualToString:USER_STATUS_NO_RELATION] ||
+                     self.actionButton.status.length == 0) {
                 // follow the user
                 
                 // TODO: Add private user check -> "Requested"
                 // (self.user.attributes.visibility.isPrivate) &&
                 // ![self.followButton.status isEqualToString:USER_STATUS_FOLLOWED]
                 
-                if ([self.followButton.status isEqualToString:USER_STATUS_FOLLOWED]) {
-                    [self.followButton updateStatus:USER_STATUS_FOLLOW_BOTH];
+                if ([self.actionButton.status isEqualToString:USER_STATUS_FOLLOWED]) {
+                    [self.actionButton updateStatus:USER_STATUS_FOLLOW_BOTH];
                 }
                 else {
-                    [self.followButton updateStatus:USER_STATUS_FOLLOWS];
+                    [self.actionButton updateStatus:USER_STATUS_FOLLOWS];
                 }
                 [self updateUserStatus];
                 
@@ -251,11 +257,11 @@
                     }
                 }];
             }
-            else if ([self.followButton.status isEqualToString:USER_STATUS_BLOCKED]) {
+            else if ([self.actionButton.status isEqualToString:USER_STATUS_BLOCKED]) {
                 // show alert maybe? --> ideally we don't even show the button.
             }
         }];
-        [self.contentView addSubview:self.followButton];
+        [self.contentView addSubview:self.actionButton];
         
         self.lineSeparator = [[UIView alloc] init];
         self.lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
@@ -308,7 +314,7 @@
 
 - (void)updateUserStatus {
     BFContext *context = [[BFContext alloc] initWithDictionary:[self.user.attributes.context toDictionary] error:nil];
-    context.me.status = self.followButton.status;
+    context.me.status = self.actionButton.status;
     self.user.attributes.context = context;
     
     [[NSNotificationCenter defaultCenter] postNotificationName:@"UserContextUpdated" object:self.user];
@@ -363,7 +369,7 @@
         bottomY = self.detailsCollectionView.frame.origin.y + self.detailsCollectionView.frame.size.height;
     }
     
-    self.followButton.frame = CGRectMake(12, bottomY + PROFILE_HEADER_FOLLOW_BUTTON_TOP_PADDING, self.frame.size.width - 24, 38);
+    self.actionButton.frame = CGRectMake(12, bottomY + PROFILE_HEADER_FOLLOW_BUTTON_TOP_PADDING, self.frame.size.width - 24, 38);
 }
 
 - (BOOL)isCurrentUser {
@@ -379,40 +385,44 @@
         self.profilePicture.user = user;
         
         // set camp indicator
-        BOOL showIndicator = false;
-//        if ([user isCurrentUser]) {
-//            showIndicator = true;
-//            self.campAvatarReasonLabel.text = @"✏️";
-//            self.campAvatarReasonView.tag = USER_CONTEXT_BUBBLE_TAG_EDIT;
-//        }
-        if (!showIndicator && user.attributes.createdAt.length > 0) {
+        
+        BOOL useText = false;
+        BOOL useImage = false;
+
+        NSDateComponents *components;
+        if (user.attributes.createdAt.length > 0) {
             NSDateFormatter *inputFormatter = [[NSDateFormatter alloc] init];
                 [inputFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ssZ"];
             NSDate *date = [inputFormatter dateFromString:user.attributes.createdAt];
             
             NSUInteger unitFlags = NSCalendarUnitDay;
             NSCalendar *calendar = [[NSCalendar alloc] initWithCalendarIdentifier:NSCalendarIdentifierGregorian];
-            NSDateComponents *components = [calendar components:unitFlags fromDate:date toDate:[NSDate new] options:0];
-            
-            if ([components day] < 30) {
-                showIndicator = true;
-                self.campAvatarReasonLabel.text = @"🆕";
-                self.campAvatarReasonView.tag = USER_CONTEXT_BUBBLE_TAG_NEW_USER;
-            }
+            components = [calendar components:unitFlags fromDate:date toDate:[NSDate new] options:0];
         }
-        if (!showIndicator && [user isBirthday]) {
-            showIndicator = true;
+        
+        if (components && [components day] < 30) {
+            useImage = true;
+            self.campAvatarReasonImageView.image = [UIImage imageNamed:@"newIcon"];
+            self.campAvatarReasonView.tag = USER_CONTEXT_BUBBLE_TAG_NEW_USER;
+        }
+        else if ([user isKindOfClass:[User class]] && [(User *)user isBirthday]) {
+            useText = true;
             self.campAvatarReasonLabel.text = @"🥳";
             self.campAvatarReasonView.tag = USER_CONTEXT_BUBBLE_TAG_BIRTHDAY;
         }
-        if (!showIndicator && user.attributes.summaries.counts.camps > 50) {
-            showIndicator = true;
-            self.campAvatarReasonLabel.text = @"🏕";
+        else if (user.attributes.summaries.counts.camps >= 100) {
+            useImage = true;
+            self.campAvatarReasonImageView.image = [UIImage imageNamed:@"crazyCamps100"];
             self.campAvatarReasonView.tag = USER_CONTEXT_BUBBLE_TAG_CAMP_CRAZY;
         }
-        self.campAvatarReasonView.hidden = !showIndicator;
-        self.campAvatarReasonImageView.hidden = showIndicator;
-        self.campAvatarReasonLabel.hidden = !showIndicator;
+        else if (user.attributes.summaries.counts.camps >= 50) {
+            useImage = true;
+            self.campAvatarReasonImageView.image = [UIImage imageNamed:@"crazyCamps50"];
+            self.campAvatarReasonView.tag = USER_CONTEXT_BUBBLE_TAG_CAMP_CRAZY;
+        }
+        self.campAvatarReasonView.hidden = !useText && !useImage;
+        self.campAvatarReasonImageView.hidden = !useImage;
+        self.campAvatarReasonLabel.hidden = !useText;
         
         // display name
         NSString *displayName;
@@ -492,7 +502,7 @@
             }];
             [details addObject:item];
         }
-        if ([user isCurrentIdentity]) {
+        if (details.count == 0 && [user isCurrentIdentity]) {
             BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeEdit value:(details.count==0?@"Edit Profile":@"") action:^{
                 [Launcher openEditProfile];
             }];
@@ -535,7 +545,11 @@
         // verified icon ☑️
         NSTextAttachment *attachment = [[NSTextAttachment alloc] init];
         attachment.image = [UIImage imageNamed:@"verifiedIcon_large"];
-        [attachment setBounds:CGRectMake(0, roundf(PROFILE_HEADER_DISPLAY_NAME_FONT.capHeight - attachment.image.size.height)/2.f-1, attachment.image.size.width, attachment.image.size.height)];
+        
+        CGFloat attachmentHeight = MIN(ceilf(PROFILE_HEADER_DISPLAY_NAME_FONT.lineHeight * 0.9), ceilf(attachment.image.size.height));
+        CGFloat attachmentWidth = ceilf(attachmentHeight * (attachment.image.size.width / attachment.image.size.height));
+        
+        [attachment setBounds:CGRectMake(0, roundf(PROFILE_HEADER_DISPLAY_NAME_FONT.capHeight - attachmentHeight)/2.f, attachmentWidth, attachmentHeight)];
         
         NSAttributedString *attachmentString = [NSAttributedString attributedStringWithAttachment:attachment];
         [displayNameAttributedString appendAttributedString:attachmentString];
@@ -575,7 +589,7 @@
                 BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeWebsite value:user.attributes.website.displayUrl action:nil];
                 [details addObject:item];
             }
-            if ([user isCurrentIdentity]) {
+            if (details.count == 0 && [user isCurrentIdentity]) {
                 BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeEdit value:(details.count==0?@"Edit Profile":@"") action:nil];
                 [details addObject:item];
             }

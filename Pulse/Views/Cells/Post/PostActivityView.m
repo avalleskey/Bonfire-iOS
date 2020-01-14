@@ -312,7 +312,11 @@
 }
 
 - (PostActivityViewTag)currentViewTag {
-    return (PostActivityViewTag)((UIView *)self.views[step]).tag;
+    if (self.views && self.views.count > step) {
+        return (PostActivityViewTag)(((UIView *)self.views[step]).tag);
+    }
+    
+    return 0;
 }
 
 - (void)setTintColor:(UIColor *)tintColor {

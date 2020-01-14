@@ -104,7 +104,6 @@
     self.composeInputView = [[ComposeInputView alloc] initWithFrame:CGRectMake(0, self.view.bounds.size.height - collapsed_inputViewHeight, self.view.frame.size.width, collapsed_inputViewHeight)];
     self.composeInputView.hidden = true;
     
-    self.composeInputView.parentViewController = self;
     self.composeInputView.postButton.backgroundColor = self.view.tintColor;//[self.theme isEqual:[UIColor whiteColor]] ? [UIColor colorWithWhite:0.2f alpha:1] : self.theme;
 //    self.composeInputView.addMediaButton.backgroundColor = self.composeInputView.postButton.backgroundColor;
     self.composeInputView.textView.tintColor = self.composeInputView.postButton.backgroundColor;

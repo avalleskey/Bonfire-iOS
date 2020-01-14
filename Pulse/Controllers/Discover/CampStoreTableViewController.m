@@ -174,7 +174,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
 - (void)setupTableView {    
     self.tableView.delegate = self;
     self.tableView.dataSource = self;
-    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 40 + 10, 0);
+    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 40 + 16, 0);
     [self.tableView setSeparatorColor:[UIColor clearColor]];
     [self.tableView.refreshControl addTarget:self action:@selector(getAll) forControlEvents:UIControlEventValueChanged];
     
@@ -282,7 +282,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
             cell.buttonLabel.text = @"Report Bug";
         }
         
-        cell.gutterPadding = 16;
+        cell.gutterPadding = 12;
         UIView *separator = [cell viewWithTag:10];
         if (!separator) {
             separator = [[UIView alloc] initWithFrame:CGRectMake(cell.gutterPadding, 52 - (1 / [UIScreen mainScreen].scale), self.view.frame.size.width - (cell.gutterPadding * 2), (1 / [UIScreen mainScreen].scale))];
@@ -344,8 +344,11 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    if (section == 0) {
+    if (section == -1) {
         return 56;
+    }
+    if (section == 0) {
+        return CGFLOAT_MIN;
     }
     if (section >= 1 + self.lists.count) return CGFLOAT_MIN;
     
@@ -353,6 +356,9 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
 }
 - (nullable UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
     if (section == 0) {
+        return nil;
+    }
+    if (section == -1) {
         // search view
         UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 56)];
         // header.backgroundColor = [UIColor colorNamed:@"Navigation_ClearBackgroundColor"];

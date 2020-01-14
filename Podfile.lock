@@ -105,6 +105,9 @@ PODS:
   - L360Confetti (1.1.4)
   - libPhoneNumber-iOS (0.9.15)
   - Lockbox (3.0.6)
+  - MarqueeLabel (3.2.1):
+    - MarqueeLabel/ObjC (= 3.2.1)
+  - MarqueeLabel/ObjC (3.2.1)
   - nanopb (0.3.9011):
     - nanopb/decode (= 0.3.9011)
     - nanopb/encode (= 0.3.9011)
@@ -153,6 +156,7 @@ DEPENDENCIES:
   - L360Confetti
   - libPhoneNumber-iOS (~> 0.8)
   - Lockbox
+  - MarqueeLabel (~> 3.2.1)
   - ObjectiveGumbo
   - PINCache (~> 3.0.0-beta.13)
   - Regexer
@@ -194,6 +198,7 @@ SPEC REPOS:
     - L360Confetti
     - libPhoneNumber-iOS
     - Lockbox
+    - MarqueeLabel
     - nanopb
     - ObjectiveGumbo
     - PINCache
@@ -236,6 +241,7 @@ SPEC CHECKSUMS:
   L360Confetti: 9b77ea9925e758de4b6e7d1edbb7b87f3eaa0d17
   libPhoneNumber-iOS: 0a32a9525cf8744fe02c5206eb30d571e38f7d75
   Lockbox: 4291a0b8b1aed35474881c4e592961dec3ca695e
+  MarqueeLabel: 2daf039bf916937c8a4c9adfc13577cc5e51b4ce
   nanopb: 18003b5e52dab79db540fe93fe9579f399bd1ccd
   ObjectiveGumbo: 0704c4930688132abb3d5df2000334f30504856f
   PINCache: 534fd41d358d828dfdf227a0d327f3673a65e20b
@@ -252,6 +258,6 @@ SPEC CHECKSUMS:
   "UINavigationItem+Margin": 7368d506fb2f7daa0c0489846cc8c2384ab1ab6d
   "UITextView+Placeholder": c407b27599ea23cca425946fee3cf1db5d547008
 
-PODFILE CHECKSUM: 9b84db273b31056881384731e8aa90b40cf102f2
+PODFILE CHECKSUM: 1ca5c60ea8abcf0b8f247f062d34a31e1b4f66e0
 
 COCOAPODS: 1.8.4

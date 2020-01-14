@@ -13,8 +13,14 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+@protocol UserActivity;
+@protocol UserActivityEntity;
+
 @class UserActivity;
 @class UserActivityAttributes;
+@class UserActivityAttributesTitle;
+@class UserActivityEntity;
+@class UserActivityAttributesTarget;
 
 @interface UserActivity : BFJSONModel
 
@@ -25,6 +31,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic) NSString <Optional> *prevCursor;
 @property (nonatomic) NSString <Optional> *nextCursor;
 
+- (void)updateAttributedString;
 - (void)markAsRead;
 
 @end
@@ -51,6 +58,11 @@ typedef enum {
 } USER_ACTIVITY_TYPE;
 
 @property (nonatomic) USER_ACTIVITY_TYPE type;
+@property (nonatomic) UserActivityAttributesTitle <Optional> *title;
+@property (nonatomic) UserActivityAttributesTarget <Optional> *target;
+
+@property (nonatomic) NSString <Optional> *icon;
+
 @property (nonatomic) NSString <Optional> *createdAt;
 
 @property (nonatomic) Identity <Optional> *actioner;
@@ -64,10 +76,45 @@ typedef enum {
 
 // the NSAttributed string we create, using the JSON defaults format and information given to use during initWithDictionary
 @property (nonatomic) NSAttributedString <Optional> *attributedString;
+@property (nonatomic) Post <Optional> *previewPost;
+@property (nonatomic) BOOL includeUserAttachment;
+@property (nonatomic) BOOL includeCampAttachment;
+@property (nonatomic) BOOL includePostAttachment;
+
+@end
+
+@interface UserActivityAttributesTitle : BFJSONModel
+
+@property (nonatomic) NSString <Optional> *title;
+@property (nonatomic) NSArray <UserActivityEntity *> <UserActivityEntity, Optional> *entities;
+
+@end
+
+@interface UserActivityEntity : BFJSONModel
+
+@property (nonatomic) NSArray <Optional> *indices;
+
+@end
+
+@interface UserActivityAttributesTarget : BFJSONModel
+
+@property (nonatomic) NSString <Optional> *url;
+@property (nonatomic) NSObject <Optional> *object;
 
 @end
 
 @interface JSONValueTransformer (NSAttributedString)
+
+- (NSAttributedString *)NSAttributedStringFromNSString:(NSString *)string;
+- (NSString *)JSONObjectFromNSAttributedString:(NSAttributedString *)string;
+
+@end
+
+@interface JSONValueTransformer (NSObject)
+
+- (NSObject *)NSObjectFromNSString:(NSString *)string;
+- (NSString *)JSONObjectFromNSObject:(NSObject *)object;
+
 @end
 
 NS_ASSUME_NONNULL_END

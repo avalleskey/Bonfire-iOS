@@ -20,6 +20,7 @@
 #import "EditCampViewController.h"
 #import "BFAlertController.h"
 #import "NSDate+NVTimeAgo.h"
+#import "AddManagerTableViewController.h"
 
 #define UIViewParentController(__view) ({ \
         UIResponder *__responder = __view; \
@@ -133,6 +134,7 @@
         [self.avatarContainer addSubview:self.campAvatar];
         
         self.campAvatarReasonView = [[UIView alloc] initWithFrame:CGRectMake(self.campAvatar.frame.size.width - 40 + 6, self.campAvatar.frame.size.height - 40 + 6, 40, 40)];
+        self.campAvatarReasonView.alpha = 0;
         self.campAvatarReasonView.hidden = true;
         self.campAvatarReasonView.backgroundColor = [UIColor bonfireDetailColor];
         self.campAvatarReasonView.layer.cornerRadius = self.campAvatarReasonView.frame.size.height / 2;
@@ -147,8 +149,21 @@
                 BFAlertAction *cta;
                 
                 if (self.campAvatarReasonView.tag == CAMP_CONTEXT_BUBBLE_TAG_ACTIVE) {
-                    title = @"On Fire";
-                    message = @"More than 5 users were active in the last 24hr.";
+                    if (self.camp.attributes.summaries.counts.scoreIndex >= .66) {
+                        title = @"On Fire";
+                        message = @"Join conversations in this Camp to keep the fire alive!";
+                    }
+                    else if (self.camp.attributes.summaries.counts.scoreIndex >= .33) {
+                        title = @"Hot";
+                        message = @"Join conversations in this Camp to help it become more popular!";
+                    }
+                    else {
+                        title = @"Warming Up";
+                        message = @"New posts and sparks will\nmake this Camp more popular";
+                        cta = [BFAlertAction actionWithTitle:@"Create a Post" style:BFAlertActionStyleDefault handler:^{
+                            [Launcher openComposePost:self.camp inReplyTo:nil withMessage:nil media:nil quotedObject:nil];
+                        }];
+                    }
                 }
                 else if (self.campAvatarReasonView.tag == CAMP_CONTEXT_BUBBLE_TAG_NEW_CAMP) {
                     title = @"New Camp";
@@ -198,8 +213,10 @@
         [self.campAvatarReasonView addSubview:self.campAvatarReasonLabel];
         
         self.campAvatarReasonImageView = [[UIImageView alloc] initWithFrame:self.campAvatarReasonView.bounds];
-        self.campAvatarReasonImageView.contentMode = UIViewContentModeCenter;
+        self.campAvatarReasonImageView.contentMode = UIViewContentModeScaleAspectFill;
         self.campAvatarReasonImageView.hidden = true;
+        self.campAvatarReasonImageView.layer.cornerRadius = self.campAvatarReasonView.layer.cornerRadius;
+        self.campAvatarReasonImageView.layer.masksToBounds = true;
         [self.campAvatarReasonView addSubview:self.campAvatarReasonImageView];
         
         self.member2 = [[BFAvatarView alloc] initWithFrame:CGRectMake(0, 0, 46, 46)];
@@ -229,74 +246,29 @@
         self.detailsCollectionView = [[BFDetailsCollectionView alloc] initWithFrame:CGRectMake(CAMP_HEADER_EDGE_INSETS.left, 0, [UIScreen mainScreen].bounds.size.width - CAMP_HEADER_EDGE_INSETS.left - CAMP_HEADER_EDGE_INSETS.right, 16)];
         [self.contentView addSubview:self.detailsCollectionView];
         
-        self.followButton = [CampFollowButton buttonWithType:UIButtonTypeCustom];
+        self.actionButton = [CampFollowButton buttonWithType:UIButtonTypeCustom];
         
-        [self.followButton bk_whenTapped:^{
+        [self.actionButton bk_whenTapped:^{
             // update state if possible
-            if ([self.followButton.status isEqualToString:CAMP_STATUS_CAN_EDIT]) {
-                [self openEditCamp];
+            if ([self.actionButton.status isEqualToString:CAMP_STATUS_MEMBER]) {
+                [self openPostNotificationSettings];
             }
-            else if ([self.followButton.status isEqualToString:CAMP_STATUS_MEMBER] ||
-                [self.followButton.status isEqualToString:CAMP_STATUS_REQUESTED]) {
-                // leave the camp
-                
-                if ([self.followButton.status isEqualToString:CAMP_STATUS_MEMBER]) {
-                    // confirm action
-                    BOOL privateCamp = [self.camp isPrivate];
-                    BOOL lastMember = self.camp.attributes.summaries.counts.members <= 1;
-                    
-                    void (^leave)(void) = ^(){
-                        [self.followButton updateStatus:CAMP_STATUS_LEFT];
-                        [self leaveCamp];
-                    };
-                    
-                    if (privateCamp || lastMember) {
-                        NSString *message;
-                        if (privateCamp && lastMember) {
-                            message = @"All camps must have at least one member. If you leave, this Camp and all of its posts will be deleted after 30 days of inactivity.";
-                        }
-                        else if (lastMember) {
-                            // leaving as the last member in a public camp
-                            message = @"All camps must have at least one member. If you leave, this Camp will be archived and eligible for anyone to reopen.";
-                        }
-                        else {
-                            // leaving a private camp, but the user isn't the last one
-                            message = @"You will no longer have access to this Camp's posts";
-                        }
-                        
-                        BFAlertController *confirmDeletePostActionSheet = [BFAlertController alertControllerWithTitle:([self.camp isChannel] ? @"Unsubscribe?" : @"Leave Camp?") message:message preferredStyle:BFAlertControllerStyleAlert];
-                        
-                        BFAlertAction *confirmLeaveCamp = [BFAlertAction actionWithTitle:([self.camp isChannel] ? @"Unsubscribe" : @"Leave") style:BFAlertActionStyleDestructive handler:^{
-                            leave();
-                        }];
-                        [confirmDeletePostActionSheet addAction:confirmLeaveCamp];
-                        
-                        BFAlertAction *cancelLeaveCamp = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
-                        [confirmDeletePostActionSheet addAction:cancelLeaveCamp];
-                        
-                        [UIViewParentController(self) presentViewController:confirmDeletePostActionSheet animated:true completion:nil];
-                    }
-                    else {
-                        leave();
-                    }
-                }
-                else {
-                    [self.followButton updateStatus:CAMP_STATUS_NO_RELATION];
-                    [self leaveCamp];
-                }
+            else if ([self.actionButton.status isEqualToString:CAMP_STATUS_REQUESTED]) {
+                [self.actionButton updateStatus:CAMP_STATUS_NO_RELATION];
+                [self leaveCamp];
             }
-            else if ([self.followButton.status isEqualToString:CAMP_STATUS_LEFT] ||
-                     [self.followButton.status isEqualToString:CAMP_STATUS_NO_RELATION] ||
-                     [self.followButton.status isEqualToString:CAMP_STATUS_INVITED] ||
-                     self.followButton.status.length == 0) {
+            else if ([self.actionButton.status isEqualToString:CAMP_STATUS_LEFT] ||
+                     [self.actionButton.status isEqualToString:CAMP_STATUS_NO_RELATION] ||
+                     [self.actionButton.status isEqualToString:CAMP_STATUS_INVITED] ||
+                     self.actionButton.status.length == 0) {
                 // join the camp
                 if ([self.camp isPrivate] &&
-                    ![self.followButton.status isEqualToString:CAMP_STATUS_INVITED]) {
-                    [self.followButton updateStatus:CAMP_STATUS_REQUESTED];
+                    ![self.actionButton.status isEqualToString:CAMP_STATUS_INVITED]) {
+                    [self.actionButton updateStatus:CAMP_STATUS_REQUESTED];
                 }
                 else {
                     // since they've been invited already, jump straight to being a member
-                    [self.followButton updateStatus:CAMP_STATUS_MEMBER];
+                    [self.actionButton updateStatus:CAMP_STATUS_MEMBER];
                 }
                 [self updateCampStatus];
                 
@@ -307,11 +279,21 @@
                     }
                 }];
             }
-            else if ([self.followButton.status isEqualToString:CAMP_STATUS_BLOCKED]) {
+            else if ([self.actionButton.status isEqualToString:CAMP_STATUS_BLOCKED]) {
                 // show alert maybe? --> ideally we don't even show the button.
             }
         }];
-        [self.contentView addSubview:self.followButton];
+        [self.contentView addSubview:self.actionButton];
+        
+//        self.secondaryActionButton = [UIButton buttonWithType:UIButtonTypeCustom];
+//        self.secondaryActionButton.layer.cornerRadius = 12.f;
+//        self.secondaryActionButton.layer.masksToBounds = false;
+//        self.secondaryActionButton.layer.borderColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.06f].CGColor;
+//        self.secondaryActionButton.layer.borderWidth = 1;
+//        [self.secondaryActionButton bk_whenTapped:^{
+//            [self openPostNotificationSettings];
+//        }];
+//        [self.contentView addSubview:self.secondaryActionButton];
         
         self.lineSeparator = [[UIView alloc] init];
         self.lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
@@ -381,7 +363,7 @@
 - (void)updateCampStatus {
     BFContext *context = [[BFContext alloc] initWithDictionary:[self.camp.attributes.context toDictionary] error:nil];
     BFContextCamp *camp = [[BFContextCamp alloc] initWithDictionary:[context.camp toDictionary] error:nil];
-    camp.status = self.followButton.status;
+    camp.status = self.actionButton.status;
     context.camp = camp;
     self.camp.attributes.context = context;
     
@@ -406,6 +388,33 @@
     [BFAPI unfollowCamp:self.camp completion:^(BOOL success, id responseObject) {
         if (success) {
             if ([responseObject isKindOfClass:[Camp class]]) {
+            }
+        }
+        else {
+            if ([responseObject objectForKey:@"error"]) {
+                NSError *error = (NSError *)responseObject[@"error"];
+                NSInteger code = [error bonfireErrorCode];
+                DLog(@"code: %lu", code);
+                if (code == CAMP_MIN_MEMBERS_VIOLATION) {
+                    BFAlertController *alert = [BFAlertController alertControllerWithTitle:@"Musical Chairs 🎶" message:@"All Camps must have at least one director. Assign one before leaving this Camp." preferredStyle:BFAlertControllerStyleAlert];
+                    BFAlertAction *assignDirector = [BFAlertAction actionWithTitle:@"Assign a Director" style:BFAlertActionStyleDefault handler:^{
+                        AddManagerTableViewController *addManagerTableVC = [[AddManagerTableViewController alloc] init];
+                        addManagerTableVC.camp = self.camp;
+                        addManagerTableVC.managerType = @"admin";
+                        
+                        SimpleNavigationController *navController = [[SimpleNavigationController alloc] initWithRootViewController:addManagerTableVC];
+                        navController.transitioningDelegate = [Launcher sharedInstance];
+                        navController.modalPresentationStyle = UIModalPresentationFullScreen;
+                        navController.currentTheme = [UIColor clearColor];
+                        
+                        [[Launcher topMostViewController] presentViewController:navController animated:YES completion:nil];
+                    }];
+                    [alert addAction:assignDirector];
+                    alert.preferredAction = assignDirector;
+                    BFAlertAction *cancelAction = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
+                    [alert addAction:cancelAction];
+                    [[Launcher activeViewController] presentViewController:alert animated:true completion:nil];
+               }
             }
         }
     }];
@@ -435,15 +444,7 @@
     bottomY = CAMP_HEADER_EDGE_INSETS.top + self.campAvatar.frame.size.height;
     
     if (![self.campAvatarReasonView isHidden]) {
-        self.campAvatarReasonView.frame = CGRectMake(self.avatarContainer.frame.origin.x + self.avatarContainer.frame.size.width - 40 - 6, self.avatarContainer.frame.origin.y + self.avatarContainer.frame.size.height - 40 - 6, 40, 40);
-        
-        if (self.campAvatarReasonView.alpha == 0) {
-            self.campAvatarReasonView.transform = CGAffineTransformMakeScale(0.8, 0.8);
-            [UIView animateWithDuration:0.4 delay:0 usingSpringWithDamping:0.7 initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
-                self.campAvatarReasonView.alpha = 1;
-                self.campAvatarReasonView.transform = CGAffineTransformIdentity;
-            } completion:nil];
-        }
+        self.campAvatarReasonView.center = CGPointMake(self.avatarContainer.frame.origin.x + self.avatarContainer.frame.size.width - (40 / 2) - 3, self.avatarContainer.frame.origin.y + self.avatarContainer.frame.size.height - (40 / 2) - 3);
     }
     
     self.member2.superview.frame = CGRectMake(self.avatarContainer.frame.origin.x - self.member2.superview.frame.size.width - 26, CAMP_HEADER_EDGE_INSETS.top + 62, self.member2.superview.frame.size.width, self.member2.superview.frame.size.height);
@@ -479,7 +480,15 @@
         bottomY = self.detailsCollectionView.frame.origin.y + self.detailsCollectionView.frame.size.height;
     }
     
-    self.followButton.frame = CGRectMake(12, bottomY + CAMP_HEADER_FOLLOW_BUTTON_TOP_PADDING, self.frame.size.width - 24, 38);
+    CGFloat actionButtonHeight = 38;
+    CGFloat actionButtonY = bottomY + CAMP_HEADER_FOLLOW_BUTTON_TOP_PADDING;
+//    if ([self.secondaryActionButton isHidden]) {
+        self.actionButton.frame = CGRectMake(12, actionButtonY, self.frame.size.width - 24, actionButtonHeight);
+//    }
+//    else {
+//        self.secondaryActionButton.frame = CGRectMake(self.frame.size.width - 12 - 42, actionButtonY, 42, actionButtonHeight);
+//        self.actionButton.frame = CGRectMake(12, actionButtonY, self.secondaryActionButton.frame.origin.x - 12 - 8, actionButtonHeight);
+//    }
 }
 
 - (void)styleMemberProfilePictureView:(BFAvatarView *)imageView  {
@@ -517,7 +526,7 @@
         _camp = camp;
         
         self.tintColor = self.superview.tintColor;
-                
+                        
         // camp title
         NSString *campTitle;
         if (camp.attributes.title.length > 0) {
@@ -538,7 +547,11 @@
             // verified icon ☑️
             NSTextAttachment *attachment = [[NSTextAttachment alloc] init];
             attachment.image = [UIImage imageNamed:@"verifiedIcon_large"];
-            [attachment setBounds:CGRectMake(0, roundf(CAMP_HEADER_NAME_FONT.capHeight - attachment.image.size.height)/2.f-1, attachment.image.size.width, attachment.image.size.height)];
+            
+            CGFloat attachmentHeight = MIN(ceilf(CAMP_HEADER_NAME_FONT.lineHeight * 0.9), ceilf(attachment.image.size.height));
+            CGFloat attachmentWidth = ceilf(attachmentHeight * (attachment.image.size.width / attachment.image.size.height));
+            
+            [attachment setBounds:CGRectMake(0, roundf(CAMP_HEADER_NAME_FONT.capHeight - attachmentHeight)/2.f, attachmentWidth, attachmentHeight)];
             
             NSAttributedString *attachmentString = [NSAttributedString attributedStringWithAttachment:attachment];
             [displayNameAttributedString appendAttributedString:attachmentString];
@@ -570,44 +583,58 @@
         // set camp picture
         self.campAvatar.camp = camp;
         
-        // set camp indicator
-        BOOL showIndicator = false;
-        if (camp.attributes.summaries.counts.live > 5) {
-            showIndicator = true;
-            self.campAvatarReasonLabel.text = @"🔥";
-            self.campAvatarReasonView.tag = CAMP_CONTEXT_BUBBLE_TAG_ACTIVE;
-        }
-        if (!showIndicator && camp.attributes.createdAt.length > 0) {
+        BOOL useText = false;
+        BOOL useImage = false;
+
+        NSDateComponents *components;
+        if (camp.attributes.createdAt.length > 0) {
             NSDateFormatter *inputFormatter = [[NSDateFormatter alloc] init];
                 [inputFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ssZ"];
             NSDate *date = [inputFormatter dateFromString:camp.attributes.createdAt];
             
             NSUInteger unitFlags = NSCalendarUnitDay;
             NSCalendar *calendar = [[NSCalendar alloc] initWithCalendarIdentifier:NSCalendarIdentifierGregorian];
-            NSDateComponents *components = [calendar components:unitFlags fromDate:date toDate:[NSDate new] options:0];
-            
-            if ([components day] < 7) {
-                showIndicator = true;
-                self.campAvatarReasonLabel.text = @"🆕";
-                self.campAvatarReasonView.tag = CAMP_CONTEXT_BUBBLE_TAG_NEW_CAMP;
-            }
+            components = [calendar components:unitFlags fromDate:date toDate:[NSDate new] options:0];
         }
-        if (!showIndicator && [camp.attributes.context.camp.membership.role.type isEqualToString:CAMP_ROLE_ADMIN]) {
-            showIndicator = true;
-            self.campAvatarReasonLabel.text = @"🤠";
+        
+        if (camp.attributes.summaries.counts.scoreIndex > 0) {
+            useImage = true;
+            self.campAvatarReasonLabel.text = @"";
+            self.campAvatarReasonImageView.image = [UIImage imageNamed:@"hotIcon"];
+            self.campAvatarReasonImageView.backgroundColor = [UIColor fromHex:camp.scoreColor];
+            self.campAvatarReasonView.tag = CAMP_CONTEXT_BUBBLE_TAG_ACTIVE;
+        }
+        else if (components && [components day] < 7) {
+            useImage = true;
+            self.campAvatarReasonImageView.image = [UIImage imageNamed:@"newIcon"];
+            self.campAvatarReasonView.tag = CAMP_CONTEXT_BUBBLE_TAG_NEW_CAMP;
+        }
+        else  if ([camp.attributes.context.camp.membership.role.type isEqualToString:CAMP_ROLE_ADMIN]) {
+            useImage = true;
+            self.campAvatarReasonImageView.image = [UIImage imageNamed:@"directorIcon"];
             self.campAvatarReasonView.tag = CAMP_CONTEXT_BUBBLE_TAG_ADMIN;
         }
-        if (!showIndicator && [camp.attributes.context.camp.membership.role.type isEqualToString:CAMP_ROLE_MODERATOR]) {
-            showIndicator = true;
-            self.campAvatarReasonLabel.text = @"🛡";
+        if ([camp.attributes.context.camp.membership.role.type isEqualToString:CAMP_ROLE_MODERATOR]) {
+            useImage = true;
+            self.campAvatarReasonImageView.image = [UIImage imageNamed:@"managerIcon"];
             self.campAvatarReasonView.tag = CAMP_CONTEXT_BUBBLE_TAG_MODERATOR;
         }
-        if ([self.campAvatarReasonView isHidden] && showIndicator) {
-            self.campAvatarReasonView.alpha = 0;
+        BOOL hideReasonView = !useText && !useImage;
+        if (hideReasonView != [self.campAvatarReasonView isHidden]) {
+            self.campAvatarReasonView.hidden = hideReasonView;
+            
+            if (!hideReasonView) {
+                self.campAvatarReasonView.transform = CGAffineTransformMakeScale(0.25, 0.25);
+                self.campAvatarReasonView.alpha = 0;
+                
+                [UIView animateWithDuration:0.55f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
+                    self.campAvatarReasonView.alpha = 1;
+                    self.campAvatarReasonView.transform = CGAffineTransformMakeScale(1, 1);
+                } completion:nil];
+            }
         }
-        self.campAvatarReasonView.hidden = !showIndicator;
-        self.campAvatarReasonImageView.hidden = showIndicator;
-        self.campAvatarReasonLabel.hidden = !showIndicator;
+        self.campAvatarReasonImageView.hidden = !useImage;
+        self.campAvatarReasonLabel.hidden = !useText;
         
         // set profile pictures
         for (NSInteger i = 0; i < 6; i++) {
@@ -678,15 +705,20 @@
                     [details addObject:members];
                 }
             }
-            
-            if ([self.camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_MEMBER] && self.camp.attributes.context.camp.membership) {
-                BOOL subscribed = self.camp.attributes.context.camp.membership.subscription != nil;
-                BFDetailItem *subscription = [[BFDetailItem alloc] initWithType:(subscribed ? BFDetailItemTypePostNotificationsOn : BFDetailItemTypePostNotificationsOff) value:@"" action:^{
-                    [self openPostNotificationSettings];
-                }];
-                [details addObject:subscription];
-            }
         }
+        
+//        self.secondaryActionButton.hidden = !([self.camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_MEMBER] && self.camp.attributes.context.camp.membership);
+//        if (![self.secondaryActionButton isHidden]) {
+//            BOOL subscribed = self.camp.attributes.context.camp.membership.subscription != nil;
+//            if (subscribed) {
+//                [self.secondaryActionButton setImage:[[UIImage imageNamed:@"details_label_notifications"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+//                self.secondaryActionButton.tintColor = [UIColor bonfirePrimaryColor];
+//            }
+//            else {
+//                [self.secondaryActionButton setImage:[[UIImage imageNamed:@"details_label_notifications_off"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+//                self.secondaryActionButton.tintColor = [UIColor bonfireSecondaryColor];
+//            }
+//        }
         
         self.detailsCollectionView.hidden = (details.count == 0);
         self.detailsCollectionView.tintColor = [UIColor fromHex:self.camp.attributes.color adjustForOptimalContrast:true];
@@ -696,13 +728,12 @@
         }
         
         if ([camp isChannel]) {
-            self.followButton.followString = @"Subscribe";
-            self.followButton.followingString = @"Subscribed";
+            self.actionButton.followString = @"Subscribe";
         }
         else {
-            self.followButton.followString = [NSString stringWithFormat:@"Join %@", @"Camp"];
-            self.followButton.followingString = @"Joined";
+            self.actionButton.followString = [NSString stringWithFormat:@"Join %@", @"Camp"];
         }
+        self.actionButton.followingString = @"Options";
     }
 }
 
@@ -710,16 +741,16 @@
     BOOL campPostNotifications = self.camp.attributes.context.camp.membership.subscription != nil;
     UIImage *icon = (campPostNotifications ? [UIImage imageNamed:@"alert_icon_notifications_on"] : [UIImage imageNamed:@"alert_icon_notifications_off"]);
     
-    BFAlertController *postNotifications = [BFAlertController alertControllerWithIcon:icon title:(campPostNotifications?@"Instant Updates are on":@"Muted") message:(campPostNotifications ? @"You will receive notifications for new posts inside this Camp" : @"You will only receive notifications when you are mentioned or replied to") preferredStyle:BFAlertControllerStyleActionSheet];
+    BFAlertController *postNotifications = [BFAlertController alertControllerWithIcon:icon title:(campPostNotifications?@"Post Notifications are on":@"Post Notifications are off") message:(campPostNotifications ? @"You will receive notifications for new posts inside this Camp" : @"You will only receive notifications when you are mentioned or replied to") preferredStyle:BFAlertControllerStyleActionSheet];
     
     NSString *actionTitle;
     if (campPostNotifications) {
-        actionTitle = @"Mute";
+        actionTitle = @"Turn Post Notifications Off";
     }
     else {
-        actionTitle = @"Turn Instant Updates On";
+        actionTitle = @"Turn Post Notifications On";
     }
-    BFAlertAction *togglePostNotifications = [BFAlertAction actionWithTitle:actionTitle style:(campPostNotifications?BFAlertActionStyleDestructive:BFAlertActionStyleDefault) handler:^{
+    BFAlertAction *togglePostNotifications = [BFAlertAction actionWithTitle:actionTitle style:BFAlertActionStyleDefault handler:^{
         NSLog(@"toggle post notifications");
         // confirm action
         Camp *campCopy = [self.camp copy];
@@ -731,6 +762,55 @@
         }
     }];
     [postNotifications addAction:togglePostNotifications];
+    
+    if ([self.camp.attributes.context.camp.permissions canUpdate]) {
+        BFAlertAction *editCamp = [BFAlertAction actionWithTitle:@"Edit Camp" style:BFAlertActionStyleDefault handler:^{
+            [self openEditCamp];
+        }];
+        [postNotifications addAction:editCamp];
+    }
+    
+    BFAlertAction *leaveCamp = [BFAlertAction actionWithTitle:@"Leave Camp" style:BFAlertActionStyleDestructive handler:^{
+        // confirm action
+        BOOL privateCamp = [self.camp isPrivate];
+        BOOL lastMember = self.camp.attributes.summaries.counts.members <= 1;
+        
+        void (^leave)(void) = ^(){
+            [self.actionButton updateStatus:CAMP_STATUS_LEFT];
+            [self leaveCamp];
+        };
+        
+        if (privateCamp || lastMember) {
+            NSString *message;
+            if (privateCamp && lastMember) {
+                message = @"All camps must have at least one member. If you leave, this Camp and all of its posts will be deleted after 30 days of inactivity.";
+            }
+            else if (lastMember) {
+                // leaving as the last member in a public camp
+                message = @"All camps must have at least one member. If you leave, this Camp will be archived and eligible for anyone to reopen.";
+            }
+            else {
+                // leaving a private camp, but the user isn't the last one
+                message = @"You will no longer have access to this Camp's posts";
+            }
+            
+            BFAlertController *confirmDeletePostActionSheet = [BFAlertController alertControllerWithTitle:([self.camp isChannel] ? @"Unsubscribe?" : @"Leave Camp?") message:message preferredStyle:BFAlertControllerStyleAlert];
+            
+            BFAlertAction *confirmLeaveCamp = [BFAlertAction actionWithTitle:([self.camp isChannel] ? @"Unsubscribe" : @"Leave") style:BFAlertActionStyleDestructive handler:^{
+                leave();
+            }];
+            [confirmDeletePostActionSheet addAction:confirmLeaveCamp];
+            
+            BFAlertAction *cancelLeaveCamp = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
+            [confirmDeletePostActionSheet addAction:cancelLeaveCamp];
+            
+            [UIViewParentController(self) presentViewController:confirmDeletePostActionSheet animated:true completion:nil];
+        }
+        else {
+            leave();
+        }
+    }];
+    [postNotifications addAction:leaveCamp];
     
     // confirm action
     BFAlertAction *alertCancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
@@ -828,13 +908,13 @@
             }
         }
         
-        if ([camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_MEMBER] && camp.attributes.context.camp.membership) {
-            BOOL subscribed = camp.attributes.context.camp.membership.subscription != nil;
-            BFDetailItem *subscription = [[BFDetailItem alloc] initWithType:(subscribed ? BFDetailItemTypePostNotificationsOn : BFDetailItemTypePostNotificationsOff) value:@"" action:^{
-                
-            }];
-            [details addObject:subscription];
-        }
+//        if ([camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_MEMBER] && camp.attributes.context.camp.membership) {
+//            BOOL subscribed = camp.attributes.context.camp.membership.subscription != nil;
+//            BFDetailItem *subscription = [[BFDetailItem alloc] initWithType:(subscribed ? BFDetailItemTypePostNotificationsOn : BFDetailItemTypePostNotificationsOff) value:@"" action:^{
+//
+//            }];
+//            [details addObject:subscription];
+//        }
          
         if (details.count > 0) {
             BFDetailsCollectionView *detailCollectionView = [[BFDetailsCollectionView alloc] initWithFrame:CGRectMake(CAMP_HEADER_EDGE_INSETS.left, 0, [UIScreen mainScreen].bounds.size.width - CAMP_HEADER_EDGE_INSETS.left - CAMP_HEADER_EDGE_INSETS.right, 16)];

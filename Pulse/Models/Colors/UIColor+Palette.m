@@ -319,7 +319,6 @@
 }
 + (UIColor * _Nonnull) bonfireSecondaryColor {
     return [UIColor colorNamed:@"SecondaryColor"];
-//    return [UIColor bonfireGrayWithLevel:500];
 }
 
 + (UIColor * _Nonnull) bonfireDetailColor {

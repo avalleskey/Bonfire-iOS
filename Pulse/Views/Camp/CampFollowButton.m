@@ -13,8 +13,6 @@
 
 @implementation CampFollowButton
 
-NSString * const CAMP_STATUS_CAN_EDIT = @"admin";
-
 - (id)init {
     if (self = [super init]) {
         self.followString = [NSString stringWithFormat:@"Join %@", @"Camp"];
@@ -32,12 +30,9 @@ NSString * const CAMP_STATUS_CAN_EDIT = @"admin";
         self.status = CAMP_STATUS_NO_RELATION;
     }
     // set icon + title
-    if ([status isEqualToString:CAMP_STATUS_CAN_EDIT]) {
-        [self setImage:nil forState:UIControlStateNormal];
-        [self setTitle:@"Edit Camp" forState:UIControlStateNormal];
-    }
-    else if ([status isEqualToString:CAMP_STATUS_MEMBER]) {
-        [self setImage:[[UIImage imageNamed:@"checkIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+    UIEdgeInsets imageEdgeInsets = UIEdgeInsetsMake(0, 0, 0, self.imageEdgeInsets.right);
+    if ([status isEqualToString:CAMP_STATUS_MEMBER]) {
+        [self setImage:[[UIImage imageNamed:@"settingsIcon_small"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
         [self setTitle:self.followingString forState:UIControlStateNormal];
     }
     else if ([status isEqualToString:CAMP_STATUS_REQUESTED]) {
@@ -57,13 +52,13 @@ NSString * const CAMP_STATUS_CAN_EDIT = @"admin";
         [self setImage:[[UIImage imageNamed:@"plusIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
         [self setTitle:self.followString forState:UIControlStateNormal];
     }
+    self.imageEdgeInsets = imageEdgeInsets;
     
     // set filled state + colors
     UIColor *disabledColor = [UIColor colorWithRed:0.52 green:0.53 blue:0.55 alpha:1.0];
     UIColor *themeColor = self.superview.tintColor;
     
-    if ([status isEqualToString:CAMP_STATUS_CAN_EDIT] ||
-        [status isEqualToString:CAMP_STATUS_MEMBER] ||
+    if ([status isEqualToString:CAMP_STATUS_MEMBER] ||
         [status isEqualToString:CAMP_STATUS_REQUESTED] ||
         [status isEqualToString:CAMP_STATUS_LOADING]) {
         self.layer.borderWidth = 1.f;

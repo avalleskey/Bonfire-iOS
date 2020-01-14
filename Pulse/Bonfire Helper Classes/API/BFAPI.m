@@ -249,7 +249,7 @@
         NSLog(@"success: followCamp");
         NSLog(@"--------");
         
-        NSLog(@"response object: %@", responseObject);
+        DLog(@"response object: %@", responseObject);
         
         // refresh my camps
         [[NSNotificationCenter defaultCenter] postNotificationName:@"refreshMyCamps" object:nil];
@@ -352,7 +352,7 @@
         NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
         NSLog(@"%@",ErrorResponse);
         
-        handler(false, @{@"error": ErrorResponse});
+        handler(false, @{@"error": error});
     }];
     
     // update it instantly
@@ -492,6 +492,20 @@
     [FIRAnalytics logEventWithName:@"post_vote"
                         parameters:@{}];
     
+    // update the UI
+    NSDateFormatter *gmtDateFormatter = [[NSDateFormatter alloc] init];
+    gmtDateFormatter.timeZone = [NSTimeZone timeZoneForSecondsFromGMT:0];
+    gmtDateFormatter.dateFormat = @"yyyy-MM-dd'T'HH:mm:ssZ";
+    NSString *dateString = [gmtDateFormatter stringFromDate:[NSDate new]];
+    
+    BFContext *context = [[BFContext alloc] initWithDictionary:[post.attributes.context toDictionary] error:nil];
+    BFContextPost *contextPost = [[BFContextPost alloc] initWithDictionary:[post.attributes.context.post toDictionary] error:nil];
+    BFContextPostVote *voteDict = [[BFContextPostVote alloc] initWithDictionary:@{@"created_at": dateString} error:nil];
+    contextPost.vote = voteDict;
+    context.post = contextPost;
+    post.attributes.context = context;
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"PostUpdated" object:post];
+    
     NSString *url = [NSString stringWithFormat:@"posts/%@/votes", post.identifier];
     
     NSDictionary *params = @{};
@@ -510,25 +524,17 @@
         
         handler(false, @{@"error": ErrorResponse});
     }];
-    
-    // update the UI
-    NSDateFormatter *gmtDateFormatter = [[NSDateFormatter alloc] init];
-    gmtDateFormatter.timeZone = [NSTimeZone timeZoneForSecondsFromGMT:0];
-    gmtDateFormatter.dateFormat = @"yyyy-MM-dd'T'HH:mm:ssZ";
-    NSString *dateString = [gmtDateFormatter stringFromDate:[NSDate new]];
-    
-    BFContext *context = [[BFContext alloc] initWithDictionary:[post.attributes.context toDictionary] error:nil];
-    BFContextPostVote *voteDict = [[BFContextPostVote alloc] initWithDictionary:@{@"created_at": dateString} error:nil];
-    context.post.vote = voteDict;
-    post.attributes.context = context;
-    
-    NSLog(@"post updated: %@", post);
-    
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"PostUpdated" object:post];
 }
 + (void)unvotePost:(Post *)post completion:(void (^ _Nullable)(BOOL success, id responseObject))handler {
     [FIRAnalytics logEventWithName:@"post_unvote"
                         parameters:@{}];
+    
+    BFContext *context = [[BFContext alloc] initWithDictionary:[post.attributes.context toDictionary] error:nil];
+    BFContextPost *contextPost = [[BFContextPost alloc] initWithDictionary:[post.attributes.context.post toDictionary] error:nil];
+    contextPost.vote = nil;
+    context.post = contextPost;
+    post.attributes.context = context;
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"PostUpdated" object:post];
     
     NSString *url = [NSString stringWithFormat:@"posts/%@/votes", post.identifier];
     NSDictionary *params = @{};
@@ -545,11 +551,6 @@
         
         handler(false, @{@"error": ErrorResponse});
     }];
-    
-    // update the UI
-    post.attributes.context.post.vote = nil;
-    
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"PostUpdated" object:post];
 }
 
 #pragma mark - Misc.
@@ -558,7 +559,7 @@
     
     if (imageData && [imageData isKindOfClass:[NSData class]]) {
         // has images
-        NSLog(@"has image to upload -> upload them then continue");
+        DLog(@"has image to upload -> upload them then continue");
         
         [[HAWebService authenticatedManager].requestSerializer setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
         [[HAWebService authenticatedManager] POST:kIMAGE_UPLOAD_URL parameters:nil constructingBodyWithBlock:^(id<AFMultipartFormData>  _Nonnull formData) {
@@ -572,11 +573,11 @@
                 [formData appendPartWithFileData:imageData name:@"media" fileName:@"media.png" mimeType:mediaObject.MIME];
             }
             
-            NSLog(@"MIME type: %@", mediaObject.MIME);
+            DLog(@"MIME type: %@", mediaObject.MIME);
         } progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-            NSLog(@"--------");
-            NSLog(@"response object: %@", responseObject);
-            NSLog(@"--------");
+            DLog(@"--------");
+            DLog(@"response object: %@", responseObject);
+            DLog(@"--------");
             
             if (responseObject[@"data"] && responseObject[@"data"] != [NSNull null] && [responseObject[@"data"] count] > 0) {
                 // successfully uploaded image -> pass completion info
@@ -586,11 +587,11 @@
                 handler(false, nil);
             }
         } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-            NSLog(@"error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);
+            DLog(@"error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);
             NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-            NSLog(@"%@",ErrorResponse);
-            NSLog(@"%@", error);
-            NSLog(@"idk: %@", task.response);
+            DLog(@"%@",ErrorResponse);
+            DLog(@"%@", error);
+            DLog(@"idk: %@", task.response);
             
             handler(false, nil);
         }];

@@ -125,8 +125,8 @@ extern NSString * const CAMP_ROLE_ADMIN;
 // can they invite new members
 @property (nonatomic) BOOL invite;
 
-// can they remove existing members and accept/decline
-@property (nonatomic) BOOL manage;
+// can they accept/decline member requests in a private camp
+@property (nonatomic) BOOL approve;
 
 @end
 

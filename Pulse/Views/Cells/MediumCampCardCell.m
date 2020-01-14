@@ -38,16 +38,6 @@
     self.camp = [[Camp alloc] init];
     
     self.backgroundColor = [UIColor cardBackgroundColor];
-    self.layer.cornerRadius = 15.f;
-    self.layer.masksToBounds = false;
-    self.layer.shadowRadius = 1.f;
-    self.layer.shadowOffset = CGSizeMake(0, 1);
-    self.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.08f].CGColor;
-    self.layer.shadowOpacity = 1.f;
-    self.contentView.layer.cornerRadius = self.layer.cornerRadius;
-    self.contentView.layer.masksToBounds = true;
-    self.layer.shouldRasterize = true;
-    self.layer.rasterizationScale = [UIScreen mainScreen].scale;
     
     self.campHeaderView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, 72)];
     self.campHeaderView.backgroundColor = [UIColor bonfireOrange];
@@ -87,8 +77,10 @@
     [self.campAvatarReasonView addSubview:self.campAvatarReasonLabel];
     
     self.campAvatarReasonImageView = [[UIImageView alloc] initWithFrame:self.campAvatarReasonView.bounds];
-    self.campAvatarReasonImageView.contentMode = UIViewContentModeCenter;
+    self.campAvatarReasonImageView.contentMode = UIViewContentModeScaleAspectFill;
     self.campAvatarReasonImageView.hidden = true;
+    self.campAvatarReasonImageView.layer.cornerRadius = self.campAvatarReasonView.layer.cornerRadius;
+    self.campAvatarReasonImageView.layer.masksToBounds = true;
     [self.campAvatarReasonView addSubview:self.campAvatarReasonImageView];
     
     self.member1 = [[BFAvatarView alloc] initWithFrame:CGRectMake(42, 64, 32, 32)];
@@ -277,28 +269,41 @@
         
         self.campAvatar.camp = camp;
         
-        BOOL showIndicator = false;
-        if (camp.attributes.summaries.counts.live > 5) {
-            showIndicator = true;
-            self.campAvatarReasonLabel.text = @"🔥";
-        }
-        else if (camp.attributes.createdAt.length > 0) {
+        BOOL useText = false;
+        BOOL useImage = false;
+
+        NSDateComponents *components;
+        if (camp.attributes.createdAt.length > 0) {
             NSDateFormatter *inputFormatter = [[NSDateFormatter alloc] init];
                 [inputFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ssZ"];
             NSDate *date = [inputFormatter dateFromString:camp.attributes.createdAt];
             
             NSUInteger unitFlags = NSCalendarUnitDay;
             NSCalendar *calendar = [[NSCalendar alloc] initWithCalendarIdentifier:NSCalendarIdentifierGregorian];
-            NSDateComponents *components = [calendar components:unitFlags fromDate:date toDate:[NSDate new] options:0];
-            
-            if ([components day] < 7) {
-                showIndicator = true;
-                self.campAvatarReasonLabel.text = @"🆕";
-            }
+            components = [calendar components:unitFlags fromDate:date toDate:[NSDate new] options:0];
         }
-        self.campAvatarReasonView.hidden = !showIndicator;
-        self.campAvatarReasonImageView.hidden = showIndicator;
-        self.campAvatarReasonLabel.hidden = !showIndicator;
+        
+        if (camp.attributes.summaries.counts.scoreIndex > 0) {
+            useImage = true;
+            self.campAvatarReasonLabel.text = @"";
+            self.campAvatarReasonImageView.image = [UIImage imageNamed:@"hotIcon"];
+            self.campAvatarReasonImageView.backgroundColor = [UIColor fromHex:camp.scoreColor];
+        }
+        else if (components && [components day] < 7) {
+            useImage = true;
+            self.campAvatarReasonImageView.image = [UIImage imageNamed:@"newIcon"];
+        }
+        else  if ([camp.attributes.context.camp.membership.role.type isEqualToString:CAMP_ROLE_ADMIN]) {
+            useImage = true;
+            self.campAvatarReasonImageView.image = [UIImage imageNamed:@"directorIcon"];
+        }
+        if ([camp.attributes.context.camp.membership.role.type isEqualToString:CAMP_ROLE_MODERATOR]) {
+            useImage = true;
+            self.campAvatarReasonImageView.image = [UIImage imageNamed:@"managerIcon"];
+        }
+        self.campAvatarReasonView.hidden = !useText && !useImage;
+        self.campAvatarReasonImageView.hidden = !useImage;
+        self.campAvatarReasonLabel.hidden = !useText;
         
         // set details view up with members
         if ([camp isChannel] && (camp.attributes.display.sourceLink || camp.attributes.display.sourceUser))  {

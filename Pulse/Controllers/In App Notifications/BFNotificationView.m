@@ -189,7 +189,7 @@
             self.notificationTypeImageView.backgroundColor = [UIColor bonfireViolet];
         }
         else if (object.activityType == USER_ACTIVITY_TYPE_POST_VOTED) {
-            self.notificationTypeImageView.image = [UIImage imageNamed:@"notificationIndicator_vote"];
+            self.notificationTypeImageView.image = [UIImage imageNamed:@"notificationIndicator_spark"];
             self.notificationTypeImageView.backgroundColor = [UIColor bonfireBrand];
         }
         else if (object.activityType == USER_ACTIVITY_TYPE_USER_POSTED || object.activityType == USER_ACTIVITY_TYPE_USER_POSTED_CAMP) {
@@ -205,6 +205,7 @@
             self.notificationTypeImageView.image = [UIImage imageNamed:@"Tip_Bonfire"];
             self.notificationTypeImageView.backgroundColor = [UIColor bonfireBrand];
         }
+        
         self.creatorTitleLabel.text = [_object.creatorText uppercaseString];
         
         self.titleLabel.hidden = (_object.title.length == 0);

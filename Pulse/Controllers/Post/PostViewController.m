@@ -813,7 +813,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         
         NSString *identifierBefore = cell.post.identifier;
         
-        cell.showContext = true;
+        cell.showContext = false;
         cell.showCamptag = true;
         cell.hideActions = false;
         if (self.parentPosts.count > indexPath.row) {
@@ -1150,7 +1150,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.section == 0) {
         if (indexPath.row < self.parentPosts.count) {
-            return [StreamPostCell heightForPost:self.parentPosts[indexPath.row] showContext:true showActions:true minimizeLinks:false];
+            return [StreamPostCell heightForPost:self.parentPosts[indexPath.row] showContext:false showActions:true minimizeLinks:false];
         }
         
         // loading ...
@@ -1404,7 +1404,6 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
 - (void)setupComposeInputView {
     self.composeInputView = [[ComposeInputView alloc] initWithFrame:CGRectMake(0, self.view.frame.size.height - 52, self.view.frame.size.width, 190)];
     self.composeInputView.delegate = self;
-    self.composeInputView.parentViewController = self;
     
     [self.composeInputView bk_whenTapped:^{
         if (![self.composeInputView isActive]) {
@@ -1527,8 +1526,8 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     
     UIColor *themeAdjustedForDarkMode = [UIColor fromHex:[UIColor toHex:theme] adjustForOptimalContrast:true];
     [UIView animateWithDuration:0.35f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-        if ([Launcher activeViewController] == self) {
-            [self.launchNavVC updateBarColor:theme animated:false];
+        if (self.navigationController && [self.navigationController isKindOfClass:[SimpleNavigationController class]] && self.navigationController.topViewController == self) {
+            [(SimpleNavigationController *)self.navigationController updateBarColor:theme animated:false];
         }
         
         self.composeInputView.textView.tintColor = themeAdjustedForDarkMode;

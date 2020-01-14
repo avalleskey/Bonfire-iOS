@@ -22,12 +22,12 @@
     
     // check if contains mention
     for (PostEntity *entity in instance.attributes.entities) {
-        if ([entity.type isEqualToString:POST_ENTITY_TYPE_PROFILE] && [entity.displayText isEqualToString:[NSString stringWithFormat:@"@%@", [Session sharedInstance].currentUser.attributes.identifier]]) {
+        if ([entity.type isEqualToString:POST_ENTITY_TYPE_PROFILE] && [[entity.displayText lowercaseString] isEqualToString:[NSString stringWithFormat:@"@%@", [[Session sharedInstance].currentUser.attributes.identifier lowercaseString]]]) {
             instance.containsMention = true;
             break;
         }
     }
-    if ([self.attributes.creator.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
+    if ([[self.attributes.creator.identifier lowercaseString] isEqualToString:[[Session sharedInstance].currentUser.identifier lowercaseString]]) {
         instance.isCreator = true;
     }
         

@@ -12,7 +12,7 @@
 #import "KSSDImageManager.h"
 
 static const NSTimeInterval kAnimationDuration = 0.25;
-static const NSTimeInterval kSpringAnimationDuration = 0.4;
+static const NSTimeInterval kSpringAnimationDuration = 0.5;
 static const CGFloat kPageControlHeight = 20;
 static const CGFloat kPageControlBottomSpacing = 40;
 
@@ -159,7 +159,7 @@ static Class ImageManagerClass = nil;
     photoView.imageView.frame = sourceRect;
     
     if (_bounces) {
-        [UIView animateWithDuration:kSpringAnimationDuration delay:0 usingSpringWithDamping:0.8 initialSpringVelocity:0 options:kNilOptions animations:^{
+        [UIView animateWithDuration:kSpringAnimationDuration delay:0 usingSpringWithDamping:0.75 initialSpringVelocity:0 options:kNilOptions animations:^{
             photoView.imageView.frame = endRect;
             self.view.backgroundColor = [UIColor blackColor];
             self.backgroundView.alpha = 1;

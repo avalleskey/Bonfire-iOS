@@ -52,7 +52,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (strong, nonatomic) TTTAttributedLabel *bioLabel;
 @property (strong, nonatomic) BFDetailsCollectionView *detailsCollectionView;
 
-@property (strong, nonatomic) UserFollowButton *followButton;
+@property (strong, nonatomic) UserFollowButton *actionButton;
 
 @property (strong, nonatomic) UIView *lineSeparator;
 

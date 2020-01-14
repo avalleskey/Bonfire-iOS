@@ -388,8 +388,7 @@
                 // prepend http:// if needed
                 iconUrl = [@"http://" stringByAppendingString:iconUrl];
             }
-            self.iconImageView.contentMode = UIViewContentModeCenter;
-            [self.iconImageView sd_setImageWithURL:[NSURL URLWithString:iconUrl] placeholderImage:[UIImage imageNamed:@"emptyLinkIcon"] completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
+            [self.iconImageView sd_setImageWithURL:[NSURL URLWithString:iconUrl] placeholderImage:nil completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
                 if (error) {
                     self.iconImageView.image = [[UIImage imageNamed:@"emptyLinkIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
                     self.iconImageView.tintColor = [UIColor bonfireSecondaryColor];

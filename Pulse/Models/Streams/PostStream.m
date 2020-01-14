@@ -39,6 +39,19 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
     [encoder encodeObject:self.posts forKey:@"posts"];
 }
 
+#pragma mark - NSCopying
+- (id)copyWithZone:(NSZone *)zone
+{
+    PostStream *copyObject = [PostStream new];
+    copyObject.pages = _pages;
+    copyObject.tempPosts = _tempPosts;
+    copyObject.posts = _posts;
+    copyObject.prevCursor = _prevCursor;
+    copyObject.nextCursor = _nextCursor;
+
+     return copyObject;
+}
+
 - (void)updatePostsArray {
     NSMutableArray *mutableArray = [NSMutableArray array];
     
@@ -102,8 +115,10 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
     
     NSMutableArray *pageData = [[NSMutableArray alloc] initWithArray:page.data];
     for (NSInteger i = 0; i < pageData.count; i++) {
-        Post *post = [[Post alloc] initWithDictionary:pageData[i] error:nil];
-        [pageData replaceObjectAtIndex:i withObject:post];
+        if ([pageData[i] isKindOfClass:[NSDictionary class]]) {
+            Post *post = [[Post alloc] initWithDictionary:pageData[i] error:nil];
+            [pageData replaceObjectAtIndex:i withObject:post];
+        }
     }
     page.data = [pageData copy];
 
@@ -383,10 +398,19 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
                     }
                 }
                 else {
+                    NSLog(@"vote status before:: %@", ((Post *)[mutableArray objectAtIndex:i]).attributes.context.post.vote);
+                    
                     // update the post!
-                    [mutableArray replaceObjectAtIndex:i withObject:post];
+                    if (post.attributes.removedAt.length > 0) {
+                        [mutableArray removeObjectAtIndex:i];
+                    }
+                    else {
+                        [mutableArray replaceObjectAtIndex:i withObject:post];
+                    }
                     changes = true;
                     foundPost = true;
+                    
+                    NSLog(@"vote status after:: %@", post.attributes.context.post.vote);
                 }
             }
         }
@@ -396,6 +420,8 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
         [self.pages replaceObjectAtIndex:p withObject:page];
     }
     [self updatePostsArray];
+    
+    NSLog(@"found post to update? %@", foundPost ? @"YES" : @"NO");
     
     return changes;
 }

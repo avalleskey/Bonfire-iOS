@@ -7,10 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		210CCB449D440E4A9FA2886B /* libPods-PulseTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DC5B637ED84F50F6AB891763 /* libPods-PulseTests.a */; };
+		38CB3154EE64C8C377AA73BE /* libPods-Pulse.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3EAA02F5F5EA7753CD9824D5 /* libPods-Pulse.a */; };
 		41EB16E5236FCD5300116C90 /* ThemeSelectorInputCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 41EB16E3236FCD5300116C90 /* ThemeSelectorInputCell.m */; };
 		41FED4372369FC3A00CBAD26 /* BFLink.m in Sources */ = {isa = PBXBuildFile; fileRef = 41FED4362369FC3A00CBAD26 /* BFLink.m */; };
-		6170967D7AAF966F3D9EE90D /* libPods-Pulse.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6DFD4027CD95D69E8E24B907 /* libPods-Pulse.a */; };
-		81667D5AD6E6B86A8BFD2DFC /* libPods-PulseTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 03164FE4C125C02B74B92349 /* libPods-PulseTests.a */; };
+		811E4B44417D0131428D77A0 /* libPods-PulseUITests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6D0A77611627BFFE6BF6F61A /* libPods-PulseUITests.a */; };
 		D90047D022860669006B4B3D /* BFColorPickerViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D90047CF22860669006B4B3D /* BFColorPickerViewController.m */; };
 		D90047D32286100D006B4B3D /* EFCircularSlider.m in Sources */ = {isa = PBXBuildFile; fileRef = D90047D22286100D006B4B3D /* EFCircularSlider.m */; };
 		D902CD4F21993D390088F479 /* CampViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D902CD4E21993D390088F479 /* CampViewController.m */; };
@@ -46,6 +47,8 @@
 		D91643242166824F00523770 /* RSTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = D91643232166824F00523770 /* RSTableView.m */; };
 		D91CA64A23A13CCA0055973A /* UIResponder+FirstResponder.m in Sources */ = {isa = PBXBuildFile; fileRef = D91CA64923A13CC90055973A /* UIResponder+FirstResponder.m */; };
 		D91CA64D23A2C3FB0055973A /* UITabBar+Extras.m in Sources */ = {isa = PBXBuildFile; fileRef = D91CA64C23A2C3FB0055973A /* UITabBar+Extras.m */; };
+		D91CA65223A55BE10055973A /* ICSDrawerController.m in Sources */ = {isa = PBXBuildFile; fileRef = D91CA64E23A55BE00055973A /* ICSDrawerController.m */; };
+		D91CA65323A55BE10055973A /* ICSDropShadowView.m in Sources */ = {isa = PBXBuildFile; fileRef = D91CA64F23A55BE00055973A /* ICSDropShadowView.m */; };
 		D91F13EA228DDC590010E032 /* BFTappableLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = D91F13E9228DDC590010E032 /* BFTappableLabel.m */; };
 		D921171121A6162500853F3F /* InviteFriendHeaderCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D921171021A6162500853F3F /* InviteFriendHeaderCell.m */; };
 		D921171421A6488F00853F3F /* ContactCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D921171321A6488F00853F3F /* ContactCell.m */; };
@@ -134,7 +137,7 @@
 		D974B741216009F200C03269 /* CampStoreTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D974B740216009F200C03269 /* CampStoreTableViewController.m */; };
 		D97681C922F604C9001F1BFC /* BFAttachmentView.m in Sources */ = {isa = PBXBuildFile; fileRef = D97681C822F604C9001F1BFC /* BFAttachmentView.m */; };
 		D97681CC22F604E3001F1BFC /* BFCampAttachmentView.m in Sources */ = {isa = PBXBuildFile; fileRef = D97681CB22F604E3001F1BFC /* BFCampAttachmentView.m */; };
-		D97681CF22F604F2001F1BFC /* BFUserAttachmentView.m in Sources */ = {isa = PBXBuildFile; fileRef = D97681CE22F604F2001F1BFC /* BFUserAttachmentView.m */; };
+		D97681CF22F604F2001F1BFC /* BFIdentityAttachmentView.m in Sources */ = {isa = PBXBuildFile; fileRef = D97681CE22F604F2001F1BFC /* BFIdentityAttachmentView.m */; };
 		D97681D222F62CA9001F1BFC /* BFStyles.m in Sources */ = {isa = PBXBuildFile; fileRef = D97681D122F62CA9001F1BFC /* BFStyles.m */; };
 		D98212332319A05C00B8B6E9 /* BFViewExporter.m in Sources */ = {isa = PBXBuildFile; fileRef = D98212322319A05C00B8B6E9 /* BFViewExporter.m */; };
 		D9824236219CAA0D003626DA /* EditCampViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9824235219CAA0D003626DA /* EditCampViewController.m */; };
@@ -168,6 +171,7 @@
 		D9B2D59221B86C6B007B3C0C /* ActivityCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D9B2D59121B86C6B007B3C0C /* ActivityCell.m */; };
 		D9B2D59621B89255007B3C0C /* NotificationsTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9B2D59521B89255007B3C0C /* NotificationsTableViewController.m */; };
 		D9B2D59C21B8BD8A007B3C0C /* NSAttributedString+NotificationConveniences.m in Sources */ = {isa = PBXBuildFile; fileRef = D9B2D59B21B8BD8A007B3C0C /* NSAttributedString+NotificationConveniences.m */; };
+		D9BC7C1823A943F0005614A4 /* UIApplication+CFABackgroundTask.m in Sources */ = {isa = PBXBuildFile; fileRef = D9BC7C1723A943F0005614A4 /* UIApplication+CFABackgroundTask.m */; };
 		D9BD47B923563D57001E027E /* JKRichTextViewLinkBlockDataHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = D9BD47AD23563D55001E027E /* JKRichTextViewLinkBlockDataHandler.m */; };
 		D9BD47BA23563D57001E027E /* JKRichTextViewEmojiDataHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = D9BD47B023563D56001E027E /* JKRichTextViewEmojiDataHandler.m */; };
 		D9BD47BB23563D57001E027E /* JKRichTextViewLinkDataHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = D9BD47B223563D56001E027E /* JKRichTextViewLinkDataHandler.m */; };
@@ -187,7 +191,7 @@
 		D9C0393E215A9D8600B30A41 /* SOLBaseTransitionAnimator.m in Sources */ = {isa = PBXBuildFile; fileRef = D9C0393C215A9D8500B30A41 /* SOLBaseTransitionAnimator.m */; };
 		D9C03941215AD4AC00B30A41 /* ComposeInputView.m in Sources */ = {isa = PBXBuildFile; fileRef = D9C03940215AD4AC00B30A41 /* ComposeInputView.m */; };
 		D9C03944215D6F1900B30A41 /* ComplexNavigationController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9C03943215D6F1900B30A41 /* ComplexNavigationController.m */; };
-		D9C0394D215DF17000B30A41 /* MyFeedViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9C0394C215DF17000B30A41 /* MyFeedViewController.m */; };
+		D9C0394D215DF17000B30A41 /* HomeTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9C0394C215DF17000B30A41 /* HomeTableViewController.m */; };
 		D9C2AC902367913D00FB9623 /* UIFont+App.m in Sources */ = {isa = PBXBuildFile; fileRef = D9C2AC8F2367913D00FB9623 /* UIFont+App.m */; };
 		D9C2ACA4236796B200FB9623 /* Inter-Black.otf in Resources */ = {isa = PBXBuildFile; fileRef = D9C2ACA32367960C00FB9623 /* Inter-Black.otf */; };
 		D9C2ACA5236796B600FB9623 /* Inter-BlackItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = D9C2AC9B2367960900FB9623 /* Inter-BlackItalic.otf */; };
@@ -218,7 +222,6 @@
 		D9D9B18821CECF0300B5003B /* MiniAvatarCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D9D9B18721CECF0300B5003B /* MiniAvatarCell.m */; };
 		D9D9B18E21CF1BE700B5003B /* LargeCampCardCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D9D9B18D21CF1BE700B5003B /* LargeCampCardCell.m */; };
 		D9D9B19221D01B6A00B5003B /* SmallCampCardCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D9D9B19121D01B6A00B5003B /* SmallCampCardCell.m */; };
-		D9D9C44E21F1037900E16815 /* BFDetailsLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = D9D9C44D21F1037900E16815 /* BFDetailsLabel.m */; };
 		D9DCACC821B9E0EA0038C7ED /* PostStream.m in Sources */ = {isa = PBXBuildFile; fileRef = D9DCACC721B9E0EA0038C7ED /* PostStream.m */; };
 		D9E5EB7821FBBB1900B9F5FD /* favicon_filled.png in Resources */ = {isa = PBXBuildFile; fileRef = D9E5EB7721FBBB1900B9F5FD /* favicon_filled.png */; };
 		D9E5EB7B21FBED7300B9F5FD /* ProfileCampsListViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9E5EB7A21FBED7300B9F5FD /* ProfileCampsListViewController.m */; };
@@ -242,7 +245,6 @@
 		D9FFFB61227E5E08004E3779 /* KSPhotoItem.m in Sources */ = {isa = PBXBuildFile; fileRef = D9FFFB59227E5E08004E3779 /* KSPhotoItem.m */; };
 		D9FFFB62227E5E08004E3779 /* KSProgressLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = D9FFFB5A227E5E08004E3779 /* KSProgressLayer.m */; };
 		D9FFFB63227E5E08004E3779 /* KSPhotoBrowser.m in Sources */ = {isa = PBXBuildFile; fileRef = D9FFFB5D227E5E08004E3779 /* KSPhotoBrowser.m */; };
-		E62B3FCB614C25DBD6EE39B6 /* libPods-PulseUITests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 591A88BD5DB597BBBA7F1ECC /* libPods-PulseUITests.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -263,22 +265,20 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		03164FE4C125C02B74B92349 /* libPods-PulseTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-PulseTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		226F973D73D6615B4BA40E0A /* Pods-PulseTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PulseTests.release.xcconfig"; path = "Target Support Files/Pods-PulseTests/Pods-PulseTests.release.xcconfig"; sourceTree = "<group>"; };
-		255662653DB4170A94440A12 /* Pods-PulseUITests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PulseUITests.release.xcconfig"; path = "Target Support Files/Pods-PulseUITests/Pods-PulseUITests.release.xcconfig"; sourceTree = "<group>"; };
+		1332949DD377C654E91842E2 /* Pods-PulseUITests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PulseUITests.release.xcconfig"; path = "Target Support Files/Pods-PulseUITests/Pods-PulseUITests.release.xcconfig"; sourceTree = "<group>"; };
+		2FD2D4F3C1B36A1642857D10 /* Pods-PulseUITests.beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PulseUITests.beta.xcconfig"; path = "Target Support Files/Pods-PulseUITests/Pods-PulseUITests.beta.xcconfig"; sourceTree = "<group>"; };
+		3EAA02F5F5EA7753CD9824D5 /* libPods-Pulse.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Pulse.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		41EB16E3236FCD5300116C90 /* ThemeSelectorInputCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ThemeSelectorInputCell.m; path = "Pulse/Controllers/User/Edit Profile/ThemeSelectorInputCell.m"; sourceTree = SOURCE_ROOT; };
 		41EB16E4236FCD5300116C90 /* ThemeSelectorInputCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ThemeSelectorInputCell.h; path = "Pulse/Controllers/User/Edit Profile/ThemeSelectorInputCell.h"; sourceTree = SOURCE_ROOT; };
 		41FED4352369FC3A00CBAD26 /* BFLink.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BFLink.h; sourceTree = "<group>"; };
 		41FED4362369FC3A00CBAD26 /* BFLink.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BFLink.m; sourceTree = "<group>"; };
-		43E5F348FDCB7F3EC3C8F90D /* Pods-Pulse.beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Pulse.beta.xcconfig"; path = "Target Support Files/Pods-Pulse/Pods-Pulse.beta.xcconfig"; sourceTree = "<group>"; };
-		591A88BD5DB597BBBA7F1ECC /* libPods-PulseUITests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-PulseUITests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		65F3EE4AE8893450364C3F32 /* Pods-PulseUITests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PulseUITests.debug.xcconfig"; path = "Target Support Files/Pods-PulseUITests/Pods-PulseUITests.debug.xcconfig"; sourceTree = "<group>"; };
-		6DFD4027CD95D69E8E24B907 /* libPods-Pulse.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Pulse.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		7393171178C8475531F15DFD /* Pods-PulseTests.beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PulseTests.beta.xcconfig"; path = "Target Support Files/Pods-PulseTests/Pods-PulseTests.beta.xcconfig"; sourceTree = "<group>"; };
-		7E35BF2E5C79E3DDDE903EC0 /* Pods-Pulse.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Pulse.release.xcconfig"; path = "Target Support Files/Pods-Pulse/Pods-Pulse.release.xcconfig"; sourceTree = "<group>"; };
-		81E7C8A4BCC5041FCA0C509D /* Pods-Pulse.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Pulse.debug.xcconfig"; path = "Target Support Files/Pods-Pulse/Pods-Pulse.debug.xcconfig"; sourceTree = "<group>"; };
-		B68EE43E08E2BAA0D8F30CBB /* Pods-PulseTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PulseTests.debug.xcconfig"; path = "Target Support Files/Pods-PulseTests/Pods-PulseTests.debug.xcconfig"; sourceTree = "<group>"; };
-		D3A6381E3FBE7321B6BDF681 /* Pods-PulseUITests.beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PulseUITests.beta.xcconfig"; path = "Target Support Files/Pods-PulseUITests/Pods-PulseUITests.beta.xcconfig"; sourceTree = "<group>"; };
+		5B93182382652508B17FE32B /* Pods-PulseTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PulseTests.release.xcconfig"; path = "Target Support Files/Pods-PulseTests/Pods-PulseTests.release.xcconfig"; sourceTree = "<group>"; };
+		6D0A77611627BFFE6BF6F61A /* libPods-PulseUITests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-PulseUITests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		73EE321B2E2C736949A26890 /* Pods-Pulse.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Pulse.release.xcconfig"; path = "Target Support Files/Pods-Pulse/Pods-Pulse.release.xcconfig"; sourceTree = "<group>"; };
+		838CD96272EACB75187D2E34 /* Pods-PulseTests.beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PulseTests.beta.xcconfig"; path = "Target Support Files/Pods-PulseTests/Pods-PulseTests.beta.xcconfig"; sourceTree = "<group>"; };
+		ABFB72A0C2A4B6F1A417D3D2 /* Pods-PulseTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PulseTests.debug.xcconfig"; path = "Target Support Files/Pods-PulseTests/Pods-PulseTests.debug.xcconfig"; sourceTree = "<group>"; };
+		BE4C6ED481B1BAE908614979 /* Pods-PulseUITests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PulseUITests.debug.xcconfig"; path = "Target Support Files/Pods-PulseUITests/Pods-PulseUITests.debug.xcconfig"; sourceTree = "<group>"; };
+		CAF987B768B4F1D58A3A4BEA /* Pods-Pulse.beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Pulse.beta.xcconfig"; path = "Target Support Files/Pods-Pulse/Pods-Pulse.beta.xcconfig"; sourceTree = "<group>"; };
 		D90047CE22860669006B4B3D /* BFColorPickerViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BFColorPickerViewController.h; sourceTree = "<group>"; };
 		D90047CF22860669006B4B3D /* BFColorPickerViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BFColorPickerViewController.m; sourceTree = "<group>"; };
 		D90047D12286100D006B4B3D /* EFCircularSlider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EFCircularSlider.h; sourceTree = "<group>"; };
@@ -291,7 +291,7 @@
 		D904283E233BE3800051D3AF /* LinkConversationsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LinkConversationsViewController.m; sourceTree = "<group>"; };
 		D9042840233C17170051D3AF /* BFSmartLinkAttachmentView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BFSmartLinkAttachmentView.m; sourceTree = "<group>"; };
 		D9042841233C17180051D3AF /* BFSmartLinkAttachmentView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BFSmartLinkAttachmentView.h; sourceTree = "<group>"; };
-		D907B07D214EEC5000A59712 /* Bonfire b18.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Bonfire b18.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		D907B07D214EEC5000A59712 /* Bonfire b36.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Bonfire b36.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D907B080214EEC5000A59712 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		D907B081214EEC5000A59712 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; wrapsLines = 0; };
 		D907B087214EEC5000A59712 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -347,6 +347,10 @@
 		D91CA64923A13CC90055973A /* UIResponder+FirstResponder.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "UIResponder+FirstResponder.m"; sourceTree = "<group>"; };
 		D91CA64B23A2C3FB0055973A /* UITabBar+Extras.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "UITabBar+Extras.h"; sourceTree = "<group>"; };
 		D91CA64C23A2C3FB0055973A /* UITabBar+Extras.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "UITabBar+Extras.m"; sourceTree = "<group>"; };
+		D91CA64E23A55BE00055973A /* ICSDrawerController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ICSDrawerController.m; sourceTree = "<group>"; };
+		D91CA64F23A55BE00055973A /* ICSDropShadowView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ICSDropShadowView.m; sourceTree = "<group>"; };
+		D91CA65023A55BE00055973A /* ICSDropShadowView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ICSDropShadowView.h; sourceTree = "<group>"; };
+		D91CA65123A55BE00055973A /* ICSDrawerController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ICSDrawerController.h; sourceTree = "<group>"; };
 		D91F13E8228DDC590010E032 /* BFTappableLabel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BFTappableLabel.h; sourceTree = "<group>"; };
 		D91F13E9228DDC590010E032 /* BFTappableLabel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BFTappableLabel.m; sourceTree = "<group>"; };
 		D921170F21A6162500853F3F /* InviteFriendHeaderCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InviteFriendHeaderCell.h; sourceTree = "<group>"; };
@@ -516,8 +520,8 @@
 		D97681C822F604C9001F1BFC /* BFAttachmentView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BFAttachmentView.m; sourceTree = "<group>"; };
 		D97681CA22F604E3001F1BFC /* BFCampAttachmentView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BFCampAttachmentView.h; sourceTree = "<group>"; };
 		D97681CB22F604E3001F1BFC /* BFCampAttachmentView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BFCampAttachmentView.m; sourceTree = "<group>"; };
-		D97681CD22F604F2001F1BFC /* BFUserAttachmentView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BFUserAttachmentView.h; sourceTree = "<group>"; };
-		D97681CE22F604F2001F1BFC /* BFUserAttachmentView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BFUserAttachmentView.m; sourceTree = "<group>"; };
+		D97681CD22F604F2001F1BFC /* BFIdentityAttachmentView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BFIdentityAttachmentView.h; sourceTree = "<group>"; };
+		D97681CE22F604F2001F1BFC /* BFIdentityAttachmentView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BFIdentityAttachmentView.m; sourceTree = "<group>"; };
 		D97681D022F62CA9001F1BFC /* BFStyles.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BFStyles.h; sourceTree = "<group>"; };
 		D97681D122F62CA9001F1BFC /* BFStyles.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BFStyles.m; sourceTree = "<group>"; };
 		D97681D322F633A2001F1BFC /* BFUserAttachmentView_style.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = BFUserAttachmentView_style.json; sourceTree = "<group>"; };
@@ -583,6 +587,8 @@
 		D9B2D59521B89255007B3C0C /* NotificationsTableViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NotificationsTableViewController.m; sourceTree = "<group>"; };
 		D9B2D59A21B8BD8A007B3C0C /* NSAttributedString+NotificationConveniences.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSAttributedString+NotificationConveniences.h"; sourceTree = "<group>"; };
 		D9B2D59B21B8BD8A007B3C0C /* NSAttributedString+NotificationConveniences.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSAttributedString+NotificationConveniences.m"; sourceTree = "<group>"; };
+		D9BC7C1623A943F0005614A4 /* UIApplication+CFABackgroundTask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIApplication+CFABackgroundTask.h"; sourceTree = "<group>"; };
+		D9BC7C1723A943F0005614A4 /* UIApplication+CFABackgroundTask.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIApplication+CFABackgroundTask.m"; sourceTree = "<group>"; };
 		D9BD47AD23563D55001E027E /* JKRichTextViewLinkBlockDataHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JKRichTextViewLinkBlockDataHandler.m; sourceTree = "<group>"; };
 		D9BD47AE23563D55001E027E /* JKRichTextView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JKRichTextView.h; sourceTree = "<group>"; };
 		D9BD47AF23563D56001E027E /* JKRichTextViewEmojiDataHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JKRichTextViewEmojiDataHandler.h; sourceTree = "<group>"; };
@@ -621,8 +627,8 @@
 		D9C03940215AD4AC00B30A41 /* ComposeInputView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ComposeInputView.m; sourceTree = "<group>"; };
 		D9C03942215D6F1900B30A41 /* ComplexNavigationController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ComplexNavigationController.h; sourceTree = "<group>"; };
 		D9C03943215D6F1900B30A41 /* ComplexNavigationController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ComplexNavigationController.m; sourceTree = "<group>"; };
-		D9C0394B215DF17000B30A41 /* MyFeedViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MyFeedViewController.h; sourceTree = "<group>"; };
-		D9C0394C215DF17000B30A41 /* MyFeedViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MyFeedViewController.m; sourceTree = "<group>"; };
+		D9C0394B215DF17000B30A41 /* HomeTableViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HomeTableViewController.h; sourceTree = "<group>"; };
+		D9C0394C215DF17000B30A41 /* HomeTableViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = HomeTableViewController.m; sourceTree = "<group>"; };
 		D9C2AC8E2367913D00FB9623 /* UIFont+App.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "UIFont+App.h"; sourceTree = "<group>"; };
 		D9C2AC8F2367913D00FB9623 /* UIFont+App.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "UIFont+App.m"; sourceTree = "<group>"; };
 		D9C2AC962367960800FB9623 /* Inter-SemiBoldItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Inter-SemiBoldItalic.otf"; sourceTree = "<group>"; };
@@ -668,8 +674,6 @@
 		D9D9B18D21CF1BE700B5003B /* LargeCampCardCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LargeCampCardCell.m; sourceTree = "<group>"; };
 		D9D9B19021D01B6A00B5003B /* SmallCampCardCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SmallCampCardCell.h; sourceTree = "<group>"; };
 		D9D9B19121D01B6A00B5003B /* SmallCampCardCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SmallCampCardCell.m; sourceTree = "<group>"; };
-		D9D9C44C21F1037900E16815 /* BFDetailsLabel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BFDetailsLabel.h; sourceTree = "<group>"; };
-		D9D9C44D21F1037900E16815 /* BFDetailsLabel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BFDetailsLabel.m; sourceTree = "<group>"; };
 		D9DCACC621B9E0EA0038C7ED /* PostStream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PostStream.h; sourceTree = "<group>"; };
 		D9DCACC721B9E0EA0038C7ED /* PostStream.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PostStream.m; sourceTree = "<group>"; };
 		D9E5EB7721FBBB1900B9F5FD /* favicon_filled.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = favicon_filled.png; sourceTree = "<group>"; };
@@ -716,6 +720,8 @@
 		D9FFFB5B227E5E08004E3779 /* UIImage+KS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+KS.h"; sourceTree = "<group>"; };
 		D9FFFB5C227E5E08004E3779 /* KSProgressLayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KSProgressLayer.h; sourceTree = "<group>"; };
 		D9FFFB5D227E5E08004E3779 /* KSPhotoBrowser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KSPhotoBrowser.m; sourceTree = "<group>"; };
+		DC5B637ED84F50F6AB891763 /* libPods-PulseTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-PulseTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		DD3338FF0D743A6D2D652A86 /* Pods-Pulse.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Pulse.debug.xcconfig"; path = "Target Support Files/Pods-Pulse/Pods-Pulse.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -731,7 +737,7 @@
 				D9CB78F42166E65C00EEDBC9 /* UIKit.framework in Frameworks */,
 				D91643092162BE4800523770 /* QuartzCore.framework in Frameworks */,
 				D9319A8D215827E1008131CC /* Contacts.framework in Frameworks */,
-				6170967D7AAF966F3D9EE90D /* libPods-Pulse.a in Frameworks */,
+				38CB3154EE64C8C377AA73BE /* libPods-Pulse.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -739,7 +745,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				81667D5AD6E6B86A8BFD2DFC /* libPods-PulseTests.a in Frameworks */,
+				210CCB449D440E4A9FA2886B /* libPods-PulseTests.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -747,7 +753,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E62B3FCB614C25DBD6EE39B6 /* libPods-PulseUITests.a in Frameworks */,
+				811E4B44417D0131428D77A0 /* libPods-PulseUITests.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -775,9 +781,9 @@
 				D9CB78F32166E65C00EEDBC9 /* UIKit.framework */,
 				D91643082162BE4800523770 /* QuartzCore.framework */,
 				D9319A8C215827E1008131CC /* Contacts.framework */,
-				6DFD4027CD95D69E8E24B907 /* libPods-Pulse.a */,
-				03164FE4C125C02B74B92349 /* libPods-PulseTests.a */,
-				591A88BD5DB597BBBA7F1ECC /* libPods-PulseUITests.a */,
+				3EAA02F5F5EA7753CD9824D5 /* libPods-Pulse.a */,
+				DC5B637ED84F50F6AB891763 /* libPods-PulseTests.a */,
+				6D0A77611627BFFE6BF6F61A /* libPods-PulseUITests.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -806,7 +812,7 @@
 		D907B07E214EEC5000A59712 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				D907B07D214EEC5000A59712 /* Bonfire b18.app */,
+				D907B07D214EEC5000A59712 /* Bonfire b36.app */,
 				D907B095214EEC5300A59712 /* PulseTests.xctest */,
 				D907B0A0214EEC5300A59712 /* PulseUITests.xctest */,
 			);
@@ -823,6 +829,8 @@
 				D907B08F214EEC5300A59712 /* main.m */,
 				D907B080214EEC5000A59712 /* AppDelegate.h */,
 				D907B081214EEC5000A59712 /* AppDelegate.m */,
+				D9BC7C1623A943F0005614A4 /* UIApplication+CFABackgroundTask.h */,
+				D9BC7C1723A943F0005614A4 /* UIApplication+CFABackgroundTask.m */,
 				D907B086214EEC5000A59712 /* Main.storyboard */,
 				D907B08B214EEC5300A59712 /* LaunchScreen.storyboard */,
 				D9A7A2B4226268CE0091B53C /* Bonfire Helper Classes */,
@@ -969,6 +977,17 @@
 			path = User;
 			sourceTree = "<group>";
 		};
+		D91CA65423A55BE80055973A /* ICSDrawerController */ = {
+			isa = PBXGroup;
+			children = (
+				D91CA65123A55BE00055973A /* ICSDrawerController.h */,
+				D91CA64E23A55BE00055973A /* ICSDrawerController.m */,
+				D91CA65023A55BE00055973A /* ICSDropShadowView.h */,
+				D91CA64F23A55BE00055973A /* ICSDropShadowView.m */,
+			);
+			path = ICSDrawerController;
+			sourceTree = "<group>";
+		};
 		D921171E21AC5F6400853F3F /* Camp */ = {
 			isa = PBXGroup;
 			children = (
@@ -985,8 +1004,8 @@
 			children = (
 				D921172021AC5F8B00853F3F /* UserFollowButton.h */,
 				D921172121AC5F8B00853F3F /* UserFollowButton.m */,
-				D97681CD22F604F2001F1BFC /* BFUserAttachmentView.h */,
-				D97681CE22F604F2001F1BFC /* BFUserAttachmentView.m */,
+				D97681CD22F604F2001F1BFC /* BFIdentityAttachmentView.h */,
+				D97681CE22F604F2001F1BFC /* BFIdentityAttachmentView.m */,
 				D97681D322F633A2001F1BFC /* BFUserAttachmentView_style.json */,
 			);
 			path = Profile;
@@ -1220,8 +1239,8 @@
 			children = (
 				D93C5E0E22E53D2900A9F827 /* MyCampsTableViewController.h */,
 				D93C5E0F22E53D2900A9F827 /* MyCampsTableViewController.m */,
-				D9C0394B215DF17000B30A41 /* MyFeedViewController.h */,
-				D9C0394C215DF17000B30A41 /* MyFeedViewController.m */,
+				D9C0394B215DF17000B30A41 /* HomeTableViewController.h */,
+				D9C0394C215DF17000B30A41 /* HomeTableViewController.m */,
 				D93C5E0522E396DC00A9F827 /* CombinedHomeViewController.h */,
 				D93C5E0622E396DC00A9F827 /* CombinedHomeViewController.m */,
 			);
@@ -1464,6 +1483,7 @@
 		D9BD770F2172784F00DAB9BE /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				D91CA65423A55BE80055973A /* ICSDrawerController */,
 				D9C2AC912367960100FB9623 /* Inter */,
 				D9BD47AC23563D29001E027E /* JKRichTextView */,
 				D90047D422861012006B4B3D /* EFCircularSlider */,
@@ -1779,8 +1799,6 @@
 				D93F7F1422571D4E00450D9E /* GTMDefines.h */,
 				D971623F21DC7D1F00138BF9 /* ExtendNSLogFunctionality.h */,
 				D971624021DC7D1F00138BF9 /* ExtendNSLogFunctionality.m */,
-				D9D9C44C21F1037900E16815 /* BFDetailsLabel.h */,
-				D9D9C44D21F1037900E16815 /* BFDetailsLabel.m */,
 				D9A7A2B92263E7FB0091B53C /* BFMedia.h */,
 				D9A7A2BA2263E7FB0091B53C /* BFMedia.m */,
 				D9FFFB4E227DFC4E004E3779 /* UIImage+WithColor.h */,
@@ -1824,15 +1842,15 @@
 		F715F37CF0CF41FD0B85CFF5 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				81E7C8A4BCC5041FCA0C509D /* Pods-Pulse.debug.xcconfig */,
-				7E35BF2E5C79E3DDDE903EC0 /* Pods-Pulse.release.xcconfig */,
-				43E5F348FDCB7F3EC3C8F90D /* Pods-Pulse.beta.xcconfig */,
-				B68EE43E08E2BAA0D8F30CBB /* Pods-PulseTests.debug.xcconfig */,
-				226F973D73D6615B4BA40E0A /* Pods-PulseTests.release.xcconfig */,
-				7393171178C8475531F15DFD /* Pods-PulseTests.beta.xcconfig */,
-				65F3EE4AE8893450364C3F32 /* Pods-PulseUITests.debug.xcconfig */,
-				255662653DB4170A94440A12 /* Pods-PulseUITests.release.xcconfig */,
-				D3A6381E3FBE7321B6BDF681 /* Pods-PulseUITests.beta.xcconfig */,
+				DD3338FF0D743A6D2D652A86 /* Pods-Pulse.debug.xcconfig */,
+				73EE321B2E2C736949A26890 /* Pods-Pulse.release.xcconfig */,
+				CAF987B768B4F1D58A3A4BEA /* Pods-Pulse.beta.xcconfig */,
+				ABFB72A0C2A4B6F1A417D3D2 /* Pods-PulseTests.debug.xcconfig */,
+				5B93182382652508B17FE32B /* Pods-PulseTests.release.xcconfig */,
+				838CD96272EACB75187D2E34 /* Pods-PulseTests.beta.xcconfig */,
+				BE4C6ED481B1BAE908614979 /* Pods-PulseUITests.debug.xcconfig */,
+				1332949DD377C654E91842E2 /* Pods-PulseUITests.release.xcconfig */,
+				2FD2D4F3C1B36A1642857D10 /* Pods-PulseUITests.beta.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -1844,12 +1862,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = D907B0A9214EEC5300A59712 /* Build configuration list for PBXNativeTarget "Pulse" */;
 			buildPhases = (
-				A1A15C7FCE738804EB26D6E1 /* [CP] Check Pods Manifest.lock */,
+				EFAD3D1269E7591A122FB967 /* [CP] Check Pods Manifest.lock */,
 				D907B079214EEC5000A59712 /* Sources */,
 				D907B07A214EEC5000A59712 /* Frameworks */,
 				D907B07B214EEC5000A59712 /* Resources */,
-				2745A982DC7BC55124515340 /* [CP] Embed Pods Frameworks */,
-				564C52CC3AFC67646B3B3B35 /* [CP] Copy Pods Resources */,
+				66A945D82A455B41ABA202FF /* [CP] Embed Pods Frameworks */,
+				5060B085BB854B5DF4E98725 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -1857,14 +1875,14 @@
 			);
 			name = Pulse;
 			productName = Pulse;
-			productReference = D907B07D214EEC5000A59712 /* Bonfire b18.app */;
+			productReference = D907B07D214EEC5000A59712 /* Bonfire b36.app */;
 			productType = "com.apple.product-type.application";
 		};
 		D907B094214EEC5300A59712 /* PulseTests */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = D907B0AC214EEC5300A59712 /* Build configuration list for PBXNativeTarget "PulseTests" */;
 			buildPhases = (
-				53975775C0035756DC2303C9 /* [CP] Check Pods Manifest.lock */,
+				7DDFF05161FEDE7DAE422078 /* [CP] Check Pods Manifest.lock */,
 				D907B091214EEC5300A59712 /* Sources */,
 				D907B092214EEC5300A59712 /* Frameworks */,
 				D907B093214EEC5300A59712 /* Resources */,
@@ -1883,7 +1901,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = D907B0AF214EEC5300A59712 /* Build configuration list for PBXNativeTarget "PulseUITests" */;
 			buildPhases = (
-				FE17CF2421DF9A4AA6578349 /* [CP] Check Pods Manifest.lock */,
+				75A86FD9B913C3DF45D249CD /* [CP] Check Pods Manifest.lock */,
 				D907B09C214EEC5300A59712 /* Sources */,
 				D907B09D214EEC5300A59712 /* Frameworks */,
 				D907B09E214EEC5300A59712 /* Resources */,
@@ -2012,7 +2030,24 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		2745A982DC7BC55124515340 /* [CP] Embed Pods Frameworks */ = {
+		5060B085BB854B5DF4E98725 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Pulse/Pods-Pulse-resources-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Pulse/Pods-Pulse-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Pulse/Pods-Pulse-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		66A945D82A455B41ABA202FF /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -2029,7 +2064,29 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Pulse/Pods-Pulse-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		53975775C0035756DC2303C9 /* [CP] Check Pods Manifest.lock */ = {
+		75A86FD9B913C3DF45D249CD /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-PulseUITests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		7DDFF05161FEDE7DAE422078 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -2051,24 +2108,7 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		564C52CC3AFC67646B3B3B35 /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Pulse/Pods-Pulse-resources-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Copy Pods Resources";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Pulse/Pods-Pulse-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Pulse/Pods-Pulse-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		A1A15C7FCE738804EB26D6E1 /* [CP] Check Pods Manifest.lock */ = {
+		EFAD3D1269E7591A122FB967 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -2084,28 +2124,6 @@
 			);
 			outputPaths = (
 				"$(DERIVED_FILE_DIR)/Pods-Pulse-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		FE17CF2421DF9A4AA6578349 /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-PulseUITests-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -2169,13 +2187,15 @@
 				D9EDE5DA216FC76000A869F8 /* ErrorCodes.m in Sources */,
 				D921172221AC5F8B00853F3F /* UserFollowButton.m in Sources */,
 				D9164317216529B800523770 /* BFVisualErrorView.m in Sources */,
+				D9BC7C1823A943F0005614A4 /* UIApplication+CFABackgroundTask.m in Sources */,
 				D924BE36215479BD00EB7385 /* FollowButton.m in Sources */,
 				D9BD47D1235A4BFE001E027E /* BFBotAttachmentView.m in Sources */,
-				D97681CF22F604F2001F1BFC /* BFUserAttachmentView.m in Sources */,
+				D97681CF22F604F2001F1BFC /* BFIdentityAttachmentView.m in Sources */,
 				D992A8DC231F100E0020A522 /* InviteToCampTableViewController.m in Sources */,
 				D96AD7922180DA3D00849F6B /* EditProfileViewController.m in Sources */,
 				D916430D2162C3A100523770 /* SearchResultCell.m in Sources */,
 				D9114F8321954D4F0033765A /* MemberRequestCell.m in Sources */,
+				D91CA65323A55BE10055973A /* ICSDropShadowView.m in Sources */,
 				D90047D32286100D006B4B3D /* EFCircularSlider.m in Sources */,
 				41EB16E5236FCD5300116C90 /* ThemeSelectorInputCell.m in Sources */,
 				D9FFFB60227E5E08004E3779 /* KSPhotoView.m in Sources */,
@@ -2195,6 +2215,7 @@
 				D93F7F1B225938E300450D9E /* BFRefreshControl.m in Sources */,
 				D93C5E1022E53D2A00A9F827 /* MyCampsTableViewController.m in Sources */,
 				D9BD47BE23563D57001E027E /* JKDelegateProxy.m in Sources */,
+				D91CA65223A55BE10055973A /* ICSDrawerController.m in Sources */,
 				D95EE38E229C47CE006E4D8E /* BFNotificationManager.m in Sources */,
 				D9133B522267C2D500B5D65C /* BFDetailsCollectionView.m in Sources */,
 				D921171121A6162500853F3F /* InviteFriendHeaderCell.m in Sources */,
@@ -2217,7 +2238,7 @@
 				D94FD1F5216D730300B84E45 /* Camp.m in Sources */,
 				D9164321216678A200523770 /* ProfileHeaderCell.m in Sources */,
 				D9FFFB5E227E5E08004E3779 /* KSSDImageManager.m in Sources */,
-				D9C0394D215DF17000B30A41 /* MyFeedViewController.m in Sources */,
+				D9C0394D215DF17000B30A41 /* HomeTableViewController.m in Sources */,
 				D94FD1FE216D730300B84E45 /* Post.m in Sources */,
 				D96AB137237DF8E100838D58 /* NSNull+JSON.m in Sources */,
 				D94F3317221A247A00331ADC /* ExpandThreadCell.m in Sources */,
@@ -2315,7 +2336,6 @@
 				D9BD47CB235A4797001E027E /* BotHeaderCell.m in Sources */,
 				D9E8E87C21C1C9D600DDFEBA /* ToggleCell.m in Sources */,
 				D9E8E88021C2014000DDFEBA /* NSString+Validation.m in Sources */,
-				D9D9C44E21F1037900E16815 /* BFDetailsLabel.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2487,7 +2507,7 @@
 		};
 		D907B0AA214EEC5300A59712 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 81E7C8A4BCC5041FCA0C509D /* Pods-Pulse.debug.xcconfig */;
+			baseConfigurationReference = DD3338FF0D743A6D2D652A86 /* Pods-Pulse.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon${CONFIGURATION}";
 				BUNDLE_ID_SUFFIX = .debug;
@@ -2495,7 +2515,7 @@
 				CODE_SIGN_ENTITLEMENTS = Pulse/Pulse.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 18;
+				CURRENT_PROJECT_VERSION = 36;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 4WLQG965T9;
 				EXCLUDED_SOURCE_FILE_NAMES = "*.value";
@@ -2515,6 +2535,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "Ingenious.bonfire$(BUNDLE_ID_SUFFIX)";
 				PRODUCT_NAME = "Bonfire b$(CURRENT_PROJECT_VERSION)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				SCSDKClientId = "ab6bfe71-3708-45ec-bac6-30c6149a2a80";
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = "Pulse/Pulse-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -2525,7 +2546,7 @@
 		};
 		D907B0AB214EEC5300A59712 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 7E35BF2E5C79E3DDDE903EC0 /* Pods-Pulse.release.xcconfig */;
+			baseConfigurationReference = 73EE321B2E2C736949A26890 /* Pods-Pulse.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon${CONFIGURATION}";
 				BUNDLE_ID_SUFFIX = "";
@@ -2533,7 +2554,7 @@
 				CODE_SIGN_ENTITLEMENTS = Pulse/Pulse.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 18;
+				CURRENT_PROJECT_VERSION = 36;
 				DEVELOPMENT_TEAM = 4WLQG965T9;
 				EXCLUDED_SOURCE_FILE_NAMES = "*.value";
 				FRAMEWORK_SEARCH_PATHS = (
@@ -2552,6 +2573,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "Ingenious.bonfire$(BUNDLE_ID_SUFFIX)";
 				PRODUCT_NAME = Bonfire;
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				SCSDKClientId = "b76c89e7-9879-4028-88ff-af7d707663b6";
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = "Pulse/Pulse-Bridging-Header.h";
 				SWIFT_VERSION = 4.2;
@@ -2561,7 +2583,7 @@
 		};
 		D907B0AD214EEC5300A59712 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = B68EE43E08E2BAA0D8F30CBB /* Pods-PulseTests.debug.xcconfig */;
+			baseConfigurationReference = ABFB72A0C2A4B6F1A417D3D2 /* Pods-PulseTests.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -2582,7 +2604,7 @@
 		};
 		D907B0AE214EEC5300A59712 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 226F973D73D6615B4BA40E0A /* Pods-PulseTests.release.xcconfig */;
+			baseConfigurationReference = 5B93182382652508B17FE32B /* Pods-PulseTests.release.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -2603,7 +2625,7 @@
 		};
 		D907B0B0214EEC5300A59712 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 65F3EE4AE8893450364C3F32 /* Pods-PulseUITests.debug.xcconfig */;
+			baseConfigurationReference = BE4C6ED481B1BAE908614979 /* Pods-PulseUITests.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
@@ -2623,7 +2645,7 @@
 		};
 		D907B0B1214EEC5300A59712 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 255662653DB4170A94440A12 /* Pods-PulseUITests.release.xcconfig */;
+			baseConfigurationReference = 1332949DD377C654E91842E2 /* Pods-PulseUITests.release.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
@@ -2698,7 +2720,7 @@
 		};
 		D9A7A2AA225FAEB80091B53C /* Beta */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 43E5F348FDCB7F3EC3C8F90D /* Pods-Pulse.beta.xcconfig */;
+			baseConfigurationReference = CAF987B768B4F1D58A3A4BEA /* Pods-Pulse.beta.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon${CONFIGURATION}";
 				BUNDLE_ID_SUFFIX = "";
@@ -2706,7 +2728,7 @@
 				CODE_SIGN_ENTITLEMENTS = Pulse/Pulse.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 18;
+				CURRENT_PROJECT_VERSION = 36;
 				DEVELOPMENT_TEAM = 4WLQG965T9;
 				EXCLUDED_SOURCE_FILE_NAMES = "*.value";
 				FRAMEWORK_SEARCH_PATHS = (
@@ -2725,6 +2747,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "Ingenious.bonfire$(BUNDLE_ID_SUFFIX)";
 				PRODUCT_NAME = Bonfire;
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				SCSDKClientId = "b76c89e7-9879-4028-88ff-af7d707663b6";
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = "Pulse/Pulse-Bridging-Header.h";
 				SWIFT_VERSION = 4.2;
@@ -2734,7 +2757,7 @@
 		};
 		D9A7A2AB225FAEB80091B53C /* Beta */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 7393171178C8475531F15DFD /* Pods-PulseTests.beta.xcconfig */;
+			baseConfigurationReference = 838CD96272EACB75187D2E34 /* Pods-PulseTests.beta.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -2755,7 +2778,7 @@
 		};
 		D9A7A2AC225FAEB80091B53C /* Beta */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = D3A6381E3FBE7321B6BDF681 /* Pods-PulseUITests.beta.xcconfig */;
+			baseConfigurationReference = 2FD2D4F3C1B36A1642857D10 /* Pods-PulseUITests.beta.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;

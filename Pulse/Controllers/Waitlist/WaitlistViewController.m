@@ -153,7 +153,7 @@
         if (self.inviteStatus) {
             [self setSpinning:false animated:true];
         }
-
+        
         wait(0.45f, ^{
             [self shakeFriendButton];
         });
@@ -327,10 +327,11 @@
     
     [self initInvitedProgressView];
     
-    self.invitesNeededLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, self.invitedProgressView.frame.origin.y + self.invitedProgressView.frame.size.height + 12, self.centerView.frame.size.width, 21)];
+    self.invitesNeededLabel = [[MarqueeLabel alloc] initWithFrame:CGRectMake(0, self.invitedProgressView.frame.origin.y + self.invitedProgressView.frame.size.height + 12, self.centerView.frame.size.width, 21) duration:13.f andFadeLength:16.f];
     self.invitesNeededLabel.textAlignment = NSTextAlignmentCenter;
     self.invitesNeededLabel.numberOfLines = 0;
     self.invitesNeededLabel.lineBreakMode = NSLineBreakByWordWrapping;
+    self.invitesNeededLabel.animationDelay = 0;
     [self.centerView addSubview:self.invitesNeededLabel];
     
     NSMutableArray *buttons = [NSMutableArray new];
@@ -364,7 +365,7 @@
     
     NSString *message;
     if ([Session sharedInstance].currentUser.attributes.invites.friendCode) {
-        message = [@"Join me on Bonfire with my friend code: " stringByAppendingString:[Session sharedInstance].currentUser.attributes.invites.friendCode];
+        message = [NSString stringWithFormat:@"Join me on Bonfire with my friend code: %@ https://bonfire.camp/download", [Session sharedInstance].currentUser.attributes.invites.friendCode];
     }
     else {
         message = [NSString stringWithFormat:@"Join me on Bonfire 🔥 https://bonfire.camp/download"];
@@ -479,9 +480,11 @@
             } completion:^(BOOL finished) {
                 // TODO: Highlight the friends remaining text
                 NSString *friendsNeededString = [NSString stringWithFormat:@"%lu friend%@", (long)invitesNeeded_after, (invitesNeeded_after == 1 ? @"" : @"s")];
+                NSString *friendCode = [Session sharedInstance].currentUser.attributes.invites.friendCode;
                 
-                NSMutableAttributedString *attributedInvitesNeededString = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"Invite %@ to skip the line", friendsNeededString] attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightRegular], NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
-                [attributedInvitesNeededString addAttributes:@{NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightMedium], NSForegroundColorAttributeName: [UIColor bonfirePrimaryColor]} range:[attributedInvitesNeededString.string rangeOfString:friendsNeededString]];
+                NSMutableAttributedString *attributedInvitesNeededString = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"Invite %@ to skip the line       Your Friend Code is %@   ", friendsNeededString, friendCode] attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightRegular], NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
+                [attributedInvitesNeededString addAttributes:@{NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightBold], NSForegroundColorAttributeName: [UIColor bonfirePrimaryColor]} range:[attributedInvitesNeededString.string rangeOfString:friendsNeededString]];
+                [attributedInvitesNeededString addAttributes:@{NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightBold], NSForegroundColorAttributeName: [UIColor bonfirePrimaryColor]} range:[attributedInvitesNeededString.string rangeOfString:friendCode]];
                 self.invitesNeededLabel.attributedText = attributedInvitesNeededString;
                 
                 [UIView animateWithDuration:(animated ? 0.6f : 0) delay:0 usingSpringWithDamping:0.8 initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
@@ -724,7 +727,7 @@
             // 2) start balloons
             [self startBalloons];
             
-            wait(3.5f, ^{
+            wait(4.0f, ^{
                 // 3) present logged in view controller
                 DLog(@"present logged in view controller");
                 [Launcher launchLoggedIn:true replaceRootViewController:false];

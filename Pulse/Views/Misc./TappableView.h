@@ -12,7 +12,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface TappableView : UIView
 
+@property (nonatomic) UIView *contentView;
 @property (nonatomic) BOOL touchDown;
+@property (nonatomic) BOOL shrink;
 
 @end
 

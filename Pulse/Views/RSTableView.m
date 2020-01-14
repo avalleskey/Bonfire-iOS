@@ -36,9 +36,7 @@
 
 #define SHOW_CURSORS false
 
-@interface RSTableView ()
-
-@property (strong, nonatomic) NSMutableDictionary *cellHeightsDictionary;
+@interface RSTableView () <UIScrollViewDelegate>
 
 @end
 
@@ -112,11 +110,19 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     }
 }
 
-- (void)hardRefresh {
+- (void)hardRefresh:(BOOL)animate {
     self.cellHeightsDictionary = @{}.mutableCopy;
     
-    [self reloadData];
-    [self layoutIfNeeded];
+    if (animate) {
+        [UIView transitionWithView:self duration:0.2f options:UIViewAnimationOptionCurveEaseOut|UIViewAnimationOptionTransitionCrossDissolve animations:^{
+            [self layoutIfNeeded];
+            [self reloadData];
+        } completion:nil];
+    }
+    else {
+        [self reloadData];
+        [self layoutIfNeeded];
+    }
     
     if (!self.loading) {
         [self.refreshControl endRefreshing];
@@ -131,6 +137,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     BOOL wasLoading = ([[self.visibleCells firstObject] isKindOfClass:[LoadingCell class]]);
     
     [self reloadData];
+    
     [self layoutIfNeeded];
         
     if (!self.loading) {
@@ -148,10 +155,11 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
 }
 - (void)refreshAtBottom {
     self.cellHeightsDictionary = @{}.mutableCopy;
-    
-    [self layoutIfNeeded];
+
     [self reloadData];
-    [self layoutIfNeeded];
+//    [self layoutIfNeeded];
+//    [self reloadData];
+//    [self layoutIfNeeded];
 }
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
@@ -171,15 +179,65 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         }
     }
 }
+- (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
+{
+    if (scrollView == self && [self.extendedDelegate respondsToSelector:@selector(tableViewDidEndDragging:willDecelerate:)]) {
+        [self.extendedDelegate tableViewDidEndDragging:self willDecelerate:decelerate];
+    }
+}
+
+- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
+{
+    if (scrollView == self) {
+        if ([self.extendedDelegate respondsToSelector:@selector(tableViewDidEndDecelerating:)]) {
+            [self.extendedDelegate tableViewDidEndDecelerating:self];
+        }
+    }
+}
+
+- (void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView {
+    if (scrollView == self) {
+        self.userInteractionEnabled = true;
+        [self fireOnScrollBlockIfNeeded];
+    }
+}
+
+- (void)fireOnScrollBlockIfNeeded {
+    if (self.onScrollBlock) {
+        self.onScrollBlock();
+        
+        self.onScrollBlock = nil;
+    }
+}
 
 - (void)scrollToTop {
     [self layoutIfNeeded];
-//    [self reloadData];
     [self scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:true];
+}
+
+- (void)scrollToTopWithCompletion:(void (^ __nullable)(void))completion {
+    self.userInteractionEnabled = false;
+    
+    [self layoutIfNeeded];
+    
+    self.onScrollBlock = ^void(void){
+        completion();
+    };
+    
+    CGFloat normalizedScrollViewContentOffsetY = self.contentOffset.y + self.adjustedContentInset.top;
+    if (normalizedScrollViewContentOffsetY == 0) {
+        // doesn't need to scroll therefore it won't call the function we need to fire
+        [self scrollViewDidEndScrollingAnimation:self];
+    }
+    else {
+        [self scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:true];
+    }
 }
 
 - (void)setup {
     self.stream = [[PostStream alloc] init];
+    self.queuedStream = [[PostStream alloc] init];
+    
     self.loading = true;
     self.loadingMore = false;
     self.delegate = self;
@@ -245,9 +303,10 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             // 💫 changes made
             _cellHeightsDictionary = [NSMutableDictionary new];
             
-            // NSLog(@"parent controller: %@", UIViewParentController(self));
+            NSLog(@"parent controller: %@", UIViewParentController(self));
+            NSLog(@"active controller: %@", [Launcher activeViewController]);
             if (![[Launcher activeViewController] isEqual:UIViewParentController(self)]) {
-                [self refreshAtTop];
+                [self hardRefresh:false];
             }
         }
     }
@@ -260,11 +319,19 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     BOOL postedInCamp = post.attributes.postedIn != nil;
     
     BOOL removePost = false;
-    BOOL refresh = false;
+    BOOL removeQueuedPost = false;
     
+    BOOL refresh = false;
+        
     Post *postInStream = [self.stream postWithId:post.identifier];
     if (postInStream) {
         removePost = true;
+        refresh = true;
+    }
+    
+    Post *postInQueuedStream = [self.queuedStream postWithId:post.identifier];
+    if (postInQueuedStream) {
+        removeQueuedPost = true;
         refresh = true;
     }
     
@@ -311,7 +378,9 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     }
     
     if (removePost) [self.stream removePost:post];
-    if (refresh) [self hardRefresh];
+    if (removeQueuedPost) [self.queuedStream removePost:post];
+    
+    if (refresh) [self hardRefresh:false];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {

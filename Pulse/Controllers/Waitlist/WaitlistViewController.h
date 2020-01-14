@@ -8,6 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import "BFAvatarView.h"
+#import <MarqueeLabel/MarqueeLabel.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -27,7 +28,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic, strong) UILabel *rankLabel;
 @property (nonatomic, strong) UILabel *peopleInFrontLabel;
-@property (nonatomic, strong) UILabel *invitesNeededLabel;
+@property (nonatomic, strong) MarqueeLabel *invitesNeededLabel;
 @property (nonatomic, strong) UIView *shareActionsView;
 
 @property (nonatomic, strong) UIView *invitedProgressView;

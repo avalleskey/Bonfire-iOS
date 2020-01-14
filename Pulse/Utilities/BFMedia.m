@@ -108,11 +108,11 @@
 }
 
 - (BOOL)canAddImage {
-    return self.GIFs.count == 0 && self.images.count < self.maxImages;
+    return self.GIFs.count == 0 && self.images.count < 4;
 }
 
 - (BOOL)canAddGIF {
-    return self.images.count == 0 && self.GIFs.count < self.maxGIFs;
+    return self.images.count == 0 && self.GIFs.count < 1;
 }
 
 - (BOOL)canAddMedia {
@@ -165,8 +165,10 @@ NSString * const BFMediaObjectMIME_GIF = @"image/gif";
     if (self) {
         image = [image fixOrientation];
         
+        NSData *jpgData = UIImageJPEGRepresentation(image, 1.0);
+        
         self.MIME = BFMediaObjectMIME_JPEG;
-        self.data = UIImageJPEGRepresentation(image, 1.0);
+        self.data = [BFMediaObject compressData:jpgData mimeType:self.MIME];
     }
     return self;
 }

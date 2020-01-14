@@ -17,6 +17,8 @@ enum {
     MAX_CACHED_ACTIVITIES = 40
 };
 
+@property (strong, nonatomic) NSMutableDictionary *cellHeightsDictionary;
+
 @property (nonatomic, strong) NSDate *lastFetch;
 - (void)refreshIfNeeded;
 - (void)markAllAsRead;

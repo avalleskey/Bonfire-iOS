@@ -37,8 +37,6 @@
 @property (nonatomic, strong) UIButton *expandButton;
 @property (nonatomic, strong) UILabel *charRemainingLabel;
 
-@property (nonatomic, strong) UIViewController *parentViewController;
-
 - (void)removeImageAtIndex:(NSInteger)index;
 - (void)hideMediaTray;
 @property (nonatomic, strong) BFMedia *media;

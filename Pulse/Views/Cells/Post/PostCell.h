@@ -16,7 +16,7 @@
 
 #import "BFLinkAttachmentView.h"
 #import "BFCampAttachmentView.h"
-#import "BFUserAttachmentView.h"
+#import "BFIdentityAttachmentView.h"
 #import "BFSmartLinkAttachmentView.h"
 #import "BFPostDeletedAttachmentView.h"
 #import "BFPostAttachmentView.h"
@@ -65,9 +65,9 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)removeSmartLinkAttachment;
 - (void)initSmartLinkAttachment;
 
-@property (nonatomic, strong) BFUserAttachmentView * _Nullable userAttachmentView;
-- (void)removeUserAttachment;
-- (void)initUserAttachment;
+@property (nonatomic, strong) BFIdentityAttachmentView * _Nullable identityAttachmentView;
+- (void)removeIdentityAttachment;
+- (void)initIdentityAttachment;
 
 @property (nonatomic, strong) BFCampAttachmentView * _Nullable campAttachmentView;
 - (void)removeCampAttachment;

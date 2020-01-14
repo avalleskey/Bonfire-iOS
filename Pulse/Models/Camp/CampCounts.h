@@ -11,7 +11,11 @@
 @property (nonatomic) NSInteger icebreakers;
 @property (nonatomic) NSInteger posts;
 @property (nonatomic) NSInteger members;
+//@property (nonatomic) NSInteger score;
+@property (nonatomic) float scoreIndex;
 @property (nonatomic) NSInteger live;
+@property (nonatomic) NSInteger postsNewForyou;
+@property (nonatomic) NSInteger posts24hr;
 
 @end
 

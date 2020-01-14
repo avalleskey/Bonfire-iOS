@@ -39,6 +39,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @optional
 - (void)tableViewDidScroll:(UITableView *)tableView;
+- (void)tableViewDidEndDragging:(UITableView *)tableView willDecelerate:(BOOL)decelerate;
+- (void)tableViewDidEndDecelerating:(UITableView *)tableView;
 
 - (UITableViewCell * _Nullable)cellForRowInFirstSection:(NSInteger)row;
 - (void)didSelectRowInFirstSection:(NSInteger)row;
@@ -72,13 +74,18 @@ typedef enum {
 
 @property BOOL loading;
 @property BOOL loadingMore;
+@property (nonatomic, copy, nullable) void (^onScrollBlock)(void);
+
+@property (strong, nonatomic) NSMutableDictionary *cellHeightsDictionary;
 
 - (void)refreshAtTop;
-- (void)hardRefresh;
+- (void)hardRefresh:(BOOL)animate;
 - (void)refreshAtBottom;
 - (void)scrollToTop;
+- (void)scrollToTopWithCompletion:(void (^ __nullable)(void))completion;
 
 @property (nonatomic, strong) PostStream *stream;
+@property (nonatomic, strong) PostStream *queuedStream;
 
 @property (nonatomic) ComposeInputView *inputView;
 

@@ -16,6 +16,7 @@ NS_ASSUME_NONNULL_BEGIN
 // internal use on
 @property (nonatomic) NSInteger opens;
 @property (nonatomic) NSDate *lastOpened;
+@property (nonatomic) NSString *scoreColor;
 
 // helper methods
 - (BOOL)isVerified;

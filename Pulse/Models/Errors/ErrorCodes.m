@@ -7,6 +7,7 @@
 //
 
 #import "ErrorCodes.h"
+#import <AFNetworking/AFHTTPSessionManager.h>
 
 @implementation ErrorCodes
 
@@ -69,5 +70,25 @@ const NSInteger BAD_API_VERSION     = 910;
 const NSInteger DATABASE_QUERY_CONFLICT  = 970;
 const NSInteger DATABASE_QUERY_ERROR     = 980;
 const NSInteger DEFAULT_UNKNOWN_ERROR    = 990;
+
+@end
+
+@implementation NSError (Bonfire)
+
+- (NSInteger)bonfireErrorCode {
+    if (!self.userInfo) return 0;
+    
+    NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)self.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+
+    NSData *errorData = [ErrorResponse dataUsingEncoding:NSUTF8StringEncoding];
+    NSDictionary *errorDict = [NSJSONSerialization JSONObjectWithData:errorData options:0 error:nil];
+    if ([errorDict objectForKey:@"error"]) {
+        if (errorDict[@"error"][@"code"]) {
+            return [errorDict[@"error"][@"code"] integerValue];
+        }
+    }
+    
+    return 0;
+}
 
 @end

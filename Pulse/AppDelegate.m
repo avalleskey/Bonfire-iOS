@@ -13,7 +13,7 @@
 #import "HelloViewController.h"
 #import "MyCampsTableViewController.h"
 #import "NotificationsTableViewController.h"
-#import "MyFeedViewController.h"
+#import "HomeTableViewController.h"
 #import "CampCardsListCell.h"
 #import "MiniAvatarListCell.h"
 #import "UIColor+Palette.h"
@@ -21,12 +21,14 @@
 #import "BFNotificationManager.h"
 #import "BFAlertController.h"
 #import "ResetPasswordViewController.h"
+#import "HAWebService.h"
 
 #import <Lockbox/Lockbox.h>
 #import <AudioToolbox/AudioServices.h>
 #import "NSString+Validation.h"
 #import <PINCache/PINCache.h>
 #import <Shimmer/FBShimmeringView.h>
+#import "UIApplication+CFABackgroundTask.h"
 
 @import Firebase;
 
@@ -280,22 +282,31 @@
             NSInteger launches = [[NSUserDefaults standardUserDefaults] integerForKey:@"launches"];
             launches = launches + 1;
             [[NSUserDefaults standardUserDefaults] setInteger:launches forKey:@"launches"];
-            
-            [Launcher launchLoggedIn:false replaceRootViewController:true];
-            
+                        
             NSDictionary *infoDict = [[NSBundle mainBundle] infoDictionary];
             NSString *version = [infoDict objectForKey:@"CFBundleShortVersionString"];
             NSString *buildNumber = [infoDict objectForKey:@"CFBundleVersion"];
-            NSString *notificationTokenLastVersion = [NSString stringWithFormat:@"%@b%@", version, buildNumber?buildNumber:@"0"];
+            NSString *newVersion = [NSString stringWithFormat:@"%@b%@", version, buildNumber?buildNumber:@"0"];
+           
+            DLog(@"last version: %@", [[NSUserDefaults standardUserDefaults] stringForKey:@"app_last_version"]);
+            DLog(@"newVersion: %@", newVersion);
             
-            if (![[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"] ||
-                ![[NSUserDefaults standardUserDefaults] stringForKey:@"device_token_last_version"] ||
-                ![[[NSUserDefaults standardUserDefaults] stringForKey:@"device_token_last_version"] isEqualToString:notificationTokenLastVersion]) {
-                [[NSUserDefaults standardUserDefaults] setObject:notificationTokenLastVersion forKey:@"device_token_last_version"];
+            BOOL versionChange = ![[[NSUserDefaults standardUserDefaults] stringForKey:@"app_last_version"] isEqualToString:newVersion];
+            BOOL requestNotifications = (![[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"]) || versionChange;
+            
+            if (requestNotifications) {
                 wait(2.f, ^{
                     [Launcher requestNotifications];
                 });
             }
+            
+            if (versionChange) {
+                [[NSUserDefaults standardUserDefaults] setObject:newVersion forKey:@"app_last_version"];
+                
+                [[PINCache sharedCache] removeAllObjects];
+            }
+            
+            [Launcher launchLoggedIn:false replaceRootViewController:true];
             
             if (handler) {
                 handler(true);
@@ -314,7 +325,6 @@
 }
 
 - (void)launchOnboarding {
-    NSLog(@"self.window.rootviewController: %@", [self.window.rootViewController isKindOfClass:[HelloViewController class]] ? @"YES" : @"NO");
     if (![self.window.rootViewController isKindOfClass:[HelloViewController class]]) {
         HelloViewController *vc = [[HelloViewController alloc] init];
         vc.fromLaunch = true;
@@ -380,6 +390,9 @@
             }
             else if ([currentNavigationController.visibleViewController isKindOfClass:[ThemedTableViewController class]]) {
                 tableView = ((ThemedTableViewController *)currentNavigationController.visibleViewController).tableView;
+                if (!tableView) {
+                    tableView = ((ThemedTableViewController *)currentNavigationController.visibleViewController).rs_tableView;
+                }
             }
             else if ([currentNavigationController.visibleViewController isKindOfClass:[ProfileViewController class]]) {
                 tableView = ((ProfileViewController *)currentNavigationController.visibleViewController).tableView;
@@ -400,7 +413,20 @@
                     [tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:([tableView numberOfRowsInSection:0] > 0 ? 0 : 1)] atScrollPosition:UITableViewScrollPositionTop animated:YES];
                 }
                 else {
-                    if ([tableView isKindOfClass:[RSTableView class]]) {
+                    if ([currentNavigationController.visibleViewController isKindOfClass:[HomeTableViewController class]]) {
+                        HomeTableViewController *homeVC = (HomeTableViewController *)(currentNavigationController.visibleViewController);
+                        if (homeVC.rs_tableView.queuedStream.posts.count > 0) {
+                            [homeVC hideMorePostsIndicator:true];
+                            
+                            [(RSTableView *)tableView scrollToTopWithCompletion:^{
+                                [homeVC addQueuedPosts];
+                            }];
+                        }
+                        else {
+                            [(RSTableView *)tableView scrollToTop];
+                        }
+                    }
+                    else if ([tableView isKindOfClass:[RSTableView class]]) {
                         [(RSTableView *)tableView scrollToTop];
                     }
                     else {
@@ -450,7 +476,7 @@
         NSLog(@"userInfo: %@", userInfo);
         TabController *tabVC = [Launcher tabController];
         
-        NSString *badgeValue = @"1"; //[NSString stringWithFormat:@"%@", [[userInfo objectForKey:@"aps"] objectForKey:@"badge"]];
+        NSString *badgeValue = @"1";
         [tabVC setBadgeValue:badgeValue forItem:tabVC.notificationsNavVC.tabBarItem];
     }
         
@@ -459,35 +485,37 @@
         NSLog(@"UIApplicationStateActive: tapped notificaiton to open");
         //For notification Banner - when app in foreground
         
-        NSString *title;
-        NSString *message;
-        USER_ACTIVITY_TYPE activityType = 0;
-        if (userInfo[@"aps"]) {
-            if (userInfo[@"aps"][@"alert"] && [userInfo[@"aps"][@"alert"] isKindOfClass:[NSDictionary class]]) {
-                if (userInfo[@"aps"][@"alert"][@"title"]) {
-                    title = userInfo[@"aps"][@"alert"][@"title"];
+        if (![[Launcher activeViewController] isKindOfClass:[NotificationsTableViewController class]]) {
+            NSString *title;
+            NSString *message;
+            USER_ACTIVITY_TYPE activityType = 0;
+            if (userInfo[@"aps"]) {
+                if (userInfo[@"aps"][@"alert"] && [userInfo[@"aps"][@"alert"] isKindOfClass:[NSDictionary class]]) {
+                    if (userInfo[@"aps"][@"alert"][@"title"]) {
+                        title = userInfo[@"aps"][@"alert"][@"title"];
+                    }
+                    
+                    if (userInfo[@"aps"][@"alert"][@"body"]) {
+                        message = userInfo[@"aps"][@"alert"][@"body"];
+                    }
+                }
+                else if ([userInfo[@"aps"][@"alert"] isKindOfClass:[NSString class]]) {
+                    message = userInfo[@"aps"][@"alert"];
                 }
                 
-                if (userInfo[@"aps"][@"alert"][@"body"]) {
-                    message = userInfo[@"aps"][@"alert"][@"body"];
+                if (userInfo[@"aps"][@"category"]) {
+                    activityType = (USER_ACTIVITY_TYPE)[userInfo[@"aps"][@"category"] integerValue];
                 }
             }
-            else if ([userInfo[@"aps"][@"alert"] isKindOfClass:[NSString class]]) {
-                message = userInfo[@"aps"][@"alert"];
-            }
             
-            if (userInfo[@"aps"][@"category"]) {
-                activityType = (USER_ACTIVITY_TYPE)[userInfo[@"aps"][@"category"] integerValue];
-            }
+            BFNotificationObject *notificationObject = [BFNotificationObject notificationWithActivityType:activityType title:title text:message action:^{
+                NSLog(@"notification tapped");
+                [self handleNotificationActionForUserInfo:userInfo];
+            }];
+            [[BFNotificationManager manager] presentNotification:notificationObject completion:^{
+                NSLog(@"presentNotification() completion");
+            }];
         }
-        
-        BFNotificationObject *notificationObject = [BFNotificationObject notificationWithActivityType:activityType title:title text:message action:^{
-            NSLog(@"notification tapped");
-            [self handleNotificationActionForUserInfo:userInfo];
-        }];
-        [[BFNotificationManager manager] presentNotification:notificationObject completion:^{
-            NSLog(@"presentNotification() completion");
-        }];
         
         AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
     }
@@ -499,7 +527,7 @@
     }
 }
 
-- (void)handleNotificationActionForUserInfo:(NSDictionary *)userInfo {
+- (void)handleNotificationActionForUserInfo:(NSDictionary *)userInfo {    
     TabController *tabVC = Launcher.tabController;
     if (tabVC) {
         tabVC.selectedIndex = [tabVC.viewControllers indexOfObject:tabVC.notificationsNavVC];
@@ -507,30 +535,38 @@
     }
     
     NSDictionary *data = userInfo[@"data"];
-    NSDictionary *formats = [Session sharedInstance].defaults.notifications;
-    NSString *key = [NSString stringWithFormat:@"%@", userInfo[@"aps"][@"category"]];
     
-    if ([[formats allKeys] containsObject:key]) {
-        NSError *error;
-        DefaultsNotificationsFormat *notificationFormat = [[DefaultsNotificationsFormat alloc] initWithDictionary:formats[key] error:&error];
-        if (!error) {
-            if ([notificationFormat.actionObject isEqualToString:ACTIVITY_ACTION_OBJECT_ACTIONER] && [data objectForKey:@"actioner"]) {
-                User *user = [[User alloc] initWithDictionary:data[@"actioner"] error:nil];
-                [Launcher openProfile:user];
-            }
-            else if ([notificationFormat.actionObject isEqualToString:ACTIVITY_ACTION_OBJECT_POST] && [data objectForKey:@"post"]) {
-                Post *post = [[Post alloc] initWithDictionary:data[@"post"] error:nil];
-                [Launcher openPost:post withKeyboard:NO];
-            }
-            else if ([notificationFormat.actionObject isEqualToString:ACTIVITY_ACTION_OBJECT_REPLY_POST] && [data objectForKey:@"reply_post"]) {
-                Post *post = [[Post alloc] initWithDictionary:data[@"reply_post"] error:nil];
-                [Launcher openPost:post withKeyboard:NO];
-            }
-            else if ([notificationFormat.actionObject isEqualToString:ACTIVITY_ACTION_OBJECT_CAMP] && [data objectForKey:@"camp"]) {
-                Camp *camp = [[Camp alloc] initWithDictionary:data[@"camp"] error:nil];
-                [Launcher openCamp:camp];
-            }
+    NSObject *object = [data objectForKey:@"target_object"];
+    NSString *urlString = [data objectForKey:@"target_url"];
+    NSURL *url = [NSURL URLWithString:urlString];
+    BOOL appCanOpenURL = ([Configuration isExternalBonfireURL:url] || [Configuration isInternalURL:url]);
+    
+    if (object && [object isKindOfClass:[NSDictionary class]] && [(NSDictionary *)object objectForKey:@"type"]) {
+        NSDictionary *dict = (NSDictionary *)object;
+        NSString *type = [dict objectForKey:@"type"];
+        if ([type isEqualToString:@"camp"]) {
+            Camp *camp = [[Camp alloc] initWithDictionary:dict error:nil];
+            [Launcher openCamp:camp];
         }
+        else if ([type isEqualToString:@"post"]) {
+            Post *post = [[Post alloc] initWithDictionary:dict error:nil];
+            [Launcher openPost:post withKeyboard:false];
+        }
+        else if ([type isEqualToString:@"user"]) {
+            User *user = [[User alloc] initWithDictionary:dict error:nil];
+            [Launcher openProfile:user];
+        }
+        else if ([type isEqualToString:@"bot"]) {
+            Bot *bot = [[Bot alloc] initWithDictionary:dict error:nil];
+            [Launcher openBot:bot];
+        }
+    }
+    else if (appCanOpenURL) {
+        [self application:[UIApplication sharedApplication] openURL:url options:@{}];
+    }
+    else if (urlString && urlString.length > 0) {
+        // the URL is not a known Bonfire URL, so open it in a Safari VC
+        [Launcher openURL:urlString];
     }
 }
 
@@ -545,16 +581,17 @@
                           ntohl(tokenBytes[3]), ntohl(tokenBytes[4]), ntohl(tokenBytes[5]),
                           ntohl(tokenBytes[6]), ntohl(tokenBytes[7])];
     NSLog(@"token:: %@", token);
-
-    #ifdef DEBUG
-    #else
+    
     if ([[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"] == nil || ([[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"] != nil &&
         ![[[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"] isEqualToString:token]))
     {
         [[NSUserDefaults standardUserDefaults] setObject:token forKey:@"device_token"];
+        
+        #ifdef DEBUG
+        #else
         [[Session sharedInstance] syncDeviceToken];
+        #endif
     }
-    #endif
     
     UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
     center.delegate = self;
@@ -569,6 +606,55 @@
 
 - (void)applicationDidEnterBackground:(UIApplication *)application {
     [[InsightsLogger sharedInstance] closeAllPostInsights];
+    
+    if ([Launcher activeViewController] && [[Launcher activeViewController] isKindOfClass:[HomeTableViewController class]]) {
+        [[Launcher activeViewController].view endEditing:false];
+    }
+    
+    // Start the background task
+    CFABackgroundTask *task = [UIApplication cfa_backgroundTask];
+    [[HAWebService manager].session getTasksWithCompletionHandler:^(NSArray<NSURLSessionDataTask *> * _Nonnull dataTasks, NSArray<NSURLSessionUploadTask *> * _Nonnull uploadTasks, NSArray<NSURLSessionDownloadTask *> * _Nonnull downloadTasks) {
+        DLog(@"data tasks: %@", dataTasks);
+        DLog(@"upload tasks: %@", uploadTasks);
+        DLog(@"data tasks: %@", downloadTasks);
+        
+        if (dataTasks.count > 0 || uploadTasks.count > 0 || downloadTasks.count > 0) {
+            DLog(@"more than one active data task !!!");
+            
+            for (NSURLSessionDataTask *task in dataTasks) {
+                DLog(@"resume this data task!!!");
+                DLog(@"state:: %lu", task.state);
+                [task resume];
+            }
+            for (NSURLSessionDataTask *task in uploadTasks) {
+                DLog(@"resume this upload task!!!");
+                DLog(@"state:: %lu", task.state);
+                [task resume];
+            }
+            for (NSURLSessionDataTask *task in downloadTasks) {
+                DLog(@"resume this download task!!!");
+                DLog(@"state:: %lu", task.state);
+                [task resume];
+            }
+            
+            // Wait 5 seconds….
+            float delayInSeconds = 15.f;
+            DLog(@"delay time: %f", delayInSeconds);
+            
+            dispatch_time_t delayTimer = dispatch_time(DISPATCH_TIME_NOW, delayInSeconds * NSEC_PER_SEC);
+            dispatch_after(delayTimer, dispatch_get_main_queue(), ^(void){
+                DLog(@"Application state: %ld", [[UIApplication sharedApplication] applicationState]);
+                DLog(@"Background Time Remaining: %0.1f", [[UIApplication sharedApplication] backgroundTimeRemaining]);
+                
+                // End the task
+                [task invalidate];
+            });
+        }
+        else {
+            DLog(@"no data tasks to resume");
+            [task invalidate];
+        }
+    }];
 }
 - (void)applicationWillTerminate:(UIApplication *)application {
     [[InsightsLogger sharedInstance] closeAllPostInsights];
@@ -668,8 +754,8 @@
         objectFromURL = [Configuration objectFromExternalBonfireURL:url];
     }
     
-    if (signedIn && [objectFromURL isKindOfClass:[User class]]) {
-        [Launcher openProfile:(User *)objectFromURL];
+    if (signedIn && [objectFromURL isKindOfClass:[Identity class]]) {
+        [Launcher openIdentity:(Identity *)objectFromURL];
     }
     else if (signedIn && [objectFromURL isKindOfClass:[Camp class]]) {
         [Launcher openCamp:(Camp *)objectFromURL];
@@ -708,6 +794,5 @@
     
     return true;
 }
-
 
 @end

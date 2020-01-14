@@ -27,6 +27,9 @@
         self.userInteractionEnabled = true;
         self.layer.masksToBounds = false;
         
+        self.backgroundColor = [UIColor colorNamed:@"BubbleColor"];
+        self.layer.cornerRadius = 10.f;
+        
         self.edgeInsets = UIEdgeInsetsZero;
         self.maxCharacters = 10000;
         self.textColor = [UIColor bonfirePrimaryColor];
@@ -34,6 +37,7 @@
         self.translatesAutoresizingMaskIntoConstraints = YES;
         
         _messageLabel = [[JKRichTextView alloc] initWithFrame:frame];
+        _messageLabel.textAlignment = NSTextAlignmentCenter;
         [self addSubview:_messageLabel];
         
         // [self initPatternDetections];
@@ -103,13 +107,13 @@
     CGSize messageSize = [PostTextView sizeOfBubbleWithMessage:self.messageLabel.text withConstraints:constraints font:self.messageLabel.font maxCharacters:self.entityBasedMaxCharacters styleAsBubble:self.styleAsBubble];
         
     if (self.styleAsBubble) {
-        self.frame = CGRectMake(self.frame.origin.x, self.frame.origin.y, ceilf(messageSize.width), ceilf(messageSize.height));
+        self.frame = CGRectMake(self.frame.origin.x, self.frame.origin.y, ceilf(messageSize.width), ceilf(messageSize.height) + postTextViewInset.top + postTextViewInset.bottom);
     }
     else {
-        self.frame = CGRectMake(self.frame.origin.x, self.frame.origin.y, self.frame.size.width, ceilf(messageSize.height));
+        self.frame = CGRectMake(self.frame.origin.x, self.frame.origin.y, self.frame.size.width, ceilf(messageSize.height) + postTextViewInset.top + postTextViewInset.bottom);
     }
     
-    self.messageLabel.frame = CGRectMake(0, 0, self.frame.size.width, self.frame.size.height);
+    self.messageLabel.frame = CGRectMake(postTextViewInset.left, postTextViewInset.top, self.frame.size.width - (postTextViewInset.left + postTextViewInset.right), self.frame.size.height - (postTextViewInset.top + postTextViewInset.bottom));
     
     [self.messageLabel layoutSubviews];
 }
@@ -320,7 +324,7 @@
         attributedMessage = [[NSMutableAttributedString alloc] initWithString:message?message:@""  attributes:@{NSFontAttributeName: font}];
     }
     
-    CGSize size = [attributedMessage boundingRectWithSize:constraints options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) context:nil].size;
+    CGSize size = [attributedMessage boundingRectWithSize:CGSizeMake(constraints.width - (postTextViewInset.left + postTextViewInset.right), constraints.height) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) context:nil].size;
 //     CGSize size2 = [TTTAttributedLabel sizeThatFitsAttributedString:attributedMessage withConstraints:constraints limitedToNumberOfLines:CGFLOAT_MAX];
     
     if (styleAsBubble) {

@@ -120,7 +120,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     }
 }
 
-- (void)loadJSON {
+- (void)loadJSON {    
     NSString *bundlePath = [[NSBundle mainBundle] pathForResource:@"CampMembers" ofType:@"json"];
     NSData *data = [NSData dataWithContentsOfFile:bundlePath];
     
@@ -140,7 +140,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
         
         if ([list.identifier isEqualToString:@"pending"]) {
             // don't include the pending tab if the person isn't a member or the camp is public
-            if (![self isMember] || ![self.camp isPrivate]) continue;
+            if (![self isMember] || ![self.camp isPrivate] || !self.camp.attributes.context.camp.permissions.members.approve) continue;
         }
         
         [self.tabs addObject:list];
@@ -325,8 +325,11 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     NSLog(@"final url: %@", url);
     
     NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
+    
+    NSString *filterQuery = @"";
     if (self.searchPhrase && self.searchPhrase.length > 0) {
-        [params setObject:self.searchPhrase forKey:@"s"];
+        filterQuery = self.searchPhrase;
+        [params setObject:filterQuery forKey:@"filter_query"];
     }
     
     NSString *nextCursor = [section.userStream nextCursor];
@@ -340,18 +343,29 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     }
     
     [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        if (![self.searchPhrase isEqualToString:filterQuery]) {
+            return;
+        }
+        
         if (section.cursored) {
             if ([section.type isEqualToString:SmartListSectionDataTypeUser]) {
-                if (!section.userStream) {
-                    section.userStream = [[UserListStream alloc] init];
-                }
-                
                 UserListStreamPage *page = [[UserListStreamPage alloc] initWithDictionary:responseObject error:nil];
-                if (cursorType == StreamPagingCursorTypePrevious) {
-                    [section.userStream prependPage:page];
+                
+                if (page.data.count > 0) {
+                    if (![params objectForKey:@"cursor"]) {
+                        // clear the stream (we retrieved a full page of notifs and the old ones are out of date)
+                        section.userStream = [[UserListStream alloc] init];
+                    }
+                    
+                    if (cursorType == StreamPagingCursorTypePrevious) {
+                        [section.userStream prependPage:page];
+                    }
+                    else {
+                        [section.userStream appendPage:page];
+                    }
                 }
-                else {
-                    [section.userStream appendPage:page];
+                else if (cursorType == StreamPagingCursorTypeNone) {
+                    section.userStream = [[UserListStream alloc] init];
                 }
             }
             else if ([section.type isEqualToString:SmartListSectionDataTypeCamp]) {
@@ -541,6 +555,8 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
             cell.detailTextLabel.text = ([user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier] ? @"You" : [NSString stringWithFormat:@"Joined %@", [NSDate mysqlDatetimeFormattedAsTimeAgo:user.attributes.context.camp.membership.joinedAt withForm:TimeAgoLongForm]]);
             
             cell.checkIcon.hidden = true;
+            cell.contextButton.hidden = true;
+            cell.actionButton.hidden = true;
             
             return cell;
         }
@@ -726,7 +742,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
         s.data.count == 0) {
         return 110;
     }
-    else if ([s.identifier isEqualToString:@"members_current"] && (self.searchPhrase.length > 0 || [self.tableView numberOfRowsInSection:0] > 100000)) {
+    else if ([s.identifier isEqualToString:@"members_current"] && (self.searchPhrase.length > 0 || self.camp.attributes.summaries.counts.members > 8)) {
         return 56;
     }
     
@@ -775,9 +791,9 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
         
         return header;
     }
-    else if ([s.identifier isEqualToString:@"members_current"] && (self.searchPhrase.length > 0 || [self.tableView numberOfRowsInSection:0] > 100000)) {
+    else if ([s.identifier isEqualToString:@"members_current"] && (self.searchPhrase.length > 0 || self.camp.attributes.summaries.counts.members > 8)) {
         UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 56)];
-        header.backgroundColor = [UIColor whiteColor];
+        header.backgroundColor = [UIColor contentBackgroundColor];
         
         // search view
         self.searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(12, 10, self.view.frame.size.width - (12 * 2), 36)];
@@ -894,7 +910,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
         }
         
         if (user) {
-            if ([self isAdmin]) {
+            if (self.camp.attributes.context.camp.permissions.assign.count > 0) {
                 BFAlertController *actionSheet = [BFAlertController alertControllerWithTitle:user.attributes.displayName message:[@"@" stringByAppendingString:user.attributes.identifier] preferredStyle:BFAlertControllerStyleActionSheet];
                 
                 BFAlertAction *viewProfile = [BFAlertAction actionWithTitle:@"View Profile" style:BFAlertActionStyleDefault handler:^{
@@ -902,7 +918,8 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
                 }];
                 [actionSheet addAction:viewProfile];
       
-                if ([s.identifier isEqualToString:@"members_admin"] || [s.identifier isEqualToString:@"members_moderator"]) {
+                if (([s.identifier isEqualToString:@"members_admin"] && [self.camp.attributes.context.camp.permissions.assign containsObject:CAMP_ROLE_ADMIN]) ||
+                    ([s.identifier isEqualToString:@"members_moderator"] && [self.camp.attributes.context.camp.permissions.assign containsObject:CAMP_ROLE_MODERATOR])) {
                     BFAlertAction *removeRole = [BFAlertAction actionWithTitle:[NSString stringWithFormat:@"Remove as %@", [s.identifier isEqualToString:@"members_admin"] ? @"Director" : @"Manager"] style:BFAlertActionStyleDefault handler:^{
                         if ([s.identifier isEqualToString:@"members_admin"]) {
                             [self removeManagerRole:CAMP_ROLE_ADMIN user:user];

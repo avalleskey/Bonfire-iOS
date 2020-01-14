@@ -28,7 +28,8 @@ typedef enum {
     SNActionTypeDone,
     SNActionTypeSettings,
     SNActionTypeSearch,
-    SNActionTypeCamptag
+    SNActionTypeCamptag,
+    SNActionTypeSidebar
 } SNActionType;
 - (void)setLeftAction:(SNActionType)actionType;
 - (void)setRightAction:(SNActionType)actionType;
@@ -37,6 +38,12 @@ typedef enum {
 @property (nonatomic, strong) UIView *rightActionView;
 
 @property (nonatomic, strong) UIView *navigationBackgroundView;
+
+@property (nonatomic, strong) UIView *progressView;
+@property (nonatomic) CGFloat progress;
+// Additional progress methods
+- (void)setProgress:(CGFloat)progress animated:(BOOL)animated;
+- (void)setProgress:(CGFloat)progress animated:(BOOL)animated hideOnCompletion:(BOOL)hideOnCompletion;
 
 @property (nonatomic, strong) SloppySwiper *swiper;
 

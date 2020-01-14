@@ -127,13 +127,14 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
         UIColor *bottomColor = [UIColor colorWithWhite:0 alpha:0];
 
         NSArray *gradientColors = [NSArray arrayWithObjects:(id)topColor.CGColor, (id)bottomColor.CGColor, nil];
-        NSArray *gradientLocations = [NSArray arrayWithObjects:[NSNumber numberWithInt:0.0],[NSNumber numberWithInt:1.0], nil];
 
-        CAGradientLayer *gradientLayer = [CAGradientLayer layer];
-        gradientLayer.colors = gradientColors;
-        gradientLayer.locations = gradientLocations;
-        gradientLayer.frame = CGRectMake(0, 0, self.view.frame.size.width, self.tableView.contentInset.top);
-        [self.coverPhotoView.layer addSublayer:gradientLayer];
+        [self.coverPhotoViewOverlay removeFromSuperlayer];
+        
+        self.coverPhotoViewOverlay = [CAGradientLayer layer];
+        self.coverPhotoViewOverlay.colors = gradientColors;
+        self.coverPhotoViewOverlay.startPoint = CGPointMake(0.5, 0.1);
+        self.coverPhotoViewOverlay.endPoint = CGPointMake(0.5, 1.0);
+        [self.coverPhotoView.layer addSublayer:self.coverPhotoViewOverlay];
     }
     else {
         self.coverPhotoView.image = nil;
@@ -155,8 +156,7 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
     
     [self.tableView.refreshControl setBounds:CGRectMake(self.tableView.refreshControl.bounds.origin.x, self.tableView.contentInset.top, self.tableView.refreshControl.bounds.size.width, self.tableView.refreshControl.bounds.size.height)];
     self.coverPhotoView.frame = CGRectMake(0, 0, self.view.frame.size.width, self.tableView.contentInset.top + (-1 * self.tableView.contentOffset.y));
-    UIVisualEffectView *overlayView = [self.coverPhotoView viewWithTag:10];
-    overlayView.frame = self.coverPhotoView.bounds;
+    self.coverPhotoViewOverlay.frame = self.coverPhotoView.bounds;
 }
 
 - (void)newPostBegan:(NSNotification *)notification {
@@ -201,7 +201,7 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
             
             [self updateTheme];
             
-            [self.tableView hardRefresh];
+            [self.tableView hardRefresh:false];
         }
     }
 }
@@ -280,11 +280,6 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
             [Launcher openEditProfile];
         }];
         [actionSheet addAction:openEditProfile];
-        
-        BFAlertAction *openSettings = [BFAlertAction actionWithTitle:@"Settings" style:BFAlertActionStyleDefault handler:^{
-            [Launcher openSettings];
-        }];
-        [actionSheet addAction:openSettings];
     }
     else {
         BFAlertAction *blockUsername = [BFAlertAction actionWithTitle:[NSString stringWithFormat:@"%@", userIsBlocked ? @"Unblock" : @"Block"] style:BFAlertActionStyleDestructive handler:^ {
@@ -363,6 +358,13 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
         }
     }];
     [actionSheet addAction:shareUser];
+    
+    if ([self isCurrentUser]) {
+        BFAlertAction *openSettings = [BFAlertAction actionWithTitle:@"Settings" style:BFAlertActionStyleDefault handler:^{
+            [Launcher openSettings];
+        }];
+        [actionSheet addAction:openSettings];
+    }
     
     BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
     [actionSheet addAction:cancel];
@@ -732,9 +734,7 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
         }
         
         CGFloat percentageHidden = ((self.tableView.contentOffset.y + self.tableView.contentInset.top) / (self.tableView.contentInset.top * .75));
-        UIView *overlayView = [self.coverPhotoView viewWithTag:10];
-        overlayView.frame = CGRectMake(0, 0, self.coverPhotoView.frame.size.width, self.coverPhotoView.frame.size.height);
-        overlayView.alpha = percentageHidden;
+//        self.coverPhotoViewOverlay.frame = self.coverPhotoView.bounds;
     }
 }
 
@@ -751,18 +751,18 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
             cell.user = self.user;
                     
             BOOL isCurrentUser = [cell.user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier];
-            cell.followButton.hidden = (!self.loading && cell.user.attributes.context == nil && !isCurrentUser);
+            cell.actionButton.hidden = (!self.loading && cell.user.attributes.context == nil && !isCurrentUser);
             cell.detailsCollectionView.hidden = (!cell.user.identifier && !self.loading);
                 
-            if (!cell.followButton.isHidden) {
+            if (!cell.actionButton.isHidden) {
                 if ([cell.user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
-                    [cell.followButton updateStatus:USER_STATUS_ME];
+                    [cell.actionButton updateStatus:USER_STATUS_ME];
                 }
                 else if (self.loading && cell.user.attributes.context == nil) {
-                    [cell.followButton updateStatus:USER_STATUS_LOADING];
+                    [cell.actionButton updateStatus:USER_STATUS_LOADING];
                 }
                 else {
-                    [cell.followButton updateStatus:cell.user.attributes.context.me.status];
+                    [cell.actionButton updateStatus:cell.user.attributes.context.me.status];
                 }
             }
             

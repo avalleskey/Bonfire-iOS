@@ -84,7 +84,7 @@
 }
 
 + (CGFloat)baseHeight {
-    return REPLY_BUBBLE_INSETS.top + REPLY_BUBBLE_INSETS.bottom + replyTextViewFont.lineHeight;
+    return REPLY_BUBBLE_INSETS.top + REPLY_BUBBLE_INSETS.bottom + replyTextViewFont.lineHeight + 4;
 }
 + (CGFloat)height {
     return [AddReplyCell baseHeight] + ceilf(replyContentOffset.bottom * 1.5);

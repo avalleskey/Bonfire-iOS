@@ -65,7 +65,6 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     self.view.backgroundColor = [UIColor contentBackgroundColor];
     self.view.tintColor = [UIColor bonfireBrand];
     
-    [self addListeners];
     [self setupViews];
     [self setupSteps];
     
@@ -78,11 +77,24 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         //self.signInTrace = [FIRPerformance startTraceWithName:@"Sign In"];
         //self.signUpTrace = [FIRPerformance startTraceWithName:@"Sign Up"];
     }
-    
-    [UIApplication sharedApplication].applicationIconBadgeNumber = 0;
-    
+        
     // Google Analytics
     [FIRAnalytics setScreenName:@"Onboarding" screenClass:nil];
+    
+//    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(receivedNotificationsUpdate:) name:@"NotificationsDidRegister" object:nil];
+//    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(receivedNotificationsUpdate:) name:@"NotificationsDidFailToRegister" object:nil];
+}
+-  (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    
+    [self addListeners];
+}
+
+- (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillChangeFrameNotification object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillHideNotification object:nil];
 }
 
 - (UIStatusBarStyle)preferredStatusBarStyle {
@@ -99,12 +111,11 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 - (void)addListeners {
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillChangeFrame:) name:UIKeyboardWillChangeFrameNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillDismiss:) name:UIKeyboardWillHideNotification object:nil];
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(receivedNotificationsUpdate:) name:@"NotificationsDidRegister" object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(receivedNotificationsUpdate:) name:@"NotificationsDidFailToRegister" object:nil];
 }
 
-- (void)requestNotifications {    
+- (void)requestNotifications {
+    [self.view endEditing:true];
+    
     [[UNUserNotificationCenter currentNotificationCenter] getNotificationSettingsWithCompletionHandler:^(UNNotificationSettings * _Nonnull settings) {
         if (settings.authorizationStatus == UNAuthorizationStatusNotDetermined && ![[NSUserDefaults standardUserDefaults] objectForKey:@"push_notifications_last_requested"]) {
             BFAlertController *accessRequest = [BFAlertController alertControllerWithIcon:[UIImage imageNamed:@"alert_icon_notifications"] title:@"Receive Instant Updates" message:@"Turn on Push Notifications to get instant updates from Bonfire" preferredStyle:BFAlertControllerStyleAlert];
@@ -112,6 +123,8 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             BFAlertAction *okAction = [BFAlertAction actionWithTitle:@"Okay" style:BFAlertActionStyleDefault handler:^{
                 [[UNUserNotificationCenter currentNotificationCenter] requestAuthorizationWithOptions:(UNAuthorizationOptionAlert|UNAuthorizationOptionSound|UNAuthorizationOptionBadge) completionHandler:^(BOOL granted, NSError * _Nullable error) {
                     // 1. check if permisisons granted
+                    [self receivedNotificationsUpdate:nil];
+                    
                     if (granted) {
                         // do work here
                         dispatch_async(dispatch_get_main_queue(), ^{
@@ -142,6 +155,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                 NSLog(@"inside dispatch async block main thread from main thread");
                 [[UIApplication sharedApplication] registerForRemoteNotifications];
             });
+            [self receivedNotificationsUpdate:nil];
         }
         else {
             [self receivedNotificationsUpdate:nil];
@@ -192,6 +206,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     self.nextButton.frame = CGRectMake(self.view.frame.size.width / 2 - buttonWidth / 2, self.view.frame.size.height - 48 - (HAS_ROUNDED_CORNERS ? [[UIApplication sharedApplication] keyWindow].safeAreaInsets.bottom + 12 : 24), buttonWidth, 48);
     self.nextButton.backgroundColor = [self.view tintColor];
     self.nextButton.titleLabel.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightSemibold];
+    [self.nextButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [self.nextButton setTitleColor:[UIColor bonfireSecondaryColor] forState:UIControlStateDisabled];
     [self continuityRadiusForView:self.nextButton withRadius:14.f];
     [self.nextButton setTitle:@"Next" forState:UIControlStateNormal];
@@ -1076,12 +1091,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 - (void)enableNextButton {
     self.nextButton.enabled = true;
     self.nextButton.backgroundColor = self.view.tintColor;
-    if ([UIColor useWhiteForegroundForColor:self.nextButton.backgroundColor]) {
-        [self.nextButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    }
-    else {
-        [self.nextButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-    }
+    [self.nextButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     self.nextButton.userInteractionEnabled = true;
 }
 - (void)prepareForLogin {
@@ -1298,12 +1308,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         [self removeBigSpinnerForStep:self.currentStep push:false];
         self.nextButton.enabled = true;
         self.nextButton.backgroundColor = [self currentColor];
-        if ([UIColor useWhiteForegroundForColor:self.nextButton.backgroundColor]) {
-            [self.nextButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-        }
-        else {
-            [self.nextButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-        }
+        [self.nextButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
         self.nextButton.userInteractionEnabled = true;
         [self shakeInputBlock];
     };
@@ -1461,12 +1466,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         if ([nextStep[@"id"] isEqualToString:@"user_color"]) {
             [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
                 self.nextButton.backgroundColor = [self currentColor];
-                if ([UIColor useWhiteForegroundForColor:self.nextButton.backgroundColor]) {
-                    [self.nextButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-                }
-                else {
-                    [self.nextButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-                }
+                [self.nextButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
                 self.closeButton.tintColor = [self currentColor];
             } completion:nil];
         }
@@ -1715,12 +1715,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         else {
             [self.nextButton setTitle:previousStep[@"next"] forState:UIControlStateNormal];
             self.nextButton.backgroundColor = self.view.tintColor;
-            if ([UIColor useWhiteForegroundForColor:self.nextButton.backgroundColor]) {
-                [self.nextButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-            }
-            else {
-                [self.nextButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-            }
+            [self.nextButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
             self.nextButton.enabled = true;
             [self.nextButton setHidden:false];
         }

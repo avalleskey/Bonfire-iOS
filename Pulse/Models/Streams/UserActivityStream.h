@@ -27,6 +27,8 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)updateCampObjects:(Camp *)camp;
 - (void)updateUserObjects:(User *)user;
 
+- (void)updateAttributedStrings;
+
 @property (nonatomic) NSString *prevCursor;
 @property (nonatomic) NSString *nextCursor;
 

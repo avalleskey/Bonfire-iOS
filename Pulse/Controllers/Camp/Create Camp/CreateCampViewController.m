@@ -652,12 +652,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         
         [UIView animateWithDuration:0.6f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
             self.nextButton.backgroundColor = sender.backgroundColor;
-            if ([UIColor useWhiteForegroundForColor:sender.backgroundColor]) {
-                [self.nextButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-            }
-            else {
-                [self.nextButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-            }
+            [self.nextButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
             self.closeButton.tintColor = [UIColor fromHex:[UIColor toHex:sender.backgroundColor] adjustForOptimalContrast:true];
             
             checkView.transform = CGAffineTransformMakeScale(1, 1);
@@ -696,12 +691,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 - (void)enableNextButton {
     self.nextButton.enabled = true;
     self.nextButton.backgroundColor = self.view.tintColor;
-    if ([UIColor useWhiteForegroundForColor:self.nextButton.backgroundColor]) {
-        [self.nextButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    }
-    else {
-        [self.nextButton setTitleColor:[UIColor contentBackgroundColor] forState:UIControlStateNormal];
-    }
+    [self.nextButton setTitleColor:[UIColor colorNamed:@"FullContrastColor_inverted"] forState:UIControlStateNormal];
 }
 - (void)greyOutNextButton {
     self.nextButton.enabled = false;

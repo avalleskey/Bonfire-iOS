@@ -18,6 +18,7 @@
 
 @synthesize spinning = _spinning;
 @synthesize loading = _loading;
+@synthesize rs_tableView = _rs_tableView;
 
 NSString * const rotationAnimationKey = @"rotationAnimation";
 
@@ -33,37 +34,66 @@ NSString * const rotationAnimationKey = @"rotationAnimation";
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     
-    [self setup];
-    [self initBigSpinner];
-}
-
-- (void)setup {
     self.view.backgroundColor = [UIColor contentBackgroundColor];
-    
     self.tableView = [[UITableView alloc] initWithFrame:self.view.bounds style:UITableViewStyleGrouped];
     self.tableView.backgroundColor = [UIColor contentBackgroundColor];
     self.tableView.alpha = 0;
     [self.view addSubview:self.tableView];
     
-    self.refreshControl = [[UIRefreshControl alloc]init];
+    self.refreshControl = [[UIRefreshControl alloc] init];
     self.tableView.refreshControl = self.refreshControl;
+    
+    [self initBigSpinner];
 }
 
-- (void)setTableView:(UITableView *)tableView {
-    if (tableView != _tableView) {
-        _tableView = tableView;
-        
-        if (tableView && self.rs_tableView) {
-            self.rs_tableView = nil;
-        }
+
+//- (void)setTableView:(UITableView *)tableView {
+//    if (tableView != _tableView) {
+//        _tableView = tableView;
+//
+//        if (_tableView == nil) {
+//            return;
+//        }
+//        else {
+//            [_tableView removeFromSuperview];
+//
+//            _tableView.frame = self.view.bounds;
+////            [self.view addSubview:_tableView];
+//
+//            self.refreshControl = [[UIRefreshControl alloc]init];
+//            self.tableView.refreshControl = self.refreshControl;
+//        }
+//    }
+//}
+- (UITableView *)activeTableView {
+    if (self.tableView) {
+        return self.tableView;
     }
+    else if (self.rs_tableView) {
+        return self.rs_tableView;
+    }
+    
+    return nil;
 }
 - (void)setRs_tableView:(RSTableView *)rs_tableView {
     if (rs_tableView != _rs_tableView) {
         _rs_tableView = rs_tableView;
-        
-        if (rs_tableView && self.tableView) {
-            self.tableView = nil;
+
+        if (_rs_tableView == nil) {
+            return;
+        }
+        else {
+            [_tableView removeFromSuperview];
+            _tableView = nil;
+            
+            if (_rs_tableView.superview) {
+                [_rs_tableView removeFromSuperview];
+            }
+            
+            _rs_tableView.frame = self.view.bounds;
+            [self.view addSubview:_rs_tableView];
+            
+            _rs_tableView.refreshControl = self.refreshControl;
         }
     }
 }
@@ -86,7 +116,7 @@ NSString * const rotationAnimationKey = @"rotationAnimation";
         _theme = theme;
         
         self.bigSpinner.tintColor = theme;
-        self.tableView.tintColor = theme;
+        [self activeTableView].tintColor = theme;
     }
 }
 
@@ -113,10 +143,10 @@ NSString * const rotationAnimationKey = @"rotationAnimation";
     if (spinning) {
         [self addAnimationToBigSpinner];
         
-        self.tableView.userInteractionEnabled = false;
+        [self activeTableView].userInteractionEnabled = false;
         [UIView animateWithDuration:animated?0.4f:0 delay:0 usingSpringWithDamping:0.75f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
-            self.tableView.transform = CGAffineTransformMakeTranslation(0, 56);
-            self.tableView.alpha = 0;
+            [self activeTableView].transform = CGAffineTransformMakeTranslation(0, 56);
+            [self activeTableView].alpha = 0;
             self.bigSpinner.alpha = 1;
             self.bigSpinner.transform = CGAffineTransformMakeScale(1, 1);
         } completion:^(BOOL finished) {
@@ -131,10 +161,10 @@ NSString * const rotationAnimationKey = @"rotationAnimation";
             [self.bigSpinner.layer removeAnimationForKey:rotationAnimationKey];
         }];
         [UIView animateWithDuration:animated?0.56f:0 delay:0.1f usingSpringWithDamping:0.7f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
-            self.tableView.transform = CGAffineTransformMakeTranslation(0, 0);
-            self.tableView.alpha = 1;
+            [self activeTableView].transform = CGAffineTransformMakeTranslation(0, 0);
+            [self activeTableView].alpha = 1;
         } completion:^(BOOL finished) {
-            self.tableView.userInteractionEnabled = true;
+            [self activeTableView].userInteractionEnabled = true;
         }];
     }
 }

@@ -87,22 +87,16 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
     [super viewWillAppear:animated];
     
     if ([self isBeingPresented] || [self isMovingToParentViewController]) {
-        if ([BFTipsManager hasSeenTip:@"how_to_share_beta"] == false && [Launcher activeTabController]) {
-            BFTipObject *tipObject = [BFTipObject tipWithCreatorType:BFTipCreatorTypeBonfireTip creator:nil title:@"Share the Bonfire Beta 📢" text:@"Inviting your friends to the Beta is easy! Tap the invite button on the top left to invite friends via iMessage" cta:nil imageUrl:nil action:^{
-                NSLog(@"tip tapped");
-                [Launcher openInviteFriends:self];
-            }];
-            [[BFTipsManager manager] presentTip:tipObject completion:^{
-                NSLog(@"presentTip() completion");
-            }];
-        }
+        
     }
 }
 
 - (void)recentsUpdated:(NSNotification *)sender {
     [self loadSuggestedCamps];
     
-    [self.tableView reloadData];
+    [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationNone];
+    
+//    [self.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:YES];
 }
 - (void)refreshMyCamps:(NSNotification *)sender {
     [self getCampsWithCursor:StreamPagingCursorTypeNone];
@@ -128,7 +122,7 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
     self.tableView.separatorColor = [UIColor tableViewSeparatorColor];
     self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
-    self.tableView.contentInset = UIEdgeInsetsZero;
+    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, ([Session sharedInstance].currentUser.attributes.summaries.counts.camps < 5 ? 40 + 16 : 0), 0);
     self.tableView.estimatedRowHeight = 0;
     [self.refreshControl addTarget:self action:@selector(refreshMyCamps:) forControlEvents:UIControlEventValueChanged];
 
@@ -358,7 +352,12 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
 }
 
 - (void)update {
-    [self.tableView reloadData];
+    if ([[self.tableView indexPathsForVisibleRows] containsObject:[NSIndexPath indexPathForRow:0 inSection:1]]) {
+        [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:2] withRowAnimation:UITableViewRowAnimationNone];
+    }
+    else {
+        [self.tableView reloadData];
+    }
     
     CampListStream *stream = [self activeStream];
     if (!self.loading && stream.camps.count == 0) {
@@ -372,7 +371,14 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
         if ([HAWebService hasInternet]) {
             if (_isSearching) {
                 [self showErrorViewWithType:ErrorViewTypeNotFound title:@"No Camps Found" description:@"You aren't in any Camps that match your search" actionTitle:@"Discover Camps" actionBlock:^{
-                    [Launcher openDiscover];
+                    TabController *tabVC = (TabController *)[Launcher activeTabController];
+                    if (tabVC) {
+                        tabVC.selectedIndex = [tabVC.viewControllers indexOfObject:tabVC.storeNavVC];
+                        [tabVC tabBar:tabVC.tabBar didSelectItem:tabVC.storeNavVC.tabBarItem];
+                    }
+                    else {
+                        [Launcher openDiscover];
+                    }
                 }];
             }
             else {
@@ -445,6 +451,7 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
         }
         
         Camp *camp = stream.camps[indexPath.row];
+        cell.hideCampMemberCount = true;
         cell.camp = camp;
         
         cell.lineSeparator.hidden = (indexPath.row == stream.camps.count - 1);
@@ -461,11 +468,21 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
         SearchResultCell *cell = (SearchResultCell *)[tableView cellForRowAtIndexPath:indexPath];
         
         if (cell.camp) {
+            NSMutableArray *actions = [NSMutableArray new];
+            
             UIAction *shareViaAction = [UIAction actionWithTitle:@"Share Camp via..." image:[UIImage systemImageNamed:@"square.and.arrow.up"] identifier:@"share_via" handler:^(__kindof UIAction * _Nonnull action) {
                 [Launcher shareCamp:cell.camp];
             }];
+            [actions addObject:shareViaAction];
             
-            UIMenu *menu = [UIMenu menuWithTitle:@"" children:@[shareViaAction]];
+            #ifdef DEBUG
+            UIAction *debug = [UIAction actionWithTitle:@"Debug Camp" image:[UIImage systemImageNamed:@"gear"] identifier:@"debug_camp" handler:^(__kindof UIAction * _Nonnull action) {
+                [Launcher openDebugView:cell.camp];
+            }];
+            [actions addObject:debug];
+            #endif
+            
+            UIMenu *menu = [UIMenu menuWithTitle:@"" children:actions];
             
             CampViewController *campVC = [Launcher campViewControllerForCamp:cell.camp];
             campVC.isPreview = true;
@@ -515,7 +532,7 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
     CampListStream *stream = [self activeStream];
     if (!self.loading && stream.camps.count == 0) return CGFLOAT_MIN;
     
-    if (section == 0) {
+    if (section == -1) {
         return 56;
     }
     else if (!_isSearching && section == 1 && self.suggestedCamps.count > 0) {
@@ -530,7 +547,7 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
     
     if (!self.loading && stream.camps.count == 0) return nil;
     
-    if (section == 0) {
+    if (section == -1) {
         UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 56)];
         
         // search view

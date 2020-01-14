@@ -9,6 +9,7 @@
 #import <UIKit/UIKit.h>
 #import "CampCardCell.h"
 #import "BFDetailsCollectionView.h"
+#import <MarqueeLabel/MarqueeLabel.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -24,8 +25,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) UILabel *campAvatarReasonLabel;
 @property (nonatomic, strong) UIImageView *campAvatarReasonImageView;
 
-@property (nonatomic, strong) UILabel *campTitleLabel;
-@property (nonatomic, strong) UILabel *campTagLabel;
+@property (nonatomic, strong) MarqueeLabel *campTitleLabel;
+@property (nonatomic, strong) MarqueeLabel *campTagLabel;
 
 @property (nonatomic, strong) UIButton *membersDetailsButton;
 

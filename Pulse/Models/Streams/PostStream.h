@@ -35,6 +35,9 @@ typedef enum {
 @property (nonatomic, strong) NSMutableArray <Post *> *tempPosts;
 @property (nonatomic, strong) NSArray <Post *> *posts;
 
+@property (nonatomic) NSString *prevCursor;
+@property (nonatomic) NSString *nextCursor;
+
 - (void)prependPage:(PostStreamPage *)page;
 - (void)appendPage:(PostStreamPage *)page;
 
@@ -55,9 +58,6 @@ typedef enum {
 - (void)removePost:(Post *)post;
 - (void)updateCampObjects:(Camp *)camp;
 - (void)updateUserObjects:(User *)user;
-
-@property (nonatomic) NSString *prevCursor;
-@property (nonatomic) NSString *nextCursor;
 
 @end
 

@@ -202,7 +202,7 @@
             pulse.transform = CGAffineTransformMakeScale(1.45, 1.45);
             pulse.alpha = 0;
         } completion:^(BOOL finished) {
-            //[pulse removeFromSuperview];
+            [pulse removeFromSuperview];
         }];
         
         [self resize];

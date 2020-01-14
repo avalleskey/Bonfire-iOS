@@ -21,6 +21,12 @@
                                         (UIViewController *)__responder; \
                                         })
 
+@interface LargeCampCardCell () {
+    CAGradientLayer *gradientLayer;
+}
+
+@end
+
 @implementation LargeCampCardCell
 
 @synthesize camp = _camp;
@@ -65,6 +71,11 @@
     
     self.campHeaderView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, 72)];
     self.campHeaderView.backgroundColor = [UIColor bonfireOrange];
+    
+    gradientLayer = [CAGradientLayer layer];
+    gradientLayer.frame = self.campHeaderView.bounds;
+    [self.campHeaderView.layer addSublayer:gradientLayer];
+    
     [self.contentView addSubview:self.campHeaderView];
     
     self.profilePictureContainerView = [[UIView alloc] initWithFrame:CGRectMake(20, 20, 80, 80)];
@@ -221,6 +232,7 @@
     [super layoutSubviews];
         
     self.campHeaderView.frame = CGRectMake(self.campHeaderView.frame.origin.x, self.campHeaderView.frame.origin.y, self.frame.size.width, self.campHeaderView.frame.size.height);
+    gradientLayer.frame = self.campHeaderView.bounds;
     self.profilePictureContainerView.center = CGPointMake(self.campHeaderView.frame.size.width / 2, self.profilePictureContainerView.center.y);
     
     // title
@@ -359,6 +371,7 @@
         self.tintColor = [UIColor fromHex:camp.attributes.color];
         
         self.campHeaderView.backgroundColor = [UIColor fromHex:camp.attributes.color];
+        
         // set profile pictures
         for (NSInteger i = 0; i < 4; i++) {
             BFAvatarView *avatarView;

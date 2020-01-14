@@ -25,9 +25,10 @@
 #import "ExpandThreadCell.h"
 #import "PaginationCell.h"
 #import "BFAlertController.h"
+#import "PrivacySelectorTableViewController.h"
 @import Firebase;
 
-@interface LinkConversationsViewController () {
+@interface LinkConversationsViewController () <PrivacySelectorDelegate> {
     int previousTableViewYOffset;
 }
 
@@ -1027,17 +1028,16 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
 - (void)setupComposeInputView {
     self.composeInputView = [[ComposeInputView alloc] initWithFrame:CGRectMake(0, self.view.frame.size.height - 52, self.view.frame.size.width, 190)];
     self.composeInputView.delegate = self;
-    self.composeInputView.parentViewController = self;
-    self.composeInputView.media.maxImages = 1;
-    self.composeInputView.textView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
+    self.composeInputView.textView.keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
     
     [self.composeInputView bk_whenTapped:^{
         if (![self.composeInputView isActive]) {
             [self.composeInputView setActive:true];
         }
     }];
+    [self.composeInputView.postButton setImage:[[UIImage imageNamed:@"nextButtonIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
     [self.composeInputView.postButton bk_whenTapped:^{
-        [self postMessage];
+        [self openPrivacySelector];
     }];
     [self.composeInputView.expandButton bk_whenTapped:^{
 //        [Launcher openComposePost:self.post.attributes.postedIn inReplyTo:self.post withMessage:self.composeInputView.textView.text media:@[]];
@@ -1062,15 +1062,27 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     [self.view addSubview:self.composeInputView];
     
     self.composeInputView.tintColor = [self.theme isEqual:[UIColor whiteColor]] ? [UIColor bonfirePrimaryColor] : self.theme;
-    self.composeInputView.postButton.backgroundColor = self.composeInputView.tintColor;
-    self.composeInputView.postButton.tintColor = [UIColor highContrastForegroundForBackground:self.composeInputView.postButton.backgroundColor];
-//    self.composeInputView.addMediaButton.backgroundColor = self.composeInputView.tintColor;
     self.composeInputView.defaultPlaceholder = @"Share this link...";
+    [self.composeInputView setMediaTypes:@[BFMediaTypeGIF, BFMediaTypeText, BFMediaTypeImage]];
     
-    // self.tableView.inputView = self.composeInputView;
+    self.composeInputView.postButton.backgroundColor = [UIColor bonfirePrimaryColor];
+    self.composeInputView.postButton.tintColor = [UIColor whiteColor];
 }
-
-- (void)postMessage {
+- (void)privacySelectionDidChange:(Camp * _Nullable)selection {
+    [self postMessageInCamp:selection];
+}
+- (void)openPrivacySelector {
+    PrivacySelectorTableViewController *sitvc = [[PrivacySelectorTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
+    sitvc.delegate = self;
+    sitvc.title = @"Post in...";
+    sitvc.shareOnProfile = false;
+    
+    SimpleNavigationController *simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:sitvc];
+    simpleNav.transitioningDelegate = [Launcher sharedInstance];
+    simpleNav.modalPresentationStyle = UIModalPresentationFullScreen;
+    [self.navigationController presentViewController:simpleNav animated:YES completion:nil];
+}
+- (void)postMessageInCamp:(Camp *)camp {
     NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
     NSString *message = self.composeInputView.textView.text;
     if (message.length > 0) {
@@ -1088,11 +1100,15 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         PostAttachments *attachments = [[PostAttachments alloc] init];
         attachments.link = self.link;
         
-        [BFAPI createPost:params postingIn:nil replyingTo:nil attachments:attachments];
+        [BFAPI createPost:params postingIn:camp replyingTo:nil attachments:attachments];
         
         [self.composeInputView reset];
     }
 }
+
+
+
+
 - (void)updateComposeInputView {
     Camp *camp = self.link.attributes.attribution;
     

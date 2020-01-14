@@ -43,6 +43,9 @@
             if (self.post.attributes.parent) {
                 [Launcher openPost:self.post.attributes.parent withKeyboard:false];
             }
+            else if (self.post.containsMention && ![self.post isCreator]) {
+                [Launcher openPost:self.post withKeyboard:false];
+            }
         }];
         [self.contentView addSubview:self.contextView];
                 
@@ -174,11 +177,11 @@
         yBottom = self.campAttachmentView.frame.origin.y + self.campAttachmentView.frame.size.height;
     }
     
-    if (self.userAttachmentView) {
-        [self.userAttachmentView layoutSubviews];
-        self.userAttachmentView.frame = CGRectMake(offset.left, yBottom + 8, self.frame.size.width - offset.left - postContentOffset.right, [BFUserAttachmentView heightForUser:self.userAttachmentView.user width: self.frame.size.width-(postContentOffset.left+postContentOffset.right)]);
+    if (self.identityAttachmentView) {
+        [self.identityAttachmentView layoutSubviews];
+        self.identityAttachmentView.frame = CGRectMake(offset.left, yBottom + 8, self.frame.size.width - offset.left - postContentOffset.right, [BFIdentityAttachmentView heightForIdentity:self.identityAttachmentView.identity width: self.frame.size.width-(postContentOffset.left+postContentOffset.right)]);
         
-        yBottom = self.userAttachmentView.frame.origin.y + self.userAttachmentView.frame.size.height;
+        yBottom = self.identityAttachmentView.frame.origin.y + self.identityAttachmentView.frame.size.height;
     }
     
     if (self.postAttachmentView) {
@@ -387,8 +390,8 @@
             if (self.campAttachmentView) {
                 [self removeCampAttachment];
             }
-            if (self.userAttachmentView) {
-                [self removeUserAttachment];
+            if (self.identityAttachmentView) {
+                [self removeIdentityAttachment];
             }
             if (self.postAttachmentView) {
                 [self removePostAttachment];
@@ -458,10 +461,10 @@
             
             // user attachment
             if ([self.post hasUserAttachment]) {
-                [self initUserAttachment];
+                [self initIdentityAttachment];
             }
-            else if (self.userAttachmentView) {
-                [self removeUserAttachment];
+            else if (self.identityAttachmentView) {
+                [self removeIdentityAttachment];
             }
             
             // post attachment
@@ -476,11 +479,11 @@
                 self.actionsView.actionsType = PostActionsViewTypeConversation;
                 
                 [self.actionsView.replyButton setTitle:@"Reply" forState:UIControlStateNormal];
-                
-                [self setVoted:(self.post.attributes.context.post.vote != nil) animated:false];
             }
         }
     }
+    
+    [self setVoted:(self.post.attributes.context.post.vote != nil) animated:false];
 }
 - (UIImage *)colorImage:(UIImage *)image color:(UIColor *)color
 {
@@ -568,7 +571,7 @@
     if ([post hasUserAttachment]) {
         User *user = post.attributes.attachments.user;
         
-        CGFloat userAttachmentHeight = [BFUserAttachmentView heightForUser:user width:screenWidth-postContentOffset.left-postContentOffset.right];
+        CGFloat userAttachmentHeight = [BFIdentityAttachmentView heightForIdentity:user width:screenWidth-postContentOffset.left-postContentOffset.right];
         height = height + userAttachmentHeight + 8; // 8 above
     }
     
@@ -601,14 +604,13 @@
     NSMutableAttributedString *attributedText;
     UIImage *icon;
     
+    UIFont *font = [UIFont systemFontOfSize:15.f weight:UIFontWeightRegular];
+    NSAttributedString *attributedCreatorText;
+    
     if (post.attributes.parent.attributes.creator.attributes.identifier.length > 0) {
         NSString *parentUsername = post.attributes.parent.attributes.creator.attributes.identifier;
-        
-        UIFont *font = [UIFont systemFontOfSize:15.f weight:UIFontWeightRegular];
-        
+
         attributedText = [[NSMutableAttributedString alloc] initWithString:@"Replying to " attributes:@{NSFontAttributeName: font, NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
-        
-        NSAttributedString *attributedCreatorText;
         
         if ([parentUsername isEqualToString:[Session sharedInstance].currentUser.attributes.identifier]) {
             attributedCreatorText = [[NSAttributedString alloc] initWithString:@"you" attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:font.pointSize weight:UIFontWeightSemibold], NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
@@ -618,14 +620,17 @@
         }
         [attributedText appendAttributedString:attributedCreatorText];
         
-//        // disclosure icon ( > )
-//        NSTextAttachment *attachment = [[NSTextAttachment alloc] init];
-//        attachment.image = [UIImage imageNamed:@"headerDetailDisclosureIcon"];
-//        [attachment setBounds:CGRectMake(6, roundf(font.capHeight - attachment.image.size.height * .75)/2.f - 0.5, attachment.image.size.width * .75, attachment.image.size.height * .75)];
-//        NSAttributedString *attachmentString = [NSAttributedString attributedStringWithAttachment:attachment];
-//        [attributedText appendAttributedString:attachmentString];
-        
         icon = [[UIImage imageNamed:@"notificationIndicator_reply"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+    }
+    else if (post.containsMention && ![post isCreator]) {
+        NSString *creatorUsername = post.attributes.creator.attributes.identifier;
+
+        attributedText = [[NSMutableAttributedString alloc] initWithString:@"You were mentioned by " attributes:@{NSFontAttributeName: font, NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
+        
+        attributedCreatorText = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"@%@", creatorUsername] attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:15.f weight:UIFontWeightSemibold], NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
+        [attributedText appendAttributedString:attributedCreatorText];
+        
+        icon = [[UIImage imageNamed:@"notificationIndicator_mention"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
     }
     
     if (attributedText.length > 0 && icon) {

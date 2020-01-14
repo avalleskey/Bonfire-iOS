@@ -17,11 +17,12 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface ProfileViewController : ThemedViewController <ComposeInputViewDelegate, RSTableViewDelegate>
 
-@property (strong, nonatomic) User * _Nullable user;
-@property (strong, nonatomic) Bot * _Nullable bot;
+@property (nonatomic, strong) User * _Nullable user;
+@property (nonatomic, strong) Bot * _Nullable bot;
 
-@property (strong, nonatomic) RSTableView * _Nullable tableView;
+@property (nonatomic, strong) RSTableView * _Nullable tableView;
 @property (nonatomic, strong) UIImageView *coverPhotoView;
+@property (nonatomic, strong) CAGradientLayer *coverPhotoViewOverlay;
 
 @property (nonatomic) CGFloat currentKeyboardHeight;
 @property (nonatomic) BOOL isPreview;

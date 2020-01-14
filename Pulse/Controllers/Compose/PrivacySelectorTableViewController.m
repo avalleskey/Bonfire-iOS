@@ -47,8 +47,8 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
-    self.title = @"Share in...";
+        
+    self.searchPhrase = @"";
     
     [self loadCache];
     
@@ -142,44 +142,54 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
         [self.tableView reloadData];
     }
     
+    NSString *filterQuery = @"";
     if (self.searchPhrase && self.searchPhrase.length > 0) {
-        [params setObject:self.searchPhrase forKey:@"s"];
+        filterQuery = self.searchPhrase;
+        [params setObject:filterQuery forKey:@"filter_query"];
     }
     
     [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        if (params[@"s"] && ![params[@"s"] isEqualToString:self.searchPhrase]) {
-            NSLog(@"search phrase has changed");
+        if (![self.searchPhrase isEqualToString:filterQuery]) {
             return;
         }
         
         CampListStreamPage *page = [[CampListStreamPage alloc] initWithDictionary:responseObject error:nil];
-        
+
         if (page.data.count > 0) {
-            if ([params objectForKey:@"cursor"]) {
-                self.loadingMoreCamps = false;
-            }
-            else {
+            if (![params objectForKey:@"cursor"]) {
                 // clear the stream (we retrieved a full page of notifs and the old ones are out of date)
                 self.stream = [[CampListStream alloc] init];
             }
-            [self.stream appendPage:page];
+            
+            if (cursorType == StreamPagingCursorTypePrevious) {
+                [self.stream prependPage:page];
+            }
+            else {
+                [self.stream appendPage:page];
+            }
+            
+            if (filterQuery.length == 0) {
+                [self saveCacheIfNeeded];
+            }
+        }
+        else if (cursorType == StreamPagingCursorTypeNone) {
+            self.stream = [[CampListStream alloc] init];
             
             [self saveCacheIfNeeded];
         }
         
         self.loadingCamps = false;
-        
+        self.loadingMoreCamps = false;
         
         [self.tableView layoutIfNeeded];
         [self.tableView reloadData];
         [self.tableView layoutIfNeeded];
-        
-//        [self.tableView reloadData];
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         NSLog(@"CampViewController / getRequests() - error: %@", error);
         //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
         if (nextCursor.length > 0) {
             [self.stream removeLoadedCursor:nextCursor];
+            self.loadingMoreCamps = false;
         }
         self.loadingCamps = false;
         
@@ -206,43 +216,60 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.section == 0 && indexPath.row == 0) {
-        UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:myProfileCellReuseIdentifier forIndexPath:indexPath];
+//        UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:myProfileCellReuseIdentifier forIndexPath:indexPath];
+//
+//        cell.selectionStyle = UITableViewCellSelectionStyleNone;
+//
+//        UILabel *label = [cell viewWithTag:10];
+//        UIImageView *checkIcon = [cell viewWithTag:11];
+//        UIView *separator = [cell viewWithTag:12];
+//        if (!label) {
+//            cell.contentView.backgroundColor = [UIColor contentBackgroundColor];
+//
+//            label = [[UILabel alloc] initWithFrame:CGRectMake(70, 0, self.view.frame.size.width - 70 - 16 - 32, cell.frame.size.height)];
+//            label.tag = 10;
+//            label.textAlignment = NSTextAlignmentLeft;
+//            label.font = [UIFont systemFontOfSize:15.f weight:UIFontWeightSemibold];
+//            label.textColor = [UIColor bonfirePrimaryColor];
+//            label.text = @"My Profile";
+//            [cell.contentView addSubview:label];
+//
+//            // image view
+//            BFAvatarView *imageView = [[BFAvatarView alloc] init];
+//            imageView.frame = CGRectMake(12, cell.frame.size.height / 2 - 24, 48, 48);
+//            imageView.user = [Session sharedInstance].currentUser;
+//            [cell.contentView addSubview:imageView];
+//
+//            checkIcon = [[UIImageView alloc] initWithFrame:CGRectMake(cell.frame.size.width - 16 - 24, cell.frame.size.height / 2 - 12, 24, 24)];
+//            checkIcon.image = [[UIImage imageNamed:@"tableCellCheckIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+//            checkIcon.tintColor = self.view.tintColor;
+//            checkIcon.hidden = true;
+//            [cell.contentView addSubview:checkIcon];
+//
+//            separator = [[UIView alloc] initWithFrame:CGRectMake(label.frame.origin.x, cell.frame.size.height - HALF_PIXEL, self.view.frame.size.width - label.frame.origin.x, HALF_PIXEL)];
+//            separator.backgroundColor = [UIColor tableViewSeparatorColor];
+//            separator.tag = 12;
+//            [cell.contentView addSubview:separator];
+//        }
+//        checkIcon.hidden = !(self.shareOnProfile && self.currentSelection == nil);
+//        separator.hidden = self.stream.camps.count == 0;
+//
+//        return cell;
         
-        cell.selectionStyle = UITableViewCellSelectionStyleNone;
+        SearchResultCell *cell = [tableView dequeueReusableCellWithIdentifier:campCellIdentifier forIndexPath:indexPath];
         
-        UILabel *label = [cell viewWithTag:10];
-        UIImageView *checkIcon = [cell viewWithTag:11];
-        UIView *separator = [cell viewWithTag:12];
-        if (!label) {
-            cell.contentView.backgroundColor = [UIColor contentBackgroundColor];
-            
-            label = [[UILabel alloc] initWithFrame:CGRectMake(70, 0, self.view.frame.size.width - 70 - 16 - 32, cell.frame.size.height)];
-            label.tag = 10;
-            label.textAlignment = NSTextAlignmentLeft;
-            label.font = [UIFont systemFontOfSize:15.f weight:UIFontWeightSemibold];
-            label.textColor = [UIColor bonfirePrimaryColor];
-            label.text = @"My Profile";
-            [cell.contentView addSubview:label];
-            
-            // image view
-            BFAvatarView *imageView = [[BFAvatarView alloc] init];
-            imageView.frame = CGRectMake(12, cell.frame.size.height / 2 - 24, 48, 48);
-            imageView.user = [Session sharedInstance].currentUser;
-            [cell.contentView addSubview:imageView];
-            
-            checkIcon = [[UIImageView alloc] initWithFrame:CGRectMake(cell.frame.size.width - 16 - 24, cell.frame.size.height / 2 - 12, 24, 24)];
-            checkIcon.image = [[UIImage imageNamed:@"tableCellCheckIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-            checkIcon.tintColor = self.view.tintColor;
-            checkIcon.hidden = true;
-            [cell.contentView addSubview:checkIcon];
-            
-            separator = [[UIView alloc] initWithFrame:CGRectMake(label.frame.origin.x, cell.frame.size.height - HALF_PIXEL, self.view.frame.size.width - label.frame.origin.x, HALF_PIXEL)];
-            separator.backgroundColor = [UIColor tableViewSeparatorColor];
-            separator.tag = 12;
-            [cell.contentView addSubview:separator];
+        if (cell == nil) {
+            cell = [[SearchResultCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:campCellIdentifier];
         }
-        checkIcon.hidden = !(self.shareOnProfile && self.currentSelection == nil);
-        separator.hidden = self.stream.camps.count == 0;
+        
+        cell.user = [Session sharedInstance].currentUser;
+        cell.textLabel.text = @"My Profile";
+        
+        cell.tintColor = self.view.tintColor;
+        cell.checkIcon.tintColor = self.view.tintColor;
+        
+        cell.checkIcon.hidden = !(self.shareOnProfile && self.currentSelection == nil);
+        cell.lineSeparator.hidden = self.stream.camps.count == 0;
         
         return cell;
     }
@@ -289,7 +316,7 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    if (section == -1) {
+    if (section == 0 && [self showSearch]) {
         return 56;
     }
     
@@ -297,29 +324,41 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
 }
 
 - (nullable UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
-    if (section == -1) {
+    if (section == 0 && [self showSearch]) {
         UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 56)];
-        header.backgroundColor = [UIColor whiteColor];
+        header.backgroundColor = [UIColor contentBackgroundColor];
         
-        // search view
-        self.searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(12, 10, self.view.frame.size.width - (12 * 2), 36)];
-        self.searchView.placeholder = @"Search Available Camps";
-        [self.searchView updateSearchText:self.searchPhrase];
-        self.searchView.textField.tintColor = self.view.tintColor;
-        self.searchView.textField.delegate = self;
-        [self.searchView.textField bk_addEventHandler:^(id sender) {
-            self.searchPhrase = self.searchView.textField.text;
-            
-            [self.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:NO];
-            [self getCampsWithCursor:StreamPagingCursorTypeNone];
-            [self.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:NO];
-        } forControlEvents:UIControlEventEditingChanged];
+        if (!self.searchView) {
+            // search view
+            self.searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(12, 10, self.view.frame.size.width - (12 * 2), 36)];
+            self.searchView.placeholder = @"Search Available Camps";
+            [self.searchView updateSearchText:self.searchPhrase];
+            self.searchView.textField.tintColor = self.view.tintColor;
+            self.searchView.textField.delegate = self;
+            [self.searchView.textField becomeFirstResponder];
+            [self.searchView.textField bk_addEventHandler:^(id sender) {
+                self.searchPhrase = self.searchView.textField.text;
+                
+                [self.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:NO];
+                [self getCampsWithCursor:StreamPagingCursorTypeNone];
+                [self.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:NO];
+            } forControlEvents:UIControlEventEditingChanged];
+        }
+        self.searchView.frame = CGRectMake(12, 10, self.view.frame.size.width - (12 * 2), 36);
+        
         [header addSubview:self.searchView];
         
         return header;
     }
+    else {
+        self.searchView = nil;
+    }
     
     return nil;
+}
+
+- (BOOL)showSearch {
+    return [Session sharedInstance].currentUser.attributes.summaries.counts.camps >= 8;
 }
 
 - (void)textFieldDidBeginEditing:(UITextField *)textField {

@@ -12,7 +12,7 @@
 #import "ChangePasswordTableViewController.h"
 #import "BFAlertController.h"
 
-#import "BFUserAttachmentView.h"
+#import "BFIdentityAttachmentView.h"
 #import <JGProgressHUD/JGProgressHUD.h>
 #import <HapticHelper/HapticHelper.h>
 
@@ -138,7 +138,7 @@
 
 - (UIView *)alternativeViewForHeaderInSection:(NSInteger)section {
     if (section == 0) {
-        BFUserAttachmentView *attachmentView = [[BFUserAttachmentView alloc] initWithUser:[Session sharedInstance].currentUser frame:CGRectMake(0, 0, self.view.frame.size.width, 100)];
+        BFIdentityAttachmentView *attachmentView = [[BFIdentityAttachmentView alloc] initWithIdentity:[Session sharedInstance].currentUser frame:CGRectMake(0, 0, self.view.frame.size.width, 100)];
         attachmentView.backgroundColor = [UIColor clearColor];
         attachmentView.userInteractionEnabled = false;
         attachmentView.layer.cornerRadius = 0;
@@ -154,7 +154,7 @@
 }
 - (CGFloat)alternativeHeightForHeaderInSection:(NSInteger)section {
     if (section == 0) {
-        return [BFUserAttachmentView heightForUser:[Session sharedInstance].currentUser width:self.view.frame.size.width showBio:false showDetails:false];
+        return [BFIdentityAttachmentView heightForIdentity:[Session sharedInstance].currentUser width:self.view.frame.size.width showBio:false showDetails:false];
     }
     
     return 0;

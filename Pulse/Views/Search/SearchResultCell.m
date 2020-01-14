@@ -24,7 +24,7 @@
         self.profilePicture.userInteractionEnabled = false;
         [self.contentView addSubview:self.profilePicture];
         
-        self.textLabel.font = [UIFont systemFontOfSize:15.f weight:UIFontWeightSemibold];
+        self.textLabel.font = [UIFont systemFontOfSize:15.f weight:UIFontWeightBold];
         self.textLabel.textColor = [UIColor bonfirePrimaryColor];
         self.textLabel.backgroundColor = [UIColor clearColor];
         
@@ -40,13 +40,24 @@
         self.lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
         [self addSubview:self.lineSeparator];
         
+        self.contextButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        self.contextButton.frame = CGRectMake(0, 0, 24, 24);
+        self.contextButton.contentMode = UIViewContentModeCenter;
+        self.contextButton.layer.cornerRadius = self.contextButton.frame.size.height / 2;
+        self.contextButton.backgroundColor = [UIColor fromHex:@"0076ff" adjustForOptimalContrast:true];
+        self.contextButton.layer.masksToBounds = true;
+        self.contextButton.hidden = false;
+        self.contextButton.contentHorizontalAlignment = UIControlContentHorizontalAlignmentCenter;
+        self.contextButton.titleLabel.font = [UIFont systemFontOfSize:12.f weight:UIFontWeightHeavy];
+        self.contextButton.userInteractionEnabled = false;
+        [self.contentView addSubview:self.contextButton];
+        
         self.actionButton = [UIButton buttonWithType:UIButtonTypeCustom];
         self.actionButton.backgroundColor = [UIColor bonfireBrand];
         self.actionButton.layer.cornerRadius = 10.f;
         self.actionButton.layer.masksToBounds = true;
         self.actionButton.hidden = true;
         self.actionButton.titleLabel.font = [UIFont systemFontOfSize:self.textLabel.font.pointSize weight:UIFontWeightBold];
-        
         [self.actionButton bk_whenTapped:^{
             if (self.user) {
                 self.user.attributes.context.me.status = USER_STATUS_LOADING;
@@ -81,7 +92,7 @@
                 self.actionButton.alpha = 1;
             } completion:nil]; } forControlEvents:(UIControlEventTouchUpInside|UIControlEventTouchCancel|UIControlEventTouchDragExit)];
 
-        [self addSubview:self.actionButton];
+        [self.contentView addSubview:self.actionButton];
         
         self.checkIcon = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 24, 24)];
         self.checkIcon.image = [[UIImage imageNamed:@"tableCellCheckIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
@@ -107,15 +118,31 @@
     
     // check icon
     if (![self.checkIcon isHidden]) {
-        self.checkIcon.frame = CGRectMake(self.frame.size.width - self.checkIcon.frame.size.width - 16, self.frame.size.height / 2 - (self.checkIcon.frame.size.height / 2), self.checkIcon.frame.size.width, self.checkIcon.frame.size.height);
+        self.actionButton.hidden = true;
+        self.contextButton.hidden = true;
+        
+        textEdgeInsets.right += 4;
+        self.checkIcon.frame = CGRectMake(self.frame.size.width - self.checkIcon.frame.size.width - textEdgeInsets.right, self.frame.size.height / 2 - (self.checkIcon.frame.size.height / 2), self.checkIcon.frame.size.width, self.checkIcon.frame.size.height);
         textEdgeInsets.right = (self.frame.size.width - self.checkIcon.frame.origin.x) + 10;
     }
-    
-    if (![self.actionButton isHidden]) {
+    else if (![self.actionButton isHidden]) {
+        self.checkIcon.hidden = true;
+        self.contextButton.hidden = true;
+        
         CGFloat buttonSidePadding = 14;
         CGFloat actionButtonWidth = (self.actionButton.intrinsicContentSize.width + (buttonSidePadding * 2));
         self.actionButton.frame = CGRectMake(self.frame.size.width - actionButtonWidth - textEdgeInsets.right, self.frame.size.height / 2 - (34 / 2), actionButtonWidth, 34);
         textEdgeInsets.right = (self.frame.size.width - self.actionButton.frame.origin.x) + 10;
+    }
+    else if (![self.contextButton isHidden]) {
+        self.checkIcon.hidden = true;
+        self.actionButton.hidden = true;
+        
+        textEdgeInsets.right += 4;
+        CGFloat buttonSidePadding = 2;
+        CGFloat actionButtonWidth = self.contextButton.currentTitle.length > 1 ? MAX(self.contextButton.frame.size.height, self.contextButton.intrinsicContentSize.width + (buttonSidePadding * 2)) : self.contextButton.frame.size.height;
+        self.contextButton.frame = CGRectMake(self.frame.size.width - actionButtonWidth - textEdgeInsets.right, self.frame.size.height / 2 - (self.contextButton.frame.size.height / 2), actionButtonWidth, self.contextButton.frame.size.height);
+        textEdgeInsets.right = (self.frame.size.width - self.contextButton.frame.origin.x) + 10;
     }
     
     // text label
@@ -179,22 +206,32 @@
              [attributedString appendAttributedString:lockAttachmentString];
         }
     }
-                
-    if (attributedString.string.length > 0) {
-        NSAttributedString *dotSeparator = [[NSAttributedString alloc] initWithString:@"  ·  " attributes:@{NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor], NSFontAttributeName: [UIFont systemFontOfSize:self.detailTextLabel.font.pointSize weight:UIFontWeightRegular]}];
-        
-        [attributedString appendAttributedString:dotSeparator];
-    }
     
-    NSTextAttachment *attachment = [[NSTextAttachment alloc] init];
-    attachment.image = [self colorImage:[UIImage imageNamed:@"details_label_members"] color:[UIColor bonfireSecondaryColor]];
-    [attachment setBounds:CGRectMake(0, roundf(self.detailTextLabel.font.capHeight - attachment.image.size.height)/2.f, attachment.image.size.width, attachment.image.size.height)];
-    NSAttributedString *attachmentString = [NSAttributedString attributedStringWithAttachment:attachment];
-    [attributedString appendAttributedString:attachmentString];
-               
-    NSString *detailText = [NSString stringWithFormat:@" %ld", (long)self.camp.attributes.summaries.counts.members];
-    NSAttributedString *detailAttributedText = [[NSAttributedString alloc] initWithString:detailText attributes:@{NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor], NSFontAttributeName: [UIFont systemFontOfSize:self.detailTextLabel.font.pointSize weight:UIFontWeightSemibold]}];
-    [attributedString appendAttributedString:detailAttributedText];
+    if (!self.hideCampMemberCount || attributedString.length == 0) {
+        NSInteger membersCount = self.camp.attributes.summaries.counts.members;
+        NSString *detailText;
+        
+        if (attributedString.length > 0) {
+            NSAttributedString *dotSeparator = [[NSAttributedString alloc] initWithString:@"  ·  " attributes:@{NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor], NSFontAttributeName: [UIFont systemFontOfSize:self.detailTextLabel.font.pointSize weight:UIFontWeightRegular]}];
+            
+            [attributedString appendAttributedString:dotSeparator];
+            
+            
+            detailText = [NSString stringWithFormat:@" %ld", (long)self.camp.attributes.summaries.counts.members];
+        }
+        else {
+            detailText = [NSString stringWithFormat:@" %ld %@%@", (long)self.camp.attributes.summaries.counts.members, ([self.camp isChannel] ? @"subscriber" : @"member"), (membersCount == 1 ? @"" : @"s")];
+        }
+        
+        NSTextAttachment *attachment = [[NSTextAttachment alloc] init];
+        attachment.image = [self colorImage:[UIImage imageNamed:@"details_label_members"] color:[UIColor bonfireSecondaryColor]];
+        [attachment setBounds:CGRectMake(0, roundf(self.detailTextLabel.font.capHeight - attachment.image.size.height)/2.f, attachment.image.size.width, attachment.image.size.height)];
+        NSAttributedString *attachmentString = [NSAttributedString attributedStringWithAttachment:attachment];
+        [attributedString appendAttributedString:attachmentString];
+                  
+        NSAttributedString *detailAttributedText = [[NSAttributedString alloc] initWithString:detailText attributes:@{NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor], NSFontAttributeName: [UIFont systemFontOfSize:self.detailTextLabel.font.pointSize weight:UIFontWeightSemibold]}];
+        [attributedString appendAttributedString:detailAttributedText];
+    }
     
     self.detailTextLabel.attributedText = attributedString;
 }
@@ -234,6 +271,7 @@
                 self.actionButton.backgroundColor = [UIColor fromHex:user.attributes.color adjustForOptimalContrast:true];
                 [self.actionButton setTitleColor:[UIColor highContrastForegroundForBackground:self.actionButton.backgroundColor] forState:UIControlStateNormal];
             }
+            self.contextButton.hidden = true;
         }
     }
 }
@@ -268,6 +306,7 @@
             }
             
             self.actionButton.hidden = true;
+            self.contextButton.hidden = true;
         }
     }
 }
@@ -292,7 +331,11 @@
             
             [self renderCampDetailLabel];
             
+            NSInteger new = camp.attributes.summaries.counts.postsNewForyou;
+            float scoreIndex = camp.attributes.summaries.counts.scoreIndex;
+                        
             self.actionButton.hidden = !self.showActionButton || !([camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_NO_RELATION] || [camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_LEFT]);
+            self.contextButton.hidden = ![self.actionButton isHidden] || (new == 0 && scoreIndex == 0);
             if (![self.actionButton isHidden]) {
                 if ([camp isChannel]) {
                     [self.actionButton setTitle:@"Subscribe" forState:UIControlStateNormal];
@@ -302,6 +345,28 @@
                 }
                 self.actionButton.backgroundColor = [[UIColor fromHex:camp.attributes.color adjustForOptimalContrast:true] colorWithAlphaComponent:0.1];
                 [self.actionButton setTitleColor:[UIColor fromHex:camp.attributes.color adjustForOptimalContrast:true] forState:UIControlStateNormal];
+            }
+            else if (![self.contextButton isHidden]) {
+                if (new > 0) {
+                    [self.contextButton setBackgroundImage:nil forState:UIControlStateNormal];
+                    if (new > 9) {
+                        [self.contextButton setTitle:@"9+" forState:UIControlStateNormal];
+                    }
+                    else {
+                        [self.contextButton setTitle:[NSString stringWithFormat:@"%lu", new] forState:UIControlStateNormal];
+                    }
+                    self.contextButton.backgroundColor = [UIColor fromHex:@"0076ff" adjustForOptimalContrast:YES];
+                }
+                else if (scoreIndex > 0) {
+                    self.contextButton.backgroundColor = [UIColor fromHex:camp.scoreColor];
+                    [self.contextButton setBackgroundImage:[UIImage imageNamed:@"hotIcon"] forState:UIControlStateNormal];
+                    [self.contextButton setTitle:@"" forState:UIControlStateNormal];
+                }
+                else {
+                    [self.contextButton setBackgroundImage:nil forState:UIControlStateNormal];
+                    [self.contextButton setTitle:@"" forState:UIControlStateNormal];
+                    self.contextButton.hidden = true;
+                }
             }
         }
     }

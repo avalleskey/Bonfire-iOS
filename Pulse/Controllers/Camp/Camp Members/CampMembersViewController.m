@@ -25,6 +25,7 @@
 #import <JGProgressHUD/JGProgressHUD.h>
 #import "BFHeaderView.h"
 #import "BFAlertController.h"
+#import "BFMiniNotificationManager.h"
 @import Firebase;
 
 #define section(section) self.tabs[activeTab].sections[section]
@@ -973,10 +974,8 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] POST:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         // on the completion of each request
         NSLog(@"success!");
-        HUD.indicatorView = [[JGProgressHUDSuccessIndicatorView alloc] init];
-        HUD.textLabel.text = [NSString stringWithFormat:@"Removed"];
-        
-        [HUD dismissAfterDelay:1.f];
+        BFMiniNotificationObject *notificationObject = [BFMiniNotificationObject notificationWithText:[NSString stringWithFormat:@"Removed %@", ([managerType isEqualToString:CAMP_ROLE_ADMIN] ? @"Director" : @"Manager")] action:nil];
+        [[BFMiniNotificationManager manager] presentNotification:notificationObject completion:nil];
         
         [[NSNotificationCenter defaultCenter] postNotificationName:@"CampManagersUpdated" object:@{@"camp": self.camp, @"type": managerType}];
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
@@ -985,11 +984,9 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
         NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
         NSLog(@"error response: %@", ErrorResponse);
         
-        HUD.indicatorView = [[JGProgressHUDErrorIndicatorView alloc] init];
-        HUD.textLabel.text = [NSString stringWithFormat:@"Error Removing Role"];
-        
-        [HUD dismissAfterDelay:1.f];
-        
+        BFMiniNotificationObject *notificationObject = [BFMiniNotificationObject notificationWithText:@"Error Removing Role" action:nil];
+        [[BFMiniNotificationManager manager] presentNotification:notificationObject completion:nil];
+                
         [[NSNotificationCenter defaultCenter] postNotificationName:@"CampManagersUpdated" object:@{@"camp": self.camp, @"type": managerType}];
     }];
 }

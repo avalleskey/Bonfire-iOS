@@ -286,7 +286,6 @@
     }
     else {
         self.identityAttachmentView = [[BFIdentityAttachmentView alloc] initWithIdentity:user frame:frame];
-        NSLog(@"heightttt: %f", self.identityAttachmentView.frame.size.height);
         [self.contentView addSubview:self.identityAttachmentView];
     }
 }

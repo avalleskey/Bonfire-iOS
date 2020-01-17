@@ -12,6 +12,7 @@
 #import "HAWebService.h"
 #import "PostStream.h"
 #import <JGProgressHUD/JGProgressHUD.h>
+#import "BFMiniNotificationManager.h"
 #import "Launcher.h"
 
 #define HELP_INFO_DESCRIPTION @"Tap a post below to set it as your Camp icebreaker"
@@ -196,9 +197,8 @@ static NSString * const postCellReuseIdentifier = @"PostCell";
         NSLog(@"post:: %@", [NSString stringWithFormat:@"camps/%@/posts/%@/icebreakers", post.attributes.postedIn.identifier, post.identifier]);
         
         [[HAWebService authenticatedManager] POST:[NSString stringWithFormat:@"camps/%@/posts/%@/icebreakers", post.attributes.postedIn.identifier, post.identifier] parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-            JGProgressHUD *HUD = [JGProgressHUD progressHUDWithStyle:JGProgressHUDStyleExtraLight];
-            HUD.textLabel.text = @"Svaed!";
-            [HUD dismiss];
+            BFMiniNotificationObject *notificationObject = [BFMiniNotificationObject notificationWithText:@"Saved!" action:nil];
+            [[BFMiniNotificationManager manager] presentNotification:notificationObject completion:nil];
             
             if ([self.delegate respondsToSelector:@selector(setAnIcebreakerViewController:didSelectPost:)]) {
                 [self.delegate setAnIcebreakerViewController:self didSelectPost:post];

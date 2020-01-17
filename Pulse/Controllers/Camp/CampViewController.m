@@ -163,7 +163,7 @@ static NSString * const reuseIdentifier = @"Result";
 //
 //        [self.tableView refreshAtTop];
         if (self.launchNavVC) {
-            [self.launchNavVC setProgress:0.8 animated:YES];
+            [self.launchNavVC setProgress:0.7 animated:YES];
         }
     }
 }

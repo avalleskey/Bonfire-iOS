@@ -306,6 +306,10 @@
                 useImage = true;
                 self.campAvatarReasonImageView.image = [UIImage imageNamed:@"managerIcon"];
             }
+            if (useImage) {
+                self.campAvatarReasonImageView.contentMode = UIViewContentModeScaleAspectFill;
+            }
+            
             self.campAvatarReasonView.hidden = !useText && !useImage;
             self.campAvatarReasonImageView.hidden = !useImage;
             self.campAvatarReasonLabel.hidden = !useText;
@@ -323,6 +327,7 @@
             self.campAvatarReasonLabel.hidden = true;
             
             self.campAvatarReasonImageView.image = [[UIImage imageNamed:@"joinCampMiniIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+            self.campAvatarReasonImageView.contentMode = UIViewContentModeCenter;
             
             [self setJoined:self.joined animated:false];
         }

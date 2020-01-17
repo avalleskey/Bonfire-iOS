@@ -236,7 +236,6 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
 
 - (void)setup {
     self.stream = [[PostStream alloc] init];
-    self.queuedStream = [[PostStream alloc] init];
     
     self.loading = true;
     self.loadingMore = false;
@@ -329,12 +328,6 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         refresh = true;
     }
     
-    Post *postInQueuedStream = [self.queuedStream postWithId:post.identifier];
-    if (postInQueuedStream) {
-        removeQueuedPost = true;
-        refresh = true;
-    }
-    
     if ([self.parentObject isKindOfClass:[Camp class]] && postedInCamp) {
         Camp *parentCamp = self.parentObject;
         
@@ -378,7 +371,6 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     }
     
     if (removePost) [self.stream removePost:post];
-    if (removeQueuedPost) [self.queuedStream removePost:post];
     
     if (refresh) [self hardRefresh:false];
 }

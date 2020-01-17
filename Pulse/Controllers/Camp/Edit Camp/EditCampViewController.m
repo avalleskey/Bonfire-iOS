@@ -22,6 +22,7 @@
 #import "BFHeaderView.h"
 #import "ManageIcebreakersViewController.h"
 #import "BFAlertController.h"
+#import "BFMiniNotificationManager.h"
 
 #import <RSKImageCropper/RSKImageCropper.h>
 #import <BlocksKit/BlocksKit.h>
@@ -293,10 +294,8 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
             
             [[HAWebService authenticatedManager] PUT:url parameters:params success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 // success
-                HUD.indicatorView = [[JGProgressHUDSuccessIndicatorView alloc] init];
-                HUD.textLabel.text = @"Success!";
-                
-                [HUD dismissAfterDelay:0.3f];
+                BFMiniNotificationObject *notificationObject = [BFMiniNotificationObject notificationWithText:@"Saved Camp!" action:nil];
+                [[BFMiniNotificationManager manager] presentNotification:notificationObject completion:nil];
                 
                 // save user
                 Camp *camp = [[Camp alloc] initWithDictionary:responseObject[@"data"] error:nil];

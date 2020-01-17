@@ -11,6 +11,7 @@
 #import "BFMedia.h"
 #import "BFTipsManager.h"
 #import "BFNotificationManager.h"
+#import "BFMiniNotificationManager.h"
 #import "Launcher.h"
 #import "ComposeViewController.h"
 #import "UIImage+fixOrientation.h"
@@ -431,12 +432,34 @@
                 
                 NSLog(@"response obj: %@", responseObject[@"data"]);
                 
+                BFMiniNotificationObject *notificationObject = [BFMiniNotificationObject notificationWithText:@"Posted!" action:^{
+                    NSLog(@"mini notification action!!!");
+                    [Launcher openPost:post withKeyboard:false];
+                }];
+                [[BFMiniNotificationManager manager] presentNotification:notificationObject completion:^{
+                    NSLog(@"presentNotification() completion");
+                }];
+                
                 [[NSNotificationCenter defaultCenter] postNotificationName:@"NewPostCompleted" object:@{@"tempId": tempPost.tempId, @"post": post}];
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
                 NSLog(@"Session / createPost() - error: %@", error);
                 // NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
                 
-                [BFAPI createPost_failed:params postingIn:postingIn replyingTo:replyingTo tempPost:tempPost attachments:attachments];
+                NSInteger errorCode = [error bonfireErrorCode];
+                
+                if (errorCode == POST_INACCESSIBLE) {
+                    [[NSNotificationCenter defaultCenter] postNotificationName:@"NewPostFailed" object:tempPost];
+                    
+                    BFAlertController *actionSheet = [BFAlertController alertControllerWithTitle:@"Error Creating Post" message:@"The post you were replying to is no longer available" preferredStyle:BFAlertControllerStyleAlert];
+                    
+                    BFAlertAction *cancelActionSheet = [BFAlertAction actionWithTitle:@"Okay" style:BFAlertActionStyleCancel handler:nil];
+                    [actionSheet addAction:cancelActionSheet];
+                    
+                    [[Launcher topMostViewController] presentViewController:actionSheet animated:YES completion:nil];
+                }
+                else {
+                    [BFAPI createPost_failed:params postingIn:postingIn replyingTo:replyingTo tempPost:tempPost attachments:attachments];
+                }
             }];
         }
         else {

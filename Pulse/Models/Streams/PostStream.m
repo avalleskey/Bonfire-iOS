@@ -420,9 +420,7 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
         [self.pages replaceObjectAtIndex:p withObject:page];
     }
     [self updatePostsArray];
-    
-    NSLog(@"found post to update? %@", foundPost ? @"YES" : @"NO");
-    
+        
     return changes;
 }
 

@@ -39,6 +39,7 @@
 #import <SafariServices/SafariServices.h>
 #import <StoreKit/StoreKit.h>
 #import <JGProgressHUD.h>
+#import "BFMiniNotificationManager.h"
 #import <SCSDKCreativeKit/SCSDKCreativeKit.h>
 #import <FBSDKShareKit/FBSDKShareKit.h>
 @import Firebase;
@@ -938,19 +939,11 @@ static Launcher *launcher;
     
     UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
     pasteboard.string = APP_DOWNLOAD_LINK;
-    
-    JGProgressHUD *HUD = [JGProgressHUD progressHUDWithStyle:JGProgressHUDStyleExtraLight];
-    HUD.textLabel.text = @"Copied Beta Link!";
-    HUD.vibrancyEnabled = false;
-    HUD.animation = [[JGProgressHUDFadeZoomAnimation alloc] init];
-    HUD.textLabel.textColor = [UIColor colorWithWhite:0 alpha:0.6f];
-    HUD.backgroundColor = [UIColor colorWithWhite:0 alpha:0.1f];
-    HUD.indicatorView = [[JGProgressHUDSuccessIndicatorView alloc] init];
-    
-    [HUD showInView:[Launcher topMostViewController].view animated:YES];
     [HapticHelper generateFeedback:FeedbackType_Notification_Success];
     
-    [HUD dismissAfterDelay:1.5f];
+    
+    BFMiniNotificationObject *notificationObject = [BFMiniNotificationObject notificationWithText:@"Copied!" action:nil];
+    [[BFMiniNotificationManager manager] presentNotification:notificationObject completion:nil];
 }
 
 + (void)openActionsForPost:(Post *)post {
@@ -1058,7 +1051,7 @@ static Launcher *launcher;
             [post mute];
         }
     }];
-//    [actionSheet addAction:postMuteAction];
+    [actionSheet addAction:postMuteAction];
     
     // 1.B.* -- Any user, outside camp, any following state
     if (post.attributes.postedIn == nil) {
@@ -1090,27 +1083,6 @@ static Launcher *launcher;
             [actionSheet addAction:openCamp];
         }
     }
-    
-    // 1.A.* -- Any user, any page, any following state
-    #if !TARGET_OS_MACCATALYST
-    BOOL hasiMessage = [MFMessageComposeViewController canSendText];
-    if (hasiMessage) {
-        BFAlertAction *shareOniMessage = [BFAlertAction actionWithTitle:@"Share on iMessage" style:BFAlertActionStyleDefault handler:^{
-            NSString *url = [NSString stringWithFormat:@"https://bonfire.camp/p/%@", post.identifier];
-            
-            NSString *message;
-            if (post.attributes.message.length > 0) {
-                message = [NSString stringWithFormat:@"\"%@\" %@", post.attributes.message, url];
-            }
-            else {
-                message = url;
-            }
-            
-            [Launcher shareOniMessage:message image:nil];
-        }];
-        [actionSheet addAction:shareOniMessage];
-    }
-    #endif
     
     // 1.A.* -- Any user, any page, any following state
     BFAlertAction *sharePost = [BFAlertAction actionWithTitle:@"Share via..." style:BFAlertActionStyleDefault handler:^{
@@ -1164,19 +1136,8 @@ static Launcher *launcher;
         UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
         pasteboard.string = url;
         
-        JGProgressHUD *HUD = [JGProgressHUD progressHUDWithStyle:JGProgressHUDStyleExtraLight];
-        HUD.indicatorView = [[JGProgressHUDSuccessIndicatorView alloc] init];
-        HUD.tintColor = [UIColor colorWithWhite:0 alpha:0.6f];
-        HUD.textLabel.text = @"Copied!";
-        HUD.vibrancyEnabled = false;
-        HUD.animation = [[JGProgressHUDFadeZoomAnimation alloc] init];
-        HUD.textLabel.textColor = [UIColor colorWithWhite:0 alpha:0.6f];
-        HUD.backgroundColor = [UIColor colorWithWhite:0 alpha:0.1f];
-        
-        [HUD showInView:[Launcher topMostViewController].view animated:YES];
-        [HapticHelper generateFeedback:FeedbackType_Notification_Success];
-        
-        [HUD dismissAfterDelay:1.5f];
+        BFMiniNotificationObject *notificationObject = [BFMiniNotificationObject notificationWithText:@"Copied!" action:nil];
+        [[BFMiniNotificationManager manager] presentNotification:notificationObject completion:nil];
     }];
     [confirmDeletePostActionSheet addAction:copyLink];
     

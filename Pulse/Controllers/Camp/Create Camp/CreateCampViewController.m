@@ -21,6 +21,7 @@
 #import "NSString+Validation.h"
 #import "HAWebService.h"
 #import "BFAlertController.h"
+#import "BFMiniNotificationManager.h"
 
 #import <JGProgressHUD/JGProgressHUD.h>
 #import <HapticHelper/HapticHelper.h>
@@ -462,20 +463,10 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         [shareField bk_whenTapped:^{
             UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
             pasteboard.string = shareField.currentTitle;
-            
-            JGProgressHUD *HUD = [JGProgressHUD progressHUDWithStyle:JGProgressHUDStyleExtraLight];
-            HUD.indicatorView = [[JGProgressHUDSuccessIndicatorView alloc] init];
-            HUD.tintColor = [UIColor colorWithWhite:0 alpha:0.6f];
-            HUD.textLabel.text = @"Copied Link!";
-            HUD.vibrancyEnabled = false;
-            HUD.animation = [[JGProgressHUDFadeZoomAnimation alloc] init];
-            HUD.textLabel.textColor = [UIColor colorWithWhite:0 alpha:0.6f];
-            HUD.backgroundColor = [UIColor colorWithWhite:0 alpha:0.1f];
-            
-            [HUD showInView:self.view animated:YES];
             [HapticHelper generateFeedback:FeedbackType_Notification_Success];
-            
-            [HUD dismissAfterDelay:1.5f];
+                        
+            BFMiniNotificationObject *notificationObject = [BFMiniNotificationObject notificationWithText:@"Copied!" action:nil];
+            [[BFMiniNotificationManager manager] presentNotification:notificationObject completion:nil];
         }];
         
         UILabel *copyLabel = [[UILabel alloc] initWithFrame:CGRectMake(shareField.frame.size.width - 20 - 64, 0, 64, shareField.frame.size.height)];

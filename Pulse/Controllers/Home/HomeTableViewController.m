@@ -107,8 +107,8 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
         
         // fetch new posts after 2mins
         NSTimeInterval secondsSinceLastFetch = [self.lastFetch timeIntervalSinceNow];
-        // NSLog(@"seconds since last fetch: %f", -secondsSinceLastFetch);
-        if (secondsSinceLastFetch < -(2 * 60)) {
+        NSLog(@"seconds since last fetch: %f", -secondsSinceLastFetch);
+        if (secondsSinceLastFetch < -60) {
             [self fetchNewPosts];
         }
     }
@@ -119,7 +119,7 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
 //        [self showMorePostsIndicator:false];
 //    }
     
-//    [self showComposeInputView];
+    [self showComposeInputView];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -151,18 +151,13 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
     [super viewWillDisappear:animated];
     
     [InsightsLogger.sharedInstance closeAllVisiblePostInsightsInTableView:self.rs_tableView];
-    
-    [self hideMorePostsIndicator:true];
-    [self addQueuedPosts];
 }
 
 #pragma mark - Setup
 - (void)setup {
-    self.rs_tableView.queuedStream = [PostStream new];
-    
     [self setupTableView];
     [self setupErrorView];
-//    [self setupComposeInputView];
+    [self setupComposeInputView];
 }
 - (void)setupTableView {
     self.rs_tableView = [[RSTableView alloc] initWithFrame:CGRectMake(100, self.view.bounds.origin.y, self.view.frame.size.width - 200, self.view.bounds.size.height) style:UITableViewStyleGrouped];
@@ -183,7 +178,6 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
 }
 - (void)setupContent {
     self.rs_tableView.stream.delegate = self;
-    self.rs_tableView.queuedStream.delegate = self;
     
     [self loadCache];
     
@@ -214,13 +208,11 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
     titleButton.frame = CGRectMake(0, 0, [titleButton intrinsicContentSize].width, self.navigationController.navigationBar.frame.size.height);
     [titleButton bk_whenTapped:^{
         [self.rs_tableView scrollToTopWithCompletion:^{
-            [self addQueuedPosts];
-                    
             if (!self.loading) {
                 // fetch new posts after 2mins
                 NSTimeInterval secondsSinceLastFetch = [self.lastFetch timeIntervalSinceNow];
                 // NSLog(@"seconds since last fetch: %f", -secondsSinceLastFetch);
-                if (secondsSinceLastFetch < -(2 * 60)) {
+                if (secondsSinceLastFetch < -60) {
                     [self fetchNewPosts];
                 }
             }
@@ -235,7 +227,7 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
 }
 - (void)setupMorePostsIndicator {
     self.morePostsIndicator = [UIButton buttonWithType:UIButtonTypeCustom];
-    self.morePostsIndicator.frame = CGRectMake(self.view.frame.size.width / 2 - (116 / 2), self.navigationController.navigationBar.frame.origin.y + self.navigationController.navigationBar.frame.size.height + 12, 116, 40);
+    self.morePostsIndicator.frame = CGRectMake(self.view.frame.size.width / 2 - (116 / 2), - 50, 116, 40);
     self.morePostsIndicator.layer.masksToBounds = false;
     self.morePostsIndicator.layer.shadowOffset = CGSizeMake(0, 1);
     self.morePostsIndicator.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.16].CGColor;
@@ -252,6 +244,7 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
     self.morePostsIndicator.layer.rasterizationScale = [UIScreen mainScreen].scale;
     CGFloat intrinsticWidth = self.morePostsIndicator.intrinsicContentSize.width + (18*2);
     self.morePostsIndicator.frame = CGRectMake(self.view.frame.size.width / 2 - intrinsticWidth / 2, self.morePostsIndicator.frame.origin.y, intrinsticWidth, self.morePostsIndicator.frame.size.height);
+    self.morePostsIndicator.center = CGPointMake(self.morePostsIndicator.center.x, self.morePostsIndicator.frame.size.height * -.6);
     
     [self.navigationController.view insertSubview:self.morePostsIndicator aboveSubview:self.view];
     
@@ -269,51 +262,8 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
     
     [self.morePostsIndicator bk_whenTapped:^{
         [self hideMorePostsIndicator:true];
-        
-        [self.rs_tableView scrollToTopWithCompletion:^{
-            [self addQueuedPosts];
-        }];
+        [self.rs_tableView scrollToTop];
     }];
-}
-- (void)addQueuedPosts {
-    if (self.rs_tableView.queuedStream.pages.count > 0) {
-        __block CGFloat newPosts = 0;
-        BOOL replaceCache = false;
-        __block PostStream *newStream = [self.rs_tableView.stream copy];
-        for (PostStreamPage *page in self.rs_tableView.queuedStream.pages) {
-            if (page.meta.paging.replaceCache) {
-                replaceCache = true;
-                newStream = [[PostStream alloc] init];
-            }
-            
-            [newStream prependPage:page];
-            
-            newPosts += page.data.count;
-        }
-        
-        void (^refreshView)(void) = ^void(void) {
-            self.rs_tableView.stream = newStream;
-            
-            DLog(@"new posts ! %f", newPosts);
-            if (newPosts > 0) {
-                self.rs_tableView.cellHeightsDictionary = @{}.mutableCopy;
-                
-                [self.rs_tableView hardRefresh:true];
-            }
-            
-            self.rs_tableView.queuedStream = [PostStream new];
-        };
-        
-        if (replaceCache) {
-            // force a scroll to top if a replace_cache occurred
-            [self.rs_tableView scrollToTopWithCompletion:^{
-                refreshView();
-            }];
-        }
-        else {
-            refreshView();
-        }
-    }
 }
 
 - (void)setupComposeInputView {
@@ -343,13 +293,13 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
     
     self.composeInputView.tintColor = self.view.tintColor;
 }
-- (void)privacySelectionDidChange:(Camp * _Nullable)selection {
+- (void)privacySelectionDidSelectToPost:(Camp *)selection {
     [self postMessageInCamp:selection];
 }
 - (void)openPrivacySelector {
     PrivacySelectorTableViewController *sitvc = [[PrivacySelectorTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
     sitvc.delegate = self;
-    sitvc.title = @"Post in...";
+    sitvc.postOnSelection = true;
     sitvc.shareOnProfile = false;
     
     SimpleNavigationController *simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:sitvc];
@@ -396,7 +346,7 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
 //        [self.rs_tableView.stream addTempPost:tempPost];
 //        [self.rs_tableView refreshAtTop];
         if (self.navigationController && [self.navigationController isKindOfClass:[SimpleNavigationController class]]) {
-            [(SimpleNavigationController *)self.navigationController setProgress:0.8 animated:YES];
+            [(SimpleNavigationController *)self.navigationController setProgress:0.7 animated:YES];
         }
     }
 }
@@ -415,7 +365,10 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
         
         [self.rs_tableView.stream removeLoadedCursor:self.rs_tableView.stream.prevCursor];
         
-        [self fetchNewPosts];
+        wait(3.5f, ^{
+//            self.userDidRefresh = true;
+            [self fetchNewPosts];
+        });
         
         if (self.navigationController && [self.navigationController isKindOfClass:[SimpleNavigationController class]]) {
             [(SimpleNavigationController *)self.navigationController setProgress:1 animated:YES hideOnCompletion:true];
@@ -454,25 +407,27 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
         [(TabController *)self.tabBarController setBadgeValue:nil forItem:self.navigationController.tabBarItem];
     }
 
-    self.morePostsIndicator.tag = 0;
-    [UIView animateWithDuration:(animated?0.8f:0) delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-        self.morePostsIndicator.center = CGPointMake(self.morePostsIndicator.center.x, self.morePostsIndicator.frame.size.height * -.5);
-        self.morePostsIndicator.alpha = 0;
-    } completion:^(BOOL finished) {
-        self.morePostsIndicator.hidden = true;
-    }];
+    if (self.morePostsIndicator.tag != 0) {
+        self.morePostsIndicator.tag = 0;
+        
+        [UIView animateWithDuration:(animated?0.8f:0) delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+            self.morePostsIndicator.center = CGPointMake(self.morePostsIndicator.center.x, self.morePostsIndicator.frame.size.height * -.6);
+            self.morePostsIndicator.alpha = 0;
+        } completion:^(BOOL finished) {
+            self.morePostsIndicator.hidden = true;
+        }];
+    }
 }
 - (void)showMorePostsIndicator:(BOOL)animated {
-    if (self.rs_tableView.queuedStream.posts.count > 0) {
-        CGFloat normalizedScrollViewContentOffsetY = self.rs_tableView.contentOffset.y + self.rs_tableView.adjustedContentInset.top;
-        CGFloat morePostsOffsetY = MAX(0, startConversationHeaderHeight - normalizedScrollViewContentOffsetY);
-        
-        self.morePostsIndicator.hidden = false;
-        
+    if (self.morePostsIndicator.tag != 1) {
         self.morePostsIndicator.tag = 1;
+        
+        // reset state to ensure it's correct
+        self.morePostsIndicator.hidden = false;
         self.morePostsIndicator.alpha = 1;
+        self.morePostsIndicator.center = CGPointMake(self.morePostsIndicator.center.x, self.morePostsIndicator.frame.size.height * -.6);
         [UIView animateWithDuration:(animated?1.2f:0) delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:(UIViewAnimationOptionCurveEaseOut|UIViewAnimationOptionAllowUserInteraction) animations:^{
-            self.morePostsIndicator.center = CGPointMake(self.morePostsIndicator.center.x, self.navigationController.navigationBar.frame.origin.y + self.navigationController.navigationBar.frame.size.height + 12 + (self.morePostsIndicator.frame.size.height * 0.5) + morePostsOffsetY);
+            self.morePostsIndicator.center = CGPointMake(self.morePostsIndicator.center.x, self.navigationController.navigationBar.frame.origin.y + self.navigationController.navigationBar.frame.size.height + 12 + (self.morePostsIndicator.frame.size.height * 0.5));
         } completion:nil];
     }
 }
@@ -511,12 +466,6 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
 
             NSInteger postsCount = 0;
             
-            // add queued pages first
-            for (NSInteger i = 0; i < self.rs_tableView.queuedStream.pages.count && postsCount < MAX_FEED_CACHED_POSTS; i++) {
-                postsCount += self.rs_tableView.queuedStream.pages[i].data.count;
-                [newCache addObject:[self.rs_tableView.queuedStream.pages[i] toDictionary]];
-            }
-            
             for (NSInteger i = 0; i < self.rs_tableView.stream.pages.count && postsCount < MAX_FEED_CACHED_POSTS; i++) {
                 postsCount += self.rs_tableView.stream.pages[i].data.count;
                 [newCache addObject:[self.rs_tableView.stream.pages[i] toDictionary]];
@@ -527,12 +476,7 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
     });
 }
 - (void)postStreamDidUpdate:(PostStream *)stream {
-    DLog(@"postStreamDidUpdate :: %@", stream == self.rs_tableView.queuedStream ? @"queued stream" : @"post stream");
     [self saveCache];
-    
-    if (self.rs_tableView.queuedStream.posts.count == 0) {
-        [self hideMorePostsIndicator:true];
-    }
 }
 
 #pragma mark - Stream Requests & Management
@@ -579,12 +523,7 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
         [params setObject:self.rs_tableView.stream.nextCursor forKey:@"cursor"];
     }
     else if (self.rs_tableView.stream.prevCursor.length > 0) {
-        if (self.rs_tableView.queuedStream.prevCursor.length > 0) {
-            [params setObject:self.rs_tableView.queuedStream.prevCursor forKey:@"cursor"];
-        }
-        else {
-            [params setObject:self.rs_tableView.stream.prevCursor forKey:@"cursor"];
-        }
+        [params setObject:self.rs_tableView.stream.prevCursor forKey:@"cursor"];
     }
     
     if ([params objectForKey:@"cursor"]) {
@@ -610,52 +549,53 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
     }
     
     [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        self.loading = false;
+        self.rs_tableView.loading = false;
+        self.userDidRefresh = false;
+        
         NSInteger postsBefore = self.rs_tableView.stream.posts.count;
+        CGFloat normalizedScrollViewContentOffsetY = self.rs_tableView.contentOffset.y + self.rs_tableView.adjustedContentInset.top;
+        self.previousOffset = normalizedScrollViewContentOffsetY;
         
         PostStreamPage *page = [[PostStreamPage alloc] initWithDictionary:responseObject error:nil];
 
+        BOOL newPosts = false;
         if (page.data.count > 0) {
             if (!self.rs_tableView.stream) {
                 [self.rs_tableView scrollToTop];
                 self.rs_tableView.stream = [[PostStream alloc] init];
             }
             
-            if (self.userDidRefresh || cursorType == StreamPagingCursorTypeNone) {
-                [self.rs_tableView.stream prependPage:page];
-            }
-            else if (cursorType == StreamPagingCursorTypePrevious && postsBefore > 0) {
-                if (!self.rs_tableView.queuedStream) {
-                    self.rs_tableView.queuedStream = [[PostStream alloc] init];
-                }
-                [self.rs_tableView.queuedStream appendPage:page];
-                
-                // manually call the postStreamDidUpdate method since it won't call otherwise
-                [self postStreamDidUpdate:self.rs_tableView.stream];
-            }
-            else {
+            if (cursorType == StreamPagingCursorTypeNext) {
                 [self.rs_tableView.stream appendPage:page];
             }
-        }
-        
-        
-        self.loading = false;
-        self.rs_tableView.loading = false;
-        
-        if (self.userDidRefresh || cursorType == StreamPagingCursorTypeNone) {
-            self.userDidRefresh = false;
-            [self.rs_tableView hardRefresh:self.userDidRefresh];
+            else {
+                newPosts = (self.rs_tableView.stream.posts > 0 && page.data.count > 0);
+                [self.rs_tableView.stream prependPage:page];
+            }
             
-            [self hideMorePostsIndicator:true];
+            if (self.userDidRefresh || postsBefore == 0 || cursorType == StreamPagingCursorTypeNone) {
+                [self.rs_tableView hardRefresh:self.userDidRefresh];
+                
+                [self hideMorePostsIndicator:true];
+            }
+            else if (cursorType == StreamPagingCursorTypeNext) {
+                self.rs_tableView.loadingMore = false;
+                
+                [self.rs_tableView refreshAtBottom];
+            }
+            else {
+                // previous currsor
+                [self.rs_tableView refreshAtTop];
+                
+                normalizedScrollViewContentOffsetY = self.rs_tableView.contentOffset.y + self.rs_tableView.adjustedContentInset.top;
+                
+                if (newPosts && normalizedScrollViewContentOffsetY > 0) {
+                    [self showMorePostsIndicator:YES];
+                }
+            }
         }
-        else if (self.rs_tableView.queuedStream.pages.count > 0) {
-            [self showMorePostsIndicator:YES];
-        }
-        else if (cursorType == StreamPagingCursorTypeNext) {
-            self.rs_tableView.loadingMore = false;
-            
-            [self.rs_tableView refreshAtBottom];
-        }
-        
+                
         if (self.rs_tableView.stream.posts.count == 0) {
             // Error: No posts yet!
             self.errorView.hidden = false;
@@ -677,18 +617,6 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
         else {
             self.errorView.hidden = true;
         }
-
-        CGFloat normalizedScrollViewContentOffsetY = self.rs_tableView.contentOffset.y + self.rs_tableView.adjustedContentInset.top;
-//        if (self.userDidRefresh) {
-//            self.userDidRefresh = false;
-//        }
-//        else {
-//            // DEBUG
-//            if (postsAfter > postsBefore && normalizedScrollViewContentOffsetY > 0 && cursorType == StreamPagingCursorTypePrevious) {
-//                [self showMorePostsIndicator:YES];
-//            }
-//        }
-        self.previousOffset = normalizedScrollViewContentOffsetY;
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         if (self.rs_tableView.stream.posts.count == 0) {
             self.errorView.hidden = false;
@@ -729,84 +657,90 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
     [super setLoading:loading];
     
     if (!self.loading) {
-        [self.refreshControl endRefreshing];
+        [self.refreshControl performSelector:@selector(endRefreshing) withObject:nil afterDelay:0.0];
+        [self.rs_tableView.refreshControl performSelector:@selector(endRefreshing) withObject:nil afterDelay:0.0];
+        
         self.titleView.shimmering = false;
     }
 }
 
 #pragma mark - RSTableViewDelegate
 - (UIView *)viewForFirstSectionHeader {
-    UIButton *header = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, startConversationHeaderHeight)];
-    header.backgroundColor = [UIColor contentBackgroundColor];
-    BFAvatarView *profilePic = [[BFAvatarView alloc] initWithFrame:CGRectMake(12, 12, 48, 48)];
-    profilePic.user = [Session sharedInstance].currentUser;
-    profilePic.userInteractionEnabled = false;
+    return nil;
     
-    UIButton *takePictureButton = [UIButton buttonWithType:UIButtonTypeSystem];
-    [takePictureButton setImage:[[UIImage imageNamed:@"composeToolbarTakePicture"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
-    takePictureButton.frame = CGRectMake(header.frame.size.width - 12 - 40, profilePic.frame.origin.y + ((profilePic.frame.size.height - 40) / 2), 40, 40);
-    takePictureButton.backgroundColor = [UIColor bonfireDetailColor];
-    takePictureButton.layer.cornerRadius = takePictureButton.frame.size.height / 2;
-    takePictureButton.contentMode = UIViewContentModeCenter;
-    takePictureButton.tintColor = [UIColor bonfirePrimaryColor];
-    [takePictureButton bk_whenTapped:^{
-        [Launcher openComposeCamera];
-    }];
-    takePictureButton.adjustsImageWhenHighlighted = false;
-    [takePictureButton bk_addEventHandler:^(id sender) {
-        [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-            takePictureButton.alpha = 0.5;
-        } completion:nil];
-    } forControlEvents:UIControlEventTouchDown];
-    [takePictureButton bk_addEventHandler:^(id sender) {
-        [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-            takePictureButton.alpha = 1;
-        } completion:nil];
-    } forControlEvents:(UIControlEventTouchUpInside|UIControlEventTouchCancel|UIControlEventTouchDragExit)];
-    [header addSubview:takePictureButton];
-    
-    UILabel *textLabel = [[UILabel alloc] initWithFrame:CGRectMake(70, profilePic.frame.origin.y, self.view.frame.size.width - 70 - 12, profilePic.frame.size.height)];
-    textLabel.font = textViewFont;
-    textLabel.textColor = [UIColor bonfireSecondaryColor];
-//    textLabel.alpha = 0.25;
-    textLabel.text = @"Start a conversation...";
-    
-    UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(0, header.frame.size.height - 8, self.view.frame.size.width, 8)];
-    separator.backgroundColor = [UIColor tableViewBackgroundColor];
-    
-    UIView *line_t = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, HALF_PIXEL)];
-    line_t.backgroundColor = [UIColor tableViewSeparatorColor];
-    [separator addSubview:line_t];
-    
-    UIView *line_b = [[UIView alloc] initWithFrame:CGRectMake(0, separator.frame.size.height - HALF_PIXEL, self.view.frame.size.width, HALF_PIXEL)];
-    line_b.backgroundColor = [UIColor tableViewSeparatorColor];
-    [separator addSubview:line_b];
-    
-    [header addSubview:textLabel];
-    [header addSubview:profilePic];
-    [header addSubview:separator];
-    
-    [header bk_whenTapped:^{
-        [Launcher openComposePost:nil inReplyTo:nil withMessage:nil media:nil quotedObject:nil];
-    }];
-    
-    [header bk_addEventHandler:^(id sender) {
-        [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-            profilePic.alpha = 0.5;
-            textLabel.alpha = 0.5;
-        } completion:nil];
-    } forControlEvents:UIControlEventTouchDown];
-    [header bk_addEventHandler:^(id sender) {
-        [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-            profilePic.alpha = 1;
-            textLabel.alpha = 1;
-        } completion:nil];
-    } forControlEvents:(UIControlEventTouchUpInside|UIControlEventTouchCancel|UIControlEventTouchDragExit)];
-    
-    return header;
+//    UIButton *header = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, startConversationHeaderHeight)];
+//    header.backgroundColor = [UIColor contentBackgroundColor];
+//    BFAvatarView *profilePic = [[BFAvatarView alloc] initWithFrame:CGRectMake(12, 12, 48, 48)];
+//    profilePic.user = [Session sharedInstance].currentUser;
+//    profilePic.userInteractionEnabled = false;
+//
+//    UIButton *takePictureButton = [UIButton buttonWithType:UIButtonTypeSystem];
+//    [takePictureButton setImage:[[UIImage imageNamed:@"composeToolbarTakePicture"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+//    takePictureButton.frame = CGRectMake(header.frame.size.width - 12 - 40, profilePic.frame.origin.y + ((profilePic.frame.size.height - 40) / 2), 40, 40);
+//    takePictureButton.backgroundColor = [UIColor bonfireDetailColor];
+//    takePictureButton.layer.cornerRadius = takePictureButton.frame.size.height / 2;
+//    takePictureButton.contentMode = UIViewContentModeCenter;
+//    takePictureButton.tintColor = [UIColor bonfirePrimaryColor];
+//    [takePictureButton bk_whenTapped:^{
+//        [Launcher openComposeCamera];
+//    }];
+//    takePictureButton.adjustsImageWhenHighlighted = false;
+//    [takePictureButton bk_addEventHandler:^(id sender) {
+//        [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+//            takePictureButton.alpha = 0.5;
+//        } completion:nil];
+//    } forControlEvents:UIControlEventTouchDown];
+//    [takePictureButton bk_addEventHandler:^(id sender) {
+//        [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+//            takePictureButton.alpha = 1;
+//        } completion:nil];
+//    } forControlEvents:(UIControlEventTouchUpInside|UIControlEventTouchCancel|UIControlEventTouchDragExit)];
+//    [header addSubview:takePictureButton];
+//
+//    UILabel *textLabel = [[UILabel alloc] initWithFrame:CGRectMake(70, profilePic.frame.origin.y, self.view.frame.size.width - 70 - 12, profilePic.frame.size.height)];
+//    textLabel.font = textViewFont;
+//    textLabel.textColor = [UIColor bonfireSecondaryColor];
+////    textLabel.alpha = 0.25;
+//    textLabel.text = @"Start a conversation...";
+//
+//    UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(0, header.frame.size.height - 8, self.view.frame.size.width, 8)];
+//    separator.backgroundColor = [UIColor tableViewBackgroundColor];
+//
+//    UIView *line_t = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, HALF_PIXEL)];
+//    line_t.backgroundColor = [UIColor tableViewSeparatorColor];
+//    [separator addSubview:line_t];
+//
+//    UIView *line_b = [[UIView alloc] initWithFrame:CGRectMake(0, separator.frame.size.height - HALF_PIXEL, self.view.frame.size.width, HALF_PIXEL)];
+//    line_b.backgroundColor = [UIColor tableViewSeparatorColor];
+//    [separator addSubview:line_b];
+//
+//    [header addSubview:textLabel];
+//    [header addSubview:profilePic];
+//    [header addSubview:separator];
+//
+//    [header bk_whenTapped:^{
+//        [Launcher openComposePost:nil inReplyTo:nil withMessage:nil media:nil quotedObject:nil];
+//    }];
+//
+//    [header bk_addEventHandler:^(id sender) {
+//        [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+//            profilePic.alpha = 0.5;
+//            textLabel.alpha = 0.5;
+//        } completion:nil];
+//    } forControlEvents:UIControlEventTouchDown];
+//    [header bk_addEventHandler:^(id sender) {
+//        [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+//            profilePic.alpha = 1;
+//            textLabel.alpha = 1;
+//        } completion:nil];
+//    } forControlEvents:(UIControlEventTouchUpInside|UIControlEventTouchCancel|UIControlEventTouchDragExit)];
+//
+//    return header;
 }
 - (CGFloat)heightForFirstSectionHeader {
-    return startConversationHeaderHeight;
+    return CGFLOAT_MIN;
+    
+//    return startConversationHeaderHeight;
 }
 - (UIView *)viewForFirstSectionFooter {
     return nil;
@@ -823,12 +757,6 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
 #pragma mark - UIScrollViewDelegate
 - (void)tableViewDidScroll:(UITableView *)tableView {
     CGFloat normalizedScrollViewContentOffsetY = tableView.contentOffset.y + tableView.adjustedContentInset.top;
-    
-    if (![self.morePostsIndicator isHidden]) {
-        CGFloat normalizedScrollViewContentOffsetY = tableView.contentOffset.y + tableView.adjustedContentInset.top;
-        CGFloat morePostsOffsetY = MAX(0, startConversationHeaderHeight - normalizedScrollViewContentOffsetY);
-        self.morePostsIndicator.center = CGPointMake(self.morePostsIndicator.center.x, self.navigationController.navigationBar.frame.origin.y + self.navigationController.navigationBar.frame.size.height + 12 + (self.morePostsIndicator.frame.size.height * 0.5) + morePostsOffsetY);
-    }
     
     if (![self.composeInputView.textView isFirstResponder] && normalizedScrollViewContentOffsetY > 80) {
         CGFloat diff = self.previousOffset - normalizedScrollViewContentOffsetY;
@@ -848,11 +776,25 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
         else {
             self.yTranslation = 0;
         }
+        
+        if (self.composeInputView.tag != 1) {
+            if (self.yTranslation < -80) {
+                [self hideComposeInputView];
+            }
+            else if (self.yTranslation > 0) {
+                [self showComposeInputView];
+            }
+        }
     }
     else {
         self.scrollingDownwards = false;
         self.previousOffset = normalizedScrollViewContentOffsetY;
         self.yTranslation = 0;
+    }
+    
+    if (self.yTranslation > 10 || normalizedScrollViewContentOffsetY < 80) {
+        // hide the scroll indicator
+        [self hideMorePostsIndicator:true];
     }
     
 //    DLog(@"scrollingDownwards: %@", _scrollingDownwards ? @"YES" : @"NO");

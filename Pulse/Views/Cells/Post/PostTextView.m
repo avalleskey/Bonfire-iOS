@@ -27,7 +27,6 @@
         self.userInteractionEnabled = true;
         self.layer.masksToBounds = false;
         
-        self.backgroundColor = [UIColor colorNamed:@"BubbleColor"];
         self.layer.cornerRadius = 10.f;
         
         self.edgeInsets = UIEdgeInsetsZero;

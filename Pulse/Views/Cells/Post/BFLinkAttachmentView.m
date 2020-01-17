@@ -302,8 +302,14 @@
         [mutableString appendAttributedString:spacer];
     }
     
-    NSAttributedString *text = [[NSAttributedString alloc] initWithString:self.link.attributes.site attributes:@{NSFontAttributeName: self.sourceLabel.font, NSForegroundColorAttributeName: self.sourceLabel.textColor}];
-    [mutableString appendAttributedString:text];
+    if (self.link.attributes.site &&  self.link.attributes.site.length > 0) {
+        NSAttributedString *text = [[NSAttributedString alloc] initWithString:(self.link.attributes.site?self.link.attributes.site:@"") attributes:@{NSFontAttributeName: self.sourceLabel.font, NSForegroundColorAttributeName: self.sourceLabel.textColor}];
+        [mutableString appendAttributedString:text];
+    }
+    else if (self.link.attributes.canonicalUrl && self.link.attributes.canonicalUrl.length > 0) {
+        NSAttributedString *text = [[NSAttributedString alloc] initWithString:self.link.attributes.canonicalUrl attributes:@{NSFontAttributeName: self.sourceLabel.font, NSForegroundColorAttributeName: self.sourceLabel.textColor}];
+        [mutableString appendAttributedString:text];
+    }
     
     self.sourceLabel.attributedText = mutableString;
 }

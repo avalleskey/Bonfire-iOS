@@ -203,7 +203,7 @@
     return self.liveCountButton;
 }
 - (void)updateLiveCountText {
-    NSInteger liveCount = 0;
+    NSInteger scoreCount = 0;
     
     BOOL show = false;
     if (self.link) {
@@ -211,11 +211,11 @@
     }
     else if (self.post && self.post.attributes.summaries.counts.score > 0) {
         show = true;
-        liveCount = self.post.attributes.summaries.counts.score;
+        scoreCount = self.post.attributes.summaries.counts.score;
     }
     
     if (show) {
-        if (liveCount == 0) {
+        if (scoreCount == 0) {
             if (self.link) {
                 [self.liveCountButton setTitle:@"Share this link to help it go viral!" forState:UIControlStateNormal];
             }
@@ -226,11 +226,8 @@
             [self.liveCountButton setTitleColor:self.tintColor forState:UIControlStateNormal];
         }
         else {
-            NSMutableAttributedString *liveString = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"%ld active", (long)liveCount]];
+            NSMutableAttributedString *liveString = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"This conversation is hot 🔥"]];
             [liveString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:postActivityFontSize weight:UIFontWeightSemibold] range:NSMakeRange(0, liveString.length)];
-            NSMutableAttributedString *timeString = [[NSMutableAttributedString alloc] initWithString:@" in the last 24hr 🔥"];
-            [timeString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:postActivityFontSize weight:UIFontWeightRegular] range:NSMakeRange(0, timeString.length)];
-            [liveString appendAttributedString:timeString];
             [liveString addAttribute:NSForegroundColorAttributeName value:[UIColor bonfireBrand] range:NSMakeRange(0, liveString.length)];
             [self.liveCountButton setAttributedTitle:liveString forState:UIControlStateNormal];
         }

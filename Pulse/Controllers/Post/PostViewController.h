@@ -14,7 +14,7 @@
 #import "PostStream.h"
 #import "TappableView.h"
 
-@interface PostViewController : ThemedViewController <ComposeInputViewDelegate, UITableViewDelegate, UITableViewDataSource, UIContextMenuInteractionDelegate>
+@interface PostViewController : ThemedViewController <ComposeInputViewDelegate, UITableViewDelegate, UITableViewDataSource>
 
 @property (nonatomic, strong) Post *post;
 

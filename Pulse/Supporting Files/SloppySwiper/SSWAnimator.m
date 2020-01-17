@@ -74,7 +74,6 @@ UIViewAnimationOptions const SSWNavigationTransitionCurve = 7 << 16;
         CGFloat animationDamping = 0.9;
         
         if ([transitionContext isInteractive]) {
-            NSLog(@"yo our transition context is INTERACTIVE :O");
             [UIView animateWithDuration:[self transitionDuration:transitionContext] delay:0 options:UIViewAnimationOptionTransitionNone | UIViewAnimationOptionCurveLinear animations:^{
                 toView.alpha = 1;
                 toView.transform = CGAffineTransformIdentity;

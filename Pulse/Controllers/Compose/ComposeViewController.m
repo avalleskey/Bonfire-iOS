@@ -172,7 +172,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     self.titleView.userInteractionEnabled = true;
     self.titleView.shrink = true;
     [self.titleView bk_whenTapped:^{
-        [self openPrivacySelector];
+        [self openPrivacySelector:false];
     }];
     
     self.titleAvatar = [[BFAvatarView alloc] initWithFrame:CGRectMake(self.titleView.frame.size.width / 2 - 12, 0, 24, 24)];
@@ -225,6 +225,13 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         [self updateToolbarAvailability];
         [self updateTintColor];
     }
+}
+- (void)privacySelectionDidSelectToPost:(Camp *)selection {
+    self.postingIn = selection;
+    
+    [self postMessage];
+    
+    [self.navigationController dismissViewControllerAnimated:true completion:nil];
 }
 - (void)updateTintColor {
     Camp *camp;
@@ -849,19 +856,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     if (!self.textViewCell) return;
     
     if (!self.replyingTo && !self.postToProfile && !self.postingIn) {
-        BFAlertController *selectCampFirst = [BFAlertController alertControllerWithTitle:@"Who's this post for?" message:@"Please select where you would like to share your post" preferredStyle:BFAlertControllerStyleAlert];
-        
-        BFAlertAction *action = [BFAlertAction actionWithTitle:@"Select a Camp" style:BFAlertActionStyleDefault handler:^{
-            [self openPrivacySelector];
-        }];
-        selectCampFirst.preferredAction = action;
-        [selectCampFirst addAction:action];
-        
-        BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
-        [selectCampFirst addAction:cancel];
-        
-        [[Launcher topMostViewController] presentViewController:selectCampFirst animated:YES completion:nil];
-        
+        [self openPrivacySelector:true];
         return;
     }
     
@@ -899,20 +894,22 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         // meets min. requirements
         [BFAPI createPost:params postingIn:self.postingIn replyingTo:self.replyingTo attachments:nil];
         
-        [self.navigationController dismissViewControllerAnimated:YES completion:^{
-            if (self.replyingToIcebreaker) {
-                [Launcher openPost:self.replyingTo withKeyboard:nil];
-            }
-        }];
+        if (self.navigationController) {
+            [self.navigationController dismissViewControllerAnimated:YES completion:^{
+                if (self.replyingToIcebreaker) {
+                    [Launcher openPost:self.replyingTo withKeyboard:nil];
+                }
+            }];
+        }
     }
 }
 
-- (void)openPrivacySelector {
+- (void)openPrivacySelector:(BOOL)postOnSelection {
     PrivacySelectorTableViewController *sitvc = [[PrivacySelectorTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
     sitvc.currentSelection = self.postingIn;
     sitvc.delegate = self;
     sitvc.shareOnProfile = self.postToProfile;
-    sitvc.title = @"Select a Camp";
+    sitvc.postOnSelection = postOnSelection;
     
     SimpleNavigationController *simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:sitvc];
     simpleNav.transitioningDelegate = [Launcher sharedInstance];

@@ -98,7 +98,7 @@
     [self styleMemberProfilePictureView:self.member4];
     
     self.campTitleLabel = [[UILabel alloc] initWithFrame:CGRectMake(16, self.campAvatarContainer.frame.origin.y + self.campAvatarContainer.frame.size.height + 9, self.frame.size.width - 32, 31)];
-    self.campTitleLabel.font = [UIFont systemFontOfSize:24.f weight:UIFontWeightHeavy];
+    self.campTitleLabel.font = [UIFont systemFontOfSize:22.f weight:UIFontWeightHeavy];
     self.campTitleLabel.textAlignment = NSTextAlignmentCenter;
     self.campTitleLabel.numberOfLines = 0;
     self.campTitleLabel.lineBreakMode = NSLineBreakByWordWrapping;
@@ -114,7 +114,7 @@
     [self.contentView addSubview:self.campTagLabel];
     
     self.campDescriptionLabel = [[UILabel alloc] initWithFrame:CGRectMake(16, self.campTitleLabel.frame.origin.y + self.campTitleLabel.frame.size.height + 2, self.frame.size.width - 32, 14)];
-    self.campDescriptionLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightRegular];
+    self.campDescriptionLabel.font = [UIFont systemFontOfSize:13.f weight:UIFontWeightRegular];
     self.campDescriptionLabel.textAlignment = NSTextAlignmentCenter;
     self.campDescriptionLabel.numberOfLines = 2;
     self.campDescriptionLabel.lineBreakMode = NSLineBreakByTruncatingTail;
@@ -234,7 +234,7 @@
         
         // camp title
         NSString *campTitle;
-        UIFont *font = [UIFont systemFontOfSize:24.f weight:UIFontWeightHeavy];
+        UIFont *font = [UIFont systemFontOfSize:22.f weight:UIFontWeightHeavy];
         if (camp.attributes.title.length > 0) {
             campTitle = camp.attributes.title;
         }

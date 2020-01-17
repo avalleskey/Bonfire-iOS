@@ -1068,13 +1068,13 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     self.composeInputView.postButton.backgroundColor = [UIColor bonfirePrimaryColor];
     self.composeInputView.postButton.tintColor = [UIColor whiteColor];
 }
-- (void)privacySelectionDidChange:(Camp * _Nullable)selection {
+- (void)privacySelectionDidSelectToPost:(Camp *)selection {
     [self postMessageInCamp:selection];
 }
 - (void)openPrivacySelector {
     PrivacySelectorTableViewController *sitvc = [[PrivacySelectorTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
     sitvc.delegate = self;
-    sitvc.title = @"Post in...";
+    sitvc.postOnSelection = true;
     sitvc.shareOnProfile = false;
     
     SimpleNavigationController *simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:sitvc];

@@ -48,11 +48,30 @@
     self.foregroundBeforeScroll = nil;;
 }
 
+- (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection {
+    [self updateBarColor:_currentTheme animated:NO];
+}
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     
     [self setupNavigationBar];
+}
+
+- (void)dismissViewControllerAnimated:(BOOL)flag completion:(void (^)(void))completion {
+    __weak typeof(self) weakSelf = self;
+    
+    [super dismissViewControllerAnimated:flag completion:^(void){
+        [[NSNotificationCenter defaultCenter] removeObserver:weakSelf];
+        for (UIViewController *viewController in self.viewControllers) {
+            [[NSNotificationCenter defaultCenter] removeObserver:viewController];
+        }
+        
+        if (completion) {
+            completion();
+        }
+    }];
 }
 
 - (void)viewWillAppear:(BOOL)animated {

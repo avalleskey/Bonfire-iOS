@@ -165,12 +165,16 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
 }
 
 - (void)markAllAsRead {
-    [self.markAsReadTimer invalidate];
-    self.markAsReadTimer = nil;
+    if (self.markAsReadTimer) {
+        [self.markAsReadTimer invalidate];
+        self.markAsReadTimer = nil;
+    }
     
-    [self.stream markAllAsRead];
-    [self saveCache];
-    [self.tableView reloadData];
+    if ([self.stream unreadCount] > 0) {
+        [self.stream markAllAsRead];
+        [self saveCache];
+        [self.tableView reloadData];
+    }
 }
 
 - (void)setupTitleView {
@@ -264,7 +268,7 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
         if (changes) {
             // 💫 changes made
             if (![[Launcher activeViewController] isEqual:UIViewParentController(self)]) {
-                [self refresh];
+                [self.tableView reloadData];
             }
         }
     }
@@ -286,8 +290,6 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
 }
 - (void)refresh {
     if (self.loading) {
-        [self.refreshControl endRefreshing];
-        
         return;
     }
     
@@ -301,7 +303,7 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
     if (!self.loading) {
         self.titleView.shimmering = false;
         
-        [self.refreshControl endRefreshing];
+        [self.refreshControl performSelector:@selector(endRefreshing) withObject:nil afterDelay:0.0];
     }
 }
 

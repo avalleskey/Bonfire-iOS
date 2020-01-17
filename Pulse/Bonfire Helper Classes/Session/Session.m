@@ -562,7 +562,7 @@ static Session *session;
     [[NSUserDefaults standardUserDefaults] setObject:temporaryDefaults forKey:@"temporary_defaults"];
     
     // clear temporary pin cache items
-    [[PINCache sharedCache] removeObjectForKey:MY_CAMPS_CAN_POST_KEY];
+//    [[PINCache sharedCache] removeObjectForKey:MY_CAMPS_CAN_POST_KEY];
 }
 + (int)getTempId {
     int tempId = 1;

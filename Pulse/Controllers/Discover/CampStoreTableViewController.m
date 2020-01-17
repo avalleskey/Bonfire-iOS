@@ -253,14 +253,11 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
             }
         }
         
-        if (indexPath.section == 1) {
+        if (indexPath.section == 1 || campsList.count < 7) {
             cell.size = CAMP_CARD_SIZE_MEDIUM;
-        }
-        else if (indexPath.section == 2 || campsList.count > 3) {
-            cell.size = CAMP_CARD_SIZE_SMALL_MEDIUM;
         }
         else {
-            cell.size = CAMP_CARD_SIZE_MEDIUM;
+            cell.size = CAMP_CARD_SIZE_SMALL_MEDIUM;
         }
         
         cell.camps = [[NSMutableArray alloc] initWithArray:campsList];
@@ -326,14 +323,11 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
             campsList = self.lists[index].attributes.camps;
         }
         
-        if (indexPath.section == 1) {
+        if (indexPath.section == 1 || campsList.count < 7) {
             return MEDIUM_CARD_HEIGHT;
-        }
-        else if (indexPath.section == 2 || campsList.count > 3) {
-            return SMALL_MEDIUM_CARD_HEIGHT;
         }
         else {
-            return MEDIUM_CARD_HEIGHT;
+            return SMALL_MEDIUM_CARD_HEIGHT;
         }
     }
     if (indexPath.section == self.lists.count + 1) {

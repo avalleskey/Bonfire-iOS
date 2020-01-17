@@ -19,6 +19,8 @@
 
 @interface CampCardsListCell ()
 
+@property (nonatomic) int currentPage;
+
 @end
 
 @implementation CampCardsListCell
@@ -66,7 +68,7 @@ static NSString * const errorCampCellReuseIdentifier = @"ErrorCampCell";
     _collectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 0, screenWidth, [self cardHeight]) collectionViewLayout:flowLayout];
     _collectionView.delegate = self;
     _collectionView.dataSource = self;
-    _collectionView.contentInset = UIEdgeInsetsMake(0, 12, 0, 16);
+    _collectionView.contentInset = UIEdgeInsetsMake(0, 12, 0, 12);
     
     [_collectionView registerClass:[SmallCampCardCell class] forCellWithReuseIdentifier:smallCardReuseIdentifier];
     [_collectionView registerClass:[SmallMediumCampCardCell class] forCellWithReuseIdentifier:smallMediumCardReuseIdentifier];
@@ -214,13 +216,29 @@ static NSString * const errorCampCellReuseIdentifier = @"ErrorCampCell";
 - (CGSize)collectionView:(UICollectionView *)collectionView
                   layout:(UICollectionViewLayout *)collectionViewLayout
   sizeForItemAtIndexPath:(NSIndexPath *)indexPath {
-    BOOL useFullWidthCell = self.errorLoading || (!self.loading && self.camps.count == 0);
-    
+    return CGSizeMake([self cardWidth], [self cardHeight]);
+}
+
+- (CGFloat)cardWidth {
     if (self.size == CAMP_CARD_SIZE_SMALL_MEDIUM) {
-        return CGSizeMake(148, 138);
+        return 148;
     }
     
-    return CGSizeMake(useFullWidthCell?self.frame.size.width - 32:268, [self cardHeight]);
+    return 268;
+}
+- (CGFloat)cardHeight {
+    switch (self.size) {
+        case CAMP_CARD_SIZE_SMALL:
+            return SMALL_CARD_HEIGHT;
+        case CAMP_CARD_SIZE_SMALL_MEDIUM:
+            return SMALL_MEDIUM_CARD_HEIGHT;
+        case CAMP_CARD_SIZE_MEDIUM:
+            return MEDIUM_CARD_HEIGHT;
+        case CAMP_CARD_SIZE_LARGE:
+            return LARGE_CARD_HEIGHT;
+    }
+    
+    return 268;
 }
 
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
@@ -247,21 +265,6 @@ static NSString * const errorCampCellReuseIdentifier = @"ErrorCampCell";
     [super layoutSubviews];
     
     self.collectionView.frame = CGRectMake(0, self.collectionView.frame.origin.y, self.frame.size.width, [self cardHeight]);
-}
-
-- (CGFloat)cardHeight {
-    switch (self.size) {
-        case CAMP_CARD_SIZE_SMALL:
-            return SMALL_CARD_HEIGHT;
-        case CAMP_CARD_SIZE_SMALL_MEDIUM:
-            return SMALL_MEDIUM_CARD_HEIGHT;
-        case CAMP_CARD_SIZE_MEDIUM:
-            return MEDIUM_CARD_HEIGHT;
-        case CAMP_CARD_SIZE_LARGE:
-            return LARGE_CARD_HEIGHT;
-    }
-    
-    return 0;
 }
 
 - (void)setCamps:(NSMutableArray *)camps {

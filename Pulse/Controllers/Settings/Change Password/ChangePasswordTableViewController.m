@@ -14,6 +14,7 @@
 #import <JGProgressHUD/JGProgressHUD.h>
 #import "HAWebService.h"
 #import "ResetPasswordViewController.h"
+#import "BFMiniNotificationManager.h"
 
 @import Firebase;
 
@@ -96,13 +97,12 @@
     [HUD showInView:self.navigationController.view animated:YES];
     
     [[HAWebService authenticatedManager] PUT:@"users/me" parameters:@{@"old_password": currentPasswordCell.input.text, @"password": newPasswordCell.input.text} success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        HUD.indicatorView = [[JGProgressHUDSuccessIndicatorView alloc] init];
-        HUD.textLabel.text = @"Saved!";
-        
-        [HUD dismissAfterDelay:1.f];
+        BFMiniNotificationObject *notificationObject = [BFMiniNotificationObject notificationWithText:@"Saved!" action:nil];
+        [[BFMiniNotificationManager manager] presentNotification:notificationObject completion:^{
+
+        }];
         
         [self.navigationController popViewControllerAnimated:YES];
-        
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         NSLog(@"error saving user prefs");
         NSLog(@"error:");

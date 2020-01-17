@@ -586,7 +586,7 @@
         NSString *message = post.attributes.removedReason;
         
         CGFloat postRemovedAttachmentHeight = [BFPostDeletedAttachmentView heightForMessage:message width:screenWidth-postContentOffset.left-postContentOffset.right];
-        height = height + postRemovedAttachmentHeight + 3 + 8; // 3 above (remember, there's no content if the post has been removed). add an additional 8 padding on the bottom
+        height = height + postRemovedAttachmentHeight + 3 + 12; // 3 above (remember, there's no content if the post has been removed). add an additional 12 padding on the bottom
     }
     
     // details view

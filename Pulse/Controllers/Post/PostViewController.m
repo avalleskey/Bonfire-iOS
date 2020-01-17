@@ -164,9 +164,6 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillChangeFrameNotification object:nil];
     [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillHideNotification object:nil];
 }
-- (void)dealloc {
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
-}
 - (UIStatusBarStyle)preferredStatusBarStyle
 {
     return UIStatusBarStyleLightContent;
@@ -232,6 +229,8 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         BOOL useNewMuteStatus = false;
         BOOL changes = false;
         
+        DSimpleLog(@"postUpdated called on view controller: %@", self.title);
+        
         if ([self.post.identifier isEqualToString:updatedPost.identifier] &&
             ![notification.object isEqual:self.post]) {
             if (newMuteStatus != self.post.attributes.context.post.muted) {
@@ -246,7 +245,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         else {
             Post *replyWithId = [self.stream postWithId:updatedPost.identifier];
             if (replyWithId) {
-                if (replyWithId != updatedPost) {
+                if ([replyWithId toDictionary] != [updatedPost toDictionary]) {
                     if (newMuteStatus != replyWithId.attributes.context.post.muted) {
                         useNewMuteStatus = true;
                     }
@@ -255,43 +254,69 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                     changes = true;
                 }
             }
-            else {
-                if (self.parentPosts.count > 0) {
-                    // update parent posts
-                    DSimpleLog(@"self.parentPosts: %@", self.parentPosts);
-                    for (NSInteger i = 0; i < self.parentPosts.count; i++) {
-                        Post *parentPost = self.parentPosts[i];
-                        
-                        DSimpleLog(@"parent post:: %@", parentPost.identifier);
-                        
-                        if ([parentPost.identifier isEqualToString:updatedPost.identifier] &&
-                            parentPost != updatedPost) {
-                            if (newMuteStatus != parentPost.attributes.context.post.muted) {
-                                useNewMuteStatus = true;
-                            }
-                            
-                            DSimpleLog(@"matching updated parent post:: %@", parentPost.identifier);
-                            
-                            [self.parentPosts replaceObjectAtIndex:i withObject:updatedPost];
-                            
-                            changes = true;
-//                            break;
+            else if (self.parentPosts.count > 0) {
+                // update parent posts
+                DSimpleLog(@"self.parentPosts: %@", self.parentPosts);
+                for (NSInteger i = 0; i < self.parentPosts.count; i++) {
+                    Post *parentPost = self.parentPosts[i];
+                    
+                    DSimpleLog(@"parent post:: %@", parentPost.identifier);
+                    
+                    if ([parentPost.identifier isEqualToString:updatedPost.identifier] &&
+                        [parentPost toDictionary] != [updatedPost toDictionary]) {
+                        if (newMuteStatus != parentPost.attributes.context.post.muted) {
+                            useNewMuteStatus = true;
                         }
+                        
+                        DSimpleLog(@"matching updated parent post:: %@", parentPost.identifier);
+                        
+                        [self.parentPosts replaceObjectAtIndex:i withObject:updatedPost];
+                        
+                        changes = true;
                     }
                 }
             }
         }
         
-//        if (useNewMuteStatus) {
-//            // loop through all posts in the view, updating all of them with the new mute status
-//            for (<#type *object#> in <#collection#>) {
-//                <#statements#>
-//            }
-//        }
-        
-//        if (changes) {
-        [self.tableView reloadData];
-//        }
+        if (changes) {
+            if (![[Launcher activeViewController] isEqual:self]) {
+                [self.tableView reloadData];
+            }
+            
+            if ([[Launcher activeViewController] isEqual:self] ||
+                useNewMuteStatus) {
+                // loop through and update post objects
+                for (UITableViewCell *cell in [self.tableView visibleCells]) {
+                    if ([cell isKindOfClass:[PostCell class]]) {
+                        PostCell *postCell = (PostCell  *)cell;
+                        
+                        if ([postCell.post.identifier isEqualToString:updatedPost.identifier]) {
+                            // ID matches --> update
+                            postCell.post = updatedPost;
+                        }
+                        else if (useNewMuteStatus) {
+                            postCell.post.attributes.context.post.muted = updatedPost.attributes.context.post.muted;
+                        }
+                    }
+                }
+                
+                if (useNewMuteStatus) {
+                    self.post.attributes.context.post.muted = updatedPost.attributes.context.post.muted;
+
+                    for (Post *post in self.stream.posts) {
+                        post.attributes.context.post.muted = updatedPost.attributes.context.post.muted;
+                        [self.stream updatePost:updatedPost removeDuplicates:false];
+                    }
+                    
+                    for (int i = 0; i < self.parentPosts.count; i++) {
+                        if ([self.parentPosts[i] isKindOfClass:[Post class]]) {
+                            Post *post = self.parentPosts[i];
+                            post.attributes.context.post.muted = updatedPost.attributes.context.post.muted;
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 - (void)postDeleted:(NSNotification *)notification {

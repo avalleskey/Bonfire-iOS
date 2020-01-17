@@ -228,12 +228,13 @@
     self.tabIndicator.layer.cornerRadius = self.tabIndicator.frame.size.height / 2;
     self.tabIndicator.backgroundColor = [UIColor bonfirePrimaryColor]; //[UIColor fromHex:[Session sharedInstance].currentUser.attributes.color];
     self.tabIndicator.alpha = 0;
-    [self.tabBar addSubview:self.tabIndicator];
+//    [self.tabBar addSubview:self.tabIndicator];
     
     [self.tabBar setBackgroundImage:[UIImage new]];
     [self.tabBar setShadowImage:[UIImage new]];
     [self.tabBar setTranslucent:true];
     self.tabBar.layer.borderWidth = 0.0f;
+    self.tabBar.layer.masksToBounds = true;
     [self.tabBar setBarTintColor:[UIColor colorNamed:@"FullContrastColor_inverted"]];
     [self.tabBar setTintColor:[UIColor bonfireBrand]];
     [[UITabBar appearance] setShadowImage:nil];
@@ -246,17 +247,18 @@
 //    self.blurView.tintColor = [UIColor clearColor];
 //    [self.tabBar insertSubview:self.blurView atIndex:0];
     self.tabBackgroundView = [[UIView alloc] initWithFrame: CGRectMake(0, 0, self.tabBar.frame.size.width, self.tabBar.frame.size.height)];
-    self.tabBackgroundView.backgroundColor = [UIColor contentBackgroundColor];
-    self.tabBackgroundView.layer.masksToBounds = true;
+    self.tabBackgroundView.backgroundColor = [UIColor colorNamed:@"Navigation_ClearBackgroundColor"];
+    self.tabBackgroundView.layer.masksToBounds = false;
     self.tabBackgroundView.tintColor = [UIColor clearColor];
     [self.tabBar insertSubview:self.tabBackgroundView atIndex:0];
 
     // tab bar hairline
-    UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, (1 / [UIScreen mainScreen].scale))];
-    separator.backgroundColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.12f];
+    UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, HALF_PIXEL)];
+    separator.backgroundColor = [UIColor colorNamed:@"FullContrastColor"];
+    separator.alpha = 0.12;
     [self.tabBar addSubview:separator];
     
-    self.tabBar.clipsToBounds = true;
+//    self.tabBar.clipsToBounds = true;
     self.tabBar.tintColor = [UIColor bonfirePrimaryColor];
 }
 
@@ -520,7 +522,6 @@
 - (void)addPillToController:(UIViewController *)controller title:(NSString *)title image:(UIImage * _Nullable)image action:(void (^_Nullable)(void))handler {
     UIButton *pill = [[UIButton alloc] initWithFrame:CGRectMake(self.view.frame.size.width  / 2 - 78, self.tabBar.frame.origin.y, 156, 40)];
     [pill setTitle:title forState:UIControlStateNormal];
-    [pill setTitleColor:[UIColor bonfirePrimaryColor] forState:UIControlStateNormal];
     [pill.titleLabel setFont:[UIFont systemFontOfSize:16.f weight:UIFontWeightBold]];
     pill.adjustsImageWhenHighlighted = false;
     pill.tintColor = [UIColor bonfirePrimaryColor];
@@ -533,7 +534,7 @@
     pill.layer.cornerRadius = pill.frame.size.height / 2;
     pill.layer.shadowOffset = CGSizeMake(0, 2);
     pill.layer.shadowRadius = 3.f;
-    pill.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.16f].CGColor;
+    pill.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.14f].CGColor;
     pill.layer.shadowOpacity = 1.f;
     pill.layer.shouldRasterize = true;
     pill.layer.rasterizationScale = [[UIScreen mainScreen] scale];
@@ -541,6 +542,7 @@
     pill.userInteractionEnabled = true;
     CGFloat intrinsticWidth = pill.intrinsicContentSize.width + (18*2);
     pill.frame = CGRectMake(self.view.frame.size.width / 2 - intrinsticWidth / 2, pill.frame.origin.y, intrinsticWidth, pill.frame.size.height);
+    [pill setTitleColor:[UIColor bonfirePrimaryColor] forState:UIControlStateNormal];
     [self.view insertSubview:pill belowSubview:self.tabBar];
     
     [pill bk_addEventHandler:^(id sender) {
@@ -584,6 +586,24 @@
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(withDelay ? 0.4f : 0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         [self showPillIfNeeded];
     });
+}
+- (UIImage *)gradientImageForView:(UIView *)view topLeftColor:(UIColor *)topLeftColor bottomRightColor:(UIColor *)bottomRightColor {
+    CGSize size = view.frame.size;
+    CGFloat width = size.width;
+    CGFloat height = size.height;
+
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+    CGFloat locations[] = { 0.0, 1.0 };
+    NSArray *colors = @[(__bridge id)topLeftColor.CGColor, (__bridge id)bottomRightColor.CGColor];
+    CGGradientRef gradient = CGGradientCreateWithColors(colorSpace, (__bridge CFArrayRef)colors, locations);
+
+    UIGraphicsBeginImageContext(CGSizeMake(width, height));
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    CGContextDrawLinearGradient(context, gradient, CGPointMake(0, 0), CGPointMake(width, height), 0);
+    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    
+    return image;
 }
 - (void)showPillIfNeeded {    
     NSInteger index = [self.tabBar.items indexOfObject:self.tabBar.selectedItem];

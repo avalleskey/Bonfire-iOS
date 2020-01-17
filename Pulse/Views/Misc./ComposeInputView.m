@@ -83,13 +83,8 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     
     self.contentView = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleProminent]];
     self.contentView.frame = self.bounds;
-    self.contentView.backgroundColor = [[UIColor contentBackgroundColor] colorWithAlphaComponent:0.75];
+    self.contentView.backgroundColor = [UIColor colorNamed:@"MiniCompose_Background"];
     [self addSubview:self.contentView];
-    
-//    self.layer.shadowOffset = CGSizeMake(0, 0);
-//    self.layer.shadowRadius = 2.f;
-//    self.layer.shadowColor = [UIColor blackColor].CGColor;
-//    self.layer.shadowOpacity = 0.1;
     
     self.layer.masksToBounds = false;
     
@@ -109,7 +104,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     _textView.textContainer.lineBreakMode = NSLineBreakByWordWrapping;
     _textView.textColor = [UIColor bonfirePrimaryColor];
     _textView.layer.cornerRadius = 20.f;
-    _textView.backgroundColor = [UIColor cardBackgroundColor]; //[[UIColor fromHex:@"9FA6AD"] colorWithAlphaComponent:0.1];
+    _textView.backgroundColor = [UIColor contentBackgroundColor]; //[[UIColor fromHex:@"9FA6AD"] colorWithAlphaComponent:0.1];
     _textView.layer.borderWidth = HALF_PIXEL;
     _textView.placeholder = self.defaultPlaceholder;
     _textView.placeholderColor = [UIColor bonfireSecondaryColor];
@@ -157,7 +152,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     self.addMediaButton.layer.masksToBounds = true;
     self.addMediaButton.layer.cornerRadius = self.addMediaButton.frame.size.height / 2;
     self.addMediaButton.tintColor = [UIColor whiteColor];
-    self.addMediaButton.backgroundColor = [[UIColor bonfirePrimaryColor] colorWithAlphaComponent:0.6];
+    self.addMediaButton.backgroundColor = [UIColor bonfireSecondaryColor];
     self.addMediaButton.contentMode = UIViewContentModeScaleAspectFill;
     self.addMediaButton.adjustsImageWhenHighlighted = false;
     [self.addMediaButton bk_addEventHandler:^(id sender) {
@@ -526,6 +521,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
     [imagePickerOptions addAction:cancel];
     
+    imagePickerOptions.modalPresentationStyle = UIModalPresentationOverFullScreen;
     [[Launcher topMostViewController] presentViewController:imagePickerOptions animated:true completion:nil];
 }
 

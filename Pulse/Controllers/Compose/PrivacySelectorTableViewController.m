@@ -49,6 +49,7 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
     [super viewDidLoad];
         
     self.searchPhrase = @"";
+    self.title = _postOnSelection ? @"Post in..." : @"Select a Camp";
     
     [self loadCache];
     
@@ -445,13 +446,16 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (indexPath.section == 0) {
-        // my profile
-        [self.delegate privacySelectionDidChange:nil];
-    }
-    else if (indexPath.section == 1) {
+    Camp *camp;
+    if (indexPath.section == 1) {
         // camp
-        Camp *camp = self.stream.camps[indexPath.row];
+        camp = self.stream.camps[indexPath.row];
+    }
+    
+    if (self.postOnSelection && [self.delegate respondsToSelector:@selector(privacySelectionDidSelectToPost:)]) {
+        [self.delegate privacySelectionDidSelectToPost:camp];
+    }
+    else if ([self.delegate respondsToSelector:@selector(privacySelectionDidChange:)]) {
         [self.delegate privacySelectionDidChange:camp];
     }
     

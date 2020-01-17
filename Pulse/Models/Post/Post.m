@@ -2,9 +2,9 @@
 #import "Session.h"
 #import "GTMNSString+HTML.h"
 #import <SearchEmojiOnString/NSString+EMOEmoji.h>
+#import "BFMiniNotificationManager.h"
 #import "BFLinkAttachmentView.h"
 #import "HAWebService.h"
-#import <JGProgressHUD/JGProgressHUD.h>
 #import "Launcher.h"
 @import Firebase;
 
@@ -108,18 +108,10 @@
     [FIRAnalytics logEventWithName:@"post_report"
                             parameters:@{}];
     
-    // Reported!
-    JGProgressHUD *HUD = [JGProgressHUD progressHUDWithStyle:JGProgressHUDStyleExtraLight];
-    HUD.indicatorView = [[JGProgressHUDSuccessIndicatorView alloc] init];
-    HUD.tintColor = [UIColor colorWithWhite:0 alpha:0.6f];
-    HUD.textLabel.text = @"Reported";
-    HUD.vibrancyEnabled = false;
-    HUD.animation = [[JGProgressHUDFadeZoomAnimation alloc] init];
-    HUD.textLabel.textColor = [UIColor colorWithWhite:0 alpha:0.6f];
-    HUD.backgroundColor = [UIColor colorWithWhite:0 alpha:0.1f];
-    [HUD showInView:[Launcher topMostViewController].view animated:YES];
-    [HapticHelper generateFeedback:FeedbackType_Notification_Success];
-    [HUD dismissAfterDelay:1.5f];
+    BFMiniNotificationObject *notificationObject = [BFMiniNotificationObject notificationWithText:@"Reported" action:nil];
+    [[BFMiniNotificationManager manager] presentNotification:notificationObject completion:^{
+
+    }];
         
     NSString *url = [NSString stringWithFormat:@"posts/%@/reports", self.identifier];
     
@@ -130,8 +122,11 @@
     [FIRAnalytics logEventWithName:@"post_mute"
                             parameters:@{}];
     
-    NSString *url = [NSString stringWithFormat:@"posts/%@/subscription", self.identifier];
+    NSString *url = [NSString stringWithFormat:@"posts/%@/subscriptions", self.identifier];
     [[HAWebService authenticatedManager] DELETE:url parameters:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        BFMiniNotificationObject *notificationObject = [BFMiniNotificationObject notificationWithText:@"Muted" action:nil];
+        [[BFMiniNotificationManager manager] presentNotification:notificationObject completion:nil];
+        
         if (handler) {
             handler(true, self);
         }
@@ -140,29 +135,15 @@
             handler(false, self);
         }
     }];
-        
-    JGProgressHUD *HUD = [JGProgressHUD progressHUDWithStyle:JGProgressHUDStyleExtraLight];
-    HUD.indicatorView = [[JGProgressHUDSuccessIndicatorView alloc] init];
-    HUD.tintColor = [UIColor colorWithWhite:0 alpha:0.6f];
-    HUD.textLabel.text = @"Muted";
-    HUD.vibrancyEnabled = false;
-    HUD.animation = [[JGProgressHUDFadeZoomAnimation alloc] init];
-    HUD.textLabel.textColor = [UIColor colorWithWhite:0 alpha:0.6f];
-    HUD.backgroundColor = [UIColor colorWithWhite:0 alpha:0.1f];
-    [HUD showInView:[Launcher topMostViewController].view animated:YES];
-    [HapticHelper generateFeedback:FeedbackType_Notification_Success];
-    [HUD dismissAfterDelay:1.5f];
     
     // update model
-    BFContext *context = [[BFContext alloc] initWithDictionary:[self.attributes.context toDictionary] error:nil];
+    Post *post = [[Post alloc] initWithDictionary:[self toDictionary] error:nil];
+    BFContext *context = [[BFContext alloc] initWithDictionary:[post.attributes.context toDictionary] error:nil];
     BFContextPost *contextPost = [[BFContextPost alloc] initWithDictionary:[context.post toDictionary] error:nil];
     contextPost.muted = true;
     context.post = contextPost;
-    self.attributes.context = context;
-    
-    NSLog(@"post updated: %@", self);
-    
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"PostUpdated" object:self];
+    post.attributes.context = context;
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"PostUpdated" object:post];
 }
 - (void)mute {
     [self muteWithCmpletion:nil];
@@ -172,7 +153,7 @@
     [FIRAnalytics logEventWithName:@"post_unmute"
                             parameters:@{}];
     
-    NSString *url = [NSString stringWithFormat:@"posts/%@/subscription", self.identifier];
+    NSString *url = [NSString stringWithFormat:@"posts/%@/subscriptions", self.identifier];
     [[HAWebService authenticatedManager] POST:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         if (handler) {
             handler(true, self);
@@ -183,28 +164,14 @@
         }
     }];
     
-    JGProgressHUD *HUD = [JGProgressHUD progressHUDWithStyle:JGProgressHUDStyleExtraLight];
-    HUD.indicatorView = [[JGProgressHUDSuccessIndicatorView alloc] init];
-    HUD.tintColor = [UIColor colorWithWhite:0 alpha:0.6f];
-    HUD.textLabel.text = @"Instant Updates On";
-    HUD.vibrancyEnabled = false;
-    HUD.animation = [[JGProgressHUDFadeZoomAnimation alloc] init];
-    HUD.textLabel.textColor = [UIColor colorWithWhite:0 alpha:0.6f];
-    HUD.backgroundColor = [UIColor colorWithWhite:0 alpha:0.1f];
-    [HUD showInView:[Launcher topMostViewController].view animated:YES];
-    [HapticHelper generateFeedback:FeedbackType_Notification_Success];
-    [HUD dismissAfterDelay:1.5f];
-    
     // update model
-    BFContext *context = [[BFContext alloc] initWithDictionary:[self.attributes.context toDictionary] error:nil];
+    Post *post = [[Post alloc] initWithDictionary:[self toDictionary] error:nil];
+    BFContext *context = [[BFContext alloc] initWithDictionary:[post.attributes.context toDictionary] error:nil];
     BFContextPost *contextPost = [[BFContextPost alloc] initWithDictionary:[context.post toDictionary] error:nil];
     contextPost.muted = false;
     context.post = contextPost;
-    self.attributes.context = context;
-    
-    NSLog(@"post updated: %@", self);
-    
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"PostUpdated" object:self];
+    post.attributes.context = context;
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"PostUpdated" object:post];
 }
 - (void)unMute {
     [self unMuteWithCmpletion:nil];

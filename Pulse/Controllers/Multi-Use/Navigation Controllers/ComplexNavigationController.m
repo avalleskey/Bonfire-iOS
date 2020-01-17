@@ -105,6 +105,21 @@
     [self setupNavigationBarItems];
 }
 
+- (void)dismissViewControllerAnimated:(BOOL)flag completion:(void (^)(void))completion {
+    __weak typeof(self) weakSelf = self;
+    
+    [super dismissViewControllerAnimated:flag completion:^(void){
+        [[NSNotificationCenter defaultCenter] removeObserver:weakSelf];
+        for (UIViewController *viewController in self.viewControllers) {
+            [[NSNotificationCenter defaultCenter] removeObserver:viewController];
+        }
+        
+        if (completion) {
+            completion();
+        }
+    }];
+}
+
 - (UIStatusBarStyle)preferredStatusBarStyle {
     if ([UIColor useWhiteForegroundForColor:self.navigationBackgroundView.backgroundColor]) {
         return UIStatusBarStyleLightContent;

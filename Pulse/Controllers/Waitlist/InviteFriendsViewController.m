@@ -14,6 +14,7 @@
 #import <BlocksKit/BlocksKit+UIKit.h>
 #import <JGProgressHUD/JGProgressHUD.h>
 #import <FBSDKShareKit/FBSDKShareKit.h>
+#import "BFMiniNotificationManager.h"
 
 @interface InviteFriendsViewController ()
 
@@ -129,20 +130,10 @@
         if (self.shareField.currentTitle.length > 0) {
             UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
             pasteboard.string = self.shareField.currentTitle;
-            
-            JGProgressHUD *HUD = [JGProgressHUD progressHUDWithStyle:JGProgressHUDStyleExtraLight];
-            HUD.indicatorView = [[JGProgressHUDSuccessIndicatorView alloc] init];
-            HUD.tintColor = [UIColor colorWithWhite:0 alpha:0.6f];
-            HUD.textLabel.text = @"Copied Link!";
-            HUD.vibrancyEnabled = false;
-            HUD.animation = [[JGProgressHUDFadeZoomAnimation alloc] init];
-            HUD.textLabel.textColor = [UIColor colorWithWhite:0 alpha:0.6f];
-            HUD.backgroundColor = [UIColor colorWithWhite:0 alpha:0.1f];
-            
-            [HUD showInView:self.view animated:YES];
             [HapticHelper generateFeedback:FeedbackType_Notification_Success];
             
-            [HUD dismissAfterDelay:1.5f];
+            BFMiniNotificationObject *notificationObject = [BFMiniNotificationObject notificationWithText:@"Copied!" action:nil];
+            [[BFMiniNotificationManager manager] presentNotification:notificationObject completion:nil];
         }
     }];
     

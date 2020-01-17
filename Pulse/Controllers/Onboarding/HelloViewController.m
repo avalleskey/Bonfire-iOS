@@ -273,7 +273,7 @@
     self.middleViewContainer.layer.masksToBounds = true;
     [self.middleView addSubview:self.middleViewContainer];
     
-    self.launchLogo = [[UIImageView alloc] initWithImage:[[UIImage imageNamed:@"LaunchLogo"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
+    self.launchLogo = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"LaunchLogo"]];
     self.launchLogo.tintColor = [UIColor bonfireSecondaryColor];
     self.launchLogo.frame = CGRectMake(self.view.frame.size.width / 2 - 64, self.view.frame.size.height / 2 - 64, 128, 128);
     [self.middleViewContainer addSubview:self.launchLogo];

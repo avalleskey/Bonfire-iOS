@@ -280,7 +280,7 @@ static NSString * const buttonCellIdentifier = @"ButtonCell";
         else {
             self.contentView.frame = CGRectMake(self.contentView.frame.origin.x, self.view.frame.size.height, self.contentView.frame.size.width, self.contentView.frame.size.height);
             
-            [UIView animateWithDuration:0.5f+(0.0007 * self.contentView.frame.size.height) delay:0.15f usingSpringWithDamping:0.75f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
+            [UIView animateWithDuration:0.4f+(0.0006 * self.contentView.frame.size.height) delay:0.15f usingSpringWithDamping:0.75f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
                 self.contentView.frame = CGRectMake(self.contentView.frame.origin.x, self.view.frame.size.height - self.contentView.frame.size.height - (HAS_ROUNDED_CORNERS ? 0 : 8) - [UIApplication sharedApplication].keyWindow.safeAreaInsets.bottom, self.contentView.frame.size.width, self.contentView.frame.size.height);
             } completion:nil];
         }

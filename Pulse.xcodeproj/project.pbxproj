@@ -37,6 +37,8 @@
 		D912BD80223314B900F9F4EC /* UserActivityStream.m in Sources */ = {isa = PBXBuildFile; fileRef = D912BD7F223314B900F9F4EC /* UserActivityStream.m */; };
 		D9133B522267C2D500B5D65C /* BFDetailsCollectionView.m in Sources */ = {isa = PBXBuildFile; fileRef = D9133B512267C2D500B5D65C /* BFDetailsCollectionView.m */; };
 		D9133B552267EBD600B5D65C /* KTCenterFlowLayout.m in Sources */ = {isa = PBXBuildFile; fileRef = D9133B542267EBD600B5D65C /* KTCenterFlowLayout.m */; };
+		D9145AB023CF76CD00BB9FFD /* BFMiniNotificationView.m in Sources */ = {isa = PBXBuildFile; fileRef = D9145AAD23CF76CD00BB9FFD /* BFMiniNotificationView.m */; };
+		D9145AB123CF76CD00BB9FFD /* BFMiniNotificationManager.m in Sources */ = {isa = PBXBuildFile; fileRef = D9145AAF23CF76CD00BB9FFD /* BFMiniNotificationManager.m */; };
 		D91643092162BE4800523770 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D91643082162BE4800523770 /* QuartzCore.framework */; };
 		D916430D2162C3A100523770 /* SearchResultCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D916430C2162C3A100523770 /* SearchResultCell.m */; };
 		D9164310216407C300523770 /* ProfileViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D916430F216407C300523770 /* ProfileViewController.m */; };
@@ -291,7 +293,7 @@
 		D904283E233BE3800051D3AF /* LinkConversationsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LinkConversationsViewController.m; sourceTree = "<group>"; };
 		D9042840233C17170051D3AF /* BFSmartLinkAttachmentView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BFSmartLinkAttachmentView.m; sourceTree = "<group>"; };
 		D9042841233C17180051D3AF /* BFSmartLinkAttachmentView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BFSmartLinkAttachmentView.h; sourceTree = "<group>"; };
-		D907B07D214EEC5000A59712 /* Bonfire b36.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Bonfire b36.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		D907B07D214EEC5000A59712 /* Bonfire b39.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Bonfire b39.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D907B080214EEC5000A59712 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		D907B081214EEC5000A59712 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; wrapsLines = 0; };
 		D907B087214EEC5000A59712 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -328,6 +330,10 @@
 		D9133B512267C2D500B5D65C /* BFDetailsCollectionView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BFDetailsCollectionView.m; sourceTree = "<group>"; };
 		D9133B532267EBC800B5D65C /* KTCenterFlowLayout.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KTCenterFlowLayout.h; sourceTree = "<group>"; };
 		D9133B542267EBD600B5D65C /* KTCenterFlowLayout.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KTCenterFlowLayout.m; sourceTree = "<group>"; };
+		D9145AAC23CF76CD00BB9FFD /* BFMiniNotificationView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BFMiniNotificationView.h; sourceTree = "<group>"; };
+		D9145AAD23CF76CD00BB9FFD /* BFMiniNotificationView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BFMiniNotificationView.m; sourceTree = "<group>"; };
+		D9145AAE23CF76CD00BB9FFD /* BFMiniNotificationManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BFMiniNotificationManager.h; sourceTree = "<group>"; };
+		D9145AAF23CF76CD00BB9FFD /* BFMiniNotificationManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BFMiniNotificationManager.m; sourceTree = "<group>"; };
 		D91643082162BE4800523770 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		D916430B2162C3A100523770 /* SearchResultCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SearchResultCell.h; sourceTree = "<group>"; };
 		D916430C2162C3A100523770 /* SearchResultCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SearchResultCell.m; sourceTree = "<group>"; };
@@ -812,7 +818,7 @@
 		D907B07E214EEC5000A59712 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				D907B07D214EEC5000A59712 /* Bonfire b36.app */,
+				D907B07D214EEC5000A59712 /* Bonfire b39.app */,
 				D907B095214EEC5300A59712 /* PulseTests.xctest */,
 				D907B0A0214EEC5300A59712 /* PulseUITests.xctest */,
 			);
@@ -1169,6 +1175,10 @@
 		D95EE388229C47CE006E4D8E /* In App Notifications */ = {
 			isa = PBXGroup;
 			children = (
+				D9145AAE23CF76CD00BB9FFD /* BFMiniNotificationManager.h */,
+				D9145AAF23CF76CD00BB9FFD /* BFMiniNotificationManager.m */,
+				D9145AAC23CF76CD00BB9FFD /* BFMiniNotificationView.h */,
+				D9145AAD23CF76CD00BB9FFD /* BFMiniNotificationView.m */,
 				D95EE389229C47CE006E4D8E /* BFNotificationView.m */,
 				D95EE38A229C47CE006E4D8E /* BFNotificationManager.h */,
 				D95EE38B229C47CE006E4D8E /* BFNotificationManager.m */,
@@ -1875,7 +1885,7 @@
 			);
 			name = Pulse;
 			productName = Pulse;
-			productReference = D907B07D214EEC5000A59712 /* Bonfire b36.app */;
+			productReference = D907B07D214EEC5000A59712 /* Bonfire b39.app */;
 			productType = "com.apple.product-type.application";
 		};
 		D907B094214EEC5300A59712 /* PulseTests */ = {
@@ -2150,6 +2160,7 @@
 				D9A7A2BB2263E7FB0091B53C /* BFMedia.m in Sources */,
 				D921172521AC5F9700853F3F /* CampFollowButton.m in Sources */,
 				D95EE37C2295A491006E4D8E /* BFHeaderView.m in Sources */,
+				D9145AB123CF76CD00BB9FFD /* BFMiniNotificationManager.m in Sources */,
 				D9FFFB50227DFC4E004E3779 /* UIImage+WithColor.m in Sources */,
 				D9742E7321C34140002CBEFC /* TappableButton.m in Sources */,
 				D9B2D58F21B1F3A4007B3C0C /* BFSearchView.m in Sources */,
@@ -2171,6 +2182,7 @@
 				D90047D022860669006B4B3D /* BFColorPickerViewController.m in Sources */,
 				D939AE70235F518800317A76 /* BFPostDeletedAttachmentView.m in Sources */,
 				D94DE3322199203C00CA3E1F /* SSWDirectionalPanGestureRecognizer.m in Sources */,
+				D9145AB023CF76CD00BB9FFD /* BFMiniNotificationView.m in Sources */,
 				D924BE2D21542EE400EB7385 /* PostTextView.m in Sources */,
 				D94FD1F4216D730300B84E45 /* CampSummaries.m in Sources */,
 				D907B1042150697400A59712 /* NSArray+Clean.m in Sources */,
@@ -2515,7 +2527,7 @@
 				CODE_SIGN_ENTITLEMENTS = Pulse/Pulse.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 36;
+				CURRENT_PROJECT_VERSION = 39;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 4WLQG965T9;
 				EXCLUDED_SOURCE_FILE_NAMES = "*.value";
@@ -2554,7 +2566,7 @@
 				CODE_SIGN_ENTITLEMENTS = Pulse/Pulse.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 36;
+				CURRENT_PROJECT_VERSION = 39;
 				DEVELOPMENT_TEAM = 4WLQG965T9;
 				EXCLUDED_SOURCE_FILE_NAMES = "*.value";
 				FRAMEWORK_SEARCH_PATHS = (
@@ -2728,7 +2740,7 @@
 				CODE_SIGN_ENTITLEMENTS = Pulse/Pulse.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 36;
+				CURRENT_PROJECT_VERSION = 39;
 				DEVELOPMENT_TEAM = 4WLQG965T9;
 				EXCLUDED_SOURCE_FILE_NAMES = "*.value";
 				FRAMEWORK_SEARCH_PATHS = (

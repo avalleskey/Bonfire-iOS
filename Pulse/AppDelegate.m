@@ -19,6 +19,7 @@
 #import "UIColor+Palette.h"
 #import "InsightsLogger.h"
 #import "BFNotificationManager.h"
+#import "BFMiniNotificationManager.h"
 #import "BFAlertController.h"
 #import "ResetPasswordViewController.h"
 #import "HAWebService.h"
@@ -415,18 +416,10 @@
                 else {
                     if ([currentNavigationController.visibleViewController isKindOfClass:[HomeTableViewController class]]) {
                         HomeTableViewController *homeVC = (HomeTableViewController *)(currentNavigationController.visibleViewController);
-                        if (homeVC.rs_tableView.queuedStream.posts.count > 0) {
-                            [homeVC hideMorePostsIndicator:true];
-                            
-                            [(RSTableView *)tableView scrollToTopWithCompletion:^{
-                                [homeVC addQueuedPosts];
-                            }];
-                        }
-                        else {
-                            [(RSTableView *)tableView scrollToTop];
-                        }
+                        [homeVC hideMorePostsIndicator:true];
                     }
-                    else if ([tableView isKindOfClass:[RSTableView class]]) {
+                    
+                    if ([tableView isKindOfClass:[RSTableView class]]) {
                         [(RSTableView *)tableView scrollToTop];
                     }
                     else {

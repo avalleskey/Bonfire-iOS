@@ -30,6 +30,7 @@
 #import <BlocksKit/BlocksKit+UIKit.h>
 #import "UIImage+WithColor.h"
 #import <JGProgressHUD/JGProgressHUD.h>
+#import "BFMiniNotificationManager.h"
 @import Firebase;
 
 @interface EditProfileViewController () <UITextFieldDelegate, UITextViewDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate, RSKImageCropViewControllerDelegate, RSKImageCropViewControllerDataSource> {
@@ -276,11 +277,11 @@ static int const EMAIL_FIELD = 206;
             [[HAWebService authenticatedManager] PUT:@"users/me" parameters:params success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 NSLog(@"response object: %@", responseObject);
                 
-                // success
-                HUD.indicatorView = [[JGProgressHUDSuccessIndicatorView alloc] init];
-                HUD.textLabel.text = @"Success!";
+                [HUD dismiss];
                 
-                [HUD dismissAfterDelay:1.f];
+                // success
+                BFMiniNotificationObject *notificationObject = [BFMiniNotificationObject notificationWithText:@"Saved!" action:nil];
+                [[BFMiniNotificationManager manager] presentNotification:notificationObject completion:nil];
                 
                 // save user
                 User *user = [[User alloc] initWithDictionary:responseObject[@"data"] error:nil];

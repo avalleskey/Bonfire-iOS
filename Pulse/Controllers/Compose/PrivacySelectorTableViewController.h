@@ -15,6 +15,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)privacySelectionDidChange:(Camp * _Nullable)selection;
 
+@optional
+- (void)privacySelectionDidSelectToPost:(Camp * _Nullable)selection;
+
 @end
 
 @interface PrivacySelectorTableViewController : UITableViewController
@@ -23,6 +26,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic) BOOL shareOnProfile;
 @property (nonatomic, strong) UIBarButtonItem *cancelButton;
 @property (nonatomic, weak) id <PrivacySelectorDelegate> delegate;
+
+@property (nonatomic) BOOL postOnSelection;
 
 @end
 

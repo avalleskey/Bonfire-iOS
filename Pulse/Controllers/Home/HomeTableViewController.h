@@ -26,7 +26,6 @@ enum {
 @property (nonatomic, strong) UIButton *morePostsIndicator;
 - (void)hideMorePostsIndicator:(BOOL)animated;
 - (void)showMorePostsIndicator:(BOOL)animated;
-- (void)addQueuedPosts;
 
 @property (nonatomic, strong) ComposeInputView *composeInputView;
 

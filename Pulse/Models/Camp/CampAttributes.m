@@ -35,6 +35,7 @@
 @implementation CampDisplay
 
 NSString * const CAMP_DISPLAY_FORMAT_CHANNEL = @"channel";
+NSString * const CAMP_DISPLAY_FORMAT_FEED = @"feed";
 
 + (BOOL)propertyIsOptional:(NSString*)propertyName
 {

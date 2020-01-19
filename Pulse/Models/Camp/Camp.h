@@ -20,7 +20,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 // helper methods
 - (BOOL)isVerified;
+- (BOOL)isDefaultCamp;
 - (BOOL)isChannel;
+- (BOOL)isFeed;
 - (BOOL)isPrivate;
 
 #pragma mark - API Methods

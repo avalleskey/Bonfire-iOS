@@ -165,6 +165,8 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
 }
 
 - (void)markAllAsRead {
+    [(TabController *)self.tabBarController setBadgeValue:nil forItem:self.navigationController.tabBarItem];
+    
     if (self.markAsReadTimer) {
         [self.markAsReadTimer invalidate];
         self.markAsReadTimer = nil;
@@ -200,7 +202,6 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
 
 - (void)clearNotifications {
     self.navigationController.tabBarItem.badgeValue = nil;
-    [(TabController *)self.tabBarController setBadgeValue:nil forItem:self.navigationController.tabBarItem];
     [UIApplication sharedApplication].applicationIconBadgeNumber = 0;
 }
 
@@ -360,16 +361,17 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
                 // unread timer
                 [self.markAsReadTimer invalidate];
                 self.markAsReadTimer = nil;
-                self.markAsReadTimer = [NSTimer bk_scheduledTimerWithTimeInterval:5.0 block:^(NSTimer *timer) {
+                self.markAsReadTimer = [NSTimer bk_scheduledTimerWithTimeInterval:MIN(5, unread) block:^(NSTimer *timer) {
                     [self markAllAsRead];
                 } repeats:false];
             }
             else {
                 // view not visible and unread count > 0
-                [(TabController *)self.tabBarController setBadgeValue:[NSString stringWithFormat:@"%lu", (long)unread] forItem:self.navigationController.tabBarItem];
                 [self.tableView layoutIfNeeded];
                 [self.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:true];
             }
+            
+            [(TabController *)self.tabBarController setBadgeValue:[NSString stringWithFormat:@"%lu", (long)unread] forItem:self.navigationController.tabBarItem];
         }
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         NSLog(@"Notificaitons  / getMembers() - error: %@", error);

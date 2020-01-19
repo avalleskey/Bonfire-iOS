@@ -121,6 +121,10 @@
              item.type == BFDetailItemTypeSourceUser) {
         iconView.image = [[UIImage imageNamed:@"details_label_source"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
     }
+    else if (item.type == BFDetailItemTypeSourceLink_Feed ||
+             item.type == BFDetailItemTypeSourceUser_Feed) {
+        iconView.image = [[UIImage imageNamed:@"details_label_feed"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+    }
     else if (item.type == BFDetailItemTypePostNotificationsOn) {
         iconView.image = [[UIImage imageNamed:@"details_label_notifications"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
     }

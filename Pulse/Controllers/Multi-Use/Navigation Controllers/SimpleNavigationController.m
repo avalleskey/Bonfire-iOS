@@ -23,6 +23,13 @@
 
 @implementation SimpleNavigationController
 
+- (id)init {
+    if (self = [super init]) {
+        self.currentTheme = [UIColor clearColor];
+    }
+    return self;
+}
+
 - (instancetype)initWithRootViewController:(UIViewController *)rootViewController {
     if (self = [super initWithRootViewController:rootViewController]) {
         [self initDefaults];
@@ -35,6 +42,8 @@
         if ([rootViewController isKindOfClass:[PostViewController class]]) {
             self.opaqueOnScroll = true;
         }
+        
+        self.currentTheme = [UIColor clearColor];
     }
     
     return self;
@@ -46,10 +55,6 @@
     self.opaqueOnScroll = true;
     self.shadowOnScroll = true;
     self.foregroundBeforeScroll = nil;;
-}
-
-- (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection {
-    [self updateBarColor:_currentTheme animated:NO];
 }
 
 - (void)viewDidLoad {
@@ -64,10 +69,11 @@
     
     [super dismissViewControllerAnimated:flag completion:^(void){
         [[NSNotificationCenter defaultCenter] removeObserver:weakSelf];
+        
         for (UIViewController *viewController in self.viewControllers) {
             [[NSNotificationCenter defaultCenter] removeObserver:viewController];
         }
-        
+                
         if (completion) {
             completion();
         }
@@ -135,10 +141,6 @@
     self.progressView = [UIView new];
     self.progressView.frame = CGRectMake(0, self.navigationBar.frame.size.height - 2, 0, 2);
     [self.navigationBar addSubview:self.progressView];
-    
-    if (self.currentTheme == nil) {
-        self.currentTheme = [UIColor clearColor];
-    }
 }
 
 - (UIButton *)createActionButtonForType:(SNActionType)actionType {

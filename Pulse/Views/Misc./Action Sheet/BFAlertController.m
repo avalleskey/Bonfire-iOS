@@ -334,7 +334,7 @@ static NSString * const buttonCellIdentifier = @"ButtonCell";
 
 - (void)initContentView {
     self.contentView = [[UIView alloc] initWithFrame:CGRectMake(8, self.view.frame.size.height, self.view.frame.size.width - 16, 0)];
-    self.contentView.backgroundColor = [UIColor contentBackgroundColor];
+    self.contentView.backgroundColor = [UIColor cardBackgroundColor];
     [self.view addSubview:self.contentView];
     
     if (self.preferredStyle == BFAlertControllerStyleActionSheet) {
@@ -493,6 +493,8 @@ static NSString * const buttonCellIdentifier = @"ButtonCell";
         if (cell == nil) {
             cell = [[ButtonCell alloc] initWithStyle:UITableViewCellStyleValue2 reuseIdentifier:buttonCellIdentifier];
         }
+        
+        cell.backgroundColor = [UIColor cardBackgroundColor];
                 
         // Configure the cell...
         if (action.title) {

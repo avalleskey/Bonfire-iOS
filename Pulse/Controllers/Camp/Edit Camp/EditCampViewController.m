@@ -35,6 +35,8 @@
 
 @interface EditCampViewController () <UITextFieldDelegate, UITextViewDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate, RSKImageCropViewControllerDelegate, RSKImageCropViewControllerDataSource, UITableViewDelegate, UITableViewDataSource	> {
     UIImage *newAvatar;
+    
+    CGFloat coverPhotoHeight;
 }
 
 @property (nonatomic) CGFloat currentKeyboardHeight;
@@ -190,9 +192,8 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     [self updateCoverPhotoView];
 }
 - (void)updateCoverPhotoView {
-    CGFloat coverPhotoHeight = 120;
+    coverPhotoHeight = 16 + ceilf(128 * 0.65);
     if (self.camp.attributes.media.cover.suggested.url.length > 0) {
-        coverPhotoHeight = 148;
         [self.coverPhotoView sd_setImageWithURL:[NSURL URLWithString:self.camp.attributes.media.cover.suggested.url]];
     
         // add gradient overlay
@@ -216,7 +217,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
             }
         }
     }
-    self.tableView.contentInset = UIEdgeInsetsMake(coverPhotoHeight, 0, 24, 0);
+    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 24, 0);
     
     // updat the scroll distance
     if ([self.navigationController isKindOfClass:[ComplexNavigationController class]]) {
@@ -226,7 +227,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
         ((SimpleNavigationController *)self.navigationController).onScrollLowerBound = self.tableView.contentInset.top * .3;
     }
     
-    self.coverPhotoView.frame = CGRectMake(0, 0, self.view.frame.size.width, self.tableView.contentInset.top + (-1 * self.tableView.contentOffset.y));
+    self.coverPhotoView.frame = CGRectMake(0, 0, self.view.frame.size.width, coverPhotoHeight);
 }
 
 - (void)saveChanges {
@@ -683,7 +684,19 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     NSString *newStr = [textView.text stringByReplacingCharactersInRange:range withString:text];
     
     if (textView.tag == 3) {
-        return [newStr validateBonfireCampDescription] != BFValidationErrorTooLong;
+        BOOL valid = [newStr validateBonfireCampDescription] != BFValidationErrorTooLong;
+        
+        if (newStr.length > 1 && valid) {
+            // prevent consecutive line breaks
+            unichar secondToLast = [newStr characterAtIndex:[newStr length] - 2];
+            unichar last = [newStr characterAtIndex:[newStr length] - 1];
+            if ([[NSCharacterSet newlineCharacterSet] characterIsMember:secondToLast] &&
+                [[NSCharacterSet newlineCharacterSet] characterIsMember:last]) {
+                valid = NO;
+            }
+        }
+        
+        return valid;
     }
     
     return YES;
@@ -695,8 +708,10 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     
     if (textView.tag == 3) {
         // description
-        [self.tableView beginUpdates];
-        [self.tableView endUpdates];
+        wait(0.01, ^{
+            [self.tableView beginUpdates];
+            [self.tableView endUpdates];
+        });
         
         InputCell *cell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:3 inSection:0]];
         if (cell) {
@@ -1044,13 +1059,9 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
     if (scrollView == self.tableView && [self.navigationController isKindOfClass:[SimpleNavigationController class]]) {
         [(SimpleNavigationController *)self.navigationController childTableViewDidScroll:self.tableView];
+        CGFloat adjustedCoverPhotoHeight = coverPhotoHeight + self.tableView.adjustedContentInset.top;
         
-        if (self.tableView.contentOffset.y > (-1 * self.tableView.contentInset.top)) {
-            self.coverPhotoView.frame = CGRectMake(0, 0.5 * (-self.tableView.contentOffset.y - self.tableView.contentInset.top), self.view.frame.size.width, self.tableView.contentInset.top);
-        }
-        else {
-            self.coverPhotoView.frame = CGRectMake(0, 0, self.view.frame.size.width, self.tableView.contentInset.top + (-self.tableView.contentOffset.y - self.tableView.contentInset.top));
-        }
+        self.coverPhotoView.frame = CGRectMake(0, 0, self.view.frame.size.width, adjustedCoverPhotoHeight + -(self.tableView.contentOffset.y + self.tableView.adjustedContentInset.top));
     }
 }
 

@@ -55,9 +55,6 @@ UIViewAnimationOptions const SSWNavigationTransitionCurve = 7 << 16;
     fromView.layer.masksToBounds = false;
     toView.layer.masksToBounds = false;
     
-    NSLog(@"fromViewController:::: %@", fromViewController);
-    NSLog(@"toViewController:::::: %@", toViewController);
-    
     [[transitionContext containerView] insertSubview:toViewController.view belowSubview:fromViewController.view];
     
     if ([fromViewController isKindOfClass:[UINavigationController class]]) {
@@ -96,7 +93,6 @@ UIViewAnimationOptions const SSWNavigationTransitionCurve = 7 << 16;
             }];
         }
         else {
-            NSLog(@"nah no interactivity 4 u !");
             [UIView animateWithDuration:animationDuration delay:0 usingSpringWithDamping:animationDamping initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseInOut animations:^{
                 toView.alpha = 1;
                 toView.transform = CGAffineTransformMakeTranslation(0, 0);
@@ -191,7 +187,7 @@ UIViewAnimationOptions const SSWNavigationTransitionCurve = 7 << 16;
 
 - (void)animationEnded:(BOOL)transitionCompleted
 {
-    // restore the toViewController's transform if the animation was cancelled
+    // restore the toViewController's transform if the animation was canceled
     if (!transitionCompleted) {
         // NSLog(@"we got canceled rip");
     }

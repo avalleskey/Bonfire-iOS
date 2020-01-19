@@ -346,73 +346,107 @@
     }
 }
 
+- (void)hideBadgeForItem:(UITabBarItem *)tabBarItem {
+    NSUInteger index = [self.tabBar.items indexOfObject:tabBarItem];
+    UIView *bubbleView = [self.badges objectForKey:[NSNumber numberWithInteger:index]];
+    
+    // hide
+    if (!bubbleView) return;
+    
+    // clear notifications
+    [UIApplication sharedApplication].applicationIconBadgeNumber = 0;
+    
+    [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+        bubbleView.transform = CGAffineTransformMakeScale(0.01, 0.01);
+        bubbleView.alpha = 0;
+    } completion:^(BOOL finished) {
+        [self.badges removeObjectForKey:[NSNumber numberWithInteger:index]];
+        [bubbleView removeFromSuperview];
+    }];
+}
 - (void)setBadgeValue:(NSString *)badgeValue forItem:(UITabBarItem *)tabBarItem {
     badgeValue = [NSString stringWithFormat:@"%@", badgeValue];
     
     NSUInteger index = [self.tabBar.items indexOfObject:tabBarItem];
-    
     UIView *tabBarItemView = [self viewForTabInTabBar:self.tabBar withIndex:index];
+    UIView *bubbleView = [self.badges objectForKey:[NSNumber numberWithInteger:index]];
     
-    UIView *bubbleView = [self.badges objectForKey:[NSNumber numberWithInteger:index]];;
-    
-    if (!badgeValue || badgeValue.length == 0 || [badgeValue intValue] == 0) {
-        // hide
-        if (!bubbleView) return;
-        
-        // clear notifications
-        [UIApplication sharedApplication].applicationIconBadgeNumber = 0;
-        
-        [UIView animateWithDuration:0.8f delay:0.2f usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-            bubbleView.frame = CGRectMake(tabBarItemView.frame.origin.x + tabBarItemView.frame.size.width / 2 + tabBarItem.titlePositionAdjustment.horizontal, bubbleView.frame.origin.y, 0, self.tabIndicator.frame.size.height);
-            bubbleView.alpha = 0;
-        } completion:^(BOOL finished) {
-            [self.badges removeObjectForKey:[NSNumber numberWithInteger:index]];
-            [bubbleView removeFromSuperview];
-        }];
+    if (!badgeValue || badgeValue.length == 0 || (![badgeValue isEqualToString:@" "] && [badgeValue intValue] == 0)) {
+        [self hideBadgeForItem:tabBarItem];
     }
     else {
-        if (index == self.selectedIndex) {
-            if ([self.selectedViewController isKindOfClass:[UINavigationController class]] && [[(UINavigationController *)self.selectedViewController visibleViewController] isKindOfClass:[NotificationsTableViewController class]]) {
-                return;
-            }
+        NSString *badgeText;
+        if ([badgeValue intValue] > 9) {
+            badgeText = @"9+";
         }
-        
-        // show
-        if (bubbleView) {
-            // just change the number
+        else if ([badgeValue isEqualToString:@" "]) {
+            badgeText = @"";
         }
         else {
+            badgeText = [NSString stringWithFormat:@"%i", [badgeValue intValue]];
+        }
+        
+        UIFont *badgeFont = [UIFont systemFontOfSize:MAX(12.f - (2 * (badgeText.length - 1)), 8) weight:UIFontWeightBold];
+        BOOL miniDot = badgeText.length == 0;
+        CGFloat bubbleDiameter = miniDot ? 6 : 16;
+        CGFloat bubbleWidth = bubbleDiameter;
+        if (badgeText.length > 1) {
+            bubbleWidth = ceilf([badgeText boundingRectWithSize:CGSizeMake(100, bubbleDiameter) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName: badgeFont} context:nil].size.height) + (ceilf(badgeFont.pointSize * 0.5) * 2);
+        }
+        CGRect bubbleFrame = CGRectMake(tabBarItemView.frame.origin.x + tabBarItemView.frame.size.width / 2 - (bubbleWidth / 2) + (miniDot ? 12 : 10), self.tabBar.frame.origin.y + tabBarItemView.frame.origin.y + tabBarItemView.frame.size.height / 2 - (bubbleDiameter / 2) - (miniDot ? 12 : 10), bubbleWidth, bubbleDiameter);
+        CGRect borderViewFrame = CGRectMake(-2, -2, bubbleFrame.size.width + 4, bubbleFrame.size.height + 4);
+        
+        // show
+        UIView *borderView = [bubbleView viewWithTag:101];
+        UILabel *label = [bubbleView viewWithTag:10];
+        
+        if (!bubbleView) {
             // create bubble view
-            bubbleView = [[UIView alloc] initWithFrame:CGRectMake(tabBarItemView.frame.origin.x + tabBarItemView.frame.size.width / 2 + tabBarItem.titlePositionAdjustment.horizontal, self.tabBar.frame.origin.y + tabBarItemView.frame.origin.y +  tabBarItemView.frame.size.height / 2, 10, 10)];
+            bubbleView = [[UIView alloc] initWithFrame:bubbleFrame];
             bubbleView.tag = 100;
-            bubbleView.backgroundColor = [UIColor bonfireSecondaryColor];
+            bubbleView.backgroundColor = [UIColor bonfireBrand];
             bubbleView.layer.cornerRadius = bubbleView.frame.size.height / 2;
             [self.badges setObject:bubbleView forKey:[NSNumber numberWithInteger:index]];
             [self.view addSubview:bubbleView];
             
+            borderView = [[UIView alloc] initWithFrame:borderViewFrame];
+            borderView.layer.borderColor = [UIColor colorNamed:@"Navigation_ClearBackgroundColor"].CGColor;
+            borderView.layer.borderWidth = 2;
+            borderView.layer.cornerRadius = borderView.frame.size.width / 2;
+            borderView.tag = 101;
+            [bubbleView addSubview:borderView];
+            
+            label = [[UILabel alloc] initWithFrame:bubbleView.bounds];
+            label.textColor = [UIColor whiteColor];
+            label.textAlignment = NSTextAlignmentCenter;
+            label.tag = 10;
+            [bubbleView addSubview:label];
+            
             // prepare for animations
             bubbleView.alpha = 0;
+            bubbleView.transform = CGAffineTransformMakeScale(0.01, 0.01);
+        }
+        
+        [UIView animateWithDuration:0.8f delay:0 usingSpringWithDamping:0.5f initialSpringVelocity:0.35f options:UIViewAnimationOptionCurveEaseOut animations:^{
+            bubbleView.alpha = 1;
+            bubbleView.transform = CGAffineTransformMakeScale(1, 1);
             
-            [UIView animateWithDuration:0.8f delay:0 usingSpringWithDamping:0.5f initialSpringVelocity:0.35f options:UIViewAnimationOptionCurveEaseOut animations:^{
-                bubbleView.frame = CGRectMake(tabBarItemView.frame.origin.x + tabBarItemView.frame.size.width / 2 + tabBarItem.titlePositionAdjustment.horizontal - 4, self.tabBar.frame.origin.y - 8 - 4, 8, 8);
-                bubbleView.layer.cornerRadius = bubbleView.frame.size.height / 2;
-                bubbleView.alpha = 1;
-                bubbleView.backgroundColor = [UIColor systemRedColor];
-            } completion:^(BOOL finished) {
-                [UIView animateWithDuration:0.4f delay:0.1f usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-                    bubbleView.frame = CGRectMake(tabBarItemView.frame.origin.x + tabBarItemView.frame.size.width / 2 + tabBarItem.titlePositionAdjustment.horizontal - 4, self.tabBar.frame.origin.y, 8, self.tabIndicator.frame.size.height);
-                    bubbleView.layer.cornerRadius = bubbleView.frame.size.height / 2;
-                    
-                    if (index == self.selectedIndex) {
-                        bubbleView.alpha = 0;
-                    }
-                } completion:^(BOOL finished) {
-                    if (index == self.selectedIndex) {
-                        [self.badges removeObjectForKey:[NSNumber numberWithInteger:index]];
-                        [bubbleView removeFromSuperview];
-                    }
-                }];
-            }];
+            bubbleView.frame = bubbleFrame;
+            borderView.frame = borderViewFrame;
+            
+            label.text = badgeText;
+            label.font = badgeFont;
+            label.frame = bubbleView.bounds;
+        } completion:^(BOOL finished) {
+        }];
+    }
+}
+
+- (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection {
+    for (UIView *bubbleView in [self.badges allValues]) {
+        if ([bubbleView isKindOfClass:[UIView class]]) {
+            UIView *borderView = [bubbleView viewWithTag:101];
+            borderView.layer.borderColor = [UIColor colorNamed:@"Navigation_ClearBackgroundColor"].CGColor;
         }
     }
 }
@@ -442,13 +476,13 @@
     burst.transform = CGAffineTransformMakeScale(0.01, 0.01);
     burst.alpha = 0;
     [tabBarItemView.superview addSubview:burst];
-    [UIView animateWithDuration:0.2 delay:0 usingSpringWithDamping:0.87 initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+    [UIView animateWithDuration:0.15 delay:0 usingSpringWithDamping:0.87 initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
         tabBarItemView.transform = CGAffineTransformMakeScale(0.8, 0.8);
         if (tabBar.selectedItem == self.myProfileNavVC.tabBarItem) {
             self.navigationAvatarView.transform = CGAffineTransformMakeScale(0.8, 0.8);
         }
     } completion:^(BOOL finished) {
-        [UIView animateWithDuration:0.3f delay:0 usingSpringWithDamping:0.8 initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+        [UIView animateWithDuration:0.2f delay:0 usingSpringWithDamping:0.8 initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
             tabBarItemView.transform = CGAffineTransformIdentity;
             if (tabBar.selectedItem == self.myProfileNavVC.tabBarItem) {
                 self.navigationAvatarView.transform = CGAffineTransformIdentity;

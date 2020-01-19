@@ -37,6 +37,8 @@
     UIImage *newAvatar;
     UIImage *newCover;
     NSMutableDictionary *inputValues;
+    
+    CGFloat coverPhotoHeight;
 }
 
 @property (nonatomic) CGFloat currentKeyboardHeight;
@@ -127,6 +129,7 @@ static int const EMAIL_FIELD = 206;
     self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
     self.tableView.refreshControl = nil;
+    self.tableView.layer.masksToBounds = false;
     
     [self setupCoverPhotoView];
     self.tableView.contentOffset = CGPointMake(0, -1 * self.tableView.contentInset.top);
@@ -152,9 +155,8 @@ static int const EMAIL_FIELD = 206;
     [self updateCoverPhotoView];
 }
 - (void)updateCoverPhotoView {
-    CGFloat coverPhotoHeight = 120;
+    coverPhotoHeight = 16 + ceilf(128 * 0.65);
     if (self.user.attributes.media.cover.suggested.url.length > 0) {
-        coverPhotoHeight = 148;
         [self.coverPhotoView sd_setImageWithURL:[NSURL URLWithString:self.user.attributes.media.cover.suggested.url]];
     
         // add gradient overlay
@@ -178,7 +180,7 @@ static int const EMAIL_FIELD = 206;
             }
         }
     }
-    self.tableView.contentInset = UIEdgeInsetsMake(coverPhotoHeight, 0, 24, 0);
+    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 24, 0);
     
     // updat the scroll distance
     if ([self.navigationController isKindOfClass:[ComplexNavigationController class]]) {
@@ -188,7 +190,7 @@ static int const EMAIL_FIELD = 206;
         ((SimpleNavigationController *)self.navigationController).onScrollLowerBound = self.tableView.contentInset.top * .3;
     }
     
-    self.coverPhotoView.frame = CGRectMake(0, 0, self.view.frame.size.width, self.tableView.contentInset.top + (-1 * self.tableView.contentOffset.y));
+    self.coverPhotoView.frame = CGRectMake(0, 0, self.view.frame.size.width, coverPhotoHeight);
 }
 
 - (void)themeSelectionDidChange:(NSString *)newHex {
@@ -239,7 +241,6 @@ static int const EMAIL_FIELD = 206;
     [self.view endEditing:TRUE];
     
     NSDictionary *changes = [self changes];
-    NSLog(@"changes: %@", changes);
     
     if ([changes objectForKey:@"error"])
         return;
@@ -626,7 +627,7 @@ static int const EMAIL_FIELD = 206;
     if (indexPath.section == 0) {
         if (indexPath.row == 0) {
             ProfilePictureCell *cell = [tableView dequeueReusableCellWithIdentifier:profilePictureReuseIdentifier forIndexPath:indexPath];
-            
+                        
             if (cell.profilePictureContainer.gestureRecognizers.count == 0) {
                 [cell.profilePictureContainer bk_whenTapped:^{
                     [self showImagePicker];
@@ -838,8 +839,6 @@ static int const EMAIL_FIELD = 206;
     CGPoint point = [sender convertPoint:CGPointZero toView:self.tableView];
     NSIndexPath *indexPath = [self.tableView indexPathForRowAtPoint:point];
     
-    NSLog(@"textFieldDidChange: %@", sender);
-    NSLog(@"text:: %@", sender.text);
     [inputValues setObject:sender.text forKey:indexPath];
 }
 - (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
@@ -849,7 +848,16 @@ static int const EMAIL_FIELD = 206;
         // bio
         BOOL shouldChange = newStr.length <= MAX_USER_BIO_LENGTH;
         
-        return shouldChange ? YES : NO;
+        if (newStr.length > 1 && shouldChange) {
+            unichar secondToLast = [newStr characterAtIndex:[newStr length] - 2];
+            unichar last = [newStr characterAtIndex:[newStr length] - 1];
+            if ([[NSCharacterSet newlineCharacterSet] characterIsMember:secondToLast] &&
+                [[NSCharacterSet newlineCharacterSet] characterIsMember:last]) {
+                return shouldChange = NO;
+            }
+        }
+        
+        return shouldChange;
     }
     
     return YES;
@@ -859,12 +867,14 @@ static int const EMAIL_FIELD = 206;
     CGPoint point = [textView convertPoint:CGPointZero toView:self.tableView];
     NSIndexPath *indexPath = [self.tableView indexPathForRowAtPoint:point];
     
-    if (textView.tag == BIO_FIELD) {
+    if (textView.tag == BIO_FIELD && indexPath != nil) {
         // bio
-        [self.tableView beginUpdates];
-        [self.tableView endUpdates];
+        wait(0.01, ^{
+            [self.tableView beginUpdates];
+            [self.tableView endUpdates];
+        });
                 
-        InputCell *cell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:3 inSection:0]];
+        InputCell *cell = [self.tableView cellForRowAtIndexPath:indexPath];
         if (cell) {
             cell.charactersRemainingLabel.text = [NSString stringWithFormat:@"%i", (int)(MAX_USER_BIO_LENGTH - textView.text.length)];
             [inputValues setObject:textView.text forKey:indexPath];
@@ -1160,13 +1170,9 @@ static int const EMAIL_FIELD = 206;
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
     if (scrollView == self.tableView && [self.navigationController isKindOfClass:[SimpleNavigationController class]]) {
         [(SimpleNavigationController *)self.navigationController childTableViewDidScroll:self.tableView];
-        
-        if (self.tableView.contentOffset.y > (-1 * self.tableView.contentInset.top)) {
-            self.coverPhotoView.frame = CGRectMake(0, 0.5 * (-self.tableView.contentOffset.y - self.tableView.contentInset.top), self.view.frame.size.width, self.tableView.contentInset.top);
-        }
-        else {
-            self.coverPhotoView.frame = CGRectMake(0, 0, self.view.frame.size.width, self.tableView.contentInset.top + (-self.tableView.contentOffset.y - self.tableView.contentInset.top));
-        }
+        CGFloat adjustedCoverPhotoHeight = coverPhotoHeight + self.tableView.adjustedContentInset.top;
+                
+        self.coverPhotoView.frame = CGRectMake(0, 0, self.view.frame.size.width, adjustedCoverPhotoHeight + -(self.tableView.contentOffset.y + self.tableView.adjustedContentInset.top));
     }
 }
 

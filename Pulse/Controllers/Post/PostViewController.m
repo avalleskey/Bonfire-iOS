@@ -1604,16 +1604,10 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     if ([self hasParentPost]) {
         CGFloat expandedPostHeight = [ExpandedPostCell heightForPost:self.post width:[UIScreen mainScreen].bounds.size.width];
         CGFloat repliesHeight = [self replyPostsHeight];
-        DLog(@"reply posts height:: %f", repliesHeight);
         
         CGFloat y1 = self.composeInputView.frame.origin.y - self.tableView.adjustedContentInset.top;
-        DLog(@"self.composeInputView.frame.origin.y: %f", self.composeInputView.frame.origin.y);
-        DLog(@"self.tableView.adjustedContentInset.top: %f", self.tableView.adjustedContentInset.top);
         
-        DLog(@"y1: %f", y1);
         CGFloat y2 = expandedPostHeight + repliesHeight;
-        DLog(@"y2: %f", y2);
-        DSpacer();
         
         parentPostOffset = y1 - y2;
         parentPostOffset = MAX(0, parentPostOffset);

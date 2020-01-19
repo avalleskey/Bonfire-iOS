@@ -46,7 +46,7 @@
         self.contextButton.layer.cornerRadius = self.contextButton.frame.size.height / 2;
         self.contextButton.backgroundColor = [UIColor fromHex:@"0076ff" adjustForOptimalContrast:true];
         self.contextButton.layer.masksToBounds = true;
-        self.contextButton.hidden = false;
+        self.contextButton.hidden = true;
         self.contextButton.contentHorizontalAlignment = UIControlContentHorizontalAlignmentCenter;
         self.contextButton.titleLabel.font = [UIFont systemFontOfSize:12.f weight:UIFontWeightHeavy];
         self.contextButton.userInteractionEnabled = false;
@@ -207,7 +207,7 @@
         }
     }
     
-    if (!self.hideCampMemberCount || attributedString.length == 0) {
+    if ((!self.hideCampMemberCount || attributedString.length == 0) && ![self.camp isFeed]) {
         NSInteger membersCount = self.camp.attributes.summaries.counts.members;
         NSString *detailText;
         
@@ -337,7 +337,7 @@
             self.actionButton.hidden = !self.showActionButton || !([camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_NO_RELATION] || [camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_LEFT]);
             self.contextButton.hidden = ![self.actionButton isHidden] || (new == 0 && scoreIndex == 0);
             if (![self.actionButton isHidden]) {
-                if ([camp isChannel]) {
+                if ([camp isChannel] || [camp isFeed]) {
                     [self.actionButton setTitle:@"Subscribe" forState:UIControlStateNormal];
                 }
                 else {

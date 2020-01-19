@@ -170,9 +170,9 @@
                         message = @"You will no longer have access to this Camp's posts";
                     }
                     
-                    BFAlertController *confirmDeletePostActionSheet = [BFAlertController alertControllerWithTitle:([self.camp isChannel] ? @"Unsubscribe?" : @"Leave Camp?") message:message preferredStyle:BFAlertControllerStyleAlert];
+                    BFAlertController *confirmDeletePostActionSheet = [BFAlertController alertControllerWithTitle:(([self.camp isChannel] | [self.camp isFeed]) ? @"Unsubscribe?" : @"Leave Camp?") message:message preferredStyle:BFAlertControllerStyleAlert];
                     
-                    BFAlertAction *confirmLeaveCamp = [BFAlertAction actionWithTitle:([self.camp isChannel] ? @"Unsubscribe" : @"Leave") style:BFAlertActionStyleDestructive handler:^{
+                    BFAlertAction *confirmLeaveCamp = [BFAlertAction actionWithTitle:(([self.camp isChannel] | [self.camp isFeed]) ? @"Unsubscribe" : @"Leave") style:BFAlertActionStyleDestructive handler:^{
                         leave();
                     }];
                     [confirmDeletePostActionSheet addAction:confirmLeaveCamp];

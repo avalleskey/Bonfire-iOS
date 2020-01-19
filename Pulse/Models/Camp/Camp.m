@@ -45,8 +45,14 @@
 - (BOOL)isVerified {
     return self.attributes.isVerified;
 }
+- (BOOL)isDefaultCamp {
+    return !self.attributes.display.format || self.attributes.display.format.length == 0;
+}
 - (BOOL)isChannel {
     return [self.attributes.display.format isEqualToString:CAMP_DISPLAY_FORMAT_CHANNEL];
+}
+- (BOOL)isFeed {    
+    return [self.attributes.display.format isEqualToString:CAMP_DISPLAY_FORMAT_FEED];
 }
 - (BOOL)isPrivate {
     return [self.attributes isPrivate];

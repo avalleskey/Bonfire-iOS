@@ -39,6 +39,8 @@
 		D9133B552267EBD600B5D65C /* KTCenterFlowLayout.m in Sources */ = {isa = PBXBuildFile; fileRef = D9133B542267EBD600B5D65C /* KTCenterFlowLayout.m */; };
 		D9145AB023CF76CD00BB9FFD /* BFMiniNotificationView.m in Sources */ = {isa = PBXBuildFile; fileRef = D9145AAD23CF76CD00BB9FFD /* BFMiniNotificationView.m */; };
 		D9145AB123CF76CD00BB9FFD /* BFMiniNotificationManager.m in Sources */ = {isa = PBXBuildFile; fileRef = D9145AAF23CF76CD00BB9FFD /* BFMiniNotificationManager.m */; };
+		D9145AB423D4EA6700BB9FFD /* SectionStream.m in Sources */ = {isa = PBXBuildFile; fileRef = D9145AB323D4EA6700BB9FFD /* SectionStream.m */; };
+		D9145AB723D4EAF200BB9FFD /* BFComponent.m in Sources */ = {isa = PBXBuildFile; fileRef = D9145AB623D4EAF200BB9FFD /* BFComponent.m */; };
 		D91643092162BE4800523770 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D91643082162BE4800523770 /* QuartzCore.framework */; };
 		D916430D2162C3A100523770 /* SearchResultCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D916430C2162C3A100523770 /* SearchResultCell.m */; };
 		D9164310216407C300523770 /* ProfileViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D916430F216407C300523770 /* ProfileViewController.m */; };
@@ -293,7 +295,7 @@
 		D904283E233BE3800051D3AF /* LinkConversationsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LinkConversationsViewController.m; sourceTree = "<group>"; };
 		D9042840233C17170051D3AF /* BFSmartLinkAttachmentView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BFSmartLinkAttachmentView.m; sourceTree = "<group>"; };
 		D9042841233C17180051D3AF /* BFSmartLinkAttachmentView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BFSmartLinkAttachmentView.h; sourceTree = "<group>"; };
-		D907B07D214EEC5000A59712 /* Bonfire b39.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Bonfire b39.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		D907B07D214EEC5000A59712 /* Bonfire b41.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Bonfire b41.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D907B080214EEC5000A59712 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		D907B081214EEC5000A59712 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; wrapsLines = 0; };
 		D907B087214EEC5000A59712 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -334,6 +336,10 @@
 		D9145AAD23CF76CD00BB9FFD /* BFMiniNotificationView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BFMiniNotificationView.m; sourceTree = "<group>"; };
 		D9145AAE23CF76CD00BB9FFD /* BFMiniNotificationManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BFMiniNotificationManager.h; sourceTree = "<group>"; };
 		D9145AAF23CF76CD00BB9FFD /* BFMiniNotificationManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BFMiniNotificationManager.m; sourceTree = "<group>"; };
+		D9145AB223D4EA6600BB9FFD /* SectionStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SectionStream.h; sourceTree = "<group>"; };
+		D9145AB323D4EA6700BB9FFD /* SectionStream.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SectionStream.m; sourceTree = "<group>"; };
+		D9145AB523D4EAF200BB9FFD /* BFComponent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BFComponent.h; sourceTree = "<group>"; };
+		D9145AB623D4EAF200BB9FFD /* BFComponent.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BFComponent.m; sourceTree = "<group>"; };
 		D91643082162BE4800523770 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		D916430B2162C3A100523770 /* SearchResultCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SearchResultCell.h; sourceTree = "<group>"; };
 		D916430C2162C3A100523770 /* SearchResultCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SearchResultCell.m; sourceTree = "<group>"; };
@@ -818,7 +824,7 @@
 		D907B07E214EEC5000A59712 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				D907B07D214EEC5000A59712 /* Bonfire b39.app */,
+				D907B07D214EEC5000A59712 /* Bonfire b41.app */,
 				D907B095214EEC5300A59712 /* PulseTests.xctest */,
 				D907B0A0214EEC5300A59712 /* PulseUITests.xctest */,
 			);
@@ -948,6 +954,15 @@
 				D9133B542267EBD600B5D65C /* KTCenterFlowLayout.m */,
 			);
 			path = KTCenterFlowLayout;
+			sourceTree = "<group>";
+		};
+		D9145AB823D4EAF700BB9FFD /* Component */ = {
+			isa = PBXGroup;
+			children = (
+				D9145AB523D4EAF200BB9FFD /* BFComponent.h */,
+				D9145AB623D4EAF200BB9FFD /* BFComponent.m */,
+			);
+			path = Component;
 			sourceTree = "<group>";
 		};
 		D916430A2162C37B00523770 /* Navigation Controllers */ = {
@@ -1372,6 +1387,7 @@
 		D983D72D216D80A500F9D201 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				D9145AB823D4EAF700BB9FFD /* Component */,
 				D96AB12E237273A600838D58 /* Identity */,
 				41FED4342369FC3000CBAD26 /* Link */,
 				D912BD7A2232F2FB00F9F4EC /* Activity */,
@@ -1781,6 +1797,8 @@
 				D9373E9022D90BF800EB18E9 /* GenericStream.m */,
 				D9DCACC621B9E0EA0038C7ED /* PostStream.h */,
 				D9DCACC721B9E0EA0038C7ED /* PostStream.m */,
+				D9145AB223D4EA6600BB9FFD /* SectionStream.h */,
+				D9145AB323D4EA6700BB9FFD /* SectionStream.m */,
 				D912BD7E223314B900F9F4EC /* UserActivityStream.h */,
 				D912BD7F223314B900F9F4EC /* UserActivityStream.m */,
 				D9373E9222D90F9400EB18E9 /* CampListStream.h */,
@@ -1885,7 +1903,7 @@
 			);
 			name = Pulse;
 			productName = Pulse;
-			productReference = D907B07D214EEC5000A59712 /* Bonfire b39.app */;
+			productReference = D907B07D214EEC5000A59712 /* Bonfire b41.app */;
 			productType = "com.apple.product-type.application";
 		};
 		D907B094214EEC5300A59712 /* PulseTests */ = {
@@ -2154,6 +2172,7 @@
 				D9D9B18221CC494100B5003B /* MediumCampCardCell.m in Sources */,
 				D94FD19821685D6000B84E45 /* CreateCampViewController.m in Sources */,
 				D98F193F234E2E5900635846 /* SpacerCell.m in Sources */,
+				D9145AB423D4EA6700BB9FFD /* SectionStream.m in Sources */,
 				D907B0FF215068BD00A59712 /* HAWebService.m in Sources */,
 				D907B0FC215068A900A59712 /* Session.m in Sources */,
 				D9D9B18821CECF0300B5003B /* MiniAvatarCell.m in Sources */,
@@ -2317,6 +2336,7 @@
 				D97681C922F604C9001F1BFC /* BFAttachmentView.m in Sources */,
 				D9FFFB46227B63A0004E3779 /* BFTipView.m in Sources */,
 				D98F1942234E35B400635846 /* BFErrorViewCell.m in Sources */,
+				D9145AB723D4EAF200BB9FFD /* BFComponent.m in Sources */,
 				D9FFFB43227B5A3F004E3779 /* BFTipsManager.m in Sources */,
 				D904283F233BE3800051D3AF /* LinkConversationsViewController.m in Sources */,
 				D9C8B56B21A1E33B00A9A282 /* UIColor+Palette.m in Sources */,
@@ -2527,7 +2547,7 @@
 				CODE_SIGN_ENTITLEMENTS = Pulse/Pulse.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 39;
+				CURRENT_PROJECT_VERSION = 41;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 4WLQG965T9;
 				EXCLUDED_SOURCE_FILE_NAMES = "*.value";
@@ -2566,7 +2586,7 @@
 				CODE_SIGN_ENTITLEMENTS = Pulse/Pulse.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 39;
+				CURRENT_PROJECT_VERSION = 41;
 				DEVELOPMENT_TEAM = 4WLQG965T9;
 				EXCLUDED_SOURCE_FILE_NAMES = "*.value";
 				FRAMEWORK_SEARCH_PATHS = (
@@ -2740,7 +2760,7 @@
 				CODE_SIGN_ENTITLEMENTS = Pulse/Pulse.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 39;
+				CURRENT_PROJECT_VERSION = 41;
 				DEVELOPMENT_TEAM = 4WLQG965T9;
 				EXCLUDED_SOURCE_FILE_NAMES = "*.value";
 				FRAMEWORK_SEARCH_PATHS = (

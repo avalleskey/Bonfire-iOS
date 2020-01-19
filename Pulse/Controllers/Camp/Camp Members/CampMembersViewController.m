@@ -921,7 +921,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
       
                 if (([s.identifier isEqualToString:@"members_admin"] && [self.camp.attributes.context.camp.permissions.assign containsObject:CAMP_ROLE_ADMIN]) ||
                     ([s.identifier isEqualToString:@"members_moderator"] && [self.camp.attributes.context.camp.permissions.assign containsObject:CAMP_ROLE_MODERATOR])) {
-                    BFAlertAction *removeRole = [BFAlertAction actionWithTitle:[NSString stringWithFormat:@"Remove as %@", [s.identifier isEqualToString:@"members_admin"] ? @"Director" : @"Manager"] style:BFAlertActionStyleDefault handler:^{
+                    BFAlertAction *removeRole = [BFAlertAction actionWithTitle:[NSString stringWithFormat:@"Remove as %@", [s.identifier isEqualToString:@"members_admin"] ? @"Director" : @"Manager"] style:BFAlertActionStyleDestructive handler:^{
                         if ([s.identifier isEqualToString:@"members_admin"]) {
                             [self removeManagerRole:CAMP_ROLE_ADMIN user:user];
                         }

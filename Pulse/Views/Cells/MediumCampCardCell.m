@@ -145,7 +145,7 @@
                                                      options:NSStringDrawingUsesLineFragmentOrigin| NSStringDrawingUsesFontLeading
                                                      context:nil].size;
     self.campTitleLabel.frame = CGRectMake(contentPadding, bottomY, contentWidth, ceilf(titleSize.height));;
-    bottomY = self.campTitleLabel.frame.origin.y + self.campTitleLabel.frame.size.height + 6;
+    bottomY = self.campTitleLabel.frame.origin.y + self.campTitleLabel.frame.size.height + 4;
     
     if (![self.campTagLabel isHidden]) {
         self.campTagLabel.frame = CGRectMake(contentPadding, bottomY, contentWidth, self.campTagLabel.frame.size.height);
@@ -220,11 +220,10 @@
             else if (i == 2) { avatarView = self.member3; }
             else { avatarView = self.member4; }
             
-            if (camp.attributes.summaries.members.count > i && ![camp isChannel]) {
+            if (camp.attributes.summaries.members.count > i && [camp isDefaultCamp]) {
                 avatarView.superview.hidden = false;
                 
                 User *userForImageView = camp.attributes.summaries.members[i];
-                
                 avatarView.user = userForImageView;
             }
             else {
@@ -306,22 +305,25 @@
         self.campAvatarReasonLabel.hidden = !useText;
         
         // set details view up with members
-        if ([camp isChannel] && (camp.attributes.display.sourceLink || camp.attributes.display.sourceUser))  {
-            if (camp.attributes.display.sourceLink) {
-                BFDetailItem *sourceLink = [[BFDetailItem alloc] initWithType:BFDetailItemTypeSourceLink value:[NSString stringWithFormat:@"%@", camp.attributes.display.sourceLink.attributes.canonicalUrl] action:nil];
-                sourceLink.selectable = false;
-                self.detailsCollectionView.details = @[sourceLink];
-            }
-            else if (camp.attributes.display.sourceUser) {
-                BFDetailItem *sourceUser = [[BFDetailItem alloc] initWithType:BFDetailItemTypeSourceUser value:[NSString stringWithFormat:@"%@", camp.attributes.display.sourceUser.attributes.identifier] action:nil];
-                sourceUser.selectable = false;
-                self.detailsCollectionView.details = @[sourceUser];
-            }
+        if (camp.attributes.display.sourceLink) {
+            BFDetailItem *sourceLink = [[BFDetailItem alloc] initWithType:([self.camp isFeed] ? BFDetailItemTypeSourceLink_Feed : BFDetailItemTypeSourceLink) value:[NSString stringWithFormat:@"%@", camp.attributes.display.sourceLink.attributes.canonicalUrl] action:nil];
+            sourceLink.selectable = false;
+            self.detailsCollectionView.details = @[sourceLink];
         }
-        else {
+        else if (camp.attributes.display.sourceUser) {
+            BFDetailItem *sourceUser = [[BFDetailItem alloc] initWithType:([self.camp isFeed] ? BFDetailItemTypeSourceUser_Feed : BFDetailItemTypeSourceUser) value:[NSString stringWithFormat:@"%@", camp.attributes.display.sourceUser.attributes.identifier] action:nil];
+            sourceUser.selectable = false;
+            self.detailsCollectionView.details = @[sourceUser];
+        }
+        else if (![camp isFeed]) {
             BFDetailItem *members = [[BFDetailItem alloc] initWithType:[camp isChannel]?BFDetailItemTypeSubscribers:BFDetailItemTypeMembers value:[NSString stringWithFormat:@"%ld", (long)camp.attributes.summaries.counts.members] action:nil];
             self.detailsCollectionView.details = @[members];
         }
+        else {
+            self.detailsCollectionView.details = @[];
+        }
+        
+        self.detailsCollectionView.hidden = (self.detailsCollectionView.details.count == 0);
     }
 }
 

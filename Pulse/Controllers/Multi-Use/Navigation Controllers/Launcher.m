@@ -746,6 +746,7 @@ static Launcher *launcher;
     newNavController.opaqueOnScroll = false;
     newNavController.shadowOnScroll = true;
     newNavController.transparentOnLoad = true;
+    newNavController.currentTheme = nil;
     
     [self present:newNavController animated:YES];
 }
@@ -800,7 +801,8 @@ static Launcher *launcher;
 
 + (void)openOnboarding {
     if (![[Launcher activeViewController] isKindOfClass:[HelloViewController class]] &&
-        ![[Launcher activeViewController] isKindOfClass:[OnboardingViewController class]]) {
+        ![[Launcher activeViewController] isKindOfClass:[OnboardingViewController class]] &&
+        ![[Launcher activeViewController] isKindOfClass:[OutOfDateClientViewController class]]) {
         HelloViewController *vc = [[HelloViewController alloc] init];
         vc.transitioningDelegate = [Launcher sharedInstance];
         vc.modalPresentationStyle = UIModalPresentationFullScreen;
@@ -858,7 +860,10 @@ static Launcher *launcher;
     
     SimpleNavigationController *simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:settingsVC];
     simpleNav.transitioningDelegate = [Launcher sharedInstance];
-    simpleNav.currentTheme = [UIColor tableViewBackgroundColor];
+    simpleNav.opaqueOnScroll = false;
+    simpleNav.shadowOnScroll = true;
+    simpleNav.transparentOnLoad = true;
+    simpleNav.currentTheme = nil;
     [UIView performWithoutAnimation:^{
         [simpleNav setRightAction:SNActionTypeDone];
     }];

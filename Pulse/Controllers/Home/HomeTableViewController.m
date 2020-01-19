@@ -419,6 +419,11 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
     }
 }
 - (void)showMorePostsIndicator:(BOOL)animated {
+    if ([self.tabBarController isKindOfClass:[TabController class]]) {
+        // remove dot from home tab
+        [(TabController *)self.tabBarController setBadgeValue:@" " forItem:self.navigationController.tabBarItem];
+    }
+    
     if (self.morePostsIndicator.tag != 1) {
         self.morePostsIndicator.tag = 1;
         

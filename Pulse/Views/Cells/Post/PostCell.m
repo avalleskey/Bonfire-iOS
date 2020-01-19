@@ -313,12 +313,27 @@
             NSAttributedString *lockAttachmentString = [NSAttributedString attributedStringWithAttachment:lockAttachment];
             [creatorString appendAttributedString:lockAttachmentString];
         }
-        else if ([post.attributes.postedIn.attributes.display.format isEqualToString:CAMP_DISPLAY_FORMAT_CHANNEL]) {
+        else if ([post.attributes.postedIn isChannel]) {
             // spacer
             [creatorString appendAttributedString:spacer];
             
             NSTextAttachment *sourceAttachment = [[NSTextAttachment alloc] init];
             sourceAttachment.image = [self colorImage:[UIImage imageNamed:@"details_label_source"] color:[UIColor bonfirePrimaryColor]];
+            
+            CGFloat attachmentHeight = MIN(ceilf(font.lineHeight * 0.7), sourceAttachment.image.size.height);
+            CGFloat attachmentWidth = attachmentHeight * (sourceAttachment.image.size.width / sourceAttachment.image.size.height);
+            
+            [sourceAttachment setBounds:CGRectMake(0, roundf(font.capHeight - attachmentHeight)/2.f, attachmentWidth, attachmentHeight)];
+            
+            NSAttributedString *lockAttachmentString = [NSAttributedString attributedStringWithAttachment:sourceAttachment];
+            [creatorString appendAttributedString:lockAttachmentString];
+        }
+        else if ([post.attributes.postedIn isFeed]) {
+            // spacer
+            [creatorString appendAttributedString:spacer];
+            
+            NSTextAttachment *sourceAttachment = [[NSTextAttachment alloc] init];
+            sourceAttachment.image = [self colorImage:[UIImage imageNamed:@"details_label_feed"] color:[UIColor bonfirePrimaryColor]];
             
             CGFloat attachmentHeight = MIN(ceilf(font.lineHeight * 0.7), sourceAttachment.image.size.height);
             CGFloat attachmentWidth = attachmentHeight * (sourceAttachment.image.size.width / sourceAttachment.image.size.height);

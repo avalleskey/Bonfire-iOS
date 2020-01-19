@@ -15,7 +15,7 @@
 #import <SDWebImage/UIImageView+WebCache.h>
 #import <SDWebImage/UIView+WebCache.h>
 
-#define LINK_ATTACHMENT_EDGE_INSETS UIEdgeInsetsMake(12, 12, 13, 12)
+#define LINK_ATTACHMENT_EDGE_INSETS UIEdgeInsetsMake(10, 12, 14, 12)
 
 // title macros
 #define LINK_ATTACHMENT_TITLE_FONT [UIFont systemFontOfSize:[UIFont preferredFontForTextStyle:UIFontTextStyleBody].pointSize weight:UIFontWeightSemibold]
@@ -163,7 +163,7 @@
     playIcon.center = CGPointMake(effectView.frame.size.width / 2 + 2, effectView.frame.size.height / 2);
     [effectView.contentView addSubview:playIcon];
     
-    [view addSubview:effectView];
+//    [view addSubview:effectView];
 }
 
 - (void)layoutSubviews {
@@ -339,36 +339,6 @@
     
     return BFLinkAttachmentContentTypeGeneric;
 }
-//- (void)styleContentIdentifier {
-//    BFLinkAttachmentContentIdentifier contentIdentifier = self.link.attributes.contentIdentifier;
-//
-//    UIColor *playButtonBackground = [UIColor clearColor];
-//    if (contentIdentifier == BFLinkAttachmentContentIdentifierYouTubeVideo) {
-//        // youtube link
-//        playButtonBackground = [UIColor colorWithDisplayP3Red:1 green:0 blue:0 alpha:1];
-//    }
-//    else if (contentIdentifier == BFLinkAttachmentContentIdentifierSpotifySong ||
-//             contentIdentifier == BFLinkAttachmentContentIdentifierSpotifyPlaylist) {
-//        // spotify song
-//        // https://open.spotify.com/track/47n6zyO3Uf9axGAPIY0ZOd?si=EzRVMTfJTv2qygVe1BrV4Q
-//        playButtonBackground = [UIColor colorWithDisplayP3Red:0.12 green:0.84 blue:0.38 alpha:1.0];
-//    }
-//    else if (contentIdentifier == BFLinkAttachmentContentIdentifierAppleMusicSong ||
-//             contentIdentifier == BFLinkAttachmentContentIdentifierAppleMusicAlbum) {
-//        // apple music album
-//        playButtonBackground = [UIColor colorWithDisplayP3Red:0.98 green:0.34 blue:0.76 alpha:1.0];
-//    }
-//    else if (contentIdentifier == BFLinkAttachmentContentIdentifierSoundCloud) {
-//        // soundcloud
-//        playButtonBackground = [UIColor colorWithDisplayP3Red:1.00 green:0.33 blue:0.00 alpha:1.0];
-//    }
-//    else if (contentIdentifier == BFLinkAttachmentContentIdentifierApplePodcast) {
-//        // apple podcast (episode|show)
-//        playButtonBackground = [UIColor colorWithDisplayP3Red:0.42 green:0.16 blue:0.81 alpha:1.0];
-//    }
-//
-//    ((UIVisualEffectView *)[self.iconImageView viewWithTag:LINK_ATTACHMENT_PLAY_VIEW_TAG]).contentView.backgroundColor = playButtonBackground;
-//}
 - (void)setContentType:(BFLinkAttachmentContentType)contentType {
     if (contentType != _contentType) {
         _contentType = contentType;
@@ -421,8 +391,11 @@
         
         self.iconImageView.hidden = false;
         if (self.link.attributes.images.count > 0) {
-            [self.iconImageView sd_setImageWithURL:[NSURL URLWithString:self.link.attributes.images[0]] completed:nil];
             self.iconImageView.contentMode = UIViewContentModeScaleAspectFill;
+            [self.iconImageView sd_setImageWithURL:[NSURL URLWithString:self.link.attributes.images[0]] completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
+                self.iconImageView.image = image;
+                self.iconImageView.contentMode = UIViewContentModeScaleAspectFill;
+            }];
         }
         else {
             [self.iconImageView setImage:[UIImage imageNamed:@"emptyMusicLinkIcon"]];

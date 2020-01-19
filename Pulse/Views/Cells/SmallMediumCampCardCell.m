@@ -84,7 +84,7 @@
     self.campAvatarReasonImageView.layer.masksToBounds = true;
     [self.campAvatarReasonView addSubview:self.campAvatarReasonImageView];
     
-    self.campTitleLabel = [[MarqueeLabel alloc] initWithFrame:CGRectMake(10, self.campAvatarContainer.frame.origin.y + self.campAvatarContainer.frame.size.height + 6, self.frame.size.width - 20, 17) rate:(self.frame.size.width/5) andFadeLength:6.f];
+    self.campTitleLabel = [[MarqueeLabel alloc] initWithFrame:CGRectMake(10, self.campAvatarContainer.frame.origin.y + self.campAvatarContainer.frame.size.height + 6, self.frame.size.width - 20, 17) rate:(self.frame.size.width/7) andFadeLength:6.f];
     self.campTitleLabel.font = [UIFont systemFontOfSize:17.f weight:UIFontWeightHeavy];
     self.campTitleLabel.textAlignment = NSTextAlignmentCenter;
     self.campTitleLabel.numberOfLines = 0;
@@ -94,7 +94,7 @@
     self.campTitleLabel.textColor = [UIColor bonfirePrimaryColor];
     [self.contentView addSubview:self.campTitleLabel];
     
-    self.campTagLabel = [[MarqueeLabel alloc] initWithFrame:CGRectMake(10, self.campTitleLabel.frame.origin.y + self.campTitleLabel.frame.size.height + 4, self.frame.size.width - 20, 14) rate:(self.frame.size.width/5) andFadeLength:6.f];
+    self.campTagLabel = [[MarqueeLabel alloc] initWithFrame:CGRectMake(10, self.campTitleLabel.frame.origin.y + self.campTitleLabel.frame.size.height + 4, self.frame.size.width - 20, 14) rate:(self.frame.size.width/7) andFadeLength:6.f];
     self.campTagLabel.font = [UIFont systemFontOfSize:12.f weight:UIFontWeightBold];
     self.campTagLabel.textAlignment = NSTextAlignmentCenter;
     self.campTagLabel.numberOfLines = 0;
@@ -229,6 +229,22 @@
             
             self.campTagLabel.attributedText = attributedString;
         }
+        else if ([camp isFeed]) {
+            NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] init];
+            
+            NSTextAttachment *attachment = [[NSTextAttachment alloc] init];
+            attachment.image = [self colorImage:[UIImage imageNamed:@"details_label_feed"] color:[UIColor bonfireSecondaryColor]];
+            CGFloat attachmentHeight = MIN(ceilf(self.campTagLabel.font.lineHeight * 0.7), attachment.image.size.height);
+            CGFloat attachmentWidth = attachmentHeight * (attachment.image.size.width / attachment.image.size.height);
+            [attachment setBounds:CGRectMake(0, roundf(self.campTagLabel.font.capHeight - attachmentHeight)/2.f + 0.5, attachmentWidth, attachmentHeight)];
+            NSAttributedString *attachmentString = [NSAttributedString attributedStringWithAttachment:attachment];
+            [attributedString appendAttributedString:attachmentString];
+                       
+            NSAttributedString *detailAttributedText = [[NSAttributedString alloc] initWithString:@" Feed" attributes:@{NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor], NSFontAttributeName: [UIFont systemFontOfSize:self.campTagLabel.font.pointSize weight:UIFontWeightBold]}];
+            [attributedString appendAttributedString:detailAttributedText];
+            
+            self.campTagLabel.attributedText = attributedString;
+        }
         else if (camp.attributes.summaries.counts.members > 0) {
             NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] init];
             
@@ -257,14 +273,20 @@
         BFDetailItem *detailItem;
         
         // set details view up with members
-        if ([camp isChannel] && (camp.attributes.display.sourceLink || camp.attributes.display.sourceUser))  {
+        if ((camp.attributes.display.sourceLink || camp.attributes.display.sourceUser))  {
             if (camp.attributes.display.sourceLink) {
-                detailItem = [[BFDetailItem alloc] initWithType:BFDetailItemTypeSourceLink value:[NSString stringWithFormat:@"%@", camp.attributes.display.sourceLink.attributes.canonicalUrl] action:nil];
+                detailItem = [[BFDetailItem alloc] initWithType:([camp isFeed] ? BFDetailItemTypeSourceLink_Feed : BFDetailItemTypeSourceLink) value:[NSString stringWithFormat:@"%@", camp.attributes.display.sourceLink.attributes.canonicalUrl] action:nil];
             }
             else if (camp.attributes.display.sourceUser) {
-                detailItem = [[BFDetailItem alloc] initWithType:BFDetailItemTypeSourceUser value:[NSString stringWithFormat:@"%@", camp.attributes.display.sourceUser.attributes.identifier] action:nil];
+                detailItem = [[BFDetailItem alloc] initWithType:([camp isFeed] ? BFDetailItemTypeSourceUser_Feed : BFDetailItemTypeSourceUser) value:[NSString stringWithFormat:@"%@", camp.attributes.display.sourceUser.attributes.identifier] action:nil];
             }
-            [self.membersDetailsButton setImage:[[UIImage imageNamed:@"mini_source_icon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+            
+            if ([self.camp isFeed]) {
+                [self.membersDetailsButton setImage:[[UIImage imageNamed:@"mini_feed_icon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+            }
+            else {
+                [self.membersDetailsButton setImage:[[UIImage imageNamed:@"mini_source_icon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+            }
         }
         else {
             detailItem = [[BFDetailItem alloc] initWithType:[camp isChannel]?BFDetailItemTypeSubscribers:BFDetailItemTypeMembers value:[NSString stringWithFormat:@"%ld", (long)camp.attributes.summaries.counts.members] action:nil];

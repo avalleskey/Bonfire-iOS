@@ -138,8 +138,6 @@
 //    NSLog(@"entity based max characters: %ld", (long)self.entityBasedMaxCharacters);
     
     if (message.length > self.entityBasedMaxCharacters) {
-        NSLog(@"needs to be truncated");
-        
         NSString *truncatedMessage = message ? [[[message substringToIndex:self.entityBasedMaxCharacters] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]] stringByAppendingString:@"... "] : @"";
         NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:(truncatedMessage?truncatedMessage:@"") attributes:@{NSFontAttributeName: self.messageLabel.font, NSForegroundColorAttributeName: self.textColor}];
                 
@@ -301,7 +299,7 @@
         [self.delegate postTextViewDidDoubleTap:self];
     }
 }
-//
+
 //- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch {
 //    CGPoint location = [touch locationInView:self.messageLabel];
 //    

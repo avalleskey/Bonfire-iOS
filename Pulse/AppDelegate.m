@@ -33,7 +33,7 @@
 
 @import Firebase;
 
-@interface AppDelegate ()
+@interface AppDelegate () <CrashlyticsDelegate>
 
 @property (nonatomic, strong) Session *session;
 
@@ -43,6 +43,8 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     [self setupEnvironment];
+    
+    [UNUserNotificationCenter currentNotificationCenter].delegate = self;
     
     self.session = [Session sharedInstance];
     
@@ -63,6 +65,18 @@
     
     if ((accessToken != nil || refreshToken != nil) && self.session.currentUser.identifier != nil) {
         [self launchLoggedInWithCompletion:nil];
+        
+        wait(2.f, ^{
+            [[Launcher tabController] setBadgeValue:@"1" forItem:[Launcher tabController].notificationsNavVC.tabBarItem];
+            
+            wait(2.f, ^{
+                [[Launcher tabController] setBadgeValue:@"2" forItem:[Launcher tabController].notificationsNavVC.tabBarItem];
+                
+                wait(2.f, ^{
+                    [[Launcher tabController] setBadgeValue:@"10" forItem:[Launcher tabController].notificationsNavVC.tabBarItem];
+                });
+            });
+        });
     }
     else {
         // launch onboarding
@@ -371,10 +385,6 @@
 }
 
 - (void)tabBarController:(UITabBarController *)tabBarController didSelectViewController:(UIViewController *)viewController {
-    if ([viewController isKindOfClass:[UINavigationController class]] && [[(UINavigationController *)viewController visibleViewController] isKindOfClass:[NotificationsTableViewController class]]) {
-        [(TabController *)(Launcher.activeTabController) setBadgeValue:nil forItem:viewController.tabBarItem];
-    }
-    
     static UIViewController *previousController = nil;
     
     if (!previousController) {
@@ -457,69 +467,6 @@
     previousController = viewController;
 }
 
-- (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo fetchCompletionHandler:(void (^)(UIBackgroundFetchResult result))completionHandler {
-    // only open if there is a user signed in
-    if (![Session sharedInstance].currentUser) {
-        return;
-    }
-    
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"RemoteNotificationReceived" object:nil userInfo:userInfo];
-    
-    if ([Launcher tabController]) {
-        NSLog(@"userInfo: %@", userInfo);
-        TabController *tabVC = [Launcher tabController];
-        
-        NSString *badgeValue = @"1";
-        [tabVC setBadgeValue:badgeValue forItem:tabVC.notificationsNavVC.tabBarItem];
-    }
-        
-    if(application.applicationState == UIApplicationStateActive) {
-        // app is currently active, can update badges count here
-        NSLog(@"UIApplicationStateActive: tapped notificaiton to open");
-        //For notification Banner - when app in foreground
-        
-        if (![[Launcher activeViewController] isKindOfClass:[NotificationsTableViewController class]]) {
-            NSString *title;
-            NSString *message;
-            USER_ACTIVITY_TYPE activityType = 0;
-            if (userInfo[@"aps"]) {
-                if (userInfo[@"aps"][@"alert"] && [userInfo[@"aps"][@"alert"] isKindOfClass:[NSDictionary class]]) {
-                    if (userInfo[@"aps"][@"alert"][@"title"]) {
-                        title = userInfo[@"aps"][@"alert"][@"title"];
-                    }
-                    
-                    if (userInfo[@"aps"][@"alert"][@"body"]) {
-                        message = userInfo[@"aps"][@"alert"][@"body"];
-                    }
-                }
-                else if ([userInfo[@"aps"][@"alert"] isKindOfClass:[NSString class]]) {
-                    message = userInfo[@"aps"][@"alert"];
-                }
-                
-                if (userInfo[@"aps"][@"category"]) {
-                    activityType = (USER_ACTIVITY_TYPE)[userInfo[@"aps"][@"category"] integerValue];
-                }
-            }
-            
-            BFNotificationObject *notificationObject = [BFNotificationObject notificationWithActivityType:activityType title:title text:message action:^{
-                NSLog(@"notification tapped");
-                [self handleNotificationActionForUserInfo:userInfo];
-            }];
-            [[BFNotificationManager manager] presentNotification:notificationObject completion:^{
-                NSLog(@"presentNotification() completion");
-            }];
-        }
-        
-        AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
-    }
-    else if(application.applicationState == UIApplicationStateInactive) {
-        // app is transitioning from background to foreground (user taps notification), do what you need when user taps here
-        NSLog(@"UIApplicationStateInactive: tapped notificaiton to open app");
-        
-        [self handleNotificationActionForUserInfo:userInfo];
-    }
-}
-
 - (void)handleNotificationActionForUserInfo:(NSDictionary *)userInfo {    
     TabController *tabVC = Launcher.tabController;
     if (tabVC) {
@@ -563,10 +510,96 @@
     }
 }
 
-// notifications
-- (void)userNotificationCenter:(UNUserNotificationCenter* )center willPresentNotification:(UNNotification* )notification withCompletionHandler:(void (^)(UNNotificationPresentationOptions options))completionHandler {
-    completionHandler(UNNotificationPresentationOptionNone);
+- (void)userNotificationCenter:(UNUserNotificationCenter *)center didReceiveNotificationResponse:(UNNotificationResponse *)response withCompletionHandler:(void (^)(void))completionHandler {
+    NSLog( @"Handle push from background or closed" );
+    // if you set a member variable in didReceiveRemoteNotification, you  will know if this is from closed or background
+    NSLog(@"%@", response.notification.request.content.userInfo);
+    NSDictionary *userInfo = response.notification.request.content.userInfo;
+    
+    [self handleNotificationActionForUserInfo:userInfo];
 }
+
+- (void)userNotificationCenter:(UNUserNotificationCenter* )center willPresentNotification:(UNNotification* )notification withCompletionHandler:(void (^)(UNNotificationPresentationOptions options))completionHandler {
+    NSLog( @"Handle push from foreground" );
+    
+    NSDictionary *userInfo = notification.request.content.userInfo;
+    
+    // only open if there is a user signed in
+    if (![Session sharedInstance].currentUser) {
+        return;
+    }
+    
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"RemoteNotificationReceived" object:nil userInfo:userInfo];
+    
+    if ([Launcher tabController]) {
+        NSLog(@"userInfo: %@", userInfo);
+        TabController *tabVC = [Launcher tabController];
+        
+        if ([userInfo objectForKey:@"aps"] && [userInfo[@"aps"] objectForKey:@"badge"]) {
+            [tabVC setBadgeValue:[userInfo[@"aps"] objectForKey:@"badge"] forItem:tabVC.notificationsNavVC.tabBarItem];
+        }
+        else {
+            [tabVC setBadgeValue:@"1" forItem:tabVC.notificationsNavVC.tabBarItem];
+        }
+        
+        NSArray *notificationNavVCViewControllers = [Launcher tabController].notificationsNavVC.viewControllers;
+        if (notificationNavVCViewControllers.count > 0 && [[notificationNavVCViewControllers firstObject] isKindOfClass:[NotificationsTableViewController class]]) {
+            // check if there are any new notifications and update the tab bar
+            [((NotificationsTableViewController *)[notificationNavVCViewControllers firstObject]) refresh];
+        }
+    }
+    
+    UIApplication *application = [UIApplication sharedApplication];
+        
+    if (application.applicationState == UIApplicationStateActive) {
+        // app is currently active, can update badges count here
+        NSLog(@"UIApplicationStateActive: tapped notificaiton to open");
+        
+        //For notification Banner - when app in foreground
+        if (![[Launcher activeViewController] isKindOfClass:[NotificationsTableViewController class]]) {
+            NSString *title;
+            NSString *message;
+            USER_ACTIVITY_TYPE activityType = 0;
+            if (userInfo[@"aps"]) {
+                if (userInfo[@"aps"][@"alert"] && [userInfo[@"aps"][@"alert"] isKindOfClass:[NSDictionary class]]) {
+                    if (userInfo[@"aps"][@"alert"][@"title"]) {
+                        title = userInfo[@"aps"][@"alert"][@"title"];
+                    }
+                    
+                    if (userInfo[@"aps"][@"alert"][@"body"]) {
+                        message = userInfo[@"aps"][@"alert"][@"body"];
+                    }
+                }
+                else if ([userInfo[@"aps"][@"alert"] isKindOfClass:[NSString class]]) {
+                    message = userInfo[@"aps"][@"alert"];
+                }
+                
+                if (userInfo[@"aps"][@"category"]) {
+                    activityType = (USER_ACTIVITY_TYPE)[userInfo[@"aps"][@"category"] integerValue];
+                }
+            }
+            
+            BFNotificationObject *notificationObject = [BFNotificationObject notificationWithActivityType:activityType title:title text:message action:^{
+                NSLog(@"notification tapped");
+                [self handleNotificationActionForUserInfo:userInfo];
+            }];
+            [[BFNotificationManager manager] presentNotification:notificationObject completion:^{
+                NSLog(@"presentNotification() completion");
+            }];
+        }
+        
+        AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
+    }
+    else if(application.applicationState == UIApplicationStateInactive) {
+        // app is transitioning from background to foreground (user taps notification), do what you need when user taps here
+        NSLog(@"UIApplicationStateInactive: tapped notificaiton to open app");
+        
+        [self handleNotificationActionForUserInfo:userInfo];
+    }
+    
+    completionHandler(UNNotificationPresentationOptionBadge);
+}
+
 - (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
     const unsigned *tokenBytes = [deviceToken bytes];
     NSString *token = [NSString stringWithFormat:@"%08x%08x%08x%08x%08x%08x%08x%08x",
@@ -575,16 +608,12 @@
                           ntohl(tokenBytes[6]), ntohl(tokenBytes[7])];
     NSLog(@"token:: %@", token);
     
-    if ([[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"] == nil || ([[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"] != nil &&
-        ![[[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"] isEqualToString:token]))
-    {
-        [[NSUserDefaults standardUserDefaults] setObject:token forKey:@"device_token"];
-        
-        #ifdef DEBUG
-        #else
-        [[Session sharedInstance] syncDeviceToken];
-        #endif
-    }
+    [[NSUserDefaults standardUserDefaults] setObject:token forKey:@"device_token"];
+    
+    #ifdef DEBUG
+    #else
+    [[Session sharedInstance] syncDeviceToken];
+    #endif
     
     UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
     center.delegate = self;

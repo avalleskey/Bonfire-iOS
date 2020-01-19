@@ -339,6 +339,7 @@
     newNavController.opaqueOnScroll = false;
     newNavController.shadowOnScroll = true;
     newNavController.transparentOnLoad = true;
+    newNavController.currentTheme = nil;
     
     [Launcher present:newNavController animated:YES];
 }
@@ -647,7 +648,7 @@
             else { avatarView = self.member7; }
             
             avatarView.hidden = !self.camp.identifier;
-            avatarView.superview.hidden = [self.camp isChannel];
+            avatarView.superview.hidden = ![self.camp isDefaultCamp];
             
             if (camp.attributes.summaries.members.count > i) {
                 User *userForImageView = camp.attributes.summaries.members[i];
@@ -669,14 +670,14 @@
             // camp type (& visibility)
             if ([self.camp isChannel] && (self.camp.attributes.display.sourceLink || self.camp.attributes.display.sourceUser)) {
                 if (self.camp.attributes.display.sourceLink) {
-                    BFDetailItem *sourceLink = [[BFDetailItem alloc] initWithType:BFDetailItemTypeSourceLink value:[NSString stringWithFormat:@"%@", self.camp.attributes.display.sourceLink.attributes.canonicalUrl] action:^{
+                    BFDetailItem *sourceLink = [[BFDetailItem alloc] initWithType:([self.camp isFeed] ? BFDetailItemTypeSourceLink_Feed : BFDetailItemTypeSourceLink) value:[NSString stringWithFormat:@"%@", self.camp.attributes.display.sourceLink.attributes.canonicalUrl] action:^{
                         [Launcher openURL:self.camp.attributes.display.sourceLink.attributes.actionUrl];
                     }];
                     sourceLink.selectable = true;
                     [details addObject:sourceLink];
                 }
                 else if (self.camp.attributes.display.sourceUser) {
-                    BFDetailItem *sourceUser = [[BFDetailItem alloc] initWithType:BFDetailItemTypeSourceUser value:[NSString stringWithFormat:@"%@", self.camp.attributes.display.sourceUser.attributes.identifier] action:^{
+                    BFDetailItem *sourceUser = [[BFDetailItem alloc] initWithType:([self.camp isFeed] ? BFDetailItemTypeSourceUser_Feed : BFDetailItemTypeSourceUser) value:[NSString stringWithFormat:@"%@", self.camp.attributes.display.sourceUser.attributes.identifier] action:^{
                         [Launcher openProfile:self.camp.attributes.display.sourceUser];
                     }];
                     sourceUser.selectable = true;
@@ -689,7 +690,7 @@
             }
             
             // member / subscriber count
-            if (self.camp.attributes.summaries.counts != nil) {
+            if (![camp isFeed] && self.camp.attributes.summaries.counts != nil) {
                 if ([self.camp isChannel]) {
                     BFDetailItem *subscribers = [[BFDetailItem alloc] initWithType:BFDetailItemTypeSubscribers value:[NSString stringWithFormat:@"%ld", (long)self.camp.attributes.summaries.counts.members] action:nil];
                     subscribers.selectable = false;
@@ -727,7 +728,7 @@
             self.detailsCollectionView.details = [details copy];
         }
         
-        if ([camp isChannel]) {
+        if ([camp isChannel] || [camp isFeed]) {
             self.actionButton.followString = @"Subscribe";
         }
         else {
@@ -794,9 +795,9 @@
                 message = @"You will no longer have access to this Camp's posts";
             }
             
-            BFAlertController *confirmDeletePostActionSheet = [BFAlertController alertControllerWithTitle:([self.camp isChannel] ? @"Unsubscribe?" : @"Leave Camp?") message:message preferredStyle:BFAlertControllerStyleAlert];
+            BFAlertController *confirmDeletePostActionSheet = [BFAlertController alertControllerWithTitle:(([self.camp isChannel] || [self.camp isFeed]) ? @"Unsubscribe?" : @"Leave Camp?") message:message preferredStyle:BFAlertControllerStyleAlert];
             
-            BFAlertAction *confirmLeaveCamp = [BFAlertAction actionWithTitle:([self.camp isChannel] ? @"Unsubscribe" : @"Leave") style:BFAlertActionStyleDestructive handler:^{
+            BFAlertAction *confirmLeaveCamp = [BFAlertAction actionWithTitle:(([self.camp isChannel] || [self.camp isFeed]) ? @"Unsubscribe" : @"Leave") style:BFAlertActionStyleDestructive handler:^{
                 leave();
             }];
             [confirmDeletePostActionSheet addAction:confirmLeaveCamp];
@@ -881,15 +882,13 @@
         NSMutableArray *details = [[NSMutableArray alloc] init];
         
         // camp type (& visibility)
-        if ([camp isChannel] && (camp.attributes.display.sourceLink || camp.attributes.display.sourceUser)) {
-            if (camp.attributes.display.sourceLink) {
-                BFDetailItem *sourceLink = [[BFDetailItem alloc] initWithType:BFDetailItemTypeSourceLink value:[NSString stringWithFormat:@"%@", camp.attributes.display.sourceLink.attributes.canonicalUrl] action:nil];
-                [details addObject:sourceLink];
-            }
-            else if (camp.attributes.display.sourceUser) {
-                BFDetailItem *sourceUser = [[BFDetailItem alloc] initWithType:BFDetailItemTypeSourceUser value:[NSString stringWithFormat:@"%@", camp.attributes.display.sourceUser.attributes.identifier] action:nil];
-                [details addObject:sourceUser];
-            }
+        if (camp.attributes.display.sourceLink) {
+            BFDetailItem *sourceLink = [[BFDetailItem alloc] initWithType:([camp isFeed] ? BFDetailItemTypeSourceLink_Feed : BFDetailItemTypeSourceLink) value:[NSString stringWithFormat:@"%@", camp.attributes.display.sourceLink.attributes.canonicalUrl] action:nil];
+            [details addObject:sourceLink];
+        }
+        else if (camp.attributes.display.sourceUser) {
+            BFDetailItem *sourceUser = [[BFDetailItem alloc] initWithType:([camp isFeed] ? BFDetailItemTypeSourceUser_Feed : BFDetailItemTypeSourceUser) value:[NSString stringWithFormat:@"%@", camp.attributes.display.sourceUser.attributes.identifier] action:nil];
+            [details addObject:sourceUser];
         }
         else {
             BFDetailItem *visibility = [[BFDetailItem alloc] initWithType:([camp isPrivate] ? BFDetailItemTypePrivacyPrivate : BFDetailItemTypePrivacyPublic) value:(camp ? @"Private" : @"Public") action:nil];
@@ -897,15 +896,9 @@
         }
         
         // member / subscriber count
-        if (camp.attributes.summaries.counts != nil) {
-            if ([camp.attributes.display.format isEqualToString:CAMP_DISPLAY_FORMAT_CHANNEL]) {
-                BFDetailItem *subscribers = [[BFDetailItem alloc] initWithType:BFDetailItemTypeSubscribers value:[NSString stringWithFormat:@"%ld", (long)camp.attributes.summaries.counts.members] action:nil];
-                [details addObject:subscribers];
-            }
-            else {
-                BFDetailItem *members = [[BFDetailItem alloc] initWithType:BFDetailItemTypeMembers value:[NSString stringWithFormat:@"%ld", (long)camp.attributes.summaries.counts.members] action:nil];
-                [details addObject:members];
-            }
+        if (![camp isFeed] && camp.attributes.summaries.counts != nil) {
+            BFDetailItem *members = [[BFDetailItem alloc] initWithType:([camp isChannel] ? BFDetailItemTypeSubscribers : BFDetailItemTypeMembers) value:[NSString stringWithFormat:@"%ld", (long)camp.attributes.summaries.counts.members] action:nil];
+            [details addObject:members];
         }
         
 //        if ([camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_MEMBER] && camp.attributes.context.camp.membership) {

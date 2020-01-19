@@ -25,9 +25,9 @@
 #define CAMP_HEADER_TAG_BOTTOM_PADDING 12
 // description macros
 #define CAMP_HEADER_DESCRIPTION_FONT [UIFont systemFontOfSize:16.f weight:UIFontWeightRegular]
-#define CAMP_HEADER_DESCRIPTION_BOTTOM_PADDING 12
+#define CAMP_HEADER_DESCRIPTION_BOTTOM_PADDING 16
 // details macros
-#define CAMP_HEADER_DETAILS_EDGE_INSETS UIEdgeInsetsMake(12, 24, 12, 24)
+#define CAMP_HEADER_DETAILS_EDGE_INSETS UIEdgeInsetsMake(16, 24, 12, 24)
 // follow button macros
 #define CAMP_HEADER_FOLLOW_BUTTON_TOP_PADDING 16
 

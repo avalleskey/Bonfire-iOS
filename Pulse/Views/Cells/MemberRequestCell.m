@@ -44,11 +44,12 @@
         
         self.declineButton = [UIButton buttonWithType:UIButtonTypeCustom];
         [self.declineButton setTitle:@"Decline" forState:UIControlStateNormal];
-        [self.declineButton setTitleColor:[UIColor colorWithRed:0.33 green:0.33 blue:0.33 alpha:1.0] forState:UIControlStateNormal];
+        [self.declineButton setTitleColor:[UIColor bonfireSecondaryColor] forState:UIControlStateNormal];
         [self.declineButton.titleLabel setFont:[UIFont systemFontOfSize:16.f weight:UIFontWeightSemibold]];
         self.declineButton.layer.cornerRadius = 10.f;
         self.declineButton.layer.masksToBounds = true;
         self.declineButton.layer.borderWidth = 1.f;
+        self.declineButton.backgroundColor = [UIColor cardBackgroundColor];
         [self addPressDownEffectsToButton:self.declineButton];
         [self.contentView addSubview:self.declineButton];
     }

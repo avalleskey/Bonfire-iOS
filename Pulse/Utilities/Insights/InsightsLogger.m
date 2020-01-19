@@ -226,7 +226,7 @@ static InsightsLogger *logger;
     // NSLog(@"%ld out of %ld", (long)[self completedTimeframesCount], (long)MAX_TIMEFRAMES);
     
     if ([self completedTimeframesCount] >= MAX_TIMEFRAMES) {
-        // NSLog(@"🚨🚨🚨 copmletedTimeframes(%ld) > MAX_TIMEFRAMES(%ld) 🚨🚨🚨", (long)[self completedTimeframesCount], (long)MAX_TIMEFRAMES);
+        NSLog(@"🚨🚨🚨 copmletedTimeframes(%ld) > MAX_TIMEFRAMES(%ld) 🚨🚨🚨", (long)[self completedTimeframesCount], (long)MAX_TIMEFRAMES);
         createBatch = true;
     }
     

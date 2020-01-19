@@ -40,7 +40,9 @@ NS_ASSUME_NONNULL_BEGIN
 @interface CampDisplay : BFJSONModel
 
 extern NSString * const CAMP_DISPLAY_FORMAT_CHANNEL;
+extern NSString *const CAMP_DISPLAY_FORMAT_FEED;
 @property (nonatomic) NSString <Optional> *format;
+
 @property (nonatomic) NSObject <Optional> * _Nullable source;
 
 #pragma mark - Generated properties

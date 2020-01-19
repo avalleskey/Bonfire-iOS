@@ -20,6 +20,7 @@ enum {
 @property (strong, nonatomic) NSMutableDictionary *cellHeightsDictionary;
 
 @property (nonatomic, strong) NSDate *lastFetch;
+- (void)refresh;
 - (void)refreshIfNeeded;
 - (void)markAllAsRead;
 

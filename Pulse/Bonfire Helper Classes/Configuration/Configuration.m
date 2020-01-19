@@ -156,6 +156,8 @@ NSString * const LOCAL_APP_URI = @"bonfireapp";
     // Check if the URL is a supported type
     if ([url.host isEqualToString:@"user"]) {
         User *user = [[User alloc] init];
+        user.type = @"user";
+        
         IdentityAttributes *attributes = [[IdentityAttributes alloc] init];
         
         if ([params objectForKey:@"id"]) {
@@ -171,6 +173,8 @@ NSString * const LOCAL_APP_URI = @"bonfireapp";
     }
     if ([url.host isEqualToString:@"camp"]) {
         Camp *camp = [[Camp alloc] init];
+        camp.type = @"camp";
+        
         CampAttributes *attributes = [[CampAttributes alloc] init];
         
         if ([params objectForKey:@"id"]) {
@@ -186,6 +190,8 @@ NSString * const LOCAL_APP_URI = @"bonfireapp";
     }
     if ([url.host isEqualToString:@"post"]) {
         Post *post = [[Post alloc] init];
+        post.type = @"post";
+        
         if ([params objectForKey:@"id"]) {
             post.identifier = [NSString stringWithFormat:@"%@", params[@"id"]];
         }
@@ -237,6 +243,8 @@ NSString * const LOCAL_APP_URI = @"bonfireapp";
     if (parent && parent.length > 0) {
         if (user) {
             User *user = [[User alloc] init];
+            user.type = @"user";
+            
             if ([parent validateBonfireUsername] == BFValidationErrorNone) {
                 // https://bonfire.camp/u/{username}
                 
@@ -257,6 +265,8 @@ NSString * const LOCAL_APP_URI = @"bonfireapp";
         }
         else if (camp) {
             Camp *camp = [[Camp alloc] init];
+            camp.type = @"camp";
+            
             if ([parent validateBonfireCampTag] == BFValidationErrorNone) {
                 // https://bonfire.camp/c/{camptag}
                 
@@ -279,6 +289,8 @@ NSString * const LOCAL_APP_URI = @"bonfireapp";
                     
             // open post
             Post *post =  [[Post alloc] init];
+            post.type = @"post";
+            
             post.identifier = parent;
                     
             return post;

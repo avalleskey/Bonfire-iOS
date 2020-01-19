@@ -29,9 +29,11 @@ typedef enum {
     BFDetailItemTypeWebsite = 6,
     BFDetailItemTypeSourceLink = 7,
     BFDetailItemTypeSourceUser = 8,
-    BFDetailItemTypePostNotificationsOn = 9,
-    BFDetailItemTypePostNotificationsOff = 10,
-    BFDetailItemTypeEdit = 11
+    BFDetailItemTypeSourceLink_Feed = 9,
+    BFDetailItemTypeSourceUser_Feed = 10,
+    BFDetailItemTypePostNotificationsOn = 11,
+    BFDetailItemTypePostNotificationsOff = 12,
+    BFDetailItemTypeEdit = 13
 } BFDetailItemType;
 
 - (id)initWithType:(BFDetailItemType)type value:(NSString *)value action:(void (^_Nullable)(void))action;

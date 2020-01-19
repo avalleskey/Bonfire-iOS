@@ -116,10 +116,10 @@
     
     [UIView animateWithDuration:0.2f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
         if (highlighted) {
-            self.backgroundColor = [UIColor contentHighlightedColor];
+            self.contentView.backgroundColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.03];
         }
         else {
-            self.backgroundColor = [UIColor contentBackgroundColor];
+            self.contentView.backgroundColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0];
         }
     } completion:nil];
 }

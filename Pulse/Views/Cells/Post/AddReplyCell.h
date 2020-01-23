@@ -8,10 +8,13 @@
 
 #import <UIKit/UIKit.h>
 #import "BFAvatarView.h"
+#import "Post.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 @interface AddReplyCell : UITableViewCell
+
+@property (nonatomic, strong) Post *post;
 
 @property (nonatomic, strong) BFAvatarView *profilePicture;
 

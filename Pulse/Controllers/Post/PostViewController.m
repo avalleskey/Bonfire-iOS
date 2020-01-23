@@ -1018,24 +1018,9 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             if (!cell) {
                 cell = [[ExpandThreadCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:expandRepliesCellIdentifier];
             }
-            cell.backgroundColor = [UIColor contentBackgroundColor];
-            cell.contentView.backgroundColor = [UIColor contentBackgroundColor];
             
             cell.levelsDeep = -1;
-            
-            BOOL hasExistingSubReplies = reply.attributes.summaries.replies.count != 0;
-            cell.textLabel.text = [NSString stringWithFormat:@"View%@ replies (%ld)", (hasExistingSubReplies ? @" more" : @""), (long)reply.attributes.summaries.counts.replies - reply.attributes.summaries.replies.count];
-            
-            if (hasExistingSubReplies) {
-                // view more replies
-                cell.tag = 2;
-            }
-            else {
-                // start replies chain
-                cell.tag = 3;
-            }
-            
-            cell.lineSeparator.hidden = true;
+            cell.post = reply;
             
             return cell;
         }
@@ -1209,10 +1194,6 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             Post *subReply = reply.attributes.summaries.replies[subReplyIndex];
             
             CGFloat height = [ReplyCell heightForPost:subReply levelsDeep:-1];
-            if ((subReplyIndex == subReplies - 1) && !showViewMore && showAddReply) {
-                // remove the bottom padding of the cell, since the add reply cell includes that padding
-                height -= replyContentOffset.bottom;
-            }
             
             return height;
         }

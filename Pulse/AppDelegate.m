@@ -23,6 +23,7 @@
 #import "BFAlertController.h"
 #import "ResetPasswordViewController.h"
 #import "HAWebService.h"
+#import "BFComponentTableView.h"
 
 #import <Lockbox/Lockbox.h>
 #import <AudioToolbox/AudioServices.h>
@@ -65,18 +66,6 @@
     
     if ((accessToken != nil || refreshToken != nil) && self.session.currentUser.identifier != nil) {
         [self launchLoggedInWithCompletion:nil];
-        
-        wait(2.f, ^{
-            [[Launcher tabController] setBadgeValue:@"1" forItem:[Launcher tabController].notificationsNavVC.tabBarItem];
-            
-            wait(2.f, ^{
-                [[Launcher tabController] setBadgeValue:@"2" forItem:[Launcher tabController].notificationsNavVC.tabBarItem];
-                
-                wait(2.f, ^{
-                    [[Launcher tabController] setBadgeValue:@"10" forItem:[Launcher tabController].notificationsNavVC.tabBarItem];
-                });
-            });
-        });
     }
     else {
         // launch onboarding
@@ -291,7 +280,7 @@
     [[Launcher topMostViewController] presentViewController:options animated:true completion:nil];
 }
 
-- (void)launchLoggedInWithCompletion:(void (^_Nullable)(BOOL success))handler; {
+- (void)launchLoggedInWithCompletion:(void (^_Nullable)(BOOL success))handler {
     [[Session sharedInstance] getNewAccessToken:^(BOOL success, NSString * _Nonnull newToken) {
         if (success) {
             NSInteger launches = [[NSUserDefaults standardUserDefaults] integerForKey:@"launches"];
@@ -400,10 +389,7 @@
                 tableView = ((UITableViewController *)currentNavigationController.visibleViewController).tableView;
             }
             else if ([currentNavigationController.visibleViewController isKindOfClass:[ThemedTableViewController class]]) {
-                tableView = ((ThemedTableViewController *)currentNavigationController.visibleViewController).tableView;
-                if (!tableView) {
-                    tableView = ((ThemedTableViewController *)currentNavigationController.visibleViewController).rs_tableView;
-                }
+                tableView = [((ThemedTableViewController *)currentNavigationController.visibleViewController) activeTableView];
             }
             else if ([currentNavigationController.visibleViewController isKindOfClass:[ProfileViewController class]]) {
                 tableView = ((ProfileViewController *)currentNavigationController.visibleViewController).tableView;
@@ -431,6 +417,9 @@
                     
                     if ([tableView isKindOfClass:[RSTableView class]]) {
                         [(RSTableView *)tableView scrollToTop];
+                    }
+                    else if ([tableView isKindOfClass:[BFComponentTableView class]]) {
+                        [(BFComponentTableView *)tableView scrollToTop];
                     }
                     else {
                         [tableView reloadData];

@@ -41,6 +41,8 @@
 		D9145AB123CF76CD00BB9FFD /* BFMiniNotificationManager.m in Sources */ = {isa = PBXBuildFile; fileRef = D9145AAF23CF76CD00BB9FFD /* BFMiniNotificationManager.m */; };
 		D9145AB423D4EA6700BB9FFD /* SectionStream.m in Sources */ = {isa = PBXBuildFile; fileRef = D9145AB323D4EA6700BB9FFD /* SectionStream.m */; };
 		D9145AB723D4EAF200BB9FFD /* BFComponent.m in Sources */ = {isa = PBXBuildFile; fileRef = D9145AB623D4EAF200BB9FFD /* BFComponent.m */; };
+		D9145ABB23D4F17000BB9FFD /* Section.m in Sources */ = {isa = PBXBuildFile; fileRef = D9145ABA23D4F17000BB9FFD /* Section.m */; };
+		D9145ABD23D4F99C00BB9FFD /* SectionFeed_Sample.json in Resources */ = {isa = PBXBuildFile; fileRef = D9145ABC23D4F99C00BB9FFD /* SectionFeed_Sample.json */; };
 		D91643092162BE4800523770 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D91643082162BE4800523770 /* QuartzCore.framework */; };
 		D916430D2162C3A100523770 /* SearchResultCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D916430C2162C3A100523770 /* SearchResultCell.m */; };
 		D9164310216407C300523770 /* ProfileViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D916430F216407C300523770 /* ProfileViewController.m */; };
@@ -112,6 +114,9 @@
 		D95EE37C2295A491006E4D8E /* BFHeaderView.m in Sources */ = {isa = PBXBuildFile; fileRef = D95EE37B2295A491006E4D8E /* BFHeaderView.m */; };
 		D95EE38D229C47CE006E4D8E /* BFNotificationView.m in Sources */ = {isa = PBXBuildFile; fileRef = D95EE389229C47CE006E4D8E /* BFNotificationView.m */; };
 		D95EE38E229C47CE006E4D8E /* BFNotificationManager.m in Sources */ = {isa = PBXBuildFile; fileRef = D95EE38B229C47CE006E4D8E /* BFNotificationManager.m */; };
+		D963024923D5134C0025D2CF /* BFComponentTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = D963024823D5134C0025D2CF /* BFComponentTableView.m */; };
+		D963024C23D63C2E0025D2CF /* BFSectionHeaderCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D963024B23D63C2E0025D2CF /* BFSectionHeaderCell.m */; };
+		D963025223D7AB3E0025D2CF /* BFSectionHeaderObject.m in Sources */ = {isa = PBXBuildFile; fileRef = D963025123D7AB3E0025D2CF /* BFSectionHeaderObject.m */; };
 		D9679E4A22CAA67200253CCA /* ManageIcebreakersViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9679E4922CAA67200253CCA /* ManageIcebreakersViewController.m */; };
 		D9679E4E22CBDD8000253CCA /* SetAnIcebreakerViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9679E4D22CBDD8000253CCA /* SetAnIcebreakerViewController.m */; };
 		D9684D2522C402BE0035DEF8 /* AddReplyCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D9684D2422C402BE0035DEF8 /* AddReplyCell.m */; };
@@ -340,6 +345,9 @@
 		D9145AB323D4EA6700BB9FFD /* SectionStream.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SectionStream.m; sourceTree = "<group>"; };
 		D9145AB523D4EAF200BB9FFD /* BFComponent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BFComponent.h; sourceTree = "<group>"; };
 		D9145AB623D4EAF200BB9FFD /* BFComponent.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BFComponent.m; sourceTree = "<group>"; };
+		D9145AB923D4F17000BB9FFD /* Section.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Section.h; sourceTree = "<group>"; };
+		D9145ABA23D4F17000BB9FFD /* Section.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Section.m; sourceTree = "<group>"; };
+		D9145ABC23D4F99C00BB9FFD /* SectionFeed_Sample.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = SectionFeed_Sample.json; sourceTree = "<group>"; };
 		D91643082162BE4800523770 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		D916430B2162C3A100523770 /* SearchResultCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SearchResultCell.h; sourceTree = "<group>"; };
 		D916430C2162C3A100523770 /* SearchResultCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SearchResultCell.m; sourceTree = "<group>"; };
@@ -473,6 +481,12 @@
 		D95EE38A229C47CE006E4D8E /* BFNotificationManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BFNotificationManager.h; sourceTree = "<group>"; };
 		D95EE38B229C47CE006E4D8E /* BFNotificationManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BFNotificationManager.m; sourceTree = "<group>"; };
 		D95EE38C229C47CE006E4D8E /* BFNotificationView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BFNotificationView.h; sourceTree = "<group>"; };
+		D963024723D5134C0025D2CF /* BFComponentTableView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BFComponentTableView.h; sourceTree = "<group>"; };
+		D963024823D5134C0025D2CF /* BFComponentTableView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BFComponentTableView.m; sourceTree = "<group>"; };
+		D963024A23D63C2E0025D2CF /* BFSectionHeaderCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BFSectionHeaderCell.h; sourceTree = "<group>"; };
+		D963024B23D63C2E0025D2CF /* BFSectionHeaderCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BFSectionHeaderCell.m; sourceTree = "<group>"; };
+		D963025023D7AB3E0025D2CF /* BFSectionHeaderObject.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BFSectionHeaderObject.h; sourceTree = "<group>"; };
+		D963025123D7AB3E0025D2CF /* BFSectionHeaderObject.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BFSectionHeaderObject.m; sourceTree = "<group>"; };
 		D9679E4822CAA67200253CCA /* ManageIcebreakersViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ManageIcebreakersViewController.h; sourceTree = "<group>"; };
 		D9679E4922CAA67200253CCA /* ManageIcebreakersViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ManageIcebreakersViewController.m; sourceTree = "<group>"; };
 		D9679E4C22CBDD8000253CCA /* SetAnIcebreakerViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SetAnIcebreakerViewController.h; sourceTree = "<group>"; };
@@ -961,6 +975,8 @@
 			children = (
 				D9145AB523D4EAF200BB9FFD /* BFComponent.h */,
 				D9145AB623D4EAF200BB9FFD /* BFComponent.m */,
+				D963025023D7AB3E0025D2CF /* BFSectionHeaderObject.h */,
+				D963025123D7AB3E0025D2CF /* BFSectionHeaderObject.m */,
 			);
 			path = Component;
 			sourceTree = "<group>";
@@ -1575,6 +1591,8 @@
 		D9C8B57221A5F16700A9A282 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				D963024723D5134C0025D2CF /* BFComponentTableView.h */,
+				D963024823D5134C0025D2CF /* BFComponentTableView.m */,
 				D91643222166824F00523770 /* RSTableView.h */,
 				D91643232166824F00523770 /* RSTableView.m */,
 				D9C8B57621A5F28C00A9A282 /* Cells */,
@@ -1636,6 +1654,8 @@
 		D9C8B57621A5F28C00A9A282 /* Cells */ = {
 			isa = PBXGroup;
 			children = (
+				D963024A23D63C2E0025D2CF /* BFSectionHeaderCell.h */,
+				D963024B23D63C2E0025D2CF /* BFSectionHeaderCell.m */,
 				41EB16E4236FCD5300116C90 /* ThemeSelectorInputCell.h */,
 				41EB16E3236FCD5300116C90 /* ThemeSelectorInputCell.m */,
 				D9D9B18621CECF0300B5003B /* MiniAvatarCell.h */,
@@ -1797,6 +1817,9 @@
 				D9373E9022D90BF800EB18E9 /* GenericStream.m */,
 				D9DCACC621B9E0EA0038C7ED /* PostStream.h */,
 				D9DCACC721B9E0EA0038C7ED /* PostStream.m */,
+				D9145AB923D4F17000BB9FFD /* Section.h */,
+				D9145ABA23D4F17000BB9FFD /* Section.m */,
+				D9145ABC23D4F99C00BB9FFD /* SectionFeed_Sample.json */,
 				D9145AB223D4EA6600BB9FFD /* SectionStream.h */,
 				D9145AB323D4EA6700BB9FFD /* SectionStream.m */,
 				D912BD7E223314B900F9F4EC /* UserActivityStream.h */,
@@ -2015,6 +2038,7 @@
 				D9267C8321DAECED00E21862 /* OpenSource.json in Resources */,
 				D9C2ACAF236796B600FB9623 /* Inter-SemiBoldItalic.otf in Resources */,
 				D9C2ACAD236796B600FB9623 /* Inter-Regular.otf in Resources */,
+				D9145ABD23D4F99C00BB9FFD /* SectionFeed_Sample.json in Resources */,
 				D9C2ACAB236796B600FB9623 /* Inter-Medium.otf in Resources */,
 				D907B08D214EEC5300A59712 /* LaunchScreen.storyboard in Resources */,
 				D9A7A2A4225E68620091B53C /* GoogleService-Info.plist in Resources */,
@@ -2200,6 +2224,7 @@
 				D916431E2165CC0400523770 /* NSDate+NVTimeAgo.m in Sources */,
 				D90047D022860669006B4B3D /* BFColorPickerViewController.m in Sources */,
 				D939AE70235F518800317A76 /* BFPostDeletedAttachmentView.m in Sources */,
+				D9145ABB23D4F17000BB9FFD /* Section.m in Sources */,
 				D94DE3322199203C00CA3E1F /* SSWDirectionalPanGestureRecognizer.m in Sources */,
 				D9145AB023CF76CD00BB9FFD /* BFMiniNotificationView.m in Sources */,
 				D924BE2D21542EE400EB7385 /* PostTextView.m in Sources */,
@@ -2307,6 +2332,7 @@
 				D93C5E0722E396DC00A9F827 /* CombinedHomeViewController.m in Sources */,
 				D9684D2522C402BE0035DEF8 /* AddReplyCell.m in Sources */,
 				D94DE3332199203C00CA3E1F /* SloppySwiper.m in Sources */,
+				D963025223D7AB3E0025D2CF /* BFSectionHeaderObject.m in Sources */,
 				D9267C8221DAECED00E21862 /* OpenSourceLibrariesTableViewController.m in Sources */,
 				D93F7F18225904A200450D9E /* BFAlertController.m in Sources */,
 				D91CA64A23A13CCA0055973A /* UIResponder+FirstResponder.m in Sources */,
@@ -2348,6 +2374,7 @@
 				D96AB13E2380810D00838D58 /* OrientationViewController.m in Sources */,
 				D9B2D59221B86C6B007B3C0C /* ActivityCell.m in Sources */,
 				D998462921934309000B901F /* CampMembersViewController.m in Sources */,
+				D963024C23D63C2E0025D2CF /* BFSectionHeaderCell.m in Sources */,
 				D9B2D58621B1F09E007B3C0C /* SearchNavigationController.m in Sources */,
 				D9C8B58421A5F6A600A9A282 /* PostViewController.m in Sources */,
 				D944456322E6433300C75615 /* SmallMediumCampCardCell.m in Sources */,
@@ -2361,6 +2388,7 @@
 				D974B741216009F200C03269 /* CampStoreTableViewController.m in Sources */,
 				D92C85A62399567500AB19FB /* WaitlistViewController.m in Sources */,
 				D96AD7962181029600849F6B /* ProfilePictureCell.m in Sources */,
+				D963024923D5134C0025D2CF /* BFComponentTableView.m in Sources */,
 				D91CA64D23A2C3FB0055973A /* UITabBar+Extras.m in Sources */,
 				D94FD1A4216C5B4400B84E45 /* OnboardingViewController.m in Sources */,
 				D9BD47BD23563D57001E027E /* JKRichTextView.m in Sources */,

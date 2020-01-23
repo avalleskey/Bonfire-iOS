@@ -15,9 +15,14 @@
 #import "Launcher.h"
 #import "UIColor+Palette.h"
 #import "StreamPostCell.h"
+#import "BFComponent.h"
 
 #define REPLY_POST_MAX_CHARACTERS 125
 #define REPLY_POST_EMOJI_SIZE_MULTIPLIER 1.5
+
+@interface ReplyCell () <BFComponentProtocol>
+
+@end
 
 @implementation ReplyCell
 
@@ -600,6 +605,14 @@
     height = REPLY_BUBBLE_INSETS.top + height + detailsHeight + contentEdgeInsets.bottom;
     
     return height;
+}
+
++ (CGFloat)heightForComponent:(BFComponent *)component {
+    Post *post = component.post;
+    
+    if (!post) return 0;
+    
+    return [ReplyCell heightForPost:post levelsDeep:-1];
 }
 
 @end

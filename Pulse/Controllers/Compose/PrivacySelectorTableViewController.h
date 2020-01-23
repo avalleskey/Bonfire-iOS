@@ -13,9 +13,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @protocol PrivacySelectorDelegate <NSObject>
 
-- (void)privacySelectionDidChange:(Camp * _Nullable)selection;
-
 @optional
+- (void)privacySelectionDidChange:(Camp * _Nullable)selection;
 - (void)privacySelectionDidSelectToPost:(Camp * _Nullable)selection;
 
 @end

@@ -16,12 +16,17 @@
 #import "UIColor+Palette.h"
 #import "LinkConversationsViewController.h"
 #import "BFAlertController.h"
+#import "BFComponent.h"
 
 #define BFPostContextTextKey @"text"
 #define BFPostContextIconKey @"icon"
 #define BFPostContextIconColorKey @"icon_color"
 
 #define STREAM_POST_MAX_CHARACTERS 300
+
+@interface StreamPostCell () <BFComponentProtocol>
+
+@end
 
 @implementation StreamPostCell
 
@@ -294,7 +299,7 @@
 }
 
 - (void)setPost:(Post *)post {
-    if (post != _post) {
+    if (![post isEqual:_post]) {
         _post = post;
         
         BOOL temporary = _post.tempId;
@@ -638,6 +643,18 @@
     }
     
     return nil;
+}
+
++ (CGFloat)heightForComponent:(BFComponent *)component {
+    Post *post = component.post;
+    
+    if (!post) return 0;
+    
+    BOOL showContext = (component.detailLevel == 0);
+    BOOL showActions = true;
+    BOOL minimizeLinks = (component.detailLevel < BFComponentDetailLevelMinimum);
+    
+    return [StreamPostCell heightForPost:post showContext:showContext showActions:showActions minimizeLinks:minimizeLinks];
 }
 
 @end

@@ -19,15 +19,6 @@
     return self;
 }
 
-+ (JSONKeyMapper *)keyMapper
-{
-    return [JSONKeyMapper mapperForSnakeCase];
-}
-+ (BOOL)propertyIsOptional:(NSString*)propertyName
-{
-    return true;
-}
-
 - (void)addLoadedCursor:(NSString *)cursor {
     if (!cursor) return;
     

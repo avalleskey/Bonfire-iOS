@@ -26,6 +26,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) UIView *topSeparator;
 @property (nonatomic, strong) UIView *bottomSeparator;
 
++ (CGFloat)height;
+
 @end
 
 NS_ASSUME_NONNULL_END

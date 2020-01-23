@@ -175,9 +175,6 @@
         viewController.title = [Session sharedInstance].defaults.keywords.viewTitles.notifications;
         [viewController view];
         
-        [viewController.tableView reloadData];
-        viewController.view.backgroundColor = [UIColor contentBackgroundColor];
-        
         simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:viewController];
         [simpleNav setLeftAction:SNActionTypeProfile];
         [simpleNav setRightAction:SNActionTypeSearch];
@@ -267,6 +264,8 @@
     
     if ([UIApplication sharedApplication].applicationIconBadgeNumber > 0) {
         [self setBadgeValue:[NSString stringWithFormat:@"%ld", (long)[UIApplication sharedApplication].applicationIconBadgeNumber] forItem:self.notificationsNavVC.tabBarItem];
+        // TODO: Verify this prefetches the notification table view
+        [self.notificationsNavVC view];
     }
     
     if (self.view.tag != 1) {

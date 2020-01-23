@@ -229,8 +229,13 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 - (void)privacySelectionDidSelectToPost:(Camp *)selection {
     self.postingIn = selection;
     
+    if (!self.postingIn) {
+        self.postToProfile = true;
+    }
+    
     [self postMessage];
     
+    self.view.userInteractionEnabled = false;
     [self.navigationController dismissViewControllerAnimated:true completion:nil];
 }
 - (void)updateTintColor {

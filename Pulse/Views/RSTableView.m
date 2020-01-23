@@ -318,7 +318,6 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     BOOL postedInCamp = post.attributes.postedIn != nil;
     
     BOOL removePost = false;
-    BOOL removeQueuedPost = false;
     
     BOOL refresh = false;
         
@@ -683,11 +682,6 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             NSInteger replyIndex = indexPath.row - firstReplyIndex;
             Post *reply = post.attributes.summaries.replies[replyIndex];
             height = [ReplyCell heightForPost:reply levelsDeep:-1];
-            
-            if ((replyIndex == replies - 1) && !showViewMore && showAddReply) {
-                // remove the bottom padding of the cell, since the add reply cell includes that padding
-                height -= replyContentOffset.bottom;
-            }
         }
         else if (showViewMore && indexPath.row == post.attributes.summaries.replies.count + firstReplyIndex) {
             // "view more replies"

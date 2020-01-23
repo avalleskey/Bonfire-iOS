@@ -9,6 +9,11 @@
 #import "ButtonCell.h"
 #import "Session.h"
 #import "UIColor+Palette.h"
+#import "BFComponent.h"
+
+@interface ButtonCell () <BFComponentProtocol>
+
+@end
 
 @implementation ButtonCell
 
@@ -122,6 +127,18 @@
             self.contentView.backgroundColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0];
         }
     } completion:nil];
+}
+
+- (void)action {
+    
+}
+
++ (CGFloat)height {
+    return 52;
+}
+
++ (CGFloat)heightForComponent:(BFComponent *)component {
+    return [ButtonCell height];
 }
 
 @end

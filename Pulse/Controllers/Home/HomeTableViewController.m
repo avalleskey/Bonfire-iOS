@@ -29,8 +29,6 @@
 #import "PrivacySelectorTableViewController.h"
 @import Firebase;
 
-#define startConversationHeaderHeight 80
-
 @interface HomeTableViewController () <PrivacySelectorDelegate> {
     int previousTableViewYOffset;
 }
@@ -73,9 +71,7 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
     
     // Google Analytics
     [FIRAnalytics setScreenName:@"My Feed" screenClass:nil];
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userUpdated:) name:@"UserUpdated" object:nil];
-    
+        
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(newPostBegan:) name:@"NewPostBegan" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(newPostCompleted:) name:@"NewPostCompleted" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(newPostFailed:) name:@"NewPostFailed" object:nil];
@@ -177,7 +173,8 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
     [self setupComposeInputView];
 }
 - (void)setupTableView {
-    self.bf_tableView = [[BFComponentTableView alloc] initWithFrame:CGRectMake(100, self.view.bounds.origin.y, self.view.frame.size.width - 200, self.view.bounds.size.height) style:UITableViewStyleGrouped];
+    self.bf_tableView = [[BFComponentSectionTableView alloc] initWithFrame:CGRectMake(100, self.view.bounds.origin.y, self.view.frame.size.width - 200, self.view.bounds.size.height) style:UITableViewStyleGrouped];
+    self.bf_tableView.insightSeenInLabel = InsightSeenInHomeView;
     self.bf_tableView.separatorColor = [UIColor tableViewSeparatorColor];
     self.bf_tableView.loadingMore = false;
     self.bf_tableView.extendedDelegate = self;
@@ -339,14 +336,6 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
 }
 
 #pragma mark - NSNotification Handlers
-- (void)userUpdated:(NSNotification *)notification {
-    if ([notification.object isKindOfClass:[User class]]) {
-        User *user = notification.object;
-        if ([user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
-            [self.bf_tableView refreshAtTop];
-        }
-    }
-}
 - (void)newPostBegan:(NSNotification *)notification {
     Post *tempPost = notification.object;
     
@@ -363,20 +352,13 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
 }
 - (void)newPostCompleted:(NSNotification *)notification {
     NSDictionary *info = notification.object;
-    NSString *tempId = info[@"tempId"];
     Post *post = info[@"post"];
     
     if (post != nil) {
-        // TODO: Check for image as well
         self.errorView.hidden = true;
-        
-        //        BOOL removedTempPost = [self.bf_tableView.stream removeTempPost:tempId];
-        
-        //        NSLog(@"removed temp post?? %@", removedTempPost ? @"YES" : @"NO");
-        
-        [self.bf_tableView.stream removeLoadedCursor:self.bf_tableView.stream.prevCursor];
-        
+                
         wait(3.5f, ^{
+            [self.bf_tableView.stream removeLoadedCursor:self.bf_tableView.stream.prevCursor];
             [self fetchNewPosts];
         });
         
@@ -389,14 +371,9 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
     Post *tempPost = notification.object;
     
     if (tempPost != nil) {
-        //        // TODO: Check for image as well
-        //        [self.bf_tableView.stream removeTempPost:tempPost.tempId];
-        //        [self.bf_tableView refreshAtTop];
-        //        self.errorView.hidden = (self.bf_tableView.stream.posts.count != 0);
-        //
-        //        if (self.navigationController && [self.navigationController isKindOfClass:[SimpleNavigationController class]]) {
-        //            [(SimpleNavigationController *)self.navigationController setProgress:0 animated:YES hideOnCompletion:true];
-        //        }
+        if (self.navigationController && [self.navigationController isKindOfClass:[SimpleNavigationController class]]) {
+            [(SimpleNavigationController *)self.navigationController setProgress:0 animated:YES hideOnCompletion:true];
+        }
     }
 }
 
@@ -681,6 +658,8 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
 
 #pragma mark - RSTableViewDelegate
 - (UIView *)viewForFirstSectionHeader {
+    return nil;
+    
     UIView *buttons = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 80)];
     
     UIButton *updateSection = [UIButton buttonWithType:UIButtonTypeSystem];
@@ -714,9 +693,7 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
         Post *firstPostInFirstSection = [[firstSection.attributes.posts firstObject] copy];
         firstPostInFirstSection.attributes.message = @"Updated post!";
         
-        [self.bf_tableView.stream performEventType:SectionStreamEventTypePostUpdated object:firstPostInFirstSection];
-        
-        [self.bf_tableView reloadData];
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"PostUpdated" object:firstPostInFirstSection];
     }];
     [buttons addSubview:updateTopPost];
     
@@ -727,9 +704,7 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
         Section *firstSection = [self.bf_tableView.stream.sections firstObject];
         Post *firstPostInFirstSection = [firstSection.attributes.posts objectAtIndex:0];
         
-        [self.bf_tableView.stream performEventType:SectionStreamEventTypePostRemoved object:firstPostInFirstSection];
-        
-        [self.bf_tableView reloadData];
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"PostDeleted" object:firstPostInFirstSection];
     }];
     [buttons addSubview:removeTopPost];
     
@@ -742,9 +717,7 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
         User *creator = [[User alloc] initWithDictionary:[firstPostInFirstSection.attributes.creator toDictionary] error:nil];
         creator.attributes.identifier = @"jackieboy";
         
-        [self.bf_tableView.stream performEventType:SectionStreamEventTypeUserUpdated object:creator];
-        
-        [self.bf_tableView reloadData];
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"UserUpdated" object:creator];
     }];
     [buttons addSubview:updateUser];
     
@@ -757,87 +730,14 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
         Camp *postedIn = [[Camp alloc] initWithDictionary:[firstPostInFirstSection.attributes.postedIn toDictionary] error:nil];
         postedIn.attributes.identifier = @"suhdudes";
         
-        [self.bf_tableView.stream performEventType:SectionStreamEventTypeCampUpdated object:postedIn];
-        
-        [self.bf_tableView reloadData];
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"CampUpdated" object:postedIn];
     }];
     [buttons addSubview:updateCamp];
     
     return buttons;
-    
-    //    UIButton *header = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, startConversationHeaderHeight)];
-    //    header.backgroundColor = [UIColor contentBackgroundColor];
-    //    BFAvatarView *profilePic = [[BFAvatarView alloc] initWithFrame:CGRectMake(12, 12, 48, 48)];
-    //    profilePic.user = [Session sharedInstance].currentUser;
-    //    profilePic.userInteractionEnabled = false;
-    //
-    //    UIButton *takePictureButton = [UIButton buttonWithType:UIButtonTypeSystem];
-    //    [takePictureButton setImage:[[UIImage imageNamed:@"composeToolbarTakePicture"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
-    //    takePictureButton.frame = CGRectMake(header.frame.size.width - 12 - 40, profilePic.frame.origin.y + ((profilePic.frame.size.height - 40) / 2), 40, 40);
-    //    takePictureButton.backgroundColor = [UIColor bonfireDetailColor];
-    //    takePictureButton.layer.cornerRadius = takePictureButton.frame.size.height / 2;
-    //    takePictureButton.contentMode = UIViewContentModeCenter;
-    //    takePictureButton.tintColor = [UIColor bonfirePrimaryColor];
-    //    [takePictureButton bk_whenTapped:^{
-    //        [Launcher openComposeCamera];
-    //    }];
-    //    takePictureButton.adjustsImageWhenHighlighted = false;
-    //    [takePictureButton bk_addEventHandler:^(id sender) {
-    //        [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-    //            takePictureButton.alpha = 0.5;
-    //        } completion:nil];
-    //    } forControlEvents:UIControlEventTouchDown];
-    //    [takePictureButton bk_addEventHandler:^(id sender) {
-    //        [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-    //            takePictureButton.alpha = 1;
-    //        } completion:nil];
-    //    } forControlEvents:(UIControlEventTouchUpInside|UIControlEventTouchCancel|UIControlEventTouchDragExit)];
-    //    [header addSubview:takePictureButton];
-    //
-    //    UILabel *textLabel = [[UILabel alloc] initWithFrame:CGRectMake(70, profilePic.frame.origin.y, self.view.frame.size.width - 70 - 12, profilePic.frame.size.height)];
-    //    textLabel.font = textViewFont;
-    //    textLabel.textColor = [UIColor bonfireSecondaryColor];
-    ////    textLabel.alpha = 0.25;
-    //    textLabel.text = @"Start a conversation...";
-    //
-    //    UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(0, header.frame.size.height - 8, self.view.frame.size.width, 8)];
-    //    separator.backgroundColor = [UIColor tableViewBackgroundColor];
-    //
-    //    UIView *line_t = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, HALF_PIXEL)];
-    //    line_t.backgroundColor = [UIColor tableViewSeparatorColor];
-    //    [separator addSubview:line_t];
-    //
-    //    UIView *line_b = [[UIView alloc] initWithFrame:CGRectMake(0, separator.frame.size.height - HALF_PIXEL, self.view.frame.size.width, HALF_PIXEL)];
-    //    line_b.backgroundColor = [UIColor tableViewSeparatorColor];
-    //    [separator addSubview:line_b];
-    //
-    //    [header addSubview:textLabel];
-    //    [header addSubview:profilePic];
-    //    [header addSubview:separator];
-    //
-    //    [header bk_whenTapped:^{
-    //        [Launcher openComposePost:nil inReplyTo:nil withMessage:nil media:nil quotedObject:nil];
-    //    }];
-    //
-    //    [header bk_addEventHandler:^(id sender) {
-    //        [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-    //            profilePic.alpha = 0.5;
-    //            textLabel.alpha = 0.5;
-    //        } completion:nil];
-    //    } forControlEvents:UIControlEventTouchDown];
-    //    [header bk_addEventHandler:^(id sender) {
-    //        [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-    //            profilePic.alpha = 1;
-    //            textLabel.alpha = 1;
-    //        } completion:nil];
-    //    } forControlEvents:(UIControlEventTouchUpInside|UIControlEventTouchCancel|UIControlEventTouchDragExit)];
-    //
-    //    return header;
 }
 - (CGFloat)heightForFirstSectionHeader {
-    return 240; // CGFLOAT_MIN;
-    
-    //    return startConversationHeaderHeight;
+    return CGFLOAT_MIN; // 240
 }
 - (UIView *)viewForFirstSectionFooter {
     return nil;

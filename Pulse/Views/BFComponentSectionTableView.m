@@ -1,12 +1,12 @@
 //
-//  BFComponentTableView.m
+//  BFComponentSectionTableView.m
 //  Pulse
 //
 //  Created by Austin Valleskey on 10/4/18.
 //  Copyright © 2018 Austin Valleskey. All rights reserved.
 //
 
-#import "BFComponentTableView.h"
+#import "BFComponentSectionTableView.h"
 #import "ComplexNavigationController.h"
 
 #import "CampHeaderCell.h"
@@ -18,7 +18,6 @@
 #import "ExpandedPostCell.h"
 #import "AddReplyCell.h"
 #import "BFErrorViewCell.h"
-#import "BFSectionHeaderCell.h"
 #import "ButtonCell.h"
 
 #import "LoadingCell.h"
@@ -38,15 +37,11 @@
 
 #define SHOW_CURSORS false
 
-@interface BFComponentTableView () <UIScrollViewDelegate>
+@interface BFComponentSectionTableView () <UIScrollViewDelegate>
 
 @end
 
-@implementation BFComponentTableView
-
-static NSString * const expandedPostReuseIdentifier = @"ExpandedPost";
-
-static NSString * const headerCellReuseIdentifier = @"HeaderCellReuseIdentifier";
+@implementation BFComponentSectionTableView
 
 static NSString * const streamPostReuseIdentifier = @"StreamPost";
 static NSString * const streamMediaPostReuseIdentifier = @"StreamPost_media";
@@ -62,16 +57,14 @@ static NSString * const addReplyCellIdentifier = @"AddReplyReuseIdentifier";
 
 static NSString * const buttonCellReuseIdentifier = @"ButtonCellReuseIdentifier";
 
-static NSString * const previewReuseIdentifier = @"PreviewPost";
 static NSString * const errorCellReuseIdentifier = @"ErrorCell";
 static NSString * const blankCellIdentifier = @"BlankCell";
 
 static NSString * const loadingCellIdentifier = @"LoadingCell";
-static NSString * const paginationCellIdentifier = @"PaginationCell";
 
 #pragma mark - Initialization and Setup
 - (id)initWithFrame:(CGRect)frame style:(UITableViewStyle)style {
-    self = [super initWithFrame:frame style:UITableViewStyleGrouped];
+    self = [super initWithFrame:frame style:style];
     if (self) {
         [self setup];
     }
@@ -104,10 +97,6 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     
     self.refreshControl = [[UIRefreshControl alloc] init];
     [self sendSubviewToBack:self.refreshControl];
-        
-    [self registerClass:[ExpandedPostCell class] forCellReuseIdentifier:expandedPostReuseIdentifier];
-    
-    [self registerClass:[BFSectionHeaderCell class] forCellReuseIdentifier:headerCellReuseIdentifier];
     
     [self registerClass:[StreamPostCell class] forCellReuseIdentifier:streamPostReuseIdentifier];
     [self registerClass:[StreamPostCell class] forCellReuseIdentifier:streamMediaPostReuseIdentifier];
@@ -127,8 +116,9 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     [self registerClass:[UITableViewCell class] forCellReuseIdentifier:blankCellIdentifier];
     
     [self registerClass:[LoadingCell class] forCellReuseIdentifier:loadingCellIdentifier];
-    [self registerClass:[PaginationCell class] forCellReuseIdentifier:paginationCellIdentifier];
     
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userUpdated:) name:@"UserUpdated" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(campUpdated:) name:@"CampUpdated" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(postUpdated:) name:@"PostUpdated" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(postDeleted:) name:@"PostDeleted" object:nil];
 }
@@ -193,9 +183,21 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     
     if (post != nil && [self.stream performEventType:SectionStreamEventTypePostRemoved object:post]) {
         // Only refresh the table view if view controller is not visible
-        if (![[Launcher activeViewController] isEqual:UIViewParentController(self)]) {
-            [self hardRefresh:false];
-        }
+        [self hardRefresh:false];
+    }
+}
+- (void)userUpdated:(NSNotification *)notification {
+    User *user = notification.object;
+    
+    if (user != nil && [self.stream performEventType:SectionStreamEventTypeUserUpdated object:user]) {
+        [self hardRefresh:false];
+    }
+}
+- (void)campUpdated:(NSNotification *)notification {
+    Camp *camp = notification.object;
+    
+    if (camp != nil && [self.stream performEventType:SectionStreamEventTypeCampUpdated object:camp]) {
+        [self hardRefresh:false];
     }
 }
 
@@ -258,26 +260,9 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     // skip logging if invalid post identifier (most likely due to a loading cell)
     if (post.identifier == 0) return;
             
-    NSString *seenIn = InsightSeenInHomeView;
-//    switch (self.dataType) {
-//        case BFComponentTableViewTypeFeed:
-//            if (self.dataSubType == BFComponentTableViewSubTypeHome) {
-//                seenIn = InsightSeenInHomeView;
-//            }
-//            if (self.dataSubType == BFComponentTableViewSubTypeTrending) {
-//                seenIn = InsightSeenInTrendingView;
-//            }
-//            break;
-//        case BFComponentTableViewTypeCamp:
-//            seenIn = InsightSeenInCampView;
-//            break;
-//        case BFComponentTableViewTypeProfile:
-//            seenIn = InsightSeenInProfileView;
-//            break;
-//    }
-    
-    //
-//    [InsightsLogger.sharedInstance openPostInsight:post.identifier seenIn:seenIn];
+    if (self.insightSeenInLabel) {
+        [InsightsLogger.sharedInstance openPostInsight:post.identifier seenIn:self.insightSeenInLabel];
+    }
 }
 - (void)tableView:(UITableView *)tableView didEndDisplayingCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath*)indexPath {
     if ([tableView.indexPathsForVisibleRows indexOfObject:indexPath] == NSNotFound) {
@@ -307,20 +292,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         Section *s = [self sectionAtIndexPath:indexPath];
         BFComponent *component = [self componentAtIndexPath:indexPath];
         
-        if (component.cellClass == [BFSectionHeaderCell class]) {
-            BFSectionHeaderCell *cell = [tableView dequeueReusableCellWithIdentifier:headerCellReuseIdentifier forIndexPath:indexPath];
-            
-            if (cell == nil) {
-                cell = [[BFSectionHeaderCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:headerCellReuseIdentifier];
-            }
-            
-            cell.textLabel.text = component.headerObject.title;
-            cell.detailTextLabel.text = component.headerObject.text;
-            cell.targetObject = component.headerObject.target;
-            
-            return cell;
-        }
-        else if (component.cellClass == [StreamPostCell class])  {
+        if (component.cellClass == [StreamPostCell class])  {
             // determine if it's a reply or sub-reply
             Post *post = component.post;
             CGFloat replies = post.attributes.summaries.replies.count;
@@ -494,6 +466,25 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             return [self.extendedDelegate heightForFirstSectionHeader];
         }
     }
+    else {
+        Section *s = [self sectionAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:section]];
+        
+        return [self heightForSection:s];
+    }
+    
+    return CGFLOAT_MIN;
+}
+- (CGFloat)heightForSection:(Section *)section {
+    BOOL hasTitle = section.attributes.title.length > 0;
+    BOOL hasText = section.attributes.text.length > 0;
+    if (hasTitle || hasText) {
+        if (hasTitle && hasText) {
+            return 64;
+        }
+        else {
+            return 52;
+        }
+    }
     
     return CGFLOAT_MIN;
 }
@@ -503,8 +494,61 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             return [self.extendedDelegate viewForFirstSectionHeader];
         }
     }
+    else {
+        Section *s = [self sectionAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:section]];
+        
+        if (s.attributes.title.length > 0 ||
+            s.attributes.text.length > 0) {
+            UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, [self heightForSection:s])];
+            header.backgroundColor = [UIColor contentBackgroundColor];
+            
+            UIEdgeInsets contentEdgeInsets = UIEdgeInsetsMake(12, 12, 12, 12);
+            
+            CGFloat bottomY = contentEdgeInsets.top;
+            
+            if (s.attributes.cta.target.camp) {
+                BFAvatarView *avatarView = [[BFAvatarView alloc] initWithFrame:CGRectMake(header.frame.size.width - 24 - 12, (header.frame.size.height / 2) - (24 / 2), 24, 24)];
+                avatarView.openOnTap = true;
+                avatarView.camp = s.attributes.cta.target.camp;
+                [header addSubview:avatarView];
+                
+                contentEdgeInsets.right = header.frame.size.width - avatarView.frame.origin.x - 12;
+            }
+            
+            if (s.attributes.title.length > 0) {
+                if (s.attributes.text.length == 0) {
+                    contentEdgeInsets.top =
+                    contentEdgeInsets.bottom = 16;
+                }
+                
+                UILabel *titleLabel = [[UILabel alloc] init];
+                titleLabel.text = s.attributes.title;
+                titleLabel.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightBold];
+                titleLabel.textColor = [UIColor bonfirePrimaryColor];
+                titleLabel.frame = CGRectMake(contentEdgeInsets.left, contentEdgeInsets.top, header.frame.size.width - (contentEdgeInsets.left + contentEdgeInsets.right), ceilf(titleLabel.font.lineHeight));
+                [header addSubview:titleLabel];
+                
+                bottomY = titleLabel.frame.origin.y + titleLabel.frame.size.height + 2;
+            }
+            
+            if (s.attributes.text.length > 0) {
+                UILabel *textLabel = [[UILabel alloc] init];
+                textLabel.text = s.attributes.text;
+                textLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightRegular];
+                textLabel.textColor = [UIColor bonfireSecondaryColor];
+                textLabel.frame = CGRectMake(contentEdgeInsets.left, bottomY, header.frame.size.width - (contentEdgeInsets.left + contentEdgeInsets.right), ceilf(textLabel.font.lineHeight));
+                [header addSubview:textLabel];
+            }
+            
+            UIView *lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, header.frame.size.height - HALF_PIXEL, header.frame.size.width, HALF_PIXEL)];
+            lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
+            [header addSubview:lineSeparator];
+            
+            return header;
+        }
+    }
     
-    return [[UIView alloc] initWithFrame:CGRectZero];
+    return nil;
 }
 - (BOOL)showFooterForSection:(NSInteger)section {
     Section *s = self.stream.sections[section-1];
@@ -691,6 +735,81 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     }
     
     return s.components[indexPath.row];
+}
+
+#pragma mark - UIContextMenuConfiguration
+- (UIContextMenuConfiguration *)tableView:(UITableView *)tableView contextMenuConfigurationForRowAtIndexPath:(NSIndexPath *)indexPath point:(CGPoint)point  API_AVAILABLE(ios(13.0)){
+    if ([[tableView cellForRowAtIndexPath:indexPath] isKindOfClass:[PostCell class]]) {
+        Post *post = ((PostCell *)[tableView cellForRowAtIndexPath:indexPath]).post;
+        
+        if (post) {
+            NSMutableArray *actions = [NSMutableArray new];
+            if ([post.attributes.context.post.permissions canReply]) {
+                UIAction *replyAction = [UIAction actionWithTitle:@"Reply" image:[UIImage systemImageNamed:@"arrowshape.turn.up.left"] identifier:@"reply" handler:^(__kindof UIAction * _Nonnull action) {
+                    wait(0, ^{
+                        [Launcher openComposePost:post.attributes.postedIn inReplyTo:post withMessage:nil media:nil  quotedObject:nil];
+                    });
+                }];
+                [actions addObject:replyAction];
+            }
+            
+            UIAction *quoteAction = [UIAction actionWithTitle:@"Quote" image:[UIImage systemImageNamed:@"quote.bubble"] identifier:@"quote" handler:^(__kindof UIAction * _Nonnull action) {
+                wait(0, ^{
+                    [Launcher openComposePost:nil inReplyTo:nil withMessage:nil media:nil  quotedObject:post];
+                });
+            }];
+            [actions addObject:quoteAction];
+            
+            if (post.attributes.postedIn) {
+                UIAction *openCamp = [UIAction actionWithTitle:@"Open Camp" image:[UIImage systemImageNamed:@"number"] identifier:@"open_camp" handler:^(__kindof UIAction * _Nonnull action) {
+                    wait(0, ^{
+                        Camp *camp = [[Camp alloc] initWithDictionary:[post.attributes.postedIn toDictionary] error:nil];
+                        
+                        [Launcher openCamp:camp];
+                    });
+                }];
+                [actions addObject:openCamp];
+            }
+            
+            UIAction *shareViaAction = [UIAction actionWithTitle:@"Share via..." image:[UIImage systemImageNamed:@"square.and.arrow.up"] identifier:@"share_via" handler:^(__kindof UIAction * _Nonnull action) {
+                [Launcher sharePost:post];
+            }];
+            [actions addObject:shareViaAction];
+            
+            UIMenu *menu = [UIMenu menuWithTitle:@"" children:actions];
+            
+            PostViewController *postVC = [Launcher postViewControllerForPost:post];
+            postVC.isPreview = true;
+            
+            UIContextMenuConfiguration *configuration = [UIContextMenuConfiguration configurationWithIdentifier:indexPath previewProvider:^(){return postVC;} actionProvider:^(NSArray* suggestedAction){return menu;}];
+            return configuration;
+        }
+    }
+    
+    return nil;
+}
+- (void)tableView:(UITableView *)tableView willPerformPreviewActionForMenuWithConfiguration:(UIContextMenuConfiguration *)configuration animator:(id<UIContextMenuInteractionCommitAnimating>)animator  API_AVAILABLE(ios(13.0)){
+    void(^completionAction)(void);
+    
+    if ([animator.previewViewController isKindOfClass:[PostViewController class]]) {
+        PostViewController *p = (PostViewController *)animator.previewViewController;
+        completionAction = ^{
+            SimpleNavigationController *newNavController = [[SimpleNavigationController alloc] initWithRootViewController:p];
+            newNavController.transitioningDelegate = [Launcher sharedInstance];
+            [newNavController setLeftAction:SNActionTypeBack];
+            newNavController.currentTheme = p.theme;
+            
+            [Launcher push:newNavController animated:YES];
+        };
+    }
+
+    [animator addCompletion:^{
+        wait(0, ^{
+            if (completionAction) {
+                completionAction();
+            }
+        });
+    }];
 }
 
 @end

@@ -8,7 +8,6 @@
 
 #import "Section.h"
 
-#import "BFSectionHeaderCell.h"
 #import "StreamPostCell.h"
 #import "ReplyCell.h"
 #import "ExpandThreadCell.h"
@@ -40,15 +39,6 @@
     // no posts -> skip entirely
     if (self.attributes.posts.count == 0) {
         return;
-    }
-    
-    // add header
-    if (self.attributes.title.length > 0 ||
-        self.attributes.text.length  > 0) {
-        BFSectionHeaderObject *headerObject = [[BFSectionHeaderObject alloc] initWithTitle:self.attributes.title text:self.attributes.text target:self.attributes.cta.target.camp];
-        
-        BFComponent *component = [[BFComponent alloc] initWithObject:headerObject cellClass:[BFSectionHeaderCell class] detailLevel:BFComponentDetailLevelAll];
-        [self.components addObject:component];
     }
     
     for (Post *post in self.attributes.posts) {

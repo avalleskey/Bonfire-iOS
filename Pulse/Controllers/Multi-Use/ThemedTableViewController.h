@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import "RSTableView.h"
-#import  "BFComponentTableView.h"
+#import  "BFComponentSectionTableView.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -17,7 +17,7 @@ NS_ASSUME_NONNULL_BEGIN
 // views
 @property (nonatomic, strong) UITableView * _Nullable tableView;
 @property (nonatomic, strong) RSTableView * _Nullable rs_tableView;
-@property (nonatomic, strong) BFComponentTableView * _Nullable bf_tableView;
+@property (nonatomic, strong) BFComponentSectionTableView * _Nullable bf_tableView;
 - (UITableView *)activeTableView;
 
 @property (nonatomic, strong) UIRefreshControl * refreshControl;

@@ -85,7 +85,7 @@ NSString * const rotationAnimationKey = @"rotationAnimation";
         }
     }
 }
-- (void)setBf_tableView:(BFComponentTableView *)bf_tableView {
+- (void)setBf_tableView:(BFComponentSectionTableView *)bf_tableView {
     if (bf_tableView != _bf_tableView) {
         _bf_tableView = bf_tableView;
 

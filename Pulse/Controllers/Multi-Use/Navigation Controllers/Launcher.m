@@ -589,7 +589,6 @@ static Launcher *launcher;
     SimpleNavigationController *newNavController = [[SimpleNavigationController alloc] initWithRootViewController:p];
     newNavController.transitioningDelegate = [Launcher sharedInstance];
     [newNavController setLeftAction:SNActionTypeBack];
-//    newNavController.view.tintColor = p.theme;
     newNavController.currentTheme = p.theme;
     
     [Launcher push:newNavController animated:YES];

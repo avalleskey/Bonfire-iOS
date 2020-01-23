@@ -7,11 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		210CCB449D440E4A9FA2886B /* libPods-PulseTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DC5B637ED84F50F6AB891763 /* libPods-PulseTests.a */; };
-		38CB3154EE64C8C377AA73BE /* libPods-Pulse.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3EAA02F5F5EA7753CD9824D5 /* libPods-Pulse.a */; };
 		41EB16E5236FCD5300116C90 /* ThemeSelectorInputCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 41EB16E3236FCD5300116C90 /* ThemeSelectorInputCell.m */; };
 		41FED4372369FC3A00CBAD26 /* BFLink.m in Sources */ = {isa = PBXBuildFile; fileRef = 41FED4362369FC3A00CBAD26 /* BFLink.m */; };
-		811E4B44417D0131428D77A0 /* libPods-PulseUITests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6D0A77611627BFFE6BF6F61A /* libPods-PulseUITests.a */; };
+		66750B19236AB886E9C26E96 /* libPods-PulseUITests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 20CE35AE05F596BB25083027 /* libPods-PulseUITests.a */; };
+		67703FB4D4286DE7436F1833 /* libPods-Pulse.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6091B51D2E545F52F6EB253B /* libPods-Pulse.a */; };
+		B902E209C1B673F2F9AD13D2 /* libPods-PulseTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5E4E52EC0481C77157EE6C86 /* libPods-PulseTests.a */; };
 		D90047D022860669006B4B3D /* BFColorPickerViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D90047CF22860669006B4B3D /* BFColorPickerViewController.m */; };
 		D90047D32286100D006B4B3D /* EFCircularSlider.m in Sources */ = {isa = PBXBuildFile; fileRef = D90047D22286100D006B4B3D /* EFCircularSlider.m */; };
 		D902CD4F21993D390088F479 /* CampViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D902CD4E21993D390088F479 /* CampViewController.m */; };
@@ -114,7 +114,7 @@
 		D95EE37C2295A491006E4D8E /* BFHeaderView.m in Sources */ = {isa = PBXBuildFile; fileRef = D95EE37B2295A491006E4D8E /* BFHeaderView.m */; };
 		D95EE38D229C47CE006E4D8E /* BFNotificationView.m in Sources */ = {isa = PBXBuildFile; fileRef = D95EE389229C47CE006E4D8E /* BFNotificationView.m */; };
 		D95EE38E229C47CE006E4D8E /* BFNotificationManager.m in Sources */ = {isa = PBXBuildFile; fileRef = D95EE38B229C47CE006E4D8E /* BFNotificationManager.m */; };
-		D963024923D5134C0025D2CF /* BFComponentTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = D963024823D5134C0025D2CF /* BFComponentTableView.m */; };
+		D963024923D5134C0025D2CF /* BFComponentSectionTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = D963024823D5134C0025D2CF /* BFComponentSectionTableView.m */; };
 		D963024C23D63C2E0025D2CF /* BFSectionHeaderCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D963024B23D63C2E0025D2CF /* BFSectionHeaderCell.m */; };
 		D963025223D7AB3E0025D2CF /* BFSectionHeaderObject.m in Sources */ = {isa = PBXBuildFile; fileRef = D963025123D7AB3E0025D2CF /* BFSectionHeaderObject.m */; };
 		D9679E4A22CAA67200253CCA /* ManageIcebreakersViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9679E4922CAA67200253CCA /* ManageIcebreakersViewController.m */; };
@@ -274,20 +274,20 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		1332949DD377C654E91842E2 /* Pods-PulseUITests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PulseUITests.release.xcconfig"; path = "Target Support Files/Pods-PulseUITests/Pods-PulseUITests.release.xcconfig"; sourceTree = "<group>"; };
-		2FD2D4F3C1B36A1642857D10 /* Pods-PulseUITests.beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PulseUITests.beta.xcconfig"; path = "Target Support Files/Pods-PulseUITests/Pods-PulseUITests.beta.xcconfig"; sourceTree = "<group>"; };
-		3EAA02F5F5EA7753CD9824D5 /* libPods-Pulse.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Pulse.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		1D7D23CE65ED61B66F417CD9 /* Pods-Pulse.beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Pulse.beta.xcconfig"; path = "Target Support Files/Pods-Pulse/Pods-Pulse.beta.xcconfig"; sourceTree = "<group>"; };
+		20CE35AE05F596BB25083027 /* libPods-PulseUITests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-PulseUITests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		41EB16E3236FCD5300116C90 /* ThemeSelectorInputCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ThemeSelectorInputCell.m; path = "Pulse/Controllers/User/Edit Profile/ThemeSelectorInputCell.m"; sourceTree = SOURCE_ROOT; };
 		41EB16E4236FCD5300116C90 /* ThemeSelectorInputCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ThemeSelectorInputCell.h; path = "Pulse/Controllers/User/Edit Profile/ThemeSelectorInputCell.h"; sourceTree = SOURCE_ROOT; };
 		41FED4352369FC3A00CBAD26 /* BFLink.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BFLink.h; sourceTree = "<group>"; };
 		41FED4362369FC3A00CBAD26 /* BFLink.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BFLink.m; sourceTree = "<group>"; };
-		5B93182382652508B17FE32B /* Pods-PulseTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PulseTests.release.xcconfig"; path = "Target Support Files/Pods-PulseTests/Pods-PulseTests.release.xcconfig"; sourceTree = "<group>"; };
-		6D0A77611627BFFE6BF6F61A /* libPods-PulseUITests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-PulseUITests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		73EE321B2E2C736949A26890 /* Pods-Pulse.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Pulse.release.xcconfig"; path = "Target Support Files/Pods-Pulse/Pods-Pulse.release.xcconfig"; sourceTree = "<group>"; };
-		838CD96272EACB75187D2E34 /* Pods-PulseTests.beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PulseTests.beta.xcconfig"; path = "Target Support Files/Pods-PulseTests/Pods-PulseTests.beta.xcconfig"; sourceTree = "<group>"; };
-		ABFB72A0C2A4B6F1A417D3D2 /* Pods-PulseTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PulseTests.debug.xcconfig"; path = "Target Support Files/Pods-PulseTests/Pods-PulseTests.debug.xcconfig"; sourceTree = "<group>"; };
-		BE4C6ED481B1BAE908614979 /* Pods-PulseUITests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PulseUITests.debug.xcconfig"; path = "Target Support Files/Pods-PulseUITests/Pods-PulseUITests.debug.xcconfig"; sourceTree = "<group>"; };
-		CAF987B768B4F1D58A3A4BEA /* Pods-Pulse.beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Pulse.beta.xcconfig"; path = "Target Support Files/Pods-Pulse/Pods-Pulse.beta.xcconfig"; sourceTree = "<group>"; };
+		48D1FFA9D6695747C993C970 /* Pods-Pulse.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Pulse.release.xcconfig"; path = "Target Support Files/Pods-Pulse/Pods-Pulse.release.xcconfig"; sourceTree = "<group>"; };
+		5E4E52EC0481C77157EE6C86 /* libPods-PulseTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-PulseTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		6091B51D2E545F52F6EB253B /* libPods-Pulse.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Pulse.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		83A37ECBA2F4C1A6CD0D6272 /* Pods-PulseUITests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PulseUITests.release.xcconfig"; path = "Target Support Files/Pods-PulseUITests/Pods-PulseUITests.release.xcconfig"; sourceTree = "<group>"; };
+		A2DECE9697792EAD009C4403 /* Pods-Pulse.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Pulse.debug.xcconfig"; path = "Target Support Files/Pods-Pulse/Pods-Pulse.debug.xcconfig"; sourceTree = "<group>"; };
+		A443B6B4108051E9D029D0AE /* Pods-PulseUITests.beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PulseUITests.beta.xcconfig"; path = "Target Support Files/Pods-PulseUITests/Pods-PulseUITests.beta.xcconfig"; sourceTree = "<group>"; };
+		C841895EDE170389E23111E6 /* Pods-PulseUITests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PulseUITests.debug.xcconfig"; path = "Target Support Files/Pods-PulseUITests/Pods-PulseUITests.debug.xcconfig"; sourceTree = "<group>"; };
+		CBD47FC0F4247DD16E897C2C /* Pods-PulseTests.beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PulseTests.beta.xcconfig"; path = "Target Support Files/Pods-PulseTests/Pods-PulseTests.beta.xcconfig"; sourceTree = "<group>"; };
 		D90047CE22860669006B4B3D /* BFColorPickerViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BFColorPickerViewController.h; sourceTree = "<group>"; };
 		D90047CF22860669006B4B3D /* BFColorPickerViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BFColorPickerViewController.m; sourceTree = "<group>"; };
 		D90047D12286100D006B4B3D /* EFCircularSlider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EFCircularSlider.h; sourceTree = "<group>"; };
@@ -481,8 +481,8 @@
 		D95EE38A229C47CE006E4D8E /* BFNotificationManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BFNotificationManager.h; sourceTree = "<group>"; };
 		D95EE38B229C47CE006E4D8E /* BFNotificationManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BFNotificationManager.m; sourceTree = "<group>"; };
 		D95EE38C229C47CE006E4D8E /* BFNotificationView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BFNotificationView.h; sourceTree = "<group>"; };
-		D963024723D5134C0025D2CF /* BFComponentTableView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BFComponentTableView.h; sourceTree = "<group>"; };
-		D963024823D5134C0025D2CF /* BFComponentTableView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BFComponentTableView.m; sourceTree = "<group>"; };
+		D963024723D5134C0025D2CF /* BFComponentSectionTableView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BFComponentSectionTableView.h; sourceTree = "<group>"; };
+		D963024823D5134C0025D2CF /* BFComponentSectionTableView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BFComponentSectionTableView.m; sourceTree = "<group>"; };
 		D963024A23D63C2E0025D2CF /* BFSectionHeaderCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BFSectionHeaderCell.h; sourceTree = "<group>"; };
 		D963024B23D63C2E0025D2CF /* BFSectionHeaderCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BFSectionHeaderCell.m; sourceTree = "<group>"; };
 		D963025023D7AB3E0025D2CF /* BFSectionHeaderObject.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BFSectionHeaderObject.h; sourceTree = "<group>"; };
@@ -746,8 +746,8 @@
 		D9FFFB5B227E5E08004E3779 /* UIImage+KS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+KS.h"; sourceTree = "<group>"; };
 		D9FFFB5C227E5E08004E3779 /* KSProgressLayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KSProgressLayer.h; sourceTree = "<group>"; };
 		D9FFFB5D227E5E08004E3779 /* KSPhotoBrowser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KSPhotoBrowser.m; sourceTree = "<group>"; };
-		DC5B637ED84F50F6AB891763 /* libPods-PulseTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-PulseTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		DD3338FF0D743A6D2D652A86 /* Pods-Pulse.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Pulse.debug.xcconfig"; path = "Target Support Files/Pods-Pulse/Pods-Pulse.debug.xcconfig"; sourceTree = "<group>"; };
+		DBF639048210CB078F6CECE0 /* Pods-PulseTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PulseTests.release.xcconfig"; path = "Target Support Files/Pods-PulseTests/Pods-PulseTests.release.xcconfig"; sourceTree = "<group>"; };
+		F78486D76FBC88CB656E6678 /* Pods-PulseTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PulseTests.debug.xcconfig"; path = "Target Support Files/Pods-PulseTests/Pods-PulseTests.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -763,7 +763,7 @@
 				D9CB78F42166E65C00EEDBC9 /* UIKit.framework in Frameworks */,
 				D91643092162BE4800523770 /* QuartzCore.framework in Frameworks */,
 				D9319A8D215827E1008131CC /* Contacts.framework in Frameworks */,
-				38CB3154EE64C8C377AA73BE /* libPods-Pulse.a in Frameworks */,
+				67703FB4D4286DE7436F1833 /* libPods-Pulse.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -771,7 +771,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				210CCB449D440E4A9FA2886B /* libPods-PulseTests.a in Frameworks */,
+				B902E209C1B673F2F9AD13D2 /* libPods-PulseTests.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -779,7 +779,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				811E4B44417D0131428D77A0 /* libPods-PulseUITests.a in Frameworks */,
+				66750B19236AB886E9C26E96 /* libPods-PulseUITests.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -807,9 +807,9 @@
 				D9CB78F32166E65C00EEDBC9 /* UIKit.framework */,
 				D91643082162BE4800523770 /* QuartzCore.framework */,
 				D9319A8C215827E1008131CC /* Contacts.framework */,
-				3EAA02F5F5EA7753CD9824D5 /* libPods-Pulse.a */,
-				DC5B637ED84F50F6AB891763 /* libPods-PulseTests.a */,
-				6D0A77611627BFFE6BF6F61A /* libPods-PulseUITests.a */,
+				6091B51D2E545F52F6EB253B /* libPods-Pulse.a */,
+				5E4E52EC0481C77157EE6C86 /* libPods-PulseTests.a */,
+				20CE35AE05F596BB25083027 /* libPods-PulseUITests.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -1591,8 +1591,8 @@
 		D9C8B57221A5F16700A9A282 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				D963024723D5134C0025D2CF /* BFComponentTableView.h */,
-				D963024823D5134C0025D2CF /* BFComponentTableView.m */,
+				D963024723D5134C0025D2CF /* BFComponentSectionTableView.h */,
+				D963024823D5134C0025D2CF /* BFComponentSectionTableView.m */,
 				D91643222166824F00523770 /* RSTableView.h */,
 				D91643232166824F00523770 /* RSTableView.m */,
 				D9C8B57621A5F28C00A9A282 /* Cells */,
@@ -1893,15 +1893,15 @@
 		F715F37CF0CF41FD0B85CFF5 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				DD3338FF0D743A6D2D652A86 /* Pods-Pulse.debug.xcconfig */,
-				73EE321B2E2C736949A26890 /* Pods-Pulse.release.xcconfig */,
-				CAF987B768B4F1D58A3A4BEA /* Pods-Pulse.beta.xcconfig */,
-				ABFB72A0C2A4B6F1A417D3D2 /* Pods-PulseTests.debug.xcconfig */,
-				5B93182382652508B17FE32B /* Pods-PulseTests.release.xcconfig */,
-				838CD96272EACB75187D2E34 /* Pods-PulseTests.beta.xcconfig */,
-				BE4C6ED481B1BAE908614979 /* Pods-PulseUITests.debug.xcconfig */,
-				1332949DD377C654E91842E2 /* Pods-PulseUITests.release.xcconfig */,
-				2FD2D4F3C1B36A1642857D10 /* Pods-PulseUITests.beta.xcconfig */,
+				A2DECE9697792EAD009C4403 /* Pods-Pulse.debug.xcconfig */,
+				48D1FFA9D6695747C993C970 /* Pods-Pulse.release.xcconfig */,
+				1D7D23CE65ED61B66F417CD9 /* Pods-Pulse.beta.xcconfig */,
+				F78486D76FBC88CB656E6678 /* Pods-PulseTests.debug.xcconfig */,
+				DBF639048210CB078F6CECE0 /* Pods-PulseTests.release.xcconfig */,
+				CBD47FC0F4247DD16E897C2C /* Pods-PulseTests.beta.xcconfig */,
+				C841895EDE170389E23111E6 /* Pods-PulseUITests.debug.xcconfig */,
+				83A37ECBA2F4C1A6CD0D6272 /* Pods-PulseUITests.release.xcconfig */,
+				A443B6B4108051E9D029D0AE /* Pods-PulseUITests.beta.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -1913,12 +1913,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = D907B0A9214EEC5300A59712 /* Build configuration list for PBXNativeTarget "Pulse" */;
 			buildPhases = (
-				EFAD3D1269E7591A122FB967 /* [CP] Check Pods Manifest.lock */,
+				B2AC573F1BD2EAEA896254FB /* [CP] Check Pods Manifest.lock */,
 				D907B079214EEC5000A59712 /* Sources */,
 				D907B07A214EEC5000A59712 /* Frameworks */,
 				D907B07B214EEC5000A59712 /* Resources */,
-				66A945D82A455B41ABA202FF /* [CP] Embed Pods Frameworks */,
-				5060B085BB854B5DF4E98725 /* [CP] Copy Pods Resources */,
+				706D40AECE87CCF6C6593A25 /* [CP] Embed Pods Frameworks */,
+				A8BCE7A15655383F62D6ECE4 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -1933,7 +1933,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = D907B0AC214EEC5300A59712 /* Build configuration list for PBXNativeTarget "PulseTests" */;
 			buildPhases = (
-				7DDFF05161FEDE7DAE422078 /* [CP] Check Pods Manifest.lock */,
+				B4E93864D0A213DB751363C9 /* [CP] Check Pods Manifest.lock */,
 				D907B091214EEC5300A59712 /* Sources */,
 				D907B092214EEC5300A59712 /* Frameworks */,
 				D907B093214EEC5300A59712 /* Resources */,
@@ -1952,7 +1952,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = D907B0AF214EEC5300A59712 /* Build configuration list for PBXNativeTarget "PulseUITests" */;
 			buildPhases = (
-				75A86FD9B913C3DF45D249CD /* [CP] Check Pods Manifest.lock */,
+				CB81B3D381EFC847414CCD5F /* [CP] Check Pods Manifest.lock */,
 				D907B09C214EEC5300A59712 /* Sources */,
 				D907B09D214EEC5300A59712 /* Frameworks */,
 				D907B09E214EEC5300A59712 /* Resources */,
@@ -2082,24 +2082,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		5060B085BB854B5DF4E98725 /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Pulse/Pods-Pulse-resources-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Copy Pods Resources";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Pulse/Pods-Pulse-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Pulse/Pods-Pulse-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		66A945D82A455B41ABA202FF /* [CP] Embed Pods Frameworks */ = {
+		706D40AECE87CCF6C6593A25 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -2116,7 +2099,24 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Pulse/Pods-Pulse-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		75A86FD9B913C3DF45D249CD /* [CP] Check Pods Manifest.lock */ = {
+		A8BCE7A15655383F62D6ECE4 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Pulse/Pods-Pulse-resources-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Pulse/Pods-Pulse-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Pulse/Pods-Pulse-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		B2AC573F1BD2EAEA896254FB /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -2131,14 +2131,14 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-PulseUITests-checkManifestLockResult.txt",
+				"$(DERIVED_FILE_DIR)/Pods-Pulse-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		7DDFF05161FEDE7DAE422078 /* [CP] Check Pods Manifest.lock */ = {
+		B4E93864D0A213DB751363C9 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -2160,7 +2160,7 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		EFAD3D1269E7591A122FB967 /* [CP] Check Pods Manifest.lock */ = {
+		CB81B3D381EFC847414CCD5F /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -2175,7 +2175,7 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-Pulse-checkManifestLockResult.txt",
+				"$(DERIVED_FILE_DIR)/Pods-PulseUITests-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -2388,7 +2388,7 @@
 				D974B741216009F200C03269 /* CampStoreTableViewController.m in Sources */,
 				D92C85A62399567500AB19FB /* WaitlistViewController.m in Sources */,
 				D96AD7962181029600849F6B /* ProfilePictureCell.m in Sources */,
-				D963024923D5134C0025D2CF /* BFComponentTableView.m in Sources */,
+				D963024923D5134C0025D2CF /* BFComponentSectionTableView.m in Sources */,
 				D91CA64D23A2C3FB0055973A /* UITabBar+Extras.m in Sources */,
 				D94FD1A4216C5B4400B84E45 /* OnboardingViewController.m in Sources */,
 				D9BD47BD23563D57001E027E /* JKRichTextView.m in Sources */,
@@ -2567,7 +2567,7 @@
 		};
 		D907B0AA214EEC5300A59712 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = DD3338FF0D743A6D2D652A86 /* Pods-Pulse.debug.xcconfig */;
+			baseConfigurationReference = A2DECE9697792EAD009C4403 /* Pods-Pulse.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon${CONFIGURATION}";
 				BUNDLE_ID_SUFFIX = .debug;
@@ -2606,7 +2606,7 @@
 		};
 		D907B0AB214EEC5300A59712 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 73EE321B2E2C736949A26890 /* Pods-Pulse.release.xcconfig */;
+			baseConfigurationReference = 48D1FFA9D6695747C993C970 /* Pods-Pulse.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon${CONFIGURATION}";
 				BUNDLE_ID_SUFFIX = "";
@@ -2643,7 +2643,7 @@
 		};
 		D907B0AD214EEC5300A59712 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = ABFB72A0C2A4B6F1A417D3D2 /* Pods-PulseTests.debug.xcconfig */;
+			baseConfigurationReference = F78486D76FBC88CB656E6678 /* Pods-PulseTests.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -2664,7 +2664,7 @@
 		};
 		D907B0AE214EEC5300A59712 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 5B93182382652508B17FE32B /* Pods-PulseTests.release.xcconfig */;
+			baseConfigurationReference = DBF639048210CB078F6CECE0 /* Pods-PulseTests.release.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -2685,7 +2685,7 @@
 		};
 		D907B0B0214EEC5300A59712 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = BE4C6ED481B1BAE908614979 /* Pods-PulseUITests.debug.xcconfig */;
+			baseConfigurationReference = C841895EDE170389E23111E6 /* Pods-PulseUITests.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
@@ -2705,7 +2705,7 @@
 		};
 		D907B0B1214EEC5300A59712 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 1332949DD377C654E91842E2 /* Pods-PulseUITests.release.xcconfig */;
+			baseConfigurationReference = 83A37ECBA2F4C1A6CD0D6272 /* Pods-PulseUITests.release.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
@@ -2780,7 +2780,7 @@
 		};
 		D9A7A2AA225FAEB80091B53C /* Beta */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = CAF987B768B4F1D58A3A4BEA /* Pods-Pulse.beta.xcconfig */;
+			baseConfigurationReference = 1D7D23CE65ED61B66F417CD9 /* Pods-Pulse.beta.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon${CONFIGURATION}";
 				BUNDLE_ID_SUFFIX = "";
@@ -2817,7 +2817,7 @@
 		};
 		D9A7A2AB225FAEB80091B53C /* Beta */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 838CD96272EACB75187D2E34 /* Pods-PulseTests.beta.xcconfig */;
+			baseConfigurationReference = CBD47FC0F4247DD16E897C2C /* Pods-PulseTests.beta.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -2838,7 +2838,7 @@
 		};
 		D9A7A2AC225FAEB80091B53C /* Beta */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 2FD2D4F3C1B36A1642857D10 /* Pods-PulseUITests.beta.xcconfig */;
+			baseConfigurationReference = A443B6B4108051E9D029D0AE /* Pods-PulseUITests.beta.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;

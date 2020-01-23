@@ -10,6 +10,7 @@
 #import "SectionStream.h"
 #import "ComposeInputView.h"
 #import "BFVisualErrorView.h"
+#import "InsightsLogger.h"
 
 #define UIViewParentController(__view) ({ \
         UIResponder *__responder = __view; \
@@ -33,7 +34,7 @@ typedef enum {
 
 NS_ASSUME_NONNULL_BEGIN
 
-@protocol BFComponentTableViewDelegate <NSObject>
+@protocol BFComponentSectionTableViewDelegate <NSObject>
 
 - (void)tableView:(id)tableView didRequestNextPageWithMaxId:(NSInteger)maxId;
 
@@ -57,10 +58,10 @@ NS_ASSUME_NONNULL_BEGIN
 
 @end
 
-@interface BFComponentTableView : UITableView <UITableViewDataSource, UITableViewDelegate, UIGestureRecognizerDelegate, SectionStreamDelegate>
+@interface BFComponentSectionTableView : UITableView <UITableViewDataSource, UITableViewDelegate, UIGestureRecognizerDelegate, SectionStreamDelegate>
 
 @property (nonatomic, strong) BFVisualError * _Nullable  visualError;
-@property BOOL includeContext;
+@property (nonatomic, strong) NSString *insightSeenInLabel;
 
 @property BOOL loading;
 @property BOOL loadingMore;
@@ -76,7 +77,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic, strong) SectionStream *stream;
 
-@property (nonatomic, weak) id <BFComponentTableViewDelegate> extendedDelegate;
+@property (nonatomic, weak) id <BFComponentSectionTableViewDelegate> extendedDelegate;
 
 @end
 

@@ -9,8 +9,6 @@
 #import "Post.h"
 #import "GenericStream.h"
 
-#define STREAM_PAGE_SIZE 10
-
 @class PostStream;
 @class PostStreamPage;
 
@@ -35,6 +33,8 @@ typedef enum {
 @property (nonatomic, strong) NSMutableArray <Post *> *tempPosts;
 @property (nonatomic, strong) NSArray <Post *> *posts;
 
+- (void)flush;
+
 @property (nonatomic) NSString *prevCursor;
 @property (nonatomic) NSString *nextCursor;
 
@@ -49,21 +49,31 @@ typedef enum {
 
 - (NSString *)addTempSubReply:(Post *)subReply;
 - (BOOL)updateTempSubReply:(NSString *)tempId withFinalSubReply:(Post *)finalSubReply;
-- (BOOL)clearSubRepliesForPost:(Post *)reply;
-- (BOOL)addSubReplies:(NSArray *)newSubReplies toPost:(Post *)post;
 
 - (Post *)postWithId:(NSString *)postId;
 
-- (BOOL)updatePost:(Post *)post removeDuplicates:(BOOL)removeDuplicates;
-- (void)removePost:(Post *)post;
-- (void)updateCampObjects:(Camp *)camp;
-- (void)updateUserObjects:(User *)user;
+@property (nonatomic) BFComponentDetailLevel detailLevel;
+
+typedef enum {
+    PostStreamEventTypeUnknown,
+    
+    PostStreamEventTypeSectionUpdated,
+    PostStreamEventTypeSectionRemoved,
+    
+    PostStreamEventTypePostUpdated,
+    PostStreamEventTypePostRemoved,
+    
+    PostStreamEventTypeCampUpdated,
+    
+    PostStreamEventTypeUserUpdated,
+} PostStreamEventType;
+- (BOOL)performEventType:(PostStreamEventType)eventType object:(id)object;
 
 @end
 
 @interface PostStreamPage : BFJSONModel
 
-@property (nonatomic) NSArray<Post *> *data;
+@property (nonatomic) NSArray<Post *><Post> *data;
 @property (nonatomic) GenericStreamPageMeta <Optional> *meta;
 
 @end

@@ -39,6 +39,13 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
     [encoder encodeObject:self.posts forKey:@"posts"];
 }
 
+- (void)flush {
+    self.pages = [NSMutableArray new];
+    self.posts = [NSMutableArray new];
+    self.tempPosts = [NSMutableArray new];
+    self.cursorsLoaded = [NSMutableDictionary new];
+}
+
 #pragma mark - NSCopying
 - (id)copyWithZone:(NSZone *)zone
 {

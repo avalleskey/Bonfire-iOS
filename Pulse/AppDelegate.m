@@ -23,7 +23,7 @@
 #import "BFAlertController.h"
 #import "ResetPasswordViewController.h"
 #import "HAWebService.h"
-#import "BFComponentTableView.h"
+#import "BFComponentSectionTableView.h"
 
 #import <Lockbox/Lockbox.h>
 #import <AudioToolbox/AudioServices.h>
@@ -418,8 +418,8 @@
                     if ([tableView isKindOfClass:[RSTableView class]]) {
                         [(RSTableView *)tableView scrollToTop];
                     }
-                    else if ([tableView isKindOfClass:[BFComponentTableView class]]) {
-                        [(BFComponentTableView *)tableView scrollToTop];
+                    else if ([tableView isKindOfClass:[BFComponentSectionTableView class]]) {
+                        [(BFComponentSectionTableView *)tableView scrollToTop];
                     }
                     else {
                         [tableView reloadData];

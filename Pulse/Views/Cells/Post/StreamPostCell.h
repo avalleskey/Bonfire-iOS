@@ -17,7 +17,7 @@
 @property (nonatomic, strong) PostContextView *contextView;
 
 @property (nonatomic) BOOL showContext;
-@property (nonatomic) BOOL showCamptag;
+@property (nonatomic) BOOL showPostedIn;
 @property (nonatomic) BOOL hideActions;
 @property (nonatomic) BOOL minimizeLinks;
 

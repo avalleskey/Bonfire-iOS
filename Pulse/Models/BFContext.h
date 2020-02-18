@@ -47,16 +47,6 @@ extern NSString * const BFMediaTypeVideo; // "media/video"
 // BFContext.camp
 @interface BFContextCamp : BFJSONModel
 
-// camp status
-extern NSString * const CAMP_STATUS_INVITED;
-extern NSString * const CAMP_STATUS_REQUESTED;
-extern NSString * const CAMP_STATUS_MEMBER;
-extern NSString * const CAMP_STATUS_LEFT;
-extern NSString * const CAMP_STATUS_BLOCKED;
-extern NSString * const CAMP_STATUS_NO_RELATION;
-
-extern NSString * const CAMP_STATUS_LOADING;
-
 // camp role
 extern NSString * const CAMP_ROLE_MEMBER;
 extern NSString * const CAMP_ROLE_MODERATOR;
@@ -64,8 +54,19 @@ extern NSString * const CAMP_ROLE_ADMIN;
 
 @property (nonatomic) BFContextCampMembership <Optional> *membership;
 
+// camp status
+extern NSString * const CAMP_STATUS_INVITED;
+extern NSString * const CAMP_STATUS_REQUESTED;
+extern NSString * const CAMP_STATUS_MEMBER;
+extern NSString * const CAMP_STATUS_LEFT;
+extern NSString * const CAMP_STATUS_BLOCKED;
+extern NSString * const CAMP_STATUS_NO_RELATION;
+//
+extern NSString * const CAMP_STATUS_LOADING;
 @property (nonatomic) NSString <Optional> *status;
-- (void)setStatusWithString:(NSString *)string;
+
+extern NSString * const CAMP_WALL_REQUEST;
+@property (nonatomic) NSArray <Optional> *walls;
 
 @property (nonatomic) BFContextCampPermissions <Optional> *permissions;
 
@@ -75,8 +76,8 @@ extern NSString * const CAMP_ROLE_ADMIN;
 @interface BFContextCampMembership : BFJSONModel
 
 @property (nonatomic) NSString <Optional> *joinedAt;
-//@property (nonatomic) NSString <Optional> *blockedAt;
 @property (nonatomic) BFContextCampMembershipRole <Optional> *role;
+
 @property (nonatomic) BFContextCampMembershipSubscription <Optional> * _Nullable subscription;
 
 @end
@@ -168,24 +169,22 @@ extern NSString * const CAMP_ROLE_ADMIN;
 // BFContext.me
 @interface BFContextMe : BFJSONModel
 
-extern NSString * const USER_STATUS_ME;
+@property (nonatomic) BFContextMeFollow <Optional> *follow;
 
+extern NSString * const USER_STATUS_ME;
+//
 extern NSString * const USER_STATUS_FOLLOWED;
 extern NSString * const USER_STATUS_FOLLOWS;
 extern NSString * const USER_STATUS_FOLLOW_BOTH;
-
+//
 extern NSString * const USER_STATUS_BLOCKED;
 extern NSString * const USER_STATUS_BLOCKS;
 extern NSString * const USER_STATUS_BLOCKS_BOTH;
-
+//
 extern NSString * const USER_STATUS_NO_RELATION;
-
+//
 extern NSString * const USER_STATUS_LOADING;
-
-@property (nonatomic) BFContextMeFollow <Optional> *follow;
 @property (nonatomic) NSString *status;
-
-- (void)setStatusWithString:(NSString *)string;
 
 @end
 

@@ -6,6 +6,7 @@
 #import "BFLinkAttachmentView.h"
 #import "HAWebService.h"
 #import "Launcher.h"
+#import "UIColor+Palette.h"
 @import Firebase;
 
 @implementation Post
@@ -30,8 +31,18 @@
     if ([[self.attributes.creator.identifier lowercaseString] isEqualToString:[[Session sharedInstance].currentUser.identifier lowercaseString]]) {
         instance.isCreator = true;
     }
+    [instance updateThemeColor];
         
     return instance;
+}
+
+- (void)updateThemeColor {
+    if (self.attributes.postedIn) {
+        self.themeColor = self.attributes.postedIn.attributes.color;
+    }
+    else {
+        self.themeColor = self.attributes.creator.attributes.color;
+    }
 }
 
 + (BOOL)propertyIsOptional:(NSString*)propertyName

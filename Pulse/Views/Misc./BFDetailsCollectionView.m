@@ -253,7 +253,8 @@
         
         return prettyValue;
     }
-    else if (self.type == BFDetailItemTypeSourceLink) {
+    else if (self.type == BFDetailItemTypeSourceLink ||
+             self.type == BFDetailItemTypeSourceLink_Feed) {
         NSURL *url = [NSURL URLWithString:prettyValue];
         prettyValue = url.host;
         
@@ -269,7 +270,8 @@
                 
         return prettyValue;
     }
-    else if (self.type == BFDetailItemTypeSourceUser) {
+    else if (self.type == BFDetailItemTypeSourceUser ||
+             self.type == BFDetailItemTypeSourceUser_Feed) {
         prettyValue = [@"by @" stringByAppendingString:prettyValue];
                 
         return prettyValue;

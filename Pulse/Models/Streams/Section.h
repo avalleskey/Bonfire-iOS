@@ -7,7 +7,7 @@
 //
 
 #import "BFJSONModel.h"
-#import "BFComponent.h"
+#import "BFPostStreamComponent.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -24,9 +24,9 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic) NSString <Optional> *type; // section
 @property (nonatomic) SectionAttributes <Optional> *attributes;
 
-// Array that contains the BFComponent objects created
+// Array that contains the BFPostStreamComponent objects created
 // using the data provided in the section attributtes
-@property (nonatomic, strong) NSMutableArray <BFComponent *> * _Nullable components;
+@property (nonatomic, strong) NSMutableArray <BFPostStreamComponent *><BFPostStreamComponent> * _Nullable components;
 - (void)refreshComponents;
 
 @end
@@ -52,6 +52,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface SectionAttributesCtaTarget : BFJSONModel
 
 @property (nonatomic) Camp <Optional> *camp;
+@property (nonatomic) Identity <Optional> *creator;
 
 @end
 

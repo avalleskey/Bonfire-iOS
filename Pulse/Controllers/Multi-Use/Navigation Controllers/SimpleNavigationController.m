@@ -62,34 +62,37 @@
     // Do any additional setup after loading the view.
     
     [self setupNavigationBar];
-}
-
-- (void)dismissViewControllerAnimated:(BOOL)flag completion:(void (^)(void))completion {
-    __weak typeof(self) weakSelf = self;
-    
-    [super dismissViewControllerAnimated:flag completion:^(void){
-        [[NSNotificationCenter defaultCenter] removeObserver:weakSelf];
-        
-        for (UIViewController *viewController in self.viewControllers) {
-            [[NSNotificationCenter defaultCenter] removeObserver:viewController];
-        }
-                
-        if (completion) {
-            completion();
-        }
-    }];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userUpdated:) name:@"UserUpdated" object:nil];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
+    
+    if (self.view.tag == VIEW_CONTROLLER_PUSH_TAG &&
+        self.presentingViewController &&
+        ([self isBeingPresented] || [self isMovingToParentViewController])) {
+        self.swiper = [[SloppySwiper alloc] initWithNavigationController:self];
+        self.swiper.delegate = self;
+        self.delegate = self.swiper;
+    }
+}
 
-    if ([self isBeingPresented] || [self isMovingToParentViewController]) {
-        // Perform an action that will only be done once
-        if (self.view.tag == VIEW_CONTROLLER_PUSH_TAG) {
-            self.swiper = [[SloppySwiper alloc] initWithNavigationController:self];
-            self.swiper.delegate = self;
-            self.delegate = self.swiper;
-        }
+- (void)userUpdated:(NSNotification *)notification {
+    BFAvatarView *avatarView = [self.leftActionView viewWithTag:10];
+    
+    if (!avatarView) return;
+    
+    User *user = notification.object;
+    if (user && [user isCurrentIdentity]) {
+        avatarView.user = user;
+    }
+}
+
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    
+    for (UIViewController *viewController in self.viewControllers) {
+        [[NSNotificationCenter defaultCenter] removeObserver:viewController];
     }
 }
 
@@ -132,9 +135,8 @@
     containerView.clipsToBounds = true;
     [self.navigationBackgroundView addSubview:containerView];
     
-    self.bottomHairline = [[UIView alloc] initWithFrame:CGRectMake(0, self.navigationBar.frame.size.height, self.view.frame.size.width, (1 / [UIScreen mainScreen].scale))];
-    self.bottomHairline.backgroundColor = [UIColor colorNamed:@"FullContrastColor"];
-    self.bottomHairline.alpha = 0.12;
+    self.bottomHairline = [[UIView alloc] initWithFrame:CGRectMake(0, self.navigationBar.frame.size.height, self.view.frame.size.width, HALF_PIXEL)];
+    self.bottomHairline.backgroundColor = [UIColor tableViewSeparatorColor];
     [self.navigationBar addSubview:self.bottomHairline];
     
     // add progress view inside of the saerch view
@@ -145,9 +147,8 @@
 
 - (UIButton *)createActionButtonForType:(SNActionType)actionType {
     UIButton *button = [UIButton buttonWithType:UIButtonTypeSystem];
-    
+        
     BOOL includeAction = false;
-    
     if (actionType == SNActionTypeCancel) {
         includeAction = true;
         [button setTitle:@"Cancel" forState:UIControlStateNormal];
@@ -283,8 +284,6 @@
                 case SNActionTypeBack: {
                     if (state == UIGestureRecognizerStateBegan) {
                         [self setEditing:false];
-                        
-                        [self dismissViewControllerAnimated:YES completion:nil];
                     }
                     break;
                 }
@@ -340,17 +339,17 @@
     }];
 }
 - (void)hideBottomHairline {
-    if (self.bottomHairline.alpha == 0.12) {
+    if (self.bottomHairline.alpha == 1) {
         [self.bottomHairline.layer removeAllAnimations];
     }
     self.bottomHairline.alpha = 0;
 }
 - (void)showBottomHairline {
     // Show 1px hairline of translucent nav bar
-    if (self.bottomHairline.alpha != 0.12) {
+    if (self.bottomHairline.alpha != 1) {
         [self.bottomHairline.layer removeAllAnimations];
     }
-    self.bottomHairline.alpha = 0.12;
+    self.bottomHairline.alpha = 1;
 }
 
 - (UIImage *)imageWithColor:(UIColor *)color {

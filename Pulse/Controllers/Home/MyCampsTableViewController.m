@@ -83,6 +83,10 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(refreshMyCamps:) name:@"refreshMyCamps" object:nil];
 }
 
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     
@@ -94,7 +98,7 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
 - (void)recentsUpdated:(NSNotification *)sender {
     [self loadSuggestedCamps];
     
-    [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationNone];
+    [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationNone];
     
 //    [self.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:YES];
 }
@@ -176,7 +180,7 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
     }
 }
 - (void)saveCacheIfNeeded {
-    NSMutableArray *newCache = [[NSMutableArray alloc] init];
+    NSMutableArray *newCache = [NSMutableArray new];
     
     for (NSInteger i = 0; i < self.stream.pages.count; i++) {
         [newCache addObject:[self.stream.pages[i] toDictionary]];
@@ -274,7 +278,7 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
         
         self.loadingMoreCamps = true;
         [stream addLoadedCursor:nextCursor];
-        [params setObject:nextCursor forKey:@"cursor"];
+        [params setObject:nextCursor forKey:@"next_cursor"];
     }
     else if (_isSearching || [self.searchView.textField isFirstResponder] || (cursorType == StreamPagingCursorTypeNone && stream.camps.count > 0)) {
         self.titleView.shimmering = true;
@@ -292,7 +296,7 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
             }
             
             if (page.data.count > 0) {
-                if ([params objectForKey:@"cursor"]) {
+                if ([params objectForKey:@"next_cursor"]) {
                     self.loadingMoreCamps = false;
                 }
                 
@@ -353,7 +357,7 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
 
 - (void)update {
     if ([[self.tableView indexPathsForVisibleRows] containsObject:[NSIndexPath indexPathForRow:0 inSection:1]]) {
-        [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:2] withRowAnimation:UITableViewRowAnimationNone];
+        [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationNone];
     }
     else {
         [self.tableView reloadData];
@@ -409,15 +413,15 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
 
 #pragma mark - Table view data source
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    return 3;
+    return 2;
 }
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     CampListStream *stream = [self activeStream];
     if (stream.camps.count > 0) {
-        if (section == 1 && self.suggestedCamps.count > 0) {
+        if (section == 0 && self.suggestedCamps.count > 0) {
             return _isSearching ? 0 : 1;
         }
-        else if (section == 2) {
+        else if (section == 1) {
             return stream.camps.count;
         }
     }
@@ -428,7 +432,7 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     CampListStream *stream = [self activeStream];
     
-    if (indexPath.section == 1 && self.suggestedCamps.count > 0) {
+    if (indexPath.section == 0 && self.suggestedCamps.count > 0) {
         CampCardsListCell *cell = [tableView dequeueReusableCellWithIdentifier:cardsListCellReuseIdentifier forIndexPath:indexPath];
         
         if (cell == nil) {
@@ -443,7 +447,7 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
         return cell;
     }
     
-    if (indexPath.section == 2 && indexPath.row < stream.camps.count) {
+    if (indexPath.section == 1 && indexPath.row < stream.camps.count) {
         SearchResultCell *cell = [tableView dequeueReusableCellWithIdentifier:memberCellIdentifier forIndexPath:indexPath];
         
         if (cell == nil) {
@@ -485,7 +489,6 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
             UIMenu *menu = [UIMenu menuWithTitle:@"" children:actions];
             
             CampViewController *campVC = [Launcher campViewControllerForCamp:cell.camp];
-            campVC.isPreview = true;
             
             UIContextMenuConfiguration *configuration = [UIContextMenuConfiguration configurationWithIdentifier:indexPath previewProvider:^(){return campVC;} actionProvider:^(NSArray* suggestedAction){return menu;}];
             return configuration;
@@ -495,18 +498,19 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
     return nil;
 }
 - (void)tableView:(UITableView *)tableView willPerformPreviewActionForMenuWithConfiguration:(UIContextMenuConfiguration *)configuration animator:(id<UIContextMenuInteractionCommitAnimating>)animator  API_AVAILABLE(ios(13.0)){
-    NSIndexPath *indexPath = (NSIndexPath *)configuration.identifier;
+    void(^completionAction)(void);
     
+    if ([animator.previewViewController isKindOfClass:[CampViewController class]]) {
+        CampViewController *c = (CampViewController *)animator.previewViewController;
+        completionAction = ^{
+            [Launcher openCamp:c.camp controller:c];
+        };
+    }
+
     [animator addCompletion:^{
         wait(0, ^{
-            if ([[tableView cellForRowAtIndexPath:indexPath] isKindOfClass:[SearchResultCell class]]) {
-                SearchResultCell *cell = (SearchResultCell *)[tableView cellForRowAtIndexPath:indexPath];
-                
-                if (cell.camp) {
-                    Camp *camp = ((CampCardCell *)[tableView cellForRowAtIndexPath:indexPath]).camp;
-                    
-                    [Launcher openCamp:camp];
-                }
+            if (completionAction) {
+                completionAction();
             }
         });
     }];
@@ -515,12 +519,12 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     CampListStream *stream = [self activeStream];
     if (stream.camps.count > 0) {
-        if (!_isSearching && indexPath.section == 1) {
+        if (!_isSearching && indexPath.section == 0) {
             if (indexPath.row == 0) {
                 return self.suggestedCamps.count > 0 ? SMALL_MEDIUM_CARD_HEIGHT - 8 : 0;
             }
         }
-        else if (indexPath.section == 2 && stream.camps.count > 0) {
+        else if (indexPath.section == 1 && stream.camps.count > 0) {
             return 68;
         }
     }
@@ -532,11 +536,8 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
     CampListStream *stream = [self activeStream];
     if (!self.loading && stream.camps.count == 0) return CGFLOAT_MIN;
     
-    if (section == -1) {
+    if (!_isSearching && section == 0 && self.suggestedCamps.count > 0) {
         return 56;
-    }
-    else if (!_isSearching && section == 1 && self.suggestedCamps.count > 0) {
-        return 56; // [BFHeaderView heightWithTopBlock:false];
     }
     
     return 0;
@@ -547,51 +548,17 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
     
     if (!self.loading && stream.camps.count == 0) return nil;
     
-    if (section == -1) {
-        UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 56)];
-        
-        // search view
-        self.searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(12, 10, self.view.frame.size.width - (12 * 2), 36)];
-//        self.searchView.textField.placeholder = @"Search Camps";
-//        [self.searchView updateSearchText:self.searchPhrase];
-        [self.searchView setPosition:BFSearchTextPositionCenter];
-        self.searchView.textField.tintColor = self.view.tintColor;
-        self.searchView.textField.delegate = self;
-//        [self.searchView.textField bk_addEventHandler:^(id sender) {
-//            self.searchPhrase = self.searchView.textField.text;
-//
-//            [self.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:NO];
-//            [self getCampsWithCursor:StreamPagingCursorTypeNone];
-//            [self.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:NO];
-//        } forControlEvents:UIControlEventEditingChanged];
-        
-        self.searchView.textField.userInteractionEnabled = false;
-        self.searchView.theme = BFTextFieldThemeAuto;
-        [self.searchView.textField bk_removeAllBlockObservers];
-        self.searchView.textField.userInteractionEnabled = false;
-        for (UIGestureRecognizer *gestureRecognizer in self.searchView.gestureRecognizers) {
-            [self.searchView removeGestureRecognizer:gestureRecognizer];
-        }
-        [self.searchView bk_whenTapped:^{
-            [Launcher openSearch];
-        }];
-        
-        [header addSubview:self.searchView];
-        
-        return header;
-    }
-    
     if (stream.camps.count > 0) {
-        if (!_isSearching && section == 1) {
+        if (!_isSearching && section == 0) {
             UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 56)];
 
             NSString *bigTitle;
             NSString *title;
             
-            if (section == 1) {
+            if (section == 0) {
                 title = @"Recents";
             }
-            else if (section == 2) {
+            else if (section == 1) {
                 title = @"My Camps";
             }
             
@@ -626,7 +593,7 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
 
             header.frame = CGRectMake(0, 0, header.frame.size.width, titleLabelView.frame.origin.y + titleLabelView.frame.size.height);
 
-            if (section == 1) {
+            if (section == 0) {
                 UIImageView *featuredIcon = [[UIImageView alloc] initWithFrame:CGRectMake(titleLabel.frame.origin.x, header.frame.size.height - 11 - 24, 24, 24)];
                 featuredIcon.image = [UIImage imageNamed:@"HeaderIcon_clock"];
                 [header addSubview:featuredIcon];
@@ -644,10 +611,9 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
 - (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
     CampListStream *stream = [self activeStream];
     
-    if (section == 0) return CGFLOAT_MIN;
-    if (section == 1 && (_isSearching || self.suggestedCamps.count == 0)) return CGFLOAT_MIN;
+    if (section == 0 && (_isSearching || self.suggestedCamps.count == 0)) return CGFLOAT_MIN;
     
-    if (section == 2) {
+    if (section == 1) {
         BOOL hasAnotherPage = stream.pages.count > 0 && stream.nextCursor.length > 0;
         BOOL showLoadingFooter = self.loading || ((self.loadingMoreCamps || hasAnotherPage) && ![stream hasLoadedCursor:stream.nextCursor]);
         
@@ -661,14 +627,14 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
     
     if (section == [self numberOfSectionsInTableView:tableView] - 1) return CGFLOAT_MIN;
             
-    return (section == 2 ? 16 : 24);
+    return (section == 1 ? 16 : 24);
 }
 - (UIView*)tableView:(UITableView*)tableView viewForFooterInSection:(NSInteger)section {
     CampListStream *stream = [self activeStream];
     
-    if (section == 0 || section == 1) return nil;
+    if (section == 0) return nil;
     
-    if (section == 2) {
+    if (section == 1) {
         // last row
         BOOL hasAnotherPage = stream.pages.count > 0 && stream.nextCursor.length > 0;
         BOOL showLoadingFooter = self.loading || ((self.loadingMoreCamps || hasAnotherPage) && ![stream hasLoadedCursor:stream.nextCursor]);
@@ -710,7 +676,7 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     CampListStream *stream = [self activeStream];
     
-    if (indexPath.section == 2) {
+    if (indexPath.section == 1) {
         Camp *camp;
         
         if (indexPath.row < stream.camps.count) {

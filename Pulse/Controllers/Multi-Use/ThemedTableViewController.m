@@ -18,14 +18,15 @@
 
 @synthesize spinning = _spinning;
 @synthesize loading = _loading;
-@synthesize rs_tableView = _rs_tableView;
-@synthesize bf_tableView = _bf_tableView;
+@synthesize bfTableView = _bfTableView;
+@synthesize sectionTableView = _sectionTableView;
 
 NSString * const rotationAnimationKey = @"rotationAnimation";
 
 - (id)init {
     if (self = [super init]) {
         self.theme = [UIColor bonfireSecondaryColor];
+        self.animateLoading = true;
     }
     
     return self;
@@ -51,62 +52,62 @@ NSString * const rotationAnimationKey = @"rotationAnimation";
     if (self.tableView) {
         return self.tableView;
     }
-    else if (self.rs_tableView) {
-        return self.rs_tableView;
+    else if (self.bfTableView) {
+        return self.bfTableView;
     }
-    else if (self.bf_tableView) {
-        return self.bf_tableView;
+    else if (self.sectionTableView) {
+        return self.sectionTableView;
     }
     
     return nil;
 }
-- (void)setRs_tableView:(RSTableView *)rs_tableView {
-    if (rs_tableView != _rs_tableView) {
-        _rs_tableView = rs_tableView;
+- (void)setBfTableView:(BFComponentTableView *)bfTableView {
+    if (bfTableView != _bfTableView) {
+        _bfTableView = bfTableView;
 
-        if (_rs_tableView == nil) {
+        if (_bfTableView == nil) {
             return;
         }
         else {
             [_tableView removeFromSuperview];
             _tableView = nil;
             
-            [_bf_tableView removeFromSuperview];
-            _bf_tableView = nil;
+            [_sectionTableView removeFromSuperview];
+            _sectionTableView = nil;
             
-            if (_rs_tableView.superview) {
-                [_rs_tableView removeFromSuperview];
+            if (_bfTableView.superview) {
+                [_bfTableView removeFromSuperview];
             }
             
-            _rs_tableView.frame = self.view.bounds;
-            [self.view addSubview:_rs_tableView];
+            _bfTableView.frame = self.view.bounds;
+            [self.view addSubview:_bfTableView];
             
-            _rs_tableView.refreshControl = self.refreshControl;
+            _bfTableView.refreshControl = self.refreshControl;
         }
     }
 }
-- (void)setBf_tableView:(BFComponentSectionTableView *)bf_tableView {
-    if (bf_tableView != _bf_tableView) {
-        _bf_tableView = bf_tableView;
+- (void)setSectionTableView:(BFComponentSectionTableView *)bf_tableView {
+    if (bf_tableView != _sectionTableView) {
+        _sectionTableView = bf_tableView;
 
-        if (_bf_tableView == nil) {
+        if (_sectionTableView == nil) {
             return;
         }
         else {
             [_tableView removeFromSuperview];
             _tableView = nil;
             
-            [_rs_tableView removeFromSuperview];
-            _rs_tableView = nil;
+            [_bfTableView removeFromSuperview];
+            _bfTableView = nil;
             
-            if (_bf_tableView.superview) {
-                [_bf_tableView removeFromSuperview];
+            if (_sectionTableView.superview) {
+                [_sectionTableView removeFromSuperview];
             }
             
-            _bf_tableView.frame = self.view.bounds;
-            [self.view addSubview:_bf_tableView];
+            _sectionTableView.frame = self.view.bounds;
+            [self.view addSubview:_sectionTableView];
             
-            _bf_tableView.refreshControl = self.refreshControl;
+            _sectionTableView.refreshControl = self.refreshControl;
         }
     }
 }
@@ -114,7 +115,7 @@ NSString * const rotationAnimationKey = @"rotationAnimation";
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     
-    if (!self.loading) {
+    if (!self.loading && self.animateLoading) {
         [self setSpinning:false animated:false];
     }
     
@@ -187,15 +188,13 @@ NSString * const rotationAnimationKey = @"rotationAnimation";
         _loading = loading;
     }
     
-    if (_loading) {
-        if (!self.spinning) {
-            [self setSpinning:true animated:true];
+    if (self.animateLoading) {
+        if ([self activeTableView] && self.spinning != _loading) {
+            [self setSpinning:_loading animated:true];
         }
     }
-    else {
-        if (self.spinning) {
-            [self setSpinning:false animated:true];
-        }
+    
+    if (!_loading) {
         [self.refreshControl performSelector:@selector(endRefreshing) withObject:nil afterDelay:0.0];
     }
 }

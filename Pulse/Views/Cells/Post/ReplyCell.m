@@ -15,7 +15,7 @@
 #import "Launcher.h"
 #import "UIColor+Palette.h"
 #import "StreamPostCell.h"
-#import "BFComponent.h"
+#import "BFPostStreamComponent.h"
 
 #define REPLY_POST_MAX_CHARACTERS 125
 #define REPLY_POST_EMOJI_SIZE_MULTIPLIER 1.5
@@ -214,8 +214,7 @@
     }
     
     // -- text view
-    if (self.post.attributes.simpleMessage.length > 0 ||
-        self.post.attributes.removedReason.length > 0) {
+    if (![self.textView isHidden]) {
         self.textView.frame = CGRectMake(contentEdgeInsets.left + REPLY_BUBBLE_INSETS.left, yBottom + REPLY_BUBBLE_INSETS.top, self.frame.size.width - contentEdgeInsets.left - contentEdgeInsets.right - REPLY_BUBBLE_INSETS.left - REPLY_BUBBLE_INSETS.right, self.textView.frame.size.height);
         
         self.textView.tintColor = self.tintColor;
@@ -454,15 +453,6 @@
         }
         self.textView.postId = self.post.identifier;
         
-        if ([self.post isRemoved]) {
-            [self.textView setMessage:self.post.attributes.removedReason entities:nil];
-            self.textView.alpha = 0.5;
-        }
-        else {
-            [self.textView setMessage:self.post.attributes.simpleMessage entities:self.post.attributes.entities];
-            self.textView.alpha = 1;
-        }
-        
         if ([self.post.attributes.display.creator isEqualToString:POST_DISPLAY_CREATOR_CAMP] && self.post.attributes.postedIn) {
             if (self.primaryAvatarView.camp != _post.attributes.postedIn) {
                 self.primaryAvatarView.camp = _post.attributes.postedIn;
@@ -488,6 +478,25 @@
         }
         else {
             [self.imagesView setMedia:@[]];
+        }
+        
+        if (self.imagesView.media.count > 0 && [PostImagesView useCaptionedImageViewForPost:self.post]) {
+            self.textView.hidden = true;
+            [self.textView setMessage:@"" entities:nil];
+            self.imagesView.caption = self.post.attributes.simpleMessage;
+            self.imagesView.captionTextView.backgroundColor = [UIColor fromHex:self.post.themeColor];
+            self.imagesView.captionTextView.textColor = [UIColor highContrastForegroundForBackground:self.imagesView.captionTextView.backgroundColor];
+        }
+        else {
+            self.textView.hidden = false;
+            if ([self.post isRemoved]) {
+                [self.textView setMessage:self.post.attributes.removedReason entities:nil];
+                self.textView.alpha = 0.5;
+            }
+            else {
+                [self.textView setMessage:self.post.attributes.simpleMessage entities:self.post.attributes.entities];
+                self.textView.alpha = 1;
+            }
         }
         
         // TODO: change this to self.post.attributes.attachments.link.attributes.attribution
@@ -583,7 +592,8 @@
     }
     
     // message
-    if (post.attributes.simpleMessage.length > 0 || post.attributes.removedReason.length > 0) {
+    BOOL hasMessage =  ![PostImagesView useCaptionedImageViewForPost:post] && (post.attributes.simpleMessage.length > 0 || post.attributes.removedReason.length > 0);
+    if (hasMessage) {
         UIFont *font = [post isEmojiPost] ? [UIFont systemFontOfSize:replyTextViewFont.pointSize*REPLY_POST_EMOJI_SIZE_MULTIPLIER] : replyTextViewFont;
         
         NSString *message;
@@ -596,7 +606,7 @@
             
         CGFloat messageHeight = [PostTextView sizeOfBubbleWithMessage:message withConstraints:CGSizeMake(screenWidth - contentEdgeInsets.left - contentEdgeInsets.right - REPLY_BUBBLE_INSETS.left - REPLY_BUBBLE_INSETS.right, CGFLOAT_MAX) font:font maxCharacters:[PostTextView entityBasedMaxCharactersForMessage:post.attributes.simpleMessage maxCharacters:REPLY_POST_MAX_CHARACTERS entities:post.attributes.entities] styleAsBubble:true].height;
 
-        CGFloat textViewHeight = ceilf(messageHeight); // 4 on top
+        CGFloat textViewHeight = ceilf(messageHeight);
         height += textViewHeight + REPLY_BUBBLE_INSETS.bottom;
     }
     
@@ -607,7 +617,7 @@
     return height;
 }
 
-+ (CGFloat)heightForComponent:(BFComponent *)component {
++ (CGFloat)heightForComponent:(BFPostStreamComponent *)component {
     Post *post = component.post;
     
     if (!post) return 0;

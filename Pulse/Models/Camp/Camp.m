@@ -57,6 +57,18 @@
 - (BOOL)isPrivate {
     return [self.attributes isPrivate];
 }
+- (BOOL)isSupported {
+    NSArray *wallsSupported = @[CAMP_WALL_REQUEST];
+    
+    BOOL supported = true;
+    for (NSString *wall in self.attributes.context.camp.walls) {
+        if (![wallsSupported containsObject:wall]) {
+            supported = false;
+        }
+    }
+    
+    return supported;
+}
 
 #pragma mark - API Methods
 - (void)subscribeToCamp  {

@@ -1,5 +1,5 @@
 //
-//  KSProgressLayer.h
+//  KSProgressView.h
 //  KSPhotoBrowser
 //
 //  Created by Kyle Sun on 30/12/2016.
@@ -10,9 +10,8 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface KSProgressLayer : CAShapeLayer
+@interface KSProgressView : UIView
 
-- (instancetype)initWithFrame:(CGRect)frame;
 - (void)startSpin; 
 - (void)stopSpin;
 

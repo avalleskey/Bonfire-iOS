@@ -43,7 +43,7 @@
     self.imageView.image = [UIImage imageNamed:@"anonymous"];
     self.imageView.layer.masksToBounds = true;
     self.imageView.layer.borderWidth = 0;
-    self.imageView.sd_imageTransition = [SDWebImageTransition fadeTransition];
+//    self.imageView.sd_imageTransition = [SDWebImageTransition fadeTransition];
     [self addSubview:self.imageView];
     
     // functionality
@@ -77,7 +77,7 @@
 - (void)layoutSubviews {
     [super layoutSubviews];
     
-    self.imageView.layer.borderColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.06f].CGColor;
+    self.imageView.layer.borderColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.04f].CGColor;
     self.highlightView.backgroundColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.3f];
 }
 
@@ -100,7 +100,9 @@
 }
 - (void)tapped:(UITapGestureRecognizer *)sender {
     if (self.user != nil) {
-        [Launcher openProfile:self.user];
+        if (!self.user.attributes.anonymous) {
+            [Launcher openProfile:self.user];
+        }
     }
     else if (self.bot != nil) {
         [Launcher openBot:self.bot];
@@ -134,6 +136,7 @@
             self.imageView.layer.borderWidth = 0;
             self.imageView.tintColor = [UIColor whiteColor];
             self.imageView.backgroundColor = k_defaultAvatarTintColor;
+            self.imageView.image = [UIImage imageNamed:@"anonymous"];
             [self.imageView sd_cancelCurrentImageLoad];
         }
         else {
@@ -176,6 +179,7 @@
             self.imageView.layer.borderWidth = 0;
             self.imageView.tintColor = [UIColor whiteColor];
             self.imageView.backgroundColor = k_defaultAvatarTintColor;
+            self.imageView.image = [UIImage imageNamed:@"anonymous_bot"];
             [self.imageView sd_cancelCurrentImageLoad];
         }
         else {
@@ -215,9 +219,10 @@
         _camp = camp;
         
         if (camp == nil) {
-            self.imageView.image = [UIImage imageNamed:@"anonymousGroup"];
+            self.imageView.layer.borderWidth = 0;
             self.imageView.tintColor = [UIColor whiteColor];
-            self.imageView.backgroundColor = [UIColor bonfireSecondaryColor];
+            self.imageView.backgroundColor = k_defaultAvatarTintColor;
+            self.imageView.image = [UIImage imageNamed:@"anonymousGroup"];
             [self.imageView sd_cancelCurrentImageLoad];
         }
         else {
@@ -314,10 +319,6 @@
     }
 }
 
-- (void)userUpdated:(NSNotification *)notification {
-    self.user = [Session sharedInstance].currentUser;
-}
-
 - (nullable UIContextMenuConfiguration *)contextMenuInteraction:(nonnull UIContextMenuInteraction *)interaction configurationForMenuAtLocation:(CGPoint)location  API_AVAILABLE(ios(13.0)){
     if (self.camp) {
         UIMenu *menu = [UIMenu menuWithTitle:@"" children:@[]];
@@ -328,7 +329,7 @@
         UIContextMenuConfiguration *configuration = [UIContextMenuConfiguration configurationWithIdentifier:@"camp_preview" previewProvider:^(){return campVC;} actionProvider:^(NSArray* suggestedAction){return menu;}];
         return configuration;
     }
-    else if (self.user) {
+    else if (self.user && !self.user.attributes.anonymous) {
         UIMenu *menu = [UIMenu menuWithTitle:@"" children:@[]];
         
         ProfileViewController *userVC = [Launcher profileViewControllerForUser:self.user];
@@ -346,7 +347,7 @@
             if (self.camp) {
                 [Launcher openCamp:self.camp];
             }
-            else if (self.user) {
+            else if (self.user && !self.user.attributes.anonymous) {
                 [Launcher openProfile:self.user];
             }
         });

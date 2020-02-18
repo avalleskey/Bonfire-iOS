@@ -12,6 +12,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface ButtonCell : UITableViewCell
 
+extern NSString *const ButtonCellTitleAttributeName;
+extern NSString *const ButtonCellTitleColorAttributeName;
+
 @property (nonatomic) UIColor *kButtonColorDefault;
 @property (nonatomic) UIColor *kButtonColorDestructive;
 @property (nonatomic) UIColor *kButtonColorTheme;

@@ -188,7 +188,6 @@ static NSString * const errorCampCellReuseIdentifier = @"ErrorCampCell";
             UIMenu *menu = [UIMenu menuWithTitle:@"" children:@[shareViaAction]];
             
             CampViewController *campVC = [Launcher campViewControllerForCamp:camp];
-            campVC.isPreview = true;
             
             UIContextMenuConfiguration *configuration = [UIContextMenuConfiguration configurationWithIdentifier:indexPath previewProvider:^(){return campVC;} actionProvider:^(NSArray* suggestedAction){return menu;}];
             return configuration;
@@ -199,15 +198,19 @@ static NSString * const errorCampCellReuseIdentifier = @"ErrorCampCell";
 }
 
 - (void)collectionView:(UICollectionView *)collectionView willPerformPreviewActionForMenuWithConfiguration:(UIContextMenuConfiguration *)configuration animator:(id<UIContextMenuInteractionCommitAnimating>)animator  API_AVAILABLE(ios(13.0)){
-    NSIndexPath *indexPath = (NSIndexPath *)configuration.identifier;
+    void(^completionAction)(void);
+    
+    if ([animator.previewViewController isKindOfClass:[CampViewController class]]) {
+        CampViewController *c = (CampViewController *)animator.previewViewController;
+        completionAction = ^{
+            [Launcher openCamp:c.camp controller:c];
+        };
+    }
+
     [animator addCompletion:^{
-        Camp *camp;
-        if ([[collectionView cellForItemAtIndexPath:indexPath] isKindOfClass:[CampCardCell class]]) {
-            camp = ((CampCardCell *)[collectionView cellForItemAtIndexPath:indexPath]).camp;
-        }
         wait(0, ^{
-            if (camp) {
-               [Launcher openCamp:camp];
+            if (completionAction) {
+                completionAction();
             }
         });
     }];

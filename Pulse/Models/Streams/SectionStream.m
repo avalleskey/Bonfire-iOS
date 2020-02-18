@@ -23,15 +23,18 @@
     return self;
 }
 
-- (id)initWithCoder:(NSCoder *)decoder {
-    if (self = [super init]) {
-        self.sections = [decoder decodeObjectForKey:@"sections"];
-    }
-    return self;
+- (void)encodeWithCoder:(NSCoder *)encoder
+{
+    NSData *data = [NSKeyedArchiver archivedDataWithRootObject:self.pages];
+    [encoder encodeObject:data forKey:@"pages"];
 }
 
-- (void)encodeWithCoder:(NSCoder *)encoder {
-    [encoder encodeObject:self.sections forKey:@"sections"];
+-(id)initWithCoder:(NSCoder *)decoder
+{
+    if(self = [self init]) {
+        self.pages = [NSKeyedUnarchiver unarchiveObjectWithData:[decoder decodeObjectForKey:@"pages"]];
+    }
+    return self;
 }
 
 - (void)flush {
@@ -40,25 +43,13 @@
     self.cursorsLoaded = [NSMutableDictionary new];
 }
 
-#pragma mark - NSCopying
-- (id)copyWithZone:(NSZone *)zone
-{
-    SectionStream *copyObject = [SectionStream new];
-    copyObject.pages = _pages;
-    copyObject.sections = _sections;
-    copyObject.prevCursor = _prevCursor;
-    copyObject.nextCursor = _nextCursor;
-
-    return copyObject;
-}
-
 - (void)streamUpdated {
     if ([self.delegate respondsToSelector:@selector(sectionStreamDidUpdate:)]) {
         [self.delegate sectionStreamDidUpdate:self];
     }
 }
 
-- (void)preparePage:(SectionStreamPage *)page {
+- (void)refreshComponentsInPage:(SectionStreamPage *)page {
     // create components
     for (Section *section in page.data) {
         [section refreshComponents];
@@ -69,61 +60,38 @@
     if (self.pages.count > 0 && [self.pages firstObject].meta.paging.prevCursor.length > 0 && [[self.pages firstObject].meta.paging.prevCursor isEqualToString:page.meta.paging.prevCursor]) {
         return;
     }
-    
-    [self preparePage:page];
-    [self.pages insertObject:page atIndex:0];
-    
-    [self prependSectionsFromPage:page];
-    
-    [self streamUpdated];
+        
+    if (page.data.count > 0 && [[page.data firstObject] isKindOfClass:[Section class]]) {
+        [self refreshComponentsInPage:page];
+        [self.pages insertObject:page atIndex:0];
+        
+        [self prependSectionsFromPage:page];
+        
+        [self streamUpdated];
+    }
 }
 - (void)prependSectionsFromPage:(SectionStreamPage *)page {
-    [self.sections insertObjects:page.data atIndexes:[NSIndexSet indexSetWithIndex:0]];
+    [self.sections insertObjects:page.data atIndexes:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, page.data.count)]];
 }
 
 - (void)appendPage:(SectionStreamPage *)page {
     if (self.pages.count > 0 && [self.pages lastObject].meta.paging.nextCursor.length > 0 && [[self.pages lastObject].meta.paging.nextCursor isEqualToString:page.meta.paging.nextCursor]) {
         return;
     }
-    
-    [self preparePage:page];
-    [self.pages addObject:page];
-    
-    [self appendSectionsFromPage:page];
-    
-    [self streamUpdated];
+        
+    if ([page.data isKindOfClass:[NSArray class]] && page.data.count > 0 && [[page.data firstObject] isKindOfClass:[Section class]]) {
+        [self refreshComponentsInPage:page];
+        [self.pages addObject:page];
+        
+        [self appendSectionsFromPage:page];
+        
+        [self streamUpdated];
+    }
 }
 - (void)appendSectionsFromPage:(SectionStreamPage *)page {
     [self.sections addObjectsFromArray:page.data];
-}
-
-- (Post *)postWithId:(NSString *)postId {
-//    for (NSInteger i = 0; i < self.posts.count; i++) {
-//        if ([self.posts[i].identifier isEqualToString:postId]) {
-//            return self.posts[i];
-//        }
-//
-//        for (Post *post in self.posts[i].attributes.summaries.replies) {
-//            if ([post.identifier isEqualToString:postId]) {
-//                return post;
-//            }
-//        }
-//    }
     
-    return nil;
-}
-
-- (NSString *)prevCursor {
-    if (self.pages.count == 0) return nil;
-    if ([self.pages firstObject].meta.paging.prevCursor.length == 0) return nil;
-
-    return [self.pages firstObject].meta.paging.prevCursor;
-}
-- (NSString *)nextCursor {
-    if (self.pages.count == 0) return nil;
-    if ([self.pages lastObject].meta.paging.nextCursor.length == 0) return nil;
-    
-    return [self.pages lastObject].meta.paging.nextCursor;
+    NSLog(@"# of sections: %lu", (unsigned long)self.sections.count);
 }
 
 #pragma mark - Section Stream Events (Update, Remove)
@@ -511,6 +479,19 @@
     return changes;
 }
 
+- (NSString *)prevCursor {
+    if (self.pages.count == 0) return nil;
+    if ([self.pages firstObject].meta.paging.prevCursor.length == 0) return nil;
+
+    return [self.pages firstObject].meta.paging.prevCursor;
+}
+- (NSString *)nextCursor {
+    if (self.pages.count == 0) return nil;
+    if ([self.pages lastObject].meta.paging.nextCursor.length == 0) return nil;
+    
+    return [self.pages lastObject].meta.paging.nextCursor;
+}
+
 @end
 
 @implementation SectionStreamPage
@@ -518,6 +499,85 @@
 +(BOOL)propertyIsOptional:(NSString*)propertyName
 {
     return true;
+}
+
+- (instancetype)initWithDictionary:(NSDictionary *)dict error:(NSError **)err {
+    SectionStreamPage *instance = [super initWithDictionary:dict error:err];
+    
+    NSArray *originalData = [dict objectForKey:@"data"];
+    if (originalData.count > 0) {
+        NSMutableArray <Section *><Section> *mutableData = [NSMutableArray<Section *><Section> new];
+        
+        NSMutableArray *newSectionPosts;
+        for (NSDictionary *object in originalData) {
+            if ([[object valueForKey:@"type"] isEqualToString:@"section"]) {
+                if (newSectionPosts && newSectionPosts.count > 0) {
+                    Section *newSection = [self createSectionFromPosts:newSectionPosts];
+                    [mutableData addObject:newSection];
+                    newSectionPosts = nil;
+                }
+                
+                if ([object isKindOfClass:[NSDictionary class]]) {
+                    NSError *error;
+                    Section *section = [[Section alloc] initWithDictionary:object error:&error];
+                    if (error) {
+                        NSLog(@"cannot creation section because: %@", error);
+                    }
+                    else {
+                        [mutableData addObject:section];
+                    }
+                }
+                else if ([object isKindOfClass:[Section class]]) {
+                    [mutableData addObject:(Section *)object];
+                }
+            }
+            else if ([[object valueForKey:@"type"] isEqualToString:@"post"]) {
+                if (!newSectionPosts) {
+                    newSectionPosts = [NSMutableArray new];
+                }
+                
+                [newSectionPosts addObject:object];
+            }
+        }
+        
+        if (newSectionPosts) {
+            Section *newSection = [self createSectionFromPosts:newSectionPosts];
+            [mutableData addObject:newSection];
+            newSectionPosts = nil;
+        }
+        
+        instance.data = mutableData;
+    }
+        
+    return instance;
+}
+
+//- (void)encodeWithCoder:(NSCoder *)encoder
+//{
+//    [encoder encodeObject:self.data forKey:@"data"];
+//    
+//    if (self.meta) {
+//        [encoder encodeObject:self.meta forKey:@"meta"];
+//    }
+//}
+//
+//-(id)initWithCoder:(NSCoder *)decoder
+//{
+//    if(self = [super init]) {
+//        self.data = [decoder decodeObjectForKey:@"data"];
+//        
+//        if ([decoder decodeObjectForKey:@"meta"]) {
+//            self.meta = [decoder decodeObjectForKey:@"meta"];
+//        }
+//    }
+//    return self;
+//}
+
+- (Section *)createSectionFromPosts:(NSArray *)posts {
+    Section *newSection = [[Section alloc] init];
+    newSection.attributes = [[SectionAttributes alloc] initWithDictionary:@{@"posts": posts} error:nil];
+    
+    return newSection;
 }
 
 @end

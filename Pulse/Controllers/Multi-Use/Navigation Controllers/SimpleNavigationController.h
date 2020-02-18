@@ -45,7 +45,7 @@ typedef enum {
 - (void)setProgress:(CGFloat)progress animated:(BOOL)animated;
 - (void)setProgress:(CGFloat)progress animated:(BOOL)animated hideOnCompletion:(BOOL)hideOnCompletion;
 
-@property (nonatomic, strong) SloppySwiper *swiper;
+@property (nonatomic, strong) SloppySwiper * _Nullable swiper;
 
 - (void)setShadowVisibility:(BOOL)visible withAnimation:(BOOL)animated;
 - (void)hideBottomHairline;

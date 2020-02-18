@@ -21,7 +21,7 @@
 - (id)initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
     if (self) {
-        self.layer.cornerRadius = 12.f;
+        self.layer.cornerRadius = 14.f;
         self.layer.masksToBounds = true;
         
         self.resultsType = BFSearchResultsTypeTop;
@@ -48,43 +48,7 @@
         
         [self bk_whenTapped:^{
             if (self.openSearchControllerOntap && ![[Launcher activeViewController] isKindOfClass:[SearchTableViewController class]]) {
-                if ([[Launcher activeNavigationController] isKindOfClass:[ComplexNavigationController class]]) {
-                    SearchTableViewController *viewController = [[SearchTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
-                    viewController.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeNone;
-                    viewController.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
-                    viewController.resultsType = self.resultsType;
-                    
-                    ComplexNavigationController *complexController = (ComplexNavigationController *)[Launcher activeNavigationController];
-                    [complexController.searchView updateSearchText:@""];
-                    [complexController pushViewController:viewController animated:NO];
-                    complexController.opaqueOnScroll = true;
-                    complexController.transparentOnLoad = false;
-                    [complexController updateBarColor:[UIColor contentBackgroundColor] animated:YES];
-                    
-                    complexController.searchView.textField.userInteractionEnabled = true;
-                    [complexController.searchView.textField becomeFirstResponder];
-                    [complexController updateNavigationBarItemsWithAnimation:YES];
-                }
-                if ([[Launcher activeViewController].navigationController.tabBarController isKindOfClass:[TabController class]] &&
-                    [((TabController *)[Launcher tabController]).selectedViewController isKindOfClass:[SearchNavigationController class]]) {
-                    if (self.textField.text.length == 0) {
-                        SearchTableViewController *viewController = [[SearchTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
-                        viewController.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeNone;
-                        viewController.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
-                        viewController.resultsType = self.resultsType;
-                                                
-                        SearchNavigationController *searchController = ((TabController *)[Launcher tabController]).selectedViewController;
-                        searchController.hideCancelOnBlur = true;
-                        [searchController pushViewController:viewController animated:NO];
-                        
-                        searchController.searchView.textField.userInteractionEnabled = true;
-                        [searchController.searchView.textField becomeFirstResponder];
-                    }
-                    else {
-                        self.textField.userInteractionEnabled = true;
-                        [self.textField becomeFirstResponder];
-                    }
-                }
+                [Launcher openSearchFromRect:self.frame];
             }
             else {
                 self.textField.userInteractionEnabled = true;

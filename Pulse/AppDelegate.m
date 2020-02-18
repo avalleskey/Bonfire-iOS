@@ -415,11 +415,11 @@
                         [homeVC hideMorePostsIndicator:true];
                     }
                     
-                    if ([tableView isKindOfClass:[RSTableView class]]) {
-                        [(RSTableView *)tableView scrollToTop];
-                    }
-                    else if ([tableView isKindOfClass:[BFComponentSectionTableView class]]) {
+                    if ([tableView isKindOfClass:[BFComponentSectionTableView class]]) {
                         [(BFComponentSectionTableView *)tableView scrollToTop];
+                    }
+                    else if ([tableView isKindOfClass:[BFComponentTableView class]]) {
+                        [(BFComponentTableView *)tableView scrollToTop];
                     }
                     else {
                         [tableView reloadData];
@@ -727,7 +727,9 @@
         id objectFromURL = [Configuration objectFromExternalBonfireURL:userActivity.webpageURL];
 
         if ([objectFromURL isKindOfClass:[User class]]) {
-            [Launcher openProfile:(User *)objectFromURL];
+            if (!((User *)objectFromURL).attributes.anonymous) {
+                [Launcher openProfile:(User *)objectFromURL];
+            }
         }
         if ([objectFromURL isKindOfClass:[Camp class]]) {
             [Launcher openCamp:(Camp *)objectFromURL];

@@ -163,7 +163,7 @@
         if (summaryReplies.count > 1) {
             NSMutableSet *existingCreatorIds = [NSMutableSet set];
             for (Post *object in summaryReplies) {
-                if (![existingCreatorIds containsObject:object.attributes.creator.identifier]) {
+                if (object.attributes.creator.identifier && ![existingCreatorIds containsObject:object.attributes.creator.identifier]) {
                     [existingCreatorIds addObject:object.attributes.creator.identifier];
                     [filteredSummaryReplies addObject:object];
                 }

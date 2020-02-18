@@ -8,6 +8,7 @@
 
 #import "Post.h"
 #import "GenericStream.h"
+#import "BFPostStreamComponent.h"
 
 @class PostStream;
 @class PostStreamPage;
@@ -30,8 +31,9 @@ typedef enum {
 
 @property (nonatomic, strong) NSMutableArray <PostStreamPage *> *pages;
 
-@property (nonatomic, strong) NSMutableArray <Post *> *tempPosts;
-@property (nonatomic, strong) NSArray <Post *> *posts;
+@property (nonatomic, strong) NSArray <BFPostStreamComponent *><BFPostStreamComponent> *components;
+@property (nonatomic, strong) NSMutableArray <BFPostStreamComponent *><BFPostStreamComponent> *tempComponents;
+@property (nonatomic, strong) NSMutableArray <BFPostStreamComponent *><BFPostStreamComponent> *finalComponents;
 
 - (void)flush;
 
@@ -43,31 +45,29 @@ typedef enum {
 
 // Used when creating a post
 // returns unique ID for new post, which can be used to remove/replace new post
-- (BOOL)removeTempPost:(NSString *)tempId;
 - (NSString *)addTempPost:(Post *)post;
-- (BOOL)updateTempPost:(NSString *)tempId withFinalPost:(Post *)post;
+- (BOOL)removeTempPost:(NSString *)tempId;
 
 - (NSString *)addTempSubReply:(Post *)subReply;
 - (BOOL)updateTempSubReply:(NSString *)tempId withFinalSubReply:(Post *)finalSubReply;
 
-- (Post *)postWithId:(NSString *)postId;
-
-@property (nonatomic) BFComponentDetailLevel detailLevel;
+- (Post *)postWithId:(NSString *)identifier;
 
 typedef enum {
     PostStreamEventTypeUnknown,
-    
-    PostStreamEventTypeSectionUpdated,
-    PostStreamEventTypeSectionRemoved,
-    
+
     PostStreamEventTypePostUpdated,
     PostStreamEventTypePostRemoved,
+    
+    PostStreamEventTypeReplyAdded,
     
     PostStreamEventTypeCampUpdated,
     
     PostStreamEventTypeUserUpdated,
 } PostStreamEventType;
 - (BOOL)performEventType:(PostStreamEventType)eventType object:(id)object;
+
+@property (nonatomic) BFComponentDetailLevel detailLevel;
 
 @end
 

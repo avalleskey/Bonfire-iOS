@@ -29,17 +29,14 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic, strong) NSMutableArray <SectionStreamPage *> *pages;
 @property (nonatomic, strong) NSMutableArray <Section *> *sections;
-- (void)flush;
 
 @property (nonatomic) NSString *prevCursor;
 @property (nonatomic) NSString *nextCursor;
 
+- (void)flush;
+
 - (void)prependPage:(SectionStreamPage *)page;
 - (void)appendPage:(SectionStreamPage *)page;
-
-- (Post *)postWithId:(NSString *)postId;
-
-@property (nonatomic) BFComponentDetailLevel detailLevel;
 
 typedef enum {
     SectionStreamEventTypeUnknown,
@@ -56,11 +53,13 @@ typedef enum {
 } SectionStreamEventType;
 - (BOOL)performEventType:(SectionStreamEventType)eventType object:(id)object;
 
+@property (nonatomic) BFComponentDetailLevel detailLevel;
+
 @end
 
 @interface SectionStreamPage : BFJSONModel
 
-@property (nonatomic) NSArray<Section *><Section> *data;
+@property (nonatomic) NSArray <Section> *data;
 @property (nonatomic) GenericStreamPageMeta <Optional> *meta;
 
 @end

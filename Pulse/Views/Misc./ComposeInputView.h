@@ -29,7 +29,8 @@
 @property (nonatomic, strong) Post *post;
 @property (nonatomic, strong) Post *replyingTo;
 
-@property (nonatomic, strong) UIVisualEffectView *contentView;
+//@property (nonatomic, strong) UIVisualEffectView *contentView;
+@property (nonatomic, strong) UIView *contentView;
 @property (nonatomic, strong) UIButton *addMediaButton;
 @property (nonatomic, strong) UITextView *textView;
 

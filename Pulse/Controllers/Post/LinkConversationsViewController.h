@@ -13,15 +13,15 @@
 #import "ThemedViewController.h"
 #import "PostStream.h"
 #import "TappableView.h"
+#import "BFComponentTableView.h"
 
-@interface LinkConversationsViewController : ThemedViewController <ComposeInputViewDelegate, UITableViewDelegate, UITableViewDataSource>
+@interface LinkConversationsViewController : ThemedViewController <ComposeInputViewDelegate, BFComponentTableViewDelegate>
 
 @property (nonatomic, strong) BFLink *link;
 
-@property (nonatomic, strong) UITableView *tableView;
+@property (nonatomic, strong) BFComponentTableView *tableView;
 @property (nonatomic, strong) UIImageView *imagePreviewView;
 
-@property (nonatomic, strong) PostStream *stream;
 @property (nonatomic, strong) ComposeInputView *composeInputView;
 @property (nonatomic, strong) TappableView *parentPostScrollIndicator;
 

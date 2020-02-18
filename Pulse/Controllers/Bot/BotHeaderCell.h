@@ -20,21 +20,20 @@ NS_ASSUME_NONNULL_BEGIN
 
 // avatar macros
 #define BOT_HEADER_AVATAR_SIZE 128
-#define BOT_HEADER_AVATAR_BOTTOM_PADDING 16
+#define BOT_HEADER_AVATAR_BORDER_WIDTH 6
+#define BOT_HEADER_AVATAR_BOTTOM_PADDING 8
 
-#define BOT_HEADER_EDGE_INSETS UIEdgeInsetsMake(BOT_HEADER_AVATAR_SIZE * -0.65, 24, 24, 24)
+#define BOT_HEADER_EDGE_INSETS UIEdgeInsetsMake(32, 24, 24, 24)
 
 // display name macros
-#define BOT_HEADER_DISPLAY_NAME_FONT [UIFont systemFontOfSize:24.f weight:UIFontWeightHeavy]
+#define BOT_HEADER_DISPLAY_NAME_FONT [UIFont systemFontOfSize:26.f weight:UIFontWeightHeavy]
 #define BOT_HEADER_DISPLAY_NAME_BOTTOM_PADDING 4
 // username macros
 #define BOT_HEADER_USERNAME_FONT [UIFont systemFontOfSize:16.f weight:UIFontWeightBold]
-#define BOT_HEADER_USERNAME_BOTTOM_PADDING 10
+#define BOT_HEADER_USERNAME_BOTTOM_PADDING 12
 // bio macros
 #define BOT_HEADER_BIO_FONT [UIFont systemFontOfSize:16.f weight:UIFontWeightMedium]
-#define BOT_HEADER_BIO_BOTTOM_PADDING 0
-// details macros
-#define BOT_HEADER_DETAILS_EDGE_INSETS UIEdgeInsetsMake(12, 24, 10, 24)
+#define BOT_HEADER_BIO_BOTTOM_PADDING 12
 // follow button macros
 #define BOT_HEADER_FOLLOW_BUTTON_TOP_PADDING 16
 

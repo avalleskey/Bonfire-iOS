@@ -9,7 +9,7 @@
 #import "BFSectionHeaderCell.h"
 #import "Launcher.h"
 #import "UIColor+Palette.h"
-#import "BFComponent.h"
+#import "BFPostStreamComponent.h"
 
 @interface BFSectionHeaderCell () <BFComponentProtocol>
 
@@ -116,7 +116,7 @@
     return 52;
 }
 
-+ (CGFloat)heightForComponent:(BFComponent *)component {
++ (CGFloat)heightForComponent:(BFPostStreamComponent *)component {
     BFSectionHeaderObject *headerObject = component.headerObject;
     
     return [BFSectionHeaderCell heightForHeaderObject:headerObject];

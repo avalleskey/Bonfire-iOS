@@ -154,6 +154,10 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillHideNotification object:nil];
 }
 
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
 - (void)setupTableView {
     self.tableView = [[UITableView alloc] initWithFrame:self.view.bounds style:UITableViewStyleGrouped];
     self.tableView.delegate = self;
@@ -1133,7 +1137,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             }
             
             cell.showContext = false;
-            cell.showCamptag = true;
+            cell.showPostedIn = true;
             cell.hideActions = true;
             
             cell.post = self.replyingTo;

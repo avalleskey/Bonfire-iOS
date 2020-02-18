@@ -51,22 +51,22 @@
 }
 
 - (void)setup {
-    self.backgroundColor = [UIColor bonfireSecondaryColor];
+    self.backgroundColor = [UIColor bonfireDetailColor];
     self.frame = CGRectMake(12, -58, 200, 48);
-    self.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.08].CGColor;
-    self.layer.shadowOffset = CGSizeMake(0, 2);
-    self.layer.shadowRadius = 16.f;
+    self.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.4].CGColor;
+    self.layer.shadowOffset = CGSizeMake(0, 8);
+    self.layer.shadowRadius = 40;
     self.layer.shadowOpacity = 1;
     self.layer.masksToBounds = false;
     self.layer.cornerRadius = self.frame.size.height / 2;
     
-    self.textLabel = [[UILabel alloc] initWithFrame:CGRectMake(16, 0, [UIScreen mainScreen].bounds.size.width, self.frame.size.height)];
+    self.textLabel = [[UILabel alloc] initWithFrame:CGRectMake(24, 0, [UIScreen mainScreen].bounds.size.width, self.frame.size.height)];
     self.textLabel.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightBold];
     self.textLabel.numberOfLines = 0;
     self.textLabel.lineBreakMode = NSLineBreakByWordWrapping;
     self.textLabel.textAlignment = NSTextAlignmentLeft;
-    self.textLabel.textColor = [UIColor whiteColor];
-    self.textLabel.tintColor = [UIColor colorWithWhite:1 alpha:0.75];
+    self.textLabel.textColor = [UIColor bonfireSecondaryColor];
+    self.textLabel.tintColor = [UIColor bonfireSecondaryColor];
     [self addSubview:self.textLabel];
             
     [self layoutSubviews];
@@ -105,9 +105,7 @@
 
 - (void)layoutSubviews {
     [super layoutSubviews];
-    
-    NSLog(@"self.transform.a == %f", self.transform.a);
-    
+        
     if (self.transform.a == 1) {
         CGSize textSize = [self.textLabel.attributedText boundingRectWithSize:CGSizeMake(self.frame.size.width - (self.textLabel.frame.origin.x * 2), CGFLOAT_MAX) options:(NSStringDrawingUsesFontLeading|NSStringDrawingUsesLineFragmentOrigin) context:nil].size;
         self.textLabel.frame = CGRectMake(self.textLabel.frame.origin.x, 0, ceilf(textSize.width), self.frame.size.height);

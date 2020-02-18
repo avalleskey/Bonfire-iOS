@@ -12,18 +12,6 @@
       "idiom" : "universal",
       "filename" : "nice.png",
       "scale" : "3x"
-    },
-    {
-      "idiom" : "universal",
-      "filename" : "Clip 2 Copy.pdf",
-      "appearances" : [
-        {
-          "appearance" : "luminosity",
-          "value" : "dark"
-        }
-      ],
-      "unassigned" : true,
-      "scale" : "1x"
     }
   ],
   "info" : {

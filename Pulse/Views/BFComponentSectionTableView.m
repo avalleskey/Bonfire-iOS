@@ -88,10 +88,10 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
     self.loadingMore = false;
     self.delegate = self;
     self.dataSource = self;
+    self.estimatedRowHeight = 0;
     self.separatorColor = [UIColor tableViewSeparatorColor];
     self.separatorStyle = UITableViewCellSeparatorStyleNone;
     self.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentAlways;
-    self.estimatedRowHeight = 0;
     self.estimatedSectionHeaderHeight = 0;
     self.estimatedSectionFooterHeight = 0;
     
@@ -121,6 +121,18 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(campUpdated:) name:@"CampUpdated" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(postUpdated:) name:@"PostUpdated" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(postDeleted:) name:@"PostDeleted" object:nil];
+}
+
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+- (void)setLoading:(BOOL)loading {
+    if (loading != _loading) {
+        _loading = loading;
+    }
+    
+    self.scrollEnabled = !(_loading && self.stream.sections.count == 0);
 }
 
 #pragma mark - Table view refresh methods
@@ -182,7 +194,6 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
     Post *post = notification.object;
     
     if (post != nil && [self.stream performEventType:SectionStreamEventTypePostRemoved object:post]) {
-        // Only refresh the table view if view controller is not visible
         [self hardRefresh:false];
     }
 }
@@ -209,10 +220,26 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
         }
     }
     else {
+        BFPostStreamComponent *component = [self componentAtIndexPath:indexPath];
+        
         UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
         
         if ([cell isKindOfClass:[PostCell class]]) {
             Post *post = ((PostCell *)cell).post;
+            if (post) {
+                // Log insight
+                [InsightsLogger.sharedInstance closePostInsight:post.identifier action:InsightActionTypeDetailExpand];
+                [FIRAnalytics logEventWithName:@"conversation_expand"
+                                    parameters:@{
+                                                 @"post_id": post.identifier
+                                                 }];
+                
+                // Open post
+                [Launcher openPost:post withKeyboard:false];
+            }
+        }
+        else if ([cell isKindOfClass:[ExpandThreadCell class]]) {
+            Post *post = component.post;
             if (post) {
                 // Log insight
                 [InsightsLogger.sharedInstance closePostInsight:post.identifier action:InsightActionTypeDetailExpand];
@@ -230,19 +257,13 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
         }
         else {
             Section *s = [self sectionAtIndexPath:indexPath];
-            BFComponent *component = [self componentAtIndexPath:indexPath];
             
-            if (component.cellClass == [ButtonCell class]) {
-                id targetObject = s.attributes.cta.target.camp;
-                
-                if ([targetObject isKindOfClass:[Camp class]]) {
-                    [Launcher openCamp:(Camp *)targetObject];
+            if ([component cellClass] == [ButtonCell class]) {
+                if (s.attributes.cta.target.camp) {
+                    [Launcher openCamp:s.attributes.cta.target.camp];
                 }
-                else if ([targetObject isKindOfClass:[User class]]) {
-                    [Launcher openProfile:(User *)targetObject];
-                }
-                else if ([targetObject isKindOfClass:[Bot class]]) {
-                    [Launcher openBot:(Bot *)targetObject];
+                else if (s.attributes.cta.target.creator) {
+                    [Launcher openIdentity:s.attributes.cta.target.creator];
                 }
             }
         }
@@ -288,17 +309,13 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
             return [self.extendedDelegate cellForRowInFirstSection:indexPath.row];
         }
     }
-    else if (self.stream.sections.count  > 0) {
+    else if (self.stream.sections.count > 0) {
         Section *s = [self sectionAtIndexPath:indexPath];
-        BFComponent *component = [self componentAtIndexPath:indexPath];
+        BFPostStreamComponent *component = [self componentAtIndexPath:indexPath];
         
-        if (component.cellClass == [StreamPostCell class])  {
+        if ([component cellClass] == [StreamPostCell class])  {
             // determine if it's a reply or sub-reply
             Post *post = component.post;
-            CGFloat replies = post.attributes.summaries.replies.count;
-            
-            BOOL showViewMore = post.attributes.summaries.replies.count > 0 && (replies < post.attributes.summaries.counts.replies);
-            BOOL showAddReply = [post.attributes.context.post.permissions canReply] &&  post.attributes.summaries.replies.count > 0;
                         
             NSString *reuseIdentifier = streamPostReuseIdentifier;
             if (post.attributes.attachments.media) {
@@ -331,7 +348,7 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
             NSString *identifierBefore = cell.post.identifier;
 
             cell.showContext = true;
-            cell.showCamptag = true;
+            cell.showPostedIn = true;
             cell.post = post;
 
             if (cell.post.identifier != 0 && [identifierBefore isEqualToString:cell.post.identifier]) {
@@ -344,12 +361,12 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
                 }];
             }
             
-            cell.lineSeparator.hidden = post.attributes.summaries.replies.count > 0 || showViewMore || showAddReply;
+            cell.lineSeparator.hidden = !component.showLineSeparator;
             cell.bottomLine.hidden = true;
 
             return cell;
         }
-        else if (component.cellClass == [ReplyCell class]) {
+        else if ([component cellClass] == [ReplyCell class]) {
             ReplyCell *cell = [self dequeueReusableCellWithIdentifier:postReplyReuseIdentifier forIndexPath:indexPath];
             
             if (cell == nil) {
@@ -359,7 +376,7 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
             cell.contentView.backgroundColor = [UIColor contentBackgroundColor];
             
             cell.levelsDeep = -1;
-            cell.lineSeparator.hidden = true;
+            cell.lineSeparator.hidden = !component.showLineSeparator;
             cell.selectable = YES;
             
             NSString *identifierBefore = cell.post.identifier;
@@ -372,7 +389,7 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
             
             return cell;
         }
-        else if (component.cellClass == [ExpandThreadCell class]) {
+        else if ([component cellClass] == [ExpandThreadCell class]) {
             // "view more replies"
             ExpandThreadCell *cell = [tableView dequeueReusableCellWithIdentifier:expandRepliesCellIdentifier forIndexPath:indexPath];
             
@@ -382,10 +399,11 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
             
             cell.levelsDeep = -1;
             cell.post = component.post;
+            cell.lineSeparator.hidden = !component.showLineSeparator;
             
             return cell;
         }
-        else if (component.cellClass == [AddReplyCell class]) {
+        else if ([component cellClass] == [AddReplyCell class]) {
             AddReplyCell *cell = [tableView dequeueReusableCellWithIdentifier:addReplyCellIdentifier forIndexPath:indexPath];
             
             if (cell == nil) {
@@ -394,10 +412,11 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
             
             cell.levelsDeep = -1;
             cell.post = component.post;
+            cell.lineSeparator.hidden = !component.showLineSeparator;
             
             return cell;
         }
-        else if (component.cellClass == [ButtonCell class]) {
+        else if ([component cellClass] == [ButtonCell class]) {
             ButtonCell *cell = [tableView dequeueReusableCellWithIdentifier:buttonCellReuseIdentifier forIndexPath:indexPath];
             
             if (cell == nil) {
@@ -422,10 +441,38 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
             return cell;
         }
     }
+    else if (indexPath.section == 1) {
+        if (self.loading) {
+            // loading cell
+            LoadingCell *cell = [tableView dequeueReusableCellWithIdentifier:loadingCellIdentifier forIndexPath:indexPath];
+            
+            if (cell == nil) {
+                cell = [[LoadingCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:loadingCellIdentifier];
+            }
+            
+            NSInteger postType = (indexPath.row - 1 % 3);
+            cell.type = postType;
+            
+            cell.userInteractionEnabled = false;
+            
+            return cell;
+        }
+        else if (self.visualError) {
+            // visual error cell
+            BFErrorViewCell *cell = [tableView dequeueReusableCellWithIdentifier:errorCellReuseIdentifier forIndexPath:indexPath];
+            
+            if (cell == nil) {
+                cell = [[BFErrorViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:errorCellReuseIdentifier];
+            }
+            
+            cell.visualError = self.visualError;
+            
+            return cell;
+        }
+    }
     
     // if all else fails, return a blank cell
     UITableViewCell *blankCell = [tableView dequeueReusableCellWithIdentifier:blankCellIdentifier forIndexPath:indexPath];
-    blankCell.backgroundColor  = [UIColor colorWithWhite:1-(0.1*indexPath.row) alpha:1];
     return blankCell;
 }
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -436,15 +483,43 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
             height = [self.extendedDelegate heightForRowInFirstSection:indexPath.row];
         }
     }
-    else if (self.stream.sections.count  > 0) {
-        BFComponent *component = [self componentAtIndexPath:indexPath];
+    else if (self.stream.sections.count > 0) {
+        BFPostStreamComponent *component = [self componentAtIndexPath:indexPath];
         height = component.cellHeight;
+    }
+    else if (indexPath.section == 1) {
+        if (self.loading) {
+            switch ((indexPath.row - 1) % 3) {
+                case 1:
+                    height = 123;
+                    break;
+                case 2:
+                    height = 364 + 36;
+                    break;
+                    
+                default:
+                    height = 102;
+                    break;
+            }
+        }
+        else if (self.visualError) {
+            height = [BFErrorViewCell heightForVisualError:self.visualError];
+        }
     }
     
     return height;
 }
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    return 1 + self.stream.sections.count;
+    NSInteger sections = 1;
+    
+    if (self.stream.sections.count > 0) {
+        sections += self.stream.sections.count;
+    }
+    else if (self.visualError || self.loading) {
+        sections += 1;
+    }
+    
+    return sections;
 }
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     if (section == 0) {
@@ -452,9 +527,16 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
             return [self.extendedDelegate numberOfRowsInFirstSection];
         }
     }
-    else if (self.stream.sections.count  > 0) {
+    else if (self.stream.sections.count > section - 1) {
         Section *s = self.stream.sections[section-1];
+                
         return s.components.count;
+    }
+    else if (self.loading) {
+        return 10;
+    }
+    else if (section == 1 && self.visualError) {
+        return 1;
     }
     
     return 0;
@@ -466,7 +548,7 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
             return [self.extendedDelegate heightForFirstSectionHeader];
         }
     }
-    else {
+    else if (self.stream.sections.count > section - 1) {
         Section *s = [self sectionAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:section]];
         
         return [self heightForSection:s];
@@ -494,7 +576,7 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
             return [self.extendedDelegate viewForFirstSectionHeader];
         }
     }
-    else {
+    else if (self.stream.sections.count > section - 1) {
         Section *s = [self sectionAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:section]];
         
         if (s.attributes.title.length > 0 ||
@@ -503,13 +585,22 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
             header.backgroundColor = [UIColor contentBackgroundColor];
             
             UIEdgeInsets contentEdgeInsets = UIEdgeInsetsMake(12, 12, 12, 12);
-            
             CGFloat bottomY = contentEdgeInsets.top;
             
-            if (s.attributes.cta.target.camp) {
+            if (s.attributes.cta.target) {
                 BFAvatarView *avatarView = [[BFAvatarView alloc] initWithFrame:CGRectMake(header.frame.size.width - 24 - 12, (header.frame.size.height / 2) - (24 / 2), 24, 24)];
                 avatarView.openOnTap = true;
-                avatarView.camp = s.attributes.cta.target.camp;
+                if (s.attributes.cta.target.camp) {
+                    avatarView.camp = s.attributes.cta.target.camp;
+                }
+                else if (s.attributes.cta.target.creator) {
+                    if ([s.attributes.cta.target.creator isBot]) {
+                        avatarView.bot = (Bot *)s.attributes.cta.target.creator;
+                    }
+                    else {
+                        avatarView.user = (User *)s.attributes.cta.target.creator;
+                    }
+                }
                 [header addSubview:avatarView];
                 
                 contentEdgeInsets.right = header.frame.size.width - avatarView.frame.origin.x - 12;
@@ -551,25 +642,37 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
     return nil;
 }
 - (BOOL)showFooterForSection:(NSInteger)section {
+    if (self.stream.sections.count <= (section-1)) return false;
+    
     Section *s = self.stream.sections[section-1];
     
     BOOL sectionHasCta = (s.attributes.cta.text.length > 0);
     BOOL nextSectionHasHeader = false;
-
+    BOOL hasAnotherPage = self.stream.pages.count > 0 && self.stream.nextCursor.length > 0;
+    BOOL lastSection = (section == [self numberOfSections] - 1);
+    BOOL showLoadingFooter = (self.loadingMore || (hasAnotherPage && ![self.stream hasLoadedCursor:self.stream.nextCursor]));
+    
+    nextSectionHasHeader = false;
     if (self.stream.sections.count > section) {
         Section *nextSection = self.stream.sections[section];
         nextSectionHasHeader = (nextSection.attributes.title.length > 0 || nextSection.attributes.text.length > 0);
     }
     
-    return (sectionHasCta || nextSectionHasHeader);
+    return (lastSection && showLoadingFooter) || (!lastSection && (sectionHasCta || nextSectionHasHeader));
 }
 - (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
     if (section == 0) {
         if ([self.extendedDelegate respondsToSelector:@selector(heightForFirstSectionFooter)]) {
             return [self.extendedDelegate heightForFirstSectionFooter];
         }
+        else if (self.loading || self.visualError || (!self.loading && self.stream.sections.count > 0)) {
+            return HALF_PIXEL;
+        }
     }
-    else if ([self showFooterForSection:section]) {
+    else if (self.stream.sections.count > (section-1) &&
+             [self showFooterForSection:section]) {
+        Section *s = self.stream.sections[section-1];
+        
         if (section == self.stream.sections.count) {
             BOOL hasAnotherPage = self.stream.pages.count > 0 && self.stream.nextCursor.length > 0;
             BOOL showLoadingFooter = (self.loadingMore || (hasAnotherPage && ![self.stream hasLoadedCursor:self.stream.nextCursor]));
@@ -581,12 +684,9 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
             if (showLoadingFooter) {
                 return 48;
             }
-            else {
-                return CGFLOAT_MIN;
-            }
         }
-        else {
-            return 12;
+        else if (s.components.count > 0) {
+            return 8;
         }
     }
     
@@ -597,49 +697,52 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
         if ([self.extendedDelegate respondsToSelector:@selector(viewForFirstSectionFooter)]) {
             return [self.extendedDelegate viewForFirstSectionFooter];
         }
-    }
-    else {
-        if ([self showFooterForSection:section]) {
-            UIView *footer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, 12)];
-            footer.backgroundColor = [UIColor tableViewBackgroundColor];
-            
-            if (section == self.stream.sections.count) {
-                BOOL hasAnotherPage = self.stream.pages.count > 0 && self.stream.nextCursor.length > 0;
-                BOOL showLoadingFooter = (self.loadingMore || (hasAnotherPage && ![self.stream hasLoadedCursor:self.stream.nextCursor]));
-
-                if (showLoadingFooter) {
-                    SetHeight(footer, 48);
-                    
-                    UIActivityIndicatorView *spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
-                    spinner.color = [UIColor bonfireSecondaryColor];
-                    spinner.frame = CGRectMake(footer.frame.size.width / 2 - 10, footer.frame.size.height / 2 - 10, 20, 20);
-                    [footer addSubview:spinner];
-
-                    [spinner startAnimating];
-
-                    if (!self.loadingMore && self.stream.pages.count > 0 && self.stream.nextCursor.length > 0) {
-                        self.loadingMore = true;
-
-                        if ([self.extendedDelegate respondsToSelector:@selector(tableView:didRequestNextPageWithMaxId:)]) {
-                            [self.extendedDelegate tableView:self didRequestNextPageWithMaxId:0];
-                        }
-                    }
-                }
-                else {
-                    return nil;
-                }
-            }
-            else {
-                UIView *lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, footer.frame.size.height - HALF_PIXEL, footer.frame.size.width, HALF_PIXEL)];
-                lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
-                [footer addSubview:lineSeparator];
-            }
-            
-            return footer;
+        else if (self.loading || self.visualError || (!self.loading && self.stream.sections.count > 0)) {
+            UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, HALF_PIXEL)];
+            separator.backgroundColor = [UIColor tableViewSeparatorColor];
+            return separator;
         }
     }
+    else if (self.stream.sections.count > (section-1) &&
+             [self showFooterForSection:section]) {
+        Section *s = self.stream.sections[section-1];
+        
+        UIView *footer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, 8)];
+        footer.backgroundColor = [UIColor tableViewBackgroundColor];
+        
+        if (section == self.stream.sections.count) {
+            BOOL hasAnotherPage = self.stream.pages.count > 0 && self.stream.nextCursor.length > 0;
+            BOOL showLoadingFooter = (self.loadingMore || (hasAnotherPage && ![self.stream hasLoadedCursor:self.stream.nextCursor]));
+
+            if (showLoadingFooter) {
+                SetHeight(footer, 48);
+                
+                UIActivityIndicatorView *spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+                spinner.color = [UIColor bonfireSecondaryColor];
+                spinner.frame = CGRectMake(footer.frame.size.width / 2 - 10, footer.frame.size.height / 2 - 10, 20, 20);
+                [footer addSubview:spinner];
+
+                [spinner startAnimating];
+
+                if (!self.loadingMore && self.stream.pages.count > 0 && self.stream.nextCursor.length > 0) {
+                    self.loadingMore = true;
+
+                    if ([self.extendedDelegate respondsToSelector:@selector(tableView:didRequestNextPageWithMaxId:)]) {
+                        [self.extendedDelegate tableView:self didRequestNextPageWithMaxId:0];
+                    }
+                }
+            }
+        }
+        else if (s.components.count > 0) {
+            UIView *lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, footer.frame.size.height - HALF_PIXEL, footer.frame.size.width, HALF_PIXEL)];
+            lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
+            [footer addSubview:lineSeparator];
+        }
+        
+        return footer;
+    }
     
-    return nil; //lineSeparator;
+    return nil;
 }
 
 #pragma mark - UIScrollViewDelegate
@@ -727,7 +830,7 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
     
     return self.stream.sections[indexPath.section-1];
 }
-- (BFComponent * _Nullable)componentAtIndexPath:(NSIndexPath *)indexPath {
+- (BFPostStreamComponent * _Nullable)componentAtIndexPath:(NSIndexPath *)indexPath {
     Section *s = [self sectionAtIndexPath:indexPath];
     
     if (indexPath.row > s.components.count) {
@@ -779,7 +882,6 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
             UIMenu *menu = [UIMenu menuWithTitle:@"" children:actions];
             
             PostViewController *postVC = [Launcher postViewControllerForPost:post];
-            postVC.isPreview = true;
             
             UIContextMenuConfiguration *configuration = [UIContextMenuConfiguration configurationWithIdentifier:indexPath previewProvider:^(){return postVC;} actionProvider:^(NSArray* suggestedAction){return menu;}];
             return configuration;

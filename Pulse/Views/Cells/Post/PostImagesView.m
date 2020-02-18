@@ -11,11 +11,12 @@
 #import "Launcher.h"
 #import <BlocksKit/BlocksKit.h>
 #import <BlocksKit/BlocksKit+UIKit.h>
-#import "Post.h"
 #import "UIImage+WithColor.h"
 #import "UIColor+Palette.h"
 #import <SDWebImage/UIImageView+WebCache.h>
 #import <SDWebImage/UIView+WebCache.h>
+#import "UIView+RoundedCorners.h"
+#import "StreamPostCell.h"
 
 #define SPINNER_TAG 11
 #define SPINNER_DOT_TAG 12
@@ -47,17 +48,32 @@
 //    }];
     [self addSubview:self.containerView];
     
-    self.containerView.backgroundColor = [UIColor colorWithWhite:0.5 alpha:0.2];
+    self.containerView.backgroundColor = [UIColor colorNamed:@"Navigation_ClearBackgroundColor"];
     self.containerView.layer.shouldRasterize = true;
     self.containerView.layer.rasterizationScale = [UIScreen mainScreen].scale;
     
     self.containerView.layer.cornerRadius = 14.f;
     self.containerView.layer.masksToBounds = true;
     
-    self.containerView.layer.borderWidth = HALF_PIXEL;
+    self.containerView.layer.borderWidth = 0;
     
     self.imageViews = [[NSMutableArray alloc] init];
     self.media = @[];
+    
+    self.captionTextView = [[UITextView alloc] init];
+    self.captionTextView.hidden = true;
+    self.captionTextView.editable = false;
+    self.captionTextView.userInteractionEnabled = false;
+    self.captionTextView.backgroundColor = [UIColor orangeColor];
+    self.captionTextView.font = [UIFont systemFontOfSize:textViewFont.pointSize+1.f weight:UIFontWeightMedium];
+    self.captionTextView.textColor = [UIColor whiteColor];
+    self.captionTextView.textContainerInset = UIEdgeInsetsMake(ceilf(self.captionTextView.font.pointSize*.6), ceilf(self.captionTextView.font.pointSize*.8), ceilf(self.captionTextView.font.pointSize*.6), ceilf(self.captionTextView.font.pointSize*.8));
+    self.captionTextView.textContainer.lineFragmentPadding = 0;
+    self.captionTextView.textAlignment = NSTextAlignmentLeft;
+    self.captionTextView.layer.cornerRadius = 3.f;
+    self.captionTextView.layer.masksToBounds = true;
+    self.captionTextView.scrollEnabled = false;
+    [self.containerView addSubview:self.captionTextView];
 }
 
 // Only override drawRect: if you perform custom drawing.
@@ -73,7 +89,16 @@
     self.containerView.frame = self.bounds;
     [self layoutImageViews];
     
-    self.containerView.layer.borderColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.12f].CGColor;
+//    self.containerView.layer.borderColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.12f].CGColor;
+    
+    if (self.captionTextView && ![self.captionTextView isHidden]) {
+        CGSize captionSize = [self.captionTextView.text boundingRectWithSize:CGSizeMake(self.frame.size.width - (self.captionTextView.textContainerInset.left + self.captionTextView.textContainerInset.right) - 16, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName: self.captionTextView.font} context:nil].size;
+        CGFloat captionWidth = ceilf(captionSize.width) + (self.captionTextView.textContainerInset.left + self.captionTextView.textContainerInset.right);
+        CGFloat captionHeight = ceilf(captionSize.height) + (self.captionTextView.textContainerInset.top + self.captionTextView.textContainerInset.bottom);
+        self.captionTextView.frame = CGRectMake(0, self.containerView.frame.size.height - captionHeight, captionWidth, captionHeight);
+        [self.captionTextView setRoundedCorners:UIRectCornerTopRight radius:ceilf(self.captionTextView.font.lineHeight*.6)];
+        [self.captionTextView.superview bringSubviewToFront:self.captionTextView];
+    }
 }
 
 - (void)setMedia:(NSArray *)media {
@@ -387,7 +412,27 @@
 }
 
 + (CGFloat)streamImageHeight {
-    return [Session sharedInstance].defaults.post.imgHeight.max + 56;
+    return [UIScreen mainScreen].bounds.size.width - (postContentOffset.left + postContentOffset.right);
+}
+
++ (BOOL)useCaptionedImageViewForPost:(Post *)post {
+    NSInteger mediaItems = post.attributes.media.count;
+    if (post.attributes.attachments.media.count > mediaItems) {
+        mediaItems = post.attributes.attachments.media.count;
+    }
+    
+    return mediaItems == 1 && (post.attributes.message.length <= 30) && post.attributes.entities.count == 0;
+}
+
+- (void)setCaption:(NSString *)caption {
+    if (![caption isEqualToString:_caption]) {
+        _caption = caption;
+        
+        self.captionTextView.text = caption;
+        self.captionTextView.hidden = (caption.length == 0);
+        
+        [self layoutSubviews];
+    }
 }
 
 - (void)startSpinners {

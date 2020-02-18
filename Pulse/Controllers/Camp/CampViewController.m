@@ -18,6 +18,7 @@
 #import "UIColor+Palette.h"
 #import "Launcher.h"
 #import "InsightsLogger.h"
+#import <UIImageView+WebCache.h>
 #import "HAWebService.h"
 @import Firebase;
 #import "BFNotificationManager.h"
@@ -25,13 +26,14 @@
 #import "BFTipsManager.h"
 #import "BFAlertController.h"
 #import <FBSDKShareKit/FBSDKShareKit.h>
-//#import "BFUpsellTableViewCell.h"
 
 @interface CampViewController () {
     int previousTableViewYOffset;
+    CGFloat coverPhotoHeight;
 }
 
 @property (nonatomic) BOOL loading;
+@property (nonatomic) BOOL shimmering;
 
 @property (nonatomic, strong) ComplexNavigationController *launchNavVC;
 @property (nonatomic, strong) StartCampUpsellView *startCampUpsellView;
@@ -46,7 +48,8 @@ static NSString * const reuseIdentifier = @"Result";
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    // Do any additional setup after loading the view.
+
+    self.view.tintColor = self.theme;
     
     self.launchNavVC = (ComplexNavigationController *)self.navigationController;
     self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] init];
@@ -55,15 +58,11 @@ static NSString * const reuseIdentifier = @"Result";
     
     [self setupTableView];
     [self setupStartCampUpsellView];
+    [self setupCoverPhotoView];
         
     if (!self.isPreview)  {
         [self setupComposeInputView];
     }
-    
-    [self setupCoverPhotoView];
-    self.tableView.contentOffset = CGPointMake(0, -1 * self.tableView.contentInset.top);
-    
-    self.view.tintColor = self.theme;
     
     self.loading = true;
     [self loadCamp];
@@ -102,6 +101,10 @@ static NSString * const reuseIdentifier = @"Result";
     [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillHideNotification object:nil];
 }
 
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
 - (void)setupCoverPhotoView {
     self.coverPhotoView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 140)];
     self.coverPhotoView.backgroundColor = self.theme;
@@ -115,30 +118,53 @@ static NSString * const reuseIdentifier = @"Result";
     [self.coverPhotoView addSubview:overlayView];
     [self updateCoverPhotoView];
     
-    CABasicAnimation *rotationAnimation;
-    rotationAnimation = [CABasicAnimation animationWithKeyPath:@"opacity"];
-    rotationAnimation.autoreverses = true;
-    rotationAnimation.fromValue = [NSNumber numberWithFloat:0];
-    rotationAnimation.toValue = [NSNumber numberWithFloat:1];
-    rotationAnimation.duration = 0.5f;
-    rotationAnimation.fillMode = kCAFillModeBoth;
-    rotationAnimation.repeatCount = HUGE_VALF;
-    rotationAnimation.removedOnCompletion = false;
-    [overlayView.layer addAnimation:rotationAnimation forKey:@"opacityAnimation"];
+    CABasicAnimation *opacityAnimation;
+    opacityAnimation = [CABasicAnimation animationWithKeyPath:@"opacity"];
+    opacityAnimation.autoreverses = true;
+    opacityAnimation.fromValue = [NSNumber numberWithFloat:0];
+    opacityAnimation.toValue = [NSNumber numberWithFloat:1];
+    opacityAnimation.duration = 1.f;
+    opacityAnimation.fillMode = kCAFillModeBoth;
+    opacityAnimation.repeatCount = HUGE_VALF;
+    opacityAnimation.removedOnCompletion = false;
+    [overlayView.layer addAnimation:opacityAnimation forKey:@"opacityAnimation"];
 }
 - (void)updateCoverPhotoView {
-//    if (1 == 2) {
-//        self.tableView.contentInset = UIEdgeInsetsMake(152, 0, self.tableView.contentInset.bottom, 0);
-//        //[self.coverPhotoView sd_setImageWithURL:[NSURL URLWithString:self.link.attributes.images[0]]];
-//    }
-//    else {
-        self.tableView.contentInset = UIEdgeInsetsMake(120, 0, self.tableView.contentInset.bottom, 0);
+    coverPhotoHeight = CAMP_HEADER_EDGE_INSETS.top + CAMP_HEADER_AVATAR_BORDER_WIDTH + ceilf(CAMP_HEADER_AVATAR_SIZE * 0.65);
+    if (self.camp.attributes.media.cover.suggested.url.length > 0) {
+        [self.coverPhotoView sd_setImageWithURL:[NSURL URLWithString:self.camp.attributes.media.cover.suggested.url]];
+    
+        // add gradient overlay
+        UIColor *topColor = [UIColor colorWithWhite:0 alpha:0.5];
+        UIColor *bottomColor = [UIColor colorWithWhite:0 alpha:0];
+
+        NSArray *gradientColors = [NSArray arrayWithObjects:(id)topColor.CGColor, (id)bottomColor.CGColor, nil];
+        NSArray *gradientLocations = [NSArray arrayWithObjects:[NSNumber numberWithInt:0.0],[NSNumber numberWithInt:1.0], nil];
+
+        CAGradientLayer *gradientLayer = [CAGradientLayer layer];
+        gradientLayer.colors = gradientColors;
+        gradientLayer.locations = gradientLocations;
+        gradientLayer.frame = CGRectMake(0, 0, self.view.frame.size.width, coverPhotoHeight);
+        [self.coverPhotoView.layer addSublayer:gradientLayer];
+    }
+    else {
         self.coverPhotoView.image = nil;
-//    }
-    [self.tableView.refreshControl setBounds:CGRectMake(self.tableView.refreshControl.bounds.origin.x, self.tableView.contentInset.top, self.tableView.refreshControl.bounds.size.width, self.tableView.refreshControl.bounds.size.height)];
-    self.coverPhotoView.frame = CGRectMake(0, 0, self.view.frame.size.width, self.tableView.contentInset.top + (-1 * self.tableView.contentOffset.y));
-    UIView *overlayView = [self.coverPhotoView viewWithTag:10];
-    overlayView.frame = self.coverPhotoView.bounds;
+        for (CALayer *layer in self.coverPhotoView.layer.sublayers) {
+            if ([layer isKindOfClass:[CAGradientLayer class]]) {
+                [layer removeFromSuperlayer];
+            }
+        }
+    }
+    
+    // updat the scroll distance
+    if ([self.navigationController isKindOfClass:[ComplexNavigationController class]]) {
+        ((ComplexNavigationController *)self.navigationController).onScrollLowerBound = coverPhotoHeight * .3;
+    }
+    else if ([self.navigationController isKindOfClass:[SimpleNavigationController class]]) {
+        ((SimpleNavigationController *)self.navigationController).onScrollLowerBound = coverPhotoHeight * .3;
+    }
+    
+    self.coverPhotoView.frame = CGRectMake(0, 0, self.view.frame.size.width, coverPhotoHeight);
 }
 
 - (NSString *)campIdentifier {
@@ -146,10 +172,6 @@ static NSString * const reuseIdentifier = @"Result";
     if (self.camp.attributes.identifier != nil) return self.camp.attributes.identifier;
     
     return nil;
-}
-
-- (void)dealloc {    
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 - (void)newPostBegan:(NSNotification *)notification {
@@ -176,7 +198,7 @@ static NSString * const reuseIdentifier = @"Result";
         // TODO: Check for image as well
         [self.tableView.stream removeLoadedCursor:self.tableView.stream.prevCursor];
         
-        [self.tableView.stream removeTempPost:tempId];
+//        [self.tableView.stream removeTempPost:tempId];
         
         [self determineEmptyStateVisibility];
         
@@ -192,7 +214,7 @@ static NSString * const reuseIdentifier = @"Result";
     Post *tempPost = notification.object;
     
     if (tempPost != nil && [tempPost.attributes.postedIn.identifier isEqualToString:self.camp.identifier] && !tempPost.attributes.parent) {
-        [self.tableView.stream removeTempPost:tempPost.tempId];
+//        [self.tableView.stream removeTempPost:tempPost.tempId];
         [self.tableView refreshAtTop];
         
         [self determineEmptyStateVisibility];
@@ -243,17 +265,16 @@ static NSString * const reuseIdentifier = @"Result";
         if (canViewPosts_Before == false && canViewPosts_After == true) {
             [self loadCampContent];
         }
-        else if (self.tableView.stream.posts.count == 0) {
+        else if (self.tableView.stream.sections.count == 0) {
             [self determineEmptyStateVisibility];
         }
         else {
             // loop through content and replace any occurences of this Camp with the new object
-            [self.tableView.stream updateCampObjects:camp];
+            [self.tableView.stream performEventType:SectionStreamEventTypeCampUpdated object:camp];
         }
         
-        if ([self.camp isPrivate] && self.tableView.stream.posts.count > 0 && ([self.camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_LEFT] || [self.camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_NO_RELATION])) {
-            self.tableView.stream.pages = [[NSMutableArray alloc] init];
-            self.tableView.stream.posts = @[];
+        if ([self.camp isPrivate] && self.tableView.stream.sections.count > 0 && ([self.camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_LEFT] || [self.camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_NO_RELATION])) {
+            [self.tableView.stream flush];
             
             [self showErrorViewWithType:ErrorViewTypeLocked title:@"Private Camp" description:@"Request access above to get access to this Camp’s posts" actionTitle:nil actionBlock:nil];
         }
@@ -266,7 +287,6 @@ static NSString * const reuseIdentifier = @"Result";
         _camp = camp;
         
         // update table view parent object
-        self.tableView.parentObject = camp;
         self.startCampUpsellView.camp = self.camp;
     }
 }
@@ -284,7 +304,7 @@ static NSString * const reuseIdentifier = @"Result";
 
 - (BOOL)isActive {
     BOOL publicCamp = ![self.camp isPrivate];
-    BOOL isChannel = [self.camp.attributes.display.format isEqualToString:@"channel"];
+    BOOL isChannel = [self.camp isChannel];
     return isChannel || !(self.camp.attributes.summaries.counts.posts == 0 && publicCamp && self.camp.attributes.summaries.counts.members < [Session sharedInstance].defaults.camp.membersThreshold);
 }
 
@@ -325,10 +345,8 @@ static NSString * const reuseIdentifier = @"Result";
     NSLog(@"%@", self.camp.attributes.identifier);
     
     self.shimmering = true;
-    
-    NSDictionary *params = @{};
-    
-    [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        
+    [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:@{} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSDictionary *responseData = (NSDictionary *)responseObject[@"data"];
         
         // this must go before we set self.camp to the new Camp object
@@ -371,15 +389,15 @@ static NSString * const reuseIdentifier = @"Result";
         
         [self positionErrorView];
         
-        // Now that the VC's Camp object is complete,
-        // Go on to load the camp content
-        [self loadCampContent];
-        
         if ([self.camp.attributes.context.camp.permissions canUpdate]) {
-            if (!self.loading && self.camp.attributes.summaries.counts != nil && self.camp.attributes.summaries.counts.posts > 0 &&  self.camp.attributes.summaries.counts.icebreakers == 0 && ![[NSUserDefaults standardUserDefaults] boolForKey:@"upsells/icebreaker"]) {
+            if (self.camp.attributes.summaries.counts != nil && self.camp.attributes.summaries.counts.posts > 0 &&  self.camp.attributes.summaries.counts.icebreakers == 0 && ![[NSUserDefaults standardUserDefaults] boolForKey:[NSString stringWithFormat:@"upsells/icebreaker/%@", self.camp.identifier]]) {
                 [self showAddIcebreakerUpsell];
             }
         }
+        
+        // Now that the VC's Camp object is complete,
+        // Go on to load the camp content
+        [self loadCampContent];
         
         [self showMoreButton];
         
@@ -402,8 +420,7 @@ static NSString * const reuseIdentifier = @"Result";
         else if (statusCode == 401) {
             [self showErrorViewWithType:ErrorViewTypeLocked title:@"Private Camp" description:@"Request access above to get access to this Camp’s posts" actionTitle:nil actionBlock:nil];
             
-            self.tableView.stream.posts = @[];
-            self.tableView.stream.pages = [[NSMutableArray alloc] init];
+            [self.tableView.stream flush];
         }
         else {
             [self showErrorViewWithType:([HAWebService hasInternet] ? ErrorViewTypeGeneral : ErrorViewTypeNoInternet) title:([HAWebService hasInternet] ? @"Error Loading" : @"No Internet") description:@"Check your network settings and tap below to try again" actionTitle:@"Refresh" actionBlock:^{
@@ -422,6 +439,10 @@ static NSString * const reuseIdentifier = @"Result";
 }
 
 - (void)showAddIcebreakerUpsell {
+    if (self.isPreview) return;
+    
+    [[NSUserDefaults standardUserDefaults] setBool:true forKey:[NSString stringWithFormat:@"upsells/icebreaker/%@", self.camp.identifier]];
+    
     BFTipObject *tipObject = [BFTipObject tipWithCreatorType:BFTipCreatorTypeCamp creator:self.camp title:[NSString stringWithFormat:@"Tap to Add an Icebreaker ❄️"] text:@"Introduce new members to the Camp with an Icebreaker post when they join" cta:nil imageUrl:nil action:^{
         SetAnIcebreakerViewController *mibvc = [[SetAnIcebreakerViewController alloc] init];
         mibvc.view.tintColor = self.view.tintColor;
@@ -437,13 +458,6 @@ static NSString * const reuseIdentifier = @"Result";
         [Launcher push:newLauncher animated:YES];
         
         [newLauncher updateNavigationBarItemsWithAnimation:NO];
-        
-        wait(0.3, ^{
-            [self.tableView beginUpdates];
-            [[NSUserDefaults standardUserDefaults] setBool:true forKey:@"upsells/icebreaker"];
-            [self.tableView reloadData];
-            [self.tableView endUpdates];
-        })
     }];
     [[BFTipsManager manager] presentTip:tipObject completion:^{
         NSLog(@"presentTip() completion");
@@ -513,8 +527,7 @@ static NSString * const reuseIdentifier = @"Result";
             // private camp but not a member yet
             [self showErrorViewWithType:ErrorViewTypeLocked title:@"Private Camp" description:@"Request access above to get access to this Camp’s posts" actionTitle:nil actionBlock:nil];
             
-            self.tableView.stream.posts = @[];
-            self.tableView.stream.pages = [[NSMutableArray alloc] init];
+            [self.tableView.stream flush];
         }
         else {
             [self showErrorViewWithType:ErrorViewTypeNotFound title:@"Camp Not Found"description:@"We couldn’t find the Camp\nyou were looking for" actionTitle:@"Create New Camp" actionBlock:^{
@@ -637,67 +650,73 @@ static NSString * const reuseIdentifier = @"Result";
 }
 
 - (void)getPostsWithCursor:(StreamPagingCursorType)cursorType {
-    self.tableView.hidden = false;
-    if (self.tableView.stream.posts.count == 0) {
-        self.startCampUpsellView.hidden = true;
-        self.loading = true;
-        [self.tableView refreshAtTop];
-    }
-    
     NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
     if (cursorType == StreamPagingCursorTypeNext) {
-        [params setObject:self.tableView.stream.nextCursor forKey:@"cursor"];
+        [params setObject:self.tableView.stream.nextCursor forKey:@"next_cursor"];
     }
-    else if (cursorType == StreamPagingCursorTypePrevious && self.tableView.stream.prevCursor.length > 0) {
-        [params setObject:self.tableView.stream.prevCursor forKey:@"cursor"];
+    else if (self.tableView.stream.prevCursor.length > 0) {
+        [params setObject:self.tableView.stream.prevCursor forKey:@"prev_cursor"];
     }
     
-    if ([params objectForKey:@"cursor"]) {
-        [self.tableView.stream addLoadedCursor:params[@"cursor"]];
+    if ([params objectForKey:@"prev_cursor"] ||
+        [params objectForKey:@"next_cursor"]) {
+        NSString *cursor = [params objectForKey:@"prev_cursor"] ? params[@"prev_cursor"] : params[@"next_cursor"];
+        
+        if ([self.tableView.stream hasLoadedCursor:cursor]) {
+            return;
+        }
+        else {
+            [self.tableView.stream addLoadedCursor:cursor];
+        }
+    }
+    else if (cursorType == StreamPagingCursorTypePrevious) {
+        cursorType = StreamPagingCursorTypeNone;
+    }
+    
+    self.tableView.hidden = false;
+    if (self.tableView.stream.sections.count == 0) {
+        self.startCampUpsellView.hidden = true;
+        self.tableView.visualError = nil;
+        self.loading = true;
+        [self.tableView hardRefresh:false];
     }
     
     NSString *url = [NSString stringWithFormat:@"camps/%@/stream", [self campIdentifier]];
     
     [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        self.tableView.scrollEnabled = true;
+        self.loading = false;
+        self.tableView.loadingMore = false;
         
-        PostStreamPage *page = [[PostStreamPage alloc] initWithDictionary:responseObject error:nil];
+        SectionStreamPage *page = [[SectionStreamPage alloc] initWithDictionary:responseObject error:nil];
         if (page.data.count > 0) {
-            if (cursorType == StreamPagingCursorTypeNone) {
-                if (self.tableView.stream.prevCursor) {
-                    [self.tableView.stream removeLoadedCursor:self.tableView.stream.prevCursor];
-                }
-                if (self.tableView.stream.nextCursor) {
-                    [self.tableView.stream removeLoadedCursor:self.tableView.stream.nextCursor];
-                }
-                
-                self.tableView.stream.posts = @[];
-                self.tableView.stream.pages = [[NSMutableArray alloc] init];
+            if (page.meta.paging.replaceCache ||
+                cursorType == StreamPagingCursorTypeNone) {
+//                [self.tableView scrollToTop];
+                [self.tableView.stream flush];
+            }
+            
+            if (cursorType == StreamPagingCursorTypeNext) {
                 [self.tableView.stream appendPage:page];
             }
-            if (cursorType == StreamPagingCursorTypePrevious) {
+            else if (cursorType == StreamPagingCursorTypeNone ||
+                cursorType == StreamPagingCursorTypePrevious) {
                 [self.tableView.stream prependPage:page];
             }
-            else if (cursorType == StreamPagingCursorTypeNext) {
-                [self.tableView.stream appendPage:page];
-            }
         }
-    
-        self.loading = false;
-        
-        self.tableView.loadingMore = false;
         
         [self determineEmptyStateVisibility];
         
-        if (cursorType == StreamPagingCursorTypeNext) {
+        if (cursorType == StreamPagingCursorTypePrevious) {
+            [self.tableView refreshAtTop];
+        }
+        else if (cursorType == StreamPagingCursorTypeNext) {
             [self.tableView refreshAtBottom];
         }
         else {
-            [self.tableView refreshAtTop];
+            [self.tableView hardRefresh:false];
         }
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         NSLog(@"CampViewController / getPostsWithMaxId() - error: %@", error);
-        //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
         
         NSHTTPURLResponse *httpResponse = error.userInfo[AFNetworkingOperationFailingURLResponseErrorKey];
         NSInteger statusCode = httpResponse.statusCode;
@@ -713,8 +732,7 @@ static NSString * const reuseIdentifier = @"Result";
         else if (statusCode == 401) {
             [self showErrorViewWithType:ErrorViewTypeLocked title:@"Private Camp" description:@"Request access above to get access to this Camp’s posts" actionTitle:nil actionBlock:nil];
             
-            self.tableView.stream.posts = @[];
-            self.tableView.stream.pages = [[NSMutableArray alloc] init];
+            [self.tableView.stream flush];
         }
         else {
             [self showErrorViewWithType:([HAWebService hasInternet] ? ErrorViewTypeGeneral : ErrorViewTypeNoInternet) title:([HAWebService hasInternet] ? @"Error Loading" : @"No Internet") description:@"Check your network settings and tap below to try again" actionTitle:@"Refresh" actionBlock:^{
@@ -725,13 +743,13 @@ static NSString * const reuseIdentifier = @"Result";
         
         self.loading = false;
         self.tableView.loadingMore = false;
-        [self.tableView refreshAtTop];
         
+        [self.tableView refreshAtTop];
         [self positionErrorView];
     }];
 }
 - (void)determineEmptyStateVisibility {
-    if (self.tableView.stream.posts.count == 0 && !self.loading) {
+    if (self.tableView.stream.sections.count == 0 && !self.loading) {
         BOOL isMember = [self.camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_MEMBER];
         
         if ([self isActive] && ![self.camp isPrivate]) {
@@ -797,10 +815,9 @@ static NSString * const reuseIdentifier = @"Result";
     [self.tableView reloadData];
 }
 - (void)setupTableView {
-    self.tableView = [[RSTableView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - self.navigationController.navigationBar.frame.origin.y - self.navigationController.navigationBar.frame.size.height) style:UITableViewStyleGrouped];
-    self.tableView.dataType = RSTableViewTypeCamp;
-    self.tableView.tableViewStyle = RSTableViewStyleGrouped;
-    self.tableView.loadingMore = false;
+    self.tableView = [[BFComponentSectionTableView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - self.navigationController.navigationBar.frame.origin.y - self.navigationController.navigationBar.frame.size.height) style:UITableViewStyleGrouped];
+    self.tableView.insightSeenInLabel = InsightSeenInCampView;
+    self.tableView.backgroundColor = [UIColor clearColor];
     self.tableView.extendedDelegate = self;
     [self.tableView registerClass:[CampHeaderCell class] forCellReuseIdentifier:campHeaderCellIdentifier];
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
@@ -817,6 +834,7 @@ static NSString * const reuseIdentifier = @"Result";
 }
 - (void)refresh {
     [self loadCamp];
+    [self getPostsWithCursor:StreamPagingCursorTypePrevious];
 }
 
 - (void)showErrorViewWithType:(ErrorViewType)type title:(NSString *)title description:(NSString *)description actionTitle:(nullable NSString *)actionTitle actionBlock:(void (^ __nullable)(void))actionBlock {
@@ -915,12 +933,9 @@ static NSString * const reuseIdentifier = @"Result";
 
 - (void)tableViewDidScroll:(UITableView *)tableView {
     if (tableView == self.tableView) {
-        if (self.tableView.contentOffset.y > (-1 * self.tableView.contentInset.top)) {
-            self.coverPhotoView.frame = CGRectMake(0, 0.5 * (-self.tableView.contentOffset.y - self.tableView.contentInset.top), self.view.frame.size.width, self.tableView.contentInset.top);
-        }
-        else {
-            self.coverPhotoView.frame = CGRectMake(0, 0, self.view.frame.size.width, self.tableView.contentInset.top + (-self.tableView.contentOffset.y - self.tableView.contentInset.top));
-        }
+        CGFloat adjustedCoverPhotoHeight = coverPhotoHeight + self.tableView.adjustedContentInset.top;
+                
+        self.coverPhotoView.frame = CGRectMake(0, 0, self.view.frame.size.width, adjustedCoverPhotoHeight + -(self.tableView.contentOffset.y + self.tableView.adjustedContentInset.top));
         
         UIView *overlayView = [self.coverPhotoView viewWithTag:10];
         overlayView.frame = CGRectMake(0, 0, self.coverPhotoView.frame.size.width, self.coverPhotoView.frame.size.height);
@@ -928,6 +943,9 @@ static NSString * const reuseIdentifier = @"Result";
 }
 
 - (void)openCampActions {
+//    [Launcher openInviteToCamp:self.camp];
+//    return;
+    
     NSString *campShareLink = [NSString stringWithFormat:@"https://bonfire.camp/c/%@", self.camp.identifier];
     BOOL hasSnapchat = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"snapchat://"]];
     BOOL hasInstagram = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"instagram-stories://"]];
@@ -996,7 +1014,7 @@ static NSString * const reuseIdentifier = @"Result";
     }
 }
 
-#pragma mark - RSTableViewDelegate
+#pragma mark - BFComponentSectionTableViewDelegate
 - (UITableViewCell * _Nullable)cellForRowInFirstSection:(NSInteger)row {
     if (row == 0) {
         CampHeaderCell *cell = [self.tableView dequeueReusableCellWithIdentifier:campHeaderCellIdentifier forIndexPath:[NSIndexPath indexPathForRow:row inSection:0]];
@@ -1005,15 +1023,7 @@ static NSString * const reuseIdentifier = @"Result";
         
         BOOL emptyCampTitle = cell.camp.attributes.title.length == 0;
         BOOL emptyCamptag = cell.camp.attributes.identifier.length == 0;
-        if (self.loading) {
-            if (emptyCampTitle) {
-                cell.textLabel.text = @"Loading...";
-            }
-            if (emptyCamptag) {
-                cell.detailTextLabel.text = @"Loading...";
-            }
-        }
-        else {
+        if (!self.loading) {
             if (emptyCamptag) {
                 if (emptyCampTitle) {
                     cell.textLabel.text = @"Camp Not Found";
@@ -1177,7 +1187,7 @@ static NSString * const reuseIdentifier = @"Result";
                                                                                     @"action": ^{}
                                                                                     }];
     if ([self.camp.attributes.context.camp.permissions canUpdate]) {
-        if (!self.loading && self.camp.attributes.summaries.counts != nil && self.camp.attributes.summaries.counts.posts > 0 &&  self.camp.attributes.summaries.counts.icebreakers == 0 && ![[NSUserDefaults standardUserDefaults] boolForKey:@"upsells/icebreaker"]) {
+        if (!self.loading && self.camp.attributes.summaries.counts != nil && self.camp.attributes.summaries.counts.posts > 0 &&  self.camp.attributes.summaries.counts.icebreakers == 0 && ![[NSUserDefaults standardUserDefaults] boolForKey:[NSString stringWithFormat:@"upsells/icebreaker/%@", self.camp.identifier]]) {
             [upsell setObject:@"icebreakerSnowflake" forKey:@"image"];
             [upsell setObject:@"Introduce new members to the Camp\nwith an Icebreaker post when they join" forKey:@"text"];
             [upsell setObject:@"Add Icebreaker" forKey:@"action_title"];

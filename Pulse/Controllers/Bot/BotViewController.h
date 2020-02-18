@@ -8,21 +8,18 @@
 #import <UIKit/UIKit.h>
 #import "Session.h"
 #import "Bot.h"
-#import "ThemedViewController.h"
+#import "ThemedTableViewController.h"
 #import "CampListStream.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface BotViewController : ThemedViewController <UITableViewDataSource, UITableViewDelegate>
+@interface BotViewController : ThemedTableViewController <BFComponentTableViewDelegate>
 
 @property (strong, nonatomic) Bot *bot;
 
 @property (nonatomic, strong) CampListStream *stream;
 
-@property (strong, nonatomic) UITableView *tableView;
 @property (nonatomic, strong) UIImageView *coverPhotoView;
-
-@property (nonatomic) BOOL isPreview;
 
 - (void)openBotActions;
 

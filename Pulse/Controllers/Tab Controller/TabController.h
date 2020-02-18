@@ -13,7 +13,6 @@
 #import "SearchTableViewController.h"
 #import "CampStoreTableViewController.h"
 #import "HomeTableViewController.h"
-#import "CombinedHomeViewController.h"
 #import "ProfileViewController.h"
 #import "NotificationsTableViewController.h"
 #import "BFAvatarView.h"

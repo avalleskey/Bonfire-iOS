@@ -105,19 +105,12 @@
     [self setupNavigationBarItems];
 }
 
-- (void)dismissViewControllerAnimated:(BOOL)flag completion:(void (^)(void))completion {
-    __weak typeof(self) weakSelf = self;
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
     
-    [super dismissViewControllerAnimated:flag completion:^(void){
-        [[NSNotificationCenter defaultCenter] removeObserver:weakSelf];
-        for (UIViewController *viewController in self.viewControllers) {
-            [[NSNotificationCenter defaultCenter] removeObserver:viewController];
-        }
-        
-        if (completion) {
-            completion();
-        }
-    }];
+    for (UIViewController *viewController in self.viewControllers) {
+        [[NSNotificationCenter defaultCenter] removeObserver:viewController];
+    }
 }
 
 - (UIStatusBarStyle)preferredStatusBarStyle {
@@ -446,7 +439,7 @@
     searchViewWidth = searchViewWidth > IPAD_CONTENT_MAX_WIDTH ? IPAD_CONTENT_MAX_WIDTH : searchViewWidth;
     
     // create smart text field
-    self.searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(0, 0, searchViewWidth, 34)];
+    self.searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(0, 0, searchViewWidth, 36)];
     self.searchView.textField.delegate = self;
     [self.searchView.textField bk_addEventHandler:^(id sender) {
         if ([self.topViewController isKindOfClass:[SearchTableViewController class]]) {

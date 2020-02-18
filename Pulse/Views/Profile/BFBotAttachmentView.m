@@ -295,7 +295,6 @@
         UIMenu *menu = [UIMenu menuWithTitle:@"" children:@[]];
         
         BotViewController *botVC = [Launcher profileViewControllerForBot:self.bot];
-        botVC.isPreview = true;
         
         UIContextMenuConfiguration *configuration = [UIContextMenuConfiguration configurationWithIdentifier:@"bot_preview" previewProvider:^(){return botVC;} actionProvider:^(NSArray* suggestedAction){return menu;}];
         return configuration;

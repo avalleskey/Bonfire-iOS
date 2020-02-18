@@ -531,7 +531,7 @@ static Class ImageManagerClass = nil;
     [photoView cancelCurrentImageLoad];
     KSPhotoItem *item = [_photoItems objectAtIndex:_currentPage];
     [self setStatusBarHidden:NO];
-    photoView.progressLayer.hidden = YES;
+    photoView.progressView.hidden = YES;
     item.sourceView.alpha = 0;
 }
 
@@ -634,7 +634,7 @@ static Class ImageManagerClass = nil;
     KSPhotoItem *item = [_photoItems objectAtIndex:_currentPage];
     item.sourceView.alpha = 1;
     if (!item.finished) {
-        photoView.progressLayer.hidden = NO;
+        photoView.progressView.hidden = NO;
     }
     if (_bounces) {
         [UIView animateWithDuration:kSpringAnimationDuration delay:0 usingSpringWithDamping:0.6 initialSpringVelocity:0 options:kNilOptions animations:^{
@@ -729,7 +729,7 @@ static Class ImageManagerClass = nil;
         return;
     }
     
-    photoView.progressLayer.hidden = YES;
+    photoView.progressView.hidden = YES;
     item.sourceView.alpha = 0;
     CGRect sourceRect;
     float systemVersion = [[[UIDevice currentDevice] systemVersion] floatValue];

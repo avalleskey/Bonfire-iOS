@@ -63,8 +63,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) BFVisualError * _Nullable  visualError;
 @property (nonatomic, strong) NSString *insightSeenInLabel;
 
-@property BOOL loading;
-@property BOOL loadingMore;
+@property (nonatomic) BOOL loading;
+@property (nonatomic) BOOL loadingMore;
 @property (nonatomic, copy, nullable) void (^onScrollBlock)(void);
 
 @property (strong, nonatomic) NSMutableDictionary *cellHeightsDictionary;

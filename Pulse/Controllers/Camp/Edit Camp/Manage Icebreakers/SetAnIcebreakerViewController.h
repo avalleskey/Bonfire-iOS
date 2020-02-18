@@ -22,7 +22,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @end
 
-@interface SetAnIcebreakerViewController : ThemedTableViewController <UITableViewDataSource, UITableViewDelegate>
+@interface SetAnIcebreakerViewController : ThemedTableViewController <BFComponentTableViewDelegate>
 
 @property (nonatomic, strong) Camp *camp;
 

@@ -39,9 +39,12 @@
     [self.tableView reloadData];
 }
 
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
 - (void)setup {
     self.title = @"Settings";
-    [self.navigationController.navigationBar setTitleTextAttributes:@{NSForegroundColorAttributeName: [UIColor clearColor]}];
     //self.navigationController.navigationBar.prefersLargeTitles = true;
     //self.navigationItem.largeTitleDisplayMode = UINavigationItemLargeTitleDisplayModeAutomatic;
     self.smartListDelegate = self;
@@ -82,11 +85,13 @@
     if ([rowId isEqualToString:@"get_help"]) {
         Camp *camp = [[Camp alloc] init];
         camp.identifier = @"-5Orj2GW2ywG3";
+        camp.attributes = [[CampAttributes alloc] initWithDictionary:@{@"identifier": @"BonfireSupport", @"title": @"Bonfire Support"} error:nil];
         [Launcher openCamp:camp];
     }
     if ([rowId isEqualToString:@"give_feedback"]) {
         Camp *camp = [[Camp alloc] init];
         camp.identifier = @"-mb4egjBg9vYK";
+        camp.attributes = [[CampAttributes alloc] initWithDictionary:@{@"identifier": @"BonfireFeedback", @"title": @"Bonfire Feedback"} error:nil];
         [Launcher openCamp:camp];
     }
     if ([rowId isEqualToString:@"rate_app_store"]) {
@@ -139,7 +144,7 @@
 - (UIView *)alternativeViewForHeaderInSection:(NSInteger)section {
     if (section == 0) {
         BFIdentityAttachmentView *attachmentView = [[BFIdentityAttachmentView alloc] initWithIdentity:[Session sharedInstance].currentUser frame:CGRectMake(0, 0, self.view.frame.size.width, 100)];
-        attachmentView.backgroundColor = [UIColor clearColor];
+        attachmentView.backgroundColor = [UIColor contentBackgroundColor];
         attachmentView.userInteractionEnabled = false;
         attachmentView.layer.cornerRadius = 0;
         attachmentView.contentView.layer.cornerRadius = 0;
@@ -147,6 +152,12 @@
         attachmentView.headerBackdrop.hidden = true;
         attachmentView.showBio = false;
         attachmentView.showDetails = false;
+        attachmentView.layer.masksToBounds = false;
+        
+        UIView *hairline = [[UIView alloc] initWithFrame:CGRectMake(0, -HALF_PIXEL, attachmentView.frame.size.width, HALF_PIXEL)];
+        hairline.backgroundColor = [UIColor tableViewSeparatorColor];
+        [attachmentView addSubview:hairline];
+        
         return attachmentView;
     }
     

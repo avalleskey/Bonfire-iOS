@@ -21,6 +21,8 @@ FOUNDATION_EXPORT UIViewAnimationOptions const SSWNavigationTransitionCurve;
 
 @interface SSWAnimator : NSObject <UIViewControllerAnimatedTransitioning>
 
+@property (nonatomic, assign, getter = isAppearing) BOOL appearing;
+
 @property (nonatomic, weak) id<SSWAnimatorDelegate> delegate;
 
 @end

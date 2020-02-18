@@ -112,6 +112,10 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillDismiss:) name:UIKeyboardWillHideNotification object:nil];
 }
 
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
 - (void)campUpdated:(NSNotification *)notification {
     Camp *camp = notification.object;
     

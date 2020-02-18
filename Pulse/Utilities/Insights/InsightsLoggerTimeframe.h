@@ -26,7 +26,6 @@ extern NSString * const InsightSeenInCampView;
 extern NSString * const InsightSeenInPostView;
 extern NSString * const InsightSeenInProfileView;
 extern NSString * const InsightSeenInHomeView; // /streams/me
-extern NSString * const InsightSeenInTrendingView; // /streams/trending
 
 @property (nonatomic, copy) NSDate *ts_start;
 @property (nonatomic, copy) NSDate *ts_end;

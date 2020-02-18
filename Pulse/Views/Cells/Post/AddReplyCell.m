@@ -10,7 +10,7 @@
 #import "Session.h"
 #import "ReplyCell.h"
 #import "UIColor+Palette.h"
-#import "BFComponent.h"
+#import "BFPostStreamComponent.h"
 
 @interface AddReplyCell () <BFComponentProtocol>
 
@@ -120,7 +120,7 @@
     }
 }
 
-+ (CGFloat)heightForComponent:(BFComponent *)component {
++ (CGFloat)heightForComponent:(BFPostStreamComponent *)component {
     return [AddReplyCell height];
 }
 

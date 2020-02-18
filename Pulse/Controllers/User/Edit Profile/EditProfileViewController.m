@@ -64,43 +64,24 @@ static int const EMAIL_FIELD = 206;
 - (void)viewDidLoad {
     [super viewDidLoad];
     
+    self.user = [Session sharedInstance].currentUser;
+    inputValues = [NSMutableDictionary dictionary];
+    
     self.title = @"Edit Profile";
     self.view.backgroundColor = [UIColor tableViewBackgroundColor];
-        
-    self.user = [Session sharedInstance].currentUser;
-    
-    self.cancelButton = [[UIBarButtonItem alloc] initWithTitle:@"Cancel" style:UIBarButtonItemStylePlain target:self action:@selector(dismiss:)];
-    [self.cancelButton setTintColor:[UIColor whiteColor]];
-    [self.cancelButton setTitleTextAttributes:@{
-                                         NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightMedium]
-                                         } forState:UIControlStateNormal];
-    [self.cancelButton setTitleTextAttributes:@{
-                                              NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightMedium]
-                                              } forState:UIControlStateHighlighted];
-    self.navigationItem.leftBarButtonItem = self.cancelButton;
-    
-    self.saveButton = [[UIBarButtonItem alloc] bk_initWithTitle:@"Save" style:UIBarButtonItemStyleDone handler:^(id sender) {
-        [self saveChanges];
-    }];
-    [self.saveButton setTintColor:[UIColor whiteColor]];
-    [self.saveButton setTitleTextAttributes:@{
-                                           NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightBold]
-                                           } forState:UIControlStateNormal];
-    [self.saveButton setTitleTextAttributes:@{
-                                              NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightBold]
-                                              } forState:UIControlStateHighlighted];
-    self.navigationItem.rightBarButtonItem = self.saveButton;
-    
+            
     self.themeColor = [UIColor fromHex:[[Session sharedInstance] currentUser].attributes.color];
     self.view.tintColor = self.themeColor;
-    [(SimpleNavigationController *)self.navigationController updateBarColor:self.themeColor animated:false];
     
     [self setupTableView];
+    [self setupCoverPhotoView];
     
+    [self setupNavigation];
+    
+    [(SimpleNavigationController *)self.navigationController updateBarColor:self.themeColor animated:false];
+        
     // Google Analytics
     [FIRAnalytics setScreenName:@"Edit Profile" screenClass:nil];
-    
-    inputValues = [NSMutableDictionary dictionary];
 }
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
@@ -122,6 +103,34 @@ static int const EMAIL_FIELD = 206;
     [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillHideNotification object:nil];
 }
 
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+- (void)setupNavigation {
+    self.cancelButton = [[UIBarButtonItem alloc] initWithTitle:@"Cancel" style:UIBarButtonItemStylePlain target:self action:@selector(dismiss:)];
+    [self.cancelButton setTintColor:[UIColor whiteColor]];
+    [self.cancelButton setTitleTextAttributes:@{
+                                         NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightMedium]
+                                         } forState:UIControlStateNormal];
+    [self.cancelButton setTitleTextAttributes:@{
+                                              NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightMedium]
+                                              } forState:UIControlStateHighlighted];
+    self.navigationItem.leftBarButtonItem = self.cancelButton;
+    
+    self.saveButton = [[UIBarButtonItem alloc] bk_initWithTitle:@"Save" style:UIBarButtonItemStyleDone handler:^(id sender) {
+        [self saveChanges];
+    }];
+    [self.saveButton setTintColor:[UIColor whiteColor]];
+    [self.saveButton setTitleTextAttributes:@{
+                                           NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightBold]
+                                           } forState:UIControlStateNormal];
+    [self.saveButton setTitleTextAttributes:@{
+                                              NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightBold]
+                                              } forState:UIControlStateHighlighted];
+    self.navigationItem.rightBarButtonItem = self.saveButton;
+}
+
 - (void)setupTableView {
     self.tableView.delegate = self;
     self.tableView.dataSource = self;
@@ -130,10 +139,7 @@ static int const EMAIL_FIELD = 206;
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
     self.tableView.refreshControl = nil;
     self.tableView.layer.masksToBounds = false;
-    
-    [self setupCoverPhotoView];
-    self.tableView.contentOffset = CGPointMake(0, -1 * self.tableView.contentInset.top);
-    
+        
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:blankReuseIdentifier];
     
     [self.tableView registerClass:[ProfilePictureCell class] forCellReuseIdentifier:profilePictureReuseIdentifier];

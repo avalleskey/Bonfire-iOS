@@ -56,8 +56,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic) BOOL containsMention;
 @property (nonatomic) BOOL isCreator;
-@property (nonatomic) NSString <Optional> *prevCursor;
-@property (nonatomic) NSString <Optional> *nextCursor;
+@property (nonatomic) NSString <Optional> *themeColor;
 
 - (void)report;
 
@@ -83,6 +82,9 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic) NSArray <Optional> *media;
 // parent post ID --> used for Post replies
 @property (nonatomic) Post <Optional> *parent;
+@property (nonatomic) NSString <Optional> *parentId;
+@property (nonatomic) NSString <Optional> *parentCreatorUsername;
+
 @property (nonatomic) PostAttributesThread <Optional> *thread;
 @property (nonatomic) NSArray <Post *> <Post, Optional> * _Nullable replies;
 @property (nonatomic) Identity <Optional> * _Nullable creator;

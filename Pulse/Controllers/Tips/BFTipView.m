@@ -56,8 +56,8 @@
     self.frame = CGRectMake(12, [UIScreen mainScreen].bounds.size.height, [UIScreen mainScreen].bounds.size.width - 24, 0);
     self.layer.cornerRadius = 14.f;
     self.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.12].CGColor;
-    self.layer.shadowOffset = CGSizeMake(0, 1);
-    self.layer.shadowRadius = 2.f;
+    self.layer.shadowOffset = CGSizeMake(0, 1.5);
+    self.layer.shadowRadius = 1.f;
     self.layer.shadowOpacity = 1;
     self.layer.masksToBounds = false;
     
@@ -312,8 +312,8 @@
         [self.cta setTitleColor:[UIColor bonfireBrand] forState:UIControlStateNormal];
     }
     else if (style == BFTipViewStyleTable) {
-        self.backgroundColor = [UIColor bonfireDetailColor];
-        self.layer.shadowOpacity = 0;
+        self.backgroundColor = [UIColor contentBackgroundColor];
+        self.layer.shadowOpacity = 1;
         self.layer.borderWidth = HALF_PIXEL;
         
         self.blurView.alpha = 0;

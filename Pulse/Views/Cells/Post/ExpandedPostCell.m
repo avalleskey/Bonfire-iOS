@@ -385,10 +385,18 @@
         if (![self.replyingToButton isHidden]) {
             UIFont *font = [UIFont systemFontOfSize:14.f weight:UIFontWeightRegular];
                     
-            NSMutableAttributedString *attributedText = [[NSMutableAttributedString alloc] initWithString:((self.post.attributes.parent || self.post.attributes.thread.prevCursor) ? @"Replying to " : @"Loading...") attributes:@{NSFontAttributeName: font, NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
+            NSString *parentUsername = @"";
+            if (post.attributes.parent) {
+                parentUsername = post.attributes.parent.attributes.creator.attributes.identifier;
+            }
+            else if (post.attributes.parentCreatorUsername.length > 0) {
+                parentUsername = post.attributes.parentCreatorUsername;
+            }
             
-            if (self.post.attributes.parent) {
-                NSAttributedString *attributedCreatorText = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"@%@", post.attributes.parent.attributes.creator.attributes.identifier] attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:font.pointSize weight:UIFontWeightSemibold], NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
+            NSMutableAttributedString *attributedText = [[NSMutableAttributedString alloc] initWithString:((parentUsername.length > 0) ? @"Replying to " : @"Scroll up to see thread") attributes:@{NSFontAttributeName: font, NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
+            
+            if (parentUsername.length > 0) {
+                NSAttributedString *attributedCreatorText = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"@%@", parentUsername] attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:font.pointSize weight:UIFontWeightSemibold], NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
                 [attributedText appendAttributedString:attributedCreatorText];
             }
             
@@ -433,8 +441,6 @@
             self.textView.messageLabel.font = font;
             self.textView.postId = self.post.identifier;
             
-            [self.textView setMessage:self.post.attributes.simpleMessage entities:self.post.attributes.entities];
-            
             NSArray *media;
             if (self.post.attributes.attachments.media.count > 0) {
                 media = self.post.attributes.attachments.media;
@@ -446,6 +452,17 @@
                 media = @[];
             }
             [self.imagesView setMedia:media];
+            
+            if (self.imagesView.media.count > 0 && [PostImagesView useCaptionedImageViewForPost:self.post]) {
+                [self.textView setMessage:@"" entities:nil];
+                self.imagesView.caption = self.post.attributes.simpleMessage;
+                self.imagesView.captionTextView.backgroundColor = [UIColor fromHex:self.post.themeColor];
+                self.imagesView.captionTextView.textColor = [UIColor highContrastForegroundForBackground:self.imagesView.captionTextView.backgroundColor];
+            }
+            else {
+                [self.textView setMessage:self.post.attributes.simpleMessage entities:self.post.attributes.entities];
+                self.imagesView.caption = @"";
+            }
             
             // smart link attachment
             if ([self.post hasLinkAttachment]) {
@@ -558,6 +575,8 @@
             self.creatorTitleLabel.text = @"";
         }
         
+        self.creatorView.userInteractionEnabled = !self.post.attributes.creator.attributes.anonymous;
+        
         self.creatorTagLabel.text = creatorTag;
         
         if (![self.postedInButton isHidden]) {
@@ -624,7 +643,7 @@
     }
     else {
         // message
-        BOOL hasMessage = post.attributes.simpleMessage.length > 0;
+        BOOL hasMessage = post.attributes.simpleMessage.length > 0 && ![PostImagesView useCaptionedImageViewForPost:post];
         if (hasMessage) {
            UIFont *font = [post isEmojiPost] ? [UIFont systemFontOfSize:ceilf(expandedTextViewFont.pointSize*POST_EMOJI_SIZE_MULTIPLIER)] : expandedTextViewFont;
             CGFloat messageHeight = [PostTextView sizeOfBubbleWithMessage:post.attributes.simpleMessage withConstraints:CGSizeMake(contentWidth - expandedPostContentOffset.left - expandedPostContentOffset.right, CGFLOAT_MAX) font:font maxCharacters:[PostTextView entityBasedMaxCharactersForMessage:post.attributes.simpleMessage maxCharacters:CGFLOAT_MAX entities:post.attributes.entities] styleAsBubble:false].height;

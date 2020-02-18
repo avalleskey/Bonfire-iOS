@@ -114,6 +114,10 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillHideNotification object:nil];
 }
 
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
 - (void)themeSelectionDidChange:(NSString *)newHex {
     [self.inputValues setObject:newHex forKey:[NSIndexPath indexPathForRow:4 inSection:0]];
     
@@ -811,7 +815,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.section == 1) {
         if (indexPath.row == 0) {
-            ManageIcebreakersViewController *mibvc = [[ManageIcebreakersViewController alloc] initWithStyle:UITableViewStyleGrouped];
+            ManageIcebreakersViewController *mibvc = [[ManageIcebreakersViewController alloc] init];
             mibvc.view.tintColor = self.themeColor;
             mibvc.camp = self.camp;
 

@@ -7,7 +7,7 @@
 
 #import <UIKit/UIKit.h>
 #import "Session.h"
-#import "RSTableView.h"
+#import "BFComponentSectionTableView.h"
 #import "User.h"
 #import "Bot.h"
 #import "ThemedViewController.h"
@@ -15,12 +15,12 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface ProfileViewController : ThemedViewController <ComposeInputViewDelegate, RSTableViewDelegate>
+@interface ProfileViewController : ThemedViewController <ComposeInputViewDelegate, BFComponentSectionTableViewDelegate>
 
 @property (nonatomic, strong) User * _Nullable user;
 @property (nonatomic, strong) Bot * _Nullable bot;
 
-@property (nonatomic, strong) RSTableView * _Nullable tableView;
+@property (nonatomic, strong) BFComponentSectionTableView * _Nullable tableView;
 @property (nonatomic, strong) UIImageView *coverPhotoView;
 @property (nonatomic, strong) CAGradientLayer *coverPhotoViewOverlay;
 

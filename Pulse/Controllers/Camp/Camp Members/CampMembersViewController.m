@@ -107,6 +107,10 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     self.segmentedControl.frame = CGRectMake(0, self.navigationController.navigationBar.frame.size.height + self.navigationController.navigationBar.frame.origin.y, self.view.frame.size.width, 48);
 }
 
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
 - (void)campManagersUpdated:(NSNotification *)notification {
     if (![notification.object objectForKey:@"camp"] || ![notification.object objectForKey:@"type"])
         return;
@@ -225,7 +229,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     
     self.shareButton = [UIButton buttonWithType:UIButtonTypeCustom];
     self.shareButton.frame = CGRectMake(12, 8, self.view.frame.size.width - (12 * 2), baseHeight - (8 * 2));
-    self.shareButton.layer.cornerRadius = 12.f;
+    self.shareButton.layer.cornerRadius = 14.f;
     self.shareButton.layer.masksToBounds = true;
     self.shareButton.backgroundColor = [UIColor fromHex:[UIColor toHex:self.view.tintColor]];
     self.shareButton.adjustsImageWhenHighlighted = false;
@@ -340,7 +344,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
         }
         
         [section.userStream addLoadedCursor:nextCursor];
-        [params setObject:nextCursor forKey:@"cursor"];
+        [params setObject:nextCursor forKey:@"next_cursor"];
     }
     
     [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
@@ -353,7 +357,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
                 UserListStreamPage *page = [[UserListStreamPage alloc] initWithDictionary:responseObject error:nil];
                 
                 if (page.data.count > 0) {
-                    if (![params objectForKey:@"cursor"]) {
+                    if (![params objectForKey:@"next_cursor"]) {
                         // clear the stream (we retrieved a full page of notifs and the old ones are out of date)
                         section.userStream = [[UserListStream alloc] init];
                     }
@@ -951,6 +955,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
         navController.transitioningDelegate = [Launcher sharedInstance];
         navController.modalPresentationStyle = UIModalPresentationFullScreen;
         navController.currentTheme = [UIColor clearColor];
+        navController.shadowOnScroll = false;
         
         [[Launcher topMostViewController] presentViewController:navController animated:YES completion:nil];
     }

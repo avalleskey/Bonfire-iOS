@@ -20,6 +20,7 @@
 #import <NSString+EMOEmoji.h>
 #import "ResetPasswordViewController.h"
 #import "BFAlertController.h"
+#import <PINCache/PINCache.h>
 
 @import UserNotifications;
 @import Firebase;
@@ -113,6 +114,10 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillDismiss:) name:UIKeyboardWillHideNotification object:nil];
 }
 
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
 - (void)requestNotifications {
     [self.view endEditing:true];
     
@@ -163,6 +168,8 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     }];
 }
 - (void)receivedNotificationsUpdate:(NSNotification *)notificaiton {
+    [[PINCache sharedCache] removeAllObjects];
+    
     // last step: download defaults, then launch
     [[Session sharedInstance] initDefaultsWithCompletion:^(BOOL success) {
         NSLog(@"success fetching defaults ? %@", success ? @"YES" : @"NO");
@@ -290,7 +297,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     self.steps = [[NSMutableArray alloc] init];
     
     [self.steps addObject:@{@"id": @"user_email", @"skip": [NSNumber numberWithBool:false], @"next": @"Next", @"instruction": (self.signInLikely ? @"Hi again! 👋\nWhat's your email or username?" : @"Welcome to Bonfire!\nWhat’s your email?"), @"placeholder": (self.signInLikely ? @"Email or username" : @"Email Address"), @"sensitive": [NSNumber numberWithBool:false], @"keyboard": (self.signInLikely ? @"text" : @"email"), @"textField": [NSNull null], @"block": [NSNull null]}];
-    [self.steps addObject:@{@"id": @"user_password", @"skip": [NSNumber numberWithBool:false], @"next": @"Log In", @"instruction": @"Let's get you logged in!\nPlease enter your password", @"placeholder":@"Your Password", @"sensitive": [NSNumber numberWithBool:true], @"keyboard": @"text", @"textField": [NSNull null], @"block": [NSNull null]}];
+    [self.steps addObject:@{@"id": @"user_password", @"skip": [NSNumber numberWithBool:false], @"next": @"Sign In", @"instruction": @"Let's get you signed in!\nPlease enter your password", @"placeholder":@"Your Password", @"sensitive": [NSNumber numberWithBool:true], @"keyboard": @"text", @"textField": [NSNull null], @"block": [NSNull null]}];
     [self.steps addObject:@{@"id": @"user_set_password", @"skip": [NSNumber numberWithBool:false], @"next": @"Next", @"instruction": @"Let’s get you signed up!\nPlease set a password", @"placeholder": @"Password", @"sensitive": [NSNumber numberWithBool:true], @"keyboard": @"text", @"textField": [NSNull null], @"block": [NSNull null]}];
 //    [self.steps addObject:@{@"id": @"user_confirm_password", @"skip": [NSNumber numberWithBool:false], @"next": @"Confirm", @"instruction": @"Just to be sure... please\nconfirm your password", @"placeholder":@"Confirm Password", @"sensitive": [NSNumber numberWithBool:true], @"keyboard": @"text", @"textField": [NSNull null], @"block": [NSNull null]}];
     [self.steps addObject:@{@"id": @"user_dob", @"skip": [NSNumber numberWithBool:false], @"next": @"Next", @"instruction": @"What's your birthday?", @"block": [NSNull null]}];
@@ -1152,12 +1159,12 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     } completion:nil];
     
     [[HAWebService managerWithContentType:kCONTENT_TYPE_URL_ENCODED] POST:@"oauth" parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, NSDictionary *responseObject) {
-        [self removeSpinnerForStep:self.currentStep];
-        
         [[Session sharedInstance] setAccessToken:responseObject[@"data"]];
         
         // TODO: Open LauncherNavigationViewController
         [BFAPI getUser:^(BOOL success) {
+            [self removeSpinnerForStep:self.currentStep];
+            
             if (success) {
                 [FIRAnalytics logEventWithName:@"onboarding_signed_in"
                                     parameters:@{}];
@@ -1178,18 +1185,6 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             }
         }];
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-        [UIView animateWithDuration:0.25f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-            self.backButton.alpha = 1;
-            self.closeButton.alpha = 1;
-            forgotPasswordButton.alpha = 1;
-        } completion:nil];
-        
-        // not long enough –> shake input block
-        [self removeSpinnerForStep:self.currentStep];
-        [self shakeInputBlock];
-        
-        [self enableNextButton];
-        
         NSHTTPURLResponse *httpResponse = error.userInfo[AFNetworkingOperationFailingURLResponseErrorKey];
         NSInteger statusCode = httpResponse.statusCode;
         
@@ -1208,7 +1203,20 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         BFAlertController *alert = [BFAlertController alertControllerWithTitle:errorTitle message:errorMessage preferredStyle:BFAlertControllerStyleAlert];
         BFAlertAction *gotItAction = [BFAlertAction actionWithTitle:@"Okay" style:BFAlertActionStyleCancel handler:nil];
         [alert addAction:gotItAction];
-        [self presentViewController:alert animated:true completion:nil];
+        
+        // not long enough –> shake input block
+        [self removeSpinnerForStep:self.currentStep];
+        [self shakeInputBlock];
+        
+        [self enableNextButton];
+        
+        [UIView animateWithDuration:0.25f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+            self.backButton.alpha = 1;
+            self.closeButton.alpha = 1;
+            forgotPasswordButton.alpha = 1;
+        } completion:nil];
+        
+        [[Launcher topMostViewController] presentViewController:alert animated:true completion:nil];
     }];
 }
 - (void)attemptToSignUp {
@@ -1234,9 +1242,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
     [dateFormatter setDateFormat:@"yyyy-MM-dd"];
     NSString *dob = [dateFormatter stringFromDate:dobDatePicker.date];
-    
-//    NSLog(@"params: %@", @{@"email": email, @"password": password, @"display_name": displayName, @"dob": dob, @"username": username});
-    
+        
     [[HAWebService managerWithContentType:kCONTENT_TYPE_URL_ENCODED] POST:@"accounts" parameters:@{@"email": email, @"password": password, @"display_name": displayName, @"dob": dob, @"username": username} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         // NSLog(@"POST -> /accounts responseObject: %@", responseObject);
         
@@ -1378,9 +1384,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         }
     };
     
-    for (NSInteger i = 0; i < [campKeys count]; i++) {
-        NSString *campId = campKeys[i];
-        
+    for (NSString *campId in campKeys) {
         // follow the camp
         if (campId.length > 0) {
             // join camp

@@ -25,7 +25,12 @@ NSString * const BFMediaTypeVideo = @"media/video";
 
 @implementation BFContextCamp
 
-// camp status
+// camp role
+NSString * const CAMP_ROLE_MEMBER = @"member";
+NSString * const CAMP_ROLE_MODERATOR = @"moderator";
+NSString * const CAMP_ROLE_ADMIN = @"admin";
+
+// Camp Status Constants
 NSString * const CAMP_STATUS_INVITED = @"invited";
 NSString * const CAMP_STATUS_REQUESTED = @"requested";
 NSString * const CAMP_STATUS_MEMBER = @"member";
@@ -35,16 +40,8 @@ NSString * const CAMP_STATUS_NO_RELATION = @"none";
 //
 NSString * const CAMP_STATUS_LOADING = @"loading";
 
-// camp role
-NSString * const CAMP_ROLE_MEMBER = @"member";
-NSString * const CAMP_ROLE_MODERATOR = @"moderator";
-NSString * const CAMP_ROLE_ADMIN = @"admin";
-
-- (void)setStatusWithString:(NSString *)string {
-    if (![string isEqualToString:_status]) {
-        _status = string;
-    }
-}
+// Camp Wall Constants
+NSString * const CAMP_WALL_REQUEST = @"request";
 
 @end
 
@@ -223,10 +220,6 @@ NSString * const USER_STATUS_LOADING = @"loading";
 
 + (JSONKeyMapper *)keyMapper {
     return [JSONKeyMapper mapperForSnakeCase];
-}
-
-- (void)setStatusWithString:(NSString *)string {
-    self.status = string;
 }
 
 @end

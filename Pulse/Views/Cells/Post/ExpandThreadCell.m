@@ -10,6 +10,11 @@
 #import "ReplyCell.h"
 #import "StreamPostCell.h"
 #import "UIColor+Palette.h"
+#import "BFPostStreamComponent.h"
+
+@interface ExpandThreadCell () <BFComponentProtocol>
+
+@end
 
 @implementation ExpandThreadCell
 
@@ -30,7 +35,7 @@
         self.textLabel.font = [UIFont systemFontOfSize:15.f weight:UIFontWeightSemibold];
         self.textLabel.textColor = [UIColor bonfireSecondaryColor];
         
-        self.levelsDeep = 1;
+        self.levelsDeep = -1;
         
         self.morePostsIcon = [[UIImageView alloc] initWithImage:[[UIImage imageNamed:@"showMorePostsIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
         self.morePostsIcon.tintColor = [UIColor bonfireSecondaryColor];
@@ -59,7 +64,7 @@
     UIEdgeInsets contentEdgeInsets = [ReplyCell contentEdgeInsetsForLevel:self.levelsDeep];
     self.textLabel.frame = CGRectMake(contentEdgeInsets.left + REPLY_BUBBLE_INSETS.left, 0, self.frame.size.width - contentEdgeInsets.left - contentEdgeInsets.right - REPLY_BUBBLE_INSETS.right - REPLY_BUBBLE_INSETS.left, self.contentView.frame.size.height);
     
-    self.morePostsIcon.frame = CGRectMake([ReplyCell edgeInsetsForLevel:self.levelsDeep].left, self.contentView.frame.size.height / 2 - morePostsIconSize / 2, morePostsIconSize, morePostsIconSize);
+    self.morePostsIcon.frame = CGRectMake([ReplyCell edgeInsetsForLevel:self.levelsDeep].left, self.contentView.frame.size.height / 2 - morePostsIconSize / 2 + HALF_PIXEL, morePostsIconSize, morePostsIconSize);
     self.morePostsIcon.layer.cornerRadius = self.morePostsIcon.frame.size.width / 2;
 }
 
@@ -69,8 +74,30 @@
     } completion:nil];
 }
 
+- (void)setPost:(Post *)post {
+    if (post != _post) {
+        _post = post;
+        
+        BOOL hasExistingSubReplies = post.attributes.summaries.replies.count != 0;
+        self.textLabel.text = [NSString stringWithFormat:@"View%@ replies (%ld)", (hasExistingSubReplies ? @" more" : @""), (long)post.attributes.summaries.counts.replies - post.attributes.summaries.replies.count];
+        
+        if (hasExistingSubReplies) {
+            // view more replies
+            
+        }
+        else {
+            // start replies chain
+            
+        }
+    }
+}
+
 + (CGFloat)height {
-    return 32;
+    return 40;
+}
+
++ (CGFloat)heightForComponent:(nonnull BFPostStreamComponent *)component {
+    return [self height];
 }
 
 @end

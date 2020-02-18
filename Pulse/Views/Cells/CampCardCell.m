@@ -7,6 +7,7 @@
 //
 
 #import "CampCardCell.h"
+#import "UIColor+Palette.h"
 
 @implementation CampCardCell
 
@@ -21,19 +22,11 @@
     if (self) {
         self.camp = [[Camp alloc] init];
         
-        self.layer.cornerRadius = 15.f;
-        self.layer.masksToBounds = false;
-        self.layer.shadowRadius = 1.f;
-        self.layer.shadowOffset = CGSizeMake(0, 1.5);
-        self.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.06f].CGColor;
-        self.layer.shadowOpacity = 1.f;
+        [self setCornerRadiusType:BFCornerRadiusTypeMedium];
+        [self setElevation:1];
+        
         self.contentView.layer.cornerRadius = self.layer.cornerRadius;
         self.contentView.layer.masksToBounds = true;
-        self.layer.shouldRasterize = true;
-        self.layer.rasterizationScale = [UIScreen mainScreen].scale;
-        
-        self.layer.borderWidth = (1 / [UIScreen mainScreen].scale);
-        self.layer.borderColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.08].CGColor;
     }
     
     return self;
@@ -45,7 +38,7 @@
 
 - (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection {
     // support dark mode
-    self.layer.borderColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.1].CGColor;
+    [self themeChanged];
 }
 
 @end

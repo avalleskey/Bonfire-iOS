@@ -22,6 +22,10 @@
     return self;
 }
 
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
 - (id)initWithCoder:(NSCoder *)decoder {
     if (self = [super init]) {
         self.users = [decoder decodeObjectForKey:@"users"];

@@ -9,8 +9,16 @@
 #import "ButtonCell.h"
 #import "Session.h"
 #import "UIColor+Palette.h"
+#import "BFPostStreamComponent.h"
+
+@interface ButtonCell () <BFComponentProtocol>
+
+@end
 
 @implementation ButtonCell
+
+NSString *const ButtonCellTitleAttributeName = @"title";
+NSString *const ButtonCellTitleColorAttributeName = @"color";
 
 - (void)awakeFromNib {
     [super awakeFromNib];
@@ -122,6 +130,18 @@
             self.contentView.backgroundColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0];
         }
     } completion:nil];
+}
+
+- (void)action {
+    
+}
+
++ (CGFloat)height {
+    return 52;
+}
+
++ (CGFloat)heightForComponent:(BFPostStreamComponent *)component {
+    return [ButtonCell height];
 }
 
 @end

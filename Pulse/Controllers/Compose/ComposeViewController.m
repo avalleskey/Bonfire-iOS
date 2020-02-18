@@ -154,6 +154,10 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillHideNotification object:nil];
 }
 
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
 - (void)setupTableView {
     self.tableView = [[UITableView alloc] initWithFrame:self.view.bounds style:UITableViewStyleGrouped];
     self.tableView.delegate = self;
@@ -229,8 +233,13 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 - (void)privacySelectionDidSelectToPost:(Camp *)selection {
     self.postingIn = selection;
     
+    if (!self.postingIn) {
+        self.postToProfile = true;
+    }
+    
     [self postMessage];
     
+    self.view.userInteractionEnabled = false;
     [self.navigationController dismissViewControllerAnimated:true completion:nil];
 }
 - (void)updateTintColor {
@@ -1128,7 +1137,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             }
             
             cell.showContext = false;
-            cell.showCamptag = true;
+            cell.showPostedIn = true;
             cell.hideActions = true;
             
             cell.post = self.replyingTo;

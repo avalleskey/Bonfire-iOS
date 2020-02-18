@@ -41,6 +41,10 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(enteredForeground) name:@"applicationWillEnterForeground" object:nil];
 }
 
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
 - (void)loadCache {
     NSString *cacheKey = @"waitlist_invite_status";
     // load cache
@@ -98,26 +102,26 @@
             [UIView animateWithDuration:0.2f animations:^{
                 self.bigSpinner.alpha = 0;
             }];
-            
+
             BFAlertController *alert = [BFAlertController
                                        alertControllerWithTitle:([HAWebService hasInternet] ? @"Error Updating" : @"No Internet")
                                        message:@"Check your network settings and tap below to try again"
                                        preferredStyle:BFAlertControllerStyleAlert];
-            
+
             BFAlertAction *tryAgain = [BFAlertAction actionWithTitle:@"Try Again" style:BFAlertActionStyleDefault
                                                              handler:^{
                 [self setSpinning:true animated:false];
                 [self getRank:true];
-                
+
                 self.bigSpinner.alpha = 0;
                 [UIView animateWithDuration:0.2f animations:^{
                     self.bigSpinner.alpha = 1;
                 }];
             }];
-            
+
             [alert addAction:tryAgain];
             alert.preferredAction = tryAgain;
-            
+
             [[Launcher topMostViewController] presentViewController:alert animated:true completion:nil];
         }
     }];

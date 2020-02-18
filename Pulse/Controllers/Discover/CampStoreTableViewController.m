@@ -304,12 +304,12 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     if (indexPath.section == self.lists.count + 1) {
         if (indexPath.row == 0) {
             // suggest a feature #BonfireFeedback
-            Camp *camp = [[Camp alloc] initWithDictionary:@{@"id": @"-mb4egjBg9vYK", @"attributes": @{@"details": @{@"identifier": @"BonfireFeedback"}}} error:nil];
+            Camp *camp = [[Camp alloc] initWithDictionary:@{@"id": @"-mb4egjBg9vYK", @"attributes": @{@"identifier": @"BonfireFeedback", @"title": @"Bonfire Feedback"}} error:nil];
             [Launcher openCamp:camp];
         }
         else if (indexPath.row == 1) {
             // report bug
-            Camp *camp = [[Camp alloc] initWithDictionary:@{@"id": @"-wWoxVq1VBA6R", @"attributes": @{@"details": @{@"identifier": @"BonfireBugs"}}} error:nil];
+            Camp *camp = [[Camp alloc] initWithDictionary:@{@"id": @"-wWoxVq1VBA6R", @"attributes": @{@"identifier": @"BonfireBugs", @"title": @"Bonfire Bugs"}} error:nil];
             [Launcher openCamp:camp];
         }
     }

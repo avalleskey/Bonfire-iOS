@@ -8,7 +8,7 @@
 
 #import "KSPhotoView.h"
 #import "KSPhotoItem.h"
-#import "KSProgressLayer.h"
+#import "KSProgressView.h"
 #import "KSPhotoBrowser.h"
 
 const CGFloat kKSPhotoViewPadding = 10;
@@ -19,7 +19,7 @@ static UIColor *BackgroundColor = nil;
 @interface KSPhotoView ()<UIScrollViewDelegate, UIGestureRecognizerDelegate>
 
 @property (nonatomic, strong, readwrite) UIImageView *imageView;
-@property (nonatomic, strong, readwrite) KSProgressLayer *progressLayer;
+@property (nonatomic, strong, readwrite) KSProgressView *progressView;
 @property (nonatomic, strong, readwrite) KSPhotoItem *item;
 
 @end
@@ -46,17 +46,15 @@ static UIColor *BackgroundColor = nil;
         [self addSubview:_imageView];
         [self resizeImageView];
         
-        _progressLayer = [[KSProgressLayer alloc] initWithFrame:CGRectMake(0, 0, 40, 40)];
-        
-        _progressLayer.hidden = YES;
-        [self.layer addSublayer:_progressLayer];
+        _progressView = [[KSProgressView alloc] initWithFrame:CGRectMake(0, 0, 52, 52)];
+        [self addSubview:_progressView];
     }
     return self;
 }
 
 - (void)layoutSubviews {
     [super layoutSubviews];
-    _progressLayer.position = CGPointMake(self.bounds.size.width/2, self.bounds.size.height/2);
+    _progressView.center = CGPointMake(self.bounds.size.width/2, self.bounds.size.height/2);
 }
 
 - (void)setItem:(KSPhotoItem *)item determinate:(BOOL)determinate {
@@ -66,38 +64,34 @@ static UIColor *BackgroundColor = nil;
         if (item.image) {
             _imageView.image = item.image;
             _item.finished = YES;
-            [_progressLayer stopSpin];
-            _progressLayer.hidden = YES;
+            [_progressView stopSpin];
             [self resizeImageView];
             return;
         }
         __weak typeof(self) wself = self;
-        KSImageManagerProgressBlock progressBlock = nil;
-        if (determinate) {
-            progressBlock = ^(NSInteger receivedSize, NSInteger expectedSize) {
-                __strong typeof(wself) sself = wself;
-                double progress = (double)receivedSize / expectedSize;
-                sself.progressLayer.hidden = NO;
-                sself.progressLayer.strokeEnd = MAX(progress, 0.01);
-            };
-        } else {
-            [_progressLayer startSpin];
-        }
-        _progressLayer.hidden = NO;
+//        KSImageManagerProgressBlock progressBlock = nil;
+//        if (determinate) {
+//            progressBlock = ^(NSInteger receivedSize, NSInteger expectedSize) {
+//                __strong typeof(wself) sself = wself;
+//                double progress = (double)receivedSize / expectedSize;
+//                sself.progressView.hidden = NO;
+//            };
+//        } else {
+//            [_progressView startSpin];
+//        }
+        [_progressView startSpin];
         
         _imageView.image = item.thumbImage;
-        [KSPhotoBrowser.imageManagerClass setImageForImageView:_imageView withURL:item.imageUrl placeholder:item.thumbImage progress:progressBlock completion:^(UIImage *image, NSURL *url, BOOL finished, NSError *error) {
+        [KSPhotoBrowser.imageManagerClass setImageForImageView:_imageView withURL:item.imageUrl placeholder:item.thumbImage progress:nil completion:^(UIImage *image, NSURL *url, BOOL finished, NSError *error) {
             __strong typeof(wself) sself = wself;
             if (finished) {
                 [sself resizeImageView];
             }
-            [sself.progressLayer stopSpin];
-            sself.progressLayer.hidden = YES;
+            [sself.progressView stopSpin];
             sself.item.finished = YES;
         }];
     } else {
-        [_progressLayer stopSpin];
-        _progressLayer.hidden = YES;
+        [_progressView stopSpin];
         _imageView.image = nil;
     }
     [self resizeImageView];
@@ -134,7 +128,7 @@ static UIColor *BackgroundColor = nil;
 
 - (void)cancelCurrentImageLoad {
     [KSPhotoBrowser.imageManagerClass cancelImageRequestForImageView:_imageView];
-    [_progressLayer stopSpin];
+    [_progressView stopSpin];
 }
 
 - (BOOL)isScrollViewOnTopOrBottom {
@@ -186,7 +180,7 @@ static UIColor *BackgroundColor = nil;
 }
 
 + (UIColor *)backgroundColor {
-    return BackgroundColor ?: UIColor.darkGrayColor;
+    return BackgroundColor ?: [UIColor colorWithWhite:0.05 alpha:1];
 }
 
 

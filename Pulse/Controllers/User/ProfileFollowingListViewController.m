@@ -97,7 +97,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
         
         self.loadingMoreUsers = true;
         [self.stream addLoadedCursor:nextCursor];
-        [params setObject:nextCursor forKey:@"cursor"];
+        [params setObject:nextCursor forKey:@"next_cursor"];
     }
     else if (self.searchPhrase && self.searchPhrase.length > 0) {
         [params setObject:self.searchPhrase forKey:@"filter_query"];
@@ -115,7 +115,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
         UserListStreamPage *page = [[UserListStreamPage alloc] initWithDictionary:responseObject error:nil];
         
         if (page.data.count > 0) {
-            if ([params objectForKey:@"cursor"]) {
+            if ([params objectForKey:@"next_cursor"]) {
                 self.loadingMoreUsers = false;
             }
             else {
@@ -129,7 +129,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
         if (self.stream.users.count == 0) {
             self.errorView.hidden = false;
             
-            BFVisualError *visualError = [BFVisualError visualErrorOfType:ErrorViewTypeNoPosts title:@"No Users to Show" description:[NSString stringWithFormat:@"@%@ doesn't follow anyone", self.user.attributes.identifier] actionTitle:nil actionBlock:nil];
+            BFVisualError *visualError = [BFVisualError visualErrorOfType:ErrorViewTypeNoPosts title:@"No    to Show" description:[NSString stringWithFormat:@"@%@ doesn't follow anyone", self.user.attributes.identifier] actionTitle:nil actionBlock:nil];
             self.errorView.visualError = visualError;
             
             [self positionErrorView];

@@ -8,7 +8,8 @@
 #import <UIKit/UIKit.h>
 #import "ComposeInputView.h"
 #import "Session.h"
-#import "RSTableView.h"
+#import "BFComponentTableView.h"
+#import "BFComponentSectionTableView.h"
 #import "Camp.h"
 #import "ComposeInputView.h"
 #import "ThemedViewController.h"
@@ -18,21 +19,17 @@
 #import <MessageUI/MessageUI.h>
 #endif
 
-@interface CampViewController : ThemedViewController <UITextViewDelegate, RSTableViewDelegate>
+@interface CampViewController : ThemedViewController <UITextViewDelegate, BFComponentSectionTableViewDelegate>
 
 @property (nonatomic, strong) Camp *camp;
 
-@property (nonatomic, strong) UILabel *navTitle;
-
-@property (nonatomic, strong) RSTableView *tableView;
+@property (nonatomic, strong) BFComponentSectionTableView *tableView;
 @property (nonatomic, strong) UIImageView *coverPhotoView;
 
 @property (nonatomic, strong) ComposeInputView *composeInputView;
 
 @property (nonatomic) CGFloat currentKeyboardHeight;
 @property (nonatomic) BOOL isPreview;
-
-@property (nonatomic) BOOL shimmering;
 
 - (void)openCampActions;
 

@@ -138,7 +138,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
         
         self.loadingMoreCamps = true;
         [self.stream addLoadedCursor:nextCursor];
-        [params setObject:nextCursor forKey:@"cursor"];
+        [params setObject:nextCursor forKey:@"next_cursor"];
     }
     else {
         self.loading = true;
@@ -148,7 +148,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
         CampListStreamPage *page = [[CampListStreamPage alloc] initWithDictionary:responseObject error:nil];
         
         if (page.data.count > 0) {
-            if ([params objectForKey:@"cursor"]) {
+            if ([params objectForKey:@"next_cursor"]) {
                 self.loadingMoreCamps = false;
             }
             else {

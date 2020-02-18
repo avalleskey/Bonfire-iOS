@@ -7,7 +7,8 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "RSTableView.h"
+#import "BFComponentTableView.h"
+#import  "BFComponentSectionTableView.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -15,7 +16,10 @@ NS_ASSUME_NONNULL_BEGIN
 
 // views
 @property (nonatomic, strong) UITableView * _Nullable tableView;
-@property (nonatomic, strong) RSTableView * _Nullable rs_tableView;
+@property (nonatomic, strong) BFComponentTableView * _Nullable bfTableView;
+@property (nonatomic, strong) BFComponentSectionTableView * _Nullable sectionTableView;
+- (UITableView *)activeTableView;
+
 @property (nonatomic, strong) UIRefreshControl * refreshControl;
 @property (nonatomic, strong) UIImageView *bigSpinner;
 
@@ -23,6 +27,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) UIColor *theme;
 @property (nonatomic) BOOL spinning;
 @property (nonatomic) BOOL loading;
+@property (nonatomic) BOOL animateLoading; // default: YES
 
 // methods
 - (void)setSpinning:(BOOL)spinning animated:(BOOL)animated;

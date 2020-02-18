@@ -29,6 +29,9 @@ static HAWebService *manager;
 }
 
 + (HAWebService *)managerWithContentType:(NSString * _Nullable)contentType {
+    return [HAWebService managerWithContentType:contentType options:0];
+}
++ (HAWebService *)managerWithContentType:(NSString * _Nullable)contentType options:(HAWebServiceManagerOptions)options {
     if (!manager) {
         manager = [[HAWebService alloc] init];
     }
@@ -43,7 +46,11 @@ static HAWebService *manager;
     
     [manager addBonfireHeaders];
     [manager.requestSerializer setValue:contentType forHTTPHeaderField:@"Content-Type"];
-    [manager.requestSerializer setTimeoutInterval:15];
+    [manager.requestSerializer setTimeoutInterval:50];
+    
+    if (options & HAWebServiceManagerOptionAllowCache) {
+//        [manager.requestSerializer setCachePolicy:]
+    }
     
     return manager;
 }
@@ -73,7 +80,18 @@ static HAWebService *manager;
     [self.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", [Configuration API_KEY]] forHTTPHeaderField:@"Authorization"];
     NSDictionary *infoDict = [[NSBundle mainBundle] infoDictionary];
     NSString *appVersion = [infoDict objectForKey:@"CFBundleShortVersionString"];
-    [self.requestSerializer setValue:[NSString stringWithFormat:@"%@", [NSString stringWithFormat:@"iosClient/%@", appVersion]] forHTTPHeaderField:@"x-bonfire-client"];
+    NSString *buildNumber = [infoDict objectForKey:@"CFBundleVersion"];
+    NSString *clientString = [NSString stringWithFormat:@"iosClient/%@ b%@", appVersion, (buildNumber ? buildNumber : @"0")];
+    if ([Configuration isDebug]) {
+        clientString = [clientString stringByAppendingString:@"/debug"];
+    }
+    else if ([Configuration isBeta]) {
+        clientString = [clientString stringByAppendingString:@"/beta"];
+    }
+    else {
+        clientString = [clientString stringByAppendingString:@"/release"];
+    }
+    [self.requestSerializer setValue:[NSString stringWithFormat:@"%@", clientString] forHTTPHeaderField:@"x-bonfire-client"];
 }
 
 // In order to update the  the manager instance,

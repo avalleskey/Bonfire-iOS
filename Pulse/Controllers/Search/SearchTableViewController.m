@@ -23,13 +23,18 @@
 #import "ComplexNavigationController.h"
 #import "NSString+Validation.h"
 #import "BFVisualErrorView.h"
+#import "PaginationCell.h"
 @import Firebase;
 
-@interface SearchTableViewController ()
+@interface SearchTableViewController () {
+    NSInteger activeTab;
+}
 
 @property (nonatomic, strong) NSMutableArray *searchResults;
 @property (nonatomic, strong) NSMutableArray *recentSearchResults;
 @property (nonatomic, strong) BFVisualErrorView *errorView;
+
+@property (nonatomic, strong) UIView *segmentedControl;
 
 @end
 
@@ -37,6 +42,7 @@
 
 static NSString * const reuseIdentifier = @"Result";
 static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
+static NSString * const paginationCellReuseIdentifier = @"PaginationCell";
 
 - (id)init {
     self = [super init];
@@ -51,14 +57,18 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     
     self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] init];
     
-    [self setupErrorView];
     [self setupSearch];
+    [self setupErrorView];
+    [self createSegmentedControl];
+    [self positionErrorView];
     
     // Google Analytics
     [FIRAnalytics setScreenName:@"Search" screenClass:nil];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillChangeFrame:) name:UIKeyboardWillChangeFrameNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillDismiss:) name:UIKeyboardWillHideNotification object:nil];
+    
+    [self setNeedsStatusBarAppearanceUpdate];
 }
 
 - (void)viewDidDisappear:(BOOL)animated {
@@ -67,6 +77,25 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
+    
+    self.tableView.frame = self.view.bounds;
+    [self positionErrorView];
+    
+    [self setNeedsStatusBarAppearanceUpdate];
+}
+
+- (UIStatusBarStyle)preferredStatusBarStyle {
+    if ([UIColor useWhiteForegroundForColor:self.navigationController.navigationBar.barTintColor]) {
+        return UIStatusBarStyleLightContent;
+    }
+    else {
+        if (@available(iOS 13.0, *)) {
+            return UIStatusBarStyleDarkContent;
+        } else {
+            // Fallback on earlier versions
+            return UIStatusBarStyleDefault;
+        }
+    }
 }
 
 - (void)setupErrorView {
@@ -82,15 +111,20 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     [self emptySearchResults];
     [self initRecentSearchResults];
     
+    self.animateLoading = false;
+    
+    self.tableView = [[UITableView alloc] initWithFrame:self.view.bounds style:UITableViewStyleGrouped];
     self.tableView.delegate = self;
     self.tableView.dataSource = self;
-    self.tableView.backgroundColor = [UIColor contentBackgroundColor];
+    self.tableView.backgroundColor = [UIColor tableViewBackgroundColor];
     //self.tableView.contentInset = UIEdgeInsetsMake(self.navigationController.navigationBar.frame.origin.y + self.navigationController.navigationBar.frame.size.height, 0, 0, 0);
     self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
     
     [self.tableView registerClass:[SearchResultCell class] forCellReuseIdentifier:reuseIdentifier];
     [self.tableView registerClass:[ButtonCell class] forCellReuseIdentifier:buttonCellReuseIdentifier];
+    [self.tableView registerClass:[PaginationCell class] forCellReuseIdentifier:paginationCellReuseIdentifier];
+    [self.view addSubview:self.tableView];
     
     [self determineErrorViewVisibility];
 }
@@ -132,24 +166,30 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     NSString *searchText = [self currentSearchText];
     
     if (searchText.length == 0) {
+        self.loading = false;
         self.searchResults = [[NSMutableArray alloc] init];
         [self.tableView reloadData];
     }
     else {
+        self.loading = true;
+        
         NSString *url = @"search";
         NSString *originalSearchText = searchText;
         
-        if (searchText.length > 0 && [[searchText substringToIndex:1] isEqualToString:@"@"]) {
+        if (searchText.length > 0 &&
+            ([[searchText substringToIndex:1] isEqualToString:@"@"] || activeTab == 2)) {
             url = [url stringByAppendingString:@"/users"];
             searchText = [searchText stringByReplacingOccurrencesOfString:@"@" withString:@""];
         }
-        else if (searchText.length > 0 && [[searchText substringToIndex:1] isEqualToString:@"#"]) {
+        else if (searchText.length > 0 &&
+                 ([[searchText substringToIndex:1] isEqualToString:@"#"] || activeTab == 1)) {
             url = [url stringByAppendingString:@"/camps"];
-            searchText = [searchText stringByReplacingOccurrencesOfString:@"@" withString:@""];
+            searchText = [searchText stringByReplacingOccurrencesOfString:@"#" withString:@""];
         }
         
         [[HAWebService authenticatedManager] GET:url parameters:@{@"q": searchText} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
             if ([originalSearchText isEqualToString:[self currentSearchText]]) {
+                self.loading = false;
                 NSDictionary *responseData = (NSDictionary *)responseObject[@"data"];
                 
                 self.searchResults = [[NSMutableArray alloc] init];
@@ -167,10 +207,14 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
                 [self determineErrorViewVisibility];
             }
         } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-            NSLog(@"SearchTableViewController / getPosts() - error: %@", error);
-            //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-            [self.tableView reloadData];
-            [self determineErrorViewVisibility];
+            if ([originalSearchText isEqualToString:[self currentSearchText]]) {
+                self.loading = false;
+                
+                NSLog(@"SearchTableViewController / getPosts() - error: %@", error);
+                //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+                [self.tableView reloadData];
+                [self determineErrorViewVisibility];
+            }
         }];
     }
 }
@@ -222,16 +266,14 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     
     if (searchText.length > 0 && self.searchResults.count == 0 && !([self showRecents] &&  self.recentSearchResults.count == 0) && [searchText validateBonfireUsername] != BFValidationErrorNone && [searchText validateBonfireCampTag] != BFValidationErrorNone) {
         // Error: No posts yet!
-        self.errorView.hidden = false;
-        
         BFVisualError *visualError = [BFVisualError visualErrorOfType:ErrorViewTypeNotFound title:@"No Results Found" description:nil actionTitle:nil actionBlock:nil];
         self.errorView.visualError = visualError;
+        self.errorView.hidden = false;
     }
     else if (searchText.length == 0 && [self tableView:self.tableView numberOfRowsInSection:0] == 0) {
-        self.errorView.hidden = false;
-        
         BFVisualError *visualError = [BFVisualError visualErrorOfType:ErrorViewTypeSearch title:@"Start typing..." description:nil actionTitle:nil actionBlock:nil];
         self.errorView.visualError = visualError;
+        self.errorView.hidden = false;
     }
     else {
         self.errorView.hidden = true;
@@ -243,7 +285,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
 }
 
 - (void)positionErrorView {
-    self.errorView.center = CGPointMake(self.view.frame.size.width / 2, (self.tableView.frame.size.height - self.tableView.adjustedContentInset.top - _currentKeyboardHeight) / 2);
+    self.errorView.center = CGPointMake(self.view.frame.size.width / 2, (self.tableView.frame.size.height - _currentKeyboardHeight) / 2 - (self.segmentedControl.frame.size.height / 2));
 }
 
 #pragma mark - Table view data source
@@ -257,8 +299,21 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
         searchText = ((ComplexNavigationController *)self.navigationController).searchView.textField.text;
     }
     
-    if (indexPath.section == 1 &&
-        searchText.length > 0 &&
+    if (self.loading && indexPath.row == 0) {
+        // loading cell
+        PaginationCell *cell = [tableView dequeueReusableCellWithIdentifier:paginationCellReuseIdentifier forIndexPath:indexPath];
+        
+        if (cell == nil) {
+            cell = [[PaginationCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:paginationCellReuseIdentifier];
+        }
+        
+        cell.backgroundColor = [UIColor contentBackgroundColor];
+        [cell.spinner startAnimating];
+        
+        return cell;
+    }
+    
+    if (searchText.length > 0 &&
         self.searchResults.count == 0) {
         ButtonCell *cell = [tableView dequeueReusableCellWithIdentifier:buttonCellReuseIdentifier forIndexPath:indexPath];
         
@@ -284,6 +339,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
             cell.buttonLabel.text = [NSString stringWithFormat:@"Go to @%@", [searchText stringByReplacingOccurrencesOfString:@"@" withString:@""]];
         }
         
+        cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
         cell.gutterPadding = 12;
         UIView *separator = [cell viewWithTag:10];
         if (!separator) {
@@ -309,7 +365,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
                 
         NSObject *object;
         // mix of types
-        if (indexPath.section == 0) {
+        if ([self showRecents]) {
             object = self.recentSearchResults[indexPath.row];
             cell.lineSeparator.hidden = (indexPath.row == self.recentSearchResults.count - 1);
         }
@@ -341,6 +397,10 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     }
 }
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (self.loading && indexPath.row == 0) {
+        return 68;
+    }
+        
     NSString *searchText;
     if ([self.navigationController isKindOfClass:[SearchNavigationController class]]) {
         searchText = ((SearchNavigationController *)self.navigationController).searchView.textField.text;
@@ -349,8 +409,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
         searchText = ((ComplexNavigationController *)self.navigationController).searchView.textField.text;
     }
     
-    if (indexPath.section == 1 &&
-        searchText.length > 0 &&
+    if (searchText.length > 0 &&
         self.searchResults.count == 0) {
         return 52;
     }
@@ -358,17 +417,9 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     return 68;
 }
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    return 2;
+    return 1;
 }
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    if ([self isOverlay]) {
-        [self handleCellTapForIndexPath:indexPath];
-    }
-    else {
-        [self handleCellTapForIndexPath:indexPath];
-    }
-}
-- (void)handleCellTapForIndexPath:(NSIndexPath *)indexPath {
     // mix of types
     BFSearchView *searchView;
     if ([self.navigationController isKindOfClass:[SearchNavigationController class]]) {
@@ -379,8 +430,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     }
     NSString *searchText = searchView.textField.text;
     
-    if (indexPath.section == 1 &&
-        searchText.length > 0 &&
+    if (searchText.length > 0 &&
         self.searchResults.count == 0) {
         if (indexPath.row == 0 && [searchText validateBonfireCampTag] == BFValidationErrorNone) {
             // Go to #{camptag}
@@ -407,7 +457,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     else {
         NSObject *object;
         
-        if (indexPath.section == 0) {
+        if ([self showRecents]) {
             object = self.recentSearchResults[indexPath.row];
         }
         else {
@@ -427,15 +477,16 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     
     [searchView.textField resignFirstResponder];
 }
-- (BOOL)isOverlay {
-    return self.navigationController.tabBarController == nil;
-}
-
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    if (section == 0 && [self showRecents]) {
+    if (section != 0) return 0;
+    
+    if (self.loading) {
+        return 1;
+    }
+    else if ([self showRecents]) {
         return self.recentSearchResults.count;
     }
-    else if (section == 1) {
+    else {
         NSString *searchText;
         if ([self.navigationController isKindOfClass:[SearchNavigationController class]]) {
             searchText = ((SearchNavigationController *)self.navigationController).searchView.textField.text;
@@ -478,17 +529,29 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    return CGFLOAT_MIN;
+    if ([self showRecents] && self.recentSearchResults.count == 0) return CGFLOAT_MIN;
+    
+    return HALF_PIXEL;
 }
 
 - (nullable UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
-    return nil;
+    if ([self showRecents] && self.recentSearchResults.count == 0) return nil;
+    
+    UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, HALF_PIXEL)];
+    separator.backgroundColor = [UIColor tableViewSeparatorColor];
+    return separator;
 }
 - (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
-    return CGFLOAT_MIN;
+    if ([self showRecents] && self.recentSearchResults.count == 0) return CGFLOAT_MIN;
+    
+    return HALF_PIXEL;
 }
 - (UIView*)tableView:(UITableView*)tableView viewForFooterInSection:(NSInteger)section {
-    return nil;
+    if ([self showRecents] && self.recentSearchResults.count == 0) return nil;
+    
+    UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, HALF_PIXEL)];
+    separator.backgroundColor = [UIColor tableViewSeparatorColor];
+    return separator;
 }
 
 - (void)searchFieldDidBeginEditing {
@@ -509,20 +572,19 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     [NSObject cancelPreviousPerformRequestsWithTarget:self];
     
     if (searchText.length > 0) {
+        self.loading = true;
+        
         CGFloat delay = (searchText.length == 1) ? 0 : 0.1f;
         [self.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:NO];
         [self performSelector:@selector(getSearchResults) withObject:nil afterDelay:delay];
-        [self.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:NO];
     }
     else {
+        self.loading = false;
         self.searchResults = [[NSMutableArray alloc] init];
     }
     
     [self.tableView reloadData];
     [self determineErrorViewVisibility];
-}
-- (void)updateTable {
-    
 }
 - (void)searchFieldDidEndEditing {
     [self.tableView reloadData];
@@ -552,6 +614,9 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     CGRect keyboardFrameBeginRect = [keyboardFrameBegin CGRectValue];
     _currentKeyboardHeight = keyboardFrameBeginRect.size.height;
     
+    self.tableView.contentInset = UIEdgeInsetsMake(self.tableView.contentInset.top, self.tableView.contentInset.left, _currentKeyboardHeight - [UIApplication sharedApplication].keyWindow.safeAreaInsets.bottom, self.tableView.contentInset.right);
+    self.tableView.scrollIndicatorInsets = self.tableView.contentInset;
+    
     [self positionErrorView];
 }
 
@@ -560,6 +625,9 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     
     NSNumber *duration = [notification.userInfo objectForKey:UIKeyboardAnimationDurationUserInfoKey];
     [UIView animateWithDuration:[duration floatValue] delay:0 options:[[notification.userInfo objectForKey:UIKeyboardAnimationCurveUserInfoKey] intValue] << 16 animations:^{
+        self.tableView.contentInset = UIEdgeInsetsMake(self.tableView.contentInset.top, self.tableView.contentInset.left, self.currentKeyboardHeight, self.tableView.contentInset.right);
+        self.tableView.scrollIndicatorInsets = self.tableView.contentInset;
+        
         [self positionErrorView];
     } completion:nil];
 }
@@ -577,21 +645,121 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
             [simpleNav childTableViewDidScroll:self.tableView];
         }
     }
+}
+
+- (void)createSegmentedControl {
+    NSArray *tabs = @[@"All", @"Camps", @"Users"];
     
-    CGFloat normalizedScrollViewContentOffsetY = scrollView.contentOffset.y + scrollView.adjustedContentInset.top;
+    self.segmentedControl = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 48)];
+    self.segmentedControl.backgroundColor = [UIColor colorNamed:@"Navigation_ClearBackgroundColor"];
     
-    if ([self.navigationController isKindOfClass:[SearchNavigationController class]]) {
-        if (normalizedScrollViewContentOffsetY > 0) {
-            if (((SearchNavigationController *)self.navigationController).bottomHairline.alpha == 0) {
-                [(SearchNavigationController *)self.navigationController setShadowVisibility:YES withAnimation:false];
-            }
+    UIView *lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, self.segmentedControl.frame.size.height, self.view.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+    lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
+    [self.segmentedControl addSubview:lineSeparator];
+    [self.view addSubview:self.segmentedControl];
+        
+    // add segmented control segments
+    CGFloat buttonWidth = (tabs.count > 3 ? 0 : self.view.frame.size.width / tabs.count); // buttonWidth of 0 denotes a dynamic width button
+    CGFloat buttonPadding = 0; // only used if the button has a dynamic width
+    CGFloat lastButtonX = 0;
+    
+    UIView *selectedBackground = [[UIView alloc] initWithFrame:CGRectMake(0, self.segmentedControl.frame.size.height - 2, buttonWidth, 2)];
+    selectedBackground.layer.cornerRadius = 1;
+    selectedBackground.backgroundColor = [UIColor bonfirePrimaryColor];
+//    selectedBackground.layer.shadowColor = [UIColor blackColor].CGColor;
+//    selectedBackground.layer.shadowOffset = CGSizeMake(0, 1);
+//    selectedBackground.layer.shadowRadius = 1.5f;
+//    selectedBackground.layer.shadowOpacity = 0.06;
+    selectedBackground.tag = 5;
+    [self.segmentedControl addSubview:selectedBackground];
+    
+    for (NSInteger i = 0; i < tabs.count; i++) {
+        UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+        button.tag = i;
+        [button.titleLabel setFont:[UIFont systemFontOfSize:16.f weight:UIFontWeightSemibold]];
+        [button setTitle:tabs[i] forState:UIControlStateNormal];
+        
+        if (buttonWidth == 0) {
+            CGFloat buttonTextWidth = ceilf([button.currentTitle boundingRectWithSize:CGSizeMake(self.view.frame.size.width, self.segmentedControl.frame.size.height) options:(NSStringDrawingUsesFontLeading|NSStringDrawingUsesLineFragmentOrigin) attributes:@{NSFontAttributeName:button.titleLabel.font} context:nil].size.width);
+            button.frame = CGRectMake(lastButtonX, 0, buttonTextWidth + (buttonPadding * 2), self.segmentedControl.frame.size.height);
         }
         else {
-            if (((SearchNavigationController *)self.navigationController).bottomHairline.alpha == 1) {
-                [(SearchNavigationController *)self.navigationController setShadowVisibility:NO withAnimation:false];
+            button.frame = CGRectMake(lastButtonX, 0, buttonWidth, self.segmentedControl.frame.size.height);
+        }
+        
+        [button bk_whenTapped:^{
+            [self.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:YES];
+            
+            [HapticHelper generateFeedback:FeedbackType_Selection];
+            
+            [self.view endEditing:TRUE];
+            [self tabTappedAtIndex:button.tag];
+        }];
+        
+        [button bk_addEventHandler:^(id sender) {
+            [UIView animateWithDuration:0.6f delay:0 usingSpringWithDamping:0.6f initialSpringVelocity:0.5f options:(UIViewAnimationOptionCurveEaseOut|UIViewAnimationOptionAllowUserInteraction) animations:^{
+                button.alpha = 0.5;
+            } completion:nil];
+        } forControlEvents:UIControlEventTouchDown];
+        [button bk_addEventHandler:^(id sender) {
+            [UIView animateWithDuration:0.5f delay:0.15 usingSpringWithDamping:0.6f initialSpringVelocity:0.5f options:(UIViewAnimationOptionCurveEaseOut|UIViewAnimationOptionAllowUserInteraction) animations:^{
+                button.alpha = 1;
+            } completion:nil];
+        } forControlEvents:(UIControlEventTouchUpInside|UIControlEventTouchCancel|UIControlEventTouchDragExit)];
+        
+//        if (i < tabs.count - 1) {
+//            // => not the last tab
+//            UIView *horizontalSeparator = [[UIView alloc] initWithFrame:CGRectMake(button.frame.size.width - (1 / [UIScreen mainScreen].scale), 14, (1 / [UIScreen mainScreen].scale), 24)];
+//            horizontalSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
+//            [button addSubview:horizontalSeparator];
+//        }
+        
+        [self.segmentedControl addSubview:button];
+        
+        lastButtonX = button.frame.origin.x + button.frame.size.width;
+    }
+    
+    self.tableView.contentInset = UIEdgeInsetsMake(self.segmentedControl.frame.size.height, 0, self.tableView.contentInset.bottom, 0);
+    self.tableView.scrollIndicatorInsets = self.tableView.contentInset;
+    
+    activeTab = -1;
+    [self tabTappedAtIndex:0];
+}
+
+- (void)tabTappedAtIndex:(NSInteger)tabIndex {
+    if (tabIndex != activeTab) {
+        activeTab = tabIndex;
+    
+        UIButton *selectedButton;
+        for (UIButton *button in self.segmentedControl.subviews) {
+            if (![button isKindOfClass:[UIButton class]]) continue;
+            
+            if (button.tag == tabIndex) {
+                selectedButton = button;
+                [button setTitleColor:[UIColor bonfirePrimaryColor] forState:UIControlStateNormal];
+                button.titleLabel.font = [UIFont systemFontOfSize:button.titleLabel.font.pointSize weight:UIFontWeightBold];
+            }
+            else {
+                [button setTitleColor:[UIColor bonfireSecondaryColor] forState:UIControlStateNormal];
+                button.titleLabel.font = [UIFont systemFontOfSize:button.titleLabel.font.pointSize weight:UIFontWeightSemibold];
             }
         }
+        
+        if (selectedButton) {
+            UIView *selectedBackground = [self.segmentedControl viewWithTag:5];
+            CGFloat scale = selectedButton.transform.a;
+            [UIView animateWithDuration:0.15f delay:0 usingSpringWithDamping:0.95f initialSpringVelocity:0.5f options:(UIViewAnimationOptionCurveEaseOut|UIViewAnimationOptionAllowUserInteraction) animations:^{
+                SetWidth(selectedBackground, selectedButton.frame.size.width / scale);
+                selectedBackground.center = CGPointMake(selectedButton.frame.origin.x + selectedButton.frame.size.width / 2, selectedBackground.center.y);
+            } completion:^(BOOL finished) {
+            }];
+        }
+        
+        [self loadTabData:false];
     }
+}
+- (void)loadTabData:(BOOL)forceRefresh {
+    [self searchFieldDidChange];
 }
 
 @end

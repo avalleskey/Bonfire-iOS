@@ -39,39 +39,16 @@
 - (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier {
     self = [super initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:reuseIdentifier];
     if (self) {
-        self.backgroundColor = [UIColor contentBackgroundColor];
-        
-        self.contentView.layer.masksToBounds = false;
-        self.layer.masksToBounds = false;
-        
-        self.textLabel.font = CAMP_HEADER_NAME_FONT;
-        self.textLabel.textColor = [UIColor bonfirePrimaryColor];
-        self.textLabel.textAlignment = NSTextAlignmentCenter;
-        self.textLabel.numberOfLines = 0;
-        self.textLabel.lineBreakMode = NSLineBreakByWordWrapping;
-        
-        // username
-        //UIFont *heavyItalicFont = [UIFont fontWithDescriptor:[[[UIFont systemFontOfSize:CAMP_HEADER_TAG_FONT.pointSize weight:UIFontWeightHeavy] fontDescriptor] fontDescriptorWithSymbolicTraits:UIFontDescriptorTraitItalic] size:CAMP_HEADER_TAG_FONT.pointSize];
-        self.detailTextLabel.font = [UIFont systemFontOfSize:CAMP_HEADER_TAG_FONT.pointSize weight:UIFontWeightHeavy];
-        self.detailTextLabel.textAlignment = NSTextAlignmentCenter;
-        self.detailTextLabel.textColor = [UIColor bonfireSecondaryColor];
-        self.detailTextLabel.numberOfLines = 0;
-        self.detailTextLabel.lineBreakMode = NSLineBreakByWordWrapping;
-        self.detailTextLabel.backgroundColor = [UIColor clearColor];
-        
-        self.descriptionLabel = [[UILabel alloc] init];
-        self.descriptionLabel.font = CAMP_HEADER_DESCRIPTION_FONT;
-        self.descriptionLabel.textAlignment = NSTextAlignmentCenter;
-        self.descriptionLabel.textColor = [UIColor bonfirePrimaryColor];
-        self.descriptionLabel.numberOfLines = 0;
-        self.descriptionLabel.lineBreakMode = NSLineBreakByWordWrapping;
-        [self.contentView addSubview:self.descriptionLabel];
-        
-        // general cell styling
         self.selectionStyle = UITableViewCellSelectionStyleNone;
         
-        CGFloat profilePicBorderWidth = 6;
-        self.avatarContainer = [[UIView alloc] initWithFrame:CGRectMake(0, CAMP_HEADER_EDGE_INSETS.top - profilePicBorderWidth, CAMP_HEADER_AVATAR_SIZE + (profilePicBorderWidth * 2), CAMP_HEADER_AVATAR_SIZE + (profilePicBorderWidth * 2))];
+        self.backgroundColor = [UIColor clearColor];
+        self.contentView.backgroundColor = [UIColor contentBackgroundColor];
+        
+        self.clipsToBounds = NO;                        //cell's view
+        self.contentView.clipsToBounds = NO;            //contentView
+        self.contentView.superview.clipsToBounds = NO;  //scrollView
+        
+        self.avatarContainer = [[UIView alloc] initWithFrame:CGRectMake(0, CAMP_HEADER_EDGE_INSETS.top - CAMP_HEADER_AVATAR_BORDER_WIDTH, CAMP_HEADER_AVATAR_SIZE + (CAMP_HEADER_AVATAR_BORDER_WIDTH * 2), CAMP_HEADER_AVATAR_SIZE + (CAMP_HEADER_AVATAR_BORDER_WIDTH * 2))];
         self.avatarContainer.backgroundColor = [UIColor contentBackgroundColor];
         self.avatarContainer.layer.cornerRadius = self.avatarContainer.frame.size.height / 2;
         self.avatarContainer.layer.masksToBounds = false;
@@ -80,10 +57,9 @@
         self.avatarContainer.layer.shadowRadius = 2.f;
         self.avatarContainer.layer.shadowOpacity = 0.12;
         self.avatarContainer.center = CGPointMake(self.contentView.frame.size.width / 2, self.avatarContainer.center.y);
+        [self addSubview:self.avatarContainer];
         
-        [self.contentView addSubview:self.avatarContainer];
-        
-        self.campAvatar = [[BFAvatarView alloc] initWithFrame:CGRectMake(profilePicBorderWidth, profilePicBorderWidth, CAMP_HEADER_AVATAR_SIZE, CAMP_HEADER_AVATAR_SIZE)];
+        self.campAvatar = [[BFAvatarView alloc] initWithFrame:CGRectMake(CAMP_HEADER_AVATAR_BORDER_WIDTH, CAMP_HEADER_AVATAR_BORDER_WIDTH, CAMP_HEADER_AVATAR_SIZE, CAMP_HEADER_AVATAR_SIZE)];
         self.campAvatar.dimsViewOnTap = true;
         [self.campAvatar bk_whenTapped:^{
             void(^expandProfilePic)(void) = ^() {
@@ -130,7 +106,6 @@
                 }
             }
         }
-        
         [self.avatarContainer addSubview:self.campAvatar];
         
         self.campAvatarReasonView = [[UIView alloc] initWithFrame:CGRectMake(self.campAvatar.frame.size.width - 40 + 6, self.campAvatar.frame.size.height - 40 + 6, 40, 40)];
@@ -204,7 +179,7 @@
                 [[Launcher topMostViewController] presentViewController:actionSheet animated:true completion:nil];
             }
         }];
-        [self.contentView addSubview:self.campAvatarReasonView];
+        [self addSubview:self.campAvatarReasonView];
         
         self.campAvatarReasonLabel = [[UILabel alloc] initWithFrame:self.campAvatarReasonView.bounds];
         self.campAvatarReasonLabel.textAlignment = NSTextAlignmentCenter;
@@ -243,6 +218,27 @@
         
         [self addTapHandlers:@[self.member2, self.member2, self.member3, self.member4, self.member5, self.member6, self.member7]];
         
+        self.textLabel.font = CAMP_HEADER_NAME_FONT;
+        self.textLabel.textColor = [UIColor bonfirePrimaryColor];
+        self.textLabel.textAlignment = NSTextAlignmentCenter;
+        self.textLabel.numberOfLines = 0;
+        self.textLabel.lineBreakMode = NSLineBreakByWordWrapping;
+
+        self.detailTextLabel.font = [UIFont systemFontOfSize:CAMP_HEADER_TAG_FONT.pointSize weight:UIFontWeightHeavy];
+        self.detailTextLabel.textAlignment = NSTextAlignmentCenter;
+        self.detailTextLabel.textColor = [UIColor bonfireSecondaryColor];
+        self.detailTextLabel.numberOfLines = 0;
+        self.detailTextLabel.lineBreakMode = NSLineBreakByWordWrapping;
+        self.detailTextLabel.backgroundColor = [UIColor clearColor];
+        
+        self.descriptionLabel = [[UILabel alloc] init];
+        self.descriptionLabel.font = CAMP_HEADER_DESCRIPTION_FONT;
+        self.descriptionLabel.textAlignment = NSTextAlignmentCenter;
+        self.descriptionLabel.textColor = [UIColor bonfirePrimaryColor];
+        self.descriptionLabel.numberOfLines = 0;
+        self.descriptionLabel.lineBreakMode = NSLineBreakByWordWrapping;
+        [self.contentView addSubview:self.descriptionLabel];
+        
         self.detailsCollectionView = [[BFDetailsCollectionView alloc] initWithFrame:CGRectMake(CAMP_HEADER_EDGE_INSETS.left, 0, [UIScreen mainScreen].bounds.size.width - CAMP_HEADER_EDGE_INSETS.left - CAMP_HEADER_EDGE_INSETS.right, 16)];
         [self.contentView addSubview:self.detailsCollectionView];
         
@@ -261,39 +257,51 @@
                      [self.actionButton.status isEqualToString:CAMP_STATUS_NO_RELATION] ||
                      [self.actionButton.status isEqualToString:CAMP_STATUS_INVITED] ||
                      self.actionButton.status.length == 0) {
-                // join the camp
-                if ([self.camp isPrivate] &&
-                    ![self.actionButton.status isEqualToString:CAMP_STATUS_INVITED]) {
-                    [self.actionButton updateStatus:CAMP_STATUS_REQUESTED];
+                if ([self.camp isSupported]) {
+                    // join the camp
+                    if ([self.camp isPrivate] &&
+                        ![self.actionButton.status isEqualToString:CAMP_STATUS_INVITED]) {
+                        [self.actionButton updateStatus:CAMP_STATUS_REQUESTED];
+                    }
+                    else {
+                        // since they've been invited already, jump straight to being a member
+                        [self.actionButton updateStatus:CAMP_STATUS_MEMBER];
+                    }
+                    [self updateCampStatus];
+                    
+                    [HapticHelper generateFeedback:FeedbackType_Notification_Success];
+                    
+                    [BFAPI followCamp:self.camp completion:^(BOOL success, id responseObject) {
+                        if (success) {
+                        }
+                    }];
                 }
                 else {
-                    // since they've been invited already, jump straight to being a member
-                    [self.actionButton updateStatus:CAMP_STATUS_MEMBER];
+                    BFAlertController *alert = [BFAlertController alertControllerWithIcon:[UIImage imageNamed:@"alert_icon_general"] title:@"Update Bonfire to Join" message:@"This Camp requires a newer version in order to join" preferredStyle:BFAlertControllerStyleAlert];
+                    BFAlertAction *openAppStore = [BFAlertAction actionWithTitle:([Configuration isRelease]?@"Open App Store":@"Open TestFlight") style:BFAlertActionStyleDefault handler:^{
+                        NSURL *url;
+                        if ([Configuration isRelease]) {
+                            url = [NSURL URLWithString:@"https://itunes.apple.com/app/1438702812"];
+                        }
+                    else {
+                            url = [NSURL URLWithString:@"https://beta.itunes.apple.com/v1/app/1438702812"];
+                        }
+                        [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:^(BOOL success) {
+                            NSLog(@"opened url!");
+                        }];
+                    }];
+                    [alert addAction:openAppStore];
+                    alert.preferredAction = openAppStore;
+                    BFAlertAction *cancelAction = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
+                    [alert addAction:cancelAction];
+                    [[Launcher activeViewController] presentViewController:alert animated:true completion:nil];
                 }
-                [self updateCampStatus];
-                
-                [HapticHelper generateFeedback:FeedbackType_Notification_Success];
-                
-                [BFAPI followCamp:self.camp completion:^(BOOL success, id responseObject) {
-                    if (success) {
-                    }
-                }];
             }
             else if ([self.actionButton.status isEqualToString:CAMP_STATUS_BLOCKED]) {
                 // show alert maybe? --> ideally we don't even show the button.
             }
         }];
         [self.contentView addSubview:self.actionButton];
-        
-//        self.secondaryActionButton = [UIButton buttonWithType:UIButtonTypeCustom];
-//        self.secondaryActionButton.layer.cornerRadius = 12.f;
-//        self.secondaryActionButton.layer.masksToBounds = false;
-//        self.secondaryActionButton.layer.borderColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.06f].CGColor;
-//        self.secondaryActionButton.layer.borderWidth = 1;
-//        [self.secondaryActionButton bk_whenTapped:^{
-//            [self openPostNotificationSettings];
-//        }];
-//        [self.contentView addSubview:self.secondaryActionButton];
         
         self.lineSeparator = [[UIView alloc] init];
         self.lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
@@ -434,19 +442,20 @@
     CGFloat bottomY;
     
     CGFloat maxWidth = self.frame.size.width - (CAMP_HEADER_EDGE_INSETS.left + CAMP_HEADER_EDGE_INSETS.right);
-    
-    // line separator
-    self.lineSeparator.frame = CGRectMake(0, self.frame.size.height - 1 / [UIScreen mainScreen].scale, self.frame.size.width, 1 / [UIScreen mainScreen].scale);
-    
-    self.contentView.frame = self.bounds;
-    
+        
     // profile pic collage
-    self.avatarContainer.center = CGPointMake(self.contentView.frame.size.width / 2, self.avatarContainer.center.y);
-    bottomY = CAMP_HEADER_EDGE_INSETS.top + self.campAvatar.frame.size.height;
+    self.avatarContainer.center = CGPointMake(self.frame.size.width / 2, self.avatarContainer.center.y);
+    bottomY = CAMP_HEADER_EDGE_INSETS.top + self.avatarContainer.frame.size.height;
     
     if (![self.campAvatarReasonView isHidden]) {
         self.campAvatarReasonView.center = CGPointMake(self.avatarContainer.frame.origin.x + self.avatarContainer.frame.size.width - (40 / 2) - 3, self.avatarContainer.frame.origin.y + self.avatarContainer.frame.size.height - (40 / 2) - 3);
     }
+    
+    CGFloat contentViewOffset = self.avatarContainer.frame.origin.y + self.campAvatar.frame.origin.y +  ceilf(self.campAvatar.frame.size.height * 0.65);
+    self.contentView.frame = CGRectMake(0, contentViewOffset, self.frame.size.width, self.frame.size.height - contentViewOffset);
+    
+    // subtract content view inset
+    bottomY -= self.contentView.frame.origin.y;
     
     self.member2.superview.frame = CGRectMake(self.avatarContainer.frame.origin.x - self.member2.superview.frame.size.width - 26, CAMP_HEADER_EDGE_INSETS.top + 62, self.member2.superview.frame.size.width, self.member2.superview.frame.size.height);
     self.member3.superview.frame = CGRectMake(self.frame.size.width - self.member2.superview.frame.origin.x - self.member3.superview.frame.size.width, CAMP_HEADER_EDGE_INSETS.top + 12, self.member3.superview.frame.size.width, self.member3.superview.frame.size.height);
@@ -466,31 +475,45 @@
     if (![self.detailTextLabel isHidden]) {
         CGRect detailLabelRect = [self.detailTextLabel.text boundingRectWithSize:CGSizeMake(maxWidth, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:self.detailTextLabel.font} context:nil];
         self.detailTextLabel.frame = CGRectMake(self.textLabel.frame.origin.x, bottomY, self.textLabel.frame.size.width, ceilf(detailLabelRect.size.height));
-        bottomY = self.detailTextLabel.frame.origin.y + self.detailTextLabel.frame.size.height + CAMP_HEADER_TAG_BOTTOM_PADDING;
+        bottomY = self.detailTextLabel.frame.origin.y + self.detailTextLabel.frame.size.height;
     }
     
-    if (self.descriptionLabel.text.length > 0) {
+    if (![self.descriptionLabel isHidden]) {
+        if (![self.detailTextLabel isHidden]) {
+            bottomY += CAMP_HEADER_TAG_BOTTOM_PADDING;
+        }
+        
         // detail text label
         CGRect detailLabelRect = [self.descriptionLabel.attributedText boundingRectWithSize:CGSizeMake(maxWidth, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) context:nil];
         self.descriptionLabel.frame = CGRectMake(CAMP_HEADER_EDGE_INSETS.left, bottomY, maxWidth, ceilf(detailLabelRect.size.height));
-        bottomY = self.descriptionLabel.frame.origin.y + self.descriptionLabel.frame.size.height + CAMP_HEADER_DESCRIPTION_BOTTOM_PADDING;
+        bottomY = self.descriptionLabel.frame.origin.y + self.descriptionLabel.frame.size.height;
     }
     
     if (![self.detailsCollectionView isHidden]) {
+        if (![self.descriptionLabel isHidden]) {
+            bottomY += CAMP_HEADER_DESCRIPTION_BOTTOM_PADDING;
+        }
+        else if (![self.detailTextLabel isHidden]) {
+            bottomY += CAMP_HEADER_TAG_BOTTOM_PADDING;
+        }
+        
         self.detailsCollectionView.frame = CGRectMake(CAMP_HEADER_EDGE_INSETS.left, bottomY, self.frame.size.width - (CAMP_HEADER_DETAILS_EDGE_INSETS.left + CAMP_HEADER_DETAILS_EDGE_INSETS.right), self.detailsCollectionView.contentSize.height);
         bottomY = self.detailsCollectionView.frame.origin.y + self.detailsCollectionView.frame.size.height;
     }
     
-    CGFloat actionButtonHeight = 38;
-    CGFloat actionButtonY = bottomY + CAMP_HEADER_FOLLOW_BUTTON_TOP_PADDING;
-//    if ([self.secondaryActionButton isHidden]) {
-        self.actionButton.frame = CGRectMake(12, actionButtonY, self.frame.size.width - 24, actionButtonHeight);
-//    }
-//    else {
-//        self.secondaryActionButton.frame = CGRectMake(self.frame.size.width - 12 - 42, actionButtonY, 42, actionButtonHeight);
-//        self.actionButton.frame = CGRectMake(12, actionButtonY, self.secondaryActionButton.frame.origin.x - 12 - 8, actionButtonHeight);
-//    }
+    if (![self.actionButton isHidden]) {
+        CGFloat actionButtonHeight = 38;
+        CGFloat actionButtonY = bottomY + CAMP_HEADER_FOLLOW_BUTTON_TOP_PADDING;
+        self.actionButton.frame = CGRectMake(12, actionButtonY, self.frame.size.width - (12 * 2), actionButtonHeight);
+    }
+
+    // line separator
+    self.lineSeparator.frame = CGRectMake(0, self.lineSeparator.superview.frame.size.height - HALF_PIXEL, self.frame.size.width, HALF_PIXEL);
 }
+
+//- (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection {
+//    [self updateDetailTextLabel];
+//}
 
 - (void)styleMemberProfilePictureView:(BFAvatarView *)imageView  {
     imageView.layer.cornerRadius = imageView.frame.size.height / 2;
@@ -510,7 +533,7 @@
     imageView.frame = CGRectMake(borderWidth, borderWidth, imageView.frame.size.width, imageView.frame.size.height);
     [borderView addSubview:imageView];
     
-    [self.contentView addSubview:borderView];
+    [self addSubview:borderView];
 }
 
 - (void)continuityRadiusForView:(UIView *)sender withRadius:(CGFloat)radius {
@@ -520,6 +543,67 @@
                                                  cornerRadii:CGSizeMake(radius, radius)].CGPath;
     
     sender.layer.mask = maskLayer;
+}
+
+- (void)updateDetailTextLabel {
+    UIFont *font = self.detailTextLabel.font;
+    NSMutableAttributedString *camptagAttributedString = [NSMutableAttributedString new];
+    
+    UIImage *attachmentImage;
+    NSString *camptag = _camp.attributes.identifier.length > 0 ? [NSString stringWithFormat:@"#%@", _camp.attributes.identifier] : nil;
+    NSString *label;
+    UIColor *color = _camp.attributes.color.length > 0 ? [UIColor fromHex:_camp.attributes.color adjustForOptimalContrast:true] : [UIColor bonfireSecondaryColor];
+    
+    if ([_camp isPrivate]) {
+        attachmentImage = [UIImage imageNamed:@"details_label_private"];
+        
+        if (!camptag) label = @"Private";
+    }
+    else if ([_camp isFeed]) {
+        attachmentImage = [UIImage imageNamed:@"details_label_feed"];
+        
+        if (!camptag) label = @"Feed";
+    }
+    else if ([_camp isChannel]) {
+        attachmentImage = [UIImage imageNamed:@"details_label_source"];
+        
+        if (!camptag) label = @"Channel";
+    }
+    
+    NSAttributedString *spacer = [[NSAttributedString alloc] initWithString:@" " attributes:@{NSFontAttributeName: font}];
+    
+    if (camptag) {
+        NSAttributedString *attributedString = [[NSAttributedString alloc] initWithString:camptag attributes:@{NSFontAttributeName: font, NSForegroundColorAttributeName: color}];
+        
+        [camptagAttributedString appendAttributedString:attributedString];
+    }
+    
+    if (attachmentImage) {
+        if (camptagAttributedString.length > 0) {
+            [camptagAttributedString appendAttributedString:spacer];
+        }
+        
+        NSTextAttachment *attachment = [[NSTextAttachment alloc] init];
+        attachment.image = [self colorImage:attachmentImage color:color];
+        CGFloat attachmentHeight = MIN(ceilf(font.lineHeight * 0.7), attachment.image.size.height);
+        CGFloat attachmentWidth = attachmentHeight * (attachment.image.size.width / attachment.image.size.height);
+        [attachment setBounds:CGRectMake(0, roundf(font.capHeight - attachmentHeight)/2.f + 0.5, attachmentWidth, attachmentHeight)];
+        
+        NSAttributedString *attachmentString = [NSAttributedString attributedStringWithAttachment:attachment];
+        [camptagAttributedString appendAttributedString:attachmentString];
+    }
+    
+    if (!camptag && label) {
+        if (camptagAttributedString.length > 0) {
+            [camptagAttributedString appendAttributedString:spacer];
+        }
+        
+        NSAttributedString *attributedString = [[NSAttributedString alloc] initWithString:label attributes:@{NSFontAttributeName: font, NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
+        
+        [camptagAttributedString appendAttributedString:attributedString];
+    }
+    
+    self.detailTextLabel.attributedText = camptagAttributedString;
 }
 
 - (void)setCamp:(Camp *)camp {
@@ -534,7 +618,7 @@
             campTitle = camp.attributes.title;
         }
         else if (camp.attributes.identifier.length > 0) {
-            campTitle = [NSString stringWithFormat:@"@%@", camp.attributes.identifier];
+            campTitle = [NSString stringWithFormat:@"#%@", camp.attributes.identifier];
         }
         else {
             campTitle = @"Secret Camp";
@@ -559,13 +643,18 @@
         }
         self.textLabel.attributedText = displayNameAttributedString;
         
-        self.detailTextLabel.hidden = camp.attributes.identifier.length == 0;
-        if (![self.detailTextLabel isHidden]) {
-            self.detailTextLabel.text = [NSString stringWithFormat:@"#%@", camp.attributes.identifier];
+//        [self updateDetailTextLabel];
+        if (camp.attributes.identifier.length > 0) {
+            self.detailTextLabel.text = [@"#" stringByAppendingFormat:@"%@", camp.attributes.identifier];
             self.detailTextLabel.textColor = [UIColor fromHex:camp.attributes.color adjustForOptimalContrast:true];
         }
+        else {
+            self.detailTextLabel.text = @"";
+        }
+        self.detailTextLabel.hidden = self.detailTextLabel.text.length == 0;
                 
-        if (camp.attributes.theDescription.length > 0) {
+        self.descriptionLabel.hidden = camp.attributes.theDescription.length == 0;
+        if (![self.descriptionLabel isHidden]) {
             NSMutableAttributedString *attrString = [[NSMutableAttributedString  alloc] initWithString:camp.attributes.theDescription];
             NSMutableParagraphStyle *style = [[NSMutableParagraphStyle alloc] init];
             [style setLineSpacing:3.f];
@@ -668,7 +757,7 @@
         NSMutableArray *details = [[NSMutableArray alloc] init];
         if (self.camp.attributes.identifier.length > 0 || self.camp.identifier.length > 0) {
             // camp type (& visibility)
-            if ([self.camp isChannel] && (self.camp.attributes.display.sourceLink || self.camp.attributes.display.sourceUser)) {
+            if (self.camp.attributes.display.sourceLink || self.camp.attributes.display.sourceUser) {
                 if (self.camp.attributes.display.sourceLink) {
                     BFDetailItem *sourceLink = [[BFDetailItem alloc] initWithType:([self.camp isFeed] ? BFDetailItemTypeSourceLink_Feed : BFDetailItemTypeSourceLink) value:[NSString stringWithFormat:@"%@", self.camp.attributes.display.sourceLink.attributes.canonicalUrl] action:^{
                         [Launcher openURL:self.camp.attributes.display.sourceLink.attributes.actionUrl];
@@ -684,7 +773,8 @@
                     [details addObject:sourceUser];
                 }
             }
-            else {
+                
+            if (![self.camp isChannel]) {
                 BFDetailItem *visibility = [[BFDetailItem alloc] initWithType:([self.camp isPrivate] ? BFDetailItemTypePrivacyPrivate : BFDetailItemTypePrivacyPublic) value:([self.camp isPrivate] ? @"Private" : @"Public") action:nil];
                 [details addObject:visibility];
             }
@@ -823,8 +913,7 @@
 + (CGFloat)heightForCamp:(Camp *)camp isLoading:(BOOL)loading {
     CGFloat maxWidth = [UIScreen mainScreen].bounds.size.width - (CAMP_HEADER_EDGE_INSETS.left + CAMP_HEADER_EDGE_INSETS.right);
 
-    // knock out all the required bits first
-    CGFloat height = CAMP_HEADER_EDGE_INSETS.top + CAMP_HEADER_AVATAR_SIZE + CAMP_HEADER_AVATAR_BOTTOM_PADDING;
+    CGFloat height = CAMP_HEADER_EDGE_INSETS.top + (CAMP_HEADER_AVATAR_SIZE + (CAMP_HEADER_AVATAR_BORDER_WIDTH * 2)) + CAMP_HEADER_AVATAR_BOTTOM_PADDING;
 
     // camp title
     NSString *campTitle;
@@ -832,7 +921,7 @@
         campTitle = camp.attributes.title;
     }
     else if (camp.attributes.identifier.length > 0) {
-        campTitle = [NSString stringWithFormat:@"@%@", camp.attributes.identifier];
+        campTitle = [NSString stringWithFormat:@"#%@", camp.attributes.identifier];
     }
     else {
         campTitle = @"Secret Camp";
@@ -846,7 +935,11 @@
         // verified icon ☑️
         NSTextAttachment *attachment = [[NSTextAttachment alloc] init];
         attachment.image = [UIImage imageNamed:@"verifiedIcon_large"];
-        [attachment setBounds:CGRectMake(0, roundf(CAMP_HEADER_NAME_FONT.capHeight - attachment.image.size.height)/2.f-1, attachment.image.size.width, attachment.image.size.height)];
+        
+        CGFloat attachmentHeight = MIN(ceilf(CAMP_HEADER_NAME_FONT.lineHeight * 0.9), ceilf(attachment.image.size.height));
+        CGFloat attachmentWidth = ceilf(attachmentHeight * (attachment.image.size.width / attachment.image.size.height));
+        
+        [attachment setBounds:CGRectMake(0, roundf(CAMP_HEADER_NAME_FONT.capHeight - attachmentHeight)/2.f, attachmentWidth, attachmentHeight)];
         
         NSAttributedString *attachmentString = [NSAttributedString attributedStringWithAttachment:attachment];
         [displayNameAttributedString appendAttributedString:attachmentString];
@@ -874,11 +967,15 @@
         
         CGRect descriptionRect = [attrString boundingRectWithSize:CGSizeMake(maxWidth, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading)  context:nil];
         CGFloat campDescriptionHeight = ceilf(descriptionRect.size.height);
-        height += campDescriptionHeight + (camp.attributes.identifier.length > 0 ? CAMP_HEADER_TAG_BOTTOM_PADDING : 0);
+        
+        if (camp.attributes.identifier.length > 0) {
+            height += CAMP_HEADER_TAG_BOTTOM_PADDING;
+        }
+        
+        height += campDescriptionHeight;
     }
 
     if (camp.attributes.identifier.length > 0 || camp.identifier.length > 0) {
-        CGFloat detailsHeight = 0;
         NSMutableArray *details = [[NSMutableArray alloc] init];
         
         // camp type (& visibility)
@@ -890,7 +987,8 @@
             BFDetailItem *sourceUser = [[BFDetailItem alloc] initWithType:([camp isFeed] ? BFDetailItemTypeSourceUser_Feed : BFDetailItemTypeSourceUser) value:[NSString stringWithFormat:@"%@", camp.attributes.display.sourceUser.attributes.identifier] action:nil];
             [details addObject:sourceUser];
         }
-        else {
+        
+        if (![camp isChannel]) {
             BFDetailItem *visibility = [[BFDetailItem alloc] initWithType:([camp isPrivate] ? BFDetailItemTypePrivacyPrivate : BFDetailItemTypePrivacyPublic) value:(camp ? @"Private" : @"Public") action:nil];
             [details addObject:visibility];
         }
@@ -900,14 +998,6 @@
             BFDetailItem *members = [[BFDetailItem alloc] initWithType:([camp isChannel] ? BFDetailItemTypeSubscribers : BFDetailItemTypeMembers) value:[NSString stringWithFormat:@"%ld", (long)camp.attributes.summaries.counts.members] action:nil];
             [details addObject:members];
         }
-        
-//        if ([camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_MEMBER] && camp.attributes.context.camp.membership) {
-//            BOOL subscribed = camp.attributes.context.camp.membership.subscription != nil;
-//            BFDetailItem *subscription = [[BFDetailItem alloc] initWithType:(subscribed ? BFDetailItemTypePostNotificationsOn : BFDetailItemTypePostNotificationsOff) value:@"" action:^{
-//
-//            }];
-//            [details addObject:subscription];
-//        }
          
         if (details.count > 0) {
             BFDetailsCollectionView *detailCollectionView = [[BFDetailsCollectionView alloc] initWithFrame:CGRectMake(CAMP_HEADER_EDGE_INSETS.left, 0, [UIScreen mainScreen].bounds.size.width - CAMP_HEADER_EDGE_INSETS.left - CAMP_HEADER_EDGE_INSETS.right, 16)];
@@ -915,9 +1005,8 @@
             detailCollectionView.dataSource = detailCollectionView;
             [detailCollectionView setDetails:details];
             
-            detailsHeight = detailCollectionView.collectionViewLayout.collectionViewContentSize.height;
+            CGFloat detailsHeight = detailCollectionView.collectionViewLayout.collectionViewContentSize.height;
             
-            // add padding above
             if (camp.attributes.theDescription.length > 0) {
                 height += CAMP_HEADER_DESCRIPTION_BOTTOM_PADDING;
             }
@@ -931,13 +1020,35 @@
 
     if (camp.attributes.context != nil || loading) {
         CGFloat userPrimaryActionHeight = CAMP_HEADER_FOLLOW_BUTTON_TOP_PADDING + 38;
-        height = height + userPrimaryActionHeight;
+        height += userPrimaryActionHeight;
     }
 
-    // add bottom padding and line separator
+    // add bottom padding
     height += CAMP_HEADER_EDGE_INSETS.bottom;
 
     return height;
+}
+
+- (UIImage *)colorImage:(UIImage *)image color:(UIColor *)color
+{
+    UIGraphicsBeginImageContextWithOptions(image.size, NO, [UIScreen mainScreen].scale);
+    CGContextRef context = UIGraphicsGetCurrentContext();
+
+    CGContextTranslateCTM(context, 0, image.size.height);
+    CGContextScaleCTM(context, 1.0, -1.0);
+    CGRect rect = CGRectMake(0, 0, image.size.width, image.size.height);
+
+    CGContextSetBlendMode(context, kCGBlendModeNormal);
+    CGContextDrawImage(context, rect, image.CGImage);
+    CGContextSetBlendMode(context, kCGBlendModeSourceIn);
+    [color setFill];
+    CGContextFillRect(context, rect);
+
+
+    UIImage *coloredImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+
+    return coloredImage;
 }
 
 @end

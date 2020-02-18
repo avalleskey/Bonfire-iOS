@@ -7,10 +7,13 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "Post.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 @interface ExpandThreadCell : UITableViewCell
+
+@property (nonatomic, strong) Post *post;
 
 @property (nonatomic, strong) UIImageView *morePostsIcon;
 @property (nonatomic, strong) UIView *lineSeparator;

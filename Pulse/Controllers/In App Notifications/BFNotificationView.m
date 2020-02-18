@@ -233,9 +233,7 @@
 
 - (void)layoutSubviews {
     [super layoutSubviews];
-    
-    NSLog(@"self.transform.a == %f", self.transform.a);
-    
+        
     if (self.transform.a == 1) {
         self.closeButton.frame = CGRectMake(self.frame.size.width - self.closeButton.frame.size.width - 12, self.notificationTypeImageView.frame.origin.y + (self.notificationTypeImageView.frame.size.height / 2) - (self.closeButton.frame.size.height / 2), self.closeButton.frame.size.width, self.closeButton.frame.size.height);
         self.creatorTitleLabel.frame = CGRectMake(self.creatorTitleLabel.frame.origin.x, self.notificationTypeImageView.frame.origin.y, (self.closeButton.frame.origin.x - 6) - self.creatorTitleLabel.frame.origin.x, self.notificationTypeImageView.frame.size.height);

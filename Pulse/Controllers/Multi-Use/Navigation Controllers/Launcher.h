@@ -32,10 +32,13 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (void)openTimeline;
 + (void)openTrending;
-+ (void)openSearch;
 + (void)openDiscover;
 
++ (void)openSearch;
++ (void)openSearchFromRect:(CGRect)rect;
+
 + (void)openCamp:(Camp *)camp;
++ (void)openCamp:(Camp *)camp controller:(CampViewController * _Nullable)controller;
 + (CampViewController *)campViewControllerForCamp:(Camp *)camp;
 
 + (void)openPost:(Post *)post withKeyboard:(BOOL)withKeyboard;

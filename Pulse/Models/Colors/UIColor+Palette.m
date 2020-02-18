@@ -42,7 +42,7 @@
                     return [UIColor colorWithDynamicProvider:^UIColor * _Nonnull(UITraitCollection * _Nonnull traitCollection) {
                         CGFloat colorContrast = [self contrastRatioBetween:ogColor and:[self cardBackgroundColor]];
                         
-                        CGFloat minimumViableColorContrastRatio = 4.5;
+                        CGFloat minimumViableColorContrastRatio = 4;
                         if (colorContrast < minimumViableColorContrastRatio) {
                             return [ogColor minimumViableContrastColorWithContrastRatio:minimumViableColorContrastRatio];
                         }
@@ -54,7 +54,7 @@
                 else {
                     CGFloat colorContrast = [self contrastRatioBetween:ogColor and:[self cardBackgroundColor]];
                     
-                    CGFloat minimumViableColorContrastRatio = 4.5;
+                    CGFloat minimumViableColorContrastRatio = 4;
                     if (colorContrast < minimumViableColorContrastRatio) {
                         return [ogColor minimumViableContrastColorWithContrastRatio:minimumViableColorContrastRatio];
                     }
@@ -191,6 +191,8 @@
 }
 
 + (BOOL)useWhiteForegroundForColor:(UIColor*)backgroundColor {
+    if (!backgroundColor) return false;
+    
     CGFloat contrastRatio = [UIColor contrastRatioBetween:backgroundColor and:[UIColor whiteColor]];
 
     return contrastRatio >= 2.3;
@@ -218,31 +220,13 @@
 }
 
 + (UIColor * _Nonnull) tableViewBackgroundColor {
-//    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"dark_mode"]) {
-//        return [UIColor colorWithRed:0.01 green:0.01 blue:0.015 alpha:1];
-//    }
-//    else {
-//        return [UIColor colorWithRed:0.96 green:0.96 blue:0.97 alpha:1.0];
-//    }
     return [UIColor colorNamed:@"TableViewBackgroundColor"];
 }
 + (UIColor * _Nonnull) viewBackgroundColor {
-    //    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"dark_mode"]) {
-    //        return [UIColor colorWithRed:0.01 green:0.01 blue:0.015 alpha:1];
-    //    }
-    //    else {
-    //        return [UIColor colorWithRed:0.96 green:0.96 blue:0.97 alpha:1.0];
-    //    }
     return [UIColor colorNamed:@"BackgroundColor"];
 }
 
 + (UIColor * _Nonnull) tableViewSeparatorColor {
-//    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"dark_mode"]) {
-//        return [UIColor colorWithRed:0.11f green:0.11f blue:0.13f alpha:1];
-//    }
-//    else {
-//        return [UIColor colorWithRed:0.88 green:0.88 blue:0.89 alpha:1.0];
-//    }
     return [UIColor colorNamed:@"SeparatorColor"];
 }
 

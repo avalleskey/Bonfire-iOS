@@ -6,7 +6,6 @@
 //
 
 #import "PostViewController.h"
-#import "UINavigationItem+Margin.h"
 #import "SimpleNavigationController.h"
 #import "BFVisualErrorView.h"
 #import <BlocksKit/BlocksKit.h>
@@ -18,12 +17,6 @@
 
 #import "ExpandedPostCell.h"
 #import "StreamPostCell.h"
-#import "ReplyCell.h"
-#import "AddReplyCell.h"
-#import "ExpandThreadCell.h"
-#import "PaginationCell.h"
-#import "BFHeaderView.h"
-#import "BFErrorViewCell.h"
 @import Firebase;
 
 @interface PostViewController () {
@@ -35,7 +28,6 @@
 @property (nonatomic) BOOL loadingReplies;
 @property (nonatomic) BOOL loadingMore;
 
-@property (nonatomic, strong) BFVisualError *visualError;
 @property CGFloat minHeaderHeight;
 @property CGFloat maxHeaderHeight;
 @property (nonatomic, strong) SimpleNavigationController *launchNavVC;
@@ -54,7 +46,6 @@ static NSString * const postReplyReuseIdentifier = @"postReply";
 static NSString * const postSubReplyReuseIdentifier = @"postSubReply";
 static NSString * const parentPostReuseIdentifier = @"parentPost";
 static NSString * const expandedPostReuseIdentifier = @"expandedPost";
-static NSString * const addReplyCellIdentifier = @"addReplyCell";
 static NSString * const expandRepliesCellIdentifier = @"expandRepliesCell";
 static NSString * const errorViewCellIdentifier = @"errorViewCell";
 
@@ -93,7 +84,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             [self.launchNavVC childTableViewDidScroll:self.tableView];
         }
         
-        self.loading = true;
+        self.tableView.loading = true;
     }
     
     self.view.tintColor = self.theme;
@@ -142,6 +133,11 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         });
     }
 }
+
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
 - (void)styleOnAppear {
     self.tableView.frame = self.view.bounds;
     
@@ -232,7 +228,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         DSimpleLog(@"postUpdated called on view controller: %@", self.title);
         
         if ([self.post.identifier isEqualToString:updatedPost.identifier] &&
-            ![notification.object isEqual:self.post]) {
+            [self.post toDictionary] != [updatedPost toDictionary]) {
             if (newMuteStatus != self.post.attributes.context.post.muted) {
                 useNewMuteStatus = true;
             }
@@ -243,15 +239,15 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             changes = true;
         }
         else {
-            Post *replyWithId = [self.stream postWithId:updatedPost.identifier];
+            Post *replyWithId = [self.tableView.stream postWithId:updatedPost.identifier];
             if (replyWithId) {
-                if ([replyWithId toDictionary] != [updatedPost toDictionary]) {
-                    if (newMuteStatus != replyWithId.attributes.context.post.muted) {
+                if ([replyWithId.identifier isEqualToString:updatedPost.identifier] &&
+                    [replyWithId toDictionary] != [updatedPost toDictionary]) {
+                    if (newMuteStatus != self.post.attributes.context.post.muted) {
                         useNewMuteStatus = true;
                     }
                     
-                    [self.stream updatePost:updatedPost removeDuplicates:false];
-                    changes = true;
+                    changes = true; // actual changes handled by BFComponentTableView
                 }
             }
             else if (self.parentPosts.count > 0) {
@@ -285,6 +281,11 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             
             if ([[Launcher activeViewController] isEqual:self] ||
                 useNewMuteStatus) {
+                if (![self.post.identifier isEqualToString:updatedPost.identifier] &&
+                    useNewMuteStatus) {
+                    self.post.attributes.context.post.muted = updatedPost.attributes.context.post.muted;
+                }
+                
                 // loop through and update post objects
                 for (UITableViewCell *cell in [self.tableView visibleCells]) {
                     if ([cell isKindOfClass:[PostCell class]]) {
@@ -303,16 +304,16 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                 if (useNewMuteStatus) {
                     self.post.attributes.context.post.muted = updatedPost.attributes.context.post.muted;
 
-                    for (Post *post in self.stream.posts) {
+                    for (BFPostStreamComponent *component in self.tableView.stream.components) {
+                        Post *post = component.post;
+                        if (!post) continue;
+                        
                         post.attributes.context.post.muted = updatedPost.attributes.context.post.muted;
-                        [self.stream updatePost:updatedPost removeDuplicates:false];
+                        [self.tableView.stream performEventType:PostStreamEventTypePostUpdated object:updatedPost];
                     }
                     
-                    for (int i = 0; i < self.parentPosts.count; i++) {
-                        if ([self.parentPosts[i] isKindOfClass:[Post class]]) {
-                            Post *post = self.parentPosts[i];
-                            post.attributes.context.post.muted = updatedPost.attributes.context.post.muted;
-                        }
+                    for (Post *post in self.parentPosts) {
+                        post.attributes.context.post.muted = updatedPost.attributes.context.post.muted;
                     }
                 }
             }
@@ -324,91 +325,48 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     
     Post *post = (Post *)notification.object;
     
-    BOOL refresh = false;
     if (post && [post.identifier isEqualToString:self.post.identifier]) {
         self.post = post;
-        refresh = true;
         
         [self.navigationController dismissViewControllerAnimated:YES completion:nil];
-    }
-    else {
-        Post *postInStream = [self.stream postWithId:post.identifier];
-        if (postInStream) {
-            [self.stream removePost:post];
-            refresh = true;
-        }
-    }
-    
-    if (refresh) {
-        [self.tableView reloadData];
     }
 }
 - (void)newPostBegan:(NSNotification *)notification {
     Post *tempPost = notification.object;
-    
+
     if (tempPost != nil && tempPost.attributes.parent) {
-        if ([tempPost.attributes.parent.identifier isEqualToString:self.post.identifier]) {
+        if ([tempPost.attributes.parent.identifier isEqualToString:self.post.identifier] ||
+            [tempPost.attributes.parentId isEqualToString:self.post.identifier]) {
             // parent post
-            self.visualError = nil;
-            
-            [self.stream addTempPost:tempPost];
-            
+            [self.tableView.stream addTempPost:tempPost];
+
             if (self.post.attributes.summaries.counts.replies == 0) {
                 self.post.attributes.summaries.counts.replies++;
             }
-            
-            [self.tableView reloadData];
-            
+
+            [self.tableView hardRefresh:false];
             [self updateContentInsets];
         }
-        else {
-            // could be a reply to a reply? let's check.
-            [self.stream addTempSubReply:tempPost];
-
-            [self.tableView reloadData];
-            [self.tableView layoutIfNeeded];
+        else if ([self.tableView.stream addTempSubReply:tempPost]) {
+            [self.tableView hardRefresh:false];
             [self updateContentInsets];
         }
     }
 }
 - (void)newPostCompleted:(NSNotification *)notification {
     NSLog(@"☑️ newPostCompleted");
-    
+
     NSDictionary *info = notification.object;
     NSString *tempId = info[@"tempId"];
     Post *post = info[@"post"];
-        
-    if (post != nil && post.attributes.parent) {
-        if ([post.attributes.parent.identifier isEqualToString:self.post.identifier]) {
-            // reply
-            self.visualError = nil;
-            
-            if ([self.stream postWithId:post.identifier]) {
-                [self.stream removePost:post];
-            }
-            [self.stream updateTempPost:tempId withFinalPost:post];
-            
-            [UIView animateWithDuration:0 animations:^{
-                [self.tableView reloadData];
-                [self.tableView layoutIfNeeded];
-                [self updateContentInsets];
-            } completion:^(BOOL finished) {
-//                [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:1] atScrollPosition:UITableViewScrollPositionTop animated:YES];
-            }];
+
+    if (post != nil && (post.attributes.parent.identifier || post.attributes.parentId)) {
+        if ([post.attributes.parent.identifier isEqualToString:self.post.identifier] ||
+            [post.attributes.parentId isEqualToString:self.post.identifier]) {
+            [self getRepliesWithCursor:StreamPagingCursorTypePrevious];
         }
-        else {
-            // could be a reply to a reply? let's attempt
-            if ([self.stream postWithId:post.identifier]) {
-                [self.stream removePost:post];
-            }
-            
-            [self.stream updateTempSubReply:tempId withFinalSubReply:post];
-            
-            [UIView animateWithDuration:0 animations:^{
-                [self.tableView reloadData];
-                [self.tableView layoutIfNeeded];
-                [self updateContentInsets];
-            } completion:nil];
+        else if ([self.tableView.stream performEventType:PostStreamEventTypePostUpdated object:post]) {
+            [self.tableView hardRefresh:false];
         }
     }
 }
@@ -416,9 +374,9 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     // TODO: Allow tap to retry for posts
     Post *tempPost = notification.object;
     
-    if (tempPost != nil && [tempPost.attributes.parent.identifier isEqualToString:self.post.identifier]) {
-        // TODO: Check for image as well
-        [self.stream removeTempPost:tempPost.tempId];
+    if (tempPost != nil && ([tempPost.attributes.parent.identifier isEqualToString:self.post.identifier] ||
+                            [tempPost.attributes.parentId isEqualToString:self.post.identifier])) {
+        [self.tableView.stream removeTempPost:tempPost.tempId];
         
         [self.tableView reloadData];
     }
@@ -460,7 +418,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
 }
 - (void)loadPost {
     if (self.post.identifier.length > 0) {
-        self.visualError  = nil;
+        self.tableView.visualError  = nil;
         
         // fill in post info
         [self.tableView reloadData];
@@ -471,7 +429,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         [self loadPostReplies];
     }
     else {
-        self.visualError = [BFVisualError visualErrorOfType:ErrorViewTypeNotFound title:@"Post Not Found" description:@"We couldn't find the post\nyou were looking for" actionTitle:nil actionBlock:nil];
+        self.tableView.visualError = [BFVisualError visualErrorOfType:ErrorViewTypeNotFound title:@"Post Not Found" description:@"We couldn't find the post\nyou were looking for" actionTitle:nil actionBlock:nil];
         
         [self.tableView reloadData];
         
@@ -495,26 +453,27 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         BFContext *contextBefore = self.post.attributes.context;
         
         // first page
-        NSError *postError;
-        
-        self.post = [[Post alloc] initWithDictionary:responseData error:&postError];
-        
-        NSLog(@"post error?? %@", postError);
-        
+        self.post = [[Post alloc] initWithDictionary:responseData error:nil];
+                
         if (contextBefore && ![self.post isRemoved] && !self.post.attributes.context) {
             self.post.attributes.context = contextBefore;
         }
         
-        // update reply ability using camp
-        [self updateComposeInputView];
-        
         // update the theme color (in case we didn't know the Camp/Profile color before
         [self updateTheme];
         
-        self.visualError = nil;
+        if (self.post.attributes.context && !self.tableView.loadingMore && self.tableView.stream.components.count == 0 && ![self canReply]) {
+            self.tableView.visualError = [BFVisualError visualErrorOfType:ErrorViewTypeRepliesDisabled title:@"Post Replies Disabled" description:@"The creator of this post has disabled replies" actionTitle:nil actionBlock:nil];
+        }
+        else {
+            self.tableView.visualError = nil;
+        }
         [self.tableView reloadData];
         
-        if([self.tableView isHidden]) {
+        // update reply ability using camp
+        [self updateComposeInputView];
+        
+        if ([self.tableView isHidden]) {
             [self loadPostReplies];
         }
         
@@ -541,11 +500,11 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         if (statusCode == 404) {
             [[NSNotificationCenter defaultCenter] postNotificationName:@"PostDeleted" object:self.post];
         }
-        else if (!self.post.attributes && self.parentPosts.count == 0 && self.stream.posts.count == 0) {
-            self.visualError = [BFVisualError visualErrorOfType:ErrorViewTypeNotFound title:@"Error Loading Post" description:@"Check your network settings and try again" actionTitle:nil actionBlock:nil];
+        else if (!self.post.attributes && self.parentPosts.count == 0 && self.tableView.stream.components.count == 0) {
+            self.tableView.visualError = [BFVisualError visualErrorOfType:ErrorViewTypeNotFound title:@"Error Loading Post" description:@"Check your network settings and try again" actionTitle:nil actionBlock:nil];
         }
         
-        self.loading = false;
+        self.tableView.loading = false;
         [self.tableView reloadData];
         
         self.launchNavVC.onScrollLowerBound = 12;
@@ -583,9 +542,9 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         NSString *identifier = self.post.identifier;
         NSString *cursor = self.post.attributes.thread.prevCursor;
         
-        BOOL useParentPostPrevCursor = self.post.attributes.parent && self.post.attributes.parent.attributes.thread.prevCursor;
+        BOOL useParentPostPrevCursor = (self.post.attributes.parent || self.post.attributes.parentId.length > 0) && self.post.attributes.parent.attributes.thread.prevCursor;
         if (useParentPostPrevCursor) {
-            identifier = self.post.attributes.parent.identifier;
+            identifier = (self.post.attributes.parent ? self.post.attributes.parent.identifier : self.post.attributes.parentId);
             cursor = self.post.attributes.parent.attributes.thread.prevCursor;
         }
         
@@ -593,7 +552,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         
         NSLog(@"url: %@", url);
         
-        [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:@{@"cursor": cursor} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:@{@"prev_cursor": cursor} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
             NSMutableArray *responseData = [[NSMutableArray alloc] initWithArray:(NSArray *)responseObject[@"data"]];
             
             if ([responseData isKindOfClass:[NSArray class]] && responseData.count > 0) {
@@ -633,7 +592,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
 }
 - (void)loadPostReplies {
     if ([self canViewPost]) {
-        [self getRelatedPostsWithNextCursor:nil];
+        [self getRepliesWithCursor:StreamPagingCursorTypeNone];
     }
     else {
         [self hideComposeInputView];
@@ -689,8 +648,8 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         }
         
         // update error view
-        self.loading = false;
-        self.visualError = [BFVisualError visualErrorOfType:errorType title:errorTitle description:errorDescription actionTitle:nil actionBlock:nil];
+        self.tableView.loading = false;
+        self.tableView.visualError = [BFVisualError visualErrorOfType:errorType title:errorTitle description:errorDescription actionTitle:nil actionBlock:nil];
         [self.tableView reloadData];
     }
 }
@@ -700,36 +659,84 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     [self hideComposeInputView];
     self.parentPostScrollIndicator.hidden = true;
     
-    self.visualError = [BFVisualError visualErrorOfType:ErrorViewTypeGeneral title:nil description:@"This post has been deleted" actionTitle:nil actionBlock:nil];
+    self.tableView.visualError = [BFVisualError visualErrorOfType:ErrorViewTypeGeneral title:nil description:@"This post has been deleted" actionTitle:nil actionBlock:nil];
     [self.tableView reloadData];
 }
-- (void)getRelatedPostsWithNextCursor:(NSString *)nextCursor {
-    self.visualError = nil;
+- (void)getRepliesWithCursor:(StreamPagingCursorType)cursorType {
+    self.tableView.visualError = nil;
     [self.tableView reloadData];
     
     NSString *url = [NSString stringWithFormat:@"posts/%@/replies", self.post.identifier];
     if (!self.post.identifier || self.post.identifier.length == 0) {
         return;
     }
-
-    NSLog(@"📲: %@", url);
     
-    NSDictionary *params = nextCursor ? @{@"cursor": nextCursor} : @{};
+    NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
+    if (cursorType == StreamPagingCursorTypeNext) {
+        [params setObject:self.tableView.stream.nextCursor forKey:@"next_cursor"];
+        NSLog(@"⬇️ load next cursor (%@)", self.tableView.stream.nextCursor);
+    }
+    else if (self.tableView.stream.prevCursor.length > 0) {
+        [params setObject:self.tableView.stream.prevCursor forKey:@"prev_cursor"];
+        NSLog(@"🔼 load previous cursor (%@)", self.tableView.stream.prevCursor);
+    }
+    
+    if ([params objectForKey:@"prev_cursor"] ||
+        [params objectForKey:@"next_cursor"]) {
+        NSString *cursor = [params objectForKey:@"prev_cursor"] ? params[@"prev_cursor"] : params[@"next_cursor"];
+        
+        if ([self.tableView.stream hasLoadedCursor:cursor]) {
+            return;
+        }
+        else {
+            [self.tableView.stream addLoadedCursor:cursor];
+        }
+    }
+    else if (cursorType == StreamPagingCursorTypePrevious) {
+        cursorType = StreamPagingCursorTypeNone;
+    }
+    
+    NSLog(@"📲: %@", url);
+    NSLog(@"params: %@", params);
     
     [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        // NSLog(@"CommonTableViewController / getReplies() success! ✅");
+        self.loading = false;
+        self.tableView.loading = false;
+        
+        NSInteger componentsBefore = self.tableView.stream.components.count;
         PostStreamPage *page = [[PostStreamPage alloc] initWithDictionary:responseObject error:nil];
+
         if (page.data.count > 0) {
-            if (!nextCursor) {
-                self.stream = [[PostStream alloc] init];
+            if (page.meta.paging.replaceCache ||
+                cursorType == StreamPagingCursorTypeNone) {
+                [self.tableView.stream flush];
             }
-            [self.stream appendPage:page];
+            
+            if (cursorType == StreamPagingCursorTypeNext) {
+                [self.tableView.stream appendPage:page];
+            }
+            else {
+                [self.tableView.stream prependPage:page];
+            }
+            
+            if (self.tableView.stream.components.count > 0) {
+                self.tableView.visualError = nil;
+            }
+                        
+            if (componentsBefore == 0 || cursorType != StreamPagingCursorTypeNext) {
+                [self.tableView hardRefresh:false];
+            }
+            else {
+                [self.tableView refreshAtBottom];
+            }
+        }
+        else {
+            [self.tableView hardRefresh:false];
         }
         
-        self.visualError = nil;
-        
-        self.loading = false;
-        self.loadingMore = false;
+        if (cursorType == StreamPagingCursorTypeNext) {
+            self.tableView.loadingMore = false;
+        }
         
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(CGFLOAT_MIN * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
             [self.tableView reloadData];
@@ -740,8 +747,8 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         NSLog(@"FeedViewController / getReplies() - error: %@", error);
         //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
         
-        self.loading = false;
-        self.loadingMore = false;
+        self.tableView.loading = false;
+        self.tableView.loadingMore = false;
         
         self.tableView.userInteractionEnabled = true;
         [self.tableView reloadData];
@@ -750,9 +757,9 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
 
 #pragma mark - Table view
 - (void)setupTableView {
-    self.tableView = [[UITableView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - self.navigationController.navigationBar.frame.origin.y - self.navigationController.navigationBar.frame.size.height) style:UITableViewStyleGrouped];
-    self.tableView.dataSource = self;
-    self.tableView.delegate = self;
+    self.tableView = [[BFComponentTableView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - self.navigationController.navigationBar.frame.origin.y - self.navigationController.navigationBar.frame.size.height) style:UITableViewStyleGrouped];
+    self.tableView.extendedDelegate = self;
+    self.tableView.stream.detailLevel = BFComponentDetailLevelSome;
     self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, self.view.frame.size.width, 0);
     self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 70, 0);
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
@@ -765,17 +772,8 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     
     [self.tableView registerClass:[StreamPostCell class] forCellReuseIdentifier:parentPostReuseIdentifier];
     [self.tableView registerClass:[ExpandedPostCell class] forCellReuseIdentifier:expandedPostReuseIdentifier];
-    [self.tableView registerClass:[StreamPostCell class] forCellReuseIdentifier:postReplyReuseIdentifier];
-    [self.tableView registerClass:[ReplyCell class] forCellReuseIdentifier:postSubReplyReuseIdentifier];
-    [self.tableView registerClass:[AddReplyCell class] forCellReuseIdentifier:addReplyCellIdentifier];
-    
-    [self.tableView registerClass:[ExpandThreadCell class] forCellReuseIdentifier:expandRepliesCellIdentifier];
-    [self.tableView registerClass:[PaginationCell class] forCellReuseIdentifier:paginationCellIdentifier];
-    
-    [self.tableView registerClass:[BFErrorViewCell class] forCellReuseIdentifier:errorViewCellIdentifier];
-    
-    self.stream = [[PostStream alloc] init];
-    [self.stream setTempPostPosition:PostStreamOptionTempPostPositionTop];
+        
+    [self.tableView.stream setTempPostPosition:PostStreamOptionTempPostPositionTop];
     
     [self.view addSubview:self.tableView];
     
@@ -784,96 +782,27 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     self.parentPostSpinner.frame = CGRectMake(self.view.frame.size.width / 2 - (self.parentPostSpinner.frame.size.width / 2), (-1 * self.parentPostSpinner.frame.size.height) - 16, self.parentPostSpinner.frame.size.width, self.parentPostSpinner.frame.size.height);
     self.parentPostSpinner.hidden = true;
     [self.tableView addSubview:self.parentPostSpinner];
+    
+    UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(0, -HALF_PIXEL, self.view.frame.size.width, HALF_PIXEL)];
+    separator.backgroundColor = [UIColor tableViewSeparatorColor];
+    [self.tableView addSubview:separator];
 }
 
 #pragma mark ↳ Table view data source
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    if (section == 0) {
-        // parent post
-        return self.parentPosts.count;
-    }
-    else if (section == 1) {
-        // expanded post
-        BOOL showPost = self.post != nil &&
-                        (self.post.attributes.createdAt.length > 0 ||
-                         self.post.attributes.removedAt.length > 0);
-        return showPost ? 1 : 0;
-    }
-    else if (section >= 2 && section < self.stream.posts.count + 2) {
-        // don't show any replies if there isn't an expanded post yet
-        if (self.post == nil || (self.post.attributes.createdAt.length == 0 && self.post.attributes.removedAt.length == 0)) return 0;
-        
-        NSInteger adjustedIndex = section - 2;
-        
-        Post *reply = self.stream.posts[adjustedIndex];
-        CGFloat subReplies = reply.attributes.summaries.replies.count;
-        
-        // 0   : "hide replies"
-        // 1-x : replies
-        // x+1 : "view more replies"
-        // x+2 : "add a reply..."
-        
-        BOOL showHideReplies = false;// (subReplies >= reply.attributes.summaries.counts.replies) && reply.attributes.summaries.counts.replies > 2;
-        BOOL showViewMore = false;//(subReplies < reply.attributes.summaries.counts.replies);
-        BOOL showAddReply = reply.attributes.summaries.replies.count > 0;
-        
-        NSInteger rows = 1 + (showHideReplies ? 1 : 0) + subReplies + (showViewMore ? 1 : 0) + (showAddReply ? 1 : 0);
-        
-        return rows;
-    }
-    else if (section == self.stream.posts.count + 2) {
-        return 1;
-    }
-    
-    return 0;
+- (CGFloat)numberOfRowsInFirstSection {
+    return self.parentPosts.count + 1;
 }
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (indexPath.section == 0) {
-        // parent post
-        StreamPostCell *cell = [tableView dequeueReusableCellWithIdentifier:parentPostReuseIdentifier forIndexPath:indexPath];
-        
-        if (cell == nil) {
-            cell = [[StreamPostCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:parentPostReuseIdentifier];
-        }
-        
-        NSString *identifierBefore = cell.post.identifier;
-        
-        cell.showContext = false;
-        cell.showCamptag = true;
-        cell.hideActions = false;
-        if (self.parentPosts.count > indexPath.row) {
-            cell.post = self.parentPosts[indexPath.row];
-        }
-        
-        if (cell.post.identifier != 0 && [identifierBefore isEqualToString:cell.post.identifier]) {
-            [self didBeginDisplayingCell:cell];
-        }
-        
-        cell.tag = indexPath.row;
-        if (cell.actionsView.replyButton.gestureRecognizers.count == 0) {
-            [cell.actionsView.replyButton bk_whenTapped:^{
-                if (self.parentPosts.count > cell.tag) {
-                    [Launcher openComposePost:self.post.attributes.postedIn inReplyTo:self.parentPosts[cell.tag] withMessage:nil media:nil quotedObject:nil];
-                }
-            }];
-        }
-        
-        cell.lineSeparator.hidden = true;
-        cell.bottomLine.hidden = false;
-        cell.topLine.hidden = indexPath.row == 0;
-        
-        return cell;
-    }
-    else if (indexPath.section == 1) {
+- (UITableViewCell *)cellForRowInFirstSection:(NSInteger)row {
+    if (row == self.parentPosts.count) {
         // expanded post
-        ExpandedPostCell *cell = [tableView dequeueReusableCellWithIdentifier:expandedPostReuseIdentifier forIndexPath:indexPath];
+        ExpandedPostCell *cell = [self.tableView dequeueReusableCellWithIdentifier:expandedPostReuseIdentifier forIndexPath:[NSIndexPath indexPathForRow:row inSection:0]];
         
         if (cell == nil) {
             cell = [[ExpandedPostCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:expandedPostReuseIdentifier];
         }
         
         cell.tintColor = self.theme;
-        cell.loading = self.loading;
+        cell.loading = self.tableView.loading;
         
         cell.post = self.post;
         
@@ -886,7 +815,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             }
             
             if (!cell.loading) {
-                if ((int)[cell.activityView currentViewTag] == (int)PostActivityViewTagAddReply && self.stream.posts.count > 0) {
+                if ((int)[cell.activityView currentViewTag] == (int)PostActivityViewTagAddReply && self.tableView.stream.components.count > 0) {
                     [cell.activityView next];
                 }
                 else if (!cell.activityView.active) {
@@ -894,18 +823,18 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                 }
             }
 
-            if (cell.actionsView.alpha == 0.5 && !self.loading) {
+            if (cell.actionsView.alpha == 0.5 && !self.tableView.loading) {
                 [UIView animateWithDuration:0.25f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
                     cell.actionsView.alpha = 1;
                     cell.actionsView.replyButton.alpha = [self canReply] ? 1 : 0.5;
                 } completion:nil];
             }
             else {
-                cell.actionsView.alpha = self.loading ? 0.5 : 1;
-                cell.actionsView.replyButton.alpha = [self canReply] || self.loading ? 1 : 0.5;
+                cell.actionsView.alpha = self.tableView.loading ? 0.5 : 1;
+                cell.actionsView.replyButton.alpha = [self canReply] || self.tableView.loading ? 1 : 0.5;
             }
             
-            cell.actionsView.userInteractionEnabled = !self.loading;
+            cell.actionsView.userInteractionEnabled = !self.tableView.loading;
             cell.actionsView.replyButton.userInteractionEnabled = [self canReply];
         }
         
@@ -913,244 +842,52 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                 
         return cell;
     }
-    else if (indexPath.section < (self.stream.posts.count + 2)) { // offset by 1 due to expanded post on the top
-        NSInteger adjustedIndex = indexPath.section - 2;
+    else if (row < self.parentPosts.count) {
+        // parent post
+        StreamPostCell *cell = [self.tableView dequeueReusableCellWithIdentifier:parentPostReuseIdentifier forIndexPath:[NSIndexPath indexPathForRow:row inSection:0]];
         
-        // determine if it's a reply or sub-reply
-        Post *reply = self.stream.posts[adjustedIndex];
-        CGFloat subReplies = reply.attributes.summaries.replies.count;
-        // 0       : actual reply
-        // 1       : --- "hide replies"
-        // 2-(x+1) : --- replies
-        // (x+1)+1 : --- "view more replies"
-        // (x+1)+2 : --- "add a reply..."
-        
-        BOOL showViewMore = false;//(subReplies < reply.attributes.summaries.counts.replies);
-        BOOL showAddReply = reply.attributes.summaries.replies.count > 0;
-        
-        NSInteger firstSubReplyIndex = 1;
-        
-        if (indexPath.row == 0) {
-            // parent post
-            StreamPostCell *cell = [tableView dequeueReusableCellWithIdentifier:parentPostReuseIdentifier forIndexPath:indexPath];
-            
-            if (cell == nil) {
-                cell = [[StreamPostCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:parentPostReuseIdentifier];
-            }
-            
-            NSString *identifierBefore = cell.post.identifier;
-            
-            cell.showContext = false;
-            cell.showCamptag = false;
-            cell.hideActions = false;
-            cell.post = reply;
-            
-            if (cell.post.identifier != 0 && [identifierBefore isEqualToString:cell.post.identifier]) {
-                [self didBeginDisplayingCell:cell];
-            }
-            
-            cell.tag = adjustedIndex;
-            if (cell.actionsView.replyButton.gestureRecognizers.count == 0) {
-                [cell.actionsView.replyButton bk_whenTapped:^{
-                    Post *post = self.stream.posts[cell.tag];
-
-                    [self.composeInputView setReplyingTo:post];
-                    [self.composeInputView.textView becomeFirstResponder];
-
-                    [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:cell.tag+2] atScrollPosition:UITableViewScrollPositionBottom animated:YES];
-                }];
-            }
-            
-            cell.lineSeparator.hidden = (subReplies > 0 || showViewMore || showAddReply);
-            cell.bottomLine.hidden = true;
-            cell.topLine.hidden = true;
-            
-            return cell;
+        if (cell == nil) {
+            cell = [[StreamPostCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:parentPostReuseIdentifier];
         }
-        else if ((indexPath.row - firstSubReplyIndex) <  reply.attributes.summaries.replies.count) {
-            NSInteger subReplyIndex = indexPath.row - firstSubReplyIndex;
-            
-            // reply
-            ReplyCell *cell = [tableView dequeueReusableCellWithIdentifier:postSubReplyReuseIdentifier forIndexPath:indexPath];
-            
-            if (cell == nil) {
-                cell = [[ReplyCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:postSubReplyReuseIdentifier];
-            }
-            
-            cell.backgroundColor = [UIColor contentBackgroundColor];
-            cell.contentView.backgroundColor = [UIColor contentBackgroundColor];
-            
-            NSString *identifierBefore = cell.post.identifier;
+        
+        NSString *identifierBefore = cell.post.identifier;
+        
+        cell.showContext = false;
+        cell.showPostedIn = false;
+        cell.post = self.parentPosts[row];
+        
+        if (cell.post.identifier != 0 && [identifierBefore isEqualToString:cell.post.identifier]) {
+            [self.tableView didBeginDisplayingCell:cell];
+        }
+        
+        cell.tag = row;
+        if (cell.actionsView.replyButton.gestureRecognizers.count == 0) {
+            [cell.actionsView.replyButton bk_whenTapped:^{
+                Post *post = self.parentPosts[cell.tag];
 
-            cell.levelsDeep = -1;
-            NSLog(@"reply.attributes.summaries.replies[subReplyIndex]:: %@", reply.attributes.summaries.replies[subReplyIndex]);
-            Post *subReply = reply.attributes.summaries.replies[subReplyIndex];
-            cell.post = subReply;
-                        
-            if (cell.post.identifier != 0 && [identifierBefore isEqualToString:cell.post.identifier]) {
-                [self didBeginDisplayingCell:cell];
-            }
-            
-            cell.lineSeparator.hidden = true;
-            
-            cell.selectable = YES;
-            
-            cell.topLevelReplyButton.tag = indexPath.section;
-
-            [cell.topLevelReplyButton bk_whenTapped:^{
-                [HapticHelper generateFeedback:FeedbackType_Selection];
-
-                NSInteger adjustedIndex = cell.topLevelReplyButton.tag - 2;
-                Post *cellPost = self.stream.posts[adjustedIndex];
-
-                [self.composeInputView setReplyingTo:cellPost];
+                [self.composeInputView setReplyingTo:post];
                 [self.composeInputView.textView becomeFirstResponder];
 
-                [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:cell.topLevelReplyButton.tag] atScrollPosition:UITableViewScrollPositionBottom animated:YES];
+                [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:cell.tag+2] atScrollPosition:UITableViewScrollPositionBottom animated:YES];
             }];
-            
-            return cell;
         }
-        else if (showViewMore && indexPath.row == reply.attributes.summaries.replies.count + firstSubReplyIndex) {
-            // "view more replies"
-            ExpandThreadCell *cell = [tableView dequeueReusableCellWithIdentifier:expandRepliesCellIdentifier forIndexPath:indexPath];
-            
-            if (!cell) {
-                cell = [[ExpandThreadCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:expandRepliesCellIdentifier];
-            }
-            cell.backgroundColor = [UIColor contentBackgroundColor];
-            cell.contentView.backgroundColor = [UIColor contentBackgroundColor];
-            
-            cell.levelsDeep = -1;
-            
-            BOOL hasExistingSubReplies = reply.attributes.summaries.replies.count != 0;
-            cell.textLabel.text = [NSString stringWithFormat:@"View%@ replies (%ld)", (hasExistingSubReplies ? @" more" : @""), (long)reply.attributes.summaries.counts.replies - reply.attributes.summaries.replies.count];
-            
-            if (hasExistingSubReplies) {
-                // view more replies
-                cell.tag = 2;
-            }
-            else {
-                // start replies chain
-                cell.tag = 3;
-            }
-            
-            cell.lineSeparator.hidden = true;
-            
-            return cell;
-        }
-        else if (showAddReply && indexPath.row == reply.attributes.summaries.replies.count + firstSubReplyIndex + (showViewMore ? 1 : 0)) {
-            // "add a reply"
-            AddReplyCell *cell = [tableView dequeueReusableCellWithIdentifier:addReplyCellIdentifier forIndexPath:indexPath];
-            
-            if (cell == nil) {
-                cell = [[AddReplyCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:addReplyCellIdentifier];
-            }
-            cell.backgroundColor = [UIColor contentBackgroundColor];
-            cell.contentView.backgroundColor = [UIColor contentBackgroundColor];
-            
-            NSString *username = reply.attributes.creator.attributes.identifier;
-            if (reply.attributes.summaries.replies.count == 0) {
-                NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"Reply to @%@...", username] attributes:@{NSFontAttributeName: cell.addReplyButton.titleLabel.font, NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
-                [attributedString setAttributes:@{NSFontAttributeName: [UIFont systemFontOfSize:cell.addReplyButton.titleLabel.font.pointSize weight:UIFontWeightSemibold]} range:[attributedString.string rangeOfString:[NSString stringWithFormat:@"@%@", username]]];
-                [cell.addReplyButton setAttributedTitle:attributedString forState:UIControlStateNormal];
-            }
-            else {
-                NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"Add a reply..."] attributes:@{NSFontAttributeName: cell.addReplyButton.titleLabel.font, NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
-                [cell.addReplyButton setAttributedTitle:attributedString forState:UIControlStateNormal];
-            }
-            
-            cell.lineSeparator.hidden = false;
-            cell.levelsDeep = -1;
-            
-            return cell;
-        }
-    }
-    else if (indexPath.section == self.stream.posts.count + 2) {
-        if (self.visualError) {
-            BFErrorViewCell *cell = [tableView dequeueReusableCellWithIdentifier:errorViewCellIdentifier forIndexPath:indexPath];
-            
-            if (cell == nil) {
-                cell = [[BFErrorViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:errorViewCellIdentifier];
-            }
-            
-            cell.tintColor = self.view.tintColor;
-            cell.visualError = self.visualError;
-            
-            cell.contentView.backgroundColor = [UIColor clearColor];
-            cell.backgroundColor = [UIColor clearColor];
-            cell.separator.hidden = true;
-            
-            return cell;
-        }
-        else {
-            // loading cell
-            PaginationCell *cell = [tableView dequeueReusableCellWithIdentifier:paginationCellIdentifier forIndexPath:indexPath];
-            
-            if (cell == nil) {
-                cell = [[PaginationCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:paginationCellIdentifier];
-            }
-            
-            cell.contentView.backgroundColor =
-            cell.backgroundColor = [UIColor clearColor];
-            
-            cell.loading = true;
-            cell.spinner.hidden = false;
-            [cell.spinner startAnimating];
-            
-            cell.userInteractionEnabled = false;
-            
-            return cell;
-        }
-    }
-    
-    // if all else fails, return a blank cell
-    UITableViewCell *blankCell = [tableView dequeueReusableCellWithIdentifier:blankCellIdentifier forIndexPath:indexPath];
-    return blankCell;
-}
-- (UIContextMenuConfiguration *)tableView:(UITableView *)tableView contextMenuConfigurationForRowAtIndexPath:(NSIndexPath *)indexPath point:(CGPoint)point  API_AVAILABLE(ios(13.0)){
-    if ([[tableView cellForRowAtIndexPath:indexPath] isKindOfClass:[PostCell class]] &&
-        ![[tableView cellForRowAtIndexPath:indexPath] isKindOfClass:[ExpandedPostCell class]]) {
-        Post *post = ((PostCell *)[tableView cellForRowAtIndexPath:indexPath]).post;
         
-        if (post) {
-            NSMutableArray *actions = [NSMutableArray new];
-            if ([post.attributes.context.post.permissions canReply]) {
-                NSMutableArray *actions = [NSMutableArray new];
-                UIAction *replyAction = [UIAction actionWithTitle:@"Reply" image:[UIImage systemImageNamed:@"arrowshape.turn.up.left"] identifier:@"reply" handler:^(__kindof UIAction * _Nonnull action) {
-                    wait(0, ^{
-                        [Launcher openComposePost:post.attributes.postedIn inReplyTo:post withMessage:nil media:nil  quotedObject:nil];
-                    });
-                }];
-                [actions addObject:replyAction];
-            }
-            
-            if (post.attributes.postedIn) {
-                UIAction *openCamp = [UIAction actionWithTitle:@"Open Camp" image:[UIImage systemImageNamed:@"number"] identifier:@"open_camp" handler:^(__kindof UIAction * _Nonnull action) {
-                    Camp *camp = [[Camp alloc] initWithDictionary:[post.attributes.postedIn toDictionary] error:nil];
-                    
-                    [Launcher openCamp:camp];
-                }];
-                [actions addObject:openCamp];
-            }
-            
-            UIAction *shareViaAction = [UIAction actionWithTitle:@"Share via..." image:[UIImage systemImageNamed:@"square.and.arrow.up"] identifier:@"share_via" handler:^(__kindof UIAction * _Nonnull action) {
-                [Launcher sharePost:post];
-            }];
-            [actions addObject:shareViaAction];
-            
-            UIMenu *menu = [UIMenu menuWithTitle:@"" children:actions];
-            
-            PostViewController *postVC = [Launcher postViewControllerForPost:post];
-            postVC.isPreview = true;
-            
-            UIContextMenuConfiguration *configuration = [UIContextMenuConfiguration configurationWithIdentifier:indexPath previewProvider:^(){return postVC;} actionProvider:^(NSArray* suggestedAction){return menu;}];
-            return configuration;
-        }
+        cell.lineSeparator.hidden = true;
+        cell.bottomLine.hidden = false;
+        cell.topLine.hidden = (row == 0);
+        
+        return cell;
     }
     
     return nil;
 }
+
+- (void)tableView:(nonnull id)tableView didRequestNextPageWithMaxId:(NSInteger)maxId {
+    if (self.tableView.stream.nextCursor.length > 0 && ![self.tableView.stream hasLoadedCursor:self.tableView.stream.nextCursor]) {
+        [self getRepliesWithCursor:StreamPagingCursorTypeNext];
+    }
+}
+
 - (void)tableView:(UITableView *)tableView willPerformPreviewActionForMenuWithConfiguration:(UIContextMenuConfiguration *)configuration animator:(id<UIContextMenuInteractionCommitAnimating>)animator  API_AVAILABLE(ios(13.0)){
     NSIndexPath *indexPath = (NSIndexPath *)configuration.identifier;
     
@@ -1165,227 +902,70 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     }];
 }
 
-
--(NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    BOOL hasAnotherPage = self.stream.pages.count > 0 && [self.stream.pages lastObject].meta.paging.nextCursor != nil && [self.stream.pages lastObject].meta.paging.nextCursor.length > 0;
-    return  1 + // parent posts
-            1 + // expanded post
-            (self.loading ? 1 : self.stream.posts.count + (hasAnotherPage || self.visualError ? 1 : 0));
-}
-- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (indexPath.section == 0) {
-        if (indexPath.row < self.parentPosts.count) {
-            return [StreamPostCell heightForPost:self.parentPosts[indexPath.row] showContext:false showActions:true minimizeLinks:false];
-        }
-        
-        // loading ...
-        return 0;
-    }
-    else if (indexPath.section == 1 && indexPath.row == 0 && (self.post.attributes.createdAt.length > 0 || self.post.attributes.removedAt.length > 0)) {
+- (CGFloat)heightForRowInFirstSection:(NSInteger)row {
+    if (row == self.parentPosts.count) {
         // expanded post
-        // returns 0 if incomplete (occurs when loading from identifier)
         return [ExpandedPostCell heightForPost:self.post width:[UIScreen mainScreen].bounds.size.width];
     }
-    else if (indexPath.section - 2 < self.stream.posts.count) {
-        Post *reply = self.stream.posts[indexPath.section-2];
-        CGFloat subReplies = reply.attributes.summaries.replies.count;
-        // 0       : actual reply
-        // 1       : --- "hide replies"
-        // 2-(x+1) : --- replies
-        // (x+1)+1 : --- "view more replies"
-        // (x+1)+2 : --- "add a reply..."
-        
-        BOOL showViewMore = false;//(subReplies < reply.attributes.summaries.counts.replies);
-        BOOL showAddReply = reply.attributes.summaries.replies.count > 0;
-        
-        NSInteger firstSubReplyIndex = 1;
-        
-        if (indexPath.row == 0) {
-            // BOOL showActions = (reply.attributes.summaries.replies.count == 0);
-            return [StreamPostCell heightForPost:reply showContext:false showActions:true minimizeLinks:false];
-        }
-        else if ((indexPath.row - firstSubReplyIndex) < subReplies) {
-            NSInteger subReplyIndex = indexPath.row - firstSubReplyIndex;
-            Post *subReply = reply.attributes.summaries.replies[subReplyIndex];
-            
-            CGFloat height = [ReplyCell heightForPost:subReply levelsDeep:-1];
-            if ((subReplyIndex == subReplies - 1) && !showViewMore && showAddReply) {
-                // remove the bottom padding of the cell, since the add reply cell includes that padding
-                height -= replyContentOffset.bottom;
-            }
-            
-            return height;
-        }
-        else if (showViewMore && indexPath.row == reply.attributes.summaries.replies.count + firstSubReplyIndex) {
-            // "view more replies"
-            return [ExpandThreadCell height];
-        }
-        else if (showAddReply && indexPath.row == reply.attributes.summaries.replies.count + firstSubReplyIndex + (showViewMore ? 1 : 0)) {
-            // "add a reply"
-            return [AddReplyCell height];
-        }
-    }
-    else if (indexPath.section - 2 == self.stream.posts.count) {
-        if (self.visualError) {
-            return [BFErrorViewCell heightForVisualError:self.visualError];
-        }
-        else {
-            return 52;
-        }
+    else if (row < self.parentPosts.count) {
+        return [StreamPostCell heightForPost:self.parentPosts[row] showContext:false showActions:true minimizeLinks:false];
     }
     
     return 0;
 }
 
-- (BFVisualError *)visualError {
-    if (_visualError) {
-        return _visualError;
-    }
-    else if (!self.loading && self.post.attributes.context && !self.loadingMore && self.stream.posts.count == 0 && ![self canReply]) {
-        return [BFVisualError visualErrorOfType:ErrorViewTypeRepliesDisabled title:@"Post Replies Disabled" description:@"The creator of this post has disabled replies for this post" actionTitle:nil actionBlock:nil];
-    }
-    
-    return nil;
-}
-
-- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    if (section == 0) {
-        return HALF_PIXEL;
-    }
-    
-    return CGFLOAT_MIN;
-}
-- (nullable UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
-    if (section == 0) {
-        UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, HALF_PIXEL)];
-        separator.backgroundColor = [UIColor tableViewSeparatorColor];
-        return separator;
-    }
-    
-    return [[UIView alloc] initWithFrame:CGRectZero];
-}
-- (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
-    return CGFLOAT_MIN;
-}
-- (UIView*)tableView:(UITableView*)tableView viewForFooterInSection:(NSInteger)section {
-    return [[UIView alloc] initWithFrame:CGRectZero];
-}
-
-- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+- (void)didSelectRowInFirstSection:(NSInteger)row {
     Post *post;
     
-    UITableViewCell *cell = [self.tableView cellForRowAtIndexPath:indexPath];
+    UITableViewCell *cell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:row inSection:0]];
     if ([cell isKindOfClass:[ExpandedPostCell class]]) return;
     
-    if ([cell isKindOfClass:[StreamPostCell class]] || [cell isKindOfClass:[ReplyCell class]]) {
+    if ([cell isKindOfClass:[StreamPostCell class]]) {
         if (!((PostCell *)cell).post) return;
         
         post = ((PostCell *)cell).post;
-    }
-    if ([cell isKindOfClass:[ExpandThreadCell class]]) {
-        post = self.stream.posts[indexPath.section-2];
-    }
-    if ([cell isKindOfClass:[AddReplyCell class]]) {
-        Post *postReplyingTo = self.stream.posts[indexPath.section-2];
-        
-        [self.composeInputView setReplyingTo:postReplyingTo];
-        [self.composeInputView.textView becomeFirstResponder];
-        
-        [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:indexPath.section] atScrollPosition:UITableViewScrollPositionBottom animated:YES];
     }
     
     if (post) {
         [InsightsLogger.sharedInstance closePostInsight:post.identifier action:InsightActionTypeDetailExpand];
         [FIRAnalytics logEventWithName:@"conversation_expand"
                             parameters:@{
-                                         @"post_id": post.identifier
-                                         }];
+                                @"post_id": post.identifier
+                            }];
         
         [Launcher openPost:post withKeyboard:false];
     }
 }
 
-- (void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
-    if([cell isKindOfClass:[PaginationCell class]]) {
-        if (!self.loadingMore && self.stream.pages.count > 0 && [self.stream.pages lastObject].meta.paging.nextCursor != nil && [self.stream.pages lastObject].meta.paging.nextCursor.length > 0) {
-            self.loadingMore = true;
-            [self getRelatedPostsWithNextCursor:[self.stream.pages lastObject].meta.paging.nextCursor];
-        }
-        return;
-    }
-    
-    if ([cell isKindOfClass:[ReplyCell class]]) {
-        Post *post = ((ReplyCell *)cell).post;
-        
-        if (post.tempId) {
-            cell.contentView.alpha = 0.5;
-
-            [UIView animateWithDuration:0.5f delay:0.25f usingSpringWithDamping:0.9f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-                cell.contentView.alpha = 1;
-            } completion:nil];
-        }
-    }
-}
-- (void)didBeginDisplayingCell:(UITableViewCell *)cell {
-    Post *post;
-    if ([cell isKindOfClass:[PostCell class]]) {
-        post = ((PostCell *)cell).post;
-    }
-    else {
-        return;
-    }
-    
-    // skip logging if invalid post identifier (most likely due to a loading cell)
-    if (post.identifier == 0) return;
-    
-    [InsightsLogger.sharedInstance openPostInsight:post.identifier seenIn:InsightSeenInPostView];
-}
-- (void)tableView:(UITableView *)tableView didEndDisplayingCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath*)indexPath {
-    if ([tableView.indexPathsForVisibleRows indexOfObject:indexPath] == NSNotFound) {
-        Post *post;
-        if ([cell isKindOfClass:[PostCell class]]) {
-            post = ((PostCell *)cell).post;
-        }
-        else {
-            return;
-        }
-        
-        // skip logging if invalid post identifier (most likely due to a loading cell)
-        if (post.identifier == 0) return;
-        
-        [InsightsLogger.sharedInstance closePostInsight:post.identifier action:nil];
-    }
-}
 - (CGFloat)parentPostsHeight {
     if (self.parentPosts.count == 0) return 0;
     
     CGFloat height = 0;
-    for (NSInteger i = 0; i < [self.tableView numberOfRowsInSection:0]; i++) {
-        height += [self tableView:self.tableView heightForRowAtIndexPath:[NSIndexPath indexPathForRow:i inSection:0]];
+    for (NSInteger i = 0; i < [self.tableView numberOfRowsInSection:0] - 1; i++) {
+        height += [self.tableView tableView:self.tableView heightForRowAtIndexPath:[NSIndexPath indexPathForRow:i inSection:0]];
     }
     
     return height;
 }
 - (CGFloat)replyPostsHeight {
     CGFloat height = 0;
-    for (NSInteger s = 2; s < self.tableView.numberOfSections; s++) {
-        height += [self tableView:self.tableView heightForHeaderInSection:s];
-        for (NSInteger r = 0; r < [self.tableView numberOfRowsInSection:0]; r++) {
-            height += [self tableView:self.tableView heightForRowAtIndexPath:[NSIndexPath indexPathForRow:r inSection:s]];
-        }
-        height += [self tableView:self.tableView heightForFooterInSection:s];
-    }
     
+    height += [self.tableView tableView:self.tableView heightForHeaderInSection:1];
+    for (NSInteger r = 0; r < [self.tableView numberOfRowsInSection:1]; r++) {
+        height += [self.tableView tableView:self.tableView heightForRowAtIndexPath:[NSIndexPath indexPathForRow:r inSection:1]];
+    }
+    height += [self.tableView tableView:self.tableView heightForFooterInSection:1];
+
     DLog(@"replyPostsHeight: %f", height);
     
     return height;
 }
-- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
-    if (scrollView == self.tableView) {
+- (void)tableViewDidScroll:(UITableView *)tableView {
+    if (tableView == self.tableView) {
         [self.launchNavVC childTableViewDidScroll:self.tableView];
         
         if ([self hasParentPost] && self.parentPostScrollIndicator.alpha == 1) {
-            CGFloat contentOffset = scrollView.contentOffset.y;
+            CGFloat contentOffset = tableView.contentOffset.y;
             CGFloat parentPostsHeight = [self parentPostsHeight];
             CGFloat hideLine = parentPostsHeight - self.tableView.adjustedContentInset.top;
             
@@ -1398,20 +978,6 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                 self.parentPostScrollIndicator.transform = CGAffineTransformMakeTranslation(0, -amountBeyondHideLine);
             }
         }
-        
-//        CGPoint fingerLocation = [scrollView.panGestureRecognizer locationInView:scrollView];
-//        CGPoint absoluteFingerLocation = [scrollView convertPoint:fingerLocation toView:self.view];
-//
-//        if (_currentKeyboardHeight > 0 && scrollView.panGestureRecognizer.state == UIGestureRecognizerStateChanged) {
-//            CGFloat bottomPadding = UIApplication.sharedApplication.keyWindow.safeAreaInsets.bottom;
-//
-//            CGFloat before = _currentKeyboardHeight;
-//            _currentKeyboardHeight = MAX(MIN(roundf([[UIScreen mainScreen] bounds].size.height - absoluteFingerLocation.y), _currentKeyboardFrame.size.height), bottomPadding);
-//            if (before == _currentKeyboardHeight) return;
-//
-//            [self updateComposeInputViewFrame];
-//            [self updateContentInsets];
-//        }
     }
 }
 
@@ -1443,19 +1009,19 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         [Launcher openComposePost:self.post.attributes.postedIn inReplyTo:(self.composeInputView.replyingTo?self.composeInputView.replyingTo:self.post) withMessage:self.composeInputView.textView.text media:nil quotedObject:nil];
     }];
     [self.composeInputView.replyingToLabel bk_whenTapped:^{
-        // scroll to post you're replying to
-        NSArray<Post *> *posts = self.stream.posts;
-        for (NSInteger i = 0; i < posts.count; i++) {
-            if (posts[i].identifier == self.composeInputView.replyingTo.identifier) {
-                // scroll to this item!
-                NSIndexPath* ipath = [NSIndexPath indexPathForRow:0 inSection:i+2];
-                [self.tableView scrollToRowAtIndexPath:ipath atScrollPosition:UITableViewScrollPositionBottom animated:YES];
-                
-                break;
-            }
-        }
-        
-        [self updateContentInsets];
+        //        // scroll to post you're replying to
+        //        NSArray<Post *> *posts = self.stream.components;
+        //        for (NSInteger i = 0; i < posts.count; i++) {
+        //            if (posts[i].identifier == self.composeInputView.replyingTo.identifier) {
+        //                // scroll to this item!
+        //                NSIndexPath* ipath = [NSIndexPath indexPathForRow:0 inSection:i+2];
+        //                [self.tableView scrollToRowAtIndexPath:ipath atScrollPosition:UITableViewScrollPositionBottom animated:YES];
+        //
+        //                break;
+        //            }
+        //        }
+        //
+        //        [self updateContentInsets];
     }];
     
     [self.view addSubview:self.composeInputView];
@@ -1495,7 +1061,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
 }
 - (void)updateComposeInputView {
     [self.composeInputView setMediaTypes:self.post.attributes.context.post.permissions.reply];
-
+    
     if ([self canReply]) {
         [self showComposeInputView];
         [self.composeInputView updatePlaceholders];
@@ -1599,7 +1165,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     CGFloat bottomPadding = UIApplication.sharedApplication.keyWindow.safeAreaInsets.bottom;
     
     CGFloat newComposeInputViewY = (self.currentKeyboardHeight > 0 ? self.composeInputView.frame.origin.y + bottomPadding : self.view.frame.size.height + ([self.composeInputView isHidden] ? 0 : -self.composeInputView.frame.size.height + bottomPadding));
-        
+    
     CGFloat parentPostOffset = 0;
     if ([self hasParentPost]) {
         CGFloat expandedPostHeight = [ExpandedPostCell heightForPost:self.post width:[UIScreen mainScreen].bounds.size.width];
@@ -1685,5 +1251,6 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
 ////        }
 ////    }];
 //}
+
 
 @end

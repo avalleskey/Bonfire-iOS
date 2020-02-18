@@ -9,6 +9,7 @@
 #import "PostStream.h"
 #import "Session.h"
 #import "PostCell.h"
+#import "NSArray+Components.h"
 
 @implementation PostStream
 
@@ -18,25 +19,28 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
 - (id)init {
     self = [super init];
     if (self) {
-        self.pages = [[NSMutableArray alloc] init];
-        
-        self.tempPosts = [[NSMutableArray alloc] init];
-        self.posts = @[];
-        
-        self.cursorsLoaded = [[NSMutableDictionary alloc] init];
+        [self flush];
     }
     return self;
 }
 
 - (id)initWithCoder:(NSCoder *)decoder {
     if (self = [super init]) {
-        self.posts = [decoder decodeObjectForKey:@"posts"];
+        self.finalComponents = [decoder decodeObjectForKey:@"components"];
     }
     return self;
 }
 
 - (void)encodeWithCoder:(NSCoder *)encoder {
-    [encoder encodeObject:self.posts forKey:@"posts"];
+    [encoder encodeObject:self.finalComponents forKey:@"components"];
+}
+
+- (void)flush {
+    self.pages = [NSMutableArray new];
+    self.components = [NSArray<BFPostStreamComponent *><BFPostStreamComponent> new];
+    self.finalComponents = [NSMutableArray<BFPostStreamComponent *><BFPostStreamComponent> new];
+    self.tempComponents = [NSMutableArray<BFPostStreamComponent *><BFPostStreamComponent> new];
+    self.cursorsLoaded = [NSMutableDictionary new];
 }
 
 #pragma mark - NSCopying
@@ -44,68 +48,40 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
 {
     PostStream *copyObject = [PostStream new];
     copyObject.pages = _pages;
-    copyObject.tempPosts = _tempPosts;
-    copyObject.posts = _posts;
+    copyObject.components = _components;
+    copyObject.tempComponents = _tempComponents;
+    copyObject.finalComponents = _finalComponents;
     copyObject.prevCursor = _prevCursor;
     copyObject.nextCursor = _nextCursor;
 
      return copyObject;
 }
 
-- (void)updatePostsArray {
-    NSMutableArray *mutableArray = [NSMutableArray array];
+- (void)streamUpdated:(BOOL)refreshComponents {
+    if (refreshComponents) {
+        [self refreshComponents];
+    }
     
     if (self.tempPostPosition == PostStreamOptionTempPostPositionTop) {
-        [mutableArray addObjectsFromArray:self.tempPosts];
+        self.components = [self.tempComponents arrayByAddingObjectsFromArray:self.finalComponents];
     }
-    
-    NSString *lastPostID = @"";
-    
-    NSMutableArray *pagesToDelete = [NSMutableArray array];
-    for (NSInteger i = 0; i < self.pages.count; i++) {
-        // TODO: Insert 'load missing posts' post if before/after doesn't match previous/next page
-        
-        PostStreamPage *page = self.pages[i];
-        NSDictionary *pageDict = [page toDictionary];
-        NSArray *pagePosts = [pageDict objectForKey:@"data"] ? pageDict[@"data"] : @[];
-        NSMutableArray *mutablePagePosts = [pagePosts mutableCopy];
-        
-        for (Post *post in mutablePagePosts) {
-            if ([lastPostID isEqualToString:post.identifier]) {
-                //[postsToRemove addObject:post];
-            }
-            else {
-                lastPostID = post.identifier;
-            }
-
-            if (i == 0 && page.meta.paging.prevCursor.length > 0) {
-                post.prevCursor = page.meta.paging.prevCursor;
-            }
-            if (i == mutablePagePosts.count - 1 && page.meta.paging.nextCursor.length > 0) {
-                post.nextCursor = page.meta.paging.nextCursor;
-            }
-        }
-        //[mutablePagePosts removeObjectsInArray:postsToRemove];
-        
-        if (mutablePagePosts.count == 0) {
-            [pagesToDelete addObject:page];
-        }
-        else {
-            [mutableArray addObjectsFromArray:mutablePagePosts];
-        }
+    else {
+        self.components = [self.finalComponents arrayByAddingObjectsFromArray:self.tempComponents];
     }
-    // remove any empty pages
-    [self.pages removeObjectsInArray:pagesToDelete];
-    
-    if (self.tempPostPosition == PostStreamOptionTempPostPositionBottom) {
-        [mutableArray addObjectsFromArray:self.tempPosts];
-    }
-    
-    self.posts = [mutableArray copy];
     
     if ([self.delegate respondsToSelector:@selector(postStreamDidUpdate:)]) {
         [self.delegate postStreamDidUpdate:self];
     }
+}
+
+- (void)refreshComponents {
+    NSMutableArray <BFPostStreamComponent *> *newComponents = [NSMutableArray<BFPostStreamComponent *> new];
+    
+    for (PostStreamPage *page in self.pages) {
+        [newComponents addObjectsFromArray:[page.data toPostStreamComponentsWithDetailLevel:_detailLevel]];
+    }
+    
+    self.finalComponents = newComponents;
 }
 
 - (void)prependPage:(PostStreamPage *)page {
@@ -113,436 +89,391 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
         return;
     }
     
-    NSMutableArray *pageData = [[NSMutableArray alloc] initWithArray:page.data];
-    for (NSInteger i = 0; i < pageData.count; i++) {
-        if ([pageData[i] isKindOfClass:[NSDictionary class]]) {
-            Post *post = [[Post alloc] initWithDictionary:pageData[i] error:nil];
-            [pageData replaceObjectAtIndex:i withObject:post];
-        }
-    }
-    page.data = [pageData copy];
-
     [self.pages insertObject:page atIndex:0];
-    [self updatePostsArray];
+    
+    [self prependComponentsFromPage:page];
+    
+    [self streamUpdated:false];
 }
+- (void)prependComponentsFromPage:(PostStreamPage *)page {
+    NSArray <BFPostStreamComponent *> *components = [page.data toPostStreamComponentsWithDetailLevel:_detailLevel];
+    
+    [self.finalComponents insertObjects:components atIndexes:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, components.count)]];
+}
+
 - (void)appendPage:(PostStreamPage *)page {
     if (self.pages.count > 0 && [self.pages lastObject].meta.paging.nextCursor.length > 0 && [[self.pages lastObject].meta.paging.nextCursor isEqualToString:page.meta.paging.nextCursor]) {
         return;
     }
     
-    NSMutableArray *pageData = [[NSMutableArray alloc] initWithArray:page.data];
-    for (NSInteger i = 0; i < pageData.count; i++) {
-        if ([pageData[i] isKindOfClass:[NSDictionary class]]) {
-            NSError *error;
-            
-            Post *post = [[Post alloc] initWithDictionary:pageData[i] error:&error];
-            
-            if (error) {
-                NSLog(@"error: %@", error);
-            }
-            if (post != nil) {
-                [pageData replaceObjectAtIndex:i withObject:post];
-            }
-        }
-    }
-    page.data = [pageData copy];
-    
     [self.pages addObject:page];
-    [self updatePostsArray];
+    
+    [self appendComponentsFromPage:page];
+    
+    [self streamUpdated:false];
+}
+- (void)appendComponentsFromPage:(PostStreamPage *)page {
+    NSArray <BFPostStreamComponent *> *components = [page.data toPostStreamComponentsWithDetailLevel:_detailLevel];
+    
+    [self.finalComponents addObjectsFromArray:components];
 }
 
 - (BOOL)removeTempPost:(NSString *)tempId {
-    NSMutableArray *postsToRemove = [[NSMutableArray alloc] init];
-    for (Post *p in self.tempPosts) {
-        if ([p.tempId isEqualToString:tempId]) {
-            // found match
-            [postsToRemove addObject:p];
+    __block BOOL changes = false;
+    
+    NSMutableArray <BFPostStreamComponent *> *markedForDeletion = [NSMutableArray<BFPostStreamComponent *> new];
+    for (BFPostStreamComponent *component in self.tempComponents) {
+        if ([component.post.tempId isEqualToString:tempId]) {
+            changes = true;
+            
+            [markedForDeletion addObject:component];
         }
     }
-    [self.tempPosts removeObjectsInArray:postsToRemove];
-    [self updatePostsArray];
+    [self.tempComponents removeObjectsInArray:markedForDeletion];
     
-    return postsToRemove.count > 0;
+    return changes;
 }
 - (NSString *)addTempPost:(Post *)post {
     NSString *tempId = [NSString stringWithFormat:@"%d", [Session getTempId]];
     post.tempId = tempId;
+    
+    NSArray <BFPostStreamComponent *> *componentsFromPost = [@[post] toPostStreamComponentsWithDetailLevel:_detailLevel];
     if (self.tempPostPosition == PostStreamOptionTempPostPositionTop) {
-        [self.tempPosts insertObject:post atIndex:0];
+        [self.tempComponents insertObjects:componentsFromPost atIndexes:[NSIndexSet indexSetWithIndex:0]];
     }
     else {
-        [self.tempPosts addObject:post];
+        [self.tempComponents addObjectsFromArray:componentsFromPost];
     }
-    [self updatePostsArray];
+    
+    [self streamUpdated:false];
     
     return tempId;
-}
-- (BOOL)updateTempPost:(NSString *)tempId withFinalPost:(Post *)post {
-    NSMutableArray *postsToRemove = [[NSMutableArray alloc] init];
-    for (Post *p in self.tempPosts) {
-        if ([p.tempId isEqualToString:tempId]) {
-            // found match
-            [postsToRemove addObject:p];
-        }
-    }
-    [self.tempPosts removeObjectsInArray:postsToRemove];
-    
-    if (post != nil) {
-        PostStreamPage *newPage = [[PostStreamPage alloc] initWithDictionary:@{@"data": @[[post toDictionary]]} error:nil];
-        if (self.tempPostPosition == PostStreamOptionTempPostPositionTop) {
-            [self prependPage:newPage];
-        }
-        else {
-            [self appendPage:newPage];
-        }
-    }
-    
-    return true;
 }
 
 - (NSString *)addTempSubReply:(Post *)subReply {
     NSString *tempId = [NSString stringWithFormat:@"%d", [Session getTempId]];
     subReply.tempId = tempId;
     
-    // always add to bottom
-    BOOL foundMatch = false;
-    for (NSInteger i = 0; i < self.pages.count; i++) {
-        PostStreamPage *page = self.pages[i];
-        NSMutableArray<Post *> *mutableData = [[NSMutableArray<Post *> alloc] initWithArray:page.data];
+    // always add newest to top
+    __block BOOL changes = false;
+    
+    [self.pages enumerateObjectsUsingBlock:^(PostStreamPage *page, NSUInteger i1, BOOL *stop) {
+        __block BOOL sectionChanges = false;
         
-        for (int p = 0; p < mutableData.count; p++) {
-            // go through each reply, checking to see if the sub reply parent == identifier of post
-            Post *reply = mutableData[p];
-            if ([reply.identifier isEqualToString:subReply.attributes.parent.identifier]) {
-                // match!
-                NSLog(@"reply.attributes.summaries.replies BEFORE: %lu", reply.attributes.summaries.replies.count);
+        NSMutableArray <Post *> *mutablePosts = [[NSMutableArray<Post *> alloc] initWithArray:page.data];
+        [mutablePosts enumerateObjectsUsingBlock:^(Post *p, NSUInteger i2, BOOL *stop) {
+            if ([subReply.attributes.parent.identifier isEqualToString:p.identifier] ||
+                [subReply.attributes.parentId isEqualToString:p.identifier]) {
+                sectionChanges = true;
                 
-                NSMutableArray<Post *><Post, Optional> *mutableArray = [[NSMutableArray<Post *><Post, Optional> alloc] initWithArray:reply.attributes.summaries.replies];
-                [mutableArray addObject:subReply];
-                reply.attributes.summaries.replies = mutableArray;
+                // Sort through replies to check for matches
+                NSMutableArray <Post *> *mutableReplies = [[NSMutableArray<Post *> alloc] initWithArray:p.attributes.summaries.replies];
+                [mutableReplies insertObject:subReply atIndex:0];
                 
-                if (reply.attributes.summaries.counts && reply.attributes.summaries.counts.replies) {
-                    reply.attributes.summaries.counts.replies++;
-                }
-                
-                [mutableData replaceObjectAtIndex:p withObject:reply];
-                
-                foundMatch = true;
-                
-                break;
+                p.attributes.summaries.replies = [mutableReplies copy];
             }
-        }
+        }];
         
-        if (foundMatch) {
-            page.data = mutableData;
+        if (sectionChanges) {
+            changes = true;
+            
+            page.data = [mutablePosts copy];
         }
+    }];
+    
+    if (changes) {
+        [self streamUpdated:true];
     }
     
-    if (foundMatch) {
-        [self updatePostsArray];
-    }
-
     return tempId;
 }
 - (BOOL)updateTempSubReply:(NSString *)tempId withFinalSubReply:(Post *)finalSubReply {
-    // always add to bottom
-    BOOL foundMatch = false;
-    for (NSInteger i = 0; i < self.pages.count; i++) {
-        PostStreamPage *page = self.pages[i];
-        for (int p = 0; p < page.data.count; p++) {
-            // go through each reply, checking to see if the sub reply parent  == identifier of post
-            Post *reply = page.data[p];
-            NSMutableArray *mutableSubReplies = [[NSMutableArray alloc] initWithArray:reply.attributes.summaries.replies];
-            
-            for (int s = 0; s < mutableSubReplies.count; s++) {
-                Post *subReply = mutableSubReplies[s];
-                if ([subReply.tempId isEqualToString:tempId]) {
-                    // match!
-                    [mutableSubReplies replaceObjectAtIndex:s withObject:finalSubReply];
-                    NSArray <Post *> <Post> *copy = [mutableSubReplies copy];
-                    reply.attributes.summaries.replies = copy;
-                    
-                    NSMutableArray *mutableData = [[NSMutableArray alloc] initWithArray:page.data];
-                    [mutableData replaceObjectAtIndex:p withObject:reply];
-                    NSArray <Post *> <Post> *mutableDataCopy = [mutableData copy];
-                    page.data = mutableDataCopy;
-                    
-                    foundMatch = true;
-                    
-                    break;
-                }
-            }
-            if (foundMatch)
-                break;
-        }
-        if (foundMatch)
-            break;
-    }
-    
-    [self updatePostsArray];
-    
-    return true;
-}
-- (BOOL)clearSubRepliesForPost:(Post *)reply {
-    BOOL foundMatch = false;
-    for (NSInteger i = 0; i < self.pages.count; i++) {
-        PostStreamPage *page = self.pages[i];
-        for (int p = 0; p < page.data.count; p++) {
-            // go through each reply, checking to see if the sub reply parent  == identifier of post
-            Post *replyAtIndex = page.data[p];
-            if (replyAtIndex.identifier == reply.identifier) {
-                NSMutableArray *mutableEmptyArray = [[NSMutableArray alloc] init];
-                NSArray <Post *><Post> *copy = [mutableEmptyArray copy];
-                replyAtIndex.attributes.summaries.replies = copy;
-                
-                NSMutableArray *mutableData = [[NSMutableArray alloc] initWithArray:page.data];
-                [mutableData replaceObjectAtIndex:p withObject:replyAtIndex];
-                NSArray <Post *> <Post> *mutableDataCopy = [mutableData copy];
-                page.data = mutableDataCopy;
-                
-                foundMatch = true;
-                break;
-            }
-        }
-        if (foundMatch)
-            break;
-    }
-    
-    if (foundMatch)
-        [self updatePostsArray];
-    
-    return foundMatch;
-}
-- (BOOL)addSubReplies:(NSArray *)newSubReplies toPost:(Post *)post {
-    // always add to bottom
-    BOOL foundMatch = false;
-    for (NSInteger i = 0; i < self.pages.count; i++) {
-        PostStreamPage *page = self.pages[i];
-        for (int p = 0; p < page.data.count; p++) {
-            // go through each reply, checking to see if the sub reply parent  == identifier of post
-            Post *reply = page.data[p];
-            if (reply.identifier == post.identifier) {
-                // match!
-                NSLog(@"heh match match !!");
-                NSMutableArray *mutableArray = [[NSMutableArray alloc] initWithArray:reply.attributes.summaries.replies];
-                
-                NSMutableArray *subReplyPosts = [[NSMutableArray alloc] initWithArray:newSubReplies];
-                for (int s = 0; s < subReplyPosts.count; s++) {
-                    Post *newSubReply = [[Post alloc] initWithDictionary:subReplyPosts[s] error:nil];
-                    [subReplyPosts replaceObjectAtIndex:s withObject:newSubReply];
-                }
-                
-                [mutableArray addObjectsFromArray:subReplyPosts];
-                NSArray <Post *> <Post> *copy = [mutableArray copy];
-                reply.attributes.summaries.replies = copy;
-                
-                NSMutableArray *mutableData = [[NSMutableArray alloc] initWithArray:page.data];
-                [mutableData replaceObjectAtIndex:p withObject:reply];
-                NSArray <Post *> <Post> *mutableDataCopy = [mutableData copy];
-                page.data = mutableDataCopy;
-                
-                NSLog(@"even more wooo!");
-                NSLog(@"page.data: %@", page.data);
-                
-                foundMatch = true;
-                
-                break;
-            }
-            
-            if (foundMatch)
-                break;
-        }
-        if (foundMatch)
-            break;
-    }
-    
-    if (foundMatch)
-        [self updatePostsArray];
-    
-    return foundMatch;
-}
-
-- (Post *)postWithId:(NSString *)postId {
-    for (NSInteger i = 0; i < self.posts.count; i++) {
-        if ([self.posts[i].identifier isEqualToString:postId]) {
-            return self.posts[i];
-        }
-        
-        for (Post *post in self.posts[i].attributes.summaries.replies) {
-            if ([post.identifier isEqualToString:postId]) {
-                return post;
-            }
-        }
-    }
-    
-    return nil;
-}
-- (BOOL)updatePost:(Post *)post removeDuplicates:(BOOL)removeDuplicates {
-    BOOL changes = false;
-    BOOL foundPost = false;
-    for (int p = 0; p < self.pages.count; p++) {
-        PostStreamPage *page = self.pages[p];
-        
-        NSMutableArray <Post *> *mutableArray = [[NSMutableArray alloc] initWithArray:page.data];
-        for (NSInteger i = mutableArray.count - 1; i >= 0; i--) {
-            Post *postAtIndex = mutableArray[i];
-            if ([postAtIndex.identifier isEqualToString:post.identifier]) {
-                if (foundPost && removeDuplicates) {
-                    // decide whether or not to remove it
-                    BOOL remove = false;
-                    if (remove) {
-                        [mutableArray removeObjectAtIndex:i];
-                        changes = true;
-                        
-                        NSLog(@"remove that dupe!");
-                    }
-                }
-                else {
-                    NSLog(@"vote status before:: %@", ((Post *)[mutableArray objectAtIndex:i]).attributes.context.post.vote);
-                    
-                    // update the post!
-                    if (post.attributes.removedAt.length > 0) {
-                        [mutableArray removeObjectAtIndex:i];
-                    }
-                    else {
-                        [mutableArray replaceObjectAtIndex:i withObject:post];
-                    }
-                    changes = true;
-                    foundPost = true;
-                    
-                    NSLog(@"vote status after:: %@", post.attributes.context.post.vote);
-                }
-            }
-        }
-        
-        page.data = [mutableArray copy];
-        
-        [self.pages replaceObjectAtIndex:p withObject:page];
-    }
-    [self updatePostsArray];
-        
-    return changes;
-}
-
-- (void)removePost:(Post *)post {
-    for (int p = 0; p < self.pages.count; p++) {
-        PostStreamPage *page = self.pages[p];
-        
-        NSMutableArray <Post *> *mutableArray = [[NSMutableArray alloc] initWithArray:page.data];
-        for (NSInteger i = mutableArray.count - 1; i >= 0; i--) {
-            Post *postAtIndex = mutableArray[i];
-            if (postAtIndex.identifier == post.identifier) {
-                [mutableArray removeObjectAtIndex:i];
-                continue;
-            }
-            
-            if (post.attributes.parent.identifier.length > 0 && [post.attributes.parent.identifier isEqualToString:postAtIndex.identifier]) {
-                NSMutableArray *mutableSummariesArray = [[NSMutableArray alloc] initWithArray:postAtIndex.attributes.summaries.replies];
-                for (NSInteger i = mutableSummariesArray.count - 1; i >= 0; i--) {
-                    Post *subReply = mutableSummariesArray[i];
-                    if (subReply.identifier == post.identifier) {
-                        [mutableSummariesArray removeObject:subReply];
-                    }
-                }
-                postAtIndex.attributes.summaries.replies = [mutableSummariesArray copy];
-                
-                if (postAtIndex.attributes.summaries.counts.replies > 0) {
-                    PostCounts *counts = [[PostCounts alloc] init];
-                    counts.replies = (postAtIndex.attributes.summaries.counts.replies - 1);
-                    postAtIndex.attributes.summaries.counts = counts;
-                }
-            }
-        }
-        
-        page.data = [mutableArray copy];
-        
-        [self.pages replaceObjectAtIndex:p withObject:page];
-    }
-    [self updatePostsArray];
-}
-- (void)updateCampObjects:(Camp *)camp {
-    for (int p = 0; p < self.pages.count; p++) {
-        PostStreamPage *page = self.pages[p];
-        
-        NSMutableArray <Post *> *mutableArray = [[NSMutableArray alloc] initWithArray:page.data];
-        for (NSInteger i = mutableArray.count - 1; i >= 0; i--) {
-            Post *postAtIndex = mutableArray[i];
-            if ([postAtIndex.attributes.postedIn.identifier isEqualToString:camp.identifier]) {
-                postAtIndex.attributes.postedIn = camp;
-                
-                // update replies
-                NSMutableArray *mutableReplies = [[NSMutableArray alloc] initWithArray:postAtIndex.attributes.summaries.replies];
-                for (int x = 0; x < mutableReplies.count; x++) {
-                    Post *reply = mutableReplies[x];
-                    reply.attributes.postedIn = camp;
-                    [mutableReplies replaceObjectAtIndex:x withObject:reply];
-                }
-                postAtIndex.attributes.summaries.replies = [mutableReplies copy];
-            }
-            [mutableArray replaceObjectAtIndex:i withObject:postAtIndex];
-        }
-        
-        page.data = [mutableArray copy];
-        
-        [self.pages replaceObjectAtIndex:p withObject:page];
-    }
-    
-    [self updatePostsArray];
-}
-- (void)updateUserObjects:(User *)user {
-    for (int p = 0; p < self.pages.count; p++) {
-        PostStreamPage *page = self.pages[p];
-        
-        NSMutableArray <Post *> *mutableArray = [[NSMutableArray alloc] initWithArray:page.data];
-        for (NSInteger i = mutableArray.count - 1; i >= 0; i--) {
-            Post *postAtIndex = mutableArray[i];
-            
-            // update post creator
-            if ([postAtIndex.attributes.creator.identifier isEqualToString:user.identifier]) {
-                postAtIndex.attributes.creator = user;
-            }
-            
-            // update replies
-            NSMutableArray *mutableReplies = [[NSMutableArray alloc] initWithArray:postAtIndex.attributes.summaries.replies];
-            for (int x = 0; x < mutableReplies.count; x++) {
-                Post *reply = mutableReplies[x];
-                if ([reply.attributes.creator.identifier isEqualToString:user.identifier]) {
-                    reply.attributes.creator = user;
-                }
-                [mutableReplies replaceObjectAtIndex:x withObject:reply];
-            }
-            postAtIndex.attributes.summaries.replies = [mutableReplies copy];
-            
-            [mutableArray replaceObjectAtIndex:i withObject:postAtIndex];
-        }
-        
-        page.data = [mutableArray copy];
-        
-        [self.pages replaceObjectAtIndex:p withObject:page];
-    }
-    
-    [self updatePostsArray];
+    return [self updatePost:finalSubReply];
 }
 
 - (void)setTempPostPosition:(PostStreamOptionTempPostPosition)tempPostPosition {
     if (tempPostPosition != _tempPostPosition) {
         _tempPostPosition = tempPostPosition;
-        
-        [self updatePostsArray];
     }
 }
 
-- (NSString *)prevCursor {
-    if (self.pages.count == 0) return nil;
+#pragma mark - Post Stream Events (Update, Remove)
+- (BOOL)performEventType:(PostStreamEventType)eventType object:(id)object {
+    BOOL changes = false;
     
-    // find first available page with cursor
-    for (PostStreamPage *page in self.pages) {
-        if (page.meta.paging.prevCursor.length > 0) {
-            return page.meta.paging.prevCursor;
+    if (PostStreamEventTypeUnknown) return changes;
+
+    if ([object isKindOfClass:[Post class]]) {
+        Post *post = (Post *)object;
+        if (eventType == PostStreamEventTypePostUpdated) {
+            changes = [self updatePost:post];
+        }
+        else if (eventType == PostStreamEventTypePostRemoved) {
+            changes = [self removePost:post];
+        }
+    }
+    else if ([object isKindOfClass:[Camp class]]) {
+        Camp *camp = (Camp *)object;
+        if (eventType == PostStreamEventTypeCampUpdated) {
+            changes = [self updateCamp:camp];
+        }
+    }
+    else if ([object isKindOfClass:[User class]]) {
+        User *user = (User *)object;
+        if (eventType == PostStreamEventTypeUserUpdated) {
+            changes = [self updateUser:user];
+        }
+    }
+    
+    return changes;
+}
+
+#pragma mark - Post Events
+- (BOOL)updatePost:(Post *)post {
+    __block BOOL changes = false;
+    
+    // Create new instance of object
+    post = [[Post alloc] initWithDictionary:[post toDictionary] error:nil];
+    
+    [self.pages enumerateObjectsUsingBlock:^(PostStreamPage *page, NSUInteger i1, BOOL *stop) {
+        __block BOOL sectionChanges = false;
+        
+        NSMutableArray <Post *> *mutablePosts = [[NSMutableArray<Post *> alloc] initWithArray:page.data];
+        [mutablePosts enumerateObjectsUsingBlock:^(Post *p, NSUInteger i2, BOOL *stop) {
+            if ([post.identifier isEqualToString:p.identifier]) {
+                // Found a match
+                sectionChanges = true;
+                
+                [mutablePosts replaceObjectAtIndex:i2 withObject:post];
+            }
+            else if (p.attributes.summaries.replies.count > 0) {
+                __block BOOL replyChanges = false;
+                
+                // Sort through replies to check for matches
+                NSMutableArray <Post *> *mutableReplies = [[NSMutableArray<Post *> alloc] initWithArray:p.attributes.summaries.replies];
+                [mutableReplies enumerateObjectsUsingBlock:^(Post *r, NSUInteger i3, BOOL *stop3) {
+                    if ([post.identifier isEqualToString:r.identifier]) {
+                        // Found a match
+                        sectionChanges = true;
+                        replyChanges = true;
+                        
+                        [mutableReplies replaceObjectAtIndex:i3 withObject:post];
+                    }
+                }];
+                
+                if (replyChanges) {
+                    p.attributes.summaries.replies = [mutableReplies copy];
+                }
+            }
+        }];
+        
+        if (sectionChanges) {
+            changes = true;
+            
+            page.data = [mutablePosts copy];
+        }
+    }];
+    
+    if (changes) {
+        [self streamUpdated:true];
+    }
+    
+    return changes;
+}
+- (BOOL)removePost:(Post *)post {
+    __block BOOL changes = false;
+    
+    [self.pages enumerateObjectsUsingBlock:^(PostStreamPage *page, NSUInteger i1, BOOL *stop1) {
+        __block BOOL sectionChanges = false;
+        
+        NSMutableArray <Post *> *mutableData = [[NSMutableArray<Post *> alloc] initWithArray:page.data];
+        NSMutableArray <Post *> *postsToRemove = [NSMutableArray<Post  *> new];
+        [mutableData enumerateObjectsUsingBlock:^(Post *p, NSUInteger i2, BOOL *stop2) {
+            if ([post.identifier isEqualToString:p.identifier]) {
+                // Found a match
+                sectionChanges = true;
+                [postsToRemove addObject:p];
+            }
+            else if (p.attributes.summaries.replies.count > 0) {
+                // Sort through replies to check for matches
+                NSMutableArray <Post *> *mutableReplies = [[NSMutableArray<Post  *> alloc] initWithArray:p.attributes.summaries.replies];
+                NSMutableArray <Post *> *repliesToRemove = [NSMutableArray<Post  *> new];
+                [mutableReplies enumerateObjectsUsingBlock:^(Post *r, NSUInteger i3, BOOL *stop3) {
+                    if ([post.identifier isEqualToString:r.identifier]) {
+                        // Found a match
+                        [repliesToRemove addObject:r];
+                    }
+                }];
+                
+                if (repliesToRemove.count > 0) {
+                    sectionChanges = true;
+                    
+                    [mutableReplies removeObjectsInArray:repliesToRemove];
+                    
+                    p.attributes.summaries.counts.replies = MAX(0, p.attributes.summaries.counts.replies - repliesToRemove.count);
+                    p.attributes.summaries.replies = [mutableReplies copy];
+                }
+            }
+        }];
+        
+        if (sectionChanges) {
+            changes = true;
+            
+            if (postsToRemove.count > 0) {
+                [mutableData removeObjectsInArray:postsToRemove];
+            }
+            page.data = [mutableData copy];
+        }
+    }];
+    
+    if (changes) {
+        [self streamUpdated:true];
+    }
+    
+    return changes;
+}
+
+#pragma mark - User Events
+- (BOOL)updateUser:(User *)user {
+    __block BOOL changes = false;
+    
+    // Create new instance of object
+    user = [user copy];
+    
+    [self.pages enumerateObjectsUsingBlock:^(PostStreamPage * _Nonnull page, NSUInteger idx, BOOL * _Nonnull stop) {
+        __block BOOL sectionChanges = false;
+        
+        NSMutableArray <Post *> *mutablePosts = [[NSMutableArray<Post *> alloc] initWithArray:page.data];
+        [mutablePosts enumerateObjectsUsingBlock:^(Post *post, NSUInteger i3, BOOL *stop) {
+            __block BOOL postChanges = false;
+            
+            // update post creator
+            if ([post.attributes.creator.identifier isEqualToString:user.identifier]) {
+                sectionChanges = true;
+                postChanges = true;
+                
+                post.attributes.creator = user;
+            }
+            
+            // update replies
+            __block BOOL replyChanges = false;
+            
+            NSMutableArray <Post *> *mutableReplies = [[NSMutableArray<Post *> alloc] initWithArray:post.attributes.summaries.replies];
+            [mutableReplies enumerateObjectsUsingBlock:^(Post *reply, NSUInteger i4, BOOL *stop) {
+                if ([reply.attributes.creator.identifier isEqualToString:user.identifier]) {
+                    sectionChanges = true;
+                    postChanges = true;
+                    replyChanges = true;
+                    
+                    reply.attributes.creator = user;
+                    
+                    [mutableReplies replaceObjectAtIndex:i4 withObject:reply];
+                }
+            }];
+            
+            if (postChanges) {
+                if (replyChanges) {
+                    post.attributes.summaries.replies = [mutableReplies copy];
+                }
+                
+                post = [post copy];
+                
+                [mutablePosts replaceObjectAtIndex:i3 withObject:post];
+            }
+        }];
+        
+        if (sectionChanges) {
+            changes = true;
+            
+            page.data = [mutablePosts copy];
+        }
+    }];
+    
+    if (changes) {
+        [self streamUpdated:true];
+    }
+    
+    return changes;
+}
+
+#pragma mark - Camp Events
+- (BOOL)updateCamp:(Camp *)camp {
+    __block BOOL changes = false;
+    
+    // Create new instance of object
+    camp = [camp copy];
+    
+    [self.pages enumerateObjectsUsingBlock:^(PostStreamPage * _Nonnull page, NSUInteger idx, BOOL * _Nonnull stop) {
+        __block BOOL sectionChanges = false;
+        
+        NSMutableArray <Post *> *mutablePosts = [[NSMutableArray<Post *> alloc] initWithArray:page.data];
+        [mutablePosts enumerateObjectsUsingBlock:^(Post *post, NSUInteger i3, BOOL *stop) {
+            __block BOOL postChanges = false;
+            
+            // update post creator
+            if ([post.attributes.postedIn.identifier isEqualToString:camp.identifier]) {
+                sectionChanges = true;
+                postChanges = true;
+                
+                post.attributes.postedIn = camp;
+            }
+            
+            // update replies
+            __block BOOL replyChanges = false;
+            
+            NSMutableArray <Post *> *mutableReplies = [[NSMutableArray<Post *> alloc] initWithArray:post.attributes.summaries.replies];
+            [mutableReplies enumerateObjectsUsingBlock:^(Post *reply, NSUInteger i4, BOOL *stop) {
+                if ([reply.attributes.postedIn.identifier isEqualToString:camp.identifier]) {
+                    sectionChanges = true;
+                    postChanges = true;
+                    replyChanges = true;
+                    
+                    reply.attributes.postedIn = camp;
+                    
+                    [mutableReplies replaceObjectAtIndex:i4 withObject:reply];
+                }
+            }];
+            
+            if (postChanges) {
+                if (replyChanges) {
+                    post.attributes.summaries.replies = [mutableReplies copy];
+                }
+                
+                post = [post copy];
+                
+                [mutablePosts replaceObjectAtIndex:i3 withObject:post];
+            }
+        }];
+        
+        if (sectionChanges) {
+            changes = true;
+            
+            page.data = [mutablePosts copy];
+        }
+    }];
+    
+    if (changes) {
+        [self streamUpdated:true];
+    }
+    
+    return changes;
+}
+
+- (Post *)postWithId:(NSString *)identifier {
+    for (BFPostStreamComponent *component in self.finalComponents) {
+        if (component.post && [component.post.identifier isEqualToString:identifier]) {
+            return component.post;
         }
     }
     
     return nil;
+}
+
+- (NSString *)prevCursor {
+    if (self.pages.count == 0) return nil;
+    if ([self.pages firstObject].meta.paging.prevCursor.length == 0) return nil;
+    
+    return [self.pages firstObject].meta.paging.prevCursor;
 }
 - (NSString *)nextCursor {
     if (self.pages.count == 0) return nil;
@@ -550,6 +481,7 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
     
     return [self.pages lastObject].meta.paging.nextCursor;
 }
+
 
 @end
 

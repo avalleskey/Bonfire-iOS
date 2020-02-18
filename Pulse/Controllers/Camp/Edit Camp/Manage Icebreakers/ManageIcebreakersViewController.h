@@ -8,10 +8,11 @@
 
 #import <UIKit/UIKit.h>
 #import "Camp.h"
+#import "ThemedTableViewController.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface ManageIcebreakersViewController : UITableViewController
+@interface ManageIcebreakersViewController : ThemedTableViewController <BFComponentTableViewDelegate>
 
 @property (nonatomic, strong) Camp *camp;
 

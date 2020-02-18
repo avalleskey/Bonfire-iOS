@@ -81,9 +81,8 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     CGFloat screenWidth = screenRect.size.width;
     self.frame = CGRectMake(0, self.frame.origin.y, screenWidth, self.frame.size.height);
     
-    self.contentView = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleProminent]];
-    self.contentView.frame = self.bounds;
-    self.contentView.backgroundColor = [UIColor colorNamed:@"MiniCompose_Background"];
+    self.contentView = [[UIView alloc] initWithFrame:self.bounds];
+    self.contentView.backgroundColor = [UIColor contentBackgroundColor];
     [self addSubview:self.contentView];
     
     self.layer.masksToBounds = false;
@@ -104,14 +103,14 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     _textView.textContainer.lineBreakMode = NSLineBreakByWordWrapping;
     _textView.textColor = [UIColor bonfirePrimaryColor];
     _textView.layer.cornerRadius = 20.f;
-    _textView.backgroundColor = [UIColor contentBackgroundColor]; //[[UIColor fromHex:@"9FA6AD"] colorWithAlphaComponent:0.1];
-    _textView.layer.borderWidth = HALF_PIXEL;
+    _textView.backgroundColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.04];
+//    _textView.layer.borderWidth = HALF_PIXEL;
     _textView.placeholder = self.defaultPlaceholder;
     _textView.placeholderColor = [UIColor bonfireSecondaryColor];
 //    _textView.keyboardAppearance = UIKeyboardAppearanceLight;
     _textView.keyboardType = UIKeyboardTypeTwitter;
     _textView.keyboardDismissMode = UIScrollViewKeyboardDismissModeNone;
-    [self.contentView.contentView addSubview:_textView];
+    [self.contentView addSubview:_textView];
     textViewMaxHeight = roundf([UIScreen mainScreen].bounds.size.height * 0.3);
     
     _mediaScrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 8, _textView.frame.size.width, 140 - 16)];
@@ -170,7 +169,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     [self.addMediaButton bk_whenTapped:^{        
         [self showImagePicker];
     }];
-    [self.contentView.contentView addSubview:self.addMediaButton];
+    [self.contentView addSubview:self.addMediaButton];
     
     self.postButton = [TappableButton buttonWithType:UIButtonTypeCustom];
     self.postButton.padding = UIEdgeInsetsMake(5, 5, 5, 5);
@@ -203,14 +202,14 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         }
     } forControlEvents:(UIControlEventTouchCancel|UIControlEventTouchDragExit)];
     
-    [self.contentView.contentView addSubview:self.postButton];
+    [self.contentView addSubview:self.postButton];
     
     self.charRemainingLabel = [[UILabel alloc] initWithFrame:CGRectMake(self.frame.size.width - 12 - 32 - 4, self.postButton.frame.origin.y - self.postButton.frame.size.height, 32, 20)];
     self.charRemainingLabel.hidden = true;
     self.charRemainingLabel.textColor = [UIColor bonfireSecondaryColor];
     self.charRemainingLabel.textAlignment = NSTextAlignmentCenter;
     self.charRemainingLabel.font = [UIFont systemFontOfSize:11.f weight:UIFontWeightRegular];
-    [self.contentView.contentView addSubview:self.charRemainingLabel];
+    [self.contentView addSubview:self.charRemainingLabel];
     
     self.expandButton = [UIButton buttonWithType:UIButtonTypeCustom];
     self.expandButton.adjustsImageWhenHighlighted = false;
@@ -236,7 +235,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         }
     } forControlEvents:(UIControlEventTouchCancel|UIControlEventTouchDragExit)];
     
-    [self.contentView.contentView insertSubview:self.expandButton belowSubview:self.postButton];
+    [self.contentView insertSubview:self.expandButton belowSubview:self.postButton];
     
     self.replyingToLabel = [UIButton buttonWithType:UIButtonTypeCustom];
     self.replyingToLabel.hidden = true;
@@ -291,7 +290,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     
     // compose box hairline
     self.topSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, -HALF_PIXEL, screenWidth, HALF_PIXEL)];
-    self.topSeparator.backgroundColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.12f];
+    self.topSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
     [self addSubview:self.topSeparator];
     
     maxLength = [Session sharedInstance].defaults.post.maxLength;
@@ -312,7 +311,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     [self resize:false];
     
     // added in layoutSubviews for Dark Mode support
-    _textView.layer.borderColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.12].CGColor;
+//    _textView.layer.borderColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.12].CGColor;
     
     self.postButton.tintColor = [UIColor highContrastForegroundForBackground:self.postButton.backgroundColor];
 }
@@ -806,7 +805,12 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                 [_replyingToLabel setTitle:@"Replying to yourself" forState:UIControlStateNormal];
             }
             else {
-                [_replyingToLabel setTitle:[NSString stringWithFormat:@"Replying to @%@", replyingTo.attributes.creator.attributes.identifier] forState:UIControlStateNormal];
+                if (replyingTo.attributes.creator.attributes.identifier) {
+                    [_replyingToLabel setTitle:[NSString stringWithFormat:@"Replying to @%@", replyingTo.attributes.creator.attributes.identifier] forState:UIControlStateNormal];
+                }
+                else {
+                    [_replyingToLabel setTitle:@"Loading..." forState:UIControlStateNormal];
+                }
             }
             [self showReplyingTo];
         }

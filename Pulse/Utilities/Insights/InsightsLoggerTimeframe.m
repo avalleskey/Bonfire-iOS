@@ -15,7 +15,6 @@ NSString * const InsightSeenInCampView =  @"camp";
 NSString * const InsightSeenInPostView = @"post";
 NSString * const InsightSeenInProfileView = @"creator_profile";
 NSString * const InsightSeenInHomeView = @"/streams/me";
-NSString * const InsightSeenInTrendingView = @"/streams/trending";
 
 // Action: on post close
 NSString * const InsightActionTypeMediaOpen =  @"media_open";

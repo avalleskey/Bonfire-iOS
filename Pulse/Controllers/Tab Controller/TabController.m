@@ -107,6 +107,10 @@
     [self.tabBar addGestureRecognizer:longPress];
 }
 
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
 - (void)userUpdated:(NSNotification *)notification {
     self.tabBar.tintColor = [UIColor bonfirePrimaryColor]; //[UIColor fromHex:[Session sharedInstance].currentUser.attributes.color];
     self.tabIndicator.backgroundColor = [UIColor bonfirePrimaryColor]; //[UIColor fromHex:[Session sharedInstance].currentUser.attributes.color];
@@ -117,7 +121,7 @@
     SearchNavigationController *searchNav;
     
     if ([rootID isEqualToString:@"search"]) {
-        SearchTableViewController *viewController = [[SearchTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
+        SearchTableViewController *viewController = [[SearchTableViewController alloc] init];
         viewController.title = [rootID isEqualToString:@"search"] ?
         @"" : [Session sharedInstance].defaults.keywords.viewTitles.userStream;
         
@@ -174,9 +178,6 @@
         NotificationsTableViewController *viewController = [[NotificationsTableViewController alloc] init];
         viewController.title = [Session sharedInstance].defaults.keywords.viewTitles.notifications;
         [viewController view];
-        
-        [viewController.tableView reloadData];
-        viewController.view.backgroundColor = [UIColor contentBackgroundColor];
         
         simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:viewController];
         [simpleNav setLeftAction:SNActionTypeProfile];
@@ -246,7 +247,7 @@
 //    self.blurView.layer.masksToBounds = true;
 //    self.blurView.tintColor = [UIColor clearColor];
 //    [self.tabBar insertSubview:self.blurView atIndex:0];
-    self.tabBackgroundView = [[UIView alloc] initWithFrame: CGRectMake(0, 0, self.tabBar.frame.size.width, self.tabBar.frame.size.height)];
+    self.tabBackgroundView = [[UIView alloc] initWithFrame: CGRectMake(0, 0, self.tabBar.frame.size.width, self.tabBar.frame.size.height + [UIApplication sharedApplication].keyWindow.safeAreaInsets.bottom)];
     self.tabBackgroundView.backgroundColor = [UIColor colorNamed:@"Navigation_ClearBackgroundColor"];
     self.tabBackgroundView.layer.masksToBounds = false;
     self.tabBackgroundView.tintColor = [UIColor clearColor];
@@ -254,8 +255,9 @@
 
     // tab bar hairline
     UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, HALF_PIXEL)];
-    separator.backgroundColor = [UIColor colorNamed:@"FullContrastColor"];
-    separator.alpha = 0.12;
+    separator.backgroundColor = [UIColor tableViewSeparatorColor];
+//    separator.backgroundColor = [UIColor colorNamed:@"FullContrastColor"];
+//    separator.alpha = 0.06;
     [self.tabBar addSubview:separator];
     
 //    self.tabBar.clipsToBounds = true;
@@ -267,6 +269,8 @@
     
     if ([UIApplication sharedApplication].applicationIconBadgeNumber > 0) {
         [self setBadgeValue:[NSString stringWithFormat:@"%ld", (long)[UIApplication sharedApplication].applicationIconBadgeNumber] forItem:self.notificationsNavVC.tabBarItem];
+        // TODO: Verify this prefetches the notification table view
+        [self.notificationsNavVC view];
     }
     
     if (self.view.tag != 1) {

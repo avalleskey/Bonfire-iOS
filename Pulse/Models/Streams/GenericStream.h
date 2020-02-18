@@ -16,7 +16,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface GenericStream : NSObject
 
-@property (nonatomic, strong) NSMutableDictionary *cursorsLoaded;
+@property (nonatomic, strong) NSMutableDictionary <Optional> *cursorsLoaded;
 
 - (void)addLoadedCursor:(NSString *)cursor;
 - (void)removeLoadedCursor:(NSString *)cursor;

@@ -14,18 +14,19 @@
 
 // avatar macros
 #define CAMP_HEADER_AVATAR_SIZE 128
-#define CAMP_HEADER_AVATAR_BOTTOM_PADDING 16
+#define CAMP_HEADER_AVATAR_BORDER_WIDTH 6
+#define CAMP_HEADER_AVATAR_BOTTOM_PADDING 8
 
-#define CAMP_HEADER_EDGE_INSETS UIEdgeInsetsMake(ceilf(CAMP_HEADER_AVATAR_SIZE * -0.65), 24, 24, 24)
+#define CAMP_HEADER_EDGE_INSETS UIEdgeInsetsMake(32, 24, 24, 24)
 // display name macros
 #define CAMP_HEADER_NAME_FONT [UIFont systemFontOfSize:26.f weight:UIFontWeightHeavy]
-#define CAMP_HEADER_NAME_BOTTOM_PADDING 6
+#define CAMP_HEADER_NAME_BOTTOM_PADDING 4
 // #Camptag macros
 #define CAMP_HEADER_TAG_FONT [UIFont systemFontOfSize:16.f weight:UIFontWeightBold]
 #define CAMP_HEADER_TAG_BOTTOM_PADDING 12
 // description macros
 #define CAMP_HEADER_DESCRIPTION_FONT [UIFont systemFontOfSize:16.f weight:UIFontWeightRegular]
-#define CAMP_HEADER_DESCRIPTION_BOTTOM_PADDING 16
+#define CAMP_HEADER_DESCRIPTION_BOTTOM_PADDING 12
 // details macros
 #define CAMP_HEADER_DETAILS_EDGE_INSETS UIEdgeInsetsMake(16, 24, 12, 24)
 // follow button macros

@@ -10,6 +10,11 @@
 #import "Session.h"
 #import "ReplyCell.h"
 #import "UIColor+Palette.h"
+#import "BFPostStreamComponent.h"
+
+@interface AddReplyCell () <BFComponentProtocol>
+
+@end
 
 @implementation AddReplyCell
 
@@ -35,9 +40,9 @@
         [self.contentView addSubview:self.profilePicture];
         
         self.addReplyButton = [[UIButton alloc] initWithFrame:CGRectMake(114, 0, self.frame.size.width - 114 - replyContentOffset.right, 38)];
-        [self.addReplyButton setTitle:@"Add a reply..." forState:UIControlStateNormal];
         self.addReplyButton.titleLabel.font = [UIFont systemFontOfSize:replyTextViewFont.pointSize-2.f];
-        [self.addReplyButton setTitleColor:[UIColor bonfireSecondaryColor] forState:UIControlStateNormal];
+        NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"Add a reply..."] attributes:@{NSFontAttributeName: self.addReplyButton.titleLabel.font, NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
+        [self.addReplyButton setAttributedTitle:attributedString forState:UIControlStateNormal];
         self.addReplyButton.layer.cornerRadius = self.addReplyButton.frame.size.height / 2;
         self.addReplyButton.userInteractionEnabled = false;
         self.addReplyButton.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
@@ -84,10 +89,10 @@
 }
 
 + (CGFloat)baseHeight {
-    return REPLY_BUBBLE_INSETS.top + REPLY_BUBBLE_INSETS.bottom + replyTextViewFont.lineHeight + 4;
+    return REPLY_BUBBLE_INSETS.top + REPLY_BUBBLE_INSETS.bottom + ceilf(replyTextViewFont.lineHeight) + 4;
 }
 + (CGFloat)height {
-    return [AddReplyCell baseHeight] + ceilf(replyContentOffset.bottom * 1.5);
+    return [AddReplyCell baseHeight] + (8 * 2);
 }
 
 - (void)setHighlighted:(BOOL)highlighted animated:(BOOL)animated {
@@ -113,6 +118,10 @@
             }
         } completion:nil];
     }
+}
+
++ (CGFloat)heightForComponent:(BFPostStreamComponent *)component {
+    return [AddReplyCell height];
 }
 
 @end

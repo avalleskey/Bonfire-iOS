@@ -10,10 +10,9 @@
 #import "Session.h"
 #import "ComposeInputView.h"
 #import "Camp.h"
-#import "RSTableView.h"
 #import "ThemedTableViewController.h"
 
-@interface HomeTableViewController : ThemedTableViewController <RSTableViewDelegate, PostStreamDelegate>
+@interface HomeTableViewController : ThemedTableViewController <BFComponentSectionTableViewDelegate, SectionStreamDelegate>
 
 enum {
     MAX_FEED_CACHED_POSTS = 100,

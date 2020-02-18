@@ -15,7 +15,7 @@
 
 #import "Configuration.h"
 #import "BFMacros.h"
-#import "UIFont+App.h"
+#import "UIView+Styles.h"
 
 #endif
 

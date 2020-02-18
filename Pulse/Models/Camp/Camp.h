@@ -24,6 +24,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)isChannel;
 - (BOOL)isFeed;
 - (BOOL)isPrivate;
+- (BOOL)isSupported; // ensure all walls are supported by the installed version
 
 #pragma mark - API Methods
 - (void)subscribeToCamp;

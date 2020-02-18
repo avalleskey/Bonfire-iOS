@@ -18,8 +18,13 @@ extern NSString * const kCONTENT_TYPE_JSON;
 
 extern NSString * const kIMAGE_UPLOAD_URL;
 
+typedef NS_OPTIONS(NSUInteger, HAWebServiceManagerOptions) {
+    HAWebServiceManagerOptionAllowCache = 1 << 0
+};
+
 + (HAWebService *)authenticatedManager;
 + (HAWebService *)managerWithContentType:(NSString * _Nullable)contentType;
++ (HAWebService *)managerWithContentType:(NSString * _Nullable)contentType options:(HAWebServiceManagerOptions)options;
 
 @property (nonatomic, copy) void (^savedCompletionHandler)(void);
 

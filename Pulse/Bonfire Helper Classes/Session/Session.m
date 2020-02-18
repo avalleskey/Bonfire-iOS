@@ -100,7 +100,7 @@ static Session *session;
                 if (session.defaults.announcement) {
                     TabController *tabVC = [Launcher tabController];
                     if (tabVC) {
-                        NSString *badgeValue = @"1";
+                        NSString *badgeValue = @" ";
                         [tabVC setBadgeValue:badgeValue forItem:tabVC.notificationsNavVC.tabBarItem];
                         if (badgeValue && badgeValue.length > 0 && [badgeValue intValue] > 0) {
                             AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
@@ -313,6 +313,11 @@ static Session *session;
 }
 
 - (void)signOut {
+    // cancel all existing requests
+    HAWebService *manager = [HAWebService manager]; //manager should be instance which you are using across application
+    [manager.session invalidateAndCancel];
+    [HAWebService reset];
+    
     // keep the config
     NSInteger launches = [[NSUserDefaults standardUserDefaults] integerForKey:@"launches"];
     
@@ -366,14 +371,15 @@ static Session *session;
     session = nil;
     
     // reset the [HAWebService authenticatedManager]
+    [[HAWebService manager].session invalidateAndCancel];
     [HAWebService reset];
+    
+    // clear feed cache
+    [[PINCache sharedCache] removeAllObjects];
     
     // ❌🗑❌ clear local app data ❌🗑❌
     NSString *appDomain = [[NSBundle mainBundle] bundleIdentifier];
     [[NSUserDefaults standardUserDefaults] removePersistentDomainForName:appDomain];
-    
-    // clear cache
-    [[PINCache sharedCache] removeAllObjects];
     
     // set the config again
     [[NSUserDefaults standardUserDefaults] setBool:TRUE forKey:@"kHasLaunchedBefore"];

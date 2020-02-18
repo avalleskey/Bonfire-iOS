@@ -45,16 +45,16 @@
     
     //
     self.navigationBar.translucent = false;
-    self.navigationBar.tintColor = self.view.tintColor;
-    self.navigationBar.barTintColor = [UIColor contentBackgroundColor];
+    self.navigationBar.tintColor = [UIColor bonfirePrimaryColor];
+    self.navigationBar.barTintColor = [UIColor colorNamed:@"Navigation_ClearBackgroundColor"];
     self.navigationBar.shadowImage = [self imageWithColor:[UIColor clearColor]];
     
     self.bottomHairline = [[UIView alloc] initWithFrame:CGRectMake(0, self.navigationBar.frame.size.height, self.view.frame.size.width, (1 / [UIScreen mainScreen].scale))];
     self.bottomHairline.backgroundColor = [UIColor tableViewSeparatorColor];
     self.bottomHairline.alpha = 0;
-    [self.navigationBar addSubview:self.bottomHairline];
+//    [self.navigationBar addSubview:self.bottomHairline];
     
-    self.searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(12, 0, self.view.frame.size.width - (12 * 2), 34)];
+    self.searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(12, 0, self.view.frame.size.width - (12 * 2), 36)];
     self.searchView.theme = BFTextFieldThemeAuto;
     self.searchView.textField.delegate = self;
     self.searchView.center = CGPointMake(self.navigationBar.frame.size.width / 2, self.navigationBar.frame.size.height / 2);
@@ -78,8 +78,6 @@
         [self dismissViewControllerAnimated:YES completion:nil];
     }];
     [self.navigationBar addSubview:self.cancelButton];
-    
-    [self setNeedsStatusBarAppearanceUpdate];
 }
 
 - (void)setShadowVisibility:(BOOL)visible withAnimation:(BOOL)animated {
@@ -88,7 +86,7 @@
         else [self hideBottomHairline];
     }];
 }
-- (void)hideBottomHairline {
+- (void)hideBottomHairline {    
     if (self.bottomHairline.alpha == 1) {
         [self.bottomHairline.layer removeAllAnimations];
     }
@@ -100,18 +98,6 @@
         [self.bottomHairline.layer removeAllAnimations];
     }
     self.bottomHairline.alpha = 1;
-}
-
-- (UIStatusBarStyle)preferredStatusBarStyle
-{
-    /*
-    if (@available(iOS 13.0, *)) {
-        return UIStatusBarStyleDarkContent;
-    } else {
-        // Fallback on earlier versions
-        return UIStatusBarStyleDefault;
-    }*/
-    return UIStatusBarStyleDefault;
 }
 
 - (UIImage *)imageWithColor:(UIColor *)color {

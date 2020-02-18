@@ -1,5 +1,5 @@
 //
-//  RSTableView.h
+//  BFComponentTableView.h
 //  Pulse
 //
 //  Created by Austin Valleskey on 10/4/18.
@@ -10,6 +10,7 @@
 #import "PostStream.h"
 #import "ComposeInputView.h"
 #import "BFVisualErrorView.h"
+#import "InsightsLogger.h"
 
 #define UIViewParentController(__view) ({ \
         UIResponder *__responder = __view; \
@@ -18,22 +19,9 @@
         (UIViewController *)__responder; \
         })
 
-typedef enum {
-    RSTableViewTypeFeed = 1,
-    RSTableViewTypeCamp = 2,
-    RSTableViewTypeProfile = 3
-} RSTableViewType;
-
-typedef enum {
-    RSTableViewSubTypeNone = 0,
-    RSTableViewSubTypeHome = 1,
-    RSTableViewSubTypeTrending = 2
-} RSTableViewSubType;
-
-
 NS_ASSUME_NONNULL_BEGIN
 
-@protocol RSTableViewDelegate <NSObject>
+@protocol BFComponentTableViewDelegate <NSObject>
 
 - (void)tableView:(id)tableView didRequestNextPageWithMaxId:(NSInteger)maxId;
 
@@ -41,6 +29,8 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)tableViewDidScroll:(UITableView *)tableView;
 - (void)tableViewDidEndDragging:(UITableView *)tableView willDecelerate:(BOOL)decelerate;
 - (void)tableViewDidEndDecelerating:(UITableView *)tableView;
+
+- (void)didSelectComponent:(BFPostStreamComponent *)component atIndexPath:(NSIndexPath *)indexPath;
 
 - (UITableViewCell * _Nullable)cellForRowInFirstSection:(NSInteger)row;
 - (void)didSelectRowInFirstSection:(NSInteger)row;
@@ -57,23 +47,13 @@ NS_ASSUME_NONNULL_BEGIN
 
 @end
 
-@interface RSTableView : UITableView <UITableViewDataSource, UITableViewDelegate, UIGestureRecognizerDelegate>
+@interface BFComponentTableView : UITableView <UITableViewDataSource, UITableViewDelegate, UIGestureRecognizerDelegate, PostStreamDelegate>
 
-typedef enum {
-    RSTableViewStyleDefault = 0,
-    RSTableViewStyleGrouped = 1
-} RSTableViewStyle;
-@property (nonatomic) RSTableViewStyle tableViewStyle;
-
-@property (nonatomic, strong) id parentObject;
 @property (nonatomic, strong) BFVisualError * _Nullable  visualError;
+@property (nonatomic, strong) NSString *insightSeenInLabel;
 
-@property (nonatomic) RSTableViewType dataType;
-@property (nonatomic) RSTableViewSubType dataSubType;
-@property BOOL includeContext;
-
-@property BOOL loading;
-@property BOOL loadingMore;
+@property (nonatomic) BOOL loading;
+@property (nonatomic) BOOL loadingMore;
 @property (nonatomic, copy, nullable) void (^onScrollBlock)(void);
 
 @property (strong, nonatomic) NSMutableDictionary *cellHeightsDictionary;
@@ -84,12 +64,11 @@ typedef enum {
 - (void)scrollToTop;
 - (void)scrollToTopWithCompletion:(void (^ __nullable)(void))completion;
 
+- (void)didBeginDisplayingCell:(UITableViewCell *)cell;
+
 @property (nonatomic, strong) PostStream *stream;
-@property (nonatomic, strong) PostStream *queuedStream;
 
-@property (nonatomic) ComposeInputView *inputView;
-
-@property (nonatomic, weak) id <RSTableViewDelegate> extendedDelegate;
+@property (nonatomic, weak) id <BFComponentTableViewDelegate> extendedDelegate;
 
 @end
 

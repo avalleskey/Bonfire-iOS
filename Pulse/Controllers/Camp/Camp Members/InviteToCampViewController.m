@@ -123,7 +123,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
         
         self.loadingMoreUsers = true;
         [self.stream addLoadedCursor:nextCursor];
-        [params setObject:nextCursor forKey:@"cursor"];
+        [params setObject:nextCursor forKey:@"next_cursor"];
     }
     else {
         self.loadingUsers = true;
@@ -137,7 +137,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
         UserListStreamPage *page = [[UserListStreamPage alloc] initWithDictionary:responseObject error:nil];
         
         if (page.data.count > 0) {
-            if ([params objectForKey:@"cursor"]) {
+            if ([params objectForKey:@"next_cursor"]) {
                 self.loadingMoreUsers = false;
             }
             else {

@@ -136,7 +136,7 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
         
         self.loadingMoreCamps = true;
         [self.stream addLoadedCursor:nextCursor];
-        [params setObject:nextCursor forKey:@"cursor"];
+        [params setObject:nextCursor forKey:@"next_cursor"];
     }
     else {
         self.loadingCamps = true;
@@ -157,7 +157,7 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
         CampListStreamPage *page = [[CampListStreamPage alloc] initWithDictionary:responseObject error:nil];
 
         if (page.data.count > 0) {
-            if (![params objectForKey:@"cursor"]) {
+            if (![params objectForKey:@"next_cursor"]) {
                 // clear the stream (we retrieved a full page of notifs and the old ones are out of date)
                 self.stream = [[CampListStream alloc] init];
             }

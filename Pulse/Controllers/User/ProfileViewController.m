@@ -30,9 +30,11 @@
 
 @interface ProfileViewController () <L360ConfettiAreaDelegate> {
     int previousTableViewYOffset;
+    CGFloat coverPhotoHeight;
 }
 
 @property (nonatomic) BOOL loading;
+@property (nonatomic) BOOL shimmering;
 
 @property CGFloat minHeaderHeight;
 @property CGFloat maxHeaderHeight;
@@ -51,27 +53,23 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    // Do any additional setup after loading the view.
+
     self.view.tintColor = self.theme;
     
     self.launchNavVC = (ComplexNavigationController *)self.navigationController;
-    if ([self.navigationController isKindOfClass:[ComplexNavigationController class]]) {
-        self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] init];
-    }
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] init];
     
     self.view.backgroundColor = [UIColor tableViewBackgroundColor];
     
     [self setupTableView];
-    
     [self setupCoverPhotoView];
-    self.tableView.contentOffset = CGPointMake(0, -1 * self.tableView.contentInset.top);
     
     self.loading = true;
     [self loadUser];
     
+    // Add Observers
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userUpdated:) name:@"UserUpdated" object:nil];
     if ([self isCurrentUser]) {
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userUpdated:) name:@"UserUpdated" object:nil];
-        
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(newPostBegan:) name:@"NewPostBegan" object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(newPostCompleted:) name:@"NewPostCompleted" object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(newPostFailed:) name:@"NewPostFailed" object:nil];
@@ -100,26 +98,37 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
     [InsightsLogger.sharedInstance closeAllVisiblePostInsightsInTableView:self.tableView];
 }
 
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
 - (void)setupCoverPhotoView {
-    self.coverPhotoView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 120)];
+    self.coverPhotoView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 140)];
     self.coverPhotoView.backgroundColor = self.theme;
     self.coverPhotoView.contentMode = UIViewContentModeScaleAspectFill;
     self.coverPhotoView.clipsToBounds = true;
-    [self.coverPhotoView bk_whenTapped:^{
-        [Launcher expandImageView:self.coverPhotoView];
-    }];
     [self.view insertSubview:self.coverPhotoView belowSubview:self.tableView];
     UIView *overlayView = [[UIView alloc] initWithFrame:self.coverPhotoView.bounds];
-    overlayView.backgroundColor = self.theme;
+    overlayView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.2f];
     overlayView.alpha = 0;
     overlayView.tag = 10;
-    //[self.imagePreviewView addSubview:overlayView];
+    [self.coverPhotoView addSubview:overlayView];
     [self updateCoverPhotoView];
+    
+    CABasicAnimation *opacityAnimation;
+    opacityAnimation = [CABasicAnimation animationWithKeyPath:@"opacity"];
+    opacityAnimation.autoreverses = true;
+    opacityAnimation.fromValue = [NSNumber numberWithFloat:0];
+    opacityAnimation.toValue = [NSNumber numberWithFloat:1];
+    opacityAnimation.duration = 1.f;
+    opacityAnimation.fillMode = kCAFillModeBoth;
+    opacityAnimation.repeatCount = HUGE_VALF;
+    opacityAnimation.removedOnCompletion = false;
+    [overlayView.layer addAnimation:opacityAnimation forKey:@"opacityAnimation"];
 }
 - (void)updateCoverPhotoView {
-    CGFloat coverPhotoHeight = 120;
+    coverPhotoHeight = PROFILE_HEADER_EDGE_INSETS.top + PROFILE_HEADER_AVATAR_BORDER_WIDTH + ceilf(PROFILE_HEADER_AVATAR_SIZE * 0.65);
     if (self.user.attributes.media.cover.suggested.url.length > 0) {
-        coverPhotoHeight = 148;
         [self.coverPhotoView sd_setImageWithURL:[NSURL URLWithString:self.user.attributes.media.cover.suggested.url]];
     
         // add gradient overlay
@@ -127,14 +136,13 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
         UIColor *bottomColor = [UIColor colorWithWhite:0 alpha:0];
 
         NSArray *gradientColors = [NSArray arrayWithObjects:(id)topColor.CGColor, (id)bottomColor.CGColor, nil];
+        NSArray *gradientLocations = [NSArray arrayWithObjects:[NSNumber numberWithInt:0.0],[NSNumber numberWithInt:1.0], nil];
 
-        [self.coverPhotoViewOverlay removeFromSuperlayer];
-        
-        self.coverPhotoViewOverlay = [CAGradientLayer layer];
-        self.coverPhotoViewOverlay.colors = gradientColors;
-        self.coverPhotoViewOverlay.startPoint = CGPointMake(0.5, 0.1);
-        self.coverPhotoViewOverlay.endPoint = CGPointMake(0.5, 1.0);
-        [self.coverPhotoView.layer addSublayer:self.coverPhotoViewOverlay];
+        CAGradientLayer *gradientLayer = [CAGradientLayer layer];
+        gradientLayer.colors = gradientColors;
+        gradientLayer.locations = gradientLocations;
+        gradientLayer.frame = CGRectMake(0, 0, self.view.frame.size.width, coverPhotoHeight);
+        [self.coverPhotoView.layer addSublayer:gradientLayer];
     }
     else {
         self.coverPhotoView.image = nil;
@@ -144,19 +152,16 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
             }
         }
     }
-    self.tableView.contentInset = UIEdgeInsetsMake(coverPhotoHeight, 0, 0, 0);
     
     // updat the scroll distance
     if ([self.navigationController isKindOfClass:[ComplexNavigationController class]]) {
-        ((ComplexNavigationController *)self.navigationController).onScrollLowerBound = self.tableView.contentInset.top * .3;
+        ((ComplexNavigationController *)self.navigationController).onScrollLowerBound = coverPhotoHeight * .3;
     }
     else if ([self.navigationController isKindOfClass:[SimpleNavigationController class]]) {
-        ((SimpleNavigationController *)self.navigationController).onScrollLowerBound = self.tableView.contentInset.top * .3;
+        ((SimpleNavigationController *)self.navigationController).onScrollLowerBound = coverPhotoHeight * .3;
     }
     
-    [self.tableView.refreshControl setBounds:CGRectMake(self.tableView.refreshControl.bounds.origin.x, self.tableView.contentInset.top, self.tableView.refreshControl.bounds.size.width, self.tableView.refreshControl.bounds.size.height)];
-    self.coverPhotoView.frame = CGRectMake(0, 0, self.view.frame.size.width, self.tableView.contentInset.top + (-1 * self.tableView.contentOffset.y));
-    self.coverPhotoViewOverlay.frame = self.coverPhotoView.bounds;
+    self.coverPhotoView.frame = CGRectMake(0, 0, self.view.frame.size.width, coverPhotoHeight);
 }
 
 - (void)newPostBegan:(NSNotification *)notification {
@@ -164,7 +169,7 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
     
     if (tempPost != nil) {
         // TODO: Check for image as well
-        [self.tableView.stream addTempPost:tempPost];
+//        [self.tableView.stream addTempPost:tempPost];
         [self.tableView refreshAtTop];
     }
 }
@@ -175,7 +180,7 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
     
     if (post != nil) {
         // TODO: Check for image as well
-        [self.tableView.stream removeTempPost:tempId];
+//        [self.tableView.stream removeTempPost:tempId];
         
         [self getPostsWithCursor:StreamPagingCursorTypePrevious];
     }
@@ -186,7 +191,7 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
     
     if (tempPost != nil) {
         // TODO: Check for image as well
-        [self.tableView.stream removeTempPost:tempPost.tempId];
+//        [self.tableView.stream removeTempPost:tempPost.tempId];
         [self.tableView refreshAtTop];
     }
 }
@@ -197,11 +202,9 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
         if ([user.identifier isEqualToString:self.user.identifier]) {
             self.user = user;
             
-            [self.tableView.stream updateUserObjects:user];
-            
             [self updateTheme];
             
-            [self.tableView hardRefresh:false];
+            [self reloadHeaderCell];
         }
     }
 }
@@ -210,10 +213,12 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
         User *user = notification.object;
         self.user = user;
         
-        [self.tableView.stream updateUserObjects:user];
-        
-        [self.tableView refreshAtTop];
+        [self reloadHeaderCell];
     }
+}
+
+- (void)reloadHeaderCell {
+    [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationNone];
 }
 
 - (NSString *)userIdentifier {
@@ -404,17 +409,11 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
 - (void)setUser:(User *)user {
     if (user != _user) {
         _user = user;
-        
-        // update table view parent object
-        self.tableView.parentObject = user;
     }
 }
 - (void)setBot:(Bot *)bot {
     if (bot != _bot) {
         _bot = bot;
-        
-        // update table view parent object
-        self.tableView.parentObject = bot;
     }
 }
 
@@ -428,6 +427,8 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
 
 - (void)getUserInfo {
     NSString *url = [NSString stringWithFormat:@"users/%@", [self isCurrentUser] ? @"me" : [self userIdentifier]]; // sample data
+    
+    self.shimmering = true;
     
     [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:@{} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSDictionary *responseData = (NSDictionary *)responseObject[@"data"];
@@ -492,9 +493,10 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
         [self loadUserContent];
         
         [self showMoreButton];
+        
+        self.shimmering = false;
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         NSLog(@"ProfileViewController / getUserInfo() - error: %@", error);
-        //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
         
         NSHTTPURLResponse *httpResponse = error.userInfo[AFNetworkingOperationFailingURLResponseErrorKey];
         NSInteger statusCode = httpResponse.statusCode;
@@ -512,6 +514,8 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
         
         self.loading = false;
         [self.tableView refreshAtTop];
+        
+        self.shimmering = false;
     }];
 }
 
@@ -596,42 +600,59 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
 }
 
 - (void)getPostsWithCursor:(StreamPagingCursorType)cursorType {
-    if ([self userIdentifier] != nil) { 
-        self.tableView.hidden = false;
-        
+    if ([self userIdentifier] != nil) {
         NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
         if (cursorType == StreamPagingCursorTypeNext) {
-            [params setObject:self.tableView.stream.nextCursor forKey:@"cursor"];
-            [self.tableView.stream addLoadedCursor:self.tableView.stream.nextCursor];
+            [params setObject:self.tableView.stream.nextCursor forKey:@"next_cursor"];
         }
-        else if (self.tableView.stream.prevCursor) {
-            [params setObject:self.tableView.stream.prevCursor forKey:@"cursor"];
+        else if (self.tableView.stream.prevCursor.length > 0) {
+            [params setObject:self.tableView.stream.prevCursor forKey:@"prev_cursor"];
         }
-        if ([params objectForKey:@"cursor"]) {
-            [self.tableView.stream addLoadedCursor:params[@"cursor"]];
+        
+        if ([params objectForKey:@"prev_cursor"] ||
+            [params objectForKey:@"next_cursor"]) {
+            NSString *cursor = [params objectForKey:@"prev_cursor"] ? params[@"prev_cursor"] : params[@"next_cursor"];
+            
+            if ([self.tableView.stream hasLoadedCursor:cursor]) {
+                return;
+            }
+            else {
+                [self.tableView.stream addLoadedCursor:cursor];
+            }
+        }
+        else if (cursorType == StreamPagingCursorTypePrevious) {
+            cursorType = StreamPagingCursorTypeNone;
+        }
+        
+        self.tableView.hidden = false;
+        if (self.tableView.stream.sections.count == 0) {
+            self.tableView.visualError = nil;
+            self.loading = true;
+            [self.tableView hardRefresh:false];
         }
         
         NSString *url = [NSString stringWithFormat:@"users/%@/posts", [self userIdentifier]]; // sample data
-        
         [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-            self.tableView.scrollEnabled = true;
+            self.loading = false;
+            self.tableView.loadingMore = false;
             
-            PostStreamPage *page = [[PostStreamPage alloc] initWithDictionary:responseObject error:nil];
+            SectionStreamPage *page = [[SectionStreamPage alloc] initWithDictionary:responseObject error:nil];
             if (page.data.count > 0) {
-                if (cursorType == StreamPagingCursorTypeNone) {
-                    self.tableView.stream.posts = @[];
-                    self.tableView.stream.pages = [[NSMutableArray alloc] init];
+                if (page.meta.paging.replaceCache ||
+                    cursorType == StreamPagingCursorTypeNone) {
+                    [self.tableView scrollToTop];
+                    [self.tableView.stream flush];
                 }
-                if (cursorType == StreamPagingCursorTypeNone || cursorType == StreamPagingCursorTypePrevious) {
-                    [self.tableView.stream prependPage:page];
-                }
-                else if (cursorType == StreamPagingCursorTypeNext) {
+                
+                if (cursorType == StreamPagingCursorTypeNext) {
                     [self.tableView.stream appendPage:page];
+                }
+                else if (cursorType == StreamPagingCursorTypeNone || cursorType == StreamPagingCursorTypePrevious) {
+                    [self.tableView.stream prependPage:page];
                 }
             }
             
-            if (self.tableView.stream.posts.count == 0) {
-                // Error: No sparks yet!
+            if (self.tableView.stream.sections.count == 0) {
                 if ([self isCurrentUser]) {
                     NSString *firstMessage = [NSString stringWithFormat:@"#HelloBonfire, I'm %@! Nice to meet you. 👋", [self.user.attributes.displayName componentsSeparatedByString:@" "][0]];
                     [self showErrorViewWithType:ErrorViewTypeFirstPost title:@"Create Your First Post" description:@"Introduce yourself to the Bonfire community" actionTitle:@"Open Compose" actionBlock:^{
@@ -646,21 +667,19 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
                 self.tableView.visualError = nil;
             }
             
-            self.loading = false;
-            
-            self.tableView.loadingMore = false;
-            
-            if (cursorType == StreamPagingCursorTypeNext) {
+            if (cursorType == StreamPagingCursorTypePrevious) {
+                [self.tableView refreshAtTop];
+            }
+            else if (cursorType == StreamPagingCursorTypeNext) {
                 [self.tableView refreshAtBottom];
             }
             else {
-                [self.tableView refreshAtTop];
+                [self.tableView hardRefresh:false];
             }
         } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
             NSLog(@"ProfileViewController / getPostsWithMaxId() - error: %@", error);
-            //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
             
-            if (self.tableView.stream.posts.count == 0) {
+            if (self.tableView.stream.sections.count == 0) {
                 [self showErrorViewWithType:([HAWebService hasInternet] ? ErrorViewTypeGeneral : ErrorViewTypeNoInternet) title:([HAWebService hasInternet] ? @"Error Loading" : @"No Internet") description:@"Check your network settings and tap below to try again" actionTitle:@"Refresh" actionBlock:^{
                     self.loading = true;
                     [self refresh];
@@ -669,16 +688,12 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
             
             self.loading = false;
             self.tableView.loadingMore = false;
-            self.tableView.userInteractionEnabled = true;
-            self.tableView.scrollEnabled = false;
             [self.tableView refreshAtTop];
         }];
     }
     else {
         self.loading = false;
         self.tableView.loadingMore = false;
-        self.tableView.userInteractionEnabled = true;
-        self.tableView.scrollEnabled = false;
         [self.tableView refreshAtTop];
     }
 }
@@ -691,9 +706,8 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
 }
 
 - (void)setupTableView {
-    self.tableView = [[RSTableView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - self.navigationController.navigationBar.frame.origin.y - self.navigationController.navigationBar.frame.size.height) style:UITableViewStyleGrouped];
-    self.tableView.dataType = RSTableViewTypeProfile;
-    self.tableView.tableViewStyle = RSTableViewStyleGrouped;
+    self.tableView = [[BFComponentSectionTableView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - self.navigationController.navigationBar.frame.origin.y - self.navigationController.navigationBar.frame.size.height) style:UITableViewStyleGrouped];
+    self.tableView.insightSeenInLabel = InsightSeenInProfileView;
     self.tableView.backgroundColor = [UIColor clearColor];
     self.tableView.extendedDelegate = self;
     [self.tableView registerClass:[ProfileHeaderCell class] forCellReuseIdentifier:profileHeaderCellIdentifier];
@@ -702,7 +716,6 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
     [self.tableView registerClass:[SpacerCell class] forCellReuseIdentifier:spacerCellReuseIdentifier];
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:blankCellReuseIdentifier];
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
-    self.tableView.tag = 101;
     [self.tableView.refreshControl addTarget:self
                                 action:@selector(refresh)
                       forControlEvents:UIControlEventValueChanged];
@@ -726,19 +739,16 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
 
 - (void)tableViewDidScroll:(UITableView *)tableView {
     if (tableView == self.tableView) {
-        if (self.tableView.contentOffset.y > (-1 * self.tableView.contentInset.top)) {
-            self.coverPhotoView.frame = CGRectMake(0, 0.5 * (-self.tableView.contentOffset.y - self.tableView.contentInset.top), self.view.frame.size.width, self.tableView.contentInset.top);
-        }
-        else {
-            self.coverPhotoView.frame = CGRectMake(0, 0, self.view.frame.size.width, self.tableView.contentInset.top + (-self.tableView.contentOffset.y - self.tableView.contentInset.top));
-        }
+        CGFloat adjustedCoverPhotoHeight = coverPhotoHeight + self.tableView.adjustedContentInset.top;
+                
+        self.coverPhotoView.frame = CGRectMake(0, 0, self.view.frame.size.width, adjustedCoverPhotoHeight + -(self.tableView.contentOffset.y + self.tableView.adjustedContentInset.top));
         
-        CGFloat percentageHidden = ((self.tableView.contentOffset.y + self.tableView.contentInset.top) / (self.tableView.contentInset.top * .75));
-//        self.coverPhotoViewOverlay.frame = self.coverPhotoView.bounds;
+        UIView *overlayView = [self.coverPhotoView viewWithTag:10];
+        overlayView.frame = CGRectMake(0, 0, self.coverPhotoView.frame.size.width, self.coverPhotoView.frame.size.height);
     }
 }
 
-#pragma mark - RSTableViewDelegate
+#pragma mark - BFComponentTableViewDelegate
 - (UITableViewCell * _Nullable)cellForRowInFirstSection:(NSInteger)row {
     if (row == 0) {
         if (self.user) {
@@ -792,7 +802,7 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
             return cell;
         }
     }
-    else if (row == 3) {
+    else if (row == [self numberOfRowsInFirstSection] - 1) { // last row
         SpacerCell *cell = [self.tableView dequeueReusableCellWithIdentifier:spacerCellReuseIdentifier forIndexPath:[NSIndexPath indexPathForRow:row inSection:0]];
 
         if (cell == nil) {
@@ -800,6 +810,7 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
         }
 
         cell.topSeparator.hidden = true;
+        cell.bottomSeparator.hidden = true;
 
         return cell;
     }
@@ -855,19 +866,19 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
             return [BotHeaderCell heightForBot:self.bot isLoading:self.loading];
         }
     }
+    else if (row == [self numberOfRowsInFirstSection] - 1) {
+        return [SpacerCell height];
+    }
     else if (row == 1 || row == 2) {
         return 52;
-    }
-    else if (row == 3) {
-        return [SpacerCell height];
     }
     
     return 0;
 }
 - (CGFloat)numberOfRowsInFirstSection {
-    NSInteger rows = 1;
+    NSInteger rows = 2;
     if (!(self.tableView.visualError && !(self.tableView.visualError.errorType == ErrorViewTypeNoPosts || self.tableView.visualError.errorType == ErrorViewTypeFirstPost)) && self.user && !([self userIsBlocked] || [self currentUserIsBlocked])) {
-        rows += 3;
+        rows += 2;
     }
     
     return rows;
@@ -886,6 +897,25 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
     [UIColor fromHex:self.user.attributes.color],
     [UIColor fromHex:self.user.attributes.color],
     [UIColor fromHex:self.user.attributes.color]]; // 8
+}
+
+- (void)setShimmering:(BOOL)shimmering {
+    if (shimmering != _shimmering) {
+        _shimmering = shimmering;
+        
+        UIView *overlayView = [self.coverPhotoView viewWithTag:10];
+        
+        if (!shimmering) {
+            CGFloat value = [[overlayView.layer.presentationLayer valueForKeyPath:@"opacity"] floatValue];
+            
+            [overlayView.layer removeAnimationForKey:@"opacityAnimation"];
+            
+            overlayView.alpha = value;
+            [UIView animateWithDuration:0.5f delay:0 options:UIViewAnimationOptionCurveEaseOut|UIViewAnimationOptionBeginFromCurrentState animations:^{
+                overlayView.alpha = 0;
+            } completion:nil];
+        }
+    }
 }
 
 @end

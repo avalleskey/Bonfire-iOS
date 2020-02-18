@@ -18,13 +18,15 @@
 
 @synthesize spinning = _spinning;
 @synthesize loading = _loading;
-@synthesize rs_tableView = _rs_tableView;
+@synthesize bfTableView = _bfTableView;
+@synthesize sectionTableView = _sectionTableView;
 
 NSString * const rotationAnimationKey = @"rotationAnimation";
 
 - (id)init {
     if (self = [super init]) {
         self.theme = [UIColor bonfireSecondaryColor];
+        self.animateLoading = true;
     }
     
     return self;
@@ -46,54 +48,66 @@ NSString * const rotationAnimationKey = @"rotationAnimation";
     [self initBigSpinner];
 }
 
-
-//- (void)setTableView:(UITableView *)tableView {
-//    if (tableView != _tableView) {
-//        _tableView = tableView;
-//
-//        if (_tableView == nil) {
-//            return;
-//        }
-//        else {
-//            [_tableView removeFromSuperview];
-//
-//            _tableView.frame = self.view.bounds;
-////            [self.view addSubview:_tableView];
-//
-//            self.refreshControl = [[UIRefreshControl alloc]init];
-//            self.tableView.refreshControl = self.refreshControl;
-//        }
-//    }
-//}
 - (UITableView *)activeTableView {
     if (self.tableView) {
         return self.tableView;
     }
-    else if (self.rs_tableView) {
-        return self.rs_tableView;
+    else if (self.bfTableView) {
+        return self.bfTableView;
+    }
+    else if (self.sectionTableView) {
+        return self.sectionTableView;
     }
     
     return nil;
 }
-- (void)setRs_tableView:(RSTableView *)rs_tableView {
-    if (rs_tableView != _rs_tableView) {
-        _rs_tableView = rs_tableView;
+- (void)setBfTableView:(BFComponentTableView *)bfTableView {
+    if (bfTableView != _bfTableView) {
+        _bfTableView = bfTableView;
 
-        if (_rs_tableView == nil) {
+        if (_bfTableView == nil) {
             return;
         }
         else {
             [_tableView removeFromSuperview];
             _tableView = nil;
             
-            if (_rs_tableView.superview) {
-                [_rs_tableView removeFromSuperview];
+            [_sectionTableView removeFromSuperview];
+            _sectionTableView = nil;
+            
+            if (_bfTableView.superview) {
+                [_bfTableView removeFromSuperview];
             }
             
-            _rs_tableView.frame = self.view.bounds;
-            [self.view addSubview:_rs_tableView];
+            _bfTableView.frame = self.view.bounds;
+            [self.view addSubview:_bfTableView];
             
-            _rs_tableView.refreshControl = self.refreshControl;
+            _bfTableView.refreshControl = self.refreshControl;
+        }
+    }
+}
+- (void)setSectionTableView:(BFComponentSectionTableView *)bf_tableView {
+    if (bf_tableView != _sectionTableView) {
+        _sectionTableView = bf_tableView;
+
+        if (_sectionTableView == nil) {
+            return;
+        }
+        else {
+            [_tableView removeFromSuperview];
+            _tableView = nil;
+            
+            [_bfTableView removeFromSuperview];
+            _bfTableView = nil;
+            
+            if (_sectionTableView.superview) {
+                [_sectionTableView removeFromSuperview];
+            }
+            
+            _sectionTableView.frame = self.view.bounds;
+            [self.view addSubview:_sectionTableView];
+            
+            _sectionTableView.refreshControl = self.refreshControl;
         }
     }
 }
@@ -101,7 +115,7 @@ NSString * const rotationAnimationKey = @"rotationAnimation";
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     
-    if (!self.loading) {
+    if (!self.loading && self.animateLoading) {
         [self setSpinning:false animated:false];
     }
     
@@ -174,15 +188,13 @@ NSString * const rotationAnimationKey = @"rotationAnimation";
         _loading = loading;
     }
     
-    if (_loading) {
-        if (!self.spinning) {
-            [self setSpinning:true animated:true];
+    if (self.animateLoading) {
+        if ([self activeTableView] && self.spinning != _loading) {
+            [self setSpinning:_loading animated:true];
         }
     }
-    else {
-        if (self.spinning) {
-            [self setSpinning:false animated:true];
-        }
+    
+    if (!_loading) {
         [self.refreshControl performSelector:@selector(endRefreshing) withObject:nil afterDelay:0.0];
     }
 }
@@ -200,16 +212,16 @@ NSString * const rotationAnimationKey = @"rotationAnimation";
 }
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
-    if (scrollView == self.tableView) {
+    if (scrollView == [self activeTableView]) {
         UINavigationController *navController = UIViewParentController(self).navigationController;
         if (navController) {
             if ([navController isKindOfClass:[ComplexNavigationController class]]) {
                 ComplexNavigationController *complexNav = (ComplexNavigationController *)navController;
-                [complexNav childTableViewDidScroll:self.tableView];
+                [complexNav childTableViewDidScroll:[self activeTableView]];
             }
             else if ([navController isKindOfClass:[SimpleNavigationController class]]) {
                 SimpleNavigationController *simpleNav = (SimpleNavigationController *)navController;
-                [simpleNav childTableViewDidScroll:self.tableView];
+                [simpleNav childTableViewDidScroll:[self activeTableView]];
             }
         }
     }

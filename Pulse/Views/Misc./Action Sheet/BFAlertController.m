@@ -183,7 +183,19 @@ static NSString * const buttonCellIdentifier = @"ButtonCell";
         
         if (self.previousFirstResponder && [self.previousFirstResponder respondsToSelector:@selector(resignFirstResponder)] && ([self.previousFirstResponder isKindOfClass:[UITextField class]] || [self.previousFirstResponder isKindOfClass:[UITextView class]]) && ((UIView *)self.previousFirstResponder).superview != nil) {
             DLog(@"previous first responder: %@", self.previousFirstResponder);
-            [self.previousFirstResponder resignFirstResponder];
+            if ([self.previousFirstResponder isKindOfClass:[UITextField class]] ||
+                [self.previousFirstResponder isKindOfClass:[UITextView class]]) {
+                
+                if (((UIView *)self.previousFirstResponder).superview) {
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        NSLog(@"inside dispatch async block main thread from main thread");
+                        [self.previousFirstResponder resignFirstResponder];
+                    });
+                }
+                else {
+                    NSLog(@"hehehe avoided catastrophe");
+                }
+            }
         }
     }
     return self;
@@ -304,6 +316,10 @@ static NSString * const buttonCellIdentifier = @"ButtonCell";
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillDismiss:) name:UIKeyboardWillHideNotification object:nil];
 }
 
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
 - (UIStatusBarStyle)preferredStatusBarStyle {
     return self.presentingViewController.preferredStatusBarStyle;
 }
@@ -422,7 +438,7 @@ static NSString * const buttonCellIdentifier = @"ButtonCell";
             self.textField.layer.cornerRadius = 10.f;
             self.textField.layer.borderColor = [UIColor tableViewSeparatorColor].CGColor;
             self.textField.layer.borderWidth = 1;
-            self.textField.font = [UIFont systemFontOfSize:15.f weight:UIFontWeightRegular];
+            self.textField.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightRegular];
             self.textField.textColor = [UIColor bonfirePrimaryColor];
             
             UIView *paddingView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 10, 1)];

@@ -324,7 +324,7 @@ static Launcher *launcher;
     }
 }
 + (void)openSearch {
-    SearchTableViewController *searchController = [[SearchTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
+    SearchTableViewController *searchController = [[SearchTableViewController alloc] init];
     searchController.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeNone;
     searchController.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
     
@@ -335,22 +335,20 @@ static Launcher *launcher;
     [searchNav.searchView.textField becomeFirstResponder];
     
     [Launcher present:searchNav animated:YES];
+}
++ (void)openSearchFromRect:(CGRect)rect {
+    SearchTableViewController *searchController = [[SearchTableViewController alloc] init];
+    searchController.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeNone;
+     
+    SearchNavigationController *searchNav = [[SearchNavigationController alloc] initWithRootViewController:searchController];
+    searchNav.searchView.openSearchControllerOntap = false;
+    searchNav.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
+    searchNav.modalPresentationStyle = UIModalPresentationFullScreen;
     
-    /* cross dissolve
-     SearchTableViewController *searchController = [[SearchTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
-     searchController.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeNone;
-     
-     SearchNavigationController *searchNav = [[SearchNavigationController alloc] initWithRootViewController:searchController];
-     searchNav.searchView.openSearchControllerOntap = false;
-     searchNav.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
-     
-     searchNav.searchView.textField.userInteractionEnabled = true;
-     [searchNav.searchView.textField becomeFirstResponder];
-     
-     searchNav.modalPresentationStyle = uimodalpresent;
-     
-     [[Launcher activeViewController] presentViewController:searchNav animated:YES completion:nil];
-     */
+    searchNav.searchView.textField.userInteractionEnabled = true;
+    [searchNav.searchView.textField becomeFirstResponder];
+          
+    [[Launcher activeViewController] presentViewController:searchNav animated:YES completion:nil];
 }
 + (void)openDiscover {
     CampStoreTableViewController *viewController = [[CampStoreTableViewController alloc] init];
@@ -366,6 +364,9 @@ static Launcher *launcher;
 }
 
 + (void)openCamp:(Camp *)camp {
+    [self openCamp:camp controller:nil];
+}
++ (void)openCamp:(Camp *)camp controller:(CampViewController * _Nullable)controller {
     BOOL insideCamp = ([Launcher activeNavigationController] &&
                        [[[[Launcher activeNavigationController] viewControllers] lastObject] isKindOfClass:[CampViewController class]] &&
                        ([((CampViewController *)[[[Launcher activeNavigationController] viewControllers] lastObject]).camp.identifier isEqualToString:camp.identifier] ||
@@ -375,25 +376,27 @@ static Launcher *launcher;
         return;
     }
     
-    CampViewController *r = [Launcher campViewControllerForCamp:camp];
+    if (!controller)  {
+        controller = [Launcher campViewControllerForCamp:camp];
+    }
 
-    ComplexNavigationController *newLauncher = [[ComplexNavigationController alloc] initWithRootViewController:r];
-    [newLauncher.searchView updateSearchText:r.title];
-    [newLauncher updateBarColor:r.theme animated:false];
+    ComplexNavigationController *newLauncher = [[ComplexNavigationController alloc] initWithRootViewController:controller];
+    [newLauncher.searchView updateSearchText:controller.title];
+    [newLauncher updateBarColor:controller.theme animated:false];
     newLauncher.modalTransitionStyle = UIModalPresentationCustom;
     [Launcher push:newLauncher animated:YES];
     [newLauncher updateNavigationBarItemsWithAnimation:NO];
     
     // Register Siri intent
     NSUserActivity *activity = [[NSUserActivity alloc] initWithActivityType:@"com.Ingenious.bonfire.open-camp-activity-type"];
-    activity.title = [NSString stringWithFormat:@"Open %@", r.title];
+    activity.title = [NSString stringWithFormat:@"Open %@", controller.title];
     activity.userInfo = @{@"camp": [camp toDictionary]};
     activity.eligibleForSearch = true;
     if (@available(iOS 12.0, *)) {
         activity.eligibleForPrediction = true;
         activity.persistentIdentifier = @"com.Ingenious.bonfire.open-camp-activity-type";
     }
-    r.view.userActivity = activity;
+    controller.view.userActivity = activity;
     [activity becomeCurrent];
 }
 + (CampViewController *)campViewControllerForCamp:(Camp *)camp {
@@ -589,7 +592,6 @@ static Launcher *launcher;
     SimpleNavigationController *newNavController = [[SimpleNavigationController alloc] initWithRootViewController:p];
     newNavController.transitioningDelegate = [Launcher sharedInstance];
     [newNavController setLeftAction:SNActionTypeBack];
-//    newNavController.view.tintColor = p.theme;
     newNavController.currentTheme = p.theme;
     
     [Launcher push:newNavController animated:YES];
@@ -645,7 +647,6 @@ static Launcher *launcher;
 }
 + (void)openCreateCamp {
     CreateCampViewController *c = [[CreateCampViewController alloc] init];
-    c.transitioningDelegate = [Launcher sharedInstance];
     [self present:c animated:YES];
 }
 
@@ -662,9 +663,7 @@ static Launcher *launcher;
     epvc.media = media;
     
     SimpleNavigationController *newNavController = [[SimpleNavigationController alloc] initWithRootViewController:epvc];
-    newNavController.transitioningDelegate = [Launcher sharedInstance];
     [newNavController setLeftAction:SNActionTypeCancel];
-    [newNavController setRightAction:SNActionTypeShare];
     newNavController.view.tintColor = epvc.view.tintColor;
     newNavController.currentTheme = [UIColor contentBackgroundColor];
     newNavController.opaqueOnScroll = true;
@@ -765,10 +764,10 @@ static Launcher *launcher;
         [self shareCamp:sender];
     }
     else {
-        [self shareOniMessage:[NSString stringWithFormat:@"Join me on Bonfire! 🔥 %@", APP_DOWNLOAD_LINK] image:nil];
+//        [self shareOniMessage:[NSString stringWithFormat:@"Join me on Bonfire! 🔥 %@", APP_DOWNLOAD_LINK] image:nil];
 
-//        InviteFriendsViewController *inviteFriends = [[InviteFriendsViewController alloc] init];
-//        [self present:inviteFriends animated:YES];
+        InviteFriendsViewController *inviteFriends = [[InviteFriendsViewController alloc] init];
+        [self present:inviteFriends animated:YES];
     }
     
     /*
@@ -795,6 +794,7 @@ static Launcher *launcher;
     navController.transitioningDelegate = [Launcher sharedInstance];
     navController.modalPresentationStyle = UIModalPresentationFullScreen;
     navController.currentTheme = [UIColor clearColor];
+    navController.shadowOnScroll = false;
     
     [self present:navController animated:YES];
 }
@@ -857,13 +857,13 @@ static Launcher *launcher;
 
 + (void)openSettings {
     SettingsTableViewController *settingsVC = [[SettingsTableViewController alloc] init];
+    settingsVC.title = @"Settings";
     
     SimpleNavigationController *simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:settingsVC];
     simpleNav.transitioningDelegate = [Launcher sharedInstance];
-    simpleNav.opaqueOnScroll = false;
-    simpleNav.shadowOnScroll = true;
-    simpleNav.transparentOnLoad = true;
-    simpleNav.currentTheme = nil;
+    simpleNav.currentTheme = [UIColor clearColor];
+    simpleNav.shadowOnScroll = false;
+    simpleNav.view.tintColor = [UIColor fromHex:[Session sharedInstance].currentUser.attributes.color adjustForOptimalContrast:true];
     [UIView performWithoutAnimation:^{
         [simpleNav setRightAction:SNActionTypeDone];
     }];
@@ -912,6 +912,28 @@ static Launcher *launcher;
 
         // set the data to browse in the controller
         [jsonViewController setData:[(JSONModel *)object toDictionary]];
+        
+        // display it inside a UINavigationController
+        navController = [[SimpleNavigationController alloc] initWithRootViewController:jsonViewController];
+    }
+    else if ([object isKindOfClass:[NSArray class]]) {
+        // Initialize the view controller
+        SEJSONViewController * jsonViewController = [[SEJSONViewController alloc] init];
+        jsonViewController.title = NSStringFromClass([object class]);
+
+        // set the data to browse in the controller
+        [jsonViewController setData:(NSArray *)object];
+        
+        // display it inside a UINavigationController
+        navController = [[SimpleNavigationController alloc] initWithRootViewController:jsonViewController];
+    }
+    else if ([object isKindOfClass:[NSDictionary class]]) {
+        // Initialize the view controller
+        SEJSONViewController * jsonViewController = [[SEJSONViewController alloc] init];
+        jsonViewController.title = NSStringFromClass([object class]);
+
+        // set the data to browse in the controller
+        [jsonViewController setData:(NSDictionary *)object];
         
         // display it inside a UINavigationController
         navController = [[SimpleNavigationController alloc] initWithRootViewController:jsonViewController];
@@ -993,7 +1015,8 @@ static Launcher *launcher;
                         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.2f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                             if ([[Launcher activeViewController] isKindOfClass:[PostViewController class]]) {
                                 PostViewController *postVC = (PostViewController *)[Launcher activeViewController];
-                                if ([postVC.post.identifier isEqualToString:post.identifier] || [postVC.post.attributes.parent.identifier isEqualToString:post.identifier]) {
+                                if ([postVC.post.identifier isEqualToString:post.identifier] || [postVC.post.attributes.parent.identifier isEqualToString:post.identifier] ||
+                                    [postVC.post.attributes.parentId isEqualToString:post.identifier]) {
                                     if ([Launcher activeNavigationController] && [Launcher activeNavigationController].viewControllers.count > 1) {
                                         [[Launcher activeNavigationController] popViewControllerAnimated:YES];
                                         

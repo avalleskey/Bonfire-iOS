@@ -15,6 +15,7 @@
 #import "Launcher.h"
 #import "Session.h"
 #import <HapticHelper/HapticHelper.h>
+#import <PINCache/PINCache.h>
 @import Firebase;
 @import UserNotifications;
 

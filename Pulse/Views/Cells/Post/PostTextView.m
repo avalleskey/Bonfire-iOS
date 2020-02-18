@@ -37,6 +37,8 @@
         
         _messageLabel = [[JKRichTextView alloc] initWithFrame:frame];
         _messageLabel.textAlignment = NSTextAlignmentCenter;
+        _messageLabel.clipsToBounds = false;
+        _messageLabel.layer.masksToBounds = false;
         [self addSubview:_messageLabel];
         
         // [self initPatternDetections];

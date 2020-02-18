@@ -7,10 +7,11 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "ThemedTableViewController.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface SearchTableViewController : UITableViewController <UITextFieldDelegate>
+@interface SearchTableViewController : ThemedTableViewController <UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate>
 
 @property (nonatomic) CGFloat currentKeyboardHeight;
 

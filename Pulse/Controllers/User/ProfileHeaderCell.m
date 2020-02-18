@@ -28,13 +28,16 @@
 - (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier {
     self = [super initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:reuseIdentifier];
     if (self) {
-        // general cell styling
-        self.backgroundColor = [UIColor contentBackgroundColor];
-        self.separatorInset = UIEdgeInsetsMake(0, 62, 0, 0);
         self.selectionStyle = UITableViewCellSelectionStyleNone;
         
-        CGFloat profilePicBorderWidth = 6;
-        self.profilePictureContainer = [[UIView alloc] initWithFrame:CGRectMake(0, PROFILE_HEADER_EDGE_INSETS.top - profilePicBorderWidth, PROFILE_HEADER_AVATAR_SIZE + (profilePicBorderWidth * 2), PROFILE_HEADER_AVATAR_SIZE + (profilePicBorderWidth * 2))];
+        self.backgroundColor = [UIColor clearColor];
+        self.contentView.backgroundColor = [UIColor contentBackgroundColor];
+        
+        self.clipsToBounds = NO;                        //cell's view
+        self.contentView.clipsToBounds = NO;            //contentView
+        self.contentView.superview.clipsToBounds = NO;  //scrollView
+                
+        self.profilePictureContainer = [[UIView alloc] initWithFrame:CGRectMake(0, PROFILE_HEADER_EDGE_INSETS.top, PROFILE_HEADER_AVATAR_SIZE + (PROFILE_HEADER_AVATAR_BORDER_WIDTH * 2), PROFILE_HEADER_AVATAR_SIZE + (PROFILE_HEADER_AVATAR_BORDER_WIDTH * 2))];
         self.profilePictureContainer.backgroundColor = [UIColor contentBackgroundColor];
         self.profilePictureContainer.layer.cornerRadius = self.profilePictureContainer.frame.size.height / 2;
         self.profilePictureContainer.layer.masksToBounds = false;
@@ -43,9 +46,9 @@
         self.profilePictureContainer.layer.shadowRadius = 2.f;
         self.profilePictureContainer.layer.shadowOpacity = 0.12;
         self.profilePictureContainer.center = CGPointMake(self.contentView.frame.size.width / 2, self.profilePictureContainer.center.y);
-        [self.contentView addSubview:self.profilePictureContainer];
+        [self addSubview:self.profilePictureContainer];
         
-        self.profilePicture = [[BFAvatarView alloc] initWithFrame:CGRectMake(profilePicBorderWidth, profilePicBorderWidth, PROFILE_HEADER_AVATAR_SIZE, PROFILE_HEADER_AVATAR_SIZE)];
+        self.profilePicture = [[BFAvatarView alloc] initWithFrame:CGRectMake(PROFILE_HEADER_AVATAR_BORDER_WIDTH, PROFILE_HEADER_AVATAR_BORDER_WIDTH, PROFILE_HEADER_AVATAR_SIZE, PROFILE_HEADER_AVATAR_SIZE)];
         self.profilePicture.dimsViewOnTap = true;
         [self.profilePicture bk_whenTapped:^{
             BOOL hasPicture = (self.profilePicture.user.attributes.media.avatar.suggested.url.length > 0);
@@ -149,7 +152,7 @@
                 [[Launcher topMostViewController] presentViewController:actionSheet animated:true completion:nil];
             }
         }];
-        [self.contentView addSubview:self.campAvatarReasonView];
+        [self addSubview:self.campAvatarReasonView];
         
         self.campAvatarReasonLabel = [[UILabel alloc] initWithFrame:self.campAvatarReasonView.bounds];
         self.campAvatarReasonLabel.textAlignment = NSTextAlignmentCenter;
@@ -171,8 +174,6 @@
         self.textLabel.lineBreakMode = NSLineBreakByWordWrapping;
         self.textLabel.backgroundColor = [UIColor clearColor];
         
-        // username
-        //UIFont *heavyItalicFont = [UIFont fontWithDescriptor:[[[UIFont systemFontOfSize:PROFILE_HEADER_USERNAME_FONT.pointSize weight:UIFontWeightHeavy] fontDescriptor] fontDescriptorWithSymbolicTraits:UIFontDescriptorTraitItalic] size:PROFILE_HEADER_USERNAME_FONT.pointSize];
         self.detailTextLabel.font = [UIFont systemFontOfSize:PROFILE_HEADER_USERNAME_FONT.pointSize weight:UIFontWeightHeavy];
         self.detailTextLabel.textAlignment = NSTextAlignmentCenter;
         self.detailTextLabel.textColor = [UIColor bonfireSecondaryColor];
@@ -236,11 +237,6 @@
                      [self.actionButton.status isEqualToString:USER_STATUS_NO_RELATION] ||
                      self.actionButton.status.length == 0) {
                 // follow the user
-                
-                // TODO: Add private user check -> "Requested"
-                // (self.user.attributes.visibility.isPrivate) &&
-                // ![self.followButton.status isEqualToString:USER_STATUS_FOLLOWED]
-                
                 if ([self.actionButton.status isEqualToString:USER_STATUS_FOLLOWED]) {
                     [self.actionButton updateStatus:USER_STATUS_FOLLOW_BOTH];
                 }
@@ -331,45 +327,46 @@
     CGFloat bottomY;
     
     CGFloat maxWidth = self.frame.size.width - (PROFILE_HEADER_EDGE_INSETS.left + PROFILE_HEADER_EDGE_INSETS.right);
-    maxWidth = maxWidth > IPAD_CONTENT_MAX_WIDTH ? IPAD_CONTENT_MAX_WIDTH : maxWidth;
-    
-    // line separator
-    self.lineSeparator.frame = CGRectMake(0, self.frame.size.height - (1 / [UIScreen mainScreen].scale), self.frame.size.width, (1 / [UIScreen mainScreen].scale));
     
     // profile picture
     self.profilePictureContainer.center = CGPointMake(self.contentView.frame.size.width / 2, self.profilePictureContainer.center.y);
-    bottomY = PROFILE_HEADER_EDGE_INSETS.top + self.profilePicture.frame.size.height;
+    bottomY = PROFILE_HEADER_EDGE_INSETS.top + self.profilePictureContainer.frame.size.height;
     
     if (![self.campAvatarReasonView isHidden]) {
         self.campAvatarReasonView.frame = CGRectMake(self.profilePictureContainer.frame.origin.x + self.profilePictureContainer.frame.size.width - 40 - 6, self.profilePictureContainer.frame.origin.y + self.profilePictureContainer.frame.size.height - 40 - 6, 40, 40);
     }
     
+    CGFloat contentViewOffset = self.profilePictureContainer.frame.origin.y + self.profilePicture.frame.origin.y +  ceilf(self.profilePicture.frame.size.height * 0.65);
+    self.contentView.frame = CGRectMake(0, contentViewOffset, self.frame.size.width, self.frame.size.height - contentViewOffset);
+    
+    // subtract content view inset
+    bottomY -= self.contentView.frame.origin.y;
+    
     // text label
     CGRect textLabelRect = [self.textLabel.attributedText boundingRectWithSize:CGSizeMake(maxWidth, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) context:nil];
     self.textLabel.frame = CGRectMake(self.frame.size.width / 2 - maxWidth / 2, bottomY + PROFILE_HEADER_AVATAR_BOTTOM_PADDING, maxWidth, ceilf(textLabelRect.size.height));
-    bottomY = self.textLabel.frame.origin.y + self.textLabel.frame.size.height;
+    bottomY = self.textLabel.frame.origin.y + self.textLabel.frame.size.height + PROFILE_HEADER_DISPLAY_NAME_BOTTOM_PADDING;
     
     // detail text label
     CGRect detailLabelRect = [self.detailTextLabel.text boundingRectWithSize:CGSizeMake(maxWidth, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:self.detailTextLabel.font} context:nil];
-    self.detailTextLabel.frame = CGRectMake(self.textLabel.frame.origin.x, bottomY + PROFILE_HEADER_DISPLAY_NAME_BOTTOM_PADDING, self.textLabel.frame.size.width, ceilf(detailLabelRect.size.height));
+    self.detailTextLabel.frame = CGRectMake(self.textLabel.frame.origin.x, bottomY, self.textLabel.frame.size.width, ceilf(detailLabelRect.size.height));
     bottomY = self.detailTextLabel.frame.origin.y + self.detailTextLabel.frame.size.height;
     
-    BOOL hasBio = self.bioLabel.attributedText.length > 0;
-    self.bioLabel.hidden = !hasBio;
-    if (hasBio) {
+    if (![self.bioLabel isHidden]) {
         CGRect bioLabelRect = [self.bioLabel.attributedText boundingRectWithSize:CGSizeMake(maxWidth, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) context:nil];
-        self.bioLabel.frame = CGRectMake(self.textLabel.frame.origin.x, bottomY + PROFILE_HEADER_USERNAME_BOTTOM_PADDING, self.textLabel.frame.size.width, ceilf(bioLabelRect.size.height));
+        self.bioLabel.frame = CGRectMake(self.textLabel.frame.origin.x, PROFILE_HEADER_USERNAME_BOTTOM_PADDING  + bottomY, self.textLabel.frame.size.width, ceilf(bioLabelRect.size.height));
         bottomY = self.bioLabel.frame.origin.y + self.bioLabel.frame.size.height;
     }
     
-    BOOL hasDetails = self.detailsCollectionView.details.count > 0;
-    self.detailsCollectionView.hidden = !hasDetails;
-    if (hasDetails) {
-        self.detailsCollectionView.frame = CGRectMake(PROFILE_HEADER_EDGE_INSETS.left, bottomY + (hasBio ? PROFILE_HEADER_BIO_BOTTOM_PADDING : PROFILE_HEADER_USERNAME_BOTTOM_PADDING) + PROFILE_HEADER_DETAILS_EDGE_INSETS.top, self.frame.size.width - (PROFILE_HEADER_EDGE_INSETS.left + PROFILE_HEADER_EDGE_INSETS.right), self.detailsCollectionView.collectionViewLayout.collectionViewContentSize.height);
+    if (![self.detailsCollectionView isHidden] && self.detailsCollectionView.details.count > 0) {
+        self.detailsCollectionView.frame = CGRectMake(PROFILE_HEADER_EDGE_INSETS.left, bottomY + ([self.bioLabel isHidden] ? PROFILE_HEADER_USERNAME_BOTTOM_PADDING : PROFILE_HEADER_BIO_BOTTOM_PADDING), self.frame.size.width - (PROFILE_HEADER_EDGE_INSETS.left + PROFILE_HEADER_EDGE_INSETS.right), self.detailsCollectionView.collectionViewLayout.collectionViewContentSize.height);
         bottomY = self.detailsCollectionView.frame.origin.y + self.detailsCollectionView.frame.size.height;
     }
     
-    self.actionButton.frame = CGRectMake(12, bottomY + PROFILE_HEADER_FOLLOW_BUTTON_TOP_PADDING, self.frame.size.width - 24, 38);
+    self.actionButton.frame = CGRectMake(12, PROFILE_HEADER_FOLLOW_BUTTON_TOP_PADDING + bottomY, self.frame.size.width - 24, 38);
+    
+    // line separator
+    self.lineSeparator.frame = CGRectMake(0, self.lineSeparator.superview.frame.size.height - (1 / [UIScreen mainScreen].scale), self.frame.size.width, (1 / [UIScreen mainScreen].scale));
 }
 
 - (BOOL)isCurrentUser {
@@ -385,7 +382,6 @@
         self.profilePicture.user = user;
         
         // set camp indicator
-        
         BOOL useText = false;
         BOOL useImage = false;
 
@@ -461,7 +457,8 @@
         self.detailTextLabel.textColor = [UIColor fromHex:user.attributes.color adjustForOptimalContrast:true];
         
         // bio
-        if (user.attributes.bio.length > 0) {
+        self.bioLabel.hidden = user.attributes.bio.length == 0;
+        if (![self.bioLabel isHidden]) {
             NSMutableAttributedString *attrString = [[NSMutableAttributedString  alloc] initWithString:user.attributes.bio];
             NSMutableParagraphStyle *style = [[NSMutableParagraphStyle alloc] init];
             [style setLineSpacing:3.f];
@@ -510,8 +507,9 @@
         }
         
         self.detailsCollectionView.tintColor = self.detailTextLabel.textColor;
-        
         self.detailsCollectionView.details = [details copy];
+        
+        self.detailsCollectionView.hidden = (details.count == 0);
     }
 }
 
@@ -523,7 +521,7 @@
     CGFloat maxWidth = [UIScreen mainScreen].bounds.size.width - (PROFILE_HEADER_EDGE_INSETS.left + PROFILE_HEADER_EDGE_INSETS.right);
     
     // knock out all the required bits first
-    CGFloat height = PROFILE_HEADER_EDGE_INSETS.top + PROFILE_HEADER_AVATAR_SIZE + PROFILE_HEADER_AVATAR_BOTTOM_PADDING;
+    CGFloat height = PROFILE_HEADER_EDGE_INSETS.top + (PROFILE_HEADER_AVATAR_SIZE + (PROFILE_HEADER_AVATAR_BORDER_WIDTH * 2)) + PROFILE_HEADER_AVATAR_BOTTOM_PADDING;
     
     // display name
     NSString *displayName;
@@ -534,7 +532,7 @@
         displayName = [NSString stringWithFormat:@"@%@", user.attributes.identifier];
     }
     else {
-        displayName = [NSString stringWithFormat:@"@%@", user.attributes.identifier];
+        displayName = @"Camper";
     }
     NSMutableAttributedString *displayNameAttributedString = [[NSMutableAttributedString alloc] initWithString:displayName attributes:@{NSFontAttributeName:PROFILE_HEADER_DISPLAY_NAME_FONT}];
     if ([user isVerified]) {
@@ -557,14 +555,15 @@
 
     CGRect textLabelRect = [displayNameAttributedString boundingRectWithSize:CGSizeMake(maxWidth, CGFLOAT_MAX) options:(NSStringDrawingUsesFontLeading|NSStringDrawingUsesLineFragmentOrigin) context:nil];
     CGFloat userDisplayNameHeight = ceilf(textLabelRect.size.height);
-    height = height + userDisplayNameHeight;
+    height += userDisplayNameHeight + PROFILE_HEADER_DISPLAY_NAME_BOTTOM_PADDING;
     
     CGRect usernameRect = [[NSString stringWithFormat:@"@%@", user.attributes.identifier] boundingRectWithSize:CGSizeMake(maxWidth, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:PROFILE_HEADER_USERNAME_FONT} context:nil];
     CGFloat usernameHeight = ceilf(usernameRect.size.height);
-    height = height + PROFILE_HEADER_DISPLAY_NAME_BOTTOM_PADDING + usernameHeight;
+    height += usernameHeight + PROFILE_HEADER_USERNAME_BOTTOM_PADDING;
     
     if (details) {
-        if (user.attributes.bio.length > 0) {
+        BOOL hasBio = user.attributes.bio.length > 0;
+        if (hasBio) {
             NSMutableAttributedString *attrString = [[NSMutableAttributedString  alloc] initWithString:user.attributes.bio];
             NSMutableParagraphStyle *style = [[NSMutableParagraphStyle alloc] init];
             [style setLineSpacing:3.f];
@@ -576,7 +575,7 @@
             
             CGRect bioRect = [attrString boundingRectWithSize:CGSizeMake(maxWidth, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading)  context:nil];
             CGFloat bioHeight = ceilf(bioRect.size.height);
-            height = height + PROFILE_HEADER_USERNAME_BOTTOM_PADDING + bioHeight;
+            height += bioHeight;
         }
         
         if (loading || user.identifier) {
@@ -600,7 +599,13 @@
                 detailCollectionView.dataSource = detailCollectionView;
                 [detailCollectionView setDetails:details];
                 
-                height = height + (user.attributes.bio.length > 0 ? PROFILE_HEADER_BIO_BOTTOM_PADDING : PROFILE_HEADER_USERNAME_BOTTOM_PADDING) +  PROFILE_HEADER_DETAILS_EDGE_INSETS.top + detailCollectionView.collectionViewLayout.collectionViewContentSize.height;
+                CGFloat detailsHeight = detailCollectionView.collectionViewLayout.collectionViewContentSize.height;
+                
+                if (hasBio) {
+                    height += PROFILE_HEADER_BIO_BOTTOM_PADDING;
+                }
+                
+                height += detailsHeight;
             }
         }
     }
@@ -609,11 +614,11 @@
         BOOL isCurrentUser = [user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier];
         
         CGFloat userPrimaryActionHeight = (!loading && user.attributes.context == nil && !isCurrentUser) ? 0 : PROFILE_HEADER_FOLLOW_BUTTON_TOP_PADDING + 38;
-        height = height + userPrimaryActionHeight;
+        height += userPrimaryActionHeight;
     }
     
     // add bottom padding and line separator
-    height = height + PROFILE_HEADER_EDGE_INSETS.bottom + (1 / [UIScreen mainScreen].scale);
+    height += PROFILE_HEADER_EDGE_INSETS.bottom;
     
     return height;
 }

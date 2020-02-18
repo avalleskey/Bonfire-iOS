@@ -8,6 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import <SDAnimatedImageView+WebCache.h>
+#import "Post.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -16,10 +17,13 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) NSMutableArray *imageViews;
 
 @property (nonatomic, strong) UIView *containerView;
+@property (nonatomic, strong) UITextView *captionTextView;
 
 // array of URLs and/or UIImages
 @property (nonatomic, strong) NSArray *media;
+@property (nonatomic, strong) NSString *caption;
 
++ (BOOL)useCaptionedImageViewForPost:(Post *)post;
 + (CGFloat)streamImageHeight;
 
 @end

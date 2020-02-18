@@ -9,53 +9,15 @@
 #import "BFComponent.h"
 #import "StreamPostCell.h"
 
-@interface BFComponent ()
-
-@property (nonatomic) BOOL changes;
-
-@end
-
 @implementation BFComponent
 
-- (id)initWithPost:(Post *)post {
-    return [self initWithPost:post cellClass:nil];
-}
-- (id)initWithPost:(Post *)post cellClass:(Class _Nullable)cellClass {
-    return [self initWithPost:post cellClass:cellClass detailLevel:BFComponentDetailLevelAll];
-}
-- (id)initWithPost:(Post *)post cellClass:(Class _Nullable)cellClass detailLevel:(BFComponentDetailLevel)detailLevel {
-    if (!cellClass) {
-        cellClass = [StreamPostCell class];
-    }
-    
-    return [self initWithObject:post cellClass:cellClass detailLevel:detailLevel];
-}
-
-- (id)initWithObject:(id _Nullable)object cellClass:(Class)cellClass detailLevel:(BFComponentDetailLevel)detailLevel {
+- (id)initWithObject:(id _Nullable)object className:(NSString *)className detailLevel:(BFComponentDetailLevel)detailLevel {
     if (self = [super init]) {
-        if ([object isKindOfClass:[BFSectionHeaderObject class]]) {
-            self.headerObject = (BFSectionHeaderObject *)object;
-        }
-        else if ([object isKindOfClass:[Post class]]) {
-            self.post = (Post *)object;
-        }
-        else if ([object isKindOfClass:[Camp class]]) {
-            self.camp = (Camp *)object;
-        }
-        else if ([object isKindOfClass:[Identity class]]) {
-            self.identity = (Identity *)object;
-        }
-        else if ([object isKindOfClass:[User class]]) {
-            self.user = (User *)object;
-        }
-        else if ([object isKindOfClass:[Bot class]]) {
-            self.bot = (Bot *)object;
-        }
-        else if ([object isKindOfClass:[BFLink class]]) {
-            self.link = (BFLink *)object;
+        if (object) {
+            self.object = object;
         }
                 
-        self.cellClass = cellClass;
+        self.className = className;
         self.detailLevel = detailLevel;
         
         [self updateCellHeight];
@@ -64,9 +26,54 @@
     return self;
 }
 
++(BOOL)propertyIsOptional:(NSString*)propertyName
+{
+
+    return YES;
+}
+
+- (Class _Nullable)cellClass {
+    if (!self.className) return nil;
+    
+    return NSClassFromString(self.className);
+}
+
+//- (id)initWithCoder:(NSCoder *)decoder {
+//  if (self = [super init]) {
+//      self.cellClass = [decoder decodeObjectForKey:@"cellClass"];
+//      self.object = [decoder decodeObjectForKey:@"object"];
+//      self.cellHeight = [decoder decodeFloatForKey:@"cellHeight"];
+//      self.detailLevel = (BFComponentDetailLevel)[decoder decodeObjectForKey:@"detailLevel"];
+//      self.showLineSeparator = [decoder decodeBoolForKey:@"showLineSeparator"];
+//      self.action = [decoder decodeObjectForKey:@"action"];
+//  }
+//  return self;
+//}
+//
+//- (void)encodeWithCoder:(NSCoder *)encoder {
+//    [encoder encodeObject:_cellClass forKey:@"cellClass"];
+//    [encoder encodeObject:_object forKey:@"object"];
+//    [encoder encodeFloat:_cellHeight forKey:@"cellHeight"];
+//    [encoder encodeObject:[NSNumber numberWithInteger:_detailLevel] forKey:@"detailLevel"];
+//    [encoder encodeBool:_showLineSeparator forKey:@"showLineSeparator"];
+//    [encoder encodeObject:_action forKey:@"action"];
+//}
+
+
+#pragma mark - NSCopying
+- (id)copyWithZone:(NSZone *)zone
+{
+    BFComponent *copyObject = [[BFComponent alloc] initWithObject:_object className:_className detailLevel:_detailLevel];
+    
+    copyObject.showLineSeparator = _showLineSeparator;
+    copyObject.action = _action;
+
+    return copyObject;
+}
+
 - (void)updateCellHeight {
-    if ([self.cellClass conformsToProtocol:@protocol(BFComponentProtocol)]) {
-        NSInvocationOperation *invo = [[NSInvocationOperation alloc] initWithTarget:self.cellClass selector:@selector(heightForComponent:) object:self];
+    if ([self.className conformsToProtocol:@protocol(BFComponentProtocol)]) {
+        NSInvocationOperation *invo = [[NSInvocationOperation alloc] initWithTarget:self.className selector:@selector(heightForComponent:) object:self];
         [invo start];
         CGFloat f = 0;
         [invo.result getValue:&f];
@@ -74,7 +81,7 @@
         self.cellHeight = f;
     }
     else {
-        DLog(@"!!!! %@ does not conform to BFComponentProtocol", NSStringFromClass(self.cellClass.class));
+        DLog(@"!!!! %@ does not conform to BFComponentProtocol", NSStringFromClass(self.className.class));
         self.cellHeight = 0;
     }
 }
@@ -84,27 +91,8 @@
     NSMutableString *string = [NSMutableString new];
     [string appendString:@"<BFComponent>"];
     
-    if (self.cellClass) {
-        [string appendFormat:@"\n[cellClass]: %@", self.cellClass];
-    }
-    
-    if (self.post) {
-        [string appendFormat:@"\n[post]: %@", self.post];
-    }
-    if (self.camp) {
-        [string appendFormat:@"\n[camp]: %@", self.camp];
-    }
-    if (self.identity) {
-        [string appendFormat:@"\n[identity]: %@", self.identity];
-    }
-    if (self.user) {
-        [string appendFormat:@"\n[user]: %@", self.user];
-    }
-    if (self.bot) {
-        [string appendFormat:@"\n[bot]: %@", self.bot];
-    }
-    if (self.link) {
-        [string appendFormat:@"\n[link]: %@", self.link];
+    if (self.className) {
+        [string appendFormat:@"\n[cellClass]: %@", self.className];
     }
     
     return string;

@@ -7,17 +7,14 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "BFSectionHeaderObject.h"
-#import "Post.h"
-#import "Camp.h"
-#import "Identity.h"
-#import "User.h"
-#import "Bot.h"
-#import "BFLink.h"
+#import "BFJSONModel.h"
+#import <UIKit/UIKit.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
 @class BFComponent;
+
+@protocol BFComponent;
 
 @protocol BFComponentProtocol <NSObject>
 
@@ -26,37 +23,27 @@ NS_ASSUME_NONNULL_BEGIN
 
 @end
 
-@interface BFComponent : NSObject
+@interface BFComponent : BFJSONModel
 
 typedef enum {
     BFComponentDetailLevelAll, // include context
-    BFComponentDetailLevelSome, // don't include any context
-    BFComponentDetailLevelMinimum // truncate and keep to bare minimum
+    BFComponentDetailLevelSome, // no context
+    BFComponentDetailLevelMinimum // no actions, no context
 } BFComponentDetailLevel;
 
-// Convenience methods for Posts
-- (id)initWithPost:(Post *)post;
-- (id)initWithPost:(Post *)post cellClass:(Class _Nullable)cellClass;
-- (id)initWithPost:(Post *)post cellClass:(Class _Nullable)cellClass detailLevel:(BFComponentDetailLevel)detailLevel;
-
-- (id)initWithObject:(id _Nullable)object cellClass:(Class)cellClass detailLevel:(BFComponentDetailLevel)detailLevel;
+- (id)initWithObject:(id _Nullable)object className:(NSString *)className detailLevel:(BFComponentDetailLevel)detailLevel;
 
 - (void)updateCellHeight;
 
 // This tells the table view what kind of cell to render
-@property (nonatomic, strong) Class <BFComponentProtocol> cellClass;
+@property (nonatomic) NSString *className;
+- (Class _Nullable)cellClass;
+
+@property (nonatomic) NSObject *object;
 @property (nonatomic) CGFloat cellHeight;
 @property (nonatomic) BFComponentDetailLevel detailLevel;
-
-// These provide the table view with the data needed to
-// populate the cellClass
-@property (nonatomic, strong) BFSectionHeaderObject *headerObject;
-@property (nonatomic, strong) Post *post;
-@property (nonatomic, strong) Camp *camp;
-@property (nonatomic, strong) Identity *identity;
-@property (nonatomic, strong) User *user;
-@property (nonatomic, strong) Bot *bot;
-@property (nonatomic, strong) BFLink *link;
+@property (nonatomic) BOOL showLineSeparator;
+@property (nonatomic, copy) void (^_Nullable action)(void);
 
 @end
 

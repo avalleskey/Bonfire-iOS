@@ -37,6 +37,7 @@ typedef enum {
 @property (nonatomic, strong) UIView *leftActionView;
 @property (nonatomic, strong) UIView *rightActionView;
 
+@property (nonatomic, strong) UIVisualEffectView *navigationBlurView;
 @property (nonatomic, strong) UIView *navigationBackgroundView;
 
 @property (nonatomic, strong) UIView *progressView;

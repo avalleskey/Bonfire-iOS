@@ -29,8 +29,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)updateAttributedStrings;
 
-@property (nonatomic) NSString *prevCursor;
-@property (nonatomic) NSString *nextCursor;
+@property (nonatomic) NSString * _Nullable prevCursor;
+@property (nonatomic) NSString * _Nullable nextCursor;
 
 - (void)markAllAsRead;
 - (NSInteger)unreadCount;

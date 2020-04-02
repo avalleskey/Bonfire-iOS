@@ -167,26 +167,24 @@
     }
 }
 
-- (void)updateTextFieldRect {
-    CGRect textLabelRect = [self textFieldRect];
-    
-    self.textField.frame = CGRectMake((self.originalFrame.size.width / 2) - ((textLabelRect.size.width + self.textField.leftView.frame.size.width) / 2), self.textField.frame.origin.y, textLabelRect.size.width + self.textField.leftView.frame.size.width, self.textField.frame.size.height);
+- (void)updateTextFieldRect {    
+    if (_position == BFSearchTextPositionCenter) {
+        // center align
+        CGRect textLabelRect = [self textFieldRect];
+        
+        self.textField.frame = CGRectMake((self.originalFrame.size.width / 2) - ((textLabelRect.size.width + self.textField.leftView.frame.size.width) / 2), self.textField.frame.origin.y, textLabelRect.size.width + self.textField.leftView.frame.size.width, self.textField.frame.size.height);
+    }
+    else {
+        // left align
+       self.textField.frame = CGRectMake(16, self.textField.frame.origin.y, self.frame.size.width - 16, self.textField.frame.size.height);
+    }
 }
 
 - (void)setPosition:(BFSearchTextPosition)position {
     if (position != _position) {
         _position = position;
         
-        if (position == BFSearchTextPositionCenter) {
-            // center align
-            CGRect textLabelRect = [self textFieldRect];
-            
-            self.textField.frame = CGRectMake((self.originalFrame.size.width / 2) - ((textLabelRect.size.width + self.textField.leftView.frame.size.width) / 2), self.textField.frame.origin.y, textLabelRect.size.width + self.textField.leftView.frame.size.width, self.textField.frame.size.height);
-        }
-        else {
-            // left align
-           self.textField.frame = CGRectMake(16, self.textField.frame.origin.y, self.frame.size.width - 16, self.textField.frame.size.height);
-        }
+        [self updateTextFieldRect];
     }
 }
 - (CGRect)textFieldRect {

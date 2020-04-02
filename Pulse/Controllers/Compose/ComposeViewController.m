@@ -29,10 +29,11 @@
 #import "BFCampAttachmentView.h"
 #import "BFLinkAttachmentView.h"
 #import "BFSmartLinkAttachmentView.h"
+#import "GIFCollectionViewController.h"
 
 #define composeToolbarHeight 56
 
-@interface ComposeViewController () {
+@interface ComposeViewController () <BFCameraViewControllerDelegate, GIFCollectionViewControllerDelegate> {
     NSInteger maxLength;
 }
 
@@ -43,6 +44,9 @@
 @property (nonatomic) BFAttachmentView *quotedAttachmentView;
 @property (nonatomic) ComposeTextViewCell *textViewCell;
 @property (nonatomic) BOOL isScrolling;
+
+@property (nonatomic) BOOL scrollDisabled;
+@property (nonatomic) CGFloat lastContentOffsetY;
 
 @end
 
@@ -127,7 +131,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         }
         else if (self.postToProfile) {
             self.titleAvatar.user = [Session sharedInstance].currentUser;
-            [self updateTitleText:@"My Profile"];
+            [self updateTitleText:@"My Channel"];
         }
         else {
             self.titleAvatar.camp = nil;
@@ -139,7 +143,11 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     }
     
     if (![self.textViewCell.textView isFirstResponder]) {
+        self.scrollDisabled = true;
+        self.lastContentOffsetY = self.replyingTo ? 9999 : 0;
         [self.textViewCell.textView becomeFirstResponder];
+        
+        self.scrollDisabled = false;
     }
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillChangeFrame:) name:UIKeyboardWillChangeFrameNotification object:nil];
@@ -164,6 +172,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     self.tableView.dataSource = self;
     self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
     self.tableView.backgroundColor = [UIColor contentBackgroundColor];
+    self.tableView.showsVerticalScrollIndicator = false;
     
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:blankCellIdentifier];
     [self.tableView registerClass:[ComposeTextViewCell class] forCellReuseIdentifier:composeTextViewCellReuseIdentifier];
@@ -222,7 +231,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     
     if (!self.postingIn) {
         self.postToProfile = true;
-        [self updateTitleText:@"My Profile"];
+        [self updateTitleText:@"My Channel"];
         self.titleAvatar.user = [[Session sharedInstance] currentUser];
         
         [self updatePlaceholder];
@@ -298,6 +307,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     }
         
     self.takePictureButton.tintColor = self.view.tintColor;
+    self.chooseGifButton.tintColor = self.view.tintColor;
     self.choosePictureButton.tintColor = self.view.tintColor;
 }
 
@@ -327,7 +337,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     self.takePictureButton.backgroundColor = [UIColor bonfireDetailColor];
     self.takePictureButton.layer.cornerRadius = self.takePictureButton.frame.size.height / 2;
     [self.takePictureButton bk_whenTapped:^{
-        [self takePicture:self];
+        [Launcher openComposeCameraFromCenterPoint:CGPointZero sender:self];
     }];
     [self.toolbarButtonsContainer addSubview:self.takePictureButton];
     
@@ -343,12 +353,26 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     }];
     [self.toolbarButtonsContainer addSubview:self.choosePictureButton];
     
+    self.chooseGifButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    [self.chooseGifButton setImage:[[UIImage imageNamed:@"composeToolbarGif"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+    self.chooseGifButton.frame = CGRectMake(self.choosePictureButton.frame.origin.x + self.choosePictureButton.frame.size.width + 12, self.takePictureButton.frame.origin.y, 40, 40);
+    self.chooseGifButton.contentMode = UIViewContentModeCenter;
+    self.chooseGifButton.tintColor = [UIColor bonfirePrimaryColor];
+    self.chooseGifButton.backgroundColor = [UIColor bonfireDetailColor];
+    self.chooseGifButton.layer.cornerRadius = self.chooseGifButton.frame.size.height / 2;
+    [self.chooseGifButton bk_whenTapped:^{
+        [Launcher openGIFSearch:self];
+    }];
+    [self.toolbarButtonsContainer addSubview:self.chooseGifButton];
+    
     self.postButton = [UIButton buttonWithType:UIButtonTypeCustom];
     self.postButton.frame = CGRectMake(self.toolbarButtonsContainer.frame.size.width - 67 - 12, composeToolbarHeight / 2 - 36 / 2, 67, 36);
     self.postButton.layer.cornerRadius = self.postButton.frame.size.height / 2;
     self.postButton.layer.masksToBounds = true;
     self.postButton.titleLabel.font = [UIFont systemFontOfSize:17.f weight:UIFontWeightBold];
-    [self.postButton setTitle:@"Post" forState:UIControlStateNormal];
+    [self.postButton setTitle:@"Share" forState:UIControlStateNormal];
+    CGFloat dynamicPostButtonWidth = ceilf(self.postButton.intrinsicContentSize.width) + (12 * 2);
+    self.postButton.frame = CGRectMake(self.view.frame.size.width - dynamicPostButtonWidth - 12, self.postButton.frame.origin.y, dynamicPostButtonWidth, self.postButton.frame.size.height);
     [self.postButton setTitleColor:[UIColor contentBackgroundColor] forState:UIControlStateDisabled];
     [self.postButton bk_whenTapped:^{
         [self postMessage];
@@ -420,7 +444,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     self.characterCountdownLabel.text = [NSString stringWithFormat:@"%ld", charactersLeft];
     
     if (charactersLeft <= 20) {
-        self.characterCountdownLabel.textColor = [UIColor bonfireRed];
+        self.characterCountdownLabel.textColor = [UIColor systemRedColor];
     }
     else {
         self.characterCountdownLabel.textColor = [[UIColor bonfireSecondaryColor] colorWithAlphaComponent:0.75];
@@ -434,12 +458,12 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     // update height of the cell
     [self.textViewCell resizeTextView];
     
-    [UIView setAnimationsEnabled:NO];
-    [self.tableView beginUpdates];
-    [self.tableView endUpdates];
-    [UIView setAnimationsEnabled:YES];
+    [UIView performWithoutAnimation:^{
+        [self.tableView beginUpdates];
+        [self.tableView endUpdates];
+    }];
     
-    if (diff(textViewHeightBefore, textViewHeightAfter)) {
+    if (diff(textViewHeightBefore, textViewHeightAfter) && self.replyingTo != nil) {
         [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:1] atScrollPosition:UITableViewScrollPositionBottom animated:false];
         [self scrollViewDidScroll:self.tableView];
     }
@@ -631,7 +655,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     else {
         defaultPlaceholder = @"Share something...";
     }
-    mediaPlaceholder = @"Add caption or Share";
+    mediaPlaceholder = @"Add a caption...";
     
     if (self.textViewCell.media.objects.count > 0) {
         self.textViewCell.textView.placeholder = mediaPlaceholder;
@@ -712,51 +736,6 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     } completion:nil];
 }
 
-- (void)takePicture:(id)sender {
-    NSString *mediaType = AVMediaTypeVideo;
-    AVAuthorizationStatus authStatus = [AVCaptureDevice authorizationStatusForMediaType:mediaType];
-    if(authStatus == AVAuthorizationStatusAuthorized) {
-        [self openCamera];
-    } else if(authStatus == AVAuthorizationStatusDenied ||
-              authStatus == AVAuthorizationStatusRestricted) {
-        // denied
-        [self showNoCameraAccess];
-    } else if(authStatus == AVAuthorizationStatusNotDetermined){
-        // not determined?!
-        [AVCaptureDevice requestAccessForMediaType:mediaType completionHandler:^(BOOL granted) {
-            if (granted){
-                NSLog(@"Granted access to %@", mediaType);
-                [self openCamera];
-            }
-            else {
-                NSLog(@"Not granted access to %@", mediaType);
-                [self showNoCameraAccess];
-            }
-        }];
-    }
-}
-- (void)openCamera {
-    UIImagePickerController *picker = [[UIImagePickerController alloc] init];
-    picker.delegate = self;
-    picker.allowsEditing = NO;
-    picker.sourceType = UIImagePickerControllerSourceTypeCamera;
-    
-    dispatch_async(dispatch_get_main_queue(), ^{
-        [[Launcher topMostViewController] presentViewController:picker animated:false completion:nil];
-    });
-}
-- (void)showNoCameraAccess {
-    BFAlertController *actionSheet = [BFAlertController alertControllerWithTitle:@"Allow Bonfire to access your camera" message:@"To allow Bonfire to access your camera, go to Settings > Privacy > Camera > Set Bonfire to ON" preferredStyle:BFAlertControllerStyleAlert];
-
-    BFAlertAction *openSettingsAction = [BFAlertAction actionWithTitle:@"Open Settings" style:BFAlertActionStyleDefault handler:^{
-        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString] options:@{} completionHandler:nil];
-    }];
-    [actionSheet addAction:openSettingsAction];
-
-    BFAlertAction *closeAction = [BFAlertAction actionWithTitle:@"Close" style:BFAlertActionStyleCancel handler:nil];
-    [actionSheet addAction:closeAction];
-    [[Launcher topMostViewController] presentViewController:actionSheet animated:true completion:nil];
-}
 - (void)chooseFromLibrary:(id)sender {
     [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
         switch (status) {
@@ -820,6 +799,21 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     
     [self.textViewCell.textView becomeFirstResponder];
 }
+- (void)cameraViewController:(nonnull BFCameraViewController *)cameraView didFinishPickingImage:(nonnull UIImage *)image {
+    [self.textViewCell.media addImage:image];
+    [self mediaDidChange];
+    [self.textViewCell.textView becomeFirstResponder];
+}
+- (void)cameraViewController:(BFCameraViewController *)cameraView didFinishPickingAsset:(PHAsset *)asset {
+    [self.textViewCell.media addAsset:asset];
+    [self mediaDidChange];
+    [self.textViewCell.textView becomeFirstResponder];
+}
+- (void)GIFCollectionView:(nonnull GIFCollectionViewController *)gifCollectionViewController didSelectGIFWithData:(nonnull NSData *)data {
+    [self.textViewCell.media addGIFData:data];
+    [self mediaDidChange];
+    [self.textViewCell.textView becomeFirstResponder];
+}
 
 - (void)mediaDidChange {
     [self checkRequirements];
@@ -834,6 +828,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     if (!self.textViewCell) return;
     
     self.takePictureButton.enabled = [self.textViewCell.media canAddMedia];
+    self.chooseGifButton.enabled = [self.textViewCell.media canAddMedia];
     self.choosePictureButton.enabled = [self.textViewCell.media canAddMedia];
     
     BOOL mediaAllowed = true; // default: assume it's allowed
@@ -853,10 +848,12 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     NSLog(@"media allowed ? %@", mediaAllowed ? @"YES" : @"NO");
     
     self.takePictureButton.hidden = !mediaAllowed;
+    self.chooseGifButton.hidden = !mediaAllowed;
     self.choosePictureButton.hidden = !mediaAllowed;
     
     [UIView animateWithDuration:0.3f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
         self.takePictureButton.alpha = (self.takePictureButton.enabled ? 1 : 0.25);
+        self.chooseGifButton.alpha = (self.chooseGifButton.enabled ? 1 : 0.25);
         self.choosePictureButton.alpha = (self.choosePictureButton.enabled ? 1 : 0.25);
     } completion:nil];
 }
@@ -1162,10 +1159,16 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             
             cell.lineSeparator.hidden = true;
             cell.topLine.hidden = !self.replyingTo;
+            cell.contentView.backgroundColor = [UIColor colorWithWhite:0.9 alpha:1];
                         
             if (cell.tag != 1) {
                 cell.tag = 1;
-                [cell.textView becomeFirstResponder];
+                wait(CGFLOAT_MIN, ^{
+                    [cell.textView becomeFirstResponder];
+                    if (self.replyingTo) {
+                        [self textViewDidChange:cell.textView];
+                    }
+                });
                 cell.textView.delegate = self;
                 cell.textView.tintColor = cell.tintColor;
                 cell.textView.text = _prefillMessage;
@@ -1274,7 +1277,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         }
     }
     else if (tableView == self.autoCompleteTableView) {
-        return 68;
+        return 62;
     }
     
     return 0;
@@ -1433,6 +1436,11 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 }
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    if (self.scrollDisabled) {
+        self.tableView.contentOffset = CGPointMake(0, _lastContentOffsetY);
+        return;
+    }
+    
     if (scrollView == self.tableView) {
         if ([self.navigationController isKindOfClass:[SimpleNavigationController class]]) {
             [(SimpleNavigationController *)self.navigationController childTableViewDidScroll:self.tableView];

@@ -7,14 +7,14 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "BFPostStreamComponent.h"
+#import "BFStreamComponent.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 @interface NSArray (Components)
 
-- (NSArray<BFPostStreamComponent *> *)toPostStreamComponents;
-- (NSArray<BFPostStreamComponent *> *)toPostStreamComponentsWithDetailLevel:(BFComponentDetailLevel)detailLevel;
+- (NSArray<BFStreamComponent *> *)toStreamComponents;
+- (NSArray<BFStreamComponent *> *)toStreamComponentsWithDetailLevel:(BFComponentDetailLevel)detailLevel;
 
 @end
 

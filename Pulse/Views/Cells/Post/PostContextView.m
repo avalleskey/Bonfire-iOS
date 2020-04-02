@@ -14,11 +14,7 @@
 @implementation PostContextView
 
 - (id)init {
-    self = [super init];
-    if (self) {
-        [self setup];
-    }
-    return self;
+    return [self initWithFrame:CGRectMake(0, 0, 0, 0)];
 }
 - (id)initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
@@ -39,13 +35,12 @@
     //self.backgroundColor = [UIColor colorWithWhite:0 alpha:0.04];
     self.layer.cornerRadius = 6.f;
     
-    self.contextIcon = [[UIImageView alloc] initWithFrame:CGRectMake(48 - 20, postContextHeight / 2 - 10, 20, 20)];
-    // self.contextIcon.backgroundColor = [UIColor colorWithWhite:0 alpha:0.1f];
+    self.contextIcon = [[UIImageView alloc] initWithFrame:CGRectMake(42 - 20, postContextHeight / 2 - 10, 20, 20)];
+    self.contextIcon.backgroundColor = [UIColor bonfireSecondaryColor];
     self.contextIcon.layer.cornerRadius = self.contextIcon.frame.size.height / 2;
     self.contextIcon.layer.masksToBounds = true;
     self.contextIcon.contentMode = UIViewContentModeCenter;
     self.contextIcon.tintColor = [UIColor whiteColor];
-    self.contextIcon.backgroundColor = self.tintColor;
     [self addSubview:self.contextIcon];
     
     self.contextLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, postContextHeight)];
@@ -70,20 +65,13 @@
     [self addSubview:self.highlightView];
 }
 
-- (void)setTintColor:(UIColor *)tintColor {
-    [super setTintColor:tintColor];
-    
-    self.contextIcon.backgroundColor = self.tintColor;
-    self.contextLabel.textColor = self.tintColor;
-}
-
 - (void)layoutSubviews {
     [super layoutSubviews];
     
     self.highlightView.frame = self.bounds;
     
-    self.contextIcon.frame = CGRectMake(48 - self.contextIcon.frame.size.width, self.frame.size.height / 2 - self.contextIcon.frame.size.height / 2, self.contextIcon.frame.size.width, self.contextIcon.frame.size.height);
-    self.contextLabel.frame = CGRectMake(70 - self.frame.origin.x, self.contextLabel.frame.origin.y, self.frame.size.width - (70 - self.frame.origin.x), self.contextLabel.frame.size.height);
+    self.contextIcon.frame = CGRectMake(42 - self.contextIcon.frame.size.width, self.frame.size.height / 2 - self.contextIcon.frame.size.height / 2, self.contextIcon.frame.size.width, self.contextIcon.frame.size.height);
+    self.contextLabel.frame = CGRectMake(64 - self.frame.origin.x, self.contextLabel.frame.origin.y, self.frame.size.width - (64 - self.frame.origin.x), self.contextLabel.frame.size.height);
 }
 
 - (void)setText:(NSString *)text {

@@ -12,13 +12,6 @@
 #import "BFVisualErrorView.h"
 #import "InsightsLogger.h"
 
-#define UIViewParentController(__view) ({ \
-        UIResponder *__responder = __view; \
-        while ([__responder isKindOfClass:[UIView class]]) \
-        __responder = [__responder nextResponder]; \
-        (UIViewController *)__responder; \
-        })
-
 NS_ASSUME_NONNULL_BEGIN
 
 @protocol BFComponentTableViewDelegate <NSObject>
@@ -30,7 +23,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)tableViewDidEndDragging:(UITableView *)tableView willDecelerate:(BOOL)decelerate;
 - (void)tableViewDidEndDecelerating:(UITableView *)tableView;
 
-- (void)didSelectComponent:(BFPostStreamComponent *)component atIndexPath:(NSIndexPath *)indexPath;
+- (void)didSelectComponent:(BFStreamComponent *)component atIndexPath:(NSIndexPath *)indexPath;
 
 - (UITableViewCell * _Nullable)cellForRowInFirstSection:(NSInteger)row;
 - (void)didSelectRowInFirstSection:(NSInteger)row;
@@ -55,6 +48,12 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic) BOOL loading;
 @property (nonatomic) BOOL loadingMore;
 @property (nonatomic, copy, nullable) void (^onScrollBlock)(void);
+
+typedef enum {
+    BFComponentTableViewLoadingStyleShimmer = 0,
+    BFComponentTableViewLoadingStyleSpinner = 1
+} BFComponentTableViewLoadingStyle;
+@property (nonatomic) BFComponentTableViewLoadingStyle loadingStyle;
 
 @property (strong, nonatomic) NSMutableDictionary *cellHeightsDictionary;
 

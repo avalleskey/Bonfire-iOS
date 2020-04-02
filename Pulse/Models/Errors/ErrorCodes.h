@@ -17,6 +17,7 @@ NS_ASSUME_NONNULL_BEGIN
  */
 extern const NSInteger BAD_AUTHENTICATION;
 extern const NSInteger MISSING_ACCESS_TOKEN;
+extern const NSInteger PHONE_AUTHCODE_THRESHOLD; // Requested a new AuthCode too soon
 extern const NSInteger OUT_OF_DATE_CLIENT;
 extern const NSInteger IDENTITY_REQUIRED;
 extern const NSInteger BAD_ORIGIN;
@@ -60,6 +61,7 @@ extern const NSInteger CAMP_INACCESSIBLE_BLOCKS_THEM;
 extern const NSInteger USER_PASSWORD_REQ_RESET;
 extern const NSInteger USER_PROFILE_SUSPENDED;
 extern const NSInteger USER_EMAIL_TAKEN;
+extern const NSInteger USER_PHONE_TAKEN; // Phone is already registered to a user
 extern const NSInteger USER_USERNAME_TAKEN;
 
 /**

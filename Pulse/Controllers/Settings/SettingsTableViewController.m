@@ -72,7 +72,10 @@
     if ([rowId isEqualToString:@"change_password"]) {
 //        // push change password
         ChangePasswordTableViewController *changePasswordTableVC = [[ChangePasswordTableViewController alloc] init];
-        [Launcher push:changePasswordTableVC animated:YES];
+        SimpleNavigationController *simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:changePasswordTableVC];
+        [simpleNav setLeftAction:SNActionTypeBack];
+        
+        [Launcher push:simpleNav animated:YES];
     }
     if ([rowId isEqualToString:@"share_profile"]) {
         [Launcher shareCurrentUser];
@@ -104,7 +107,10 @@
     if ([rowId isEqualToString:@"legal"]) {
         // push legal
         LegalTableViewController *legalTableVC = [[LegalTableViewController alloc] init];
-        [Launcher push:legalTableVC animated:YES];
+        SimpleNavigationController *simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:legalTableVC];
+        [simpleNav setLeftAction:SNActionTypeBack];
+        
+        [Launcher push:simpleNav animated:YES];
     }
     if ([rowId isEqualToString:@"sign_out"]) {
         // sign out

@@ -21,6 +21,7 @@
 #import "NSString+Validation.h"
 #import "BFHeaderView.h"
 #import "BFAlertController.h"
+#import "ChangePhoneNumberTableViewController.h"
 
 #import "ErrorCodes.h"
 #import <NSString+EMOEmoji.h>
@@ -30,6 +31,7 @@
 #import <BlocksKit/BlocksKit+UIKit.h>
 #import "UIImage+WithColor.h"
 #import <JGProgressHUD/JGProgressHUD.h>
+#import <libPhoneNumber-iOS/NBPhoneNumberUtil.h>
 #import "BFMiniNotificationManager.h"
 @import Firebase;
 
@@ -54,12 +56,15 @@ static NSString * const themeSelectorReuseIdentifier = @"ThemeSelectorCell";
 static NSString * const inputReuseIdentifier = @"InputCell";
 static NSString * const buttonReuseIdentifier = @"ButtonCell";
 
-static int const DISPLAY_NAME_FIELD = 201;
-static int const USERNAME_FIELD = 202;
-static int const BIO_FIELD = 203;
-static int const LOCATION_FIELD = 204;
-static int const WEBSITE_FIELD = 205;
-static int const EMAIL_FIELD = 206;
+enum {
+    DISPLAY_NAME_FIELD = 201,
+    USERNAME_FIELD = 202,
+    BIO_FIELD = 203,
+    LOCATION_FIELD = 204,
+    WEBSITE_FIELD = 205,
+    EMAIL_FIELD = 206,
+    PHONE_FIELD = 207
+};
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -79,6 +84,8 @@ static int const EMAIL_FIELD = 206;
     [self setupNavigation];
     
     [(SimpleNavigationController *)self.navigationController updateBarColor:self.themeColor animated:false];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userUpdated:) name:@"UserUpdated" object:nil];
         
     // Google Analytics
     [FIRAnalytics setScreenName:@"Edit Profile" screenClass:nil];
@@ -99,12 +106,23 @@ static int const EMAIL_FIELD = 206;
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    
     [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillChangeFrameNotification object:nil];
     [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillHideNotification object:nil];
 }
 
 - (void)dealloc {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+- (void)userUpdated:(NSNotification *)notification {
+    User *user = notification.object;
+    
+    if (user && [user isCurrentIdentity] && [user isKindOfClass:[User class]]) {
+        self.user = user;
+        [self.tableView reloadData];
+    }
 }
 
 - (void)setupNavigation {
@@ -426,7 +444,7 @@ static int const EMAIL_FIELD = 206;
                             break;
                         case BFValidationErrorContainsInvalidCharacters:
                             title = @"Username Cannot Contain Special Characters";
-                            message = [NSString stringWithFormat:@"Your username can only contain alphanumeric characters (letters A-Z, numbers 0-9) with the exception of underscores"];
+                            message = [NSString stringWithFormat:@"Your username can only contain alphanumeric characters (letters A-Z, numbers 0-9) with the exception of underscores and must include at least one non-number character"];
                             break;
                         case BFValidationErrorContainsInvalidWords:
                             title = @"Username Cannot Contain Certain Words";
@@ -602,6 +620,25 @@ static int const EMAIL_FIELD = 206;
                 }
             }
         }
+        else if (indexPath == [NSIndexPath indexPathForRow:1 inSection:1]) {
+            if (![value isEqualToString:self.user.attributes.phone]) {
+                BFValidationError error = [value validateBonfirePhoneNumber];
+                if (error == BFValidationErrorNone) {
+                    // good to go!
+                    if (value != nil) {
+                        [changes setObject:value forKey:@"phone"];
+                    }
+                }
+                else {                    
+                    NSString *title = @"Invalid Phone Number";
+                    NSString *message = [NSString stringWithFormat:@"Please make sure you entered a valid phone number"];
+                    
+                    [self alertWithTitle:title message:message];
+                    
+                    return @{@"error": @"phone"};
+                }
+            }
+        }
     }
     
     return changes;
@@ -622,7 +659,17 @@ static int const EMAIL_FIELD = 206;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return section == 0 ? 7 : 1;
+    if (section == 0) return 7;
+    else if (section == 1) {
+        if (self.user.attributes.phone.length > 0) {
+            return 2;
+        }
+        else {
+            return 1;
+        }
+    }
+    
+    return 0;
 }
 
 - (void)dismiss:(id)sender {
@@ -771,31 +818,81 @@ static int const EMAIL_FIELD = 206;
         }
     }
     else if (indexPath.section == 1) {
-        InputCell *cell = [tableView dequeueReusableCellWithIdentifier:inputReuseIdentifier forIndexPath:indexPath];
-        
-        cell.inputLabel.text = @"Email";
-        if ([inputValues objectForKey:indexPath]) {
-            cell.input.text = [inputValues objectForKey:indexPath];
+        if (indexPath.row == 0 && self.user.attributes.email.length > 0) {
+            InputCell *cell = [tableView dequeueReusableCellWithIdentifier:inputReuseIdentifier forIndexPath:indexPath];
+                        
+            cell.inputLabel.text = @"Email";
+            
+            cell.input.placeholder = @"Email";
+            if ([inputValues objectForKey:indexPath]) {
+                cell.input.text = [inputValues objectForKey:indexPath];
+            }
+            else {
+                cell.input.text = self.user.attributes.email;
+            }
+            
+            cell.input.tag = EMAIL_FIELD;
+            cell.input.autocapitalizationType = UITextAutocapitalizationTypeNone;
+            cell.input.autocorrectionType = UITextAutocorrectionTypeNo;
+            cell.input.keyboardType = UIKeyboardTypeEmailAddress;
+            
+            cell.lineSeparator.frame = CGRectMake(12, cell.frame.size.height - cell.lineSeparator.frame.size.height, self.view.frame.size.width - 12, cell.lineSeparator.frame.size.height);
+            cell.lineSeparator.hidden = (self.user.attributes.phone.length == 0);
+            
+            cell.input.delegate = self;
+            [cell.input addTarget:self
+                          action:@selector(textFieldDidChange:)
+                forControlEvents:UIControlEventEditingChanged];
+            
+            return cell;
         }
-        else {
-            cell.input.text = self.user.attributes.email;
+        else if (indexPath.row == 1 && self.user.attributes.phone.length > 0) {
+            InputCell *cell = [tableView dequeueReusableCellWithIdentifier:inputReuseIdentifier forIndexPath:indexPath];
+                        
+            cell.inputLabel.text = @"Phone";
+
+            cell.input.placeholder = @"Add Phone Number";
+            cell.input.text = [self formatPhoneNumber:self.user.attributes.phone];
+            
+            cell.input.tag = PHONE_FIELD;
+            cell.input.autocapitalizationType = UITextAutocapitalizationTypeNone;
+            cell.input.autocorrectionType = UITextAutocorrectionTypeNo;
+            cell.input.keyboardType = UIKeyboardTypePhonePad;
+            cell.input.userInteractionEnabled = false;
+            cell.input.alpha = 0.75;
+            
+            cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+            
+            cell.input.delegate = self;
+            [cell.input addTarget:self
+                          action:@selector(textFieldDidChange:)
+                forControlEvents:UIControlEventEditingChanged];
+            
+            return cell;
         }
-        cell.input.placeholder = @"Email";
-        cell.input.tag = 201;
-        cell.input.autocapitalizationType = UITextAutocapitalizationTypeNone;
-        cell.input.autocorrectionType = UITextAutocorrectionTypeNo;
-        cell.input.keyboardType = UIKeyboardTypeEmailAddress;
-        
-        cell.input.delegate = self;
-        [cell.input addTarget:self
-                      action:@selector(textFieldDidChange:)
-            forControlEvents:UIControlEventEditingChanged];
-        
-        return cell;
     }
     
     UITableViewCell *blankCell = [tableView dequeueReusableCellWithIdentifier:blankReuseIdentifier forIndexPath:indexPath];
     return blankCell;
+}
+
+- (NSString *)formatPhoneNumber:(NSString *)string {
+    NBPhoneNumberUtil *phoneUtil = [[NBPhoneNumberUtil alloc] init];
+    NSError *anError = nil;
+    
+    NBPhoneNumber *myNumber = [phoneUtil parse:string
+                                 defaultRegion:@"US" error:&anError];
+    
+    NSString *formatted = [phoneUtil format:myNumber
+         numberFormat:NBEPhoneNumberFormatNATIONAL
+                error:&anError];
+        
+    if (anError) {
+        return @"";
+    }
+    else {
+        return [NSString stringWithFormat:@"+1 %@", formatted];
+    }
 }
 
 - (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string {
@@ -838,6 +935,9 @@ static int const EMAIL_FIELD = 206;
     if (textField.tag == WEBSITE_FIELD) {
         return newStr.length <= MAX_USER_WEBSITE_LENGTH ? YES : NO;
     }
+    if (textField.tag == PHONE_FIELD) {
+        return newStr.length <= MAX_PHONE_NUMBER_LENGTH ? YES : NO;
+    }
     
     return YES;
 }
@@ -846,6 +946,17 @@ static int const EMAIL_FIELD = 206;
     NSIndexPath *indexPath = [self.tableView indexPathForRowAtPoint:point];
     
     [inputValues setObject:sender.text forKey:indexPath];
+}
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath  {
+    if (indexPath.row == 1) {
+        // set new phone number
+        ChangePhoneNumberTableViewController *changePhoneTableVC = [[ChangePhoneNumberTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
+        SimpleNavigationController *simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:changePhoneTableVC];
+        simpleNav.transitioningDelegate = [Launcher sharedInstance];
+        simpleNav.modalPresentationStyle = UIModalPresentationFullScreen;
+        [simpleNav setLeftAction:SNActionTypeBack];
+        [Launcher push:simpleNav animated:true];
+    }
 }
 - (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
     NSString *newStr = [textView.text stringByReplacingCharactersInRange:range withString:text];
@@ -914,7 +1025,12 @@ static int const EMAIL_FIELD = 206;
         }
     }
     else if (indexPath.section == 1) {
-        return [InputCell baseHeight];
+        if (indexPath.row == 0 && self.user.attributes.email.length > 0) {
+            return [InputCell baseHeight];
+        }
+        else if (indexPath.row == 1 && self.user.attributes.phone.length > 0) {
+            return [InputCell baseHeight];
+        }
     }
     
     return 0;

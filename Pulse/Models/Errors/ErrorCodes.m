@@ -14,15 +14,16 @@
 /**
  * Errors 400-499: Authentication/Client error
  */
-const NSInteger BAD_AUTHENTICATION    = 400;
-const NSInteger MISSING_ACCESS_TOKEN  = 401;
-const NSInteger OUT_OF_DATE_CLIENT    = 410;
-const NSInteger IDENTITY_REQUIRED     = 420;
-const NSInteger BAD_ORIGIN            = 440;
-const NSInteger BAD_ACCESS_TOKEN      = 450;
-const NSInteger BAD_REFRESH_TOKEN     = 451;
-const NSInteger MISMATCH_TOKEN        = 452;
-const NSInteger BAD_REFRESH_LOGIN_REQ = 460;
+const NSInteger BAD_AUTHENTICATION       = 400;
+const NSInteger MISSING_ACCESS_TOKEN     = 401;
+const NSInteger PHONE_AUTHCODE_THRESHOLD = 403; // Requested a new AuthCode too soon
+const NSInteger OUT_OF_DATE_CLIENT       = 410;
+const NSInteger IDENTITY_REQUIRED        = 420;
+const NSInteger BAD_ORIGIN               = 440;
+const NSInteger BAD_ACCESS_TOKEN         = 450;
+const NSInteger BAD_REFRESH_TOKEN        = 451;
+const NSInteger MISMATCH_TOKEN           = 452;
+const NSInteger BAD_REFRESH_LOGIN_REQ    = 460;
 
 /**
  * Errors 600-699: Action failure
@@ -59,6 +60,7 @@ const NSInteger CAMP_INACCESSIBLE_BLOCKS_THEM = 740;
 const NSInteger USER_PASSWORD_REQ_RESET = 800;
 const NSInteger USER_PROFILE_SUSPENDED  = 810;
 const NSInteger USER_EMAIL_TAKEN        = 820;
+const NSInteger USER_PHONE_TAKEN        = 821; // Phone is already registered to a user
 const NSInteger USER_USERNAME_TAKEN     = 830;
 
 /**

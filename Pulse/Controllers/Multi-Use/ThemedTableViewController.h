@@ -8,7 +8,8 @@
 
 #import <UIKit/UIKit.h>
 #import "BFComponentTableView.h"
-#import  "BFComponentSectionTableView.h"
+#import "BFComponentSectionTableView.h"
+#import "BFActivityIndicatorView.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -18,10 +19,10 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) UITableView * _Nullable tableView;
 @property (nonatomic, strong) BFComponentTableView * _Nullable bfTableView;
 @property (nonatomic, strong) BFComponentSectionTableView * _Nullable sectionTableView;
-- (UITableView *)activeTableView;
+- (UITableView * _Nullable)activeTableView;
 
 @property (nonatomic, strong) UIRefreshControl * refreshControl;
-@property (nonatomic, strong) UIImageView *bigSpinner;
+@property (nonatomic, strong) BFActivityIndicatorView *bigSpinner;
 
 // values
 @property (nonatomic, strong) UIColor *theme;

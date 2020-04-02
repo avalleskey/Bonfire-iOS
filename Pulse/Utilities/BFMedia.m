@@ -91,6 +91,32 @@
         [self.delegate mediaObjectAdded:mediaObject];
     }
 }
+- (void)addGIFData:(NSData *)data {
+    BFMediaObject *mediaObject = [[BFMediaObject alloc] initWithGIFData:data];
+    
+    // validate
+    if (!mediaObject.data) {
+        return;
+    }
+    
+    if ([mediaObject.MIME isEqualToString:BFMediaObjectMIME_GIF]) {
+        if ([self canAddGIF]) {
+            [self.GIFs addObject:mediaObject];
+        }
+        else {
+            return;
+        }
+    }
+    else {
+        return;
+    }
+    
+    // add asset
+    [self.objects addObject:mediaObject];
+    
+    // notify delegate
+    [self.delegate mediaObjectAdded:mediaObject];
+}
 
 - (void)removeObject:(BFMediaObject *)object {
     [self.objects removeObject:object];
@@ -135,26 +161,32 @@ NSString * const BFMediaObjectMIME_GIF = @"image/gif";
             imageRequestOptions.synchronous = YES;
             [[PHImageManager defaultManager] requestImageDataForAsset:asset options:imageRequestOptions resultHandler:^(NSData *imageData, NSString *dataUTI, UIImageOrientation orientation, NSDictionary *info)
              {
-                 self.MIME = (__bridge NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)dataUTI, kUTTagClassMIMEType);
+                CFStringRef dataUTIRef = (__bridge CFStringRef)dataUTI;
+                CFStringRef MIMEType = UTTypeCopyPreferredTagWithClass(dataUTIRef, kUTTagClassMIMEType);
+                
+                self.MIME = (__bridge NSString *)MIMEType;
+                
+                CFRelease(dataUTIRef);
+                CFRelease(MIMEType);
 
-                 if ([self.MIME isEqualToString:BFMediaObjectMIME_JPEG] || [self.MIME isEqualToString:BFMediaObjectMIME_PNG]) {
-                     self.MIME = BFMediaObjectMIME_JPEG;
-                     self.data = [BFMediaObject compressData:imageData mimeType:self.MIME];
-                 }
-                 else if ([self.MIME isEqualToString:BFMediaObjectMIME_GIF]) {
-                     self.data = imageData;
-                 }
-                 else {
-                     NSData *data = imageData;
-                     UIImage *imageFromData = [UIImage imageWithData:data];
-                     imageFromData = [imageFromData fixOrientation];
+                if ([self.MIME isEqualToString:BFMediaObjectMIME_JPEG] || [self.MIME isEqualToString:BFMediaObjectMIME_PNG]) {
+                    self.MIME = BFMediaObjectMIME_JPEG;
+                    self.data = [BFMediaObject compressData:imageData mimeType:self.MIME];
+                }
+                else if ([self.MIME isEqualToString:BFMediaObjectMIME_GIF]) {
+                    self.data = imageData;
+                }
+                else {
+                    NSData *data = imageData;
+                    UIImage *imageFromData = [UIImage imageWithData:data];
+                    imageFromData = [imageFromData fixOrientation];
                      
-                     NSData *jpgData = UIImageJPEGRepresentation(imageFromData, 1.0);
-                     
-                     self.MIME = BFMediaObjectMIME_JPEG;
-                     self.data = [BFMediaObject compressData:jpgData mimeType:self.MIME];
-                 }
-             }];
+                    NSData *jpgData = UIImageJPEGRepresentation(imageFromData, 1.0);
+                    
+                    self.MIME = BFMediaObjectMIME_JPEG;
+                    self.data = [BFMediaObject compressData:jpgData mimeType:self.MIME];
+                }
+            }];
         }
     }
     return self;
@@ -169,6 +201,17 @@ NSString * const BFMediaObjectMIME_GIF = @"image/gif";
         
         self.MIME = BFMediaObjectMIME_JPEG;
         self.data = [BFMediaObject compressData:jpgData mimeType:self.MIME];
+    }
+    return self;
+}
+
+- (id)initWithGIFData:(NSData *)data {
+    self = [self init];
+    if (self) {
+        self.MIME = BFMediaObjectMIME_GIF;
+        self.data = data;
+        
+        NSLog(@"GIF Size (before): %.2f MB",(float)data.length/1024.0f/1024.0f);
     }
     return self;
 }

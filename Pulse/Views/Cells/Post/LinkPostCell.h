@@ -17,14 +17,6 @@
 #import "ExpandedPostActionsView.h"
 #import "TappableView.h"
 
-
-#define UIViewParentController(__view) ({ \
-    UIResponder *__responder = __view; \
-    while ([__responder isKindOfClass:[UIView class]]) \
-    __responder = [__responder nextResponder]; \
-    (UIViewController *)__responder; \
-    })
-
 #define expandedImageHeightDefault 240
 
 #define expandedLinkContentOffset UIEdgeInsetsMake(0, 12, 0, 12)

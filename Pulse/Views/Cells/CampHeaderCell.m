@@ -22,13 +22,6 @@
 #import "NSDate+NVTimeAgo.h"
 #import "AddManagerTableViewController.h"
 
-#define UIViewParentController(__view) ({ \
-        UIResponder *__responder = __view; \
-        while ([__responder isKindOfClass:[UIView class]]) \
-        __responder = [__responder nextResponder]; \
-        (UIViewController *)__responder; \
-        })
-
 #define CAMP_CONTEXT_BUBBLE_TAG_ACTIVE 1
 #define CAMP_CONTEXT_BUBBLE_TAG_NEW_CAMP 2
 #define CAMP_CONTEXT_BUBBLE_TAG_ADMIN 3
@@ -621,7 +614,7 @@
             campTitle = [NSString stringWithFormat:@"#%@", camp.attributes.identifier];
         }
         else {
-            campTitle = @"Secret Camp";
+            campTitle = @"Loading...";
         }
         NSMutableAttributedString *displayNameAttributedString = [[NSMutableAttributedString alloc] initWithString:campTitle attributes:@{NSFontAttributeName:CAMP_HEADER_NAME_FONT}];
         if ([camp isVerified]) {
@@ -895,7 +888,7 @@
             BFAlertAction *cancelLeaveCamp = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
             [confirmDeletePostActionSheet addAction:cancelLeaveCamp];
             
-            [UIViewParentController(self) presentViewController:confirmDeletePostActionSheet animated:true completion:nil];
+            [[Launcher topMostViewController] presentViewController:confirmDeletePostActionSheet animated:true completion:nil];
         }
         else {
             leave();
@@ -924,7 +917,7 @@
         campTitle = [NSString stringWithFormat:@"#%@", camp.attributes.identifier];
     }
     else {
-        campTitle = @"Secret Camp";
+        campTitle = @"Loading...";
     }
     NSMutableAttributedString *displayNameAttributedString = [[NSMutableAttributedString alloc] initWithString:campTitle attributes:@{NSFontAttributeName:CAMP_HEADER_NAME_FONT}];
     if ([camp isVerified]) {

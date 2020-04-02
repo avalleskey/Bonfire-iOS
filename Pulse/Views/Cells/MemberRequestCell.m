@@ -29,7 +29,7 @@
         self.detailTextLabel.lineBreakMode = NSLineBreakByTruncatingMiddle;
         
         // general cell styling
-        self.separatorInset = UIEdgeInsetsMake(0, 70, 0, 0);
+        self.separatorInset = UIEdgeInsetsMake(0, 64, 0, 0);
         self.selectionStyle = UITableViewCellSelectionStyleNone;
         
         self.approveButton = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -79,13 +79,13 @@
     [super layoutSubviews];
     
     // text label
-    self.textLabel.frame = CGRectMake(70, 14, self.frame.size.width - 70 - 12, 18);
+    self.textLabel.frame = CGRectMake(64, 14, self.frame.size.width - 64 - 12, 18);
     
     // detail text label
     self.detailTextLabel.frame = CGRectMake(self.textLabel.frame.origin.x, self.textLabel.frame.origin.y + self.textLabel.frame.size.height + 2, self.textLabel.frame.size.width, 16);
     
-    CGFloat buttonContainerWidth = self.frame.size.width - 70 - 12;
-    self.approveButton.frame = CGRectMake(70, 60, buttonContainerWidth / 2 - 6, 34);
+    CGFloat buttonContainerWidth = self.frame.size.width - 64 - 12;
+    self.approveButton.frame = CGRectMake(64, 60, buttonContainerWidth / 2 - 6, 34);
     self.declineButton.frame = CGRectMake(self.approveButton.frame.origin.x + self.approveButton.frame.size.width + 12, self.approveButton.frame.origin.y, self.approveButton.frame.size.width, self.approveButton.frame.size.height);
     
     // added in layout subviews for dark mode support

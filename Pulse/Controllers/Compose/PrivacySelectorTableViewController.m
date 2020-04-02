@@ -20,7 +20,9 @@
 #import "BFSearchView.h"
 #import "SpacerCell.h"
 #import <BlocksKit/BlocksKit.h>
+#import "BFActivityIndicatorView.h"
 #import <BlocksKit/BlocksKit+UIKit.h>
+#import "BFActivityIndicatorView.h"
 @import Firebase;
 
 #define AVAILABLE_CAMPS_DESCRIPTION @"Only Camps which you are allowed to start conversations in are shown above."
@@ -30,6 +32,8 @@
 @property (nonatomic, strong) CampListStream *stream;
 @property (nonatomic) BOOL loadingCamps;
 @property (nonatomic) BOOL loadingMoreCamps;
+
+@property (nonatomic, strong) BFActivityIndicatorView *activityIndicator;
 
 @property (nonatomic, strong) NSString *searchPhrase;
 @property (nonatomic, strong) BFSearchView *searchView;
@@ -58,6 +62,10 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
         [self getCampsWithCursor:StreamPagingCursorTypeNone];
     }
     
+    self.activityIndicator = [[BFActivityIndicatorView alloc] init];
+    self.activityIndicator.tintColor = [UIColor bonfireSecondaryColor];
+//    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:self.activityIndicator];
+    
     self.view.tintColor = [UIColor bonfirePrimaryColor];
     
     [self setupNavigationBar];
@@ -69,6 +77,19 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     [self.tableView reloadData];
+}
+
+- (void)setLoadingCamps:(BOOL)loadingCamps {
+    if (loadingCamps != _loadingCamps) {
+        _loadingCamps = loadingCamps;
+        
+        if (loadingCamps) {
+            [self.activityIndicator startAnimating];
+        }
+        else {
+            [self.activityIndicator stopAnimating];
+        }
+    }
 }
 
 - (void)setupNavigationBar {
@@ -264,7 +285,7 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
         }
         
         cell.user = [Session sharedInstance].currentUser;
-        cell.textLabel.text = @"My Profile";
+        cell.textLabel.text = @"My Channel";
         
         cell.tintColor = self.view.tintColor;
         cell.checkIcon.tintColor = self.view.tintColor;
@@ -313,7 +334,7 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return 68;
+    return 62;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
@@ -408,9 +429,9 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
         if (showLoadingFooter) {
             UIView *footer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 52)];
             
-            UIActivityIndicatorView *spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
-            spinner.color = [UIColor bonfireSecondaryColor];
-            spinner.frame = CGRectMake(footer.frame.size.width / 2 - 10, footer.frame.size.height / 2 - 10, 20, 20);
+            BFActivityIndicatorView *spinner = [[BFActivityIndicatorView alloc] init];
+            spinner.color = [[UIColor bonfireSecondaryColor] colorWithAlphaComponent:0.5];
+            spinner.frame = CGRectMake(footer.frame.size.width / 2 - 12, footer.frame.size.height / 2 - 12, 24, 24);
             [footer addSubview:spinner];
             
             [spinner startAnimating];

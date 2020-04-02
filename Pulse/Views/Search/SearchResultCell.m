@@ -20,7 +20,7 @@
     if (self) {
         self.backgroundColor = [UIColor contentBackgroundColor];
         
-        self.profilePicture = [[BFAvatarView alloc] initWithFrame:CGRectMake(12, self.frame.size.height / 2 - 21, 48, 48)];
+        self.profilePicture = [[BFAvatarView alloc] initWithFrame:CGRectMake(12, self.frame.size.height / 2 - 21, 42, 42)];
         self.profilePicture.userInteractionEnabled = false;
         [self.contentView addSubview:self.profilePicture];
         
@@ -111,10 +111,10 @@
 - (void)layoutSubviews {
     [super layoutSubviews];
     
-    UIEdgeInsets textEdgeInsets = UIEdgeInsetsMake(15, 70, 17, 12);
+    UIEdgeInsets textEdgeInsets = UIEdgeInsetsMake(12, 64, 14, 12);
     
     // image view
-    self.profilePicture.frame = CGRectMake(12, self.frame.size.height / 2 - 24, 48, 48);
+    self.profilePicture.frame = CGRectMake(12, self.frame.size.height / 2 - 21, 42, 42);
     
     // check icon
     if (![self.checkIcon isHidden]) {

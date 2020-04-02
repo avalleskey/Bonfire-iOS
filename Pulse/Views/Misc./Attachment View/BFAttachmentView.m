@@ -37,8 +37,7 @@
 }
 
 - (void)setup {
-    self.layer.cornerRadius = 14.f;
-    self.layer.masksToBounds = false;
+    [self setCornerRadiusType:BFCornerRadiusTypeMedium];
     self.backgroundColor = [UIColor contentBackgroundColor];
     
     self.contentView = [[UIView alloc] initWithFrame:self.bounds];

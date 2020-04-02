@@ -191,7 +191,7 @@ static NSString * const reuseIdentifier = @"Result";
 }
 - (void)newPostCompleted:(NSNotification *)notification {
     NSDictionary *info = notification.object;
-    NSString *tempId = info[@"tempId"];
+//    NSString *tempId = info[@"tempId"];
     Post *post = info[@"post"];
     
     if (post != nil && [post.attributes.postedIn.identifier isEqualToString:self.camp.identifier] && !post.attributes.parent) {
@@ -288,6 +288,20 @@ static NSString * const reuseIdentifier = @"Result";
         
         // update table view parent object
         self.startCampUpsellView.camp = self.camp;
+        
+        
+        if (self.camp == nil) {
+            self.composeInputView.defaultPlaceholder = ([UIScreen mainScreen].bounds.size.width > 320 ? @"Start a conversation..." : @"Say something...");
+        }
+        else {
+            if (self.camp.attributes.title == nil) {
+                self.composeInputView.defaultPlaceholder = ([UIScreen mainScreen].bounds.size.width > 320 ? @"Share with the Camp..." : @"Say something...");
+            }
+            else {
+                self.composeInputView.defaultPlaceholder = [NSString stringWithFormat:@"Share in %@...", self.camp.attributes.title];
+            }
+        }
+        [self.composeInputView updatePlaceholders];
     }
 }
 
@@ -550,15 +564,13 @@ static NSString * const reuseIdentifier = @"Result";
     self.theme = theme;
     self.view.tintColor = self.theme;
     
-    UIColor *themeAdjustedForDarkMode = [UIColor fromHex:self.camp.attributes.color adjustForOptimalContrast:true];
     [UIView animateWithDuration:0.35f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
         if (self.launchNavVC.topViewController == self) {
             [self.launchNavVC updateBarColor:theme animated:false];
         }
         
-        self.composeInputView.textView.tintColor = themeAdjustedForDarkMode;
-        self.composeInputView.postButton.backgroundColor = themeAdjustedForDarkMode;
-        self.composeInputView.postButton.tintColor = [UIColor highContrastForegroundForBackground:self.composeInputView.postButton.backgroundColor];
+        self.composeInputView.theme = theme;
+        
         self.coverPhotoView.backgroundColor = theme;
         
         if ([UIColor useWhiteForegroundForColor:theme]) {
@@ -582,13 +594,9 @@ static NSString * const reuseIdentifier = @"Result";
     
     self.composeInputView = [[ComposeInputView alloc] initWithFrame:CGRectMake(0, self.view.bounds.size.height - collapsed_inputViewHeight, self.view.frame.size.width, collapsed_inputViewHeight)];
     self.composeInputView.delegate = self;
+    self.composeInputView.defaultPlaceholder = @"Share with the Camp...";
     self.composeInputView.hidden = true;
-    
-    UIColor *themeAdjustedForDarkMode = [UIColor fromHex:[UIColor toHex:self.theme] adjustForOptimalContrast:true];
-    self.composeInputView.postButton.backgroundColor = themeAdjustedForDarkMode;
-    self.composeInputView.postButton.tintColor = [UIColor highContrastForegroundForBackground:self.composeInputView.postButton.backgroundColor];
-//    self.composeInputView.addMediaButton.backgroundColor = self.composeInputView.postButton.backgroundColor;
-    self.composeInputView.textView.tintColor = self.composeInputView.postButton.backgroundColor;
+    self.composeInputView.theme = self.theme;
     
     [self.composeInputView bk_whenTapped:^{
         if (![self.composeInputView isActive]) {
@@ -706,10 +714,7 @@ static NSString * const reuseIdentifier = @"Result";
         
         [self determineEmptyStateVisibility];
         
-        if (cursorType == StreamPagingCursorTypePrevious) {
-            [self.tableView refreshAtTop];
-        }
-        else if (cursorType == StreamPagingCursorTypeNext) {
+        if (cursorType == StreamPagingCursorTypeNext) {
             [self.tableView refreshAtBottom];
         }
         else {
@@ -795,21 +800,6 @@ static NSString * const reuseIdentifier = @"Result";
     }
 }
 - (void)positionErrorView {
-    CGFloat firstSectionHeight = 0;
-    
-    if ([self respondsToSelector:@selector(heightForFirstSectionHeader)]) {
-        firstSectionHeight += [self heightForFirstSectionHeader];
-    }
-    
-    for (NSInteger i = 0; i < [self.tableView numberOfRowsInSection:0]; i++) {
-        CGFloat cellHeight = [self.tableView tableView:self.tableView heightForRowAtIndexPath:[NSIndexPath indexPathForRow:i inSection:0]];
-        firstSectionHeight += cellHeight;
-    }
-    
-    if ([self respondsToSelector:@selector(heightForFirstSectionFooter)]) {
-        firstSectionHeight += [self heightForFirstSectionFooter];
-    }
-
     self.startCampUpsellView.frame = CGRectMake(self.startCampUpsellView.frame.origin.x, 40, self.startCampUpsellView.frame.size.width, self.startCampUpsellView.frame.size.height);
     
     [self.tableView reloadData];
@@ -947,7 +937,7 @@ static NSString * const reuseIdentifier = @"Result";
 //    return;
     
     NSString *campShareLink = [NSString stringWithFormat:@"https://bonfire.camp/c/%@", self.camp.identifier];
-    BOOL hasSnapchat = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"snapchat://"]];
+    BOOL hasSnapchat = false; //[[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"snapchat://"]];
     BOOL hasInstagram = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"instagram-stories://"]];
     BOOL hasTwitter = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"twitter://"]];
     if (hasSnapchat || hasInstagram || hasTwitter) {

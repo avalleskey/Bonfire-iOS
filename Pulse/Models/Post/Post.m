@@ -37,11 +37,16 @@
 }
 
 - (void)updateThemeColor {
-    if (self.attributes.postedIn) {
-        self.themeColor = self.attributes.postedIn.attributes.color;
+    Camp *postedIn = self.attributes.postedIn;
+    if (!postedIn && self.attributes.parent && self.attributes.parent.attributes.postedIn) {
+        postedIn =  self.attributes.parent.attributes.postedIn;
+    }
+    
+    if (postedIn) {
+        self.themeColor = (postedIn.attributes.color ?: [UIColor toHex:[UIColor bonfireSecondaryColor]]);
     }
     else {
-        self.themeColor = self.attributes.creator.attributes.color;
+        self.themeColor = (self.attributes.creator.attributes.color ?: [UIColor toHex:[UIColor bonfireSecondaryColor]]);
     }
 }
 
@@ -70,7 +75,7 @@
     return (self.attributes.removedAt.length > 0);
 }
 
-- (void)createTempWithMessage:(NSString *)message media:(BFMedia *)media postedIn:(Camp * _Nullable)postedIn parent:(Post *)parent attachments:(PostAttachments * _Nullable)attachments {
+- (void)createTempWithMessage:(NSString * _Nullable)message media:(BFMedia * _Nullable)media postedIn:(Camp * _Nullable)postedIn parent:(Post * _Nullable)parent attachments:(PostAttachments * _Nullable)attachments {
     self.type = @"post";
     self.tempId = [NSString stringWithFormat:@"%d", [Session getTempId]];
     // TODO: Add support for images

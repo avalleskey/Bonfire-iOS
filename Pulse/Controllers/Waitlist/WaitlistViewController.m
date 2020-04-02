@@ -128,6 +128,8 @@
 }
 
 - (void)useFriendCode:(NSString *)friendCode {
+    [self setSpinning:true animated:true];
+    
     [[HAWebService authenticatedManager] POST:@"users/me/invites/redeem" parameters:@{@"friend_code": friendCode} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         if ([responseObject objectForKey:@"data"] && [[responseObject objectForKey:@"data"] objectForKey:@"invite_used"]) {
             BOOL inviteUsed = [responseObject[@"data"][@"invite_used"] boolValue];
@@ -182,7 +184,7 @@
     
     self.instructionLabel = [[UILabel alloc] initWithFrame:CGRectMake(24, self.view.frame.size.height, self.view.frame.size.width - 48, 42)];
     self.instructionLabel.textAlignment = NSTextAlignmentCenter;
-    self.instructionLabel.text = [NSString stringWithFormat:@"You're in line @%@!\nCheck your status below", [Session sharedInstance].currentUser.attributes.identifier];
+    self.instructionLabel.text = [NSString stringWithFormat:@"You're in line!\nJoin now to claim @%@", [Session sharedInstance].currentUser.attributes.identifier];
     self.instructionLabel.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightMedium];
     self.instructionLabel.textColor = [UIColor bonfirePrimaryColor];
     self.instructionLabel.numberOfLines = 0;
@@ -203,8 +205,8 @@
     [self.redeemButton setTitle:@"Enter Friend Code" forState:UIControlStateNormal];
     [self.redeemButton bk_whenTapped:^{
         BFAlertController *alert = [BFAlertController
-                                   alertControllerWithTitle:@"Skip the Line"
-                                   message:@"Ask a friend with invites\nfor their Friend Code!"
+                                   alertControllerWithTitle:@"Invited by a friend?"
+                                   message:@"Some Friend Codes let you skip the line 🙊"
                                    preferredStyle:BFAlertControllerStyleAlert];
         
         BFAlertAction *ok = [BFAlertAction actionWithTitle:@"Use Friend Code" style:BFAlertActionStyleDefault
@@ -212,12 +214,10 @@
             //Do Some action here
             UITextField *textField = alert.textField;
             
-            if (textField.text.length == 0) {
+            if (textField.text.length == 0)     {
                 [self shakeFriendButton];
             }
             else {
-                [self setSpinning:true animated:true];
-                
                 [self useFriendCode:textField.text];
             }
         }];
@@ -264,7 +264,7 @@
 }
 
 - (void)initBigSpinner {
-    self.bigSpinner = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 52, 52)];
+    self.bigSpinner = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 42, 42)];
     self.bigSpinner.image = [[UIImage imageNamed:@"spinner"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
     self.bigSpinner.tintColor = [UIColor bonfireBrand];
     self.bigSpinner.center = self.view.center;
@@ -341,7 +341,7 @@
     NSMutableArray *buttons = [NSMutableArray new];
     
     BOOL hasInstagram = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"instagram-stories://"]];
-    BOOL hasSnapchat = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"snapchat://"]];
+    BOOL hasSnapchat = false; //[[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"snapchat://"]];
     BOOL hasTwitter = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"twitter://"]];
     
     if (hasTwitter) {
@@ -369,7 +369,7 @@
     
     NSString *message;
     if ([Session sharedInstance].currentUser.attributes.invites.friendCode) {
-        message = [NSString stringWithFormat:@"Join me on Bonfire with my friend code: %@ https://bonfire.camp/download", [Session sharedInstance].currentUser.attributes.invites.friendCode];
+        message = [NSString stringWithFormat:@"Join me on Bonfire with my friend code: %@ https://bonfire.camp/invite?friend_code=%@", [Session sharedInstance].currentUser.attributes.invites.friendCode, [Session sharedInstance].currentUser.attributes.invites.friendCode];
     }
     else {
         message = [NSString stringWithFormat:@"Join me on Bonfire 🔥 https://bonfire.camp/download"];
@@ -439,7 +439,14 @@
                 [[Launcher topMostViewController] presentViewController:controller animated:YES completion:nil];
             }
         }];
+        
+        if (i == buttons.count - 1) {
+            // last one
+            SetWidth(self.shareActionsView, button.frame.origin.x + button.frame.size.width);
+        }
     }
+    
+    self.shareActionsView.center = CGPointMake(self.shareActionsView.superview.frame.size.width / 2, self.shareActionsView.center.y);
     
     [self layoutViews];
 }
@@ -513,7 +520,7 @@
             DLog(@"i %f", i);
             UIView *avatarContainer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 12, 12)];
             avatarContainer.center = CGPointMake(roundf(self.invitedProgressView.frame.size.width * (i / required)), self.invitedProgressView.frame.size.height / 2);
-            avatarContainer.backgroundColor = [UIColor whiteColor];
+            avatarContainer.backgroundColor = [UIColor contentBackgroundColor];
             avatarContainer.layer.shadowOffset = CGSizeMake(0, 1);
             avatarContainer.layer.shadowRadius = 2.f;
             avatarContainer.layer.shadowOpacity = 0.12;
@@ -668,6 +675,9 @@
     CGContextDrawLinearGradient(context, gradient, CGPointMake(0, 0), CGPointMake(width, height), 0);
     UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
+    
+    CGColorSpaceRelease(colorSpace);
+    CGGradientRelease(gradient);
     
     return image;
 }
@@ -839,11 +849,6 @@
     [animation setRepeatCount:0];
     [animation setAutoreverses:YES];
     [animation setTimingFunction:[CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseOut]];
-    
-    UIViewController *activeViewController = [Launcher activeViewController];
-    if ([activeViewController isKindOfClass:[UITabBarController class]]) {
-        activeViewController = ((UITabBarController *)activeViewController).selectedViewController;
-    }
     
     NSInteger shakeDistance = 3;
     [animation setFromValue:[NSValue valueWithCGPoint:

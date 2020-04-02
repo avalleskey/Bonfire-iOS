@@ -25,7 +25,7 @@
         
         self.spinner = [[UIImageView alloc] initWithImage:[[UIImage imageNamed:@"spinner"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
         self.spinner.bounds = self.bounds;
-        self.spinner.tintColor = [UIColor colorNamed:@"FullContrastColor_inverted"];
+        self.spinner.tintColor = [UIColor colorWithWhite:0.5 alpha:1];
         [self addSubview:self.spinner];
         
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationDidBecomeActive:) name:UIApplicationDidBecomeActiveNotification object:nil];

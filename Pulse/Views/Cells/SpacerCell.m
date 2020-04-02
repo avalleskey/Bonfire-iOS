@@ -8,6 +8,11 @@
 
 #import "SpacerCell.h"
 #import "UIColor+Palette.h"
+#import "BFComponent.h"
+
+@interface SpacerCell () <BFComponentProtocol>
+
+@end
 
 @implementation SpacerCell
 
@@ -45,6 +50,10 @@
 
 + (CGFloat)height {
     return 8;
+}
+
++ (CGFloat)heightForComponent:(nonnull BFComponent *)component {
+    return [SpacerCell height];
 }
 
 @end

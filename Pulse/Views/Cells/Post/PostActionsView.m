@@ -98,7 +98,7 @@
             }
             
             [self.voteButton setImage:[[UIImage imageNamed:@"postActionBolt_active"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
-            self.voteButton.tintColor = [UIColor bonfireBrand];
+            self.voteButton.tintColor = self.tintColor;
             
             if (self.replyActionView.alpha != 1) {
                 [self showReplyActionView:animated];
@@ -148,7 +148,7 @@
     [self.replyButton setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 5)];
     self.replyButton.contentHorizontalAlignment = UIControlContentHorizontalAlignmentCenter;
     [self.replyButton setImage:[[UIImage imageNamed:@"postActionReply"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
-    self.replyButton.frame = CGRectMake(-12, 0, self.replyButton.intrinsicContentSize.width + self.replyButton.currentImage.size.width - self.replyButton.titleEdgeInsets.left + (12 * 2), self.replyActionView.frame.size.height);
+    self.replyButton.frame = CGRectMake(-15, 0, self.replyButton.intrinsicContentSize.width + self.replyButton.currentImage.size.width - self.replyButton.titleEdgeInsets.left + (12 * 2), self.replyActionView.frame.size.height);
     [self addTapHandlersToAction:self.replyButton];
     [self.replyActionView addSubview:self.replyButton];
 }
@@ -256,7 +256,7 @@
 }
 
 - (void)drawRepliesSnapshotSubviews {
-    CGFloat repliesSnapshotViewWidth = self.frame.size.width;
+    CGFloat repliesSnapshotViewWidth;
     
     CGFloat avatarDiameter = 24;
     NSInteger avatarOffset = ceilf(avatarDiameter * 0.8);
@@ -280,9 +280,7 @@
         containerView.layer.cornerRadius = containerView.frame.size.height / 2;
         containerView.layer.masksToBounds = true;
         [containerView addSubview:avatarView];
-        
-        repliesSnapshotViewWidth = containerView.frame.origin.x + containerView.frame.size.width - 2;
-        
+                
         [self.repliesSnaphotView insertSubview:containerView atIndex:0];
     }
     

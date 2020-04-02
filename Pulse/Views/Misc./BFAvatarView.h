@@ -34,8 +34,6 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) UIImageView *imageView;
 @property (nonatomic, strong) UIImageView *onlineDotView;
 
-- (void)userUpdated:(NSNotification *)notification;
-
 @end
 
 NS_ASSUME_NONNULL_END

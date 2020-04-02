@@ -60,11 +60,13 @@ NSString * const SmartListInputEmailValidation = @"email";
 NSString * const SmartListInputUsernameValidation = @"username";
 NSString * const SmartListInputDisplayNameValidation = @"display_name";
 NSString * const SmartListInputPasswordValidation = @"password";
+NSString * const SmartListInputPhoneNumberValidation = @"phone_number";
 NSString * const SmartListInputCampTitleValidation = @"camp_title";
 NSString * const SmartListInputCampDescriptionValidation = @"camp_description";
 
 NSString * const SmartListInputDefaultKeyboard = @"default";
 NSString * const SmartListInputEmailKeyboard = @"email";
+NSString * const SmartListInputPhoneNumberKeyboard = @"phone_number";
 
 + (BOOL)propertyIsOptional:(NSString*)propertyName
 {

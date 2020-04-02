@@ -90,7 +90,7 @@
 
 - (void)initContentView {
     self.contentView = [[UIView alloc] initWithFrame:CGRectMake(8, self.view.frame.size.height, self.view.frame.size.width - 16, 425)];
-    [self continuityRadiusForView:self.contentView withRadius:HAS_ROUNDED_CORNERS?24:6];
+    [self continuityRadiusForView:self.contentView withRadius:HAS_ROUNDED_CORNERS?24:10];
     self.contentView.backgroundColor = [UIColor contentBackgroundColor];
     [self.view addSubview:self.contentView];
     

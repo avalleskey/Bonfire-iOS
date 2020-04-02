@@ -47,8 +47,22 @@ NSString * const rotationAnimationKey = @"rotationAnimation";
     
     [self initBigSpinner];
 }
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    
+    if (self.loading) {
+        [self.bigSpinner startAnimating];
+    }
+}
+- (void)viewDidDisappear:(BOOL)animated {
+    [super viewDidDisappear:animated];
+    
+    if ([self.bigSpinner isAnimating]) {
+        [self.bigSpinner stopAnimating];
+    }
+}
 
-- (UITableView *)activeTableView {
+- (UITableView * _Nullable)activeTableView {
     if (self.tableView) {
         return self.tableView;
     }
@@ -112,32 +126,18 @@ NSString * const rotationAnimationKey = @"rotationAnimation";
     }
 }
 
-- (void)viewWillAppear:(BOOL)animated {
-    [super viewWillAppear:animated];
-    
-    if (!self.loading && self.animateLoading) {
-        [self setSpinning:false animated:false];
-    }
-    
-    if (![self.bigSpinner isHidden]) {
-        [self.bigSpinner.layer removeAnimationForKey:rotationAnimationKey];
-        [self addAnimationToBigSpinner];
-    }
-}
-
 - (void)setTheme:(UIColor *)theme {
     if (theme != _theme) {
         _theme = theme;
         
-        self.bigSpinner.tintColor = theme;
+        self.bigSpinner.color = theme;
         [self activeTableView].tintColor = theme;
     }
 }
 
 - (void)initBigSpinner {
-    self.bigSpinner = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 52, 52)];
-    self.bigSpinner.image = [[UIImage imageNamed:@"spinner"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-    self.bigSpinner.tintColor = [UIColor fromHex:[UIColor toHex:self.theme] adjustForOptimalContrast:true];
+    self.bigSpinner = [[BFActivityIndicatorView alloc] initWithStyle:BFActivityIndicatorViewStyleLarge];
+    self.bigSpinner.color = [UIColor fromHex:[UIColor toHex:self.theme] adjustForOptimalContrast:true];
     self.bigSpinner.center = self.view.center;
     self.bigSpinner.alpha = 0;
     self.bigSpinner.tag = 1111;
@@ -155,7 +155,7 @@ NSString * const rotationAnimationKey = @"rotationAnimation";
     }
     
     if (spinning) {
-        [self addAnimationToBigSpinner];
+//        [self.bigSpinner startAnimating];
         
         [self activeTableView].userInteractionEnabled = false;
         [UIView animateWithDuration:animated?0.4f:0 delay:0 usingSpringWithDamping:0.75f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
@@ -172,7 +172,7 @@ NSString * const rotationAnimationKey = @"rotationAnimation";
             self.bigSpinner.alpha = 0;
             self.bigSpinner.transform = CGAffineTransformMakeScale(0.8, 0.8);
         } completion:^(BOOL finished) {
-            [self.bigSpinner.layer removeAnimationForKey:rotationAnimationKey];
+            [self.bigSpinner stopAnimating];
         }];
         [UIView animateWithDuration:animated?0.56f:0 delay:0.1f usingSpringWithDamping:0.7f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
             [self activeTableView].transform = CGAffineTransformMakeTranslation(0, 0);
@@ -199,28 +199,15 @@ NSString * const rotationAnimationKey = @"rotationAnimation";
     }
 }
 
-- (void)addAnimationToBigSpinner {
-    [self.bigSpinner.layer removeAnimationForKey:rotationAnimationKey];
-    
-    CABasicAnimation *rotationAnimation;
-    rotationAnimation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.z"];
-    rotationAnimation.toValue = [NSNumber numberWithFloat: M_PI * 2.0 /* full rotation*/ * 1 * 1.f ];
-    rotationAnimation.duration = 0.8f;
-    rotationAnimation.cumulative = YES;
-    rotationAnimation.repeatCount = HUGE_VALF;
-    [self.bigSpinner.layer addAnimation:rotationAnimation forKey:rotationAnimationKey];
-}
-
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
     if (scrollView == [self activeTableView]) {
-        UINavigationController *navController = UIViewParentController(self).navigationController;
-        if (navController) {
-            if ([navController isKindOfClass:[ComplexNavigationController class]]) {
-                ComplexNavigationController *complexNav = (ComplexNavigationController *)navController;
+        if (self.navigationController) {
+            if ([self.navigationController isKindOfClass:[ComplexNavigationController class]]) {
+                ComplexNavigationController *complexNav = (ComplexNavigationController *)self.navigationController;
                 [complexNav childTableViewDidScroll:[self activeTableView]];
             }
-            else if ([navController isKindOfClass:[SimpleNavigationController class]]) {
-                SimpleNavigationController *simpleNav = (SimpleNavigationController *)navController;
+            else if ([self.navigationController isKindOfClass:[SimpleNavigationController class]]) {
+                SimpleNavigationController *simpleNav = (SimpleNavigationController *)self.navigationController;
                 [simpleNav childTableViewDidScroll:[self activeTableView]];
             }
         }

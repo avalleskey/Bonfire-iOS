@@ -41,12 +41,11 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) UIView *toolbarButtonsContainer;
 @property (nonatomic, strong) UILabel *characterCountdownLabel;
 @property (nonatomic, strong) UIButton *takePictureButton;
+@property (nonatomic, strong) UIButton *chooseGifButton;
 @property (nonatomic, strong) UIButton *choosePictureButton;
 @property (nonatomic, strong) UIButton *postButton;
 
 @property (nonatomic, strong) UITableView *autoCompleteTableView;
-
-- (void)takePicture:(id)sender;
 
 @end
 

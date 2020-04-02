@@ -109,7 +109,7 @@ NSString * const LOCAL_APP_URI = @"bonfireapp";
         return [sharedConfiguration.variables objectForKey:ConfigurationAPI_BASE_URI];
     }
     
-    return nil;
+    return @"";
 }
 
 + (NSString *)API_CURRENT_VERSION {
@@ -119,7 +119,7 @@ NSString * const LOCAL_APP_URI = @"bonfireapp";
         return [sharedConfiguration.variables objectForKey:ConfigurationAPI_CURRENT_VERSION];
     }
     
-    return nil;
+    return @"";
 }
 
 + (NSString *)API_KEY {
@@ -129,7 +129,7 @@ NSString * const LOCAL_APP_URI = @"bonfireapp";
         return [sharedConfiguration.variables objectForKey:ConfigurationAPI_KEY];
     }
     
-    return nil;
+    return @"";
 }
 
 #pragma mark - Internal URL Helpers
@@ -142,7 +142,7 @@ NSString * const LOCAL_APP_URI = @"bonfireapp";
 }
 + (id)objectFromInternalURL:(NSURL *)url {
     if (![self isInternalURL:url]) {
-        return false;
+        return NULL;
     }
     
     // Get parameters
@@ -200,10 +200,10 @@ NSString * const LOCAL_APP_URI = @"bonfireapp";
     }
     
     // unkown internal link type
-    return nil;
+    return NULL;
 }
 + (BOOL)isExternalBonfireURL:(NSURL *)url {
-    if ([url matches:@"^(?:https?:\\/\\/)?(?:www\\.)?bonfire\\.camp\\b\\/((?:u\\/(?:[a-zA-Z0-9\\_]{1,30}|-[a-zA-Z0-9]{12,}))|(?:c\\/(?:[a-zA-Z0-9\\_]{1,30}|-[a-zA-Z0-9]{12,}))|(?:p\\/(?:[0-9]{1,})))$"]) {
+    if ([url matches:@"^(?:https?:\\/\\/)?(?:www\\.)?bonfire\\.camp\\b\\/((?:invite\\?friend_code=(?:[a-zA-Z0-9\\_]{1,30}|-[a-zA-Z0-9]{12,}))|(?:u\\/(?:[a-zA-Z0-9\\_]{1,30}|-[a-zA-Z0-9]{12,}))|(?:c\\/(?:[a-zA-Z0-9\\_]{1,30}|-[a-zA-Z0-9]{12,}))|(?:p\\/(?:[0-9]{1,})))$"]) {
         return true;
     }
     
@@ -231,7 +231,7 @@ NSString * const LOCAL_APP_URI = @"bonfireapp";
     BOOL camp = [pathComponents[1] isEqualToString:@"c"];
     BOOL user = [pathComponents[1] isEqualToString:@"u"];
     BOOL post = [pathComponents[1] isEqualToString:@"p"];
-    NSString *parent = pathComponents[2];
+    NSString *parent = pathComponents.count > 2 ? pathComponents[2] : @"";
     
     /*                     01   2      3 
      - https://bonfire.camp/c/{camptag}
@@ -299,6 +299,17 @@ NSString * const LOCAL_APP_URI = @"bonfireapp";
 
     // unkown internal link type
     return nil;
+}
++ (NSDictionary *)parametersFromExternalBonfireURL:(NSURL *)url {
+    // Get parameters
+    NSURLComponents *components = [NSURLComponents componentsWithURL:url resolvingAgainstBaseURL:true];
+    NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
+    for(NSURLQueryItem *item in components.queryItems)
+    {
+        [params setObject:item.value forKey:item.name];
+    }
+    
+    return params;
 }
 + (BOOL)isBonfireURL:(NSURL *)url {
     return [self isInternalURL:url] || [self isExternalBonfireURL:url];

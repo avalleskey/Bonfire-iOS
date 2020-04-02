@@ -37,22 +37,23 @@
         self.contentView.backgroundColor = [UIColor contentBackgroundColor  ];
         self.tintColor = [UIColor bonfireBrand];
         
-        self.textView = [[UITextView alloc] initWithFrame:CGRectMake(70, 12, self.frame.size.width - 70 - 12, self.frame.size.height)];
+        self.textView = [[UITextView alloc] initWithFrame:CGRectMake(64, 12, self.frame.size.width - 64 - 12, self.frame.size.height)];
         self.textView.clipsToBounds = false;
         self.textView.scrollEnabled = false;
         self.textView.backgroundColor = [UIColor clearColor];
-        self.textView.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightRegular];
+        self.textView.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightRegular];
         self.textView.textColor = [UIColor bonfirePrimaryColor];
         self.textView.textContainer.lineFragmentPadding = 0;
         self.textView.contentInset = UIEdgeInsetsZero;
-        self.textView.textContainerInset = UIEdgeInsetsMake(12, 0, 12, 0);
+        self.textView.textContainerInset = UIEdgeInsetsMake(9, 0, 9, 0);
         self.textView.placeholder = @"Share with everyone...";
         self.textView.keyboardType = UIKeyboardTypeTwitter;
+        self.textView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.1f];
 //        self.textView.keyboardAppearance = UIKeyboardAppearanceDefault;
         self.textView.placeholderColor = [[UIColor bonfirePrimaryColor] colorWithAlphaComponent:0.3];
         [self.contentView addSubview:self.textView];
         
-        self.creatorAvatar = [[BFAvatarView alloc] initWithFrame:CGRectMake(12, 12, 48, 48)];
+        self.creatorAvatar = [[BFAvatarView alloc] initWithFrame:CGRectMake(12, 12, 42, 42)];
         self.creatorAvatar.user = [Session sharedInstance].currentUser;
         [self.contentView addSubview:self.creatorAvatar];
         
@@ -121,18 +122,18 @@
 
 - (void)resizeTextView {
     NSString *text = self.textView.text.length > 0 ? self.textView.text : self.textView.placeholder;
-    CGSize textViewSize = [text boundingRectWithSize:CGSizeMake(self.frame.size.width - 70 - 12, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:self.textView.font} context:nil].size;
+    CGSize textViewSize = [text boundingRectWithSize:CGSizeMake(self.frame.size.width - 64 - 12, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:self.textView.font} context:nil].size;
     NSInteger numLines = textViewSize.height / self.textView.font.lineHeight;
     if (numLines > 1) {
-        self.textView.textContainerInset = UIEdgeInsetsMake(8, 0, 12, 0);
+        self.textView.textContainerInset = UIEdgeInsetsMake(5, 0, 9, 0);
     }
     else {
-        self.textView.textContainerInset = UIEdgeInsetsMake(12, 0, 12, 0);
+        self.textView.textContainerInset = UIEdgeInsetsMake(9, 0, 9, 0);
     }
     
     CGRect textViewFrame = self.textView.frame;
-    textViewFrame.size.width = self.frame.size.width - 70 - 12;
-    textViewFrame.size.height = textViewSize.height + self.textView.textContainerInset.top + self.textView.textContainerInset.bottom;
+    textViewFrame.size.width = self.frame.size.width - 64 - 12;
+    textViewFrame.size.height = ceilf(textViewSize.height) + self.textView.textContainerInset.top + self.textView.textContainerInset.bottom;
     self.textView.frame = textViewFrame;
 }
 
@@ -300,8 +301,6 @@
     if (self.quotedAttachmentView) {
         float attachmentViewHeight = 8 + self.quotedAttachmentView.frame.size.height;
         height += attachmentViewHeight;
-        
-        NSLog(@"quoted attachment view height: %f", self.quotedAttachmentView.frame.size.height);
     }
     
     // add bottom padding

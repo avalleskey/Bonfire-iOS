@@ -486,7 +486,7 @@
         case 400:
             return [UIColor fromHex:@"#ff726d"];
         case 500:
-            return [UIColor systemRedColor];
+            return [UIColor fromHex:@"#E60800"];
         case 600:
             return [UIColor fromHex:@"#e60800"];
         case 700:

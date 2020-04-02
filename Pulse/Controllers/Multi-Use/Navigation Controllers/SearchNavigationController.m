@@ -9,9 +9,11 @@
 #import "SearchNavigationController.h"
 #import <BlocksKit/BlocksKit.h>
 #import <BlocksKit/BlocksKit+UIKit.h>
-#import "SearchTableViewController.h"
 #import "UIColor+Palette.h"
 #import "Session.h"
+
+#import "SearchTableViewController.h"
+#import "GIFCollectionViewController.h"
 
 @interface SearchNavigationController ()
 
@@ -52,23 +54,9 @@
     self.bottomHairline = [[UIView alloc] initWithFrame:CGRectMake(0, self.navigationBar.frame.size.height, self.view.frame.size.width, (1 / [UIScreen mainScreen].scale))];
     self.bottomHairline.backgroundColor = [UIColor tableViewSeparatorColor];
     self.bottomHairline.alpha = 0;
-//    [self.navigationBar addSubview:self.bottomHairline];
-    
-    self.searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(12, 0, self.view.frame.size.width - (12 * 2), 36)];
-    self.searchView.theme = BFTextFieldThemeAuto;
-    self.searchView.textField.delegate = self;
-    self.searchView.center = CGPointMake(self.navigationBar.frame.size.width / 2, self.navigationBar.frame.size.height / 2);
-    [self.searchView.textField bk_addEventHandler:^(id sender) {
-        SearchTableViewController *topSearchController = (SearchTableViewController *)self.topViewController;
-        if ([self.topViewController isKindOfClass:[SearchTableViewController class]]) {
-            [topSearchController searchFieldDidChange];
-        }
-    } forControlEvents:UIControlEventEditingChanged];
-    self.searchView.openSearchControllerOntap = true;
-    [self.navigationBar addSubview:self.searchView];
+    [self.navigationBar addSubview:self.bottomHairline];
     
     self.cancelButton = [UIButton buttonWithType:UIButtonTypeSystem];
-    self.cancelButton.frame = CGRectMake(self.navigationBar.frame.size.width, 0, 58 + (16 * 2), self.navigationBar.frame.size.height);
     self.cancelButton.titleLabel.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightSemibold];
     [self.cancelButton setTitleColor:self.view.tintColor forState:UIControlStateNormal];
     [self.cancelButton setTitle:@"Cancel" forState:UIControlStateNormal];
@@ -77,7 +65,25 @@
         
         [self dismissViewControllerAnimated:YES completion:nil];
     }];
+    self.cancelButton.frame = CGRectMake(self.navigationBar.frame.size.width - (ceilf(self.cancelButton.intrinsicContentSize.width) + (16 * 2)), 0, ceilf(self.cancelButton.intrinsicContentSize.width) + (16 * 2), self.navigationBar.frame.size.height);
     [self.navigationBar addSubview:self.cancelButton];
+    
+    self.searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(12, 0, self.view.frame.size.width - 12 - 90, 36)];
+    self.searchView.theme = BFTextFieldThemeAuto;
+    self.searchView.textField.delegate = self;
+    self.searchView.center = CGPointMake(self.searchView.center.x, self.navigationBar.frame.size.height / 2);
+    [self.searchView.textField bk_addEventHandler:^(id sender) {
+        if ([self.topViewController isKindOfClass:[SearchTableViewController class]]) {
+            SearchTableViewController *topSearchController = (SearchTableViewController *)self.topViewController;
+            [topSearchController searchFieldDidChange];
+        }
+        else if ([self.topViewController isKindOfClass:[GIFCollectionViewController class]]) {
+            GIFCollectionViewController *topSearchController = (GIFCollectionViewController *)self.topViewController;
+            [topSearchController searchFieldDidChange];
+        }
+    } forControlEvents:UIControlEventEditingChanged];
+    self.searchView.openSearchControllerOntap = true;
+    [self.navigationBar addSubview:self.searchView];
 }
 
 - (void)setShadowVisibility:(BOOL)visible withAnimation:(BOOL)animated {
@@ -117,38 +123,54 @@
 }
 
 - (void)textFieldDidBeginEditing:(UITextField *)textField {
-    SearchTableViewController *topSearchController = (SearchTableViewController *)self.topViewController;
     if ([self.topViewController isKindOfClass:[SearchTableViewController class]]) {
+        SearchTableViewController *topSearchController = (SearchTableViewController *)self.topViewController;
+        [topSearchController searchFieldDidBeginEditing];
+    }
+    else if ([self.topViewController isKindOfClass:[GIFCollectionViewController class]]) {
+        GIFCollectionViewController *topSearchController = (GIFCollectionViewController *)self.topViewController;
         [topSearchController searchFieldDidBeginEditing];
     }
     
     [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.8f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-        self.searchView.frame = CGRectMake(self.searchView.frame.origin.x, self.searchView.frame.origin.y, self.view.frame.size.width - self.searchView.frame.origin.x - 90, self.searchView.frame.size.height);
         [self.searchView setPosition:BFSearchTextPositionLeft];
-        self.cancelButton.frame = CGRectMake(self.navigationBar.frame.size.width - self.cancelButton.frame.size.width, self.cancelButton.frame.origin.y, self.cancelButton.frame.size.width, self.cancelButton.frame.size.height);
+        
+        if (self.hideCancelOnBlur) {
+            self.searchView.frame = CGRectMake(self.searchView.frame.origin.x, self.searchView.frame.origin.y, self.view.frame.size.width - self.searchView.frame.origin.x - 90, self.searchView.frame.size.height);
+            self.cancelButton.frame = CGRectMake(self.navigationBar.frame.size.width - self.cancelButton.frame.size.width, self.cancelButton.frame.origin.y, self.cancelButton.frame.size.width, self.cancelButton.frame.size.height);
+        }
     } completion:nil];
 }
 - (void)textFieldDidEndEditing:(UITextField *)textField {
-    if (self.hideCancelOnBlur) {
+    if ([self.topViewController isKindOfClass:[SearchTableViewController class]]) {
         SearchTableViewController *topSearchController = (SearchTableViewController *)self.topViewController;
-        if ([self.topViewController isKindOfClass:[SearchTableViewController class]]) {
-            [topSearchController searchFieldDidEndEditing];
-        }
-        self.searchView.textField.userInteractionEnabled = false;
-        
-        [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.8f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-            self.searchView.frame = CGRectMake(self.searchView.frame.origin.x, self.searchView.frame.origin.y, self.view.frame.size.width - (self.searchView.frame.origin.x * 2), self.searchView.frame.size.height);
-            [self.searchView setPosition:BFSearchTextPositionCenter];
-            self.cancelButton.frame = CGRectMake(self.navigationBar.frame.size.width, self.cancelButton.frame.origin.y, self.cancelButton.frame.size.width, self.cancelButton.frame.size.height);
-        } completion:^(BOOL finished) {
-            
-        }];
+        [topSearchController searchFieldDidEndEditing];
     }
+    else if ([self.topViewController isKindOfClass:[GIFCollectionViewController class]]) {
+        GIFCollectionViewController *topSearchController = (GIFCollectionViewController *)self.topViewController;
+        [topSearchController searchFieldDidEndEditing];
+    }
+    self.searchView.textField.userInteractionEnabled = false;
+    
+    [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.8f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+        [self.searchView setPosition:BFSearchTextPositionCenter];
+        
+        if (self.hideCancelOnBlur) {
+            self.searchView.frame = CGRectMake(self.searchView.frame.origin.x, self.searchView.frame.origin.y, self.view.frame.size.width - (self.searchView.frame.origin.x * 2), self.searchView.frame.size.height);
+            self.cancelButton.frame = CGRectMake(self.navigationBar.frame.size.width, self.cancelButton.frame.origin.y, self.cancelButton.frame.size.width, self.cancelButton.frame.size.height);
+        }
+    } completion:^(BOOL finished) {
+        
+    }];
 }
 
 - (BOOL)textFieldShouldReturn:(UITextField *)textField {
     SearchTableViewController *topSearchController = (SearchTableViewController *)self.topViewController;
     if ([self.topViewController isKindOfClass:[SearchTableViewController class]]) {
+        [topSearchController searchFieldDidReturn];
+    }
+    else if ([self.topViewController isKindOfClass:[GIFCollectionViewController class]]) {
+        GIFCollectionViewController *topSearchController = (GIFCollectionViewController *)self.topViewController;
         [topSearchController searchFieldDidReturn];
     }
     [textField resignFirstResponder];

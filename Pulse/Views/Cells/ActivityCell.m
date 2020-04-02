@@ -15,7 +15,7 @@
 #import "Launcher.h"
 #import <SDWebImage/UIImageView+WebCache.h>
 
-#define ACTIVITY_CELL_CONTENT_INSET UIEdgeInsetsMake(10, 70, 10, 12)
+#define ACTIVITY_CELL_CONTENT_INSET UIEdgeInsetsMake(10, 64, 10, 12)
 #define ACTIVITY_CELL_ATTACHMENT_PADDING 8
 
 @implementation ActivityCell
@@ -34,7 +34,7 @@
         self.selectionStyle = UITableViewCellSelectionStyleNone;
         self.accessoryType = UITableViewCellAccessoryNone;
         
-        self.profilePicture = [[BFAvatarView alloc] initWithFrame:CGRectMake(12, ACTIVITY_CELL_CONTENT_INSET.top, 48, 48)];
+        self.profilePicture = [[BFAvatarView alloc] initWithFrame:CGRectMake(12, ACTIVITY_CELL_CONTENT_INSET.top, 42, 42)];
         self.profilePicture.openOnTap = true;
         [self.contentView addSubview:self.profilePicture];
         
@@ -103,7 +103,7 @@
         self.imagePreview.frame = CGRectMake(self.frame.size.width - (self.profilePicture.frame.size.width - 4) - 12, self.profilePicture.frame.origin.y + 2, self.profilePicture.frame.size.width - 4, self.profilePicture.frame.size.height - 4);
     }
     
-    CGFloat leftOffset = 70;
+    CGFloat leftOffset = 64;
     CGFloat contentWidth = self.frame.size.width - leftOffset - 12;
     CGFloat textLabelWidth = ([self.imagePreview isHidden] ? contentWidth : self.imagePreview.frame.origin.x - 8 - leftOffset);
     
@@ -118,7 +118,7 @@
         self.textLabel.frame = CGRectMake(leftOffset, ACTIVITY_CELL_CONTENT_INSET.top, textLabelWidth, ceilf(textLabelRect.size.height));
     }
     else if (lineCount == 1) {
-        self.textLabel.frame = CGRectMake(leftOffset, self.profilePicture.frame.origin.y, textLabelWidth, self.profilePicture.frame.size.height);
+        self.textLabel.frame = CGRectMake(leftOffset, self.profilePicture.frame.origin.y, textLabelWidth, self.profilePicture.frame.size.height - 1);
     }
     else if (lineCount == 2) {
         self.textLabel.frame = CGRectMake(leftOffset, ACTIVITY_CELL_CONTENT_INSET.top + 5, textLabelWidth, ceilf(textLabelRect.size.height));
@@ -126,11 +126,9 @@
     }
         
     if (self.campPreviewView) {
-        [self.campPreviewView layoutSubviews];
         self.campPreviewView.frame = CGRectMake(self.textLabel.frame.origin.x, self.textLabel.frame.origin.y + self.textLabel.frame.size.height + ACTIVITY_CELL_ATTACHMENT_PADDING, contentWidth, self.campPreviewView.frame.size.height);
     }
     else if (self.identityAttachmentView) {
-        [self.identityAttachmentView layoutSubviews];
         self.identityAttachmentView.frame = CGRectMake(self.textLabel.frame.origin.x, self.textLabel.frame.origin.y + self.textLabel.frame.size.height + ACTIVITY_CELL_ATTACHMENT_PADDING, contentWidth, self.identityAttachmentView.frame.size.height);
     }
     
@@ -162,7 +160,6 @@
         self.typeIndicator.backgroundColor = [UIColor bonfireBrand];
     }
     else if ([self.activity.attributes.icon isEqualToString:@"chat_bubble"]) {
-        // TODO: Create user posted icon/color combo
         self.typeIndicator.image = [UIImage imageNamed:@"notificationIndicator_user_posted"];
         self.typeIndicator.backgroundColor = [UIColor bonfireGreen];
     }
@@ -189,22 +186,17 @@
     if ([self.activity.attributes includeUserAttachment]) {
         [self removeCampAttachment];
         [self initUserAttachmentWithIdentity:self.activity.attributes.actioner];
+//         [self.identityAttachmentView layoutSubviews];
     }
     else if ([self.activity.attributes includeCampAttachment]) {
         [self removeIdentityAttachment];
         [self initCampAttachmentWithCamp:self.activity.attributes.camp];
+//         [self.campPreviewView layoutSubviews];
     }
     else {
         [self removeCampAttachment];
         [self removeIdentityAttachment];
     }
-}
-
-+ (BOOL)includeUserAttachmentForActivity:(UserActivity *)activity {
-    return activity.attributes.type == USER_ACTIVITY_TYPE_USER_FOLLOW && (activity.attributes.actioner.attributes.bio.length > 0 || activity.attributes.actioner.attributes.location.displayText.length > 0 || activity.attributes.actioner.attributes.website.displayUrl.length > 0);
-}
-+ (BOOL)includeCampAttachmentForActivity:(UserActivity *)activity {
-    return activity.attributes.type == USER_ACTIVITY_TYPE_USER_ACCEPTED_ACCESS;
 }
 
 - (void)setActivity:(UserActivity *)activity {
@@ -295,7 +287,7 @@
 }
 
 + (CGFloat)heightForUserActivity:(UserActivity *)activity {
-    CGFloat minHeight = ACTIVITY_CELL_CONTENT_INSET.top + 48 + ACTIVITY_CELL_CONTENT_INSET.bottom;
+    CGFloat minHeight = ACTIVITY_CELL_CONTENT_INSET.top + 42 + ACTIVITY_CELL_CONTENT_INSET.bottom;
     
     CGFloat topPadding = ACTIVITY_CELL_CONTENT_INSET.top;
     CGFloat contentHeight = 0;
@@ -316,7 +308,7 @@
     long rHeight = lroundf(textLabelHeight);
     int lineCount = roundf(rHeight/charSize);
     
-    if (lineCount > 2 || [ActivityCell includeCampAttachmentForActivity:activity] || [ActivityCell includeUserAttachmentForActivity:activity]) {
+    if (lineCount > 2 || activity.attributes.includeCampAttachment || activity.attributes.includeUserAttachment) {
         topPadding = ACTIVITY_CELL_CONTENT_INSET.top;
     }
     else if (lineCount == 1) {
@@ -328,10 +320,10 @@
     
     // attachments
     CGFloat attachmentWidth = ([UIScreen mainScreen].bounds.size.width - (ACTIVITY_CELL_CONTENT_INSET.left + ACTIVITY_CELL_CONTENT_INSET.right));
-    if ([ActivityCell includeUserAttachmentForActivity:activity]) {
+    if (activity.attributes.includeUserAttachment) {
         contentHeight += (ACTIVITY_CELL_ATTACHMENT_PADDING + [BFIdentityAttachmentView heightForIdentity:activity.attributes.actioner width:attachmentWidth]);
     }
-    else if ([ActivityCell includeCampAttachmentForActivity:activity]) {
+    else if (activity.attributes.includeCampAttachment) {
         contentHeight += (ACTIVITY_CELL_ATTACHMENT_PADDING + [BFCampAttachmentView heightForCamp:activity.attributes.camp width:attachmentWidth]);
     }
 

@@ -19,6 +19,7 @@
 #import "CampsList.h"
 #import <Shimmer/FBShimmeringView.h>
 #import "BFTipsManager.h"
+#import "BFActivityIndicatorView.h"
 @import Firebase;
 
 #define MY_CAMPS_CACHE_KEY @"my_camps_paged_cache"
@@ -39,7 +40,7 @@
 @property (nonatomic) BOOL loadingMoreCamps;
 
 @property (nonatomic, strong) BFVisualErrorView *errorView;
-@property (nonatomic, strong) UIActivityIndicatorView *spinner;
+@property (nonatomic, strong) BFActivityIndicatorView *spinner;
 
 @end
 
@@ -356,8 +357,10 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
 }
 
 - (void)update {
-    if ([[self.tableView indexPathsForVisibleRows] containsObject:[NSIndexPath indexPathForRow:0 inSection:1]]) {
+    if ([[self.tableView indexPathsForVisibleRows] containsObject:[NSIndexPath indexPathForRow:0 inSection:1]] && [self.tableView numberOfRowsInSection:1] > 0) {
+        [UIView setAnimationsEnabled:false];
         [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationNone];
+        [UIView setAnimationsEnabled:true];
     }
     else {
         [self.tableView reloadData];
@@ -525,7 +528,7 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
             }
         }
         else if (indexPath.section == 1 && stream.camps.count > 0) {
-            return 68;
+            return 62;
         }
     }
     
@@ -642,9 +645,9 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
         if (showLoadingFooter) {
             UIView *footer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 52)];
             
-            UIActivityIndicatorView *spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
-            spinner.color = [UIColor bonfireSecondaryColor];
-            spinner.frame = CGRectMake(footer.frame.size.width / 2 - 10, footer.frame.size.height / 2 - 10, 20, 20);
+            BFActivityIndicatorView *spinner = [[BFActivityIndicatorView alloc] init];
+            spinner.color = [[UIColor bonfireSecondaryColor] colorWithAlphaComponent:0.5];
+            spinner.frame = CGRectMake(footer.frame.size.width / 2 - 12, footer.frame.size.height / 2 - 12, 24, 24);
             [footer addSubview:spinner];
             
             [spinner startAnimating];

@@ -14,13 +14,6 @@
 #import "UIColor+Palette.h"
 #import "BFAlertController.h"
 
-#define UIViewParentController(__view) ({ \
-                                        UIResponder *__responder = __view; \
-                                        while ([__responder isKindOfClass:[UIView class]]) \
-                                        __responder = [__responder nextResponder]; \
-                                        (UIViewController *)__responder; \
-                                        })
-
 @interface LargeCampCardCell () {
     CAGradientLayer *gradientLayer;
 }

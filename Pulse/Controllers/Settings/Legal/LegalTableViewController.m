@@ -43,7 +43,10 @@
     }
     if ([rowId isEqualToString:@"open_source_libraries"]) {
         OpenSourceLibrariesTableViewController *openSourceLibrariesTableVC = [[OpenSourceLibrariesTableViewController alloc] init];
-        [Launcher push:openSourceLibrariesTableVC animated:YES];
+        SimpleNavigationController *simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:openSourceLibrariesTableVC];
+        [simpleNav setLeftAction:SNActionTypeBack];
+        
+        [Launcher push:simpleNav animated:YES];
     }
 }
 

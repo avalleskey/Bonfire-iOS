@@ -49,7 +49,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)hasPostAttachment;
 - (BOOL)isRemoved;
 
-- (void)createTempWithMessage:(NSString *)message media:(BFMedia *)media postedIn:(Camp * _Nullable)postedIn parent:(Post *)parent attachments:(PostAttachments * _Nullable)attachments;
+- (void)createTempWithMessage:(NSString * _Nullable)message media:(BFMedia * _Nullable)media postedIn:(Camp * _Nullable)postedIn parent:(Post * _Nullable)parent attachments:(PostAttachments * _Nullable)attachments;
 + (NSString *_Nullable)trimString:(NSString *_Nullable)string;
 
 - (BOOL)isEmojiPost;

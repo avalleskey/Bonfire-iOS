@@ -1,0 +1,170 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2511
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fswiss\fcharset0 Helvetica-Bold;}
+{\colortbl;\red255\green255\blue255;\red0\green118\blue255;\red255\green0\blue77;\red0\green118\blue255;
+\red102\green0\blue0;\red255\green81\blue60;\red255\green81\blue60;\red255\green0\blue77;}
+{\*\expandedcolortbl;;\csgenericrgb\c0\c46275\c100000;\csgenericrgb\c100000\c0\c30044;\csgenericrgb\c0\c46275\c100000;
+\csgenericrgb\c40000\c0\c0;\csgenericrgb\c100000\c31765\c23529;\csgenericrgb\c100000\c31765\c23529;\csgenericrgb\c100000\c0\c30044;}
+\margl1440\margr1440\vieww9000\viewh8400\viewkind0
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 All steps\
+\
+user_identification\
+user_phone_code\
+user_password\
+user_set_password\
+user_dob\
+user_display_name\
+user_username\
+user_profile_picture\
+user_color\
+user_camp_suggestions\
+\
+
+\f1\b Sign in with email or username
+\f0\b0 \
+user_identification\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf2 // -- POST /accounts/validate/email with params [
+\f1\b email
+\f0\b0 ]\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf3 // -- isValid && isOccupied\cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf0 user_password\
+\cf4 // -- attemptToSignIn with params [
+\f1\b email
+\f0\b0  | 
+\f1\b username
+\f0\b0 , 
+\f1\b password
+\f0\b0 , 
+\f1\b grant_type
+\f0\b0 : "password"]\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf5 // -- save access token\cf6 \
+// => launch app\cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf0 \
+
+\f1\b Sign in with phone
+\f0\b0 \
+user_identification\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf2 // -- POST /oauth with params [
+\f1\b phone
+\f0\b0 , 
+\f1\b grant_type
+\f0\b0 : "password"]\cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf0 user_phone_code\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf4 // -- attemptToSignIn with params [
+\f1\b phone
+\f0\b0 , 
+\f1\b code
+\f0\b0 , 
+\f1\b grant_type
+\f0\b0 : "password"]\
+\cf5 // -- save access token\cf7 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf3 // -- requires_registration == false\cf7 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf7 // => launch app (assuming requires_registration == false)\cf0 \
+\
+
+\f1\b Sign up with email
+\f0\b0 \
+user_identification\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf2 // -- /accounts/validate/email with params [
+\f1\b email
+\f0\b0 ]\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf3 // -- isValid && !isOccupied\cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf0 user_set_password\
+user_dob\
+user_display_name\
+user_username\
+\cf4 // -- attemptEmailSignUp with params: [
+\f1\b email
+\f0\b0 , 
+\f1\b password
+\f0\b0 , 
+\f1\b dob
+\f0\b0 , 
+\f1\b display_name
+\f0\b0 , 
+\f1\b username
+\f0\b0 ]\cf0 \
+\cf5 // -- save access token\
+\pard\tx890\pardeftab890\pardirnatural\partightenfactor0
+\cf0 user_profile_picture\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf0 user_color\
+\pard\tx890\pardeftab890\pardirnatural\partightenfactor0
+\cf2 // -- upload profile picture image\cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab890\pardirnatural\partightenfactor0
+\cf2 // -- PUT  /users/me with [
+\f1\b color
+\f0\b0 , 
+\f1\b avatar
+\f0\b0 ]\cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf0 user_camp_suggestions\
+\cf4 // -- follow selected camps\cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf6 // => launch app\cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf0 \
+
+\f1\b Sign up with phone\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f0\b0 \cf0 user_identification\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf2 // -- POST /oauth with params [
+\f1\b phone
+\f0\b0 , 
+\f1\b grant_type
+\f0\b0 : "password"]\cf0 \
+user_phone_code\
+\cf2 // -- attemptToSignIn with params [
+\f1\b phone
+\f0\b0 , 
+\f1\b code
+\f0\b0 , 
+\f1\b grant_type
+\f0\b0 : "password"]\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf5 // -- save access token\cf6 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf8 // -- requires_registration == true\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf0 user_dob\
+user_display_name\
+user_username\
+\cf4 // -- \cf2 PUT  /users/me\cf4  with [
+\f1\b dob
+\f0\b0 , 
+\f1\b display_name
+\f0\b0 , 
+\f1\b username
+\f0\b0 ]\cf0 \
+\pard\tx890\pardeftab890\pardirnatural\partightenfactor0
+\cf0 user_profile_picture\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf0 user_color\
+\pard\tx890\pardeftab890\pardirnatural\partightenfactor0
+\cf2 // -- upload profile picture image\cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf4 // -- PUT  /users/me with [
+\f1\b color
+\f0\b0 , 
+\f1\b avatar
+\f0\b0 ]\cf0 \
+user_camp_suggestions\
+\cf4 // -- follow selected camps\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf6 // => launch app}

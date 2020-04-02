@@ -35,6 +35,7 @@ target 'Pulse' do
   pod 'GoogleFontsiOS/Poppins'
   pod 'SEJSONViewController'
   pod 'MarqueeLabel', '~> 3.2.1'
+  pod 'SKInnerShadowLayer'
   
   pod 'FBSDKCoreKit'
   pod 'FBSDKShareKit'
@@ -44,7 +45,7 @@ target 'Pulse' do
   pod 'Fabric'
   pod 'Crashlytics'
   pod 'Firebase/Analytics'
-  # pod 'Firebase/MLNLSmartReply'
+  pod 'Firebase/MLNLSmartReply'
   
   target 'PulseTests' do
     inherit! :search_paths

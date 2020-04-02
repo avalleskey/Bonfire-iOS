@@ -148,7 +148,7 @@
     NSMutableArray *buttons = [NSMutableArray new];
     
     BOOL hasInstagram = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"instagram-stories://"]];
-    BOOL hasSnapchat = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"snapchat://"]];
+    BOOL hasSnapchat = false; //[[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"snapchat://"]];
     BOOL hasTwitter = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"twitter://"]];
     
     if (hasTwitter) {
@@ -172,16 +172,19 @@
     [buttons addObject:@{@"id": @"more", @"image": [[UIImage imageNamed:@"share_more"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate], @"color": [UIColor tableViewSeparatorColor]}];
     
     CGFloat buttonPadding = 12;
-    CGFloat buttonDiameter = (self.view.frame.size.width - (self.shareField.frame.origin.x * 2) - (20 * 2) - ((buttons.count - 1) * buttonPadding)) / buttons.count;
-    
+    CGFloat buttonDiameter = MIN(56, (self.view.frame.size.width - (self.shareField.frame.origin.x * 2) - (20 * 2) - ((buttons.count - 1) * buttonPadding)) / buttons.count);
+
+    CGFloat newWidth = buttonDiameter * buttons.count + (buttonPadding * (MAX(1, buttons.count) - 1));
+    CGFloat buttonOffset = (shareBlock.frame.size.width - newWidth) / 2;
     CGFloat newHeight = self.shareField.frame.origin.y + self.shareField.frame.size.height + (buttonPadding * 1.5) + buttonDiameter;
+    
     shareBlock.frame = CGRectMake(shareBlock.frame.origin.x, self.view.frame.size.height - 24 - [[UIApplication sharedApplication] keyWindow].safeAreaInsets.bottom - newHeight, shareBlock.frame.size.width, newHeight);
     for (NSInteger i = 0; i < buttons.count; i++) {
         NSDictionary *buttonDict = buttons[i];
         NSString *identifier = buttonDict[@"id"];
         
         UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
-        button.frame = CGRectMake(self.shareField.frame.origin.x + 20 + i * (buttonDiameter + buttonPadding), shareBlock.frame.size.height - buttonDiameter, buttonDiameter, buttonDiameter);
+        button.frame = CGRectMake(buttonOffset + i * (buttonDiameter + buttonPadding), shareBlock.frame.size.height - buttonDiameter, buttonDiameter, buttonDiameter);
         button.layer.cornerRadius = button.frame.size.width / 2;
         button.backgroundColor = buttonDict[@"color"];
         button.adjustsImageWhenHighlighted = false;
@@ -205,7 +208,17 @@
         } forControlEvents:(UIControlEventTouchUpInside|UIControlEventTouchCancel|UIControlEventTouchDragExit)];
         
         [button bk_whenTapped:^{
-            NSString *message = [NSString stringWithFormat:@"Join me on Bonfire 🔥 https://bonfire.camp/download"];
+            NSString *downloadURL;
+            NSString *message;
+            if ([Session sharedInstance].currentUser.attributes.invites.friendCode) {
+                downloadURL = [NSString stringWithFormat:@"https://bonfire.camp/invite?friend_code=%@", [Session sharedInstance].currentUser.attributes.invites.friendCode];
+                message = [NSString stringWithFormat:@"Join me on Bonfire with my friend code: %@ 🔥 %@", [Session sharedInstance].currentUser.attributes.invites.friendCode, downloadURL];
+            }
+            else {
+                downloadURL = @"https://bonfire.camp/download";
+                message = [NSString stringWithFormat:@"Join me on Bonfire 🔥 %@", downloadURL];
+            }
+            
             if ([identifier isEqualToString:@"twitter"]) {
                 if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"twitter://post"]]) {
                     [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[NSString stringWithFormat:@"twitter://post?message=%@", [message stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLHostAllowedCharacterSet]]]] options:@{} completionHandler:nil];
@@ -219,13 +232,14 @@
             }
             else if ([identifier isEqualToString:@"facebook"]) {
                 FBSDKShareLinkContent *content = [[FBSDKShareLinkContent alloc] init];
-                content.contentURL = [NSURL URLWithString:@"https://bonfire.camp/download"];
+                content.contentURL = [NSURL URLWithString:downloadURL];
                 content.hashtag = [FBSDKHashtag hashtagWithString:@"#Bonfire"];
                 [FBSDKShareDialog showFromViewController:[Launcher topMostViewController]
                                               withContent:content
                                                                  delegate:nil];
             }
             else if ([identifier isEqualToString:@"imessage"]) {
+                downloadURL = @"https://apps.apple.com/us/app/bonfire-groups-and-news/id1438702812";
                 [Launcher shareOniMessage:message image:nil];
             }
             else if ([identifier isEqualToString:@"snapchat"]) {
@@ -386,6 +400,9 @@
     UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
     
+    CGColorSpaceRelease(colorSpace);
+    CGGradientRelease(gradient);
+
     return image;
 }
 

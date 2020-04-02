@@ -16,7 +16,7 @@
 #import "UIColor+Palette.h"
 #import "LinkConversationsViewController.h"
 #import "BFAlertController.h"
-#import "BFPostStreamComponent.h"
+#import "BFStreamComponent.h"
 
 #define BFPostContextTextKey @"text"
 #define BFPostContextIconKey @"icon"
@@ -158,6 +158,8 @@
         CGFloat imageHeight = [PostImagesView streamImageHeight];
         self.imagesView.frame = CGRectMake(offset.left, yBottom + ([self.textView isHidden] ? 5 : 8), self.frame.size.width - offset.left - postContentOffset.right, imageHeight);
         
+        [self.imagesView startSpinnersAsNeeded];
+        
         yBottom = self.imagesView.frame.origin.y + self.imagesView.frame.size.height;
     }
     
@@ -247,7 +249,7 @@
             UIView *bubble = [[UIView alloc] initWithFrame:CGRectMake(0, 0, bubbleDiamater, bubbleDiamater)];
             bubble.userInteractionEnabled = false;
             bubble.center = self.textView.center;
-            bubble.backgroundColor = [[UIColor bonfireBrand] colorWithAlphaComponent:0.06];
+            bubble.backgroundColor = [[UIColor fromHex:self.post.themeColor adjustForOptimalContrast:true] colorWithAlphaComponent:0.06];
             bubble.layer.cornerRadius = bubble.frame.size.height / 2;
             bubble.layer.masksToBounds = true;
             bubble.transform = CGAffineTransformMakeScale(0.01, 0.01);
@@ -257,7 +259,7 @@
             
             [UIView animateWithDuration:animated?1.3f:0 delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
                 bubble.transform = CGAffineTransformIdentity;
-                bubble.backgroundColor = [[UIColor bonfireBrand] colorWithAlphaComponent:0.12];
+                bubble.backgroundColor = [[UIColor fromHex:self.post.themeColor] colorWithAlphaComponent:0.12];
             } completion:nil];
             [UIView animateWithDuration:animated?1.3f:0 delay:animated?0.1f:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
                 bubble.alpha = 0;
@@ -306,12 +308,12 @@
         
         self.moreButton.tintColor = [UIColor bonfireSecondaryColor];
         self.dateLabel.textColor = [UIColor bonfireSecondaryColor];
-        self.actionsView.tintColor = [UIColor bonfireSecondaryColor];
         self.contextView.tintColor = [UIColor bonfireSecondaryColor];
+        self.actionsView.tintColor = [UIColor fromHex:post.themeColor adjustForOptimalContrast:true];
         
         NSString *date = @"";
         if (_post.tempId) {
-            date = @"1s";
+            date = @"Posting...";
         }
         else if (_post.attributes.createdAt.length > 0 && [StreamPostCell showDateLabelForPost:self.post]) {
             date = [NSDate mysqlDatetimeFormattedAsTimeAgo:_post.attributes.createdAt withForm:TimeAgoShortForm];
@@ -328,22 +330,9 @@
         BOOL canShare = ![_post.attributes.postedIn isPrivate] && _post.tempId.length == 0;
         
         self.userInteractionEnabled = !(temporary);
-        if (self.contentView.alpha != 1 && !temporary) {
-            [UIView animateWithDuration:0.15f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-                self.contentView.alpha = 1;
-                
-                self.actionsView.replyButton.alpha = canReply ? 1 : 0.25;
-                self.actionsView.shareButton.alpha = canShare ? 1 : 0.25;
-            } completion:^(BOOL finished) {
-                
-            }];
-        }
-        else {
-            self.contentView.alpha = (temporary ? 0.5 : 1);
-            
-            self.actionsView.replyButton.alpha = temporary || canReply ? 1 : 0.25;
-            self.actionsView.shareButton.alpha = temporary || canShare ? 1 : 0.25;
-        }
+        self.actionsView.replyButton.alpha = !temporary && canReply ? 1 : 0.25;
+        self.actionsView.shareButton.alpha = !temporary && canShare ? 1 : 0.25;
+        self.actionsView.voteButton.alpha = temporary ? 0.25 : 1;
                 
         if ([self.post.attributes.display.creator isEqualToString:POST_DISPLAY_CREATOR_CAMP] && self.post.attributes.postedIn) {
             if (self.primaryAvatarView.camp != _post.attributes.postedIn) {
@@ -377,7 +366,7 @@
             [self.actionsView setSummaries:self.post.attributes.summaries];
         }
         
-        self.moreButton.hidden = removed || self.hideActions;
+        self.moreButton.hidden = temporary || removed || self.hideActions;
         self.contextView.hidden = removed;
         if (removed) {
             [self.textView setMessage:@"" entities:nil];
@@ -672,7 +661,7 @@
     return nil;
 }
 
-+ (CGFloat)heightForComponent:(BFPostStreamComponent *)component {
++ (CGFloat)heightForComponent:(BFStreamComponent *)component {
     Post *post = component.post;
     
     if (!post) return 0;

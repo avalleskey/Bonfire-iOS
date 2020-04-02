@@ -21,7 +21,7 @@
 - (instancetype)init {
     if (self = [super init]) {
         self.type = @"section";
-        self.components = [NSMutableArray<BFPostStreamComponent *> new];
+        self.components = [NSMutableArray<BFStreamComponent *><BFStreamComponent> new];
     }
     return self;
 }
@@ -38,18 +38,18 @@
 }
 
 - (void)refreshComponents {
-    self.components = [NSMutableArray<BFPostStreamComponent *><BFPostStreamComponent> new];
+    self.components = [NSMutableArray<BFStreamComponent *><BFStreamComponent> new];
     
     // no posts -> skip entirely
     if (self.attributes.posts.count == 0) {
         return;
     }
     
-    [self.components addObjectsFromArray:[self.attributes.posts toPostStreamComponents]];
+    [self.components addObjectsFromArray:[self.attributes.posts toStreamComponents]];
     
     // add cta
     if (self.attributes.cta.text.length > 0) {
-        BFPostStreamComponent *component = [[BFPostStreamComponent alloc] initWithObject:nil className:NSStringFromClass([ButtonCell class]) detailLevel:BFComponentDetailLevelAll];
+        BFStreamComponent *component = [[BFStreamComponent alloc] initWithObject:nil className:NSStringFromClass([ButtonCell class]) detailLevel:BFComponentDetailLevelAll];
         [self.components addObject:component];
     }
 }

@@ -14,6 +14,7 @@
 #import "UIColor+Palette.h"
 #import "UserListStream.h"
 #import "BFVisualErrorView.h"
+#import "BFActivityIndicatorView.h"
 @import Firebase;
 
 @interface ProfileFollowingListViewController () <UserListStreamDelegate, UITextFieldDelegate>
@@ -129,7 +130,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
         if (self.stream.users.count == 0) {
             self.errorView.hidden = false;
             
-            BFVisualError *visualError = [BFVisualError visualErrorOfType:ErrorViewTypeNoPosts title:@"No    to Show" description:[NSString stringWithFormat:@"@%@ doesn't follow anyone", self.user.attributes.identifier] actionTitle:nil actionBlock:nil];
+            BFVisualError *visualError = [BFVisualError visualErrorOfType:ErrorViewTypeNoPosts title:@"No Users to Show" description:[NSString stringWithFormat:@"@%@ doesn't follow anyone", self.user.attributes.identifier] actionTitle:nil actionBlock:nil];
             self.errorView.visualError = visualError;
             
             [self positionErrorView];
@@ -206,7 +207,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return 68;
+    return 62;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
@@ -282,9 +283,9 @@ static NSString * const memberCellIdentifier = @"MemberCell";
         if (showLoadingFooter) {
             UIView *footer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 52)];
             
-            UIActivityIndicatorView *spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
-            spinner.color = [UIColor bonfireSecondaryColor];
-            spinner.frame = CGRectMake(footer.frame.size.width / 2 - 10, footer.frame.size.height / 2 - 10, 20, 20);
+            BFActivityIndicatorView *spinner = [[BFActivityIndicatorView alloc] init];
+            spinner.color = [[UIColor bonfireSecondaryColor] colorWithAlphaComponent:0.5];
+            spinner.frame = CGRectMake(footer.frame.size.width / 2 - 12, footer.frame.size.height / 2 - 12, 24, 24);
             [footer addSubview:spinner];
             
             [spinner startAnimating];

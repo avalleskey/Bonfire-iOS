@@ -17,6 +17,7 @@
 #import <SDWebImage/UIView+WebCache.h>
 #import "UIView+RoundedCorners.h"
 #import "StreamPostCell.h"
+#import "BFActivityIndicatorView.h"
 
 #define SPINNER_TAG 11
 #define SPINNER_DOT_TAG 12
@@ -40,6 +41,8 @@
 }
 
 - (void)setup {
+    [self setCornerRadiusType:BFCornerRadiusTypeMedium];
+    
     self.containerView = [[UIView alloc] initWithFrame:self.bounds];
 //    [self.containerView bk_whenTapped:^{
 //        if ([self.imageViews firstObject]) {
@@ -52,7 +55,7 @@
     self.containerView.layer.shouldRasterize = true;
     self.containerView.layer.rasterizationScale = [UIScreen mainScreen].scale;
     
-    self.containerView.layer.cornerRadius = 14.f;
+    self.containerView.layer.cornerRadius = self.layer.cornerRadius;
     self.containerView.layer.masksToBounds = true;
     
     self.containerView.layer.borderWidth = 0;
@@ -99,6 +102,8 @@
         [self.captionTextView setRoundedCorners:UIRectCornerTopRight radius:ceilf(self.captionTextView.font.lineHeight*.6)];
         [self.captionTextView.superview bringSubviewToFront:self.captionTextView];
     }
+    
+    [self startSpinnersAsNeeded];
 }
 
 - (void)setMedia:(NSArray *)media {
@@ -149,16 +154,20 @@
                 NSURL *url = [NSURL URLWithString:imageURL];
                 
                 SDAnimatedImageView *animatedImageView = [self animatedImageViewForIndex:i];
-                //[self showImageViewSpinner:animatedImageView];
+                [self showImageViewSpinner:animatedImageView];
                 
                 if ([[self MIMETypeFromFileName:imageURL] isEqualToString:@"image/gif"]) {
-                    [animatedImageView sd_setImageWithURL:url placeholderImage:nil options:SDWebImageFromLoaderOnly completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
-//                        [self layoutImageViews];
+                    [animatedImageView sd_setImageWithURL:url placeholderImage:nil options:0 completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
+                        if (image) {
+                            [self hideImageViewSpinner:animatedImageView];
+                        }
                     }];
                 }
                 else {
                     [animatedImageView sd_setImageWithURL:url placeholderImage:nil options:0 completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
-//                        [self layoutImageViews];
+                        if (image) {
+                            [self hideImageViewSpinner:animatedImageView];
+                        }
                     }];
                 }
             }
@@ -257,67 +266,27 @@
     imageView.userInteractionEnabled = true;
     imageView.tag = self.imageViews.count;
     imageView.sd_imageTransition = [SDWebImageTransition fadeTransition];
-    //[self.containerView addSpinnerToImageView:imageView];
+    
+    [self addSpinnerToImageView:imageView];
 }
 - (void)addSpinnerToImageView:(UIImageView *)imageView {
     if ([imageView viewWithTag:SPINNER_TAG])
         return;
     
-    UIView *spinner = [[UIView alloc] initWithFrame:CGRectMake(imageView.frame.size.width / 2 - 30, imageView.frame.size.height / 2 - 6, 60, 12)];
-    spinner.layer.cornerRadius = spinner.frame.size.height / 2;
-    spinner.layer.masksToBounds = false;
-    spinner.backgroundColor = [UIColor whiteColor];
-    //spinner.layer.borderWidth = (1 / [UIScreen mainScreen].scale);
-    //spinner.layer.borderColor = [UIColor tableViewSeparatorColor].CGColor;
-    spinner.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.08].CGColor;
-    spinner.layer.shadowRadius = 1.f;
-    spinner.layer.shadowOffset = CGSizeMake(0, 0.5);
-    spinner.layer.shadowOpacity = 1.5;
+    BFActivityIndicatorView *spinner = [[BFActivityIndicatorView alloc] init];
+    spinner.color = [[UIColor bonfireSecondaryColor] colorWithAlphaComponent:0.5];
+    spinner.frame = CGRectMake(0, 0, 40, 40);
     spinner.tag = SPINNER_TAG;
-    
-    UIView *spinnerDot = [[UIView alloc] initWithFrame:CGRectMake(3, 3, 16, spinner.frame.size.height - 6)];
-    spinnerDot.tag = SPINNER_DOT_TAG;
-    spinnerDot.backgroundColor = [UIColor tableViewSeparatorColor];
-    spinnerDot.layer.cornerRadius = spinnerDot.frame.size.height / 2;
-    [spinner addSubview:spinnerDot];
     
     [imageView addSubview:spinner];
 }
 - (void)showImageViewSpinner:(UIImageView *)imageView {
-    UIView *spinner = [imageView viewWithTag:SPINNER_TAG];
-    spinner.hidden = false;
-    
-    if (spinner) {
-        [self startSpinnerForImageView:imageView];
-    }
-}
-- (void)startSpinnerForImageView:(UIImageView *)imageView {
-    UIView *spinner = [imageView viewWithTag:SPINNER_TAG];
-    UIView *spinnerDot = [spinner viewWithTag:SPINNER_DOT_TAG];
-            
-    [spinner.layer removeAllAnimations];
-    [spinnerDot.layer removeAllAnimations];
-    
-    imageView.backgroundColor = [UIColor yellowColor];
-    
-    [UIView animateWithDuration:0.3f delay:0 options:UIViewAnimationOptionRepeat|UIViewAnimationOptionAutoreverse animations:^{
-        imageView.backgroundColor = [UIColor redColor];
-        
-        spinnerDot.frame = CGRectMake(spinner.frame.size.width - spinnerDot.frame.size.width - 3, spinnerDot.frame.origin.y, spinnerDot.frame.size.width, spinnerDot.frame.size.height);
-    } completion:^(BOOL finished) {
-        spinnerDot.frame = CGRectMake(3, 3, spinnerDot.frame.size.width, spinnerDot.frame.size.height);
-        imageView.backgroundColor = [UIColor greenColor];
-    }];
+    BFActivityIndicatorView *spinner = [imageView viewWithTag:SPINNER_TAG];
+    [spinner setHidden:false];
 }
 - (void)hideImageViewSpinner:(UIImageView *)imageView {
-    UIView *spinner = [imageView viewWithTag:SPINNER_TAG];
-    spinner.hidden = true;
-    
-    if (spinner) {
-        UIView *spinnerDot = [spinner viewWithTag:SPINNER_DOT_TAG];
-        [spinner.layer removeAllAnimations];
-        [spinnerDot.layer removeAllAnimations];
-    }
+    BFActivityIndicatorView *spinner = [imageView viewWithTag:SPINNER_TAG];
+    [spinner setHidden:true];
 }
 
 - (void)layoutImageViews {
@@ -375,9 +344,20 @@
             [self resizeInnerViewsForImageView:imageView4];
         }
     }
-    
-    //[self startSpinners];
 }
+
+- (void)startSpinnersAsNeeded {
+    for (SDAnimatedImageView *imageView in self.imageViews) {
+        if (imageView.image == nil) {
+            BFActivityIndicatorView *spinner = [imageView viewWithTag:SPINNER_TAG];
+            
+            if (spinner) {
+                [spinner startAnimating];
+            }
+        }
+    }
+}
+
 - (UIColor *)averageColorForImage:(UIImage *)image {
     CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
     unsigned char rgba[4];
@@ -416,12 +396,7 @@
 }
 
 + (BOOL)useCaptionedImageViewForPost:(Post *)post {
-    NSInteger mediaItems = post.attributes.media.count;
-    if (post.attributes.attachments.media.count > mediaItems) {
-        mediaItems = post.attributes.attachments.media.count;
-    }
-    
-    return mediaItems == 1 && (post.attributes.message.length <= 30) && post.attributes.entities.count == 0;
+    return false;
 }
 
 - (void)setCaption:(NSString *)caption {
@@ -435,23 +410,21 @@
     }
 }
 
-- (void)startSpinners {
-    for (UIImageView *imageView in self.imageViews) {
-        UIView *spinner = [imageView viewWithTag:SPINNER_TAG];
-        if (![spinner isHidden]) {
-            [self startSpinnerForImageView:imageView];
-        }
-    }
-}
-
 - (NSString *)MIMETypeFromFileName:(NSString *)fileName {
     CFStringRef UTI = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, (__bridge CFStringRef)[fileName pathExtension], NULL);
     CFStringRef MIMEType = UTTypeCopyPreferredTagWithClass(UTI, kUTTagClassMIMEType);
-    CFRelease(UTI);
-    if (!MIMEType) {
-        return @"application/octet-stream";
+    
+    NSString *string;
+    if (MIMEType) {
+        string = [NSString stringWithString:(NSString *)CFBridgingRelease(MIMEType)];
     }
-    return (__bridge NSString *)(MIMEType);
+    else {
+        string = @"application/octet-stream";
+    }
+    
+    CFRelease(UTI);
+    
+    return string;
 }
 - (NSString *)mimeTypeForData:(NSData *)data {
     uint8_t c;

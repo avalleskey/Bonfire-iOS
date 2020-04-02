@@ -31,6 +31,7 @@
 
 #import "PostViewController.h"
 
+#import "BFActivityIndicatorView.h"
 #import <JGProgressHUD/JGProgressHUD.h>
 #import <HapticHelper/HapticHelper.h>
 @import Firebase;
@@ -38,6 +39,8 @@
 #define SHOW_CURSORS false
 
 @interface BFComponentTableView () <UIScrollViewDelegate>
+
+@property (nonatomic, strong) UIViewController *parentNavigationController;
 
 @end
 
@@ -56,6 +59,7 @@ static NSString * const expandRepliesCellIdentifier = @"ExpandRepliesReuseIdenti
 static NSString * const addReplyCellIdentifier = @"AddReplyReuseIdentifier";
 
 static NSString * const buttonCellIdentifier = @"ButtonCell";
+static NSString * const paginationCellReuseIdentifier = @"PaginationCell";
 
 static NSString * const errorCellReuseIdentifier = @"ErrorCell";
 static NSString * const blankCellIdentifier = @"BlankCell";
@@ -86,6 +90,7 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
     self.backgroundColor = [UIColor tableViewBackgroundColor];
     self.loading = true;
     self.loadingMore = false;
+    self.loadingStyle = BFComponentTableViewLoadingStyleShimmer;
     self.delegate = self;
     self.dataSource = self;
     self.separatorColor = [UIColor tableViewSeparatorColor];
@@ -110,6 +115,8 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
     [self registerClass:[AddReplyCell class] forCellReuseIdentifier:addReplyCellIdentifier];
        
     [self registerClass:[ButtonCell class] forCellReuseIdentifier:buttonCellIdentifier];
+    [self registerClass:[PaginationCell class] forCellReuseIdentifier:paginationCellReuseIdentifier];
+    
     [self registerClass:[BFErrorViewCell class] forCellReuseIdentifier:errorCellReuseIdentifier];
     [self registerClass:[UITableViewCell class] forCellReuseIdentifier:blankCellIdentifier];
     
@@ -119,6 +126,15 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(campUpdated:) name:@"CampUpdated" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(postUpdated:) name:@"PostUpdated" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(postDeleted:) name:@"PostDeleted" object:nil];
+}
+
+- (void)didMoveToSuperview {
+    [super didMoveToSuperview];
+    
+    UIViewController *parentViewController = UIViewParentController(self);
+    if (parentViewController && parentViewController.navigationController) {
+        self.parentNavigationController = parentViewController.navigationController;
+    }
 }
 
 - (void)dealloc {
@@ -195,7 +211,7 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
         }
     }
     else {
-        BFPostStreamComponent *component = [self componentAtIndexPath:indexPath];
+        BFStreamComponent *component = [self componentAtIndexPath:indexPath];
         
         if (component.action) {
             component.action();
@@ -286,7 +302,7 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
     }
     else if (indexPath.section == 1) {
         if (self.stream.components.count > 0) {
-            BFPostStreamComponent *component = [self componentAtIndexPath:indexPath];
+            BFStreamComponent *component = [self componentAtIndexPath:indexPath];
             
             if ([component cellClass] == [StreamPostCell class])  {
                 // determine if it's a reply or sub-reply
@@ -425,19 +441,40 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
             }
         }
         else if (self.loading) {
-            // loading cell
-            LoadingCell *cell = [tableView dequeueReusableCellWithIdentifier:loadingCellIdentifier forIndexPath:indexPath];
-            
-            if (cell == nil) {
-                cell = [[LoadingCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:loadingCellIdentifier];
+            if (self.loadingStyle == BFComponentTableViewLoadingStyleShimmer) {
+                // loading cell
+                LoadingCell *cell = [tableView dequeueReusableCellWithIdentifier:loadingCellIdentifier forIndexPath:indexPath];
+                
+                if (cell == nil) {
+                    cell = [[LoadingCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:loadingCellIdentifier];
+                }
+                
+                NSInteger postType = (indexPath.row - 1 % 3);
+                cell.type = postType;
+                
+                cell.userInteractionEnabled = false;
+                
+                return cell;
             }
-            
-            NSInteger postType = (indexPath.row - 1 % 3);
-            cell.type = postType;
-            
-            cell.userInteractionEnabled = false;
-            
-            return cell;
+            else {
+                PaginationCell *cell = [self dequeueReusableCellWithIdentifier:paginationCellReuseIdentifier forIndexPath:indexPath];
+
+                if (cell == nil) {
+                    cell = [[PaginationCell alloc] initWithStyle:UITableViewCellStyleValue2 reuseIdentifier:paginationCellReuseIdentifier];
+                }
+                
+                cell.backgroundColor = [UIColor tableViewBackgroundColor];
+                
+                cell.spinner.hidden = false;
+                cell.textLabel.hidden = true;
+                cell.bottomSeparator.hidden = true;
+                
+                if (![cell.spinner isAnimating]) {
+                    [cell.spinner startAnimating];
+                }
+                                
+                return cell;
+            }
         }
         else if (self.visualError) {
             // visual error cell
@@ -467,21 +504,26 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
     }
     else if (indexPath.section == 1) {
         if (self.stream.components.count > 0) {
-            BFPostStreamComponent *component = [self componentAtIndexPath:indexPath];
+            BFStreamComponent *component = [self componentAtIndexPath:indexPath];
             height = component.cellHeight;
         }
         else if (self.loading) {
-            switch ((indexPath.row - 1) % 3) {
-                case 1:
-                    height = 123;
-                    break;
-                case 2:
-                    height = 310 + 56;
-                    break;
-                    
-                default:
-                    height = 102;
-                    break;
+            if (self.loadingStyle == BFComponentTableViewLoadingStyleShimmer) {
+                switch ((indexPath.row - 1) % 3) {
+                    case 1:
+                        height = 123;
+                        break;
+                    case 2:
+                        height = 310 + 56;
+                        break;
+                        
+                    default:
+                        height = 102;
+                        break;
+                }
+            }
+            else if (self.loadingStyle == BFComponentTableViewLoadingStyleSpinner) {
+                return [PaginationCell height];
             }
         }
         else if (self.visualError) {
@@ -509,7 +551,12 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
             return self.stream.components.count;
         }
         else if (self.loading) {
-            return 10;
+            if (self.loadingStyle == BFComponentTableViewLoadingStyleShimmer) {
+                return 10;
+            }
+            else if (self.loadingStyle == BFComponentTableViewLoadingStyleSpinner) {
+                return 1;
+            }
         }
         else if (self.visualError) {
             return 1;
@@ -580,8 +627,8 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
             UIView *footer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, 48)];
             footer.backgroundColor = [UIColor tableViewBackgroundColor];
             
-            UIActivityIndicatorView *spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
-            spinner.color = [UIColor bonfireSecondaryColor];
+            BFActivityIndicatorView *spinner = [[BFActivityIndicatorView alloc] init];
+            spinner.color = [[UIColor bonfireSecondaryColor] colorWithAlphaComponent:0.5];
             spinner.frame = CGRectMake(footer.frame.size.width / 2 - 10, footer.frame.size.height / 2 - 10, 20, 20);
             [footer addSubview:spinner];
 
@@ -606,15 +653,14 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
     if (scrollView == self && [self.extendedDelegate respondsToSelector:@selector(tableViewDidScroll:)]) {
         [self.extendedDelegate tableViewDidScroll:self];
-                
-        UINavigationController *navController = UIViewParentController(self).navigationController;
-        if (navController) {
-            if ([navController isKindOfClass:[ComplexNavigationController class]]) {
-                ComplexNavigationController *complexNav = (ComplexNavigationController *)navController;
+        
+        if (self.parentNavigationController) {
+            if ([self.parentNavigationController isKindOfClass:[ComplexNavigationController class]]) {
+                ComplexNavigationController *complexNav = (ComplexNavigationController *)self.parentNavigationController;
                 [complexNav childTableViewDidScroll:self];
             }
-            else if ([navController isKindOfClass:[SimpleNavigationController class]]) {
-                SimpleNavigationController *simpleNav = (SimpleNavigationController *)navController;
+            else if ([self.parentNavigationController isKindOfClass:[SimpleNavigationController class]]) {
+                SimpleNavigationController *simpleNav = (SimpleNavigationController *)self.parentNavigationController;
                 [simpleNav childTableViewDidScroll:self];
             }
         }
@@ -680,7 +726,7 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
 }
 
 #pragma mark - Misc. Helper Methods
-- (BFPostStreamComponent * _Nullable)componentAtIndexPath:(NSIndexPath *)indexPath {
+- (BFStreamComponent * _Nullable)componentAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.row > self.stream.components.count) {
         return nil;
     }
@@ -690,7 +736,8 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
 
 #pragma mark - UIContextMenuConfiguration
 - (UIContextMenuConfiguration *)tableView:(UITableView *)tableView contextMenuConfigurationForRowAtIndexPath:(NSIndexPath *)indexPath point:(CGPoint)point  API_AVAILABLE(ios(13.0)){
-    if ([[tableView cellForRowAtIndexPath:indexPath] isKindOfClass:[PostCell class]]) {
+    if ([[tableView cellForRowAtIndexPath:indexPath] isKindOfClass:[PostCell class]] &&
+        ![[tableView cellForRowAtIndexPath:indexPath] isKindOfClass:[ExpandedPostCell class]]) {
         Post *post = ((PostCell *)[tableView cellForRowAtIndexPath:indexPath]).post;
         
         if (post) {

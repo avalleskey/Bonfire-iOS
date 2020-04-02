@@ -78,11 +78,13 @@ extern NSString * const SmartListInputEmailValidation;
 extern NSString * const SmartListInputUsernameValidation;
 extern NSString * const SmartListInputDisplayNameValidation;
 extern NSString * const SmartListInputPasswordValidation;
+extern NSString * const SmartListInputPhoneNumberValidation;
 extern NSString * const SmartListInputCampTitleValidation;
 extern NSString * const SmartListInputCampDescriptionValidation;
 
 extern NSString * const SmartListInputDefaultKeyboard;
 extern NSString * const SmartListInputEmailKeyboard;
+extern NSString * const SmartListInputPhoneNumberKeyboard;
 
 @property (nonatomic) NSString <Optional> *text;
 @property (nonatomic) NSString <Optional> *placeholder;

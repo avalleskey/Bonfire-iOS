@@ -29,6 +29,7 @@ enum
     MAX_CAMP_TAG_LENGTH = 30,
     MAX_CAMP_DESC_SOFT_LENGTH = 150,
     MAX_CAMP_DESC_HARD_LENGTH = 255,
+    MAX_PHONE_NUMBER_LENGTH = 17
 };
 
 typedef enum {
@@ -44,10 +45,12 @@ typedef enum {
     BFValidationErrorContainsInvalidCharacters = 3,
     BFValidationErrorContainsInvalidWords = 4,
     BFValidationErrorInvalidEmail = 5,
-    BFValidationErrorInvalidURL = 6
+    BFValidationErrorInvalidURL = 6,
+    BFValidationErrorInvalidPhoneNumber = 7
 } BFValidationError;
 
 - (BFValidationError)validateBonfireEmail;
+- (BFValidationError)validateBonfirePhoneNumber;
 - (BFValidationError)validateBonfirePassword;
 - (BFValidationError)validateBonfireDisplayName;
 - (BFValidationError)validateBonfireUsername;

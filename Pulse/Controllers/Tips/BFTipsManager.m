@@ -84,7 +84,7 @@
     else {
         [activeViewController.view addSubview:tipView];
         
-        yTop = activeViewController.view.frame.size.height;
+        yTop = activeViewController.view.frame.size.height - safeAreaInsetBottom;
     }
     yTop = yTop - tipViewHeight - 12;
     

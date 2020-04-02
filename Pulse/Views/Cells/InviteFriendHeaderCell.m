@@ -16,13 +16,6 @@
 #import "CampViewController.h"
 #import "UIColor+Palette.h"
 
-#define UIViewParentController(__view) ({ \
-        UIResponder *__responder = __view; \
-        while ([__responder isKindOfClass:[UIView class]]) \
-        __responder = [__responder nextResponder]; \
-        (UIViewController *)__responder; \
-        })
-
 @implementation InviteFriendHeaderCell
 
 - (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier {

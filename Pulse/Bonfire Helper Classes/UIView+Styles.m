@@ -40,7 +40,7 @@
     self.layer.borderWidth = elevation > 0 ? HALF_PIXEL : 0;
     self.layer.borderColor = [UIColor tableViewSeparatorColor].CGColor;
     
-    self.layer.shadowColor = [UIColor colorWithWhite:0 alpha:MAX(0, (elevation > 0 ? 0.04 : 0)+(elevation*0.01))].CGColor;
+    self.layer.shadowColor = [UIColor colorWithWhite:0 alpha:MAX(0, (elevation > 0 ? 0.03 : 0)+(elevation*0.03))].CGColor;
     self.layer.shadowOffset = CGSizeMake(0, 1.5*elevation);
     self.layer.shadowRadius = roundf((1.5*elevation) * 0.75);
     self.layer.shadowOpacity = 1;

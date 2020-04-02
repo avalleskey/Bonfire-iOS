@@ -255,6 +255,10 @@
                                                    selector:@selector(next)
                                                    userInfo:nil repeats:NO];
         }
+        else if (self.views.count == 1) {
+            UIView *view = self.views[0];
+            view.transform = CGAffineTransformMakeTranslation(0, 0);
+        }
     }
 }
 - (void)stop {

@@ -28,6 +28,7 @@ extern NSString * const LOCAL_APP_URI;
 + (id)objectFromInternalURL:(NSURL *)url;
 + (BOOL)isExternalBonfireURL:(NSURL *)url;
 + (id)objectFromExternalBonfireURL:(NSURL *)url;
++ (NSDictionary *)parametersFromExternalBonfireURL:(NSURL *)url;
 + (BOOL)isBonfireURL:(NSURL *)url;
 
 #pragma mark - Internal Swich Methods

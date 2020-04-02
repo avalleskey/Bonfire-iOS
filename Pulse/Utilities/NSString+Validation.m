@@ -8,6 +8,7 @@
 
 #import "NSString+Validation.h"
 #import "GTMNSString+HTML.h"
+#import <libPhoneNumber-iOS/NBPhoneNumberUtil.h>
 
 @implementation NSString (Validation)
 
@@ -20,6 +21,16 @@
     if (regExMatches == 1) return BFValidationErrorNone;
     
     return BFValidationErrorInvalidEmail;
+}
+
+- (BFValidationError)validateBonfirePhoneNumber {
+    NBPhoneNumberUtil *phoneUtil = [[NBPhoneNumberUtil alloc] init];
+    NSError *anError = nil;
+    
+    NBPhoneNumber *myNumber = [phoneUtil parse:self
+                                 defaultRegion:@"US" error:&anError];
+    
+    return ([phoneUtil isPossibleNumber:myNumber] ? BFValidationErrorNone : BFValidationErrorInvalidPhoneNumber);
 }
 
 - (BFValidationError)validateBonfirePassword {
@@ -65,7 +76,7 @@
         return BFValidationErrorTooLong;
     }
     
-    NSString *regExPattern = @"^[A-Za-z0-9\\_]+$";
+    NSString *regExPattern = @"[a-zA-Z]{1}([a-zA-Z0-9\\_]{1,30})|([a-zA-Z0-9\\_]{1,30})[a-zA-Z]{1}";
     BOOL matches = [string rx_matchesPattern:regExPattern];
     if (!matches) {
         NSLog(@"BFValidationErrorContainsInvalidCharacters");

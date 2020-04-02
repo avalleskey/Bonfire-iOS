@@ -175,13 +175,9 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
 }
 - (void)newPostCompleted:(NSNotification *)notification {
     NSDictionary *info = notification.object;
-    NSString *tempId = info[@"tempId"];
     Post *post = info[@"post"];
     
     if (post != nil) {
-        // TODO: Check for image as well
-//        [self.tableView.stream removeTempPost:tempId];
-        
         [self getPostsWithCursor:StreamPagingCursorTypePrevious];
     }
 }
@@ -218,7 +214,10 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
 }
 
 - (void)reloadHeaderCell {
+    // TODO: Test this
+    [UIView setAnimationsEnabled:false];
     [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationNone];
+    [UIView setAnimationsEnabled:true];
 }
 
 - (NSString *)userIdentifier {
@@ -242,7 +241,7 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
     return [self userIdentifier] != nil && [[self userIdentifier] isEqualToString:[self matchingCurrentUserIdentifier]];
 }
 - (BOOL)canViewPosts {
-    if ([self currentUserIsBlocked] || [self userIsBlocked]) {
+    if ([self currentUserIsBlocked] || [self identityIsBlocked]) {
         return false;
     }
     
@@ -252,19 +251,42 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
     return self.bot;
 }
 
-- (BOOL)userIsBlocked {
-    return [self isCurrentUser] ? false : ([self.user.attributes.context.me.status isEqualToString:USER_STATUS_BLOCKS] || [self.user.attributes.context.me.status isEqualToString:USER_STATUS_BLOCKS_BOTH]);
+- (BOOL)identityIsBlocked {
+    Identity *identity;
+    if (self.user) {
+        if ([self isCurrentUser]) return false;
+        
+        identity = self.user;
+    }
+    else if (self.bot) {
+        identity = self.bot;
+    }
+    else {
+        return false;
+    }
+    
+    return [identity.attributes.context.me.status isEqualToString:USER_STATUS_BLOCKS] || [identity.attributes.context.me.status isEqualToString:USER_STATUS_BLOCKS_BOTH];
 }
 - (BOOL)currentUserIsBlocked {
-    return [self isCurrentUser] ? false : [self.user.attributes.context.me.status isEqualToString:USER_STATUS_BLOCKED] || [self.user.attributes.context.me.status isEqualToString:USER_STATUS_BLOCKS_BOTH];
+    Identity *identity;
+    if (self.user) {
+        if ([self isCurrentUser]) return false;
+        
+        identity = self.user;
+    }
+    else if (self.bot) {
+        identity = self.bot;
+    }
+    else {
+        return false;
+    }
+    
+    return [identity.attributes.context.me.status isEqualToString:USER_STATUS_BLOCKED] || [identity.attributes.context.me.status isEqualToString:USER_STATUS_BLOCKS_BOTH];
 }
 
 - (void)openProfileActions {
-    BOOL userIsBlocked = [self userIsBlocked];
-    //BOOL currentUserIsBlocked = [self currentUserIsBlocked];
-    
-    // @"\n\n\n\n\n\n"
-    
+    BOOL identityIsBlocked = [self identityIsBlocked];
+        
     Identity *identity;
     BFAlertController *actionSheet;
     
@@ -287,12 +309,12 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
         [actionSheet addAction:openEditProfile];
     }
     else {
-        BFAlertAction *blockUsername = [BFAlertAction actionWithTitle:[NSString stringWithFormat:@"%@", userIsBlocked ? @"Unblock" : @"Block"] style:BFAlertActionStyleDestructive handler:^ {
+        BFAlertAction *blockUsername = [BFAlertAction actionWithTitle:[NSString stringWithFormat:@"%@", identityIsBlocked ? @"Unblock" : @"Block"] style:BFAlertActionStyleDestructive handler:^ {
             // confirm action
-            BFAlertController *alertConfirmController = [BFAlertController alertControllerWithTitle:[NSString stringWithFormat:@"%@ %@", userIsBlocked ? @"Unblock" : @"Block" , identity.attributes.displayName] message:[NSString stringWithFormat:@"Are you sure you would like to block @%@?", identity.attributes.identifier] preferredStyle:BFAlertControllerStyleAlert];
+            BFAlertController *alertConfirmController = [BFAlertController alertControllerWithTitle:[NSString stringWithFormat:@"%@ %@", identityIsBlocked ? @"Unblock" : @"Block" , identity.attributes.displayName] message:[NSString stringWithFormat:@"Are you sure you would like to block @%@?", identity.attributes.identifier] preferredStyle:BFAlertControllerStyleAlert];
             
-            BFAlertAction *alertConfirm = [BFAlertAction actionWithTitle:userIsBlocked ? @"Unblock" : @"Block" style:BFAlertActionStyleDestructive handler:^{
-                if (userIsBlocked) {
+            BFAlertAction *alertConfirm = [BFAlertAction actionWithTitle:identityIsBlocked ? @"Unblock" : @"Block" style:BFAlertActionStyleDestructive handler:^{
+                if (identityIsBlocked) {
                     [BFAPI unblockIdentity:identity completion:^(BOOL success, id responseObject) {
                         if (success) {
                             // NSLog(@"success unblocking!");
@@ -571,7 +593,7 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
         else if ([self currentUserIsBlocked]) { // blocked by User
             [self showErrorViewWithType:ErrorViewTypeBlocked title:[NSString stringWithFormat:@"@%@ Blocked You", self.user.attributes.identifier] description:[NSString stringWithFormat:@"You are blocked from viewing and interacting with %@", self.user.attributes.displayName] actionTitle:nil actionBlock:nil];
         }
-        else if ([self userIsBlocked]) { // blocked by User
+        else if ([self identityIsBlocked]) { // blocked by User
             [self showErrorViewWithType:ErrorViewTypeBlocked title:[NSString stringWithFormat:@"You Blocked @%@", self.user.attributes.identifier] description:[NSString stringWithFormat:@"Unblock their profile to view and interact with %@", self.user.attributes.displayName] actionTitle:nil actionBlock:nil];
         }
         else {
@@ -638,16 +660,28 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
             
             SectionStreamPage *page = [[SectionStreamPage alloc] initWithDictionary:responseObject error:nil];
             if (page.data.count > 0) {
+                NSString *sectionTitle;
                 if (page.meta.paging.replaceCache ||
                     cursorType == StreamPagingCursorTypeNone) {
                     [self.tableView scrollToTop];
                     [self.tableView.stream flush];
+                    
+                    if (self.user) {
+                        NSString *displayName = [self isCurrentUser] ? @"Your" : [NSString stringWithFormat:@"@%@'s", self.user.attributes.identifier];
+                        sectionTitle = [displayName stringByAppendingString:@" Channel"];
+                    }
                 }
                 
                 if (cursorType == StreamPagingCursorTypeNext) {
                     [self.tableView.stream appendPage:page];
                 }
                 else if (cursorType == StreamPagingCursorTypeNone || cursorType == StreamPagingCursorTypePrevious) {
+                    Section *firstSection = ((Section *)page.data[0]);
+                    if (self.tableView.stream.sections.count == 0 &&
+                        firstSection.attributes.title.length == 0) {
+                        firstSection.attributes.title = sectionTitle;
+                    }
+                    
                     [self.tableView.stream prependPage:page];
                 }
             }
@@ -877,7 +911,7 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
 }
 - (CGFloat)numberOfRowsInFirstSection {
     NSInteger rows = 2;
-    if (!(self.tableView.visualError && !(self.tableView.visualError.errorType == ErrorViewTypeNoPosts || self.tableView.visualError.errorType == ErrorViewTypeFirstPost)) && self.user && !([self userIsBlocked] || [self currentUserIsBlocked])) {
+    if (!(self.tableView.visualError && !(self.tableView.visualError.errorType == ErrorViewTypeNoPosts || self.tableView.visualError.errorType == ErrorViewTypeFirstPost)) && self.user && !([self identityIsBlocked] || [self currentUserIsBlocked])) {
         rows += 2;
     }
     
@@ -891,7 +925,7 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
     [UIColor bonfireRed],  // 2
     [UIColor bonfireOrange],  // 3
     [UIColor colorWithRed:0.16 green:0.72 blue:0.01 alpha:1.00], // cash green
-    [UIColor brownColor],  // 5
+    [UIColor fromHex:@"#8F683C"],  // 5
     [UIColor colorWithRed:0.96 green:0.76 blue:0.23 alpha:1.00],  // 6
     [UIColor bonfireCyanWithLevel:800],  // 7
     [UIColor fromHex:self.user.attributes.color],

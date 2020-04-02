@@ -23,7 +23,6 @@
 #import "ReplyCell.h"
 #import "AddReplyCell.h"
 #import "ExpandThreadCell.h"
-#import "PaginationCell.h"
 #import "BFAlertController.h"
 #import "PrivacySelectorTableViewController.h"
 @import Firebase;
@@ -39,7 +38,6 @@
 @property CGFloat minHeaderHeight;
 @property CGFloat maxHeaderHeight;
 @property (nonatomic, assign) NSMutableArray *conversation;
-@property (nonatomic, strong) UIActivityIndicatorView *parentPostSpinner;
 
 @end
 
@@ -53,13 +51,14 @@ static NSString * const linkPostReuseIdentifier = @"linkPost";
 static NSString * const addReplyCellIdentifier = @"addReplyCell";
 static NSString * const expandRepliesCellIdentifier = @"expandRepliesCell";
 
-static NSString * const paginationCellIdentifier = @"PaginationCell";
-
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
         
     self.view.backgroundColor = [UIColor tableViewBackgroundColor];
+    
+    NSString *themeCSS = self.link.attributes.attribution.attributes.color;
+    self.theme = (themeCSS.length == 0) ? [UIColor bonfireGrayWithLevel:800] : [UIColor fromHex:themeCSS];
         
     [self setupTableView];
     [self setupErrorView];
@@ -551,12 +550,6 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     
     [self.view addSubview:self.tableView];
     
-    self.parentPostSpinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
-    self.parentPostSpinner.color = [UIColor bonfireSecondaryColor];
-    self.parentPostSpinner.frame = CGRectMake(self.view.frame.size.width / 2 - (self.parentPostSpinner.frame.size.width / 2), (-1 * self.parentPostSpinner.frame.size.height) - 16, self.parentPostSpinner.frame.size.width, self.parentPostSpinner.frame.size.height);
-    self.parentPostSpinner.hidden = true;
-    [self.tableView addSubview:self.parentPostSpinner];
-    
     [self setupImagePreviewView];
 }
 
@@ -709,24 +702,23 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     self.composeInputView = [[ComposeInputView alloc] initWithFrame:CGRectMake(0, self.view.frame.size.height - 52, self.view.frame.size.width, 190)];
     self.composeInputView.delegate = self;
     self.composeInputView.textView.keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
+    self.composeInputView.theme = self.theme;
     
     [self.composeInputView bk_whenTapped:^{
         if (![self.composeInputView isActive]) {
             [self.composeInputView setActive:true];
         }
     }];
-    [self.composeInputView.postButton setImage:[[UIImage imageNamed:@"nextButtonIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
     [self.composeInputView.postButton bk_whenTapped:^{
         [self openPrivacySelector];
     }];
     [self.composeInputView.expandButton bk_whenTapped:^{
-//        [Launcher openComposePost:self.post.attributes.postedIn inReplyTo:self.post withMessage:self.composeInputView.textView.text media:@[]];
         [Launcher openComposePost:nil inReplyTo:nil withMessage:nil media:@[] quotedObject:self.link];
     }];
     [self.composeInputView.replyingToLabel bk_whenTapped:^{
         // scroll to post you're replying to
         NSInteger i = 0;
-        for (BFPostStreamComponent *component in self.tableView.stream.components) {
+        for (BFStreamComponent *component in self.tableView.stream.components) {
             if (component.post && component.post.identifier == self.composeInputView.replyingTo.identifier) {
                 // scroll to this item!
                 NSIndexPath* ipath = [NSIndexPath indexPathForRow:0 inSection:i+1];
@@ -742,12 +734,8 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     
     [self.view addSubview:self.composeInputView];
     
-    self.composeInputView.tintColor = [self.theme isEqual:[UIColor whiteColor]] ? [UIColor bonfirePrimaryColor] : self.theme;
     self.composeInputView.defaultPlaceholder = @"Share this link...";
     [self.composeInputView setMediaTypes:@[BFMediaTypeGIF, BFMediaTypeText, BFMediaTypeImage]];
-    
-    self.composeInputView.postButton.backgroundColor = [UIColor bonfirePrimaryColor];
-    self.composeInputView.postButton.tintColor = [UIColor whiteColor];
 }
 - (void)privacySelectionDidSelectToPost:(Camp *)selection {
     [self postMessageInCamp:selection];
@@ -841,15 +829,12 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     self.navigationController.view.tintColor = theme;
     self.tableView.tintColor = theme;
     
-    UIColor *themeAdjustedForDarkMode = [UIColor fromHex:[UIColor toHex:theme] adjustForOptimalContrast:true];
     [UIView animateWithDuration:0.35f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
         if (((SimpleNavigationController *)self.navigationController).topViewController == self) {
             [(SimpleNavigationController *)self.navigationController updateBarColor:theme animated:false];
         }
         
-        self.composeInputView.textView.tintColor = themeAdjustedForDarkMode;
-        self.composeInputView.postButton.backgroundColor = themeAdjustedForDarkMode;
-        self.composeInputView.postButton.tintColor = [UIColor highContrastForegroundForBackground:self.composeInputView.postButton.backgroundColor];
+        self.composeInputView.theme = theme;
         
         self.imagePreviewView.backgroundColor = theme;
     } completion:^(BOOL finished) {

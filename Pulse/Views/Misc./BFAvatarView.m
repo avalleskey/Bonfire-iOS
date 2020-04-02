@@ -43,7 +43,7 @@
     self.imageView.image = [UIImage imageNamed:@"anonymous"];
     self.imageView.layer.masksToBounds = true;
     self.imageView.layer.borderWidth = 0;
-//    self.imageView.sd_imageTransition = [SDWebImageTransition fadeTransition];
+    self.imageView.sd_imageTransition = [SDWebImageTransition fadeTransition];
     [self addSubview:self.imageView];
     
     // functionality
@@ -77,7 +77,7 @@
 - (void)layoutSubviews {
     [super layoutSubviews];
     
-    self.imageView.layer.borderColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.04f].CGColor;
+    self.imageView.layer.borderColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.08f].CGColor;
     self.highlightView.backgroundColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.3f];
 }
 

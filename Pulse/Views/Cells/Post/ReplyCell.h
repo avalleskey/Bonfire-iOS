@@ -9,7 +9,7 @@
 #import "PostCell.h"
 #import "PostActionsView.h"
 
-#define replyTextViewFont [UIFont systemFontOfSize:textViewFont.pointSize weight:UIFontWeightRegular]
+#define replyTextViewFont textViewFont
 #define REPLY_BUBBLE_INSETS UIEdgeInsetsMake(roundf(replyTextViewFont.pointSize*.4), roundf(replyTextViewFont.pointSize*.65), roundf(replyTextViewFont.pointSize*.4), roundf(replyTextViewFont.pointSize*.65))
 #define replyContentOffset UIEdgeInsetsMake(4, 12, 4, 12)
 

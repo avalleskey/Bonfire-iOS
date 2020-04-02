@@ -119,7 +119,7 @@
         CGFloat imageHeight = [PostImagesView streamImageHeight] * .8;
         self.imagesView.frame = CGRectMake(0, yBottom, self.frame.size.width, imageHeight);
         
-         yBottom = self.imagesView.frame.origin.y + self.imagesView.frame.size.height;
+//         yBottom = self.imagesView.frame.origin.y + self.imagesView.frame.size.height;
     }
     
     [self resizeHeight];

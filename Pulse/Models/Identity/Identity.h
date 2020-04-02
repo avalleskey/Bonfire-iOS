@@ -43,6 +43,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic) NSString <Optional> *color;
 @property (nonatomic) IdentityMedia <Optional> *media;
 @property (nonatomic) NSString <Optional> *email;
+@property (nonatomic) NSString <Optional> *phone;
 
 @property (nonatomic) BFContext <Optional> *context;
 @property (nonatomic) IdentitySummaries <Optional> *summaries;

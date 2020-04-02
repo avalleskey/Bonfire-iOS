@@ -16,13 +16,6 @@
 #import "UIColor+Palette.h"
 #import <JGProgressHUD/JGProgressHUD.h>
 
-#define UIViewParentController(__view) ({ \
-    UIResponder *__responder = __view; \
-    while ([__responder isKindOfClass:[UIView class]]) \
-    __responder = [__responder nextResponder]; \
-    (UIViewController *)__responder; \
-    })
-
 @implementation PostCell
 
 - (void)awakeFromNib {
@@ -46,7 +39,7 @@
         
         self.post = [[Post alloc] init];
         
-        self.primaryAvatarView = [[BFAvatarView alloc] initWithFrame:CGRectMake(12, 12, 48, 48)];
+        self.primaryAvatarView = [[BFAvatarView alloc] initWithFrame:CGRectMake(12, 12, 42, 42)];
         self.primaryAvatarView.openOnTap = true;
         self.primaryAvatarView.allowOnlineDot = true;
         [self.contentView addSubview:self.primaryAvatarView];

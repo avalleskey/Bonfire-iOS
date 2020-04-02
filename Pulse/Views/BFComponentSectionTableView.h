@@ -12,13 +12,6 @@
 #import "BFVisualErrorView.h"
 #import "InsightsLogger.h"
 
-#define UIViewParentController(__view) ({ \
-        UIResponder *__responder = __view; \
-        while ([__responder isKindOfClass:[UIView class]]) \
-        __responder = [__responder nextResponder]; \
-        (UIViewController *)__responder; \
-        })
-
 typedef enum {
     BFComponentTableViewTypeFeed = 1,
     BFComponentTableViewTypeCamp = 2,

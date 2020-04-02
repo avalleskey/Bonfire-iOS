@@ -31,8 +31,11 @@ NS_ASSUME_NONNULL_BEGIN
 
 #pragma mark - Methods
 - (void)flush;
+
 - (void)addAsset:(PHAsset *)asset;
 - (void)addImage:(UIImage *)image;
+- (void)addGIFData:(NSData *)data;
+
 - (void)removeObject:(BFMediaObject *)object;
 - (NSArray *)toDataArray;
 - (BOOL)canAddImage;
@@ -47,6 +50,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (id)initWithAsset:(PHAsset *)asset;
 - (id)initWithImage:(UIImage *)image;
+- (id)initWithGIFData:(NSData *)data;
 
 // supported MIME types
 extern NSString * const BFMediaObjectMIME_JPEG;

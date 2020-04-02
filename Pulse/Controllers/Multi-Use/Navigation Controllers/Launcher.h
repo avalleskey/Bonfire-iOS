@@ -14,9 +14,10 @@
 #import "SOLOptionsTransitionAnimator.h"
 #import "ComplexNavigationController.h"
 #import "PostViewController.h"
-#import "BotViewController.h"
 #import "CampViewController.h"
 #import "TabController.h"
+#import "BFCameraViewController.h"
+#import "GIFCollectionViewController.h"
 
 #define VIEW_CONTROLLER_PUSH_TAG 99
 
@@ -36,6 +37,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (void)openSearch;
 + (void)openSearchFromRect:(CGRect)rect;
++ (void)openGIFSearch:(id<GIFCollectionViewControllerDelegate>)sender;
 
 + (void)openCamp:(Camp *)camp;
 + (void)openCamp:(Camp *)camp controller:(CampViewController * _Nullable)controller;
@@ -60,7 +62,8 @@ NS_ASSUME_NONNULL_BEGIN
 + (void)openCreateCamp;
 + (void)openComposePost;
 + (void)openComposePost:(Camp * _Nullable)camp inReplyTo:(Post * _Nullable)replyingTo withMessage:(NSString * _Nullable)message media:(NSArray * _Nullable)media quotedObject:(NSObject * _Nullable)quotedObject;
-+ (void)openComposeCamera;
++ (void)openComposeCamera:(id<BFCameraViewControllerDelegate>)sender;
++ (void)openComposeCameraFromCenterPoint:(CGPoint)centerLaunch sender:(id<BFCameraViewControllerDelegate>)sender;
 + (void)openEditProfile;
 + (void)openInviteFriends:(id _Nullable)sender;
 + (void)openInviteToCamp:(Camp *)camp;

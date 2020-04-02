@@ -42,9 +42,6 @@
     
     self.storeNavVC = [self simpleNavWithRootViewController:@"discover"];
     [vcArray addObject:self.storeNavVC];
-
-//    self.searchNavVC = [self searchNavWithRootViewController:@"search"];
-    //[vcArray addObject:self.searchNavVC];
     
     self.notificationsNavVC = [self simpleNavWithRootViewController:@"notifs"];
     [vcArray addObject:self.notificationsNavVC];
@@ -84,14 +81,8 @@
     }];
     
     NSInteger defaultIndex = 0;
-//    if ([Session sharedInstance].currentUser.attributes.summaries.counts.camps == 0) {
-//        defaultIndex = [self.viewControllers indexOfObject:self.storeNavVC];
-//    }
     self.selectedIndex = defaultIndex;
     [self setSelectedViewController:vcArray[defaultIndex]];
-//    [self addPillToController:self.myProfileNavVC title:@"Edit Profile" image:nil action:^{
-//        [Launcher openEditProfile];
-//    }];
     
     self.tabBar.tintColor = [UIColor bonfirePrimaryColor];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userUpdated:) name:@"UserUpdated" object:nil];
@@ -248,7 +239,7 @@
 //    self.blurView.tintColor = [UIColor clearColor];
 //    [self.tabBar insertSubview:self.blurView atIndex:0];
     self.tabBackgroundView = [[UIView alloc] initWithFrame: CGRectMake(0, 0, self.tabBar.frame.size.width, self.tabBar.frame.size.height + [UIApplication sharedApplication].keyWindow.safeAreaInsets.bottom)];
-    self.tabBackgroundView.backgroundColor = [UIColor colorNamed:@"Navigation_ClearBackgroundColor"];
+    self.tabBackgroundView.backgroundColor = [UIColor colorNamed:@"TabBarBackgroundColor"];
     self.tabBackgroundView.layer.masksToBounds = false;
     self.tabBackgroundView.tintColor = [UIColor clearColor];
     [self.tabBar insertSubview:self.tabBackgroundView atIndex:0];
@@ -268,7 +259,6 @@
     [super viewDidAppear:animated];
     
     if ([UIApplication sharedApplication].applicationIconBadgeNumber > 0) {
-        [self setBadgeValue:[NSString stringWithFormat:@"%ld", (long)[UIApplication sharedApplication].applicationIconBadgeNumber] forItem:self.notificationsNavVC.tabBarItem];
         // TODO: Verify this prefetches the notification table view
         [self.notificationsNavVC view];
     }
@@ -333,7 +323,8 @@
                         break;
                     }
                 }
-                CGFloat offset = (tabBarItemView.frame.size.height / 2) - tabBarImageView.center.y;
+                CGFloat offset = (tabBarItemView.frame.size.height / 2) - tabBarImageView.center.y - (!HAS_ROUNDED_CORNERS ? 1 : 0);
+                
                 NSLog(@"offset: %f", offset);
                 navVC.tabBarItem.imageInsets = UIEdgeInsetsMake(offset, 0, -offset, 0);
                 
@@ -507,7 +498,10 @@
         [burst removeFromSuperview];
     }];
     
-    [HapticHelper generateFeedback:FeedbackType_Selection];
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        // run on background thread
+        [HapticHelper generateFeedback:FeedbackType_Selection];
+    });
     
     [self setNeedsStatusBarAppearanceUpdate];
 }
@@ -569,14 +563,11 @@
         [pill setTitleEdgeInsets:UIEdgeInsetsMake(0, 8, 0, 0)];
     }
     pill.backgroundColor = [UIColor colorNamed:@"PillBackgroundColor"];
-    pill.layer.cornerRadius = pill.frame.size.height / 2;
-    pill.layer.shadowOffset = CGSizeMake(0, 2);
-    pill.layer.shadowRadius = 3.f;
-    pill.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.14f].CGColor;
-    pill.layer.shadowOpacity = 1.f;
-    pill.layer.shouldRasterize = true;
-    pill.layer.rasterizationScale = [[UIScreen mainScreen] scale];
-    pill.layer.masksToBounds = false;
+    
+    [pill setCornerRadiusType:BFCornerRadiusTypeCircle];
+    [pill setElevation:2];
+    pill.layer.borderWidth = HALF_PIXEL;
+    pill.layer.borderColor = [UIColor colorWithWhite:0 alpha:0.08f].CGColor;
     pill.userInteractionEnabled = true;
     CGFloat intrinsticWidth = pill.intrinsicContentSize.width + (18*2);
     pill.frame = CGRectMake(self.view.frame.size.width / 2 - intrinsticWidth / 2, pill.frame.origin.y, intrinsticWidth, pill.frame.size.height);
@@ -624,24 +615,6 @@
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(withDelay ? 0.4f : 0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         [self showPillIfNeeded];
     });
-}
-- (UIImage *)gradientImageForView:(UIView *)view topLeftColor:(UIColor *)topLeftColor bottomRightColor:(UIColor *)bottomRightColor {
-    CGSize size = view.frame.size;
-    CGFloat width = size.width;
-    CGFloat height = size.height;
-
-    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-    CGFloat locations[] = { 0.0, 1.0 };
-    NSArray *colors = @[(__bridge id)topLeftColor.CGColor, (__bridge id)bottomRightColor.CGColor];
-    CGGradientRef gradient = CGGradientCreateWithColors(colorSpace, (__bridge CFArrayRef)colors, locations);
-
-    UIGraphicsBeginImageContext(CGSizeMake(width, height));
-    CGContextRef context = UIGraphicsGetCurrentContext();
-    CGContextDrawLinearGradient(context, gradient, CGPointMake(0, 0), CGPointMake(width, height), 0);
-    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
-    
-    return image;
 }
 - (void)showPillIfNeeded {    
     NSInteger index = [self.tabBar.items indexOfObject:self.tabBar.selectedItem];

@@ -44,11 +44,11 @@
         self.replyingToButton.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
         [self.contentView addSubview:self.replyingToButton];
         
-        self.primaryAvatarView.frame = CGRectMake(12, 12, 48, 48);
+//        self.primaryAvatarView.frame = CGRectMake(12, 12, 48, 48);
         self.secondaryAvatarView.frame = CGRectMake(self.primaryAvatarView.frame.origin.x + self.primaryAvatarView.frame.size.width - self.secondaryAvatarView.frame.size.width, self.primaryAvatarView.frame.origin.y + self.primaryAvatarView.frame.size.height - self.secondaryAvatarView.frame.size.height, self.secondaryAvatarView.frame.size.width, self.secondaryAvatarView.frame.size.height);
         self.primaryAvatarView.openOnTap = true;
         
-        self.creatorView = [[TappableView alloc] initWithFrame:CGRectMake(70, self.primaryAvatarView.frame.origin.y + (self.primaryAvatarView.frame.size.height / 2) - 16, 400, 32)];
+        self.creatorView = [[TappableView alloc] initWithFrame:CGRectMake(64, self.primaryAvatarView.frame.origin.y + (self.primaryAvatarView.frame.size.height / 2) - 16, 400, 32)];
         [self.creatorView bk_whenTapped:^{
             if ([self.post.attributes.display.creator isEqualToString:POST_DISPLAY_CREATOR_CAMP] && self.post.attributes.postedIn != nil) {
                 [Launcher openCamp:self.post.attributes.postedIn];
@@ -169,7 +169,7 @@
     CGFloat yBottom = expandedPostContentOffset.top;
     
     self.primaryAvatarView.frame = CGRectMake(self.primaryAvatarView.frame.origin.x, yBottom, self.primaryAvatarView.frame.size.width, self.primaryAvatarView.frame.size.height);
-    yBottom = self.primaryAvatarView.frame.origin.y + self.primaryAvatarView.frame.size.height + 16;
+    yBottom = self.primaryAvatarView.frame.origin.y + self.primaryAvatarView.frame.size.height + 12;
     
     if (![self.replyingToButton isHidden]) {
         self.replyingToButton.frame = CGRectMake(expandedPostContentOffset.left, yBottom, self.frame.size.width - (expandedPostContentOffset.left + expandedPostContentOffset.right), self.replyingToButton.frame.size.height);
@@ -247,16 +247,7 @@
                     UIImage *memoryImage = [[SDImageCache sharedImageCache] imageFromMemoryCacheForKey:imageURL];
                     if (memoryImage) {
                         CGFloat heightToWidthRatio = memoryImage.size.height / memoryImage.size.width;
-                        imageHeight = roundf(imageWidth * heightToWidthRatio);
-                        
-                        if (imageHeight < 100) {
-                            // NSLog(@"too small muchacho");
-                            imageHeight = 100;
-                        }
-                        if (imageHeight > 480) {
-                            // NSLog(@"too big muchacho");
-                            imageHeight = 480;
-                        }
+                        imageHeight = CLAMP(roundf(imageWidth * heightToWidthRatio), 100, imageWidth * 1.2);
                     }
                 }
                 else {
@@ -265,19 +256,12 @@
                     if (diskImage) {
                         // disk image!
                         CGFloat heightToWidthRatio = diskImage.size.height / diskImage.size.width;
-                        imageHeight = roundf(imageWidth * heightToWidthRatio);
-                        
-                        if (imageHeight < 100) {
-                            // NSLog(@"too small muchacho");
-                            imageHeight = 100;
-                        }
-                        if (imageHeight > 480) {
-                            // NSLog(@"too big muchacho");
-                            imageHeight = 480;
-                        }
+                        imageHeight = CLAMP(roundf(imageWidth * heightToWidthRatio), 100, imageWidth * 1.2);
                     }
                 }
             }
+                
+            [self.imagesView layoutSubviews];
             
             self.imagesView.frame = CGRectMake(expandedPostContentOffset.left, yBottom + (self.textView.message.length > 0 || ![self.replyingToButton isHidden] ? 8 : 0), imageWidth, imageHeight);
             
@@ -380,6 +364,8 @@
 - (void)setPost:(Post *)post {
     if (post != _post) {
         _post = post;
+        
+        BOOL temporary = _post.tempId;
         
         self.replyingToButton.hidden = !self.post.attributes.parent && self.post.attributes.thread.prevCursor.length == 0;
         if (![self.replyingToButton isHidden]) {
@@ -520,6 +506,8 @@
             self.activityView.backgroundColor = [theme colorWithAlphaComponent:0.04];
             self.activityView.tintColor = theme;
             self.actionsView.tintColor = theme;
+            
+            self.userInteractionEnabled = !(temporary);
         }
                 
         NSString *creatorTitle = @"Anonymous User";
@@ -534,17 +522,8 @@
             self.postedInArrow.hidden  = YES;
         }
         else {
-            NSString *timeAgo;
-            if (_post.tempId) {
-                timeAgo = @"1s";
-            }
-            else {
-                timeAgo = [NSDate mysqlDatetimeFormattedAsTimeAgo:_post.attributes.createdAt withForm:TimeAgoShortForm];
-            }
-            
             creatorTitle = self.post.attributes.creator.attributes.displayName;
             if (self.post.attributes.creator.attributes.identifier) {
-//                creatorTag = [NSString stringWithFormat:@"%@ · %@", [@"@" stringByAppendingString:self.post.attributes.creator.attributes.identifier], timeAgo];
                 creatorTag = [NSString stringWithFormat:@"%@", [@"@" stringByAppendingString:self.post.attributes.creator.attributes.identifier]];
             }
             
@@ -625,8 +604,8 @@
 
 + (CGFloat)heightForPost:(Post *)post width:(CGFloat)contentWidth {
     // name @username • 2hr
-    CGFloat avatarHeight = 48; // 2pt padding underneath
-    CGFloat avatarBottomPadding = 16;
+    CGFloat avatarHeight = 42; // 2pt padding underneath
+    CGFloat avatarBottomPadding = 12;
     
     CGFloat height = avatarHeight + avatarBottomPadding;
     
@@ -668,16 +647,7 @@
                 UIImage *memoryImage = [[SDImageCache sharedImageCache] imageFromMemoryCacheForKey:imageURL];
                 if (memoryImage) {
                     CGFloat heightToWidthRatio = memoryImage.size.height / memoryImage.size.width;
-                    imageHeight = roundf(imageWidth * heightToWidthRatio);
-                    
-                    if (imageHeight < 100) {
-                        // NSLog(@"too small muchacho");
-                        imageHeight = 100;
-                    }
-                    if (imageHeight > 480) {
-                        // NSLog(@"too big muchacho");
-                        imageHeight = 480;
-                    }
+                    imageHeight = CLAMP(roundf(imageWidth * heightToWidthRatio), 100, imageWidth * 1.2);
                 }
             }
             else {
@@ -686,14 +656,7 @@
                 if (diskImage) {
                     // disk image!
                     CGFloat heightToWidthRatio = diskImage.size.height / diskImage.size.width;
-                    imageHeight = MAX(MIN(100, roundf(imageWidth * heightToWidthRatio)), 480);
-                    
-                    if (imageHeight < 100) {
-                        imageHeight = 100;
-                    }
-                    else if (imageHeight > 480) {
-                        imageHeight = 480;
-                    }
+                    imageHeight = CLAMP(roundf(imageWidth * heightToWidthRatio), 100, imageWidth * 1.2);
                 }
             }
         }

@@ -33,13 +33,6 @@
 @import Firebase;
 //@import FirebasePerformance;
 
-#define UIViewParentController(__view) ({ \
-    UIResponder *__responder = __view; \
-    while ([__responder isKindOfClass:[UIView class]]) \
-    __responder = [__responder nextResponder]; \
-    (UIViewController *)__responder; \
-    })
-
 @interface CreateCampViewController () <L360ConfettiAreaDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, RSKImageCropViewControllerDelegate, RSKImageCropViewControllerDataSource> {
     UIEdgeInsets safeAreaInsets;
     NSArray *colors;
@@ -377,7 +370,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                    [UIColor bonfireRed],  // 2
                    [UIColor bonfireOrange],  // 3
                    [UIColor colorWithRed:0.16 green:0.72 blue:0.01 alpha:1.00], // cash green
-                   [UIColor brownColor],  // 5
+                   [UIColor fromHex:@"#8F683C"],  // 5
                    [UIColor colorWithRed:0.96 green:0.76 blue:0.23 alpha:1.00],  // 6
                    [UIColor bonfireCyanWithLevel:800],  // 7
                    [UIColor bonfireGrayWithLevel:900]]; // 8
@@ -485,7 +478,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         [buttons addObject:@{@"id": @"bonfire", @"image": [UIImage imageNamed:@"share_bonfire"], @"color": [UIColor fromHex:@"FF513C" adjustForOptimalContrast:false]}];
 
         BOOL hasInstagram = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"instagram-stories://"]];
-        BOOL hasSnapchat = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"snapchat://"]];
+        BOOL hasSnapchat = false; //[[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"snapchat://"]];
         BOOL hasTwitter = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"twitter://"]];
       
         if (hasInstagram) {
@@ -512,7 +505,10 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         [buttons addObject:@{@"id": @"more", @"image": [[UIImage imageNamed:@"share_more"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate], @"color": [UIColor tableViewSeparatorColor]}];
         
         CGFloat buttonPadding = 12;
-        CGFloat buttonDiameter = (self.view.frame.size.width - (shareField.frame.origin.x * 2) - (20 * 2) - ((buttons.count - 1) * buttonPadding)) / buttons.count;
+        CGFloat buttonDiameter = MIN(56, (self.view.frame.size.width - (shareField.frame.origin.x * 2) - (20 * 2) - ((buttons.count - 1) * buttonPadding)) / buttons.count);
+        
+        CGFloat newWidth = buttonDiameter * buttons.count + (buttonPadding * (MAX(1, buttons.count) - 1));
+        CGFloat buttonOffset = (shareBlock.frame.size.width - newWidth) / 2;
         
         shareBlock.frame = CGRectMake(shareBlock.frame.origin.x, shareBlock.frame.origin.y, shareBlock.frame.size.width, shareField.frame.origin.y + shareField.frame.size.height + (buttonPadding * 1.5) + buttonDiameter);
         for (NSInteger i = 0; i < buttons.count; i++) {
@@ -520,7 +516,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             NSString *identifier = buttonDict[@"id"];
             
             UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
-            button.frame = CGRectMake(shareField.frame.origin.x + 20 + i * (buttonDiameter + buttonPadding), shareBlock.frame.size.height - buttonDiameter, buttonDiameter, buttonDiameter);
+            button.frame = CGRectMake(buttonOffset + i * (buttonDiameter + buttonPadding), shareBlock.frame.size.height - buttonDiameter, buttonDiameter, buttonDiameter);
             button.layer.cornerRadius = button.frame.size.width / 2;
             button.backgroundColor = buttonDict[@"color"];
             button.adjustsImageWhenHighlighted = false;
@@ -1121,7 +1117,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     CABasicAnimation *rotationAnimation;
     rotationAnimation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.z"];
     rotationAnimation.toValue = [NSNumber numberWithFloat: M_PI * 2.0 /* full rotation*/ * 1 * 1.f ];
-    rotationAnimation.duration = 1.f;
+    rotationAnimation.duration = 0.75f;
     rotationAnimation.cumulative = YES;
     rotationAnimation.repeatCount = HUGE_VALF;
     
@@ -1163,7 +1159,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 - (void)showBigSpinnerForStep:(NSInteger)step {
     UIView *block = (UIView *)[[self.steps objectAtIndex:step] objectForKey:@"block"];
     
-    UIImageView *spinner = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 52, 52)];
+    UIImageView *spinner = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 42, 42)];
     spinner.image = [[UIImage imageNamed:@"spinner"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
     spinner.tintColor = [self currentColor];
     spinner.center = self.view.center;

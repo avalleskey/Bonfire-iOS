@@ -24,6 +24,7 @@
 #import "NSString+Validation.h"
 #import "BFVisualErrorView.h"
 #import "PaginationCell.h"
+#import "BFHeaderView.h"
 @import Firebase;
 
 @interface SearchTableViewController () {
@@ -191,7 +192,7 @@ static NSString * const paginationCellReuseIdentifier = @"PaginationCell";
             if ([originalSearchText isEqualToString:[self currentSearchText]]) {
                 self.loading = false;
                 NSDictionary *responseData = (NSDictionary *)responseObject[@"data"];
-                
+                                
                 self.searchResults = [[NSMutableArray alloc] init];
                 [self populateSearchResults:responseData];
                 
@@ -264,13 +265,13 @@ static NSString * const paginationCellReuseIdentifier = @"PaginationCell";
         searchText = ((ComplexNavigationController *)self.navigationController).searchView.textField.text;
     }
     
-    if (searchText.length > 0 && self.searchResults.count == 0 && !([self showRecents] &&  self.recentSearchResults.count == 0) && [searchText validateBonfireUsername] != BFValidationErrorNone && [searchText validateBonfireCampTag] != BFValidationErrorNone) {
+    if (!self.loading && searchText.length > 0 && self.searchResults.count == 0 && !([self showRecents] &&  self.recentSearchResults.count == 0) && [searchText validateBonfireUsername] != BFValidationErrorNone && [searchText validateBonfireCampTag] != BFValidationErrorNone) {
         // Error: No posts yet!
         BFVisualError *visualError = [BFVisualError visualErrorOfType:ErrorViewTypeNotFound title:@"No Results Found" description:nil actionTitle:nil actionBlock:nil];
         self.errorView.visualError = visualError;
         self.errorView.hidden = false;
     }
-    else if (searchText.length == 0 && [self tableView:self.tableView numberOfRowsInSection:0] == 0) {
+    else if (!self.loading && searchText.length == 0 && [self tableView:self.tableView numberOfRowsInSection:0] == 0) {
         BFVisualError *visualError = [BFVisualError visualErrorOfType:ErrorViewTypeSearch title:@"Start typing..." description:nil actionTitle:nil actionBlock:nil];
         self.errorView.visualError = visualError;
         self.errorView.hidden = false;
@@ -307,7 +308,7 @@ static NSString * const paginationCellReuseIdentifier = @"PaginationCell";
             cell = [[PaginationCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:paginationCellReuseIdentifier];
         }
         
-        cell.backgroundColor = [UIColor contentBackgroundColor];
+        cell.backgroundColor = [UIColor tableViewBackgroundColor];
         [cell.spinner startAnimating];
         
         return cell;
@@ -398,7 +399,7 @@ static NSString * const paginationCellReuseIdentifier = @"PaginationCell";
 }
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     if (self.loading && indexPath.row == 0) {
-        return 68;
+        return 62;
     }
         
     NSString *searchText;
@@ -414,7 +415,7 @@ static NSString * const paginationCellReuseIdentifier = @"PaginationCell";
         return 52;
     }
     
-    return 68;
+    return 62;
 }
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     return 1;
@@ -529,25 +530,45 @@ static NSString * const paginationCellReuseIdentifier = @"PaginationCell";
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    if ([self showRecents] && self.recentSearchResults.count == 0) return CGFLOAT_MIN;
+    if ([self showRecents]) {
+        if (self.recentSearchResults.count == 0) {
+            return CGFLOAT_MIN;
+        }
+        else {
+            return [BFHeaderView height];
+        }
+    }
+    else if (self.loading) return CGFLOAT_MIN;
     
     return HALF_PIXEL;
 }
 
 - (nullable UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
-    if ([self showRecents] && self.recentSearchResults.count == 0) return nil;
-    
+    if ([self showRecents]) {
+        if (self.recentSearchResults.count == 0) {
+            return nil;
+        }
+        else {
+            BFHeaderView *headerView = [[BFHeaderView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, [BFHeaderView height])];
+            headerView.title = @"Recents";
+            return headerView;
+        }
+    }
+    else if (self.loading) return nil;
+        
     UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, HALF_PIXEL)];
     separator.backgroundColor = [UIColor tableViewSeparatorColor];
     return separator;
 }
 - (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
     if ([self showRecents] && self.recentSearchResults.count == 0) return CGFLOAT_MIN;
+    else if (self.loading) return CGFLOAT_MIN;
     
     return HALF_PIXEL;
 }
 - (UIView*)tableView:(UITableView*)tableView viewForFooterInSection:(NSInteger)section {
     if ([self showRecents] && self.recentSearchResults.count == 0) return nil;
+    else if (self.loading) return nil;
     
     UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, HALF_PIXEL)];
     separator.backgroundColor = [UIColor tableViewSeparatorColor];
@@ -634,14 +655,13 @@ static NSString * const paginationCellReuseIdentifier = @"PaginationCell";
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
     // pass scroll events up to the navigation controller
-    UINavigationController *navController = UIViewParentController(self).navigationController;
-    if (navController) {
-        if ([navController isKindOfClass:[ComplexNavigationController class]]) {
-            ComplexNavigationController *complexNav = (ComplexNavigationController *)navController;
+    if (self.navigationController) {
+        if ([self.navigationController isKindOfClass:[ComplexNavigationController class]]) {
+            ComplexNavigationController *complexNav = (ComplexNavigationController *)self.navigationController;
             [complexNav childTableViewDidScroll:self.tableView];
         }
-        else if ([navController isKindOfClass:[SimpleNavigationController class]]) {
-            SimpleNavigationController *simpleNav = (SimpleNavigationController *)navController;
+        else if ([self.navigationController isKindOfClass:[SimpleNavigationController class]]) {
+            SimpleNavigationController *simpleNav = (SimpleNavigationController *)self.navigationController;
             [simpleNav childTableViewDidScroll:self.tableView];
         }
     }
@@ -729,6 +749,20 @@ static NSString * const paginationCellReuseIdentifier = @"PaginationCell";
 - (void)tabTappedAtIndex:(NSInteger)tabIndex {
     if (tabIndex != activeTab) {
         activeTab = tabIndex;
+        
+        if ([self.navigationController isKindOfClass:[SearchNavigationController class]]) {
+            BFSearchView *searchView = ((SearchNavigationController *)self.navigationController).searchView;
+            
+            if (activeTab == 1) {
+                searchView.placeholder = @"Camps";
+            }
+            else if (activeTab == 2) {
+                searchView.placeholder = @"Users";
+            }
+            else {
+                searchView.placeholder = @"Camps & Users";
+            }
+        }
     
         UIButton *selectedButton;
         for (UIButton *button in self.segmentedControl.subviews) {

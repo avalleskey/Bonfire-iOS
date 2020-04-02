@@ -9,7 +9,7 @@
     User *instance = [super initWithDictionary:dict error:err];
     
 //    instance.attributes.media.cover = [[BFHostedVersions alloc] initWithDictionary:@{@"full": @{@"url": @"https://cdn.dribbble.com/users/59947/screenshots/7141217/media/1fd099baf2d926d844ca48f837283484.jpg"}} error:nil];
-        
+    
     return instance;
 }
 

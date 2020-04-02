@@ -185,7 +185,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     }
 }
 
-- (void)didSelectComponent:(BFPostStreamComponent *)component atIndexPath:(NSIndexPath *)indexPath {
+- (void)didSelectComponent:(BFStreamComponent *)component atIndexPath:(NSIndexPath *)indexPath {
     if ([component.className isEqual:[StreamPostCell class]]) {
         Post *post = component.post;
         if (!post) { return; }
@@ -238,7 +238,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     PostStreamPage *page = [[PostStreamPage alloc] initWithDictionary:@{@"data": @[[post toDictionary]]} error:nil];
     [self.bfTableView.stream appendPage:page];
     
-    BFPostStreamComponent *selectNewComponent = [[BFPostStreamComponent alloc] initWithObject:@{ButtonCellTitleAttributeName: @"Choose a New Post", ButtonCellTitleColorAttributeName: [UIColor fromHex:self.camp.attributes.color adjustForOptimalContrast:true]} className:[ButtonCell class] detailLevel:BFComponentDetailLevelAll];
+    BFStreamComponent *selectNewComponent = [[BFStreamComponent alloc] initWithObject:@{ButtonCellTitleAttributeName: @"Choose a New Post", ButtonCellTitleColorAttributeName: [UIColor fromHex:self.camp.attributes.color adjustForOptimalContrast:true]} className:[ButtonCell class] detailLevel:BFComponentDetailLevelAll];
     selectNewComponent.action = ^{
         [self selectNewIcebreaker];
     };

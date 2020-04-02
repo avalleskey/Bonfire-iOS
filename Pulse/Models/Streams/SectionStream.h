@@ -30,8 +30,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) NSMutableArray <SectionStreamPage *> *pages;
 @property (nonatomic, strong) NSMutableArray <Section *> *sections;
 
-@property (nonatomic) NSString *prevCursor;
-@property (nonatomic) NSString *nextCursor;
+@property (nonatomic) NSString * _Nullable prevCursor;
+@property (nonatomic) NSString * _Nullable nextCursor;
 
 - (void)flush;
 

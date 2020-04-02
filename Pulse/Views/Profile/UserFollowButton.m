@@ -46,7 +46,7 @@
     else {
         // USER_STATUS_NO_RELATION
         [self setImage:[[UIImage imageNamed:@"plusIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
-        [self setTitle:([status isEqualToString:USER_STATUS_FOLLOWED]?@"Follow Back":@"Follow") forState:UIControlStateNormal];
+        [self setTitle:([status isEqualToString:USER_STATUS_FOLLOWED]?@"Add Back":@"Add Friend") forState:UIControlStateNormal];
     }
     
     // set filled state + colors

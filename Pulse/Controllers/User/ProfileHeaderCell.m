@@ -559,7 +559,7 @@
     
     CGRect usernameRect = [[NSString stringWithFormat:@"@%@", user.attributes.identifier] boundingRectWithSize:CGSizeMake(maxWidth, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:PROFILE_HEADER_USERNAME_FONT} context:nil];
     CGFloat usernameHeight = ceilf(usernameRect.size.height);
-    height += usernameHeight + PROFILE_HEADER_USERNAME_BOTTOM_PADDING;
+    height += usernameHeight;
     
     if (details) {
         BOOL hasBio = user.attributes.bio.length > 0;
@@ -575,7 +575,7 @@
             
             CGRect bioRect = [attrString boundingRectWithSize:CGSizeMake(maxWidth, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading)  context:nil];
             CGFloat bioHeight = ceilf(bioRect.size.height);
-            height += bioHeight;
+            height += PROFILE_HEADER_USERNAME_BOTTOM_PADDING + bioHeight;
         }
         
         if (loading || user.identifier) {
@@ -605,7 +605,7 @@
                     height += PROFILE_HEADER_BIO_BOTTOM_PADDING;
                 }
                 
-                height += detailsHeight;
+                height += (!hasBio ? PROFILE_HEADER_USERNAME_BOTTOM_PADDING : 0) + detailsHeight;
             }
         }
     }

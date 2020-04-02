@@ -17,18 +17,11 @@
 #import "ExpandedPostActionsView.h"
 #import "TappableView.h"
 
-#define UIViewParentController(__view) ({ \
-    UIResponder *__responder = __view; \
-    while ([__responder isKindOfClass:[UIView class]]) \
-    __responder = [__responder nextResponder]; \
-    (UIViewController *)__responder; \
-    })
-
 #define expandedImageHeightDefault 240
 
 #define expandedPostContentOffset UIEdgeInsetsMake(12, 12, 0, 12)
-#define expandedTextViewFont [UIFont systemFontOfSize:20.f weight:UIFontWeightRegular]
-#define expandedActionsViewHeight 44
+#define expandedTextViewFont [UIFont preferredFontForTextStyle:UIFontTextStyleBody]
+#define expandedActionsViewHeight 40
 
 @interface ExpandedPostCell : PostCell <UITextFieldDelegate, PostTextViewDelegate>
 

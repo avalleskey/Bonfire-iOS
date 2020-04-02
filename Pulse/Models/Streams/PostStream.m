@@ -37,9 +37,9 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
 
 - (void)flush {
     self.pages = [NSMutableArray new];
-    self.components = [NSArray<BFPostStreamComponent *><BFPostStreamComponent> new];
-    self.finalComponents = [NSMutableArray<BFPostStreamComponent *><BFPostStreamComponent> new];
-    self.tempComponents = [NSMutableArray<BFPostStreamComponent *><BFPostStreamComponent> new];
+    self.components = [NSArray<BFStreamComponent *><BFStreamComponent> new];
+    self.finalComponents = [NSMutableArray<BFStreamComponent *><BFStreamComponent> new];
+    self.tempComponents = [NSMutableArray<BFStreamComponent *><BFStreamComponent> new];
     self.cursorsLoaded = [NSMutableDictionary new];
 }
 
@@ -75,10 +75,10 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
 }
 
 - (void)refreshComponents {
-    NSMutableArray <BFPostStreamComponent *> *newComponents = [NSMutableArray<BFPostStreamComponent *> new];
+    NSMutableArray <BFStreamComponent *> *newComponents = [NSMutableArray<BFStreamComponent *> new];
     
     for (PostStreamPage *page in self.pages) {
-        [newComponents addObjectsFromArray:[page.data toPostStreamComponentsWithDetailLevel:_detailLevel]];
+        [newComponents addObjectsFromArray:[page.data toStreamComponentsWithDetailLevel:_detailLevel]];
     }
     
     self.finalComponents = newComponents;
@@ -96,7 +96,7 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
     [self streamUpdated:false];
 }
 - (void)prependComponentsFromPage:(PostStreamPage *)page {
-    NSArray <BFPostStreamComponent *> *components = [page.data toPostStreamComponentsWithDetailLevel:_detailLevel];
+    NSArray <BFStreamComponent *> *components = [page.data toStreamComponentsWithDetailLevel:_detailLevel];
     
     [self.finalComponents insertObjects:components atIndexes:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, components.count)]];
 }
@@ -113,7 +113,7 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
     [self streamUpdated:false];
 }
 - (void)appendComponentsFromPage:(PostStreamPage *)page {
-    NSArray <BFPostStreamComponent *> *components = [page.data toPostStreamComponentsWithDetailLevel:_detailLevel];
+    NSArray <BFStreamComponent *> *components = [page.data toStreamComponentsWithDetailLevel:_detailLevel];
     
     [self.finalComponents addObjectsFromArray:components];
 }
@@ -121,8 +121,8 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
 - (BOOL)removeTempPost:(NSString *)tempId {
     __block BOOL changes = false;
     
-    NSMutableArray <BFPostStreamComponent *> *markedForDeletion = [NSMutableArray<BFPostStreamComponent *> new];
-    for (BFPostStreamComponent *component in self.tempComponents) {
+    NSMutableArray <BFStreamComponent *> *markedForDeletion = [NSMutableArray<BFStreamComponent *> new];
+    for (BFStreamComponent *component in self.tempComponents) {
         if ([component.post.tempId isEqualToString:tempId]) {
             changes = true;
             
@@ -137,7 +137,7 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
     NSString *tempId = [NSString stringWithFormat:@"%d", [Session getTempId]];
     post.tempId = tempId;
     
-    NSArray <BFPostStreamComponent *> *componentsFromPost = [@[post] toPostStreamComponentsWithDetailLevel:_detailLevel];
+    NSArray <BFStreamComponent *> *componentsFromPost = [@[post] toStreamComponentsWithDetailLevel:_detailLevel];
     if (self.tempPostPosition == PostStreamOptionTempPostPositionTop) {
         [self.tempComponents insertObjects:componentsFromPost atIndexes:[NSIndexSet indexSetWithIndex:0]];
     }
@@ -460,7 +460,7 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
 }
 
 - (Post *)postWithId:(NSString *)identifier {
-    for (BFPostStreamComponent *component in self.finalComponents) {
+    for (BFStreamComponent *component in self.finalComponents) {
         if (component.post && [component.post.identifier isEqualToString:identifier]) {
             return component.post;
         }

@@ -10,7 +10,7 @@
 #import "ReplyCell.h"
 #import "StreamPostCell.h"
 #import "UIColor+Palette.h"
-#import "BFPostStreamComponent.h"
+#import "BFStreamComponent.h"
 
 @interface ExpandThreadCell () <BFComponentProtocol>
 
@@ -96,7 +96,7 @@
     return 40;
 }
 
-+ (CGFloat)heightForComponent:(nonnull BFPostStreamComponent *)component {
++ (CGFloat)heightForComponent:(nonnull BFStreamComponent *)component {
     return [self height];
 }
 

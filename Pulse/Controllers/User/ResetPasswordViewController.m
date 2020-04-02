@@ -21,13 +21,6 @@
 #import <HapticHelper/HapticHelper.h>
 @import Firebase;
 
-#define UIViewParentController(__view) ({ \
-UIResponder *__responder = __view; \
-while ([__responder isKindOfClass:[UIView class]]) \
-__responder = [__responder nextResponder]; \
-(UIViewController *)__responder; \
-})
-
 #define IS_IPHONE        (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone)
 
 @interface ResetPasswordViewController () {
@@ -837,7 +830,7 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
     CABasicAnimation *rotationAnimation;
     rotationAnimation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.z"];
     rotationAnimation.toValue = [NSNumber numberWithFloat: M_PI * 2.0 /* full rotation*/ * 1 * 1.f ];
-    rotationAnimation.duration = 1.f;
+    rotationAnimation.duration = 0.75f;
     rotationAnimation.cumulative = YES;
     rotationAnimation.repeatCount = HUGE_VALF;
     

@@ -149,14 +149,15 @@
     [self sectionUpdated:section];
     
     // Update section isntances in the quick access self.sections array
-    [self.sections enumerateObjectsUsingBlock:^(Section *s, NSUInteger i2, BOOL *stop) {
+    
+    for (Section __strong *s in self.sections) {
         if ([s.identifier isEqualToString:section.identifier]) {
             // Found a match
             changes = true;
             
             s = section;
         }
-    }];
+    }
     
     if (changes) {
         [self streamUpdated];
@@ -167,9 +168,9 @@
 - (BOOL)sectionUpdated:(Section *)section {
     __block BOOL changes = false;
     
-    if (section.attributes.posts.count == 0) {
-        return [self removeSection:section];
-    }
+//    if (section.attributes.posts.count == 0) {
+//        return [self removeSection:section];
+//    }
     
     [section refreshComponents];
     
@@ -479,13 +480,13 @@
     return changes;
 }
 
-- (NSString *)prevCursor {
+- (NSString * _Nullable)prevCursor {
     if (self.pages.count == 0) return nil;
     if ([self.pages firstObject].meta.paging.prevCursor.length == 0) return nil;
 
     return [self.pages firstObject].meta.paging.prevCursor;
 }
-- (NSString *)nextCursor {
+- (NSString * _Nullable)nextCursor {
     if (self.pages.count == 0) return nil;
     if ([self.pages lastObject].meta.paging.nextCursor.length == 0) return nil;
     

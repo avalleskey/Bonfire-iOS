@@ -14,13 +14,6 @@
 #import "Launcher.h"
 #import "UIResponder+FirstResponder.h"
 
-#define UIViewParentController(__view) ({ \
-UIResponder *__responder = __view; \
-while ([__responder isKindOfClass:[UIView class]]) \
-__responder = [__responder nextResponder]; \
-(UIViewController *)__responder; \
-})
-
 @interface BFAlertAction ()
 
 @property (readwrite, assign) BFAlertActionStyle style;
@@ -293,7 +286,7 @@ static NSString * const buttonCellIdentifier = @"ButtonCell";
             self.contentView.frame = CGRectMake(self.contentView.frame.origin.x, self.view.frame.size.height, self.contentView.frame.size.width, self.contentView.frame.size.height);
             
             [UIView animateWithDuration:0.4f+(0.0006 * self.contentView.frame.size.height) delay:0.15f usingSpringWithDamping:0.75f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
-                self.contentView.frame = CGRectMake(self.contentView.frame.origin.x, self.view.frame.size.height - self.contentView.frame.size.height - (HAS_ROUNDED_CORNERS ? 0 : 8) - [UIApplication sharedApplication].keyWindow.safeAreaInsets.bottom, self.contentView.frame.size.width, self.contentView.frame.size.height);
+                self.contentView.frame = CGRectMake(self.contentView.frame.origin.x, self.view.frame.size.height - self.contentView.frame.size.height + (HAS_ROUNDED_CORNERS ? -[UIApplication sharedApplication].keyWindow.safeAreaInsets.bottom : 64), self.contentView.frame.size.width, self.contentView.frame.size.height);
             } completion:nil];
         }
     }
@@ -640,7 +633,7 @@ static NSString * const buttonCellIdentifier = @"ButtonCell";
         edgeInsets = UIEdgeInsetsMake(0, 32, 0, 32);
     }
     else {
-        edgeInsets = UIEdgeInsetsMake(0, 8, 0, 8);
+        edgeInsets = UIEdgeInsetsMake(0, (HAS_ROUNDED_CORNERS ? 8 : 0), 0, (HAS_ROUNDED_CORNERS ? 8 : 0));
     }
     
     self.contentView.frame = CGRectMake(edgeInsets.left, self.contentView.frame.origin.y, self.view.frame.size.width - (edgeInsets.left + edgeInsets.right), 0);
@@ -661,8 +654,12 @@ static NSString * const buttonCellIdentifier = @"ButtonCell";
     self.tableView.frame = CGRectMake(0, height, self.contentView.frame.size.width, sizeOfTableViewContent);
     height += self.tableView.frame.size.height;
     
+    if (self.preferredStyle == BFAlertControllerStyleActionSheet && !HAS_ROUNDED_CORNERS) {
+        height += 64;
+    }
+    
     self.contentView.frame = CGRectMake(self.contentView.frame.origin.x, self.contentView.frame.origin.y, self.view.frame.size.width - (self.contentView.frame.origin.x * 2), height);
-    [self continuityRadiusForView:self.contentView withRadius:HAS_ROUNDED_CORNERS?24:6];
+    [self continuityRadiusForView:self.contentView withRadius:HAS_ROUNDED_CORNERS?24:10];
 }
 
 - (void)dismissWithCompletion:(void (^ _Nullable)(void))handler {

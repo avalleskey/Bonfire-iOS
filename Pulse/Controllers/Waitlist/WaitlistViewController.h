@@ -36,6 +36,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic, strong) NSMutableArray <BFAvatarView *> *invitedAvatarViews;
 
+- (void)useFriendCode:(NSString *)friendCode;
+
 @end
 
 @interface InviteStatusModel : JSONModel

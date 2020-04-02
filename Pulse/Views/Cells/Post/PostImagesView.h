@@ -26,6 +26,8 @@ NS_ASSUME_NONNULL_BEGIN
 + (BOOL)useCaptionedImageViewForPost:(Post *)post;
 + (CGFloat)streamImageHeight;
 
+- (void)startSpinnersAsNeeded;
+
 @end
 
 NS_ASSUME_NONNULL_END

@@ -24,6 +24,7 @@
 #import "ResetPasswordViewController.h"
 #import "HAWebService.h"
 #import "BFComponentSectionTableView.h"
+#import "WaitlistViewController.h"
 
 #import <Lockbox/Lockbox.h>
 #import <AudioToolbox/AudioServices.h>
@@ -456,7 +457,7 @@
     previousController = viewController;
 }
 
-- (void)handleNotificationActionForUserInfo:(NSDictionary *)userInfo {    
+- (void)handleNotificationActionForUserInfo:(NSDictionary *)userInfo {
     TabController *tabVC = Launcher.tabController;
     if (tabVC) {
         tabVC.selectedIndex = [tabVC.viewControllers indexOfObject:tabVC.notificationsNavVC];
@@ -468,34 +469,47 @@
     NSObject *object = [data objectForKey:@"target_object"];
     NSString *urlString = [data objectForKey:@"target_url"];
     NSURL *url = [NSURL URLWithString:urlString];
-    BOOL appCanOpenURL = ([Configuration isExternalBonfireURL:url] || [Configuration isInternalURL:url]);
     
-    if (object && [object isKindOfClass:[NSDictionary class]] && [(NSDictionary *)object objectForKey:@"type"]) {
-        NSDictionary *dict = (NSDictionary *)object;
-        NSString *type = [dict objectForKey:@"type"];
-        if ([type isEqualToString:@"camp"]) {
-            Camp *camp = [[Camp alloc] initWithDictionary:dict error:nil];
-            [Launcher openCamp:camp];
-        }
-        else if ([type isEqualToString:@"post"]) {
-            Post *post = [[Post alloc] initWithDictionary:dict error:nil];
-            [Launcher openPost:post withKeyboard:false];
-        }
-        else if ([type isEqualToString:@"user"]) {
-            User *user = [[User alloc] initWithDictionary:dict error:nil];
-            [Launcher openProfile:user];
-        }
-        else if ([type isEqualToString:@"bot"]) {
-            Bot *bot = [[Bot alloc] initWithDictionary:dict error:nil];
-            [Launcher openBot:bot];
+    NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
+    if (url) {
+        NSURLComponents *components = [NSURLComponents componentsWithString:url.absoluteString];
+        for(NSURLQueryItem *item in components.queryItems)
+        {
+            [params setObject:item.value forKey:item.name];
         }
     }
-    else if (appCanOpenURL) {
-        [self application:[UIApplication sharedApplication] openURL:url options:@{}];
-    }
-    else if (urlString && urlString.length > 0) {
-        // the URL is not a known Bonfire URL, so open it in a Safari VC
-        [Launcher openURL:urlString];
+    
+    BOOL appCanOpenURL = ([Configuration isExternalBonfireURL:url] || [Configuration isInternalURL:url]);
+    BOOL requiresInvite = ![Session sharedInstance].currentUser || [Session sharedInstance].currentUser.attributes.requiresInvite;
+    
+    if (!requiresInvite) {
+        if (object && [object isKindOfClass:[NSDictionary class]] && [(NSDictionary *)object objectForKey:@"type"]) {
+            NSDictionary *dict = (NSDictionary *)object;
+            NSString *type = [dict objectForKey:@"type"];
+            if ([type isEqualToString:@"camp"]) {
+                Camp *camp = [[Camp alloc] initWithDictionary:dict error:nil];
+                [Launcher openCamp:camp];
+            }
+            else if ([type isEqualToString:@"post"]) {
+                Post *post = [[Post alloc] initWithDictionary:dict error:nil];
+                [Launcher openPost:post withKeyboard:false];
+            }
+            else if ([type isEqualToString:@"user"]) {
+                User *user = [[User alloc] initWithDictionary:dict error:nil];
+                [Launcher openProfile:user];
+            }
+            else if ([type isEqualToString:@"bot"]) {
+                Bot *bot = [[Bot alloc] initWithDictionary:dict error:nil];
+                [Launcher openBot:bot];
+            }
+        }
+        else if (appCanOpenURL) {
+            [self application:[UIApplication sharedApplication] openURL:url options:@{}];
+        }
+        else if (urlString && urlString.length > 0) {
+            // the URL is not a known Bonfire URL, so open it in a Safari VC
+            [Launcher openURL:urlString];
+        }
     }
 }
 
@@ -524,12 +538,12 @@
         NSLog(@"userInfo: %@", userInfo);
         TabController *tabVC = [Launcher tabController];
         
-        if ([userInfo objectForKey:@"aps"] && [userInfo[@"aps"] objectForKey:@"badge"]) {
-            [tabVC setBadgeValue:[userInfo[@"aps"] objectForKey:@"badge"] forItem:tabVC.notificationsNavVC.tabBarItem];
-        }
-        else {
-            [tabVC setBadgeValue:@"1" forItem:tabVC.notificationsNavVC.tabBarItem];
-        }
+//        if ([userInfo objectForKey:@"aps"] && [userInfo[@"aps"] objectForKey:@"badge"]) {
+//            [tabVC setBadgeValue:[userInfo[@"aps"] objectForKey:@"badge"] forItem:tabVC.notificationsNavVC.tabBarItem];
+//        }
+//        else {
+//            [tabVC setBadgeValue:@"1" forItem:tabVC.notificationsNavVC.tabBarItem];
+//        }
         
         NSArray *notificationNavVCViewControllers = [Launcher tabController].notificationsNavVC.viewControllers;
         if (notificationNavVCViewControllers.count > 0 && [[notificationNavVCViewControllers firstObject] isKindOfClass:[NotificationsTableViewController class]]) {
@@ -724,19 +738,7 @@
         }
         
         // Universal Links
-        id objectFromURL = [Configuration objectFromExternalBonfireURL:userActivity.webpageURL];
-
-        if ([objectFromURL isKindOfClass:[User class]]) {
-            if (!((User *)objectFromURL).attributes.anonymous) {
-                [Launcher openProfile:(User *)objectFromURL];
-            }
-        }
-        if ([objectFromURL isKindOfClass:[Camp class]]) {
-            [Launcher openCamp:(Camp *)objectFromURL];
-        }
-        if ([objectFromURL isKindOfClass:[Post class]]) {
-            [Launcher openPost:(Post *)objectFromURL withKeyboard:NO];
-        }
+        [self application:[UIApplication sharedApplication] openURL:userActivity.webpageURL options:@{}];
     }
     NSLog(@"useractivity.activitytype: %@", userActivity.activityType);
     
@@ -751,6 +753,7 @@
     }
     
     NSURLComponents *components = [NSURLComponents componentsWithString:url.absoluteString];
+
     NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
     for(NSURLQueryItem *item in components.queryItems)
     {
@@ -758,6 +761,7 @@
     }
     
     BOOL signedIn = [Session sharedInstance].currentUser;
+    BOOL requiresInvite = !signedIn || [Session sharedInstance].currentUser.attributes.requiresInvite;
     
     id objectFromURL;
     if (internalURL) {
@@ -767,27 +771,43 @@
         objectFromURL = [Configuration objectFromExternalBonfireURL:url];
     }
     
-    if (signedIn && [objectFromURL isKindOfClass:[Identity class]]) {
-        [Launcher openIdentity:(Identity *)objectFromURL];
-    }
-    else if (signedIn && [objectFromURL isKindOfClass:[Camp class]]) {
-        [Launcher openCamp:(Camp *)objectFromURL];
-    }
-    else if (signedIn && [objectFromURL isKindOfClass:[Post class]]) {
-        [Launcher openPost:(Post *)objectFromURL withKeyboard:NO];
-    }
-    else if (signedIn && internalURL && [url.host isEqualToString:@"compose"]) {
-        NSString *message;
-        if ([params objectForKey:@"message"]) {
-            message = params[@"message"];
+    if (requiresInvite) {
+        if ([url.path isEqualToString:@"/invite"] && [params objectForKey:@"friend_code"]) {
+            DLog(@"try to use friend_code: %@", params[@"friend_code"]);
+            if ([[Launcher activeViewController] isKindOfClass:[WaitlistViewController class]]) {
+                [(WaitlistViewController *)[Launcher activeViewController] useFriendCode:params[@"friend_code"]];
+            }
         }
-        
-        [Launcher openComposePost:nil inReplyTo:nil withMessage:message media:nil quotedObject:nil];
     }
-    else if (signedIn && internalURL && [url.host isEqualToString:@"settings"]) {
-        [Launcher openSettings];
+    else {
+        if (signedIn && [objectFromURL isKindOfClass:[Identity class]]) {
+            [Launcher openIdentity:(Identity *)objectFromURL];
+            return true;
+        }
+        else if (signedIn && [objectFromURL isKindOfClass:[Camp class]]) {
+            [Launcher openCamp:(Camp *)objectFromURL];
+            return true;
+        }
+        else if (signedIn && [objectFromURL isKindOfClass:[Post class]]) {
+            [Launcher openPost:(Post *)objectFromURL withKeyboard:NO];
+            return true;
+        }
+        else if (signedIn && internalURL && [url.host isEqualToString:@"compose"]) {
+            NSString *message;
+            if ([params objectForKey:@"message"]) {
+                message = params[@"message"];
+            }
+            
+            [Launcher openComposePost:nil inReplyTo:nil withMessage:message media:nil quotedObject:nil];
+            return true;
+        }
+        else if (signedIn && internalURL && [url.host isEqualToString:@"settings"]) {
+            [Launcher openSettings];
+            return true;
+        }
     }
-    else if (internalURL && [url.host isEqualToString:@"reset_password"]) {
+    
+    if (internalURL && [url.host isEqualToString:@"reset_password"]) {
         if ([[Launcher activeViewController] isKindOfClass:[ResetPasswordViewController class]]) {
             // already open
             DLog(@"reset password view controller is already open..!");
@@ -803,9 +823,11 @@
             }
             [Launcher present:resetPasswordVC animated:YES];
         }
+        
+        return true;
     }
     
-    return true;
+    return false;
 }
 
 @end

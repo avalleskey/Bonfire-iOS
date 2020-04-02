@@ -9,7 +9,7 @@
 #import "ButtonCell.h"
 #import "Session.h"
 #import "UIColor+Palette.h"
-#import "BFPostStreamComponent.h"
+#import "BFStreamComponent.h"
 
 @interface ButtonCell () <BFComponentProtocol>
 
@@ -140,7 +140,7 @@ NSString *const ButtonCellTitleColorAttributeName = @"color";
     return 52;
 }
 
-+ (CGFloat)heightForComponent:(BFPostStreamComponent *)component {
++ (CGFloat)heightForComponent:(BFStreamComponent *)component {
     return [ButtonCell height];
 }
 

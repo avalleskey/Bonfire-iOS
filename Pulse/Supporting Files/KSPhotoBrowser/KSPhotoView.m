@@ -60,6 +60,7 @@ static UIColor *BackgroundColor = nil;
 - (void)setItem:(KSPhotoItem *)item determinate:(BOOL)determinate {
     _item = item;
     [KSPhotoBrowser.imageManagerClass cancelImageRequestForImageView:_imageView];
+    
     if (item) {
         if (item.image) {
             _imageView.image = item.image;
@@ -99,16 +100,28 @@ static UIColor *BackgroundColor = nil;
 
 - (void)resizeImageView {
     if (_imageView.image) {
+        UIEdgeInsets safeAreaInsets = [UIApplication sharedApplication].delegate.window.safeAreaInsets;
+        CGFloat maxHeight = self.bounds.size.height - (HAS_ROUNDED_CORNERS && self.tag == 0 ? safeAreaInsets.top + safeAreaInsets.bottom : 0);
+        
         CGSize imageSize = _imageView.image.size;
         CGFloat width = self.frame.size.width - 2 * kKSPhotoViewPadding;
         CGFloat height = width * (imageSize.height / imageSize.width);
+        if (height > maxHeight) {
+            CGFloat ratio = height / maxHeight;
+            height = maxHeight;
+            width = width / ratio;
+        }
+        
         CGRect rect = CGRectMake(0, 0, width, height);
         
         _imageView.frame = rect;
         
         // If image is very high, show top content.
+        CGFloat yTopBound = (HAS_ROUNDED_CORNERS ? safeAreaInsets.top : 0);
+        CGFloat adjustedHeight = self.bounds.size.height - (HAS_ROUNDED_CORNERS ? safeAreaInsets.top + safeAreaInsets.bottom : 0);
+        
         if (height <= self.bounds.size.height) {
-            _imageView.center = CGPointMake(self.bounds.size.width/2, self.bounds.size.height/2);
+            _imageView.center = CGPointMake(self.bounds.size.width/2, yTopBound + (adjustedHeight/2));
         } else {
             _imageView.center = CGPointMake(self.bounds.size.width/2, height/2);
         }
@@ -180,7 +193,7 @@ static UIColor *BackgroundColor = nil;
 }
 
 + (UIColor *)backgroundColor {
-    return BackgroundColor ?: [UIColor colorWithWhite:0.05 alpha:1];
+    return BackgroundColor ?: [UIColor clearColor];
 }
 
 

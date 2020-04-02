@@ -17,13 +17,6 @@
 #import "BFColorPickerViewController.h"
 #import "Launcher.h"
 
-#define UIViewParentController(__view) ({ \
-    UIResponder *__responder = __view; \
-    while ([__responder isKindOfClass:[UIView class]]) \
-    __responder = [__responder nextResponder]; \
-    (UIViewController *)__responder; \
-    })
-
 @interface ThemeSelectorCell() <UIScrollViewDelegate, BFColorPickerViewControllerDelegate> {
     CAGradientLayer *gradientLayer;
     BOOL isCustomColor;
@@ -62,7 +55,7 @@
                                [UIColor colorWithRed:0.16 green:0.72 blue:0.01 alpha:1.00], // cash green
                                [UIColor bonfireGreenWithLevel:800],  // 4
                                [UIColor bonfireCyanWithLevel:800],  // 7
-                               [UIColor brownColor],  // 5
+                               [UIColor fromHex:@"#8F683C"],  // 5
                                [UIColor bonfireGrayWithLevel:900]]; // 8
         
         self.scrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, 98)];

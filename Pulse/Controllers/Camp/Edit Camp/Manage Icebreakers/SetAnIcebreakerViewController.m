@@ -139,7 +139,7 @@ static NSString * const postCellReuseIdentifier = @"PostCell";
 }
 
 #pragma mark - Table view data source
-- (void)didSelectComponent:(BFPostStreamComponent *)component atIndexPath:(NSIndexPath *)indexPath {
+- (void)didSelectComponent:(BFStreamComponent *)component atIndexPath:(NSIndexPath *)indexPath {
     if (component) {
         Post *post = component.post;
         

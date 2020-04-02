@@ -294,9 +294,9 @@
     if (self.bot) {
         UIMenu *menu = [UIMenu menuWithTitle:@"" children:@[]];
         
-        BotViewController *botVC = [Launcher profileViewControllerForBot:self.bot];
+        ProfileViewController *profileVC = [Launcher profileViewControllerForBot:self.bot];
         
-        UIContextMenuConfiguration *configuration = [UIContextMenuConfiguration configurationWithIdentifier:@"bot_preview" previewProvider:^(){return botVC;} actionProvider:^(NSArray* suggestedAction){return menu;}];
+        UIContextMenuConfiguration *configuration = [UIContextMenuConfiguration configurationWithIdentifier:@"bot_preview" previewProvider:^(){return profileVC;} actionProvider:^(NSArray* suggestedAction){return menu;}];
         return configuration;
     }
     

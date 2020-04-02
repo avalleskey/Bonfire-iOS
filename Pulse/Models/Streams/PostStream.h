@@ -8,7 +8,7 @@
 
 #import "Post.h"
 #import "GenericStream.h"
-#import "BFPostStreamComponent.h"
+#import "BFStreamComponent.h"
 
 @class PostStream;
 @class PostStreamPage;
@@ -31,9 +31,9 @@ typedef enum {
 
 @property (nonatomic, strong) NSMutableArray <PostStreamPage *> *pages;
 
-@property (nonatomic, strong) NSArray <BFPostStreamComponent *><BFPostStreamComponent> *components;
-@property (nonatomic, strong) NSMutableArray <BFPostStreamComponent *><BFPostStreamComponent> *tempComponents;
-@property (nonatomic, strong) NSMutableArray <BFPostStreamComponent *><BFPostStreamComponent> *finalComponents;
+@property (nonatomic, strong) NSArray <BFStreamComponent *><BFStreamComponent> *components;
+@property (nonatomic, strong) NSMutableArray <BFStreamComponent *><BFStreamComponent> *tempComponents;
+@property (nonatomic, strong) NSMutableArray <BFStreamComponent *><BFStreamComponent> *finalComponents;
 
 - (void)flush;
 

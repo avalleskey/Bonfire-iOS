@@ -65,6 +65,8 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userUpdated:) name:@"UserUpdated" object:nil];
 }
 
+
+
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     
@@ -121,7 +123,6 @@
     [self.navigationBar setTranslucent:true];
     [self.navigationBar setBarTintColor:[UIColor clearColor]];
     
-    // add background color view
     self.navigationBackgroundView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, [[[UIApplication sharedApplication] delegate] window].safeAreaInsets.top + self.navigationBar.frame.size.height)];
     self.navigationBackgroundView.backgroundColor = [UIColor contentBackgroundColor];
     self.navigationBackgroundView.layer.masksToBounds = false;
@@ -130,6 +131,17 @@
     self.navigationBackgroundView.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.12].CGColor;
     self.navigationBackgroundView.layer.shadowOpacity = 0;
     [self.view insertSubview:self.navigationBackgroundView belowSubview:self.navigationBar];
+    
+//    // add background color view
+//    self.navigationBlurView = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleProminent]];
+//    self.navigationBlurView.frame = self.navigationBackgroundView.frame;
+//    [self.view insertSubview:self.navigationBlurView belowSubview:self.navigationBackgroundView];
+//
+//    CAGradientLayer *gradientMask = [CAGradientLayer new];
+//    gradientMask.frame = self.navigationBackgroundView.bounds;
+//    gradientMask.colors = [NSArray arrayWithObjects:(id)[UIColor colorWithWhite:1 alpha:0.95].CGColor, (id)[UIColor colorWithWhite:1 alpha:0.8].CGColor, nil];
+//    gradientMask.locations = @[@0, @1];
+//    self.navigationBackgroundView.layer.mask = gradientMask;
     
     UIView *containerView = [[UIView alloc] initWithFrame:self.navigationBackgroundView.bounds];
     containerView.clipsToBounds = true;
@@ -384,6 +396,8 @@
         action = [UIColor bonfirePrimaryColor]; //[UIColor fromHex:[Session sharedInstance].currentUser.attributes.color];
         background = [UIColor colorNamed:@"Navigation_ClearBackgroundColor"];
         progressBar = [[UIColor bonfirePrimaryColor] colorWithAlphaComponent:0.1];
+        
+        self.shadowOnScroll = false;
     }
     else {
         [self setShadowVisibility:false withAnimation:false];

@@ -15,6 +15,7 @@
 #import "CampListStream.h"
 #import "BFHeaderView.h"
 #import <PINCache/PINCache.h>
+#import "BFActivityIndicatorView.h"
 @import Firebase;
 
 #define MY_CAMPS_CACHE_KEY @"my_camps_paged_cache"
@@ -245,7 +246,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return 68;
+    return 62;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
@@ -274,9 +275,9 @@ static NSString * const memberCellIdentifier = @"MemberCell";
         if (showLoadingFooter) {
             UIView *footer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 52)];
             
-            UIActivityIndicatorView *spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
-            spinner.color = [UIColor bonfireSecondaryColor];
-            spinner.frame = CGRectMake(footer.frame.size.width / 2 - 10, footer.frame.size.height / 2 - 10, 20, 20);
+            BFActivityIndicatorView *spinner = [[BFActivityIndicatorView alloc] init];
+            spinner.color = [[UIColor bonfireSecondaryColor] colorWithAlphaComponent:0.5];
+            spinner.frame = CGRectMake(footer.frame.size.width / 2 - 12, footer.frame.size.height / 2 - 12, 24, 24);
             [footer addSubview:spinner];
             
             [spinner startAnimating];

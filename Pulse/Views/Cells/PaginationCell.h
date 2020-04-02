@@ -7,10 +7,18 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "BFActivityIndicatorView.h"
 
 @interface PaginationCell : UITableViewCell
 
+@property (nonatomic, strong) UIView *topSeparator;
+@property (nonatomic, strong) UIView *bottomSeparator;
+
 @property BOOL loading;
-@property (nonatomic, strong) UIActivityIndicatorView *spinner;
+@property (nonatomic, strong) BFActivityIndicatorView *spinner;
+
+@property (nonatomic, strong) UILabel *label;
+
++ (CGFloat)height;
 
 @end

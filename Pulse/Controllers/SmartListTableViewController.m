@@ -15,6 +15,8 @@
 #import "NSString+Validation.h"
 #import "ToggleCell.h"
 #import "BFHeaderView.h"
+#import <libPhoneNumber-iOS/NBPhoneNumberUtil.h>
+#import <libPhoneNumber-iOS/NBAsYouTypeFormatter.h>
 
 #define section(section) self.list.sections[section]
 #define row(indexPath) section(indexPath.section).rows[indexPath.row]
@@ -106,8 +108,11 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
     if (row.input) {
         InputCell *cell = [tableView dequeueReusableCellWithIdentifier:inputReuseIdentifier forIndexPath:indexPath];
         
-        if (row.input.keyboard == SmartListInputEmailKeyboard) {
+        if ([row.input.keyboard isEqualToString:SmartListInputEmailKeyboard]) {
             cell.input.keyboardType = UIKeyboardTypeEmailAddress;
+        }
+        else if ([row.input.keyboard isEqualToString:SmartListInputPhoneNumberKeyboard]) {
+            cell.input.keyboardType = UIKeyboardTypePhonePad;
         }
         else {
             cell.input.keyboardType = UIKeyboardTypeDefault;
@@ -293,7 +298,9 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     SmartListSectionRow *row = row(indexPath);
-    [self.smartListDelegate tableView:tableView didSelectRowWithId:row.identifier];
+    if ([self.smartListDelegate respondsToSelector:@selector(tableView:didSelectRowWithId:)]) {
+        [self.smartListDelegate tableView:tableView didSelectRowWithId:row.identifier];
+    }
 }
 
 - (nullable InputCell *)inputCellForRowId:(NSString *)rowId {
@@ -313,12 +320,15 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
     return nil;
 }
 
+
 - (void)textFieldDidChange:(UITextField *)textField {
     CGPoint textFieldPosition = [textField convertPoint:CGPointZero toView:self.tableView];
     NSIndexPath *indexPath = [self.tableView indexPathForRowAtPoint:textFieldPosition];
     SmartListSectionRow *r = row(indexPath);
     
-    [self.smartListDelegate textFieldDidChange:textField withRowId:r.identifier];
+    if ([self.smartListDelegate respondsToSelector:@selector(textFieldDidChange:withRowId:)]) {
+        [self.smartListDelegate textFieldDidChange:textField withRowId:r.identifier];
+    }
 }
 
 - (void)toggleValueDidChange:(UISwitch *)toggle {
@@ -337,22 +347,103 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
     
     NSString *newStr = [textField.text stringByReplacingCharactersInRange:range withString:string];
     
-    if (r.input.validation == SmartListInputEmailValidation) {
+    if ([r.input.validation isEqualToString:SmartListInputEmailValidation]) {
         return newStr.length <= MAX_EMAIL_LENGTH ? YES : NO;
     }
-    if (r.input.validation == SmartListInputPasswordValidation) {
+    if ([r.input.validation isEqualToString:SmartListInputPasswordValidation]) {
         return newStr.length <= MAX_PASSWORD_LENGTH ? YES : NO;
     }
-    if (r.input.validation == SmartListInputDisplayNameValidation) {
+    if ([r.input.validation isEqualToString:SmartListInputPhoneNumberValidation]) {
+        NSString *newString = [textField.text stringByReplacingCharactersInRange:range withString:string];
+        NSArray *components = [newString componentsSeparatedByCharactersInSet:[[NSCharacterSet decimalDigitCharacterSet] invertedSet]];
+        NSString *decimalString = [components componentsJoinedByString:@""];
+
+        NSUInteger length = decimalString.length;
+        BOOL hasLeadingOne = length > 0 && [decimalString characterAtIndex:0] == '1';
+
+        if (length == 0 || (length > 10 && !hasLeadingOne) || (length > 11)) {
+            textField.text = decimalString;
+            [self textFieldDidChange:textField];
+            return NO;
+        }
+
+        NSUInteger index = 0;
+        NSMutableString *formattedString = [NSMutableString string];
+
+        if (hasLeadingOne) {
+            [formattedString appendString:@"+1 "];
+            index += 1;
+        }
+
+        if (length - index > 3) {
+            NSString *areaCode = [decimalString substringWithRange:NSMakeRange(index, 3)];
+            [formattedString appendFormat:@"(%@) ",areaCode];
+            index += 3;
+        }
+
+        if (length - index > 3) {
+            NSString *prefix = [decimalString substringWithRange:NSMakeRange(index, 3)];
+            [formattedString appendFormat:@"%@-",prefix];
+            index += 3;
+        }
+
+        NSString *remainder = [decimalString substringFromIndex:index];
+        [formattedString appendString:remainder];
+
+        if (formattedString.length <= MAX_PHONE_NUMBER_LENGTH) {
+            textField.text = formattedString;
+            [self textFieldDidChange:textField];
+        }
+
+        return NO;
+    }
+    if ([r.input.validation isEqualToString:SmartListInputDisplayNameValidation]) {
+        return newStr.length <= MAX_PHONE_NUMBER_LENGTH ? YES : NO;
+    }
+    if ([r.input.validation isEqualToString:SmartListInputDisplayNameValidation]) {
         return newStr.length <= MAX_USER_DISPLAY_NAME_LENGTH ? YES : NO;
     }
-    if (r.input.validation == SmartListInputUsernameValidation) {
+    if ([r.input.validation isEqualToString:SmartListInputUsernameValidation]) {
         if (newStr.length == 0) return NO;
         
         return newStr.length <= MAX_USER_USERNAME_LENGTH ? YES : NO;
     }
     
     return YES;
+}
+
+- (NSString *)formatNumber:(NSString *)mobileNumber
+{
+    mobileNumber = [mobileNumber stringByReplacingOccurrencesOfString:@"(" withString:@""];
+    mobileNumber = [mobileNumber stringByReplacingOccurrencesOfString:@")" withString:@""];
+    mobileNumber = [mobileNumber stringByReplacingOccurrencesOfString:@" " withString:@""];
+    mobileNumber = [mobileNumber stringByReplacingOccurrencesOfString:@"-" withString:@""];
+    mobileNumber = [mobileNumber stringByReplacingOccurrencesOfString:@"+" withString:@""];
+
+    NSLog(@"%@", mobileNumber);
+
+    int length = (int)[mobileNumber length];
+    if(length > 10)
+    {
+        mobileNumber = [mobileNumber substringFromIndex: length-10];
+        NSLog(@"%@", mobileNumber);
+
+    }
+
+    return mobileNumber;
+}
+
+- (int)getLength:(NSString *)mobileNumber
+{
+    mobileNumber = [mobileNumber stringByReplacingOccurrencesOfString:@"(" withString:@""];
+    mobileNumber = [mobileNumber stringByReplacingOccurrencesOfString:@")" withString:@""];
+    mobileNumber = [mobileNumber stringByReplacingOccurrencesOfString:@" " withString:@""];
+    mobileNumber = [mobileNumber stringByReplacingOccurrencesOfString:@"-" withString:@""];
+    mobileNumber = [mobileNumber stringByReplacingOccurrencesOfString:@"+" withString:@""];
+
+    int length = (int)[mobileNumber length];
+
+    return length;
 }
 
 #pragma mark - Data Helper Functions

@@ -10,7 +10,7 @@
 #import "PostActionsView.h"
 #import "PostContextView.h"
 
-#define postContentOffset UIEdgeInsetsMake(12, 70, 8, 12)
+#define postContentOffset UIEdgeInsetsMake(12, 64, 8, 12)
 
 @interface StreamPostCell : PostCell <UITextFieldDelegate, PostTextViewDelegate>
 

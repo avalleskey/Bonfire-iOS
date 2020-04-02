@@ -10,7 +10,7 @@
 #import "Session.h"
 #import "ReplyCell.h"
 #import "UIColor+Palette.h"
-#import "BFPostStreamComponent.h"
+#import "BFStreamComponent.h"
 
 @interface AddReplyCell () <BFComponentProtocol>
 
@@ -33,7 +33,7 @@
         self.contentView.backgroundColor = [UIColor clearColor];
         
         self.profilePicture = [[BFAvatarView alloc] init];
-        self.profilePicture.frame = CGRectMake(70, 12, 24, 24);
+        self.profilePicture.frame = CGRectMake(64, 12, 24, 24);
         self.profilePicture.openOnTap = false;
         self.profilePicture.user = [Session sharedInstance].currentUser;
         self.profilePicture.userInteractionEnabled = false;
@@ -120,7 +120,7 @@
     }
 }
 
-+ (CGFloat)heightForComponent:(BFPostStreamComponent *)component {
++ (CGFloat)heightForComponent:(BFStreamComponent *)component {
     return [AddReplyCell height];
 }
 

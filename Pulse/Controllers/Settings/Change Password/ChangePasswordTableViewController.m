@@ -96,13 +96,16 @@
     HUD.backgroundColor = [UIColor colorWithWhite:0 alpha:0.1f];
     [HUD showInView:self.navigationController.view animated:YES];
     
+    // prevent them from swiping to dismiss while changes are being saved
+    self.navigationController.view.userInteractionEnabled = false;
+    
     [[HAWebService authenticatedManager] PUT:@"users/me" parameters:@{@"old_password": currentPasswordCell.input.text, @"password": newPasswordCell.input.text} success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         BFMiniNotificationObject *notificationObject = [BFMiniNotificationObject notificationWithText:@"Saved!" action:nil];
         [[BFMiniNotificationManager manager] presentNotification:notificationObject completion:^{
 
         }];
         
-        [self.navigationController popViewControllerAnimated:YES];
+        [self.navigationController dismissViewControllerAnimated:YES completion:nil];
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         NSLog(@"error saving user prefs");
         NSLog(@"error:");
@@ -110,6 +113,8 @@
         NSLog(@"%@", ErrorResponse);
         HUD.indicatorView = [[JGProgressHUDErrorIndicatorView alloc] init];
         HUD.textLabel.text = @"Error Saving";
+        
+        self.navigationController.view.userInteractionEnabled = true;
         
         [HUD dismissAfterDelay:1.f];
     }];

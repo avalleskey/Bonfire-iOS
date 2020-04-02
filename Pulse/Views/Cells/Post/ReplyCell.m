@@ -15,7 +15,7 @@
 #import "Launcher.h"
 #import "UIColor+Palette.h"
 #import "StreamPostCell.h"
-#import "BFPostStreamComponent.h"
+#import "BFStreamComponent.h"
 
 #define REPLY_POST_MAX_CHARACTERS 125
 #define REPLY_POST_EMOJI_SIZE_MULTIPLIER 1.5
@@ -39,7 +39,7 @@
     if (self) {
         self.clipsToBounds = false;
         self.layer.masksToBounds = false;
-        self.contentView.layer.masksToBounds = false;
+        self.contentView.layer.masksToBounds = true;
         
         self.contentView.backgroundColor = [UIColor clearColor];
         self.backgroundColor = [UIColor clearColor];
@@ -49,7 +49,7 @@
         self.moreButton.hidden = true;
         
         self.nameLabel.font = [UIFont systemFontOfSize:11.f weight:UIFontWeightRegular];
-        self.nameLabel.frame = CGRectMake(70, replyContentOffset.top, self.contentView.frame.size.width - 72 - replyContentOffset.right, ceilf(self.nameLabel.font.lineHeight));
+        self.nameLabel.frame = CGRectMake(64, replyContentOffset.top, self.contentView.frame.size.width - 72 - replyContentOffset.right, ceilf(self.nameLabel.font.lineHeight));
         self.nameLabel.text = @"Display Name";
         self.nameLabel.userInteractionEnabled = YES;
         self.nameLabel.textColor = [[UIColor bonfireSecondaryColor] colorWithAlphaComponent:0.8];
@@ -178,9 +178,12 @@
     BOOL hasImage = self.post.attributes.media.count > 0 || self.post.attributes.attachments.media.count > 0;
     self.imagesView.hidden = !hasImage;
     if (hasImage) {
-        CGFloat imageHeight = [PostImagesView streamImageHeight] * .8;
-        self.imagesView.frame = CGRectMake(contentEdgeInsets.left, yBottom, self.frame.size.width - contentEdgeInsets.left - contentEdgeInsets.right, imageHeight);
+        CGFloat imageWidth = ceilf((self.frame.size.width - (contentEdgeInsets.left + contentEdgeInsets.right)) * .75);
+        CGFloat imageHeight = imageWidth;
+        self.imagesView.frame = CGRectMake(contentEdgeInsets.left, yBottom, imageWidth, imageHeight);
         [self continuityRadiusForView:self.imagesView withRadius:(replyTextViewFont.lineHeight+REPLY_BUBBLE_INSETS.top+REPLY_BUBBLE_INSETS.bottom)/2];
+        
+        [self.imagesView startSpinnersAsNeeded];
         
          yBottom = self.imagesView.frame.origin.y + self.imagesView.frame.size.height + attachmentBottomPadding;
     }
@@ -225,7 +228,7 @@
         bubbleWidth += (REPLY_BUBBLE_INSETS.left + REPLY_BUBBLE_INSETS.right);
         self.bubbleBackgroundView.frame = CGRectMake(contentEdgeInsets.left, self.textView.frame.origin.y - REPLY_BUBBLE_INSETS.top, bubbleWidth, self.textView.messageLabel.frame.size.height + REPLY_BUBBLE_INSETS.top + REPLY_BUBBLE_INSETS.bottom);
         [self continuityRadiusForView:self.bubbleBackgroundView withRadius:bubbleCornerRadius];
-        yBottom = self.bubbleBackgroundView.frame.origin.y + self.bubbleBackgroundView.frame.size.height;
+//        yBottom = self.bubbleBackgroundView.frame.origin.y + self.bubbleBackgroundView.frame.size.height;
         
         CGFloat bubbleDotSize1 = bubbleCornerRadius * 0.7;
         self.bubbleBackgroundDot1.frame = CGRectMake(self.bubbleBackgroundView.frame.origin.x, self.bubbleBackgroundView.frame.origin.y + self.bubbleBackgroundView.frame.size.height - bubbleDotSize1 - (bubbleDotSize1 * 0.05), bubbleDotSize1, bubbleDotSize1);
@@ -242,7 +245,7 @@
     
     CGFloat avatarSize = [ReplyCell avatarSizeForLevel:self.levelsDeep];
     self.primaryAvatarView.frame = CGRectMake(edgeInsets.left, 0, avatarSize, avatarSize);
-    self.primaryAvatarView.center = CGPointMake(self.primaryAvatarView.center.x, yBottom - bubbleCornerRadius);
+    self.primaryAvatarView.center = CGPointMake(self.primaryAvatarView.center.x, self.frame.size.height - contentEdgeInsets.bottom - ((replyTextViewFont.lineHeight + REPLY_BUBBLE_INSETS.top + REPLY_BUBBLE_INSETS.bottom) / 2));
         
      NSInteger profilePicPadding = 4;
      self.topLine.frame = CGRectMake(self.primaryAvatarView.frame.origin.x + (self.primaryAvatarView.frame.size.width / 2) - (self.topLine.frame.size.width / 2), - (self.topLine.layer.cornerRadius / 2), self.topLine.frame.size.width, self.primaryAvatarView.frame.origin.y - profilePicPadding + (self.topLine.layer.cornerRadius / 2));
@@ -541,7 +544,8 @@
         contentEdgeInsets.right = replyContentOffset.right;
     }
     
-    CGFloat height = contentEdgeInsets.top;
+    CGFloat baseHeight = contentEdgeInsets.top;
+    CGFloat height = baseHeight;
     CGFloat screenWidth = [UIScreen mainScreen].bounds.size.width;
     
     if (levelsDeep == 0) {
@@ -551,17 +555,22 @@
     
     CGFloat attachmentBottomPadding = 2;
     
+    NSInteger attachments = 0;
+    
     // image
-    BOOL hasImage = (post.attributes.media.count > 0 || post.attributes.attachments.media.count > 0); // postAtIndex.images != nil && postAtIndex.images.count > 0;
+    BOOL hasImage = (post.attributes.media.count > 0 || post.attributes.attachments.media.count > 0);
     if (hasImage) {
-        CGFloat imageHeight = [PostImagesView streamImageHeight] * .8;
-        imageHeight = imageHeight;
-        height = height + imageHeight + attachmentBottomPadding;
+        attachments++;
+        
+        CGFloat imageHeight = ceilf((screenWidth - (contentEdgeInsets.left + contentEdgeInsets.right)) * .75);
+        height += imageHeight + attachmentBottomPadding;
     }
     
     // link
     BOOL hasLinkPreview = [post hasLinkAttachment];
     if (hasLinkPreview) {
+        attachments++;
+        
         CGFloat linkPreviewHeight;
         if ([post.attributes.attachments.link isSmartLink]) {
             linkPreviewHeight = [BFSmartLinkAttachmentView heightForSmartLink:post.attributes.attachments.link  width:screenWidth-contentEdgeInsets.left-contentEdgeInsets.right showActionButton:true];
@@ -576,6 +585,8 @@
     // camp
     BOOL hasCampAttachment = [post hasCampAttachment];
     if (hasCampAttachment) {
+        attachments++;
+        
         Camp *camp = post.attributes.attachments.camp;
         
         CGFloat campAttachmentHeight = [BFCampAttachmentView heightForCamp:camp width:screenWidth-contentEdgeInsets.left-contentEdgeInsets.right];
@@ -585,6 +596,8 @@
     // user
     BOOL hasUserAttachment = [post hasUserAttachment];
     if (hasUserAttachment) {
+        attachments++;
+        
         User *user = post.attributes.attachments.user;
         
         CGFloat userAttachmentHeight = [BFIdentityAttachmentView heightForIdentity:user width:screenWidth-contentEdgeInsets.left-contentEdgeInsets.right];
@@ -607,17 +620,26 @@
         CGFloat messageHeight = [PostTextView sizeOfBubbleWithMessage:message withConstraints:CGSizeMake(screenWidth - contentEdgeInsets.left - contentEdgeInsets.right - REPLY_BUBBLE_INSETS.left - REPLY_BUBBLE_INSETS.right, CGFLOAT_MAX) font:font maxCharacters:[PostTextView entityBasedMaxCharactersForMessage:post.attributes.simpleMessage maxCharacters:REPLY_POST_MAX_CHARACTERS entities:post.attributes.entities] styleAsBubble:true].height;
 
         CGFloat textViewHeight = ceilf(messageHeight);
-        height += textViewHeight + REPLY_BUBBLE_INSETS.bottom;
+        height += REPLY_BUBBLE_INSETS.top + textViewHeight + REPLY_BUBBLE_INSETS.bottom;
+    }
+    else {
+        // no message, but has image
     }
     
-    // details view
-    CGFloat detailsHeight = 0;
-    height = REPLY_BUBBLE_INSETS.top + height + detailsHeight + contentEdgeInsets.bottom;
+    if (height == baseHeight) {
+        return 0;
+    }
+    
+    if (attachments > 0) {
+        height -= attachmentBottomPadding;
+    }
+    
+    height += contentEdgeInsets.bottom;
     
     return height;
 }
 
-+ (CGFloat)heightForComponent:(BFPostStreamComponent *)component {
++ (CGFloat)heightForComponent:(BFStreamComponent *)component {
     Post *post = component.post;
     
     if (!post) return 0;

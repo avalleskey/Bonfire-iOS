@@ -26,6 +26,7 @@
 #import "BFHeaderView.h"
 #import "BFAlertController.h"
 #import "BFMiniNotificationManager.h"
+#import "BFActivityIndicatorView.h"
 @import Firebase;
 
 #define section(section) self.tabs[activeTab].sections[section]
@@ -478,9 +479,9 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
         cell.selectionStyle = UITableViewCellSelectionStyleNone;
         cell.contentView.backgroundColor = [UIColor contentBackgroundColor];
         
-        UIActivityIndicatorView *spinner = [cell viewWithTag:10];
+        BFActivityIndicatorView *spinner = [cell viewWithTag:10];
         if (!spinner) {
-            spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+            spinner = [[BFActivityIndicatorView alloc] init];
             spinner.color = [UIColor bonfireSecondaryColor];
             spinner.tag = 10;
             [cell.contentView addSubview:spinner];
@@ -734,7 +735,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
         }
     }
     
-    return 68;
+    return 62;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {

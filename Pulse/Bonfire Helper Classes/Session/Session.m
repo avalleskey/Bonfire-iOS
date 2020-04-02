@@ -320,6 +320,7 @@ static Session *session;
     
     // keep the config
     NSInteger launches = [[NSUserDefaults standardUserDefaults] integerForKey:@"launches"];
+    BOOL hasSeenAppStoreReviewController = [[NSUserDefaults standardUserDefaults] boolForKey:@"hasSeenAppStoreReviewController"];
     
     // keep device token
     NSString *deviceToken = [[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"];
@@ -384,6 +385,8 @@ static Session *session;
     // set the config again
     [[NSUserDefaults standardUserDefaults] setBool:TRUE forKey:@"kHasLaunchedBefore"];
     [[NSUserDefaults standardUserDefaults] setInteger:launches forKey:@"launches"];
+    [[NSUserDefaults standardUserDefaults] setBool:hasSeenAppStoreReviewController forKey:@"hasSeenAppStoreReviewController"];
+    [[NSUserDefaults standardUserDefaults] setObject:deviceToken forKey:@"device_token"];
     
     // clear Lockbox
     [Lockbox archiveObject:nil forKey:@"access_token"];

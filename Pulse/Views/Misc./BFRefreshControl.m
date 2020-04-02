@@ -61,7 +61,7 @@
                [UIColor bonfireRed],  // 2
                [UIColor bonfireOrange],  // 3
                [UIColor colorWithRed:0.16 green:0.72 blue:0.01 alpha:1.00], // cash green
-               [UIColor brownColor],  // 5
+               [UIColor fromHex:@"#8F683C"],  // 5
                [UIColor colorWithRed:0.96 green:0.76 blue:0.23 alpha:1.00],  // 6
                [UIColor bonfireCyanWithLevel:800],  // 7
                [UIColor bonfireGrayWithLevel:900]]; // 8

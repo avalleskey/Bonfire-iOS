@@ -31,10 +31,14 @@
 
 //@property (nonatomic, strong) UIVisualEffectView *contentView;
 @property (nonatomic, strong) UIView *contentView;
-@property (nonatomic, strong) UIButton *addMediaButton;
+@property (nonatomic, strong) UIButton *takePictureButton;
+@property (nonatomic, strong) UIButton *choosePictureButton;
+@property (nonatomic, strong) UIButton *chooseGIFButton;
 @property (nonatomic, strong) UITextView *textView;
 
 @property (nonatomic, strong) TappableButton *postButton;
+@property (nonatomic, strong) NSString *postTitle;
+
 @property (nonatomic, strong) UIButton *expandButton;
 @property (nonatomic, strong) UILabel *charRemainingLabel;
 
@@ -54,6 +58,8 @@
 @property (nonatomic, strong) NSString *defaultPlaceholder;
 
 @property (nonatomic, strong) UIView *topSeparator;
+
+@property (nonatomic, strong) UIColor *theme;
 
 - (void)reset;
 

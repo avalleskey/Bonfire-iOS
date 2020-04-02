@@ -37,6 +37,7 @@
 @property (nonatomic, strong) BFVisualErrorView *errorView;
 
 @property (nonatomic, strong) BFTipObject *tipObject;
+@property (nonatomic, strong) BFTipView *tipView;
 
 @property (nonatomic) NSString *loadingPrevCursor;
 
@@ -81,15 +82,6 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
                 NSString *ctaDisplayText = @"Turn on Post Notifications";
                 
                 BFTipObject *tipObject = [BFTipObject tipWithCreatorType:BFTipCreatorTypeBonfireGeneric creator:nil title:title text:text cta:ctaDisplayText imageUrl:nil action:^{
-                    self.tipObject = nil;
-                    [UIView animateWithDuration:.45f delay:0 usingSpringWithDamping:0.9f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
-                        [self.tableView beginUpdates];
-                        self.tipObject = nil;
-                        [self.tableView endUpdates];
-                    } completion:^(BOOL finished) {
-
-                    }];
-                    
                     [[UNUserNotificationCenter currentNotificationCenter] requestAuthorizationWithOptions:(UNAuthorizationOptionAlert|UNAuthorizationOptionSound|UNAuthorizationOptionBadge) completionHandler:^(BOOL granted, NSError * _Nullable error) {
                         // 1. check if permisisons granted
                         if (granted) {
@@ -99,6 +91,21 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
                                 [[UIApplication sharedApplication] registerForRemoteNotifications];
                             });
                         }
+                        
+                        self.tipObject = nil;
+                        dispatch_async(dispatch_get_main_queue(), ^{
+                            [UIView animateWithDuration:.45f delay:0 usingSpringWithDamping:0.9f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
+                                if (self.tipView) {
+                                    self.tipView.transform = CGAffineTransformMakeScale(0.8, 0.8);
+                                    self.tipView.alpha = 0;
+                                }
+                                
+                                [self.tableView beginUpdates];
+                                [self.tableView endUpdates];
+                            } completion:^(BOOL finished) {
+                                
+                            }];
+                        });
                     }];
                 }];
                 
@@ -650,24 +657,29 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
         if (self.tipObject) {
             UIView *containerView = [[UIView alloc] init];
             containerView.frame = CGRectMake(0, 0, self.view.frame.size.width, 100);
+            containerView.layer.zPosition = -1;
             
-            BFTipView *tipView = [[BFTipView alloc] init];
-            tipView.frame = CGRectMake(12, 12, self.view.frame.size.width - 24, 200);
-            tipView.style = BFTipViewStyleTable;
-            tipView.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.06f].CGColor;
-            tipView.dragToDismiss = false;
-            tipView.object = self.tipObject;
-            tipView.blurView.backgroundColor = [UIColor whiteColor];
-            tipView.frame = CGRectMake(12, 12, self.view.frame.size.width - 24, tipView.frame.size.height);
-            [tipView.closeButton bk_removeEventHandlersForControlEvents:UIControlEventTouchUpInside];
-            [tipView.closeButton bk_whenTapped:^{
+            [self.tipView removeFromSuperview];
+            self.tipView = nil;
+            
+            self.tipView = [[BFTipView alloc] init];
+            self.tipView.frame = CGRectMake(12, 12, self.view.frame.size.width - 24, 200);
+            self.tipView.style = BFTipViewStyleTable;
+            self.tipView.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.06f].CGColor;
+            self.tipView.dragToDismiss = false;
+            self.tipView.object = self.tipObject;
+            self.tipView.blurView.backgroundColor = [UIColor whiteColor];
+            self.tipView.frame = CGRectMake(12, 12, self.view.frame.size.width - 24, self.tipView.frame.size.height);
+            
+            [self.tipView.closeButton bk_removeEventHandlersForControlEvents:UIControlEventTouchUpInside];
+            [self.tipView.closeButton bk_whenTapped:^{
                 self.tipObject = nil;
                 
                 [(TabController *)self.tabBarController setBadgeValue:[NSString stringWithFormat:@"%lu", (long)[self.stream unreadCount]] forItem:self.navigationController.tabBarItem];
                 
                 [UIView animateWithDuration:.45f delay:0 usingSpringWithDamping:0.9f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
-                    tipView.alpha = 0;
-                    tipView.transform = CGAffineTransformMakeScale(0.8, 0.8);
+                    self.tipView.alpha = 0;
+                    self.tipView.transform = CGAffineTransformMakeScale(0.8, 0.8);
                     
                     [self.tableView beginUpdates];
                     [self.tableView endUpdates];
@@ -675,8 +687,9 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
 
                 }];
             }];
-            containerView.frame = CGRectMake(0, 0, self.view.frame.size.width, tipView.frame.size.height + (12 * 2));
-            [containerView addSubview:tipView];
+            
+            containerView.frame = CGRectMake(0, 0, self.view.frame.size.width, self.tipView.frame.size.height + (12 * 2));
+            [containerView addSubview:self.tipView];
             
             if (self.stream.activities.count > 0) {
                 UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(0, containerView.frame.size.height - HALF_PIXEL, self.view.frame.size.width, HALF_PIXEL)];
@@ -686,7 +699,13 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
             
             return containerView;
         }
-        else if (self.stream.activities.count > 0) {
+        else {
+            self.tipView = nil;
+        }
+        
+        if (self.stream.activities.count > 0) {
+            self.tipView = nil;
+            
             UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, HALF_PIXEL)];
             separator.backgroundColor = [UIColor tableViewSeparatorColor];
             return separator;

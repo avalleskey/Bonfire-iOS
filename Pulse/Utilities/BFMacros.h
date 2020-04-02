@@ -80,4 +80,11 @@
 #define SYSTEM_VERSION_LESS_THAN(v)                 ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedAscending)
 #define SYSTEM_VERSION_LESS_THAN_OR_EQUAL_TO(v)     ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedDescending)
 
+#define UIViewParentController(__view) ({ \
+    UIResponder *__responder = __view; \
+    while ([__responder isKindOfClass:[UIView class]]) \
+    __responder = [__responder nextResponder]; \
+    (UIViewController *)__responder; \
+    })
+
 #endif /* BFMacros_h */

@@ -49,13 +49,6 @@
 #import <MessageUI/MessageUI.h>
 #endif
 
-#define UIViewParentController(__view) ({ \
-    UIResponder *__responder = __view; \
-    while ([__responder isKindOfClass:[UIView class]]) \
-        __responder = [__responder nextResponder]; \
-    (UIViewController *)__responder; \
-})
-
 @interface Launcher () <MFMessageComposeViewControllerDelegate, SFSafariViewControllerDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate>
 
 @property (nonatomic, strong) SFSafariViewController *safariVC;
@@ -333,6 +326,24 @@ static Launcher *launcher;
     
     searchNav.searchView.textField.userInteractionEnabled = true;
     [searchNav.searchView.textField becomeFirstResponder];
+    
+    [Launcher present:searchNav animated:YES];
+}
++ (void)openGIFSearch:(id<GIFCollectionViewControllerDelegate>)sender {
+    GIFCollectionViewController *searchController = [[GIFCollectionViewController alloc] init];
+    searchController.collectionView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
+    searchController.delegate = sender;
+    
+    SearchNavigationController *searchNav = [[SearchNavigationController alloc] initWithRootViewController:searchController];
+    searchNav.searchView.openSearchControllerOntap = false;
+    if (@available(iOS 13.0, *)) {
+        searchNav.modalPresentationStyle = UIModalPresentationPageSheet;
+    }
+    [searchNav showBottomHairline];
+    
+    searchNav.searchView.textField.userInteractionEnabled = true;
+    [searchNav.searchView.textField becomeFirstResponder];
+    searchNav.searchView.textField.placeholder = @"Search GIFs";
     
     [Launcher present:searchNav animated:YES];
 }
@@ -618,13 +629,6 @@ static Launcher *launcher;
     LinkConversationsViewController *p = [[LinkConversationsViewController alloc] init];
     p.showKeyboardOnOpen = withKeyboard;
     p.link = link;
-    
-    NSString *themeCSS;
-    if (link.attributes.attribution != nil) {
-        themeCSS = [link.attributes.attribution.attributes.color lowercaseString];
-    }
-    p.theme = (themeCSS.length == 0) ? [UIColor bonfireGrayWithLevel:800] : [UIColor fromHex:themeCSS];
-    
     p.title = @"Link Conversations";
     
     SimpleNavigationController *newNavController = [[SimpleNavigationController alloc] initWithRootViewController:p];
@@ -671,11 +675,14 @@ static Launcher *launcher;
     [self present:newNavController animated:YES];
 }
 
-+ (void)openComposeCamera {
++ (void)openComposeCamera:(id<BFCameraViewControllerDelegate>)sender {
+    [Launcher openComposeCameraFromCenterPoint:CGPointZero sender:sender];
+}
++ (void)openComposeCameraFromCenterPoint:(CGPoint)centerLaunch sender:(id<BFCameraViewControllerDelegate>)sender {
     NSString *mediaType = AVMediaTypeVideo;
     AVAuthorizationStatus authStatus = [AVCaptureDevice authorizationStatusForMediaType:mediaType];
     if(authStatus == AVAuthorizationStatusAuthorized) {
-        [launcher openCamera];
+        [launcher openCameraFromCenterPoint:centerLaunch sender:sender];
     } else if(authStatus == AVAuthorizationStatusDenied ||
               authStatus == AVAuthorizationStatusRestricted) {
         // denied
@@ -685,7 +692,7 @@ static Launcher *launcher;
         [AVCaptureDevice requestAccessForMediaType:mediaType completionHandler:^(BOOL granted) {
             if (granted){
                 NSLog(@"Granted access to %@", mediaType);
-                [launcher openCamera];
+                [launcher openCameraFromCenterPoint:centerLaunch sender:sender];
             }
             else {
                 NSLog(@"Not granted access to %@", mediaType);
@@ -694,14 +701,22 @@ static Launcher *launcher;
         }];
     }
 }
-- (void)openCamera {
-    UIImagePickerController *picker = [[UIImagePickerController alloc] init];
-    picker.delegate = self;
-    picker.allowsEditing = NO;
-    picker.sourceType = UIImagePickerControllerSourceTypeCamera;
+- (void)openCameraFromCenterPoint:(CGPoint)centerPoint sender:(id<BFCameraViewControllerDelegate>)sender {
+    BFCameraViewController *camera = [[BFCameraViewController alloc] init];
+    if ([sender isKindOfClass:[UIView class]]) {
+        camera.theme = ((UIView *)sender).tintColor;
+    }
+    else if ([sender isKindOfClass:[UIViewController class]]) {
+        camera.theme = ((UIViewController *)sender).view.tintColor;
+    }
+    camera.centerLaunch = centerPoint;
+    camera.delegate = sender;
+    camera.modalPresentationStyle = UIModalPresentationOverFullScreen;
+    camera.modalPresentationCapturesStatusBarAppearance = true;
     
     dispatch_async(dispatch_get_main_queue(), ^{
-        [[Launcher topMostViewController] presentViewController:picker animated:true completion:nil];
+        NSLog(@"inside dispatch async block main thread from main thread");
+        [[Launcher topMostViewController] presentViewController:camera animated:NO completion:nil];
     });
 }
 - (void)showNoCameraAccess {
@@ -714,7 +729,11 @@ static Launcher *launcher;
 
     BFAlertAction *closeAction = [BFAlertAction actionWithTitle:@"Close" style:BFAlertActionStyleCancel handler:nil];
     [actionSheet addAction:closeAction];
-    [[Launcher topMostViewController] presentViewController:actionSheet animated:true completion:nil];
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NSLog(@"inside dispatch async block main thread from main thread");
+        [[Launcher topMostViewController] presentViewController:actionSheet animated:true completion:nil];
+    });
 }
 - (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker {
     [picker dismissViewControllerAnimated:YES completion:nil];
@@ -769,21 +788,6 @@ static Launcher *launcher;
         InviteFriendsViewController *inviteFriends = [[InviteFriendsViewController alloc] init];
         [self present:inviteFriends animated:YES];
     }
-    
-    /*
-    InviteFriendTableViewController *ifvc = [[InviteFriendTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
-    if ([sender isKindOfClass:[Camp class]]) {
-        // attach camp as object -> add context to message
-        ifvc.sender = sender;
-    }
-    
-    UINavigationController *newNavController = [[UINavigationController alloc] initWithRootViewController:ifvc];
-    newNavController.launcher;
-    newNavController.navigationBar.barStyle = UIBarStyleBlack;
-    newNavController.navigationBar.translucent = false;
-    [newNavController setNeedsStatusBarAppearanceUpdate];
-    
-    [self present:newNavController animated:YES];*/
 }
 
 + (void)openInviteToCamp:(Camp *)camp {
@@ -1183,7 +1187,7 @@ static Launcher *launcher;
     User *user = [Session sharedInstance].currentUser;
         
     NSString *userShareLink = [NSString stringWithFormat:@"https://bonfire.camp/u/%@", user.identifier];
-    BOOL hasSnapchat = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"snapchat://"]];
+    BOOL hasSnapchat = false; //[[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"snapchat://"]];
     BOOL hasInstagram = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"instagram-stories://"]];
     BOOL hasTwitter = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"twitter://"]];
     
@@ -1520,7 +1524,7 @@ static Launcher *launcher;
         titleLabel.text = user.attributes.displayName;
         
         tag = user.attributes.identifier ? [@"@" stringByAppendingString:user.attributes.identifier] : @"";
-        color = [UIColor fromHex:user.attributes.color adjustForOptimalContrast:true];
+//        color = [UIColor fromHex:user.attributes.color adjustForOptimalContrast:true];
     }
     else if ([object isKindOfClass:[Bot class]]) {
         Bot *bot = (Bot *)object;
@@ -1528,7 +1532,7 @@ static Launcher *launcher;
         titleLabel.text = bot.attributes.displayName;
         
         tag = bot.attributes.identifier ? [@"@" stringByAppendingString:bot.attributes.identifier] : @"";
-        color = [UIColor fromHex:bot.attributes.color adjustForOptimalContrast:true];
+//        color = [UIColor fromHex:bot.attributes.color adjustForOptimalContrast:true];
     }
     else if ([object isKindOfClass:[Camp class]]) {
         Camp *camp = (Camp *)object;
@@ -1536,7 +1540,7 @@ static Launcher *launcher;
         titleLabel.text = camp.attributes.title;
         
         tag = camp.attributes.identifier ? [@"#" stringByAppendingString:camp.attributes.identifier] : @"";
-        color = [UIColor fromHex:camp.attributes.color adjustForOptimalContrast:true];
+//        color = [UIColor fromHex:camp.attributes.color adjustForOptimalContrast:true];
     }
     else {
         return nil;
@@ -1647,9 +1651,19 @@ static Launcher *launcher;
     return !CGSizeEqualToSize(imageView.image.size, CGSizeZero);
 }
 
+#define APP_STORE_ID 1438702812 //Change this one to your ID
+static NSString *const iOSAppStoreURLFormat = @"itms-apps://itunes.apple.com/WebObjects/MZStore.woa/wa/viewContentsUserReviews?type=Purple+Software&id=%d";
 + (void)requestAppStoreRating {
-    if (@available(iOS 10.3, *)) {
+    BOOL versionSupports = [UIDevice currentDevice].systemVersion.floatValue >= 10.3;
+    
+    if (![Configuration isDebug] && versionSupports) {
         [SKStoreReviewController requestReview];
+    }
+    else {
+        // open in app store
+        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[NSString stringWithFormat:iOSAppStoreURLFormat, APP_STORE_ID]] options:@{} completionHandler:^(BOOL success) {
+            NSLog(@"opened url!");
+        }];
     }
 }
 
@@ -1767,16 +1781,24 @@ static Launcher *launcher;
 {
     id<UIViewControllerAnimatedTransitioning> animationController;
         
-    launcher.animator.appearing = YES;
-    launcher.animator.duration = 0.3;
-    
-    if (presented.view.tag == VIEW_CONTROLLER_PUSH_TAG) {
-        launcher.animator.direction = SOLTransitionDirectionLeft;
-    }
-    else {
-        launcher.animator.direction = SOLTransitionDirectionUp;
-    }
-    animationController = launcher.animator;
+//    if ([presented isKindOfClass:[BFCameraViewController class]]) {
+//        BFCameraAnimator *animator = [[BFCameraAnimator alloc] init];
+//        animator.appearing = true;
+//
+//        animationController = animator;
+//    }
+//    else {
+        launcher.animator.appearing = YES;
+        launcher.animator.duration = 0.3;
+        
+        if (presented.view.tag == VIEW_CONTROLLER_PUSH_TAG) {
+            launcher.animator.direction = SOLTransitionDirectionLeft;
+        }
+        else {
+            launcher.animator.direction = SOLTransitionDirectionUp;
+        }
+        animationController = launcher.animator;
+//    }
     
     return animationController;
 }
@@ -1787,18 +1809,26 @@ static Launcher *launcher;
 {
     id<UIViewControllerAnimatedTransitioning> animationController;
     
-    launcher.animator.appearing = NO;
-    launcher.animator.duration = 0.3;
-    
-    NSLog(@"dismissed view tag: %lu", dismissed.view.tag);
-    
-    if (dismissed.view.tag == VIEW_CONTROLLER_PUSH_TAG) {
-        launcher.animator.direction = SOLTransitionDirectionLeft;
-    }
-    else {
-        launcher.animator.direction = SOLTransitionDirectionUp;
-    }
-    animationController = launcher.animator;
+//    if ([dismissed isKindOfClass:[BFCameraViewController class]]) {
+//        BFCameraAnimator *animator = [[BFCameraAnimator alloc] init];
+//        animator.appearing = false;
+//
+//        animationController = animator;
+//    }
+//    else {
+        launcher.animator.appearing = NO;
+        launcher.animator.duration = 0.3;
+        
+        NSLog(@"dismissed view tag: %lu", dismissed.view.tag);
+        
+        if (dismissed.view.tag == VIEW_CONTROLLER_PUSH_TAG) {
+            launcher.animator.direction = SOLTransitionDirectionLeft;
+        }
+        else {
+            launcher.animator.direction = SOLTransitionDirectionUp;
+        }
+        animationController = launcher.animator;
+//    }
     
     return animationController;
 }

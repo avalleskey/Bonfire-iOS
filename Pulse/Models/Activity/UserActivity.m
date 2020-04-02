@@ -40,7 +40,7 @@
     
     instance.attributes.attributedString = [instance createAttributedString];
         
-    instance.attributes.includeUserAttachment = self.attributes.type == USER_ACTIVITY_TYPE_USER_FOLLOW && (self.attributes.actioner.attributes.bio.length > 0 || self.attributes.actioner.attributes.location.displayText.length > 0 || self.attributes.actioner.attributes.website.displayUrl.length > 0);
+    instance.attributes.includeUserAttachment = self.attributes.type == USER_ACTIVITY_TYPE_USER_FOLLOW;// && (self.attributes.actioner.attributes.bio.length > 0 || self.attributes.actioner.attributes.location.displayText.length > 0 || self.attributes.actioner.attributes.website.displayUrl.length > 0);
     instance.attributes.includeCampAttachment = (self.attributes.type == USER_ACTIVITY_TYPE_USER_ACCEPTED_ACCESS);
     
     return instance;

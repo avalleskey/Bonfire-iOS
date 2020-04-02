@@ -46,7 +46,7 @@
             <color red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
         </namedColor>
         <namedColor name="SecondaryColor">
-            <color red="0.38039215686274508" green="0.40392156862745099" blue="0.4392156862745098" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+            <color red="0.38999998569488525" green="0.40400001406669617" blue="0.41899999976158142" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
         </namedColor>
     </resources>
 </document>

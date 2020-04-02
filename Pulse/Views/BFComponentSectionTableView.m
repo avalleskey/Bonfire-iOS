@@ -19,6 +19,7 @@
 #import "AddReplyCell.h"
 #import "BFErrorViewCell.h"
 #import "ButtonCell.h"
+#import "SpacerCell.h"
 
 #import "LoadingCell.h"
 #import "PaginationCell.h"
@@ -39,6 +40,8 @@
 
 @interface BFComponentSectionTableView () <UIScrollViewDelegate>
 
+@property (nonatomic, strong) UIViewController *parentNavigationController;
+
 @end
 
 @implementation BFComponentSectionTableView
@@ -56,6 +59,8 @@ static NSString * const expandRepliesCellIdentifier = @"ExpandRepliesReuseIdenti
 static NSString * const addReplyCellIdentifier = @"AddReplyReuseIdentifier";
 
 static NSString * const buttonCellReuseIdentifier = @"ButtonCellReuseIdentifier";
+static NSString * const spacerCellReuseIdentifier = @"SpacerCell";
+static NSString * const paginationCellReuseIdentifier = @"PaginationCell";
 
 static NSString * const errorCellReuseIdentifier = @"ErrorCell";
 static NSString * const blankCellIdentifier = @"BlankCell";
@@ -111,6 +116,8 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
     [self registerClass:[AddReplyCell class] forCellReuseIdentifier:addReplyCellIdentifier];
     
     [self registerClass:[ButtonCell class] forCellReuseIdentifier:buttonCellReuseIdentifier];
+    [self registerClass:[SpacerCell class] forCellReuseIdentifier:spacerCellReuseIdentifier];
+    [self registerClass:[PaginationCell class] forCellReuseIdentifier:paginationCellReuseIdentifier];
     
     [self registerClass:[BFErrorViewCell class] forCellReuseIdentifier:errorCellReuseIdentifier];
     [self registerClass:[UITableViewCell class] forCellReuseIdentifier:blankCellIdentifier];
@@ -121,6 +128,15 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(campUpdated:) name:@"CampUpdated" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(postUpdated:) name:@"PostUpdated" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(postDeleted:) name:@"PostDeleted" object:nil];
+}
+
+- (void)didMoveToSuperview {
+    [super didMoveToSuperview];
+    
+    UIViewController *parentViewController = UIViewParentController(self);
+    if (parentViewController && parentViewController.navigationController) {
+        self.parentNavigationController = parentViewController.navigationController;
+    }
 }
 
 - (void)dealloc {
@@ -220,7 +236,7 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
         }
     }
     else {
-        BFPostStreamComponent *component = [self componentAtIndexPath:indexPath];
+        BFStreamComponent *component = [self componentAtIndexPath:indexPath];
         
         UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
         
@@ -270,19 +286,37 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
     }
 }
 - (void)didBeginDisplayingCell:(UITableViewCell *)cell {
-    Post *post;
     if ([cell isKindOfClass:[PostCell class]]) {
-        post = ((PostCell *)cell).post;
+        Post *post = ((PostCell *)cell).post;
+        
+        // skip logging if invalid post identifier (most likely due to a loading cell)
+        if (!post.identifier) return;
+                
+        if (self.insightSeenInLabel) {
+            [InsightsLogger.sharedInstance openPostInsight:post.identifier seenIn:self.insightSeenInLabel];
+        }
     }
-    else {
-        return;
-    }
-    
-    // skip logging if invalid post identifier (most likely due to a loading cell)
-    if (post.identifier == 0) return;
-            
-    if (self.insightSeenInLabel) {
-        [InsightsLogger.sharedInstance openPostInsight:post.identifier seenIn:self.insightSeenInLabel];
+    else if ([cell isKindOfClass:[PaginationCell class]]) {
+        DLog(@"⚪️ show that pagination cell !");
+        
+        if (!self.loadingMore && self.stream.pages.count > 0 && self.stream.nextCursor.length > 0) {
+            DLog(@"🔘 start loading more!!!!");
+            self.loadingMore = true;
+
+            if ([self.extendedDelegate respondsToSelector:@selector(tableView:didRequestNextPageWithMaxId:)]) {
+                DLog(@"🔴 get that next page");
+                [self.extendedDelegate tableView:self didRequestNextPageWithMaxId:0];
+            }
+        }
+        else if (self.loadingMore) {
+            DLog(@"🔘 already loading more");
+        }
+        else if (self.stream.pages.count == 0) {
+            NSLog(@"🔘 no pages..");
+        }
+        else if (self.stream.nextCursor.length == 0) {
+            NSLog(@"🔘 no next cursor.");
+        }
     }
 }
 - (void)tableView:(UITableView *)tableView didEndDisplayingCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath*)indexPath {
@@ -311,7 +345,7 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
     }
     else if (self.stream.sections.count > 0) {
         Section *s = [self sectionAtIndexPath:indexPath];
-        BFPostStreamComponent *component = [self componentAtIndexPath:indexPath];
+        BFStreamComponent *component = [self componentAtIndexPath:indexPath];
         
         if ([component cellClass] == [StreamPostCell class])  {
             // determine if it's a reply or sub-reply
@@ -440,6 +474,43 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
             
             return cell;
         }
+        else if ([component cellClass] == [SpacerCell class]) {
+            SpacerCell *cell = [self dequeueReusableCellWithIdentifier:spacerCellReuseIdentifier forIndexPath:indexPath];
+
+            if (cell == nil) {
+                cell = [[SpacerCell alloc] initWithStyle:UITableViewCellStyleValue2 reuseIdentifier:spacerCellReuseIdentifier];
+            }
+
+            cell.topSeparator.hidden = true;
+            cell.bottomSeparator.hidden = false;
+
+            return cell;
+        }
+        else if ([component cellClass] == [PaginationCell class]) {
+            PaginationCell *cell = [self dequeueReusableCellWithIdentifier:paginationCellReuseIdentifier forIndexPath:indexPath];
+
+            if (cell == nil) {
+                cell = [[PaginationCell alloc] initWithStyle:UITableViewCellStyleValue2 reuseIdentifier:paginationCellReuseIdentifier];
+            }
+            
+            cell.backgroundColor = [UIColor tableViewBackgroundColor];
+            
+            BOOL showSpinner = self.stream.nextCursor.length > 0;
+            cell.spinner.hidden = !showSpinner;
+            cell.textLabel.hidden = showSpinner;
+            
+            if (showSpinner) {
+                [cell.spinner startAnimating];
+            }
+            else {
+                [cell.spinner stopAnimating];
+                cell.textLabel.text = @"You've reached the bottom!";
+            }
+            
+            [self didBeginDisplayingCell:cell];
+            
+            return cell;
+        }
     }
     else if (indexPath.section == 1) {
         if (self.loading) {
@@ -484,7 +555,7 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
         }
     }
     else if (self.stream.sections.count > 0) {
-        BFPostStreamComponent *component = [self componentAtIndexPath:indexPath];
+        BFStreamComponent *component = [self componentAtIndexPath:indexPath];
         height = component.cellHeight;
     }
     else if (indexPath.section == 1) {
@@ -530,7 +601,7 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
     else if (self.stream.sections.count > section - 1) {
         Section *s = self.stream.sections[section-1];
                 
-        return s.components.count;
+        return s.components.count + ([self showFooterForSection:section] ? 1 : 0);
     }
     else if (self.loading) {
         return 10;
@@ -669,26 +740,6 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
             return HALF_PIXEL;
         }
     }
-    else if (self.stream.sections.count > (section-1) &&
-             [self showFooterForSection:section]) {
-        Section *s = self.stream.sections[section-1];
-        
-        if (section == self.stream.sections.count) {
-            BOOL hasAnotherPage = self.stream.pages.count > 0 && self.stream.nextCursor.length > 0;
-            BOOL showLoadingFooter = (self.loadingMore || (hasAnotherPage && ![self.stream hasLoadedCursor:self.stream.nextCursor]));
-
-            DSimpleLog(@"self.loadingMore? %@", self.loadingMore ? @"YES" : @"NO");
-            DSimpleLog(@"hasAnotherPage? %@", hasAnotherPage ? @"YES" : @"NO");
-            DSimpleLog(@"hasLoadedCursor? %@", [self.stream hasLoadedCursor:self.stream.nextCursor] ? @"YES" : @"NO");
-            
-            if (showLoadingFooter) {
-                return 48;
-            }
-        }
-        else if (s.components.count > 0) {
-            return 8;
-        }
-    }
     
     return CGFLOAT_MIN;
 }
@@ -703,44 +754,6 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
             return separator;
         }
     }
-    else if (self.stream.sections.count > (section-1) &&
-             [self showFooterForSection:section]) {
-        Section *s = self.stream.sections[section-1];
-        
-        UIView *footer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, 8)];
-        footer.backgroundColor = [UIColor tableViewBackgroundColor];
-        
-        if (section == self.stream.sections.count) {
-            BOOL hasAnotherPage = self.stream.pages.count > 0 && self.stream.nextCursor.length > 0;
-            BOOL showLoadingFooter = (self.loadingMore || (hasAnotherPage && ![self.stream hasLoadedCursor:self.stream.nextCursor]));
-
-            if (showLoadingFooter) {
-                SetHeight(footer, 48);
-                
-                UIActivityIndicatorView *spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
-                spinner.color = [UIColor bonfireSecondaryColor];
-                spinner.frame = CGRectMake(footer.frame.size.width / 2 - 10, footer.frame.size.height / 2 - 10, 20, 20);
-                [footer addSubview:spinner];
-
-                [spinner startAnimating];
-
-                if (!self.loadingMore && self.stream.pages.count > 0 && self.stream.nextCursor.length > 0) {
-                    self.loadingMore = true;
-
-                    if ([self.extendedDelegate respondsToSelector:@selector(tableView:didRequestNextPageWithMaxId:)]) {
-                        [self.extendedDelegate tableView:self didRequestNextPageWithMaxId:0];
-                    }
-                }
-            }
-        }
-        else if (s.components.count > 0) {
-            UIView *lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, footer.frame.size.height - HALF_PIXEL, footer.frame.size.width, HALF_PIXEL)];
-            lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
-            [footer addSubview:lineSeparator];
-        }
-        
-        return footer;
-    }
     
     return nil;
 }
@@ -750,14 +763,13 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
     if (scrollView == self && [self.extendedDelegate respondsToSelector:@selector(tableViewDidScroll:)]) {
         [self.extendedDelegate tableViewDidScroll:self];
                 
-        UINavigationController *navController = UIViewParentController(self).navigationController;
-        if (navController) {
-            if ([navController isKindOfClass:[ComplexNavigationController class]]) {
-                ComplexNavigationController *complexNav = (ComplexNavigationController *)navController;
+        if (self.parentNavigationController) {
+            if ([self.parentNavigationController isKindOfClass:[ComplexNavigationController class]]) {
+                ComplexNavigationController *complexNav = (ComplexNavigationController *)self.parentNavigationController;
                 [complexNav childTableViewDidScroll:self];
             }
-            else if ([navController isKindOfClass:[SimpleNavigationController class]]) {
-                SimpleNavigationController *simpleNav = (SimpleNavigationController *)navController;
+            else if ([self.parentNavigationController isKindOfClass:[SimpleNavigationController class]]) {
+                SimpleNavigationController *simpleNav = (SimpleNavigationController *)self.parentNavigationController;
                 [simpleNav childTableViewDidScroll:self];
             }
         }
@@ -830,14 +842,32 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
     
     return self.stream.sections[indexPath.section-1];
 }
-- (BFPostStreamComponent * _Nullable)componentAtIndexPath:(NSIndexPath *)indexPath {
+- (BFStreamComponent * _Nullable)componentAtIndexPath:(NSIndexPath *)indexPath {
     Section *s = [self sectionAtIndexPath:indexPath];
     
-    if (indexPath.row > s.components.count) {
-        return nil;
+    if (s) {
+        if (indexPath.row > s.components.count) {
+            return nil;
+        }
+        else if (indexPath.row == s.components.count) {
+            if (indexPath.section == self.stream.sections.count) {
+                // last section --> try  to use pagination cell
+                BFStreamComponent *component = [[BFStreamComponent alloc] initWithObject:nil className:@"PaginationCell" detailLevel:BFComponentDetailLevelAll];
+                component.cellHeight = [PaginationCell height];
+                return component;
+            }
+            else {
+                // spacer cell
+                BFStreamComponent *component = [[BFStreamComponent alloc] initWithObject:nil className:@"SpacerCell" detailLevel:BFComponentDetailLevelAll];
+                component.cellHeight = [SpacerCell height];
+                return component;
+            }
+        }
+        
+        return s.components[indexPath.row];
     }
     
-    return s.components[indexPath.row];
+    return nil;
 }
 
 #pragma mark - UIContextMenuConfiguration

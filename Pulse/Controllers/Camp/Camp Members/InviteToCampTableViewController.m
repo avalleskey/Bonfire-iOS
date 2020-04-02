@@ -408,7 +408,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
     NSMutableArray *buttons = [NSMutableArray new];
     
     BOOL hasInstagram = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"instagram-stories://"]];
-    BOOL hasSnapchat = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"snapchat://"]];
+    BOOL hasSnapchat = false; //[[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"snapchat://"]];
     BOOL hasTwitter = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"twitter://"]];
     
     if (hasInstagram) {
@@ -452,13 +452,16 @@ static NSString * const memberCellIdentifier = @"MemberCell";
     CGFloat buttonPadding = [self shareButtonPadding];
     CGFloat buttonDiameter = MIN(48, (self.view.frame.size.width - (24 * 2) - ((buttons.count - 1) * buttonPadding)) / buttons.count);
       
+    CGFloat newWidth = buttonDiameter * buttons.count + (buttonPadding * (MAX(1, buttons.count) - 1));
+    CGFloat buttonOffset = (shareBlock.frame.size.width - newWidth) / 2;
+    
     shareBlock.frame = CGRectMake(shareBlock.frame.origin.x, shareBlock.frame.origin.y, shareBlock.frame.size.width, buttonDiameter);
     for (NSInteger i = 0; i < buttons.count; i++) {
         NSDictionary *buttonDict = buttons[i];
         NSString *identifier = buttonDict[@"id"];
         
         UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
-        button.frame = CGRectMake(24 + i * (buttonDiameter + buttonPadding), shareBlock.frame.size.height - buttonDiameter, buttonDiameter, buttonDiameter);
+        button.frame = CGRectMake(buttonOffset + i * (buttonDiameter + buttonPadding), shareBlock.frame.size.height - buttonDiameter, buttonDiameter, buttonDiameter);
         button.layer.cornerRadius = button.frame.size.width / 2;
         button.backgroundColor = buttonDict[@"color"];
         button.adjustsImageWhenHighlighted = false;
@@ -583,7 +586,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return 68;
+    return 62;
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {

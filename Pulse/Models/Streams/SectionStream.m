@@ -553,27 +553,6 @@
     return instance;
 }
 
-//- (void)encodeWithCoder:(NSCoder *)encoder
-//{
-//    [encoder encodeObject:self.data forKey:@"data"];
-//    
-//    if (self.meta) {
-//        [encoder encodeObject:self.meta forKey:@"meta"];
-//    }
-//}
-//
-//-(id)initWithCoder:(NSCoder *)decoder
-//{
-//    if(self = [super init]) {
-//        self.data = [decoder decodeObjectForKey:@"data"];
-//        
-//        if ([decoder decodeObjectForKey:@"meta"]) {
-//            self.meta = [decoder decodeObjectForKey:@"meta"];
-//        }
-//    }
-//    return self;
-//}
-
 - (Section *)createSectionFromPosts:(NSArray *)posts {
     Section *newSection = [[Section alloc] init];
     newSection.attributes = [[SectionAttributes alloc] initWithDictionary:@{@"posts": posts} error:nil];

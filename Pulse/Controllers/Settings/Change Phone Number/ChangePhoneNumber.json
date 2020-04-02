@@ -1,0 +1,18 @@
+{
+    "sections": [
+        {
+            "id": "set_new_phone",
+            "footer": "Only U.S. phone numbers are supported at this time.",
+            "rows": [
+                {
+                    "id": "new_phone_number",
+                    "input": {
+                        "placeholder": "New U.S. Phone Number",
+                        "validation": "phone_number",
+                        "keyboard": "phone_number"
+                    }
+                }
+            ]
+        }
+    ]
+}

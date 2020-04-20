@@ -407,7 +407,7 @@
             borderView = [[UIView alloc] initWithFrame:borderViewFrame];
             borderView.layer.borderColor = [UIColor colorNamed:@"Navigation_ClearBackgroundColor"].CGColor;
             borderView.layer.borderWidth = 2;
-            borderView.layer.cornerRadius = borderView.frame.size.width / 2;
+            borderView.layer.cornerRadius = borderView.frame.size.height / 2;
             borderView.tag = 101;
             [bubbleView addSubview:borderView];
             
@@ -471,37 +471,37 @@
     burst.transform = CGAffineTransformMakeScale(0.01, 0.01);
     burst.alpha = 0;
     [tabBarItemView.superview addSubview:burst];
-    [UIView animateWithDuration:0.15 delay:0 usingSpringWithDamping:0.87 initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-        tabBarItemView.transform = CGAffineTransformMakeScale(0.8, 0.8);
-        if (tabBar.selectedItem == self.myProfileNavVC.tabBarItem) {
-            self.navigationAvatarView.transform = CGAffineTransformMakeScale(0.8, 0.8);
-        }
-    } completion:^(BOOL finished) {
-        [UIView animateWithDuration:0.2f delay:0 usingSpringWithDamping:0.8 initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-            tabBarItemView.transform = CGAffineTransformIdentity;
-            if (tabBar.selectedItem == self.myProfileNavVC.tabBarItem) {
-                self.navigationAvatarView.transform = CGAffineTransformIdentity;
-            }
-        } completion:^(BOOL finished) {
-            [burst removeFromSuperview];
-        }];
-    }];
+//    [UIView animateWithDuration:0.15 delay:0 usingSpringWithDamping:0.87 initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+//        tabBarItemView.transform = CGAffineTransformMakeScale(0.8, 0.8);
+//        if (tabBar.selectedItem == self.myProfileNavVC.tabBarItem) {
+//            self.navigationAvatarView.transform = CGAffineTransformMakeScale(0.8, 0.8);
+//        }
+//    } completion:^(BOOL finished) {
+//        [UIView animateWithDuration:0.2f delay:0 usingSpringWithDamping:0.8 initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+//            tabBarItemView.transform = CGAffineTransformIdentity;
+//            if (tabBar.selectedItem == self.myProfileNavVC.tabBarItem) {
+//                self.navigationAvatarView.transform = CGAffineTransformIdentity;
+//            }
+//        } completion:^(BOOL finished) {
+//            [burst removeFromSuperview];
+//        }];
+//    }];
     
-    burst.alpha = 0;
-    [UIView animateWithDuration:1.2f delay:0 usingSpringWithDamping:0.92 initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseIn animations:^{
-        burst.transform = CGAffineTransformMakeScale(1, 1);
-    } completion:^(BOOL finished) {
-    }];
-    [UIView animateWithDuration:1.1f delay:0.1f usingSpringWithDamping:0.92 initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseIn animations:^{
-        burst.alpha = 0;
-    } completion:^(BOOL finished) {
-        [burst removeFromSuperview];
-    }];
+//    burst.alpha = 0;
+//    [UIView animateWithDuration:1.2f delay:0 usingSpringWithDamping:0.92 initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseIn animations:^{
+//        burst.transform = CGAffineTransformMakeScale(1, 1);
+//    } completion:^(BOOL finished) {
+//    }];
+//    [UIView animateWithDuration:1.1f delay:0.1f usingSpringWithDamping:0.92 initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseIn animations:^{
+//        burst.alpha = 0;
+//    } completion:^(BOOL finished) {
+//        [burst removeFromSuperview];
+//    }];
     
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        // run on background thread
-        [HapticHelper generateFeedback:FeedbackType_Selection];
-    });
+//    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+//        // run on background thread
+//        [HapticHelper generateFeedback:FeedbackType_Selection];
+//    });
     
     [self setNeedsStatusBarAppearanceUpdate];
 }

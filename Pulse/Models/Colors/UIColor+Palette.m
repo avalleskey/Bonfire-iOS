@@ -20,6 +20,15 @@
     
     if (hex.length == 0 || hex.length > 6) hex = @"616d7c";
     
+    if (adjustForOptimalContrast) {
+        if ([[hex lowercaseString] isEqualToString:@"fff"] || [[hex lowercaseString] isEqualToString:@"ffffff"]) {
+            hex = @"fefefe";
+        }
+        else if ([[hex lowercaseString] isEqualToString:@"000"] || [[hex lowercaseString] isEqualToString:@"000000"]) {
+            hex = @"010101";
+        }
+    }
+    
     if (hex != nil && hex.length == 6) {
         NSScanner *scanner = [NSScanner scannerWithString:hex];
         [scanner setScanLocation:0]; // bypass '#' character
@@ -143,7 +152,7 @@
     CGFloat h, s, b, a;
     
     if ([c getHue:&h saturation:&s brightness:&b alpha:&a])
-        return [UIColor colorWithHue:h saturation:MAX(s-amount, 0) brightness:MIN(s+amount, 1) alpha:1];
+        return [UIColor colorWithHue:h saturation:MAX(s*(1-amount), 0) brightness:MIN(s*(1+amount), 1) alpha:1];
     
     return [UIColor whiteColor];
 }
@@ -154,7 +163,7 @@
     CGFloat h, s, b, a;
     
     if ([c getHue:&h saturation:&s brightness:&b alpha:&a])
-        return [UIColor colorWithHue:h saturation:MAX(s+amount, 0) brightness:MIN(s-amount, 1) alpha:1];
+        return [UIColor colorWithHue:h saturation:MAX(s*(1+amount), 0) brightness:MIN(s*(1-amount), 1) alpha:1];
     
     return [UIColor blackColor];
 }

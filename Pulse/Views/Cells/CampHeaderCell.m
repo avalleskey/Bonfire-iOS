@@ -21,6 +21,7 @@
 #import "BFAlertController.h"
 #import "NSDate+NVTimeAgo.h"
 #import "AddManagerTableViewController.h"
+#import "BFMiniNotificationManager.h"
 
 #define CAMP_CONTEXT_BUBBLE_TAG_ACTIVE 1
 #define CAMP_CONTEXT_BUBBLE_TAG_NEW_CAMP 2
@@ -827,21 +828,22 @@
     
     BFAlertController *postNotifications = [BFAlertController alertControllerWithIcon:icon title:(campPostNotifications?@"Post Notifications are on":@"Post Notifications are off") message:(campPostNotifications ? @"You will receive notifications for new posts inside this Camp" : @"You will only receive notifications when you are mentioned or replied to") preferredStyle:BFAlertControllerStyleActionSheet];
     
-    NSString *actionTitle;
-    if (campPostNotifications) {
-        actionTitle = @"Turn Post Notifications Off";
-    }
-    else {
-        actionTitle = @"Turn Post Notifications On";
-    }
+    NSString *actionTitle = [@"Turn Post Notifications " stringByAppendingString:(campPostNotifications?@"Off":@"On")];
+
     BFAlertAction *togglePostNotifications = [BFAlertAction actionWithTitle:actionTitle style:BFAlertActionStyleDefault handler:^{
         NSLog(@"toggle post notifications");
         // confirm action
         Camp *campCopy = [self.camp copy];
         if (campPostNotifications) {
+            BFMiniNotificationObject *notificationObject = [BFMiniNotificationObject notificationWithText:@"Saved!" action:nil];
+            [[BFMiniNotificationManager manager] presentNotification:notificationObject completion:nil];
+            
             [campCopy unsubscribeFromCamp];
         }
         else {
+            BFMiniNotificationObject *notificationObject = [BFMiniNotificationObject notificationWithText:@"Saved!" action:nil];
+            [[BFMiniNotificationManager manager] presentNotification:notificationObject completion:nil];
+            
             [campCopy subscribeToCamp];
         }
     }];
@@ -854,7 +856,7 @@
         [postNotifications addAction:editCamp];
     }
     
-    BFAlertAction *leaveCamp = [BFAlertAction actionWithTitle:@"Leave Camp" style:BFAlertActionStyleDestructive handler:^{
+    BFAlertAction *leaveCamp = [BFAlertAction actionWithTitle:([self.camp isChannel] || [self.camp isFeed] ? @"Unsubscribe" : @"Leave Camp") style:BFAlertActionStyleDestructive handler:^{
         // confirm action
         BOOL privateCamp = [self.camp isPrivate];
         BOOL lastMember = self.camp.attributes.summaries.counts.members <= 1;

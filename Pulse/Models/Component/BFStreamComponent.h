@@ -28,13 +28,18 @@ NS_ASSUME_NONNULL_BEGIN
 
 // These provide the table view with the data needed to
 // populate the cellClass
-@property (nonatomic, strong) BFSectionHeaderObject * _Nullable headerObject;
-- (Post * _Nullable)post;
-- (Camp * _Nullable)camp;
-- (Identity * _Nullable)identity;
-- (User * _Nullable)user;
-- (Bot * _Nullable)bot;
-- (BFLink * _Nullable)link;
+@property (nonatomic, strong) BFSectionHeaderObject <Optional> *headerObject;
+
+@property (nonatomic, strong) Post <Optional> *post;
+@property (nonatomic, strong) Camp <Optional> *camp;
+@property (nonatomic, strong) Identity <Optional> *identity;
+@property (nonatomic, strong) User <Optional> *user;
+@property (nonatomic, strong) Bot <Optional> *bot;
+@property (nonatomic, strong) BFLink <Optional> *link;
+
+@property (nonatomic, strong) NSArray <Camp *><Camp, Optional> *campArray;
+@property (nonatomic, strong) NSArray <User *><User, Optional> *userArray;
+@property (nonatomic, strong) NSDictionary <Optional> *dictionary;
 
 @end
 

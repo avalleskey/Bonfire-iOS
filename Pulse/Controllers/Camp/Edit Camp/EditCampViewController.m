@@ -155,6 +155,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
         }
         
         profilePictureCell.editPictureImageView.tintColor = [UIColor fromHex:[UIColor toHex:self.view.tintColor] adjustForOptimalContrast:true];
+        profilePictureCell.editCoverPhotoImageView.tintColor = [UIColor fromHex:[UIColor toHex:self.view.tintColor] adjustForOptimalContrast:true];
         
         for (UITableViewCell *cell in [self.tableView visibleCells]) {
             if ([cell isKindOfClass:[InputCell class]]) {

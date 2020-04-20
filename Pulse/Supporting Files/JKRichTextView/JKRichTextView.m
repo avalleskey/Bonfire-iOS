@@ -119,7 +119,6 @@ static CGSize const JKRichTextViewInvalidedIntrinsicContentSize = (CGSize){-1, -
 }
 
 #pragma mark - UIGestureRecognizerDelegate
-
 - (nullable UIContextMenuConfiguration *)contextMenuInteraction:(nonnull UIContextMenuInteraction *)interaction configurationForMenuAtLocation:(CGPoint)location  API_AVAILABLE(ios(13.0)){
     NSURL *link = [self linkAtPoint:location];
     
@@ -127,16 +126,7 @@ static CGSize const JKRichTextViewInvalidedIntrinsicContentSize = (CGSize){-1, -
     if (link) {
         NSLog(@"yooooo has a link");
         NSLog(@"link:: %@", link.absoluteString);
-        BOOL internalURL = [Configuration isInternalURL:link];
-        BOOL externalURL = [Configuration isExternalBonfireURL:link];
-        
-        id linkObject;
-        if (internalURL) {
-            linkObject = [Configuration objectFromInternalURL:link];
-        }
-        else if (externalURL) {
-            linkObject = [Configuration objectFromExternalBonfireURL:link];
-        }
+        id linkObject = [Configuration objectFromBonfireURL:link];
         
         if (linkObject) {
             if ([linkObject isKindOfClass:[User class]]) {

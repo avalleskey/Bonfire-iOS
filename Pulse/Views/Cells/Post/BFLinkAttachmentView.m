@@ -15,7 +15,7 @@
 #import <SDWebImage/UIImageView+WebCache.h>
 #import <SDWebImage/UIView+WebCache.h>
 
-#define LINK_ATTACHMENT_EDGE_INSETS UIEdgeInsetsMake(10, 12, 14, 12)
+#define LINK_ATTACHMENT_EDGE_INSETS UIEdgeInsetsMake(10, 12, 10, 12)
 
 // title macros
 #define LINK_ATTACHMENT_TITLE_FONT [UIFont systemFontOfSize:[UIFont preferredFontForTextStyle:UIFontTextStyleBody].pointSize weight:UIFontWeightSemibold]
@@ -138,7 +138,10 @@
     [self.contentView addSubview:self.sourceLabel];
     
     [self bk_whenTapped:^{
-        [Launcher openURL:self.link.attributes.actionUrl];
+        NSURL *link = [NSURL URLWithString:self.link.attributes.actionUrl];
+        if (![[[UIApplication sharedApplication] delegate] application:[UIApplication sharedApplication] openURL:link options:@{}]) {
+            [Launcher openURL:link.absoluteString];
+        }
     }];
     
     if (@available(iOS 13.0, *)) {

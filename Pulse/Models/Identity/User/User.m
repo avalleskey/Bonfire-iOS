@@ -5,6 +5,13 @@
 
 @implementation User
 
+- (id)init {
+    if (self = [super init]) {
+        self.type = @"user";
+    }
+    return self;
+}
+
 - (instancetype)initWithDictionary:(NSDictionary *)dict error:(NSError **)err {
     User *instance = [super initWithDictionary:dict error:err];
     

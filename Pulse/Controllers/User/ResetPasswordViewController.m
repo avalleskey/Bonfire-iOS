@@ -16,6 +16,7 @@
 #import "NSString+Validation.h"
 #import "HAWebService.h"
 #import "BFAlertController.h"
+#import "BFMiniNotificationManager.h"
 
 #import <JGProgressHUD/JGProgressHUD.h>
 #import <HapticHelper/HapticHelper.h>
@@ -99,7 +100,15 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
 }
 
 - (BOOL)hasExistingLookup {
-    return [Session sharedInstance].currentUser.attributes.email && [[Session sharedInstance].currentUser.attributes.email validateBonfireEmail] == BFValidationErrorNone;
+    if (self.contextType == ResetPasswordContextTypeOptional) {
+        return [Session sharedInstance].currentUser.attributes.email && [[Session sharedInstance].currentUser.attributes.email validateBonfireEmail] == BFValidationErrorNone;
+    }
+    else {
+        // required
+        return (self.prefillLookup.length > 0);
+    }
+    
+    return false;
 }
 
 - (void)addListeners {
@@ -168,14 +177,34 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
     
     self.steps = [[NSMutableArray alloc] init];
     
-    [self.steps addObject:@{@"id": @"reset_lookup", @"skip": [NSNumber numberWithBool:false], @"next": @"Next", @"instruction": [self hasExistingLookup] ? @"Tap Next to send a password reset code to your email" : @"Let’s reset your password!\nWhat’s your email or username?", @"placeholder": @"Email or username", @"sensitive": [NSNumber numberWithBool:false], @"keyboard": @"text", @"answer": [NSNull null], @"textField": [NSNull null], @"block": [NSNull null]}];
-    [self.steps addObject:@{@"id": @"reset_code", @"skip": [NSNumber numberWithBool:false], @"next": @"Next", @"instruction": @"Please enter the 6 digit code\nwe sent to your email", @"placeholder":@"6 digit code", @"sensitive": [NSNumber numberWithBool:false], @"keyboard": @"number", @"answer": [NSNull null], @"textField": [NSNull null], @"block": [NSNull null]}];
+    if (self.contextType == ResetPasswordContextTypeOptional) {
+        [self.steps addObject:@{@"id": @"reset_lookup", @"skip": [NSNumber numberWithBool:false], @"next": @"Next", @"instruction": [self hasExistingLookup] ? @"Tap Next to send a password reset code to your email" : @"Let’s reset your password!\nWhat’s your email or username?", @"placeholder": @"Email or username", @"sensitive": [NSNumber numberWithBool:false], @"keyboard": @"text", @"answer": [NSNull null], @"textField": [NSNull null], @"block": [NSNull null]}];
+        [self.steps addObject:@{@"id": @"reset_code", @"skip": [NSNumber numberWithBool:false], @"next": @"Next", @"instruction": @"Please enter the 6 digit code\nwe sent to your email", @"placeholder":@"6 digit code", @"sensitive": [NSNumber numberWithBool:false], @"keyboard": @"number", @"answer": [NSNull null], @"textField": [NSNull null], @"block": [NSNull null]}];
+    }
+    else {
+        // required
+        [self requestEmailVerification];
+        [self.steps addObject:@{@"id": @"reset_code", @"skip": [NSNumber numberWithBool:false], @"next": @"Next", @"instruction": [NSString stringWithFormat:@"Please enter the 6 digit code\n sent to %@", (self.prefillLookup.length > 0 ? self.prefillLookup : @"your email")], @"placeholder":@"6 digit code", @"sensitive": [NSNumber numberWithBool:false], @"keyboard": @"number", @"answer": [NSNull null], @"textField": [NSNull null], @"block": [NSNull null]}];
+    }
     [self.steps addObject:@{@"id": @"reset_new_password", @"skip": [NSNumber numberWithBool:false], @"next": @"Next", @"instruction": [NSString stringWithFormat:@"Set a new password that’s at least %i characters", MIN_PASSWORD_LENGTH], @"placeholder":@"New Password", @"sensitive": [NSNumber numberWithBool:true], @"keyboard": @"text", @"answer": [NSNull null], @"textField": [NSNull null], @"block": [NSNull null]}];
     [self.steps addObject:@{@"id": @"reset_confirm_new_password", @"skip": [NSNumber numberWithBool:false], @"next": @"Confirm", @"instruction": @"Please confirm your\nnew password", @"placeholder":@"Confirm New Password", @"sensitive": [NSNumber numberWithBool:true], @"keyboard": @"text", @"answer": [NSNull null], @"textField": [NSNull null], @"block": [NSNull null]}];
     
     for (NSInteger i = 0; i < [self.steps count]; i++) {
         // add each step to the right
         [self addStep:i usingArray:self.steps];
+    }
+}
+
+- (NSString *)preferredLookup {
+    if ([self hasExistingLookup] && self.prefillLookup.length > 0) {
+        return self.prefillLookup;
+    }
+    else {
+        NSInteger lookupStep = [self getIndexOfStepWithId:@"reset_lookup"];
+        UITextField *lookupTextField = self.steps[lookupStep][@"textField"];
+        NSString *lookup = lookupTextField.text;
+        
+        return lookup;
     }
 }
 
@@ -220,6 +249,9 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
         else if ([mutatedStep[@"id"] isEqualToString:@"reset_code"]) {
             textField.tag = RESET_CODE_FIELD;
             textField.text = self.prefillCode;
+            if (@available(iOS 12.0, *)) {
+                textField.textContentType = UITextContentTypeOneTimeCode;
+            }
             if (self.prefillCode.length > 0) {
                 [self textFieldChanged:textField];
                 
@@ -327,7 +359,7 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
             return i;
         }
     }
-    return 0;
+    return -1;
 }
 
 - (void)textFieldChanged:(UITextField *)sender {
@@ -731,33 +763,39 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
 }
 - (void)requestEmailVerification {
     NSInteger lookupStep = [self getIndexOfStepWithId:@"reset_lookup"];
-    UITextField *lookupTextField = self.steps[lookupStep][@"textField"];
-    NSString *lookup = lookupTextField.text;
     
-    NSLog(@"params: %@", @{@"lookup": lookup});
-    
-    [self showSpinnerForStep:lookupStep];
+    NSString *lookup = self.prefillLookup;
+    if (lookupStep != -1) {
+        UITextField *lookupTextField = self.steps[lookupStep][@"textField"];
+        lookup = lookupTextField.text;
+        
+        NSLog(@"params: %@", @{@"lookup": lookup});
+        
+        [self showSpinnerForStep:lookupStep];
+    }
     
     [[HAWebService managerWithContentType:kCONTENT_TYPE_URL_ENCODED] POST:@"accounts/recoveries/email" parameters:@{@"lookup": lookup} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         // move spinner
-        [self removeSpinnerForStep:lookupStep];
-        [self nextStep:true];
+        if (lookupStep != -1) {
+            [self removeSpinnerForStep:lookupStep];
+            [self nextStep:true];
+        }
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         NSLog(@"error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);
         NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
         NSLog(@"%@",ErrorResponse);
         
-        [self removeSpinnerForStep:lookupStep];
-        self.nextButton.enabled = true;
-        self.nextButton.backgroundColor = self.view.tintColor;
-        self.nextButton.userInteractionEnabled = true;
-        [self shakeInputBlock];
+        if (lookupStep != -1) {
+            [self removeSpinnerForStep:lookupStep];
+            self.nextButton.enabled = true;
+            self.nextButton.backgroundColor = self.view.tintColor;
+            self.nextButton.userInteractionEnabled = true;
+            [self shakeInputBlock];
+        }
     }];
 }
 - (void)confirmPasswordReset {
-    NSInteger lookupStep = [self getIndexOfStepWithId:@"reset_lookup"];
-    UITextField *lookupTextField = self.steps[lookupStep][@"textField"];
-    NSString *lookup = lookupTextField.text;
+    NSString *lookup = [self preferredLookup];
     
     NSInteger codeStep = [self getIndexOfStepWithId:@"reset_code"];
     UITextField *codeTextField = self.steps[codeStep][@"textField"];
@@ -775,19 +813,14 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
         // move spinner
         [self removeSpinnerForStep:newPasswordStep];
         
-        JGProgressHUD *HUD = [JGProgressHUD progressHUDWithStyle:JGProgressHUDStyleExtraLight];
-        HUD.textLabel.text = @"Saved!";
-        HUD.vibrancyEnabled = false;
-        HUD.animation = [[JGProgressHUDFadeZoomAnimation alloc] init];
-        HUD.textLabel.textColor = [UIColor colorWithWhite:0 alpha:0.6f];
-        HUD.backgroundColor = [UIColor colorWithWhite:0 alpha:0.1f];
-        HUD.indicatorView = [[JGProgressHUDSuccessIndicatorView alloc] init];
-        HUD.indicatorView.tintColor = HUD.textLabel.textColor;
+        if ([self.delegate respondsToSelector:@selector(passwordDidChange:)]) {
+            [self.delegate passwordDidChange:newPassword];
+        }
         
         [self dismissViewControllerAnimated:YES completion:^{
-            [HapticHelper generateFeedback:FeedbackType_Notification_Success];
-            [HUD showInView:[Launcher activeViewController].view animated:YES];
-            [HUD dismissAfterDelay:1.5f];
+            // success
+            BFMiniNotificationObject *notificationObject = [BFMiniNotificationObject notificationWithText:@"Saved!" action:nil];
+            [[BFMiniNotificationManager manager] presentNotification:notificationObject completion:nil];
         }];
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         NSLog(@"error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);

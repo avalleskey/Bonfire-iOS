@@ -25,11 +25,13 @@ extern NSString * const LOCAL_APP_URI;
 
 #pragma mark - Internal URL Helpers
 + (BOOL)isInternalURL:(NSURL *)url;
-+ (id)objectFromInternalURL:(NSURL *)url;
 + (BOOL)isExternalBonfireURL:(NSURL *)url;
-+ (id)objectFromExternalBonfireURL:(NSURL *)url;
-+ (NSDictionary *)parametersFromExternalBonfireURL:(NSURL *)url;
 + (BOOL)isBonfireURL:(NSURL *)url;
+
++ (NSString *)pathStringFromBonfireURL:(NSURL *)url;
++ (NSArray<NSString *> *)pathPartsFromBonfireURL:(NSURL *)url;
++ (NSDictionary *)parametersFromExternalBonfireURL:(NSURL *)url;
++ (id)objectFromBonfireURL:(NSURL *)url;
 
 #pragma mark - Internal Swich Methods
 + (void)switchToDevelopment;

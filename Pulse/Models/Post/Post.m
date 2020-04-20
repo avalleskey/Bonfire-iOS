@@ -18,6 +18,13 @@
                                                                   }];
 }
 
+- (id)init {
+    if (self = [super init]) {
+        self.type = @"post";
+    }
+    return self;
+}
+
 - (instancetype)initWithDictionary:(NSDictionary *)dict error:(NSError **)err {
     Post *instance = [super initWithDictionary:dict error:err];
     

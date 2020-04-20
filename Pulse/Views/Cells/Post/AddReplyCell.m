@@ -33,7 +33,7 @@
         self.contentView.backgroundColor = [UIColor clearColor];
         
         self.profilePicture = [[BFAvatarView alloc] init];
-        self.profilePicture.frame = CGRectMake(64, 12, 24, 24);
+        self.profilePicture.frame = CGRectMake(64, 10, 28, 28);
         self.profilePicture.openOnTap = false;
         self.profilePicture.user = [Session sharedInstance].currentUser;
         self.profilePicture.userInteractionEnabled = false;

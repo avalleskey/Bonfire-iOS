@@ -39,14 +39,15 @@ static NSString * const memberCellIdentifier = @"MemberCell";
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
+        
     self.navigationItem.hidesBackButton = true;
     self.view.backgroundColor = [UIColor tableViewBackgroundColor];
     
+    self.animateLoading = true;
+    self.loading = true;
+    
     [self setupTableView];
     [self setupErrorView];
-    
-    [self setSpinning:true];
     
     if (![self.stream nextCursor]) {
         [self getCampsWithCursor:StreamPagingCursorTypeNone];
@@ -74,6 +75,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
 
     self.stream = [[CampListStream alloc] init];
     self.stream.delegate = self;
+    
     // load cache
     if ([self isCurrentUser]) {
         [self loadCache];
@@ -127,7 +129,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
     [[PINCache sharedCache] setObject:[newCache copy] forKey:MY_CAMPS_CACHE_KEY];
 }
 - (void)getCampsWithCursor:(StreamPagingCursorType)cursorType {
-    NSString *url = [NSString stringWithFormat:@"users/%@/camps", self.user.identifier];
+    NSString *url = [NSString stringWithFormat:@"users/%@/camps", (self.user.identifier ? self.user.identifier : self.user.attributes.identifier)];
     
     NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
     
@@ -137,6 +139,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
             return;
         }
         
+        self.loading = false;
         self.loadingMoreCamps = true;
         [self.stream addLoadedCursor:nextCursor];
         [params setObject:nextCursor forKey:@"next_cursor"];
@@ -246,7 +249,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return 62;
+    return [SearchResultCell height];
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {

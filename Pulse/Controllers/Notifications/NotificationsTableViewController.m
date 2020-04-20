@@ -313,8 +313,10 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
     
     if (!self.loading) {
         self.titleView.shimmering = false;
-        
-        [self.refreshControl performSelector:@selector(endRefreshing) withObject:nil afterDelay:0.0];
+
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.refreshControl performSelector:@selector(endRefreshing) withObject:nil afterDelay:0.0];
+        });
     }
 }
 
@@ -581,7 +583,12 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
             SimpleNavigationController *newNavController = [[SimpleNavigationController alloc] initWithRootViewController:p];
             newNavController.transitioningDelegate = [Launcher sharedInstance];
             [newNavController setLeftAction:SNActionTypeBack];
+            if (![p.post.attributes.postedIn.attributes isPrivate]) {
+                [newNavController setRightAction:SNActionTypeShare];
+            }
             newNavController.currentTheme = p.theme;
+            newNavController.view.tintColor = [UIColor fromHex:p.post.themeColor adjustForOptimalContrast:true];
+            [newNavController updateBarColor:[UIColor clearColor] animated:false];
             
             [Launcher push:newNavController animated:YES];
         };
@@ -747,7 +754,9 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
                 }];
             }
             else if ([Session sharedInstance].defaults.announcement.attributes.cta.actionUrl.length > 0) {
-                [Launcher openURL:[Session sharedInstance].defaults.announcement.attributes.cta.actionUrl];
+                if (![[[UIApplication sharedApplication] delegate] application:[UIApplication sharedApplication] openURL:[NSURL URLWithString:[Session sharedInstance].defaults.announcement.attributes.cta.actionUrl] options:@{}]) {
+                    [Launcher openURL:[Session sharedInstance].defaults.announcement.attributes.cta.actionUrl];
+                }
             }
         }];
         
@@ -797,7 +806,6 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
         
         NSString *urlString = activity.attributes.target.url;
         NSURL *url = [NSURL URLWithString:urlString];
-        BOOL appCanOpenURL = ([Configuration isExternalBonfireURL:url] || [Configuration isInternalURL:url]);
         
         if (object) {
             // launch object
@@ -811,11 +819,7 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
                 [Launcher openCamp:(Camp *)object];
             }
         }
-        else if (appCanOpenURL) {
-            AppDelegate *ad = (AppDelegate *)[UIApplication sharedApplication].delegate;
-            [ad application:[UIApplication sharedApplication] openURL:url options:@{}];
-        }
-        else if (activity.attributes.target.url && activity.attributes.target.url.length > 0) {
+        else if (![[[UIApplication sharedApplication] delegate] application:[UIApplication sharedApplication] openURL:[NSURL URLWithString:[Session sharedInstance].defaults.announcement.attributes.cta.actionUrl] options:@{}] && activity.attributes.target.url && activity.attributes.target.url.length > 0) {
             // the URL is not a known Bonfire URL, so open it in a Safari VC
             [Launcher openURL:urlString];
         }

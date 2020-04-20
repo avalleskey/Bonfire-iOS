@@ -28,8 +28,6 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) MarqueeLabel *campTitleLabel;
 @property (nonatomic, strong) MarqueeLabel *campTagLabel;
 
-@property (nonatomic, strong) UIButton *membersDetailsButton;
-
 @property (nonatomic) BOOL tapToJoin;
 @property (nonatomic) BOOL joined;
 - (void)setJoined:(BOOL)joined animated:(BOOL)animated;

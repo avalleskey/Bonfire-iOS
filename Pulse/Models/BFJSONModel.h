@@ -16,4 +16,11 @@ NS_ASSUME_NONNULL_BEGIN
 
 @end
 
+@interface JSONValueTransformer (NSAttributedString)
+
+- (NSAttributedString *)NSAttributedStringFromNSString:(NSString *)string;
+- (NSString *)JSONObjectFromNSAttributedString:(NSAttributedString *)string;
+
+@end
+
 NS_ASSUME_NONNULL_END

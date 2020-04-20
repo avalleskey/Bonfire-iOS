@@ -20,7 +20,7 @@
 #define expandedImageHeightDefault 240
 
 #define expandedLinkContentOffset UIEdgeInsetsMake(0, 12, 0, 12)
-#define expandedLinkTitleLabelFont [UIFont systemFontOfSize:24.f weight:UIFontWeightBold]
+#define expandedLinkTitleLabelFont [UIFont systemFontOfSize:24.f weight:UIFontWeightHeavy]
 #define expandedLinkTextViewFont [UIFont systemFontOfSize:14.f weight:UIFontWeightRegular]
 #define expandedLinkActionsViewHeight 44
 

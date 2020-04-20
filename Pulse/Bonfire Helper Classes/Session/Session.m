@@ -377,6 +377,7 @@ static Session *session;
     
     // clear feed cache
     [[PINCache sharedCache] removeAllObjects];
+    [[Session tempCache] removeAllObjects];
     
     // ❌🗑❌ clear local app data ❌🗑❌
     NSString *appDomain = [[NSBundle mainBundle] bundleIdentifier];
@@ -583,6 +584,18 @@ static Session *session;
     [[NSUserDefaults standardUserDefaults] setObject:temporaryDefaults forKey:@"temporary_defaults"];
     
     return tempId;
+}
+
+/* Caches */
+
++ (PINCache *)tempCache {
+    static PINCache *_sharedCampCache = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        _sharedCampCache = [[PINCache alloc] initWithName:@"BonfireTemporaryCache" rootPath:[NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) firstObject] serializer:nil deserializer:nil keyEncoder:nil keyDecoder:nil ttlCache:true];
+    });
+    
+    return _sharedCampCache;
 }
 
 @end

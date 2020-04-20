@@ -59,7 +59,6 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
     self.navigationItem.hidesBackButton = true;
     
     [self setupTableView];
-    [self setupTitleView];
     
     self.searchPhrase = @"";
 
@@ -92,7 +91,7 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
     [super viewWillAppear:animated];
     
     if ([self isBeingPresented] || [self isMovingToParentViewController]) {
-        
+        [self setupTitleView];
     }
 }
 
@@ -139,6 +138,7 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
     [self.tableView registerClass:[CampCardsListCell class] forCellReuseIdentifier:cardsListCellReuseIdentifier];
 }
 - (void)setupTitleView {
+    self.title = @"My Camps";
     UIButton *titleButton = [UIButton buttonWithType:UIButtonTypeSystem];
     [titleButton setTitleColor:[UIColor bonfirePrimaryColor] forState:UIControlStateNormal];
     titleButton.titleLabel.font = ([self.navigationController.navigationBar.titleTextAttributes objectForKey:NSFontAttributeName] ? self.navigationController.navigationBar.titleTextAttributes[NSFontAttributeName] : [UIFont systemFontOfSize:18.f weight:UIFontWeightBold]);
@@ -357,10 +357,14 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
 }
 
 - (void)update {
-    if ([[self.tableView indexPathsForVisibleRows] containsObject:[NSIndexPath indexPathForRow:0 inSection:1]] && [self.tableView numberOfRowsInSection:1] > 0) {
-        [UIView setAnimationsEnabled:false];
-        [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationNone];
-        [UIView setAnimationsEnabled:true];
+    CGFloat numberBefore_0 = [self.tableView numberOfRowsInSection:0];
+    CGFloat numberAfter_0 = [self tableView:self.tableView numberOfRowsInSection:0];
+    
+    CGFloat numberBefore_1 = [self.tableView numberOfRowsInSection:1];
+    CGFloat numberAfter_1 = [self tableView:self.tableView numberOfRowsInSection:1];
+        
+    if (numberBefore_0 == numberAfter_0 && numberBefore_1 > 0 && numberBefore_1 == numberAfter_1) {
+        [self.tableView reloadSections:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(1, 1)] withRowAnimation:UITableViewRowAnimationNone];
     }
     else {
         [self.tableView reloadData];
@@ -412,6 +416,43 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
     else {
         self.errorView.hidden = true;
     }
+}
+
+- (void) safeCellUpdate: (NSUInteger) section withRow : (NSUInteger) row {
+    // It's important to invoke reloadRowsAtIndexPaths implementation on main thread, as it wont work on non-UI thread
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NSUInteger lastSection = [self.tableView numberOfSections];
+        if (lastSection == 0) {
+            return;
+        }
+        lastSection -= 1;
+        if (section > lastSection) {
+            return;
+        }
+        NSUInteger lastRowNumber = [self.tableView numberOfRowsInSection:section];
+        if (lastRowNumber == 0) {
+            return;
+        }
+        lastRowNumber -= 1;
+        if (row > lastRowNumber) {
+            return;
+        }
+        NSIndexPath *indexPath = [NSIndexPath indexPathForRow:row inSection:section];
+        @try {
+            if ([[self.tableView indexPathsForVisibleRows] indexOfObject:indexPath] == NSNotFound) {
+                // Cells not visible can be ignored
+                return;
+            }
+            [self.tableView reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationNone];
+        }
+
+        @catch ( NSException *e ) {
+            // Don't really care if it doesn't work.
+            // It's just to refresh the view and if an exception occurs it's most likely that that is what's happening in parallel.
+            // Nothing needs done
+            return;
+        }
+    });
 }
 
 #pragma mark - Table view data source
@@ -524,11 +565,11 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
     if (stream.camps.count > 0) {
         if (!_isSearching && indexPath.section == 0) {
             if (indexPath.row == 0) {
-                return self.suggestedCamps.count > 0 ? SMALL_MEDIUM_CARD_HEIGHT - 8 : 0;
+                return self.suggestedCamps.count > 0 ? SMALL_MEDIUM_CARD_HEIGHT : 0;
             }
         }
         else if (indexPath.section == 1 && stream.camps.count > 0) {
-            return 62;
+            return [SearchResultCell height];
         }
     }
     

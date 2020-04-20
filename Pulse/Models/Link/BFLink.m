@@ -18,6 +18,13 @@
                                                                   }];
 }
 
+- (id)init {
+    if (self = [super init]) {
+        self.type = @"link";
+    }
+    return self;
+}
+
 + (BOOL)propertyIsOptional:(NSString*)propertyName
 {
     return YES;
@@ -43,11 +50,11 @@
 - (BFLinkAttachmentContentIdentifier)setContentIdentifier {
     NSURL *url = [NSURL URLWithString:self.attributes.canonicalUrl];
     
-    if ([url matches:REGEX_YOUTUBE]) {
-        // youtube link
-//        NSLog(@"youtube link!");
-        return BFLinkAttachmentContentIdentifierYouTubeVideo;
-    }
+//    if ([url matches:REGEX_YOUTUBE]) {
+//        // youtube link
+////        NSLog(@"youtube link!");
+//        return BFLinkAttachmentContentIdentifierYouTubeVideo;
+//    }
     if ([url matches:REGEX_SPOTIFY_SONG]) {
         // https://open.spotify.com/track/47n6zyO3Uf9axGAPIY0ZOd?si=EzRVMTfJTv2qygVe1BrV4Q
         // spotify song
@@ -85,7 +92,16 @@
 }
 
 - (BOOL)isSmartLink {
-    return self.attributes.attribution != nil;
+    BOOL attribution = self.attributes.attribution != nil;
+    if (attribution) return true;
+    
+    if (self.attributes.contentIdentifier != BFLinkAttachmentContentIdentifierNone) return false;
+    
+    BOOL ogImage = self.attributes.images.count > 0;
+    BOOL title = self.attributes.linkTitle.length > 0;
+    BOOL description = self.attributes.theDescription.length > 0;
+    
+    return ogImage && title && description;
 }
 
 @end

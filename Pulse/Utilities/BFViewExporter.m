@@ -8,6 +8,10 @@
 
 #import "BFViewExporter.h"
 #import "UIColor+Palette.h"
+#import "BFAvatarView.h"
+#import "Session.h"
+#import "BFPostAttachmentView.h"
+#import "UIView+Styles.h"
 
 @interface BFViewExporter()
 
@@ -42,28 +46,74 @@
 + (UIImage *)imageForView:(UIView *)view container:(BOOL)container {
     CGSize size = view.frame.size;
     
-    CGFloat footerHeight = 32.f;
-    UIEdgeInsets padding = container ? UIEdgeInsetsMake(24, 24, 24 + footerHeight + 16, 24) : UIEdgeInsetsZero;
+    CGFloat footerHeight = 48.f;
+    UIEdgeInsets padding = UIEdgeInsetsZero;
+    if (container) {
+        padding = UIEdgeInsetsMake(24, 24, 24 + footerHeight, 24);
+        
+        CGFloat newContainerWidth = size.width + padding.left + padding.right;
+        CGFloat newContainerHeight = size.height + padding.top + padding.bottom;
+        
+        if (newContainerWidth > newContainerHeight) {
+            CGFloat verticalPadding = (newContainerWidth - newContainerHeight) / 2;
+            padding.top += verticalPadding;
+            padding.bottom += verticalPadding;
+        }
+    }
     DLog(@"padding: %f %f %f %f", padding.top, padding.left, padding.bottom, padding.right);
-    CGFloat cornerRadius = container ? 20.f : 0;
+    CGFloat cornerRadius = container ? 0 : 0;
     
     UIView *containerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, size.width + padding.left + padding.right, size.height + padding.top + padding.bottom)];
     containerView.backgroundColor = container ? [UIColor tableViewBackgroundColor] : [UIColor clearColor];
     
     if (container) {
-        [BFViewExporter continuityRadiusForView:view withRadius:cornerRadius];
-        
         UIView *tableViewContainerView = [[UIView alloc] initWithFrame:CGRectMake(padding.left, padding.top, view.frame.size.width, view.frame.size.height)];
-        [BFViewExporter continuityRadiusForView:tableViewContainerView withRadius:cornerRadius];
+        tableViewContainerView.layer.cornerRadius = view.layer.cornerRadius;
+        [tableViewContainerView setElevation:1];
+        tableViewContainerView.layer.borderWidth = 0;
         [tableViewContainerView addSubview:view];
         
-        UIView *footer = [[UIView alloc] initWithFrame:CGRectMake(tableViewContainerView.frame.origin.x, tableViewContainerView.frame.origin.y + tableViewContainerView.frame.size.height + 16, view.frame.size.width, footerHeight)];
-        UIImageView *logo = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"bonfireShareFooterImage"]];
-        logo.frame = CGRectMake(footer.frame.size.width / 2 - (168 / 2), 0, 168, 32);
-        [footer addSubview:logo];
-            
+        UIView *footer = [[UIView alloc] initWithFrame:CGRectMake(0, containerView.frame.size.height - footerHeight, view.frame.size.width + padding.left + padding.right, footerHeight)];
+//        [footer setElevation:2];
+//        footer.backgroundColor = [UIColor colorNamed:@"Navigation_ClearBackgroundColor"];
+        
+        UIView *lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(padding.left, 0, footer.frame.size.width - padding.left - padding.right, HALF_PIXEL)];
+        lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
+        [footer addSubview:lineSeparator];
+        
+        UIImageView *bonfireLogo = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"LaunchLogo"]];
+        bonfireLogo.frame = CGRectMake(footer.frame.size.width - 24 - padding.right, 12, 24, 24);
+        [footer addSubview:bonfireLogo];
+        
+        UILabel *bonfireDownloadURL = [[UILabel alloc] initWithFrame:CGRectMake(bonfireLogo.frame.origin.x - 120 - 8, 0, 120, footer.frame.size.height)];
+        bonfireDownloadURL.textAlignment = NSTextAlignmentRight;
+        bonfireDownloadURL.textColor = [UIColor bonfirePrimaryColor];
+        bonfireDownloadURL.font = [UIFont systemFontOfSize:15.f weight:UIFontWeightSemibold];
+        bonfireDownloadURL.text = @"joinbonfire.com";
+        [footer addSubview:bonfireDownloadURL];
+        
+        BFAvatarView *currentUser = [[BFAvatarView alloc] initWithFrame:CGRectMake(padding.left, 12, 24, 24)];
+        currentUser.user = [Session sharedInstance].currentUser;
+        [footer addSubview:currentUser];
+        
+        UILabel *sharedBy = [[UILabel alloc] initWithFrame:CGRectMake(currentUser.frame.origin.x + currentUser.frame.size.width + 8, 0, bonfireDownloadURL.frame.origin.x - 8 - (currentUser.frame.origin.x + currentUser.frame.size.width + 8), footer.frame.size.height)];
+        
+        NSString *username = [NSString stringWithFormat:@"@%@", [Session sharedInstance].currentUser.attributes.identifier];
+        
+        NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"shared by %@", username] attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:15.f weight:UIFontWeightRegular], NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
+        [attributedString addAttributes:@{NSFontAttributeName: [UIFont systemFontOfSize:15.f weight:UIFontWeightSemibold], NSForegroundColorAttributeName: [UIColor bonfirePrimaryColor]} range:[attributedString.string rangeOfString:username]];
+        
+        sharedBy.attributedText = attributedString;
+        [footer addSubview:sharedBy];
+        
         [containerView addSubview:tableViewContainerView];
         [containerView addSubview:footer];
+        
+        if ([view isKindOfClass:[BFPostAttachmentView class]]) {
+            BFPostAttachmentView *attachmentView = (BFPostAttachmentView *)view;
+            attachmentView.contentView.layer.borderColor = [UIColor clearColor].CGColor;
+            attachmentView.contentView.layer.borderWidth = 0;
+        }
     }
     else {
         view.frame = CGRectMake(padding.left, padding.top, view.frame.size.width, view.frame.size.height);

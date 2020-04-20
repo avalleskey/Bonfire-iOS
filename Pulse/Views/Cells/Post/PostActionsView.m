@@ -174,28 +174,46 @@
             filteredSummaryReplies = [summaryReplies mutableCopy];
         }
             
-        for (NSInteger i = 0; i < 3; i++) {
-            BFAvatarView *avatarView;
+        CGFloat avatars = filteredSummaryReplies.count;
+        if (avatars == 0 && summaries.counts.replies > 0) {
+            avatars = 1;
+            self.repliesSnaphotViewAvatar1.imageView.layer.borderWidth = 0;
             
-            if (i == 0) {
-                avatarView = self.repliesSnaphotViewAvatar1;
-            }
-            else if (i == 1) {
-                avatarView = self.repliesSnaphotViewAvatar2;
-            }
-            else if (i == 2) {
-                avatarView = self.repliesSnaphotViewAvatar3;
-            }
+            self.repliesSnaphotViewAvatar1.superview.hidden = false;
+            self.repliesSnaphotViewAvatar2.superview.hidden = true;
+            self.repliesSnaphotViewAvatar3.superview.hidden = true;
             
-            if (avatarView) {
-                if (filteredSummaryReplies.count > i) {
-                    // profile pics
-                    avatarView.user = filteredSummaryReplies[i].attributes.creatorUser;
-                    avatarView.superview.hidden = false;
+            self.repliesSnaphotViewAvatar1.imageView.contentMode = UIViewContentModeCenter;
+            [self.repliesSnaphotViewAvatar1.imageView setImage:[[UIImage imageNamed:@"postRepliesIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
+            self.repliesSnaphotViewAvatar1.imageView.tintColor = [UIColor bonfireSecondaryColor];
+            self.repliesSnaphotViewAvatar1.imageView.backgroundColor = [[UIColor bonfireSecondaryColor] colorWithAlphaComponent:0.16];
+        }
+        else {
+            self.repliesSnaphotViewAvatar1.imageView.contentMode = UIViewContentModeScaleAspectFill;
+            self.repliesSnaphotViewAvatar1.imageView.layer.borderWidth = HALF_PIXEL;
+            for (NSInteger i = 0; i < 3; i++) {
+                BFAvatarView *avatarView;
+                
+                if (i == 0) {
+                    avatarView = self.repliesSnaphotViewAvatar1;
                 }
-                else {
-                    avatarView.user = nil;
-                    avatarView.superview.hidden = true;
+                else if (i == 1) {
+                    avatarView = self.repliesSnaphotViewAvatar2;
+                }
+                else if (i == 2) {
+                    avatarView = self.repliesSnaphotViewAvatar3;
+                }
+                
+                if (avatarView) {
+                    if (filteredSummaryReplies.count > i) {
+                        // profile pics
+                        avatarView.user = filteredSummaryReplies[i].attributes.creatorUser;
+                        avatarView.superview.hidden = false;
+                    }
+                    else {
+                        avatarView.user = nil;
+                        avatarView.superview.hidden = true;
+                    }
                 }
             }
         }
@@ -215,9 +233,9 @@
         
         self.repliesSnaphotViewLabel.attributedText = attributedString;
         
-        CGFloat xEnd = filteredSummaryReplies.count * 24 + 2;
+        CGFloat xEnd = avatars * 28 + 2;
         CGFloat snapshotViewLabelWidth = ceilf([self.repliesSnaphotViewLabel.attributedText boundingRectWithSize:CGSizeMake(self.repliesSnaphotView.frame.size.width, self.frame.size.height) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) context:nil].size.width);
-        self.repliesSnaphotViewLabel.frame = CGRectMake(xEnd + 2, 0, snapshotViewLabelWidth, self.repliesSnaphotView.frame.size.height);
+        self.repliesSnaphotViewLabel.frame = CGRectMake(xEnd + ([self.repliesSnaphotViewAvatar1.superview isHidden] ? 0 : 4), 0, snapshotViewLabelWidth, self.repliesSnaphotView.frame.size.height);
     }
     
     if (summaries.counts.replies <= 1 || self.voted) {
@@ -258,7 +276,7 @@
 - (void)drawRepliesSnapshotSubviews {
     CGFloat repliesSnapshotViewWidth;
     
-    CGFloat avatarDiameter = 24;
+    CGFloat avatarDiameter = 28;
     NSInteger avatarOffset = ceilf(avatarDiameter * 0.8);
     
     CGFloat avatarBaselineX = -2;

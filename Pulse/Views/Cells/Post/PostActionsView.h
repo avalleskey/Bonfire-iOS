@@ -10,7 +10,7 @@
 #import "BFAvatarView.h"
 #import "Post.h"
 
-#define POST_ACTIONS_VIEW_HEIGHT 28
+#define POST_ACTIONS_VIEW_HEIGHT 32
 
 NS_ASSUME_NONNULL_BEGIN
 

@@ -48,11 +48,14 @@
         
         self.moreButton.hidden = true;
         
-        self.nameLabel.font = [UIFont systemFontOfSize:11.f weight:UIFontWeightRegular];
+        self.nameLabel.font = replyNameLabelFont;
         self.nameLabel.frame = CGRectMake(64, replyContentOffset.top, self.contentView.frame.size.width - 72 - replyContentOffset.right, ceilf(self.nameLabel.font.lineHeight));
         self.nameLabel.text = @"Display Name";
         self.nameLabel.userInteractionEnabled = YES;
-        self.nameLabel.textColor = [[UIColor bonfireSecondaryColor] colorWithAlphaComponent:0.8];
+        self.nameLabel.textColor = [UIColor bonfirePrimaryColor];
+        [self.nameLabel bk_whenTapped:^{
+            [Launcher openIdentity:self.post.attributes.creator];
+        }];
         
         self.dateLabel.frame = CGRectMake(0, self.nameLabel.frame.origin.y, self.nameLabel.frame.origin.y, self.nameLabel.frame.size.height);
         self.dateLabel.font = [UIFont systemFontOfSize:self.nameLabel.font.pointSize weight:UIFontWeightRegular];
@@ -133,7 +136,7 @@
         
         self.bubbleBackgroundView = [[UIView alloc] init];
         self.bubbleBackgroundView.layer.masksToBounds = false;
-        [self.contentView insertSubview:self.bubbleBackgroundView belowSubview:self.primaryAvatarView];
+        [self.contentView insertSubview:self.bubbleBackgroundView atIndex:0];
         
         self.bubbleBackgroundDot1 = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 10, 10)];
         self.bubbleBackgroundDot1.layer.cornerRadius = self.bubbleBackgroundDot1.frame.size.height / 2;
@@ -163,81 +166,103 @@
         contentEdgeInsets.right = replyContentOffset.right;
     }
     
-    CGFloat bubbleCornerRadius = (self.textView.messageLabel.font.lineHeight+REPLY_BUBBLE_INSETS.top+REPLY_BUBBLE_INSETS.bottom)/2;
+    CGFloat bubbleCornerRadius = (self.textView.messageLabel.font.lineHeight+REPLY_BUBBLE_INSETS.top+REPLY_BUBBLE_INSETS.bottom)/1.75;
+    CGFloat yBottom = contentEdgeInsets.top + REPLY_BUBBLE_INSETS.top;
     
-    CGFloat yBottom = contentEdgeInsets.top;
+    CGFloat bubbleWidth = 0;
     
-    if (self.levelsDeep == 0) {
+    if (![self.nameLabel isHidden]) {
         CGFloat nameLabelWidth = ceilf([self.nameLabel.text boundingRectWithSize:CGSizeMake(self.frame.size.width - contentEdgeInsets.left - contentEdgeInsets.right - REPLY_BUBBLE_INSETS.left - REPLY_BUBBLE_INSETS.right, self.nameLabel.frame.size.height) options:(NSStringDrawingUsesFontLeading|NSStringDrawingUsesLineFragmentOrigin) attributes:@{NSFontAttributeName: self.nameLabel.font} context:nil].size.width);
         self.nameLabel.frame = CGRectMake(contentEdgeInsets.left + REPLY_BUBBLE_INSETS.left, yBottom, nameLabelWidth, ceilf(self.nameLabel.font.lineHeight));
-        yBottom = self.nameLabel.frame.origin.y + self.nameLabel.frame.size.height;
+        
+        bubbleWidth = MAX(bubbleWidth, self.nameLabel.frame.size.width + 12 + (REPLY_BUBBLE_INSETS.left + REPLY_BUBBLE_INSETS.right));
+        
+        yBottom = self.nameLabel.frame.origin.y + self.nameLabel.frame.size.height + REPLY_NAME_BOTTOM_PADDING;
     }
     
-    CGFloat attachmentBottomPadding = 2;
+    CGFloat attachmentCornerRadius = ceilf(bubbleCornerRadius * .8);
+    CGFloat attachmentBottomPadding = REPLY_BUBBLE_INSETS.bottom;
+    CGFloat attachmentXOrigin = contentEdgeInsets.left + REPLY_BUBBLE_INSETS.left;
+    CGFloat attachmentWidth = self.frame.size.width - contentEdgeInsets.left - contentEdgeInsets.right - REPLY_BUBBLE_INSETS.left - REPLY_BUBBLE_INSETS.right;
     
     BOOL hasImage = self.post.attributes.media.count > 0 || self.post.attributes.attachments.media.count > 0;
     self.imagesView.hidden = !hasImage;
     if (hasImage) {
-        CGFloat imageWidth = ceilf((self.frame.size.width - (contentEdgeInsets.left + contentEdgeInsets.right)) * .75);
-        CGFloat imageHeight = imageWidth;
-        self.imagesView.frame = CGRectMake(contentEdgeInsets.left, yBottom, imageWidth, imageHeight);
-        [self continuityRadiusForView:self.imagesView withRadius:(replyTextViewFont.lineHeight+REPLY_BUBBLE_INSETS.top+REPLY_BUBBLE_INSETS.bottom)/2];
+        CGFloat imageWidth = attachmentWidth;
+        CGFloat imageHeight = ceilf(imageWidth * .75);
+        self.imagesView.frame = CGRectMake(attachmentXOrigin, yBottom, imageWidth, imageHeight);
+        self.imagesView.layer.cornerRadius = attachmentCornerRadius;
         
         [self.imagesView startSpinnersAsNeeded];
         
-         yBottom = self.imagesView.frame.origin.y + self.imagesView.frame.size.height + attachmentBottomPadding;
+        bubbleWidth = MAX(bubbleWidth, self.imagesView.frame.size.width + REPLY_BUBBLE_INSETS.left + REPLY_BUBBLE_INSETS.right);
+        
+        yBottom = self.imagesView.frame.origin.y + self.imagesView.frame.size.height + attachmentBottomPadding;
     }
     
     if (self.linkAttachmentView) {
+        self.linkAttachmentView.layer.cornerRadius = attachmentCornerRadius;
         [self.linkAttachmentView layoutSubviews];
-        self.linkAttachmentView.frame = CGRectMake(contentEdgeInsets.left, yBottom, self.frame.size.width - contentEdgeInsets.left - contentEdgeInsets.right, [BFLinkAttachmentView heightForLink:self.linkAttachmentView.link width: self.frame.size.width-(contentEdgeInsets.left+contentEdgeInsets.right)]);
+        self.linkAttachmentView.frame = CGRectMake(attachmentXOrigin, yBottom, attachmentWidth, [BFLinkAttachmentView heightForLink:self.linkAttachmentView.link width:attachmentWidth]);
+        
+        bubbleWidth = MAX(bubbleWidth, self.linkAttachmentView.frame.size.width + REPLY_BUBBLE_INSETS.left + REPLY_BUBBLE_INSETS.right);
         
         yBottom = self.linkAttachmentView.frame.origin.y + self.linkAttachmentView.frame.size.height + attachmentBottomPadding;
     }
     
     if (self.smartLinkAttachmentView) {
+        self.smartLinkAttachmentView.layer.cornerRadius = attachmentCornerRadius;
         [self.smartLinkAttachmentView layoutSubviews];
-        self.smartLinkAttachmentView.frame = CGRectMake(contentEdgeInsets.left, yBottom, self.frame.size.width - contentEdgeInsets.left - contentEdgeInsets.right, [BFSmartLinkAttachmentView heightForSmartLink:self.smartLinkAttachmentView.link width: self.frame.size.width-(contentEdgeInsets.left+contentEdgeInsets.right) showActionButton:true]);
+        self.smartLinkAttachmentView.frame = CGRectMake(attachmentXOrigin, yBottom, attachmentWidth, [BFSmartLinkAttachmentView heightForSmartLink:self.smartLinkAttachmentView.link width:attachmentWidth showActionButton:true]);
+        
+        bubbleWidth = MAX(bubbleWidth, self.smartLinkAttachmentView.frame.size.width + REPLY_BUBBLE_INSETS.left + REPLY_BUBBLE_INSETS.right);
         
         yBottom = self.smartLinkAttachmentView.frame.origin.y + self.smartLinkAttachmentView.frame.size.height + attachmentBottomPadding;
     }
     
     if (self.campAttachmentView) {
+        self.campAttachmentView.layer.cornerRadius = attachmentCornerRadius;
         [self.campAttachmentView layoutSubviews];
-        self.campAttachmentView.frame = CGRectMake(contentEdgeInsets.left, yBottom, self.frame.size.width - contentEdgeInsets.left - contentEdgeInsets.right, [BFCampAttachmentView heightForCamp:self.campAttachmentView.camp width: self.frame.size.width-(contentEdgeInsets.left+contentEdgeInsets.right)]);
+        self.campAttachmentView.frame = CGRectMake(attachmentXOrigin, yBottom, attachmentWidth, [BFCampAttachmentView heightForCamp:self.campAttachmentView.camp width:attachmentWidth]);
+        
+        bubbleWidth = MAX(bubbleWidth, self.campAttachmentView.frame.size.width + REPLY_BUBBLE_INSETS.left + REPLY_BUBBLE_INSETS.right);
         
         yBottom = self.campAttachmentView.frame.origin.y + self.campAttachmentView.frame.size.height + attachmentBottomPadding;
     }
     
     if (self.identityAttachmentView) {
+        self.identityAttachmentView.layer.cornerRadius = attachmentCornerRadius;
         [self.identityAttachmentView layoutSubviews];
-        self.identityAttachmentView.frame = CGRectMake(contentEdgeInsets.left, yBottom, self.frame.size.width - contentEdgeInsets.left - contentEdgeInsets.right, [BFIdentityAttachmentView heightForIdentity:self.identityAttachmentView.identity width: self.frame.size.width-(contentEdgeInsets.left+contentEdgeInsets.right)]);
+        self.identityAttachmentView.frame = CGRectMake(attachmentXOrigin, yBottom, attachmentWidth, [BFIdentityAttachmentView heightForIdentity:self.identityAttachmentView.identity width:attachmentWidth]);
+        
+        bubbleWidth = MAX(bubbleWidth, self.identityAttachmentView.frame.size.width + REPLY_BUBBLE_INSETS.left + REPLY_BUBBLE_INSETS.right);
         
         yBottom = self.identityAttachmentView.frame.origin.y + self.identityAttachmentView.frame.size.height + attachmentBottomPadding;
     }
     
     // -- text view
     if (![self.textView isHidden]) {
-        self.textView.frame = CGRectMake(contentEdgeInsets.left + REPLY_BUBBLE_INSETS.left, yBottom + REPLY_BUBBLE_INSETS.top, self.frame.size.width - contentEdgeInsets.left - contentEdgeInsets.right - REPLY_BUBBLE_INSETS.left - REPLY_BUBBLE_INSETS.right, self.textView.frame.size.height);
+        self.textView.frame = CGRectMake(contentEdgeInsets.left + REPLY_BUBBLE_INSETS.left, yBottom, self.frame.size.width - contentEdgeInsets.left - contentEdgeInsets.right - REPLY_BUBBLE_INSETS.left - REPLY_BUBBLE_INSETS.right, self.textView.frame.size.height);
         
         self.textView.tintColor = self.tintColor;
         [self.textView update];
         
-        CGFloat bubbleWidth = self.textView.messageLabel.frame.size.width;
+        CGFloat messageWidth = self.textView.messageLabel.frame.size.width + (REPLY_BUBBLE_INSETS.left + REPLY_BUBBLE_INSETS.right);
         
-        bubbleWidth += (REPLY_BUBBLE_INSETS.left + REPLY_BUBBLE_INSETS.right);
-        self.bubbleBackgroundView.frame = CGRectMake(contentEdgeInsets.left, self.textView.frame.origin.y - REPLY_BUBBLE_INSETS.top, bubbleWidth, self.textView.messageLabel.frame.size.height + REPLY_BUBBLE_INSETS.top + REPLY_BUBBLE_INSETS.bottom);
-        [self continuityRadiusForView:self.bubbleBackgroundView withRadius:bubbleCornerRadius];
-//        yBottom = self.bubbleBackgroundView.frame.origin.y + self.bubbleBackgroundView.frame.size.height;
-        
-        CGFloat bubbleDotSize1 = bubbleCornerRadius * 0.7;
-        self.bubbleBackgroundDot1.frame = CGRectMake(self.bubbleBackgroundView.frame.origin.x, self.bubbleBackgroundView.frame.origin.y + self.bubbleBackgroundView.frame.size.height - bubbleDotSize1 - (bubbleDotSize1 * 0.05), bubbleDotSize1, bubbleDotSize1);
-        self.bubbleBackgroundDot1.layer.cornerRadius = self.bubbleBackgroundDot1.frame.size.height / 2;
-        
-        CGFloat bubbleDotSize2 = bubbleCornerRadius * 0.25;
-        self.bubbleBackgroundDot2.frame = CGRectMake(self.bubbleBackgroundView.frame.origin.x - (bubbleDotSize2 * 1.35), self.bubbleBackgroundView.frame.origin.y + self.bubbleBackgroundView.frame.size.height - bubbleDotSize2, bubbleDotSize2, bubbleDotSize2);
-        self.bubbleBackgroundDot2.layer.cornerRadius = self.bubbleBackgroundDot2.frame.size.height / 2;
+        bubbleWidth = MAX(bubbleWidth, messageWidth);
     }
+    
+    self.bubbleBackgroundView.frame = CGRectMake(contentEdgeInsets.left, contentEdgeInsets.top, bubbleWidth, self.frame.size.height - contentEdgeInsets.top - contentEdgeInsets.bottom);
+    [self continuityRadiusForView:self.bubbleBackgroundView withRadius:bubbleCornerRadius];
+//        yBottom = self.bubbleBackgroundView.frame.origin.y + self.bubbleBackgroundView.frame.size.height;
+    
+    CGFloat bubbleDotSize1 = bubbleCornerRadius * 0.7;
+    self.bubbleBackgroundDot1.frame = CGRectMake(self.bubbleBackgroundView.frame.origin.x, self.bubbleBackgroundView.frame.origin.y + self.bubbleBackgroundView.frame.size.height - bubbleDotSize1 - (bubbleDotSize1 * 0.05), bubbleDotSize1, bubbleDotSize1);
+    self.bubbleBackgroundDot1.layer.cornerRadius = self.bubbleBackgroundDot1.frame.size.height / 2;
+    
+    CGFloat bubbleDotSize2 = bubbleCornerRadius * 0.25;
+    self.bubbleBackgroundDot2.frame = CGRectMake(self.bubbleBackgroundView.frame.origin.x - (bubbleDotSize2 * 1.35), self.bubbleBackgroundView.frame.origin.y + self.bubbleBackgroundView.frame.size.height - bubbleDotSize2, bubbleDotSize2, bubbleDotSize2);
+    self.bubbleBackgroundDot2.layer.cornerRadius = self.bubbleBackgroundDot2.frame.size.height / 2;
     
     if (![self.topLevelReplyButton isHidden]) {
         self.topLevelReplyButton.frame = CGRectMake(self.bubbleBackgroundView.frame.origin.x + self.bubbleBackgroundView.frame.size.width + ceilf(REPLY_BUBBLE_INSETS.right * .5), self.bubbleBackgroundView.frame.origin.y + self.bubbleBackgroundView.frame.size.height / 2 - self.topLevelReplyButton.frame.size.height / 2, self.topLevelReplyButton.frame.size.width, self.topLevelReplyButton.frame.size.height);
@@ -259,6 +284,10 @@
     }
 }
 
+- (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection {
+    [self updateBubbleStyling];
+}
+
 - (void)continuityRadiusForView:(UIView *)sender withRadius:(CGFloat)radius {
     sender.layer.cornerRadius = radius;
 //    CAShapeLayer * maskLayer = [CAShapeLayer layer];
@@ -274,7 +303,7 @@
         return replyTextViewFont.lineHeight + ((REPLY_BUBBLE_INSETS.top + REPLY_BUBBLE_INSETS.bottom) / 2);
     }
     
-    return 24;
+    return 28;
 }
 + (CGFloat)avatarPaddingForLevel:(NSInteger)level {
     if (level == 0) {
@@ -374,55 +403,60 @@
     self.textView.textColor = [UIColor bonfirePrimaryColor];
     self.nameLabel.tintColor = [UIColor bonfireSecondaryColor];
     
-    if (self.post.attributes.message.length == 0 &&
-        self.post.attributes.removedReason.length == 0) {
-        self.bubbleBackgroundView.backgroundColor = [UIColor clearColor];
-//        self.bubbleBackgroundView.layer.shadowOpacity = 0;
+    if (_levelsDeep == -1) {
+        if ([self.post.attributes.creator isCurrentIdentity]) {
+            if (@available(iOS 13.0, *)) {
+                if ([UITraitCollection currentTraitCollection].userInterfaceStyle == UIUserInterfaceStyleDark) {
+                    self.bubbleBackgroundView.backgroundColor = [UIColor darkerColorForColor:[UIColor fromHex:[Session sharedInstance].currentUser.attributes.color adjustForOptimalContrast:true] amount:0.7];
+                }
+                else {
+                    self.bubbleBackgroundView.backgroundColor = [UIColor lighterColorForColor:[UIColor fromHex:[Session sharedInstance].currentUser.attributes.color adjustForOptimalContrast:true] amount:0.85];
+                }
+            }
+            else {
+                self.bubbleBackgroundView.backgroundColor = [UIColor lighterColorForColor:[UIColor fromHex:[Session sharedInstance].currentUser.attributes.color adjustForOptimalContrast:true] amount:0.85];
+            }
+            self.nameLabel.textColor = [UIColor fromHex:[Session sharedInstance].currentUser.attributes.color adjustForOptimalContrast:true];
+            self.textView.textColor = [UIColor bonfirePrimaryColor];;
+            self.textView.messageLabel.tintColor = [UIColor colorNamed:@"CreatorLinkColor"];
+        }
+        else {
+           self.bubbleBackgroundView.backgroundColor = [UIColor colorNamed:@"BubbleColor"]; //tintColor;
+           self.nameLabel.textColor = [UIColor bonfirePrimaryColor];
+           self.textView.textColor = [UIColor bonfirePrimaryColor];;
+           self.textView.messageLabel.tintColor = [UIColor colorNamed:@"LinkColor"];
+        }
+        
         self.bubbleBackgroundView.alpha = 1;
-//        self.textView.textColor = [UIColor bonfirePrimaryColor];
-//        self.nameLabel.tintColor = [UIColor bonfirePrimaryColor];
+        self.bubbleBackgroundDot2.alpha = 0.75;
+        self.topLevelReplyButton.hidden = true;
+    }
+    else if (_levelsDeep == 0) {
+        self.bubbleBackgroundView.backgroundColor = [UIColor fromHex:[UIColor toHex:self.tintColor] adjustForOptimalContrast:false];//[UIColor fromHex:[UIColor toHex:self.tintColor] adjustForOptimalContrast:false];
+//            self.bubbleBackgroundView.layer.shadowOpacity = 0;
+        self.bubbleBackgroundDot2.alpha = 0.5;
+        
+        UIColor *textColor = [UIColor useWhiteForegroundForColor:self.bubbleBackgroundView.backgroundColor] ? [UIColor whiteColor] : [UIColor blackColor];
+        self.textView.textColor = textColor;
+        self.textView.messageLabel.tintColor = [textColor colorWithAlphaComponent:0.8];
+//            self.nameLabel.tintColor = textColor;
+        
+        self.topLevelReplyButton.hidden = [self.post isRemoved];
+    }
+    else {
+        self.bubbleBackgroundView.backgroundColor = [UIColor tableViewBackgroundColor];//[UIColor fromHex:[UIColor toHex:[UIColor darkerColorForColor:self.tintColor amount:0.1]] adjustForOptimalContrast:false];
+//            self.bubbleBackgroundView.layer.shadowOpacity = 0;
+        self.bubbleBackgroundDot2.alpha = 0.25;
+        
+        UIColor *textColor = [UIColor useWhiteForegroundForColor:self.bubbleBackgroundView.backgroundColor] ? [UIColor whiteColor] : [UIColor blackColor];
+        self.textView.textColor = textColor;
+        self.textView.messageLabel.tintColor = [textColor colorWithAlphaComponent:0.8];
+//            self.nameLabel.tintColor = textColor;
         
         //self.textView.messageLabel.linkAttributes = @{(__bridge NSString *)kCTForegroundColorAttributeName: [UIColor linkColor]};
         self.topLevelReplyButton.hidden = true;
     }
-    else {
-        if (_levelsDeep == -1) {
-            self.bubbleBackgroundView.backgroundColor = [UIColor colorNamed:@"BubbleColor"];
-//            self.bubbleBackgroundView.layer.shadowOpacity = 0;
-            self.bubbleBackgroundView.alpha = 1;
-            self.textView.textColor = [UIColor bonfirePrimaryColor];
-            self.textView.messageLabel.tintColor = [UIColor linkColor];
-            self.bubbleBackgroundDot2.alpha = 0.75;
-            
-            self.topLevelReplyButton.hidden = true;
-        }
-        else if (_levelsDeep == 0) {
-            self.bubbleBackgroundView.backgroundColor = [UIColor fromHex:[UIColor toHex:self.tintColor] adjustForOptimalContrast:false];//[UIColor fromHex:[UIColor toHex:self.tintColor] adjustForOptimalContrast:false];
-//            self.bubbleBackgroundView.layer.shadowOpacity = 0;
-            self.bubbleBackgroundDot2.alpha = 0.5;
-            
-            UIColor *textColor = [UIColor useWhiteForegroundForColor:self.bubbleBackgroundView.backgroundColor] ? [UIColor whiteColor] : [UIColor blackColor];
-            self.textView.textColor = textColor;
-            self.textView.messageLabel.tintColor = [textColor colorWithAlphaComponent:0.8];
-//            self.nameLabel.tintColor = textColor;
-            
-            self.topLevelReplyButton.hidden = [self.post isRemoved];
-        }
-        else {
-            self.bubbleBackgroundView.backgroundColor = [UIColor tableViewBackgroundColor];//[UIColor fromHex:[UIColor toHex:[UIColor darkerColorForColor:self.tintColor amount:0.1]] adjustForOptimalContrast:false];
-//            self.bubbleBackgroundView.layer.shadowOpacity = 0;
-            self.bubbleBackgroundDot2.alpha = 0.25;
-            
-            UIColor *textColor = [UIColor useWhiteForegroundForColor:self.bubbleBackgroundView.backgroundColor] ? [UIColor whiteColor] : [UIColor blackColor];
-            self.textView.textColor = textColor;
-            self.textView.messageLabel.tintColor = [textColor colorWithAlphaComponent:0.8];
-//            self.nameLabel.tintColor = textColor;
-            
-            //self.textView.messageLabel.linkAttributes = @{(__bridge NSString *)kCTForegroundColorAttributeName: [UIColor linkColor]};
-            self.topLevelReplyButton.hidden = true;
-        }
-    }
-    self.nameLabel.hidden = self.levelsDeep != 0;
+//    self.nameLabel.hidden = self.levelsDeep != 0;
     self.bubbleBackgroundDot1.backgroundColor = self.bubbleBackgroundView.backgroundColor;
     self.bubbleBackgroundDot2.backgroundColor = self.bubbleBackgroundView.backgroundColor;
 }
@@ -544,17 +578,15 @@
         contentEdgeInsets.right = replyContentOffset.right;
     }
     
-    CGFloat baseHeight = contentEdgeInsets.top;
+    CGFloat baseHeight = contentEdgeInsets.top + REPLY_BUBBLE_INSETS.top + REPLY_BUBBLE_INSETS.bottom + contentEdgeInsets.bottom;
     CGFloat height = baseHeight;
     CGFloat screenWidth = [UIScreen mainScreen].bounds.size.width;
     
-    if (levelsDeep == 0) {
-        CGFloat headerHeight = ceilf([UIFont systemFontOfSize:11.f weight:UIFontWeightRegular].lineHeight); // 3pt padding underneath
-        height += headerHeight;
-    }
+    // name label
+    height += ceilf(replyNameLabelFont.lineHeight) + REPLY_NAME_BOTTOM_PADDING;
     
-    CGFloat attachmentBottomPadding = 2;
-    
+    CGFloat attachmentBottomPadding = REPLY_BUBBLE_INSETS.bottom;
+    CGFloat attachmentWidth = screenWidth - (contentEdgeInsets.left + contentEdgeInsets.right) - (REPLY_BUBBLE_INSETS.left + REPLY_BUBBLE_INSETS.right);
     NSInteger attachments = 0;
     
     // image
@@ -562,7 +594,7 @@
     if (hasImage) {
         attachments++;
         
-        CGFloat imageHeight = ceilf((screenWidth - (contentEdgeInsets.left + contentEdgeInsets.right)) * .75);
+        CGFloat imageHeight = ceilf(attachmentWidth * .75);
         height += imageHeight + attachmentBottomPadding;
     }
     
@@ -573,13 +605,13 @@
         
         CGFloat linkPreviewHeight;
         if ([post.attributes.attachments.link isSmartLink]) {
-            linkPreviewHeight = [BFSmartLinkAttachmentView heightForSmartLink:post.attributes.attachments.link  width:screenWidth-contentEdgeInsets.left-contentEdgeInsets.right showActionButton:true];
+            linkPreviewHeight = [BFSmartLinkAttachmentView heightForSmartLink:post.attributes.attachments.link  width:attachmentWidth showActionButton:true];
         }
         else {
-            linkPreviewHeight = [BFLinkAttachmentView heightForLink:post.attributes.attachments.link  width:screenWidth-contentEdgeInsets.left-contentEdgeInsets.right];
+            linkPreviewHeight = [BFLinkAttachmentView heightForLink:post.attributes.attachments.link  width:attachmentWidth];
         }
 
-        height = height + linkPreviewHeight + attachmentBottomPadding;
+        height += linkPreviewHeight + attachmentBottomPadding;
     }
     
     // camp
@@ -589,8 +621,8 @@
         
         Camp *camp = post.attributes.attachments.camp;
         
-        CGFloat campAttachmentHeight = [BFCampAttachmentView heightForCamp:camp width:screenWidth-contentEdgeInsets.left-contentEdgeInsets.right];
-        height = height + campAttachmentHeight + attachmentBottomPadding;
+        CGFloat campAttachmentHeight = [BFCampAttachmentView heightForCamp:camp width:attachmentWidth];
+        height += campAttachmentHeight + attachmentBottomPadding;
     }
     
     // user
@@ -600,8 +632,8 @@
         
         User *user = post.attributes.attachments.user;
         
-        CGFloat userAttachmentHeight = [BFIdentityAttachmentView heightForIdentity:user width:screenWidth-contentEdgeInsets.left-contentEdgeInsets.right];
-        height = height + userAttachmentHeight + attachmentBottomPadding;
+        CGFloat userAttachmentHeight = [BFIdentityAttachmentView heightForIdentity:user width:attachmentWidth];
+        height += userAttachmentHeight + attachmentBottomPadding;
     }
     
     // message
@@ -620,7 +652,7 @@
         CGFloat messageHeight = [PostTextView sizeOfBubbleWithMessage:message withConstraints:CGSizeMake(screenWidth - contentEdgeInsets.left - contentEdgeInsets.right - REPLY_BUBBLE_INSETS.left - REPLY_BUBBLE_INSETS.right, CGFLOAT_MAX) font:font maxCharacters:[PostTextView entityBasedMaxCharactersForMessage:post.attributes.simpleMessage maxCharacters:REPLY_POST_MAX_CHARACTERS entities:post.attributes.entities] styleAsBubble:true].height;
 
         CGFloat textViewHeight = ceilf(messageHeight);
-        height += REPLY_BUBBLE_INSETS.top + textViewHeight + REPLY_BUBBLE_INSETS.bottom;
+        height += textViewHeight;
     }
     else {
         // no message, but has image
@@ -630,11 +662,9 @@
         return 0;
     }
     
-    if (attachments > 0) {
-        height -= attachmentBottomPadding;
-    }
-    
-    height += contentEdgeInsets.bottom;
+//    if (attachments > 0) {
+//        height -= attachmentBottomPadding;
+//    }
     
     return height;
 }

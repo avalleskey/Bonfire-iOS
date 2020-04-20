@@ -20,6 +20,8 @@
 #import "BFErrorViewCell.h"
 #import "ButtonCell.h"
 #import "SpacerCell.h"
+#import "SearchResultCell.h"
+#import "CampCardsListCell.h"
 
 #import "LoadingCell.h"
 #import "PaginationCell.h"
@@ -57,6 +59,10 @@ static NSString * const streamPostPostReuseIdentifier = @"StreamPost_post";
 static NSString * const postReplyReuseIdentifier = @"ReplyReuseIdentifier";
 static NSString * const expandRepliesCellIdentifier = @"ExpandRepliesReuseIdentifier";
 static NSString * const addReplyCellIdentifier = @"AddReplyReuseIdentifier";
+
+static NSString * const campCellIdentifier = @"CampReuseIdentifier";
+static NSString * const userCellIdentifier = @"UserReuseIdentifier";
+static NSString * const campCollectionCellIdentifier = @"CampCollectionReuseIdentifier";
 
 static NSString * const buttonCellReuseIdentifier = @"ButtonCellReuseIdentifier";
 static NSString * const spacerCellReuseIdentifier = @"SpacerCell";
@@ -115,6 +121,10 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
     [self registerClass:[ExpandThreadCell class] forCellReuseIdentifier:expandRepliesCellIdentifier];
     [self registerClass:[AddReplyCell class] forCellReuseIdentifier:addReplyCellIdentifier];
     
+    [self registerClass:[SearchResultCell class] forCellReuseIdentifier:campCellIdentifier];
+    [self registerClass:[SearchResultCell class] forCellReuseIdentifier:userCellIdentifier];
+    [self registerClass:[CampCardsListCell class] forCellReuseIdentifier:campCollectionCellIdentifier];
+    
     [self registerClass:[ButtonCell class] forCellReuseIdentifier:buttonCellReuseIdentifier];
     [self registerClass:[SpacerCell class] forCellReuseIdentifier:spacerCellReuseIdentifier];
     [self registerClass:[PaginationCell class] forCellReuseIdentifier:paginationCellReuseIdentifier];
@@ -148,6 +158,10 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
         _loading = loading;
     }
     
+    [self updateScrollEnabled];
+}
+
+- (void)updateScrollEnabled {
     self.scrollEnabled = !(_loading && self.stream.sections.count == 0);
 }
 
@@ -271,6 +285,14 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
         else if ([cell isKindOfClass:[AddReplyCell class]]) {
             [Launcher openComposePost:((AddReplyCell *)cell).post.attributes.postedIn inReplyTo:((AddReplyCell *)cell).post withMessage:nil media:nil quotedObject:nil];
         }
+        else if ([cell isKindOfClass:[SearchResultCell class]]) {
+            if (component.camp) {
+                [Launcher openCamp:component.camp];
+            }
+            else if (component.user) {
+                [Launcher openProfile:component.user];
+            }
+        }
         else {
             Section *s = [self sectionAtIndexPath:indexPath];
             
@@ -280,6 +302,12 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
                 }
                 else if (s.attributes.cta.target.creator) {
                     [Launcher openIdentity:s.attributes.cta.target.creator];
+                }
+                else if (s.attributes.cta.target.url) {
+                    NSURL *link = [NSURL URLWithString:s.attributes.cta.target.url];
+                    if (![[[UIApplication sharedApplication] delegate] application:[UIApplication sharedApplication] openURL:link options:@{}]) {
+                        [Launcher openURL:link.absoluteString];
+                    }
                 }
             }
         }
@@ -450,6 +478,61 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
             
             return cell;
         }
+        else if ([component cellClass] == [SearchResultCell class])  {
+            NSString *reuseIdentifier;
+            if (component.camp || component.user) {
+                if (component.camp) {
+                    reuseIdentifier = campCellIdentifier;
+                }
+                else if (component.user) {
+                    reuseIdentifier = userCellIdentifier;
+                }
+                
+                SearchResultCell *cell = [tableView dequeueReusableCellWithIdentifier:reuseIdentifier forIndexPath:indexPath];
+                
+                if (cell == nil) {
+                    cell = [[SearchResultCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:reuseIdentifier];
+                }
+                
+                if (component.camp) {
+                    cell.camp = component.camp;
+                }
+                else if (component.user) {
+                    cell.user = component.user;
+                }
+                else {
+                    cell.camp = nil;
+                    cell.user = nil;
+                    cell.bot = nil;
+                    
+                    cell.textLabel.text = @"";
+                    cell.imageView.image = nil;
+                    cell.imageView.backgroundColor = [UIColor bonfireSecondaryColor];
+                }
+                
+                BOOL last = indexPath.row == s.components.count - ([s.components lastObject].cellClass == [ButtonCell class] ? 2 : 1);
+                CGFloat lineSeparatorLeftOffset = last ? 0 : cell.textLabel.frame.origin.x;
+                cell.lineSeparator.frame = CGRectMake(lineSeparatorLeftOffset, self.frame.origin.y - cell.lineSeparator.frame.size.height, cell.frame.size.width - lineSeparatorLeftOffset, cell.lineSeparator.frame.size.height);
+                
+                return cell;
+            }
+        }
+        else if ([component cellClass] == [CampCardsListCell class])  {
+            if (component.campArray) {
+                CampCardsListCell *cell = [tableView dequeueReusableCellWithIdentifier:campCollectionCellIdentifier forIndexPath:indexPath];
+                
+                if (cell == nil) {
+                    cell = [[CampCardsListCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:campCollectionCellIdentifier];
+                }
+                       
+                cell.contentView.backgroundColor = [UIColor contentBackgroundColor];
+                cell.size = CAMP_CARD_SIZE_SMALL_MEDIUM;
+                cell.camps = [[NSMutableArray alloc] initWithArray:component.campArray];
+                cell.lineSeparator.hidden = !component.showLineSeparator;
+                
+                return cell;
+            }
+        }
         else if ([component cellClass] == [ButtonCell class]) {
             ButtonCell *cell = [tableView dequeueReusableCellWithIdentifier:buttonCellReuseIdentifier forIndexPath:indexPath];
             
@@ -465,8 +548,11 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
             if (s.attributes.cta.target.camp) {
                 cell.buttonLabel.textColor = [UIColor fromHex:s.attributes.cta.target.camp.attributes.color adjustForOptimalContrast:true];
             }
+            else if (s.attributes.cta.target.creator) {
+                cell.buttonLabel.textColor = [UIColor fromHex:s.attributes.cta.target.creator.attributes.color adjustForOptimalContrast:true];
+            }
             else {
-                cell.buttonLabel.textColor = cell.kButtonColorBonfire;
+                cell.buttonLabel.textColor = [UIColor fromHex:[UIColor toHex:self.tintColor] adjustForOptimalContrast:true];
             }
             
             cell.topSeparator.hidden = true;
@@ -630,7 +716,7 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
 - (CGFloat)heightForSection:(Section *)section {
     BOOL hasTitle = section.attributes.title.length > 0;
     BOOL hasText = section.attributes.text.length > 0;
-    if (hasTitle || hasText) {
+    if (section.components.count > 0 && (hasTitle || hasText)) {
         if (hasTitle && hasText) {
             return 64;
         }
@@ -650,15 +736,17 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
     else if (self.stream.sections.count > section - 1) {
         Section *s = [self sectionAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:section]];
         
-        if (s.attributes.title.length > 0 ||
-            s.attributes.text.length > 0) {
+        if (s.components.count > 0 &&
+            (s.attributes.title.length > 0 ||
+            s.attributes.text.length > 0)) {
             UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, [self heightForSection:s])];
             header.backgroundColor = [UIColor contentBackgroundColor];
             
             UIEdgeInsets contentEdgeInsets = UIEdgeInsetsMake(12, 12, 12, 12);
             CGFloat bottomY = contentEdgeInsets.top;
             
-            if (s.attributes.cta.target) {
+            if (s.attributes.cta.target &&
+                (s.attributes.cta.target.creator || s.attributes.cta.target.camp)) {
                 BFAvatarView *avatarView = [[BFAvatarView alloc] initWithFrame:CGRectMake(header.frame.size.width - 24 - 12, (header.frame.size.height / 2) - (24 / 2), 24, 24)];
                 avatarView.openOnTap = true;
                 if (s.attributes.cta.target.camp) {
@@ -716,6 +804,9 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
     if (self.stream.sections.count <= (section-1)) return false;
     
     Section *s = self.stream.sections[section-1];
+    
+    BOOL hasComponents = s.components.count > 0;
+    if (!hasComponents) return false;
     
     BOOL sectionHasCta = (s.attributes.cta.text.length > 0);
     BOOL nextSectionHasHeader = false;
@@ -806,7 +897,7 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
 #pragma mark - SectionStreamDelegate
 - (void)sectionStreamDidUpdate:(SectionStream *)stream {
     if (stream == _stream) {
-        
+        [self updateScrollEnabled];
     }
 }
 
@@ -852,13 +943,13 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
         else if (indexPath.row == s.components.count) {
             if (indexPath.section == self.stream.sections.count) {
                 // last section --> try  to use pagination cell
-                BFStreamComponent *component = [[BFStreamComponent alloc] initWithObject:nil className:@"PaginationCell" detailLevel:BFComponentDetailLevelAll];
+                BFStreamComponent *component = [[BFStreamComponent alloc] initWithSettings:nil className:@"PaginationCell" detailLevel:BFComponentDetailLevelAll];
                 component.cellHeight = [PaginationCell height];
                 return component;
             }
             else {
                 // spacer cell
-                BFStreamComponent *component = [[BFStreamComponent alloc] initWithObject:nil className:@"SpacerCell" detailLevel:BFComponentDetailLevelAll];
+                BFStreamComponent *component = [[BFStreamComponent alloc] initWithSettings:nil className:@"SpacerCell" detailLevel:BFComponentDetailLevelAll];
                 component.cellHeight = [SpacerCell height];
                 return component;
             }
@@ -929,7 +1020,12 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
             SimpleNavigationController *newNavController = [[SimpleNavigationController alloc] initWithRootViewController:p];
             newNavController.transitioningDelegate = [Launcher sharedInstance];
             [newNavController setLeftAction:SNActionTypeBack];
+            if (![p.post.attributes.postedIn.attributes isPrivate]) {
+                [newNavController setRightAction:SNActionTypeShare];
+            }
             newNavController.currentTheme = p.theme;
+            newNavController.view.tintColor = [UIColor fromHex:p.post.themeColor adjustForOptimalContrast:true];
+            [newNavController updateBarColor:[UIColor clearColor] animated:false];
             
             [Launcher push:newNavController animated:YES];
         };

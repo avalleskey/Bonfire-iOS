@@ -11,6 +11,7 @@
 
 @implementation BFStreamComponent
 
+// Posts
 - (id)initWithPost:(Post *)post {
     return [self initWithPost:post cellClass:nil];
 }
@@ -22,10 +23,17 @@
         cellClass = [StreamPostCell class];
     }
     
-    return [self initWithObject:post className:NSStringFromClass(cellClass) detailLevel:detailLevel];
+    BFStreamComponent *component = [self initWithSettings:nil className:NSStringFromClass(cellClass) detailLevel:detailLevel];
+    component.post = post;
+    return component;
 }
 
 - (void)updateCellHeight {
+    if (!self.className || self.className.length == 0) {
+        self.cellHeight = 0;
+        return;
+    }
+    
     if ([NSClassFromString(self.className) conformsToProtocol:@protocol(BFComponentProtocol)]) {
         NSInvocationOperation *invo = [[NSInvocationOperation alloc] initWithTarget:NSClassFromString(self.className) selector:@selector(heightForComponent:) object:self];
         [invo start];
@@ -41,54 +49,68 @@
 }
 
 // custom getters
-- (BFSectionHeaderObject * _Nullable)headerObject  {
-    if ([self.object isKindOfClass:[BFSectionHeaderObject class]]) {
-        return (BFSectionHeaderObject *)self.object;
+- (void)setPost:(Post<Optional> *)post {
+    if (post != _post) {
+        _post = post;
+        
+        [self updateCellHeight];
     }
-    
-    return nil;
 }
-- (Post * _Nullable)post  {
-    if ([self.object isKindOfClass:[Post class]]) {
-        return (Post *)self.object;
+- (void)setCamp:(Camp<Optional> *)camp {
+    if (camp != _camp) {
+        _camp = camp;
+        
+        [self updateCellHeight];
     }
-    
-    return nil;
 }
-- (Camp * _Nullable)camp  {
-    if ([self.object isKindOfClass:[Camp class]]) {
-        return (Camp *)self.object;
+- (void)setIdentity:(Identity<Optional> *)identity {
+    if (identity != _identity) {
+        _identity = identity;
+        
+        [self updateCellHeight];
     }
-    
-    return nil;
 }
-- (Identity * _Nullable)identity  {
-    if ([self.object isKindOfClass:[Identity class]]) {
-        return (Identity *)self.object;
+- (void)setUser:(User<Optional> *)user {
+    if (user != _user) {
+        _user = user;
+        
+        [self updateCellHeight];
     }
-    
-    return nil;
 }
-- (User * _Nullable)user  {
-    if ([self.object isKindOfClass:[User class]]) {
-        return (User *)self.object;
+- (void)setBot:(Bot<Optional> *)bot {
+    if (bot != _bot) {
+        _bot = bot;
+        
+        [self updateCellHeight];
     }
-    
-    return nil;
 }
-- (Bot * _Nullable)bot  {
-    if ([self.object isKindOfClass:[Bot class]]) {
-        return (Bot *)self.object;
+- (void)setLink:(BFLink<Optional> *)link {
+    if (link != _link) {
+        _link = link;
+        
+        [self updateCellHeight];
     }
-    
-    return nil;
 }
-- (BFLink * _Nullable)link  {
-    if ([self.object isKindOfClass:[BFLink class]]) {
-        return (BFLink *)self.object;
+- (void)setCampArray:(NSArray<Camp *><Camp,Optional> *)campArray {
+    if (campArray != _campArray) {
+        _campArray = campArray;
+        
+        [self updateCellHeight];
     }
-    
-    return nil;
+}
+- (void)setUserArray:(NSArray<User *><User,Optional> *)userArray {
+    if (userArray != _userArray) {
+        _userArray = userArray;
+        
+        [self updateCellHeight];
+    }
+}
+- (void)setDictionary:(NSDictionary<Optional> *)dictionary {
+    if (dictionary != _dictionary) {
+        _dictionary = dictionary;
+        
+        [self updateCellHeight];
+    }
 }
 
 - (NSString *)description
@@ -117,6 +139,15 @@
     }
     if (self.link) {
         [string appendFormat:@"\n[link]: %@", self.link];
+    }
+    if (self.campArray) {
+        [string appendFormat:@"\n[campArray]: %@", self.campArray];
+    }
+    if (self.userArray) {
+        [string appendFormat:@"\n[userArray]: %@", self.userArray];
+    }
+    if (self.dictionary) {
+        [string appendFormat:@"\n[dictionary]: %@", self.dictionary];
     }
     
     return string;

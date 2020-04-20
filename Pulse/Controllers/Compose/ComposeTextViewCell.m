@@ -34,7 +34,7 @@
         self.selectionStyle = UITableViewCellSelectionStyleNone;
         
         self.backgroundColor = [UIColor contentBackgroundColor];
-        self.contentView.backgroundColor = [UIColor contentBackgroundColor  ];
+        self.contentView.backgroundColor = [UIColor contentBackgroundColor];
         self.tintColor = [UIColor bonfireBrand];
         
         self.textView = [[UITextView alloc] initWithFrame:CGRectMake(64, 12, self.frame.size.width - 64 - 12, self.frame.size.height)];
@@ -48,8 +48,8 @@
         self.textView.textContainerInset = UIEdgeInsetsMake(9, 0, 9, 0);
         self.textView.placeholder = @"Share with everyone...";
         self.textView.keyboardType = UIKeyboardTypeTwitter;
-        self.textView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.1f];
-//        self.textView.keyboardAppearance = UIKeyboardAppearanceDefault;
+        self.textView.editable = true;
+        self.textView.selectable = true;
         self.textView.placeholderColor = [[UIColor bonfirePrimaryColor] colorWithAlphaComponent:0.3];
         [self.contentView addSubview:self.textView];
         
@@ -149,7 +149,7 @@
 
 - (void)resizeImagesView {
     // resize image scroll view
-    self.mediaScrollView.frame = CGRectMake(0, self.textView.frame.origin.y + self.textView.frame.size.height + 8, self.frame.size.width, 180);
+    self.mediaScrollView.frame = CGRectMake(0, self.textView.frame.origin.y + self.textView.frame.size.height + 12, self.frame.size.width, 180);
 }
 
 - (void)resizeQuotedAttachment {
@@ -158,10 +158,10 @@
     }
     
     if (self.media.objects.count == 0) {
-        self.quotedAttachmentView.frame = CGRectMake(self.textView.frame.origin.x, self.textView.frame.origin.y + self.textView.frame.size.height + 8, self.textView.frame.size.width, self.quotedAttachmentView.frame.size.height);
+        self.quotedAttachmentView.frame = CGRectMake(self.textView.frame.origin.x, self.textView.frame.origin.y + self.textView.frame.size.height + 12, self.textView.frame.size.width, self.quotedAttachmentView.frame.size.height);
     }
     else {
-        self.quotedAttachmentView.frame = CGRectMake(self.textView.frame.origin.x, self.mediaScrollView.frame.origin.y + self.mediaScrollView.frame.size.height + 8, self.textView.frame.size.width, self.quotedAttachmentView.frame.size.height);
+        self.quotedAttachmentView.frame = CGRectMake(self.textView.frame.origin.x, self.mediaScrollView.frame.origin.y + self.mediaScrollView.frame.size.height + 12, self.textView.frame.size.width, self.quotedAttachmentView.frame.size.height);
     }
     SetHeight(self.quotedAttachmentView, [self.quotedAttachmentView height]);
     [self.quotedAttachmentView layoutSubviews];
@@ -286,27 +286,27 @@
 }
 
 - (CGFloat)height {
-    float minHeight = 48 + 12 + 12;
+    float minHeight = 42 + 12 + 12;
     
     float height = self.textView.textContainerInset.top; // top padding
     float textViewHeight = self.textView.frame.size.height;
     height += textViewHeight;
     
     if (self.media.objects.count > 0) {
-        float imagesHeight = 8 + 180;
+        float imagesHeight = 12 + 180;
         height += imagesHeight;
     }
     
     // add height of attachments
     if (self.quotedAttachmentView) {
-        float attachmentViewHeight = 8 + self.quotedAttachmentView.frame.size.height;
+        float attachmentViewHeight = 12 + self.quotedAttachmentView.frame.size.height;
         height += attachmentViewHeight;
     }
     
     // add bottom padding
     height += 12;
     
-    return (height > minHeight ? height : minHeight);
+    return MAX(minHeight, height);
 }
 
 @end

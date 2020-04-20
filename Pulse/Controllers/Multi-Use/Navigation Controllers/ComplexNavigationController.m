@@ -48,6 +48,11 @@
     return self;
 }
 
+- (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection {
+    // support dark mode
+    [self updateBarColor:self.navigationBackgroundView.backgroundColor animated:NO];
+}
+
 - (void)initDefaultsWithRootViewController:(UIViewController *)rootViewController {
     self.onScrollLowerBound = 12;
     self.transparentOnLoad = false;
@@ -98,8 +103,7 @@
     [self.view insertSubview:self.navigationBackgroundView belowSubview:self.navigationBar];
     
     self.bottomHairline = [[UIView alloc] initWithFrame:CGRectMake(0, self.navigationBar.frame.size.height, self.view.frame.size.width, (1 / [UIScreen mainScreen].scale))];
-    self.bottomHairline.backgroundColor = [UIColor colorNamed:@"FullContrastColor"];
-    self.bottomHairline.alpha = 0.12;
+    self.bottomHairline.backgroundColor = [UIColor tableViewSeparatorColor];
     [self.navigationBar addSubview:self.bottomHairline];
     
     [self setupNavigationBarItems];
@@ -380,10 +384,12 @@
     BOOL useLightForeground = [UIColor useWhiteForegroundForColor:background];
     if (background == [UIColor clearColor]) {
         [self setShadowVisibility:true withAnimation:false];
-        
+                
         foreground = [UIColor bonfirePrimaryColor];
         action = [UIColor bonfirePrimaryColor]; //[UIColor fromHex:[Session sharedInstance].currentUser.attributes.color];
         background = [UIColor colorNamed:@"Navigation_ClearBackgroundColor"];
+        
+        self.shadowOnScroll = false;
     }
     else {
         [self setShadowVisibility:false withAnimation:false];
@@ -476,7 +482,7 @@
     }
     
     if ([self.topViewController isKindOfClass:[CampViewController class]]) {
-        [self setRightAction:LNActionTypeInvite];
+        [self setRightAction:LNActionTypeShare];
         
         CampViewController *campViewController = (CampViewController *)self.topViewController;
         if (campViewController.camp.identifier && campViewController.camp.identifier.length > 0) {
@@ -532,7 +538,7 @@
             [self.searchView setPosition:BFSearchTextPositionLeft];
         }
         else {
-            CGFloat searchViewWidth = self.view.frame.size.width - (56 * 2);
+            CGFloat searchViewWidth = self.view.frame.size.width - (52 * 2);
             searchViewWidth = searchViewWidth > IPAD_CONTENT_MAX_WIDTH ? IPAD_CONTENT_MAX_WIDTH : searchViewWidth;
             
             self.searchView.frame = CGRectMake(self.view.frame.size.width / 2 - searchViewWidth / 2, self.searchView.frame.origin.y, searchViewWidth, self.searchView.frame.size.height);
@@ -610,6 +616,9 @@
     else if (actionType == LNActionTypeAdd) {
         [button setImage:[[UIImage imageNamed:@"navPlusIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
     }
+    else if (actionType == LNActionTypeShare) {
+        [button setImage:[[UIImage imageNamed:@"navShareIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+    }
     else if (actionType == LNActionTypeBack) {
         [button setImage:[[UIImage imageNamed:@"leftArrowIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
         [button setImageEdgeInsets:UIEdgeInsetsMake(0, 12, 0, 0)];
@@ -670,6 +679,15 @@
                 break;
             }
             case LNActionTypeInvite:
+                if ([self.viewControllers[self.viewControllers.count-1] isKindOfClass:[CampViewController class]]) {
+                    CampViewController *activeCamp = self.viewControllers[self.viewControllers.count-1];
+                    [activeCamp openCampActions];
+                }
+                else {
+                    [Launcher openInviteFriends:self];
+                }
+                break;
+            case LNActionTypeShare:
                 if ([self.viewControllers[self.viewControllers.count-1] isKindOfClass:[CampViewController class]]) {
                     CampViewController *activeCamp = self.viewControllers[self.viewControllers.count-1];
                     [activeCamp openCampActions];

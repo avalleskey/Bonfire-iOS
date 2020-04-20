@@ -15,9 +15,11 @@
 #import "ComplexNavigationController.h"
 #import "UIColor+Palette.h"
 
+#import "BFStreamComponent.h"
+
 #define padding 24
 
-@interface CampCardsListCell ()
+@interface CampCardsListCell () <BFComponentProtocol>
 
 @property (nonatomic) int currentPage;
 
@@ -84,6 +86,11 @@ static NSString * const errorCampCellReuseIdentifier = @"ErrorCampCell";
     self.errorLoading = false;
     
     [self.contentView addSubview:_collectionView];
+    
+    self.lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+    self.lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
+    self.lineSeparator.hidden = true;
+    [self addSubview:self.lineSeparator];
 }
 - (NSInteger)numberOfSectionsInCollectionView:(UICollectionView *)collectionView {
     return 1;
@@ -267,7 +274,11 @@ static NSString * const errorCampCellReuseIdentifier = @"ErrorCampCell";
 - (void)layoutSubviews {
     [super layoutSubviews];
     
-    self.collectionView.frame = CGRectMake(0, self.collectionView.frame.origin.y, self.frame.size.width, [self cardHeight]);
+    self.collectionView.frame = CGRectMake(0, self.frame.size.height / 2 - [self cardHeight] / 2, self.frame.size.width, [self cardHeight]);
+    
+    if (!self.lineSeparator.isHidden) {
+        self.lineSeparator.frame = CGRectMake(0, self.frame.size.height - self.lineSeparator.frame.size.height, self.frame.size.width, self.lineSeparator.frame.size.height);
+    }
 }
 
 - (void)setCamps:(NSMutableArray *)camps {
@@ -276,6 +287,20 @@ static NSString * const errorCampCellReuseIdentifier = @"ErrorCampCell";
         
         [self.collectionView reloadData];
     }
+}
+
++ (CGFloat)heightForComponent:(BFStreamComponent *)component {
+    UIEdgeInsets spacing = UIEdgeInsetsMake(12, 0, 12, 0);
+    
+    if (component.detailLevel == BFComponentDetailLevelAll) {
+        return spacing.top + MEDIUM_CARD_HEIGHT + spacing.bottom;
+    }
+    else if (component.detailLevel == BFComponentDetailLevelSome) {
+        return spacing.top + SMALL_MEDIUM_CARD_HEIGHT + spacing.bottom;
+    }
+    
+    // minimum
+    return spacing.top + SMALL_CARD_HEIGHT + spacing.bottom;
 }
 
 @end

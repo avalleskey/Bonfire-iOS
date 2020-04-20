@@ -134,6 +134,10 @@
     else if (item.type == BFDetailItemTypeEdit) {
         iconView.image = [[UIImage imageNamed:@"details_label_edit"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
     }
+    else if (item.type == BFDetailItemTypeCreatedAt ||
+             item.type == BFDetailItemTypeJoinedAt) {
+        iconView.image = [[UIImage imageNamed:@"details_label_calendar"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+    }
     iconView.tintColor = [UIColor bonfireSecondaryColor];
     
     UILabel *valueLabel = [cell.contentView viewWithTag:20];
@@ -274,6 +278,33 @@
              self.type == BFDetailItemTypeSourceUser_Feed) {
         prettyValue = [@"by @" stringByAppendingString:prettyValue];
                 
+        return prettyValue;
+    }
+    else if (self.type == BFDetailItemTypeCreatedAt ||
+             self.type == BFDetailItemTypeJoinedAt) {
+        if (prettyValue.length == 0) {
+            prettyValue = @"";
+        }
+        
+        NSDateFormatter *inputFormatter = [[NSDateFormatter alloc] init];
+        [inputFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ssZ"];
+        NSDate *date = [inputFormatter dateFromString:prettyValue];
+        
+        if (date) {
+            // iMessage like date
+            NSDateFormatter *outputFormatter_part1 = [[NSDateFormatter alloc] init];
+            [outputFormatter_part1 setDateFormat:@"MMMM yyyy"];
+            
+            prettyValue = [outputFormatter_part1 stringFromDate:date];
+            
+            if (self.type == BFDetailItemTypeCreatedAt) {
+                prettyValue = [@"Created " stringByAppendingString:prettyValue];
+            }
+            else if (self.type == BFDetailItemTypeJoinedAt) {
+                prettyValue = [@"Joined " stringByAppendingString:prettyValue];
+            }
+        }
+        
         return prettyValue;
     }
     

@@ -102,7 +102,7 @@
     }
     if ([rowId isEqualToString:@"community_guidelines"]) {
         // push community guidelines
-        [Launcher openURL:@"https://bonfire.camp/community"];
+        [Launcher openURL:@"https://bonfire.camp/legal/community"];
     }
     if ([rowId isEqualToString:@"legal"]) {
         // push legal
@@ -141,8 +141,7 @@
         [Launcher copyBetaInviteLink];
     }
     if ([rowId isEqualToString:@"report_bug"]) {
-        Camp *camp = [[Camp alloc] init];
-        camp.identifier = @"-wWoxVq1VBA6R";
+        Camp *camp = [[Camp alloc] initWithDictionary:@{@"id": @"-wWoxVq1VBA6R", @"attributes": @{@"identifier": @"BonfireBugs", @"title": @"Bonfire Bugs"}} error:nil];
         [Launcher openCamp:camp];
     }
 }

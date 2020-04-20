@@ -23,9 +23,10 @@ typedef enum {
     LNActionTypeInvite = 3,
     LNActionTypeMore = 4,
     LNActionTypeAdd = 5,
-    LNActionTypeBack = 6,
-    LNActionTypeInfo = 7,
-    LNActionTypeSettings = 8
+    LNActionTypeShare = 6,
+    LNActionTypeBack = 7,
+    LNActionTypeInfo = 8,
+    LNActionTypeSettings = 9
 } LNActionType;
 - (void)setLeftAction:(LNActionType)actionType;
 - (void)setRightAction:(LNActionType)actionType;

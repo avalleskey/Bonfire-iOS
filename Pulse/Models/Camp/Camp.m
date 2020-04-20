@@ -7,6 +7,13 @@
 
 @implementation Camp
 
+- (id)init {
+    if (self = [super init]) {
+        self.type = @"camp";
+    }
+    return self;
+}
+
 - (instancetype)initWithDictionary:(NSDictionary *)dict error:(NSError **)err {
     Camp *instance = [super initWithDictionary:dict error:err];
     

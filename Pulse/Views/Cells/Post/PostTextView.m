@@ -237,7 +237,7 @@
                 NSURL *url;
                 
                 #ifdef DEBUG
-                url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://user?username=%@", LOCAL_APP_URI, [[self.message substringWithRange:range] stringByReplacingOccurrencesOfString:@"@" withString:@""]]];
+                url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://u/%@", LOCAL_APP_URI, [[self.message substringWithRange:range] stringByReplacingOccurrencesOfString:@"@" withString:@""]]];
                 #else
                 url = [NSURL URLWithString:entity.actionUrl];
                 #endif
@@ -258,7 +258,7 @@
                 NSURL *url;
                 
                 #ifdef DEBUG
-                url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://camp?camptag=%@", LOCAL_APP_URI, [[self.message substringWithRange:range] stringByReplacingOccurrencesOfString:@"#" withString:@""]]];
+                url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://c/%@", LOCAL_APP_URI, [[self.message substringWithRange:range] stringByReplacingOccurrencesOfString:@"#" withString:@""]]];
                 #else
                 url = [NSURL URLWithString:entity.actionUrl];
                 #endif

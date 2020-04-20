@@ -23,12 +23,11 @@
 
 NSString * const rotationAnimationKey = @"rotationAnimation";
 
-- (id)init {
-    if (self = [super init]) {
-        self.theme = [UIColor bonfireSecondaryColor];
-        self.animateLoading = true;
-    }
-    
+- (instancetype)init {
+    self = [super init];
+
+    if (!self) return nil;
+
     return self;
 }
 
@@ -36,10 +35,14 @@ NSString * const rotationAnimationKey = @"rotationAnimation";
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     
+    // some extra initialization
+    self.theme = [UIColor bonfireSecondaryColor];
+    self.animateLoading = true;
+    
     self.view.backgroundColor = [UIColor contentBackgroundColor];
     self.tableView = [[UITableView alloc] initWithFrame:self.view.bounds style:UITableViewStyleGrouped];
     self.tableView.backgroundColor = [UIColor contentBackgroundColor];
-    self.tableView.alpha = 0;
+//    self.tableView.alpha = 0;
     [self.view addSubview:self.tableView];
     
     self.refreshControl = [[UIRefreshControl alloc] init];
@@ -131,7 +134,7 @@ NSString * const rotationAnimationKey = @"rotationAnimation";
         _theme = theme;
         
         self.bigSpinner.color = theme;
-        [self activeTableView].tintColor = theme;
+        self.view.tintColor = theme;
     }
 }
 
@@ -150,12 +153,17 @@ NSString * const rotationAnimationKey = @"rotationAnimation";
 }
 
 - (void)setSpinning:(BOOL)spinning animated:(BOOL)animated {
+    // override spinning if told not to animate loading
+    if (!self.animateLoading) {
+        spinning = false;
+    }
+    
     if (spinning != _spinning) {
         _spinning = spinning;
     }
     
     if (spinning) {
-//        [self.bigSpinner startAnimating];
+        [self.bigSpinner startAnimating];
         
         [self activeTableView].userInteractionEnabled = false;
         [UIView animateWithDuration:animated?0.4f:0 delay:0 usingSpringWithDamping:0.75f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
@@ -188,10 +196,8 @@ NSString * const rotationAnimationKey = @"rotationAnimation";
         _loading = loading;
     }
     
-    if (self.animateLoading) {
-        if ([self activeTableView] && self.spinning != _loading) {
-            [self setSpinning:_loading animated:true];
-        }
+    if ([self activeTableView] && self.spinning != _loading) {
+        [self setSpinning:_loading animated:true];
     }
     
     if (!_loading) {

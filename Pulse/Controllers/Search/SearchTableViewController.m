@@ -58,6 +58,8 @@ static NSString * const paginationCellReuseIdentifier = @"PaginationCell";
     
     self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] init];
     
+    self.animateLoading = false;
+    
     [self setupSearch];
     [self setupErrorView];
     [self createSegmentedControl];
@@ -196,7 +198,6 @@ static NSString * const paginationCellReuseIdentifier = @"PaginationCell";
                 self.searchResults = [[NSMutableArray alloc] init];
                 [self populateSearchResults:responseData];
                 
-                NSLog(@"self.searchResults: %@", self.searchResults);
                 if (self.searchResults.count == 0) {
                     self.tableView.separatorInset = UIEdgeInsetsMake(0, 12, 0, 0);
                 }
@@ -399,7 +400,7 @@ static NSString * const paginationCellReuseIdentifier = @"PaginationCell";
 }
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     if (self.loading && indexPath.row == 0) {
-        return 62;
+        return [SearchResultCell height];
     }
         
     NSString *searchText;
@@ -415,7 +416,7 @@ static NSString * const paginationCellReuseIdentifier = @"PaginationCell";
         return 52;
     }
     
-    return 62;
+    return [SearchResultCell height];
 }
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     return 1;
@@ -686,10 +687,6 @@ static NSString * const paginationCellReuseIdentifier = @"PaginationCell";
     UIView *selectedBackground = [[UIView alloc] initWithFrame:CGRectMake(0, self.segmentedControl.frame.size.height - 2, buttonWidth, 2)];
     selectedBackground.layer.cornerRadius = 1;
     selectedBackground.backgroundColor = [UIColor bonfirePrimaryColor];
-//    selectedBackground.layer.shadowColor = [UIColor blackColor].CGColor;
-//    selectedBackground.layer.shadowOffset = CGSizeMake(0, 1);
-//    selectedBackground.layer.shadowRadius = 1.5f;
-//    selectedBackground.layer.shadowOpacity = 0.06;
     selectedBackground.tag = 5;
     [self.segmentedControl addSubview:selectedBackground];
     
@@ -771,11 +768,9 @@ static NSString * const paginationCellReuseIdentifier = @"PaginationCell";
             if (button.tag == tabIndex) {
                 selectedButton = button;
                 [button setTitleColor:[UIColor bonfirePrimaryColor] forState:UIControlStateNormal];
-                button.titleLabel.font = [UIFont systemFontOfSize:button.titleLabel.font.pointSize weight:UIFontWeightBold];
             }
             else {
                 [button setTitleColor:[UIColor bonfireSecondaryColor] forState:UIControlStateNormal];
-                button.titleLabel.font = [UIFont systemFontOfSize:button.titleLabel.font.pointSize weight:UIFontWeightSemibold];
             }
         }
         

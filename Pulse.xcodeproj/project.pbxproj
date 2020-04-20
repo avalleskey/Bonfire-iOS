@@ -160,6 +160,7 @@
 		D97D3AB32410385A006A6BA1 /* GIFCollectionViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D97D3AB22410385A006A6BA1 /* GIFCollectionViewController.m */; };
 		D97D3AB6241045F8006A6BA1 /* GIFCollectionViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D97D3AB5241045F7006A6BA1 /* GIFCollectionViewCell.m */; };
 		D97D3AB92412DD17006A6BA1 /* BFActivityIndicatorView.m in Sources */ = {isa = PBXBuildFile; fileRef = D97D3AB82412DD17006A6BA1 /* BFActivityIndicatorView.m */; };
+		D97D63AE243D1FEC002F8810 /* UIView+BFEffects.m in Sources */ = {isa = PBXBuildFile; fileRef = D97D63AD243D1FEC002F8810 /* UIView+BFEffects.m */; };
 		D98212332319A05C00B8B6E9 /* BFViewExporter.m in Sources */ = {isa = PBXBuildFile; fileRef = D98212322319A05C00B8B6E9 /* BFViewExporter.m */; };
 		D9824236219CAA0D003626DA /* EditCampViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9824235219CAA0D003626DA /* EditCampViewController.m */; };
 		D983D733216E5A5900F9D201 /* LoadingCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D983D732216E5A5900F9D201 /* LoadingCell.m */; };
@@ -312,7 +313,7 @@
 		D904283E233BE3800051D3AF /* LinkConversationsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LinkConversationsViewController.m; sourceTree = "<group>"; };
 		D9042840233C17170051D3AF /* BFSmartLinkAttachmentView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BFSmartLinkAttachmentView.m; sourceTree = "<group>"; };
 		D9042841233C17180051D3AF /* BFSmartLinkAttachmentView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BFSmartLinkAttachmentView.h; sourceTree = "<group>"; };
-		D907B07D214EEC5000A59712 /* Bonfire b16.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Bonfire b16.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		D907B07D214EEC5000A59712 /* Bonfire b1.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Bonfire b1.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D907B080214EEC5000A59712 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		D907B081214EEC5000A59712 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; wrapsLines = 0; };
 		D907B087214EEC5000A59712 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -583,6 +584,8 @@
 		D97D3AB5241045F7006A6BA1 /* GIFCollectionViewCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GIFCollectionViewCell.m; sourceTree = "<group>"; };
 		D97D3AB72412DD17006A6BA1 /* BFActivityIndicatorView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BFActivityIndicatorView.h; sourceTree = "<group>"; };
 		D97D3AB82412DD17006A6BA1 /* BFActivityIndicatorView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BFActivityIndicatorView.m; sourceTree = "<group>"; };
+		D97D63AC243D1FEC002F8810 /* UIView+BFEffects.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "UIView+BFEffects.h"; sourceTree = "<group>"; };
+		D97D63AD243D1FEC002F8810 /* UIView+BFEffects.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "UIView+BFEffects.m"; sourceTree = "<group>"; };
 		D98212312319A05C00B8B6E9 /* BFViewExporter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BFViewExporter.h; sourceTree = "<group>"; };
 		D98212322319A05C00B8B6E9 /* BFViewExporter.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BFViewExporter.m; sourceTree = "<group>"; };
 		D9824234219CAA0C003626DA /* EditCampViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EditCampViewController.h; sourceTree = "<group>"; };
@@ -870,7 +873,7 @@
 		D907B07E214EEC5000A59712 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				D907B07D214EEC5000A59712 /* Bonfire b16.app */,
+				D907B07D214EEC5000A59712 /* Bonfire b1.app */,
 				D907B095214EEC5300A59712 /* PulseTests.xctest */,
 				D907B0A0214EEC5300A59712 /* PulseUITests.xctest */,
 			);
@@ -1942,6 +1945,8 @@
 				D91CA64923A13CC90055973A /* UIResponder+FirstResponder.m */,
 				D939C6CA23DE1EA6006F3965 /* UIView+RoundedCorners.h */,
 				D939C6CB23DE1EA6006F3965 /* UIView+RoundedCorners.m */,
+				D97D63AC243D1FEC002F8810 /* UIView+BFEffects.h */,
+				D97D63AD243D1FEC002F8810 /* UIView+BFEffects.m */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -2003,7 +2008,7 @@
 			);
 			name = Pulse;
 			productName = Pulse;
-			productReference = D907B07D214EEC5000A59712 /* Bonfire b16.app */;
+			productReference = D907B07D214EEC5000A59712 /* Bonfire b1.app */;
 			productType = "com.apple.product-type.application";
 		};
 		D907B094214EEC5300A59712 /* PulseTests */ = {
@@ -2415,6 +2420,7 @@
 				D944456622E6478800C75615 /* BFAlternativeHeaderView.m in Sources */,
 				D921171421A6488F00853F3F /* ContactCell.m in Sources */,
 				D923802B2183D98100E01A34 /* PaginationCell.m in Sources */,
+				D97D63AE243D1FEC002F8810 /* UIView+BFEffects.m in Sources */,
 				D9BF52B121D539B2004E9F12 /* ZFModalTransitionAnimator.m in Sources */,
 				D96A50772344E844006D76C4 /* CampCardCell.m in Sources */,
 				D9E94BB722DE6D9500238FDC /* InviteToCampViewController.m in Sources */,
@@ -2681,7 +2687,7 @@
 				CODE_SIGN_ENTITLEMENTS = Pulse/Pulse.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 16;
+				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 4WLQG965T9;
 				EXCLUDED_SOURCE_FILE_NAMES = "*.value";
@@ -2697,7 +2703,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.7;
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "Ingenious.bonfire$(BUNDLE_ID_SUFFIX)";
 				PRODUCT_NAME = "Bonfire b$(CURRENT_PROJECT_VERSION)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2720,7 +2726,7 @@
 				CODE_SIGN_ENTITLEMENTS = Pulse/Pulse.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 16;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 4WLQG965T9;
 				EXCLUDED_SOURCE_FILE_NAMES = "*.value";
 				FRAMEWORK_SEARCH_PATHS = (
@@ -2735,7 +2741,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.7;
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "Ingenious.bonfire$(BUNDLE_ID_SUFFIX)";
 				PRODUCT_NAME = Bonfire;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2988,7 +2994,7 @@
 				CODE_SIGN_ENTITLEMENTS = Pulse/Pulse.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 16;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 4WLQG965T9;
 				EXCLUDED_SOURCE_FILE_NAMES = "*.value";
 				FRAMEWORK_SEARCH_PATHS = (
@@ -3003,7 +3009,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.7;
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "Ingenious.bonfire$(BUNDLE_ID_SUFFIX)";
 				PRODUCT_NAME = Bonfire;
 				PROVISIONING_PROFILE_SPECIFIER = "";

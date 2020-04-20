@@ -727,9 +727,114 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
 #pragma mark - BFComponentSectionTableViewDelegate
 - (UIView *)viewForFirstSectionHeader {
     return nil;
+    
+    UIView *buttons = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 80)];
+
+    UIButton *updateSection = [UIButton buttonWithType:UIButtonTypeSystem];
+    [updateSection setTitle:@"Update Section" forState:UIControlStateNormal];
+    updateSection.frame = CGRectMake(0, 0, buttons.frame.size.width, 40);
+    [updateSection bk_whenTapped:^{
+        Section *firstSection = [self.sectionTableView.stream.sections firstObject];
+        firstSection.attributes.title = @"Updated Section!";
+        [self.sectionTableView.stream performEventType:SectionStreamEventTypeSectionUpdated object:firstSection];
+
+        [self.sectionTableView reloadData];
+    }];
+    [buttons addSubview:updateSection];
+
+    UIButton *updateTopPost = [UIButton buttonWithType:UIButtonTypeSystem];
+    [updateTopPost setTitle:@"Update Top Post" forState:UIControlStateNormal];
+    updateTopPost.frame = CGRectMake(0, updateSection.frame.origin.y + updateSection.frame.size.height, buttons.frame.size.width, 40);
+    [updateTopPost bk_whenTapped:^{
+        Section *firstSection;
+        for (Section *section in self.sectionTableView.stream.sections) {
+            if (section.attributes.posts.count > 0) {
+                firstSection = section;
+                break;
+            }
+        }
+        
+        if (firstSection) {
+            Post *firstPostInFirstSection = [firstSection.attributes.posts objectAtIndex:0];
+            
+            firstPostInFirstSection.attributes.message = @"Updated post!";
+
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"PostUpdated" object:firstPostInFirstSection];
+        }
+    }];
+    [buttons addSubview:updateTopPost];
+
+    UIButton *removeTopPost = [UIButton buttonWithType:UIButtonTypeSystem];
+    [removeTopPost setTitle:@"Remove Top Post" forState:UIControlStateNormal];
+    removeTopPost.frame = CGRectMake(0, updateTopPost.frame.origin.y + updateTopPost.frame.size.height, buttons.frame.size.width, 40);
+    [removeTopPost bk_whenTapped:^{
+        Section *firstSection;
+        for (Section *section in self.sectionTableView.stream.sections) {
+            if (section.attributes.posts.count > 0) {
+                firstSection = section;
+                break;
+            }
+        }
+        
+        if (firstSection) {
+            Post *firstPostInFirstSection = [firstSection.attributes.posts objectAtIndex:0];
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"PostDeleted" object:firstPostInFirstSection];
+        }
+    }];
+    [buttons addSubview:removeTopPost];
+
+    UIButton *updateUser = [UIButton buttonWithType:UIButtonTypeSystem];
+    [updateUser setTitle:@"Update Top Post User" forState:UIControlStateNormal];
+    updateUser.frame = CGRectMake(0, removeTopPost.frame.origin.y + removeTopPost.frame.size.height, buttons.frame.size.width, 40);
+    [updateUser bk_whenTapped:^{
+        Section *firstSection;
+        for (Section *section in self.sectionTableView.stream.sections) {
+            if (section.attributes.posts.count > 0) {
+                firstSection = section;
+                break;
+            }
+        }
+        
+        if (firstSection) {
+            Post *firstPostInFirstSection = [firstSection.attributes.posts objectAtIndex:0];
+            
+            User *creator = [[User alloc] initWithDictionary:[firstPostInFirstSection.attributes.creator toDictionary] error:nil];
+            creator.attributes.identifier = @"jackieboy";
+
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"UserUpdated" object:creator];
+        }
+    }];
+    [buttons addSubview:updateUser];
+
+    UIButton *updateCamp = [UIButton buttonWithType:UIButtonTypeSystem];
+    [updateCamp setTitle:@"Update Top Post Camp" forState:UIControlStateNormal];
+    updateCamp.frame = CGRectMake(0, updateUser.frame.origin.y + updateUser.frame.size.height, buttons.frame.size.width, 40);
+    [updateCamp bk_whenTapped:^{
+        Section *firstSection;
+        for (Section *section in self.sectionTableView.stream.sections) {
+            if (section.attributes.posts.count > 0) {
+                firstSection = section;
+                break;
+            }
+        }
+        
+        if (firstSection) {
+            Post *firstPostInFirstSection = [firstSection.attributes.posts objectAtIndex:0];
+            
+            Camp *postedIn = [[Camp alloc] initWithDictionary:[firstPostInFirstSection.attributes.postedIn toDictionary] error:nil];
+            postedIn.attributes.identifier = @"suhdudes";
+
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"CampUpdated" object:postedIn];
+        }
+    }];
+    [buttons addSubview:updateCamp];
+
+    return buttons;
 }
 - (CGFloat)heightForFirstSectionHeader {
-    return CGFLOAT_MIN; // 240
+    return CGFLOAT_MIN;
+    
+//    return 200;
 }
 - (void)tableView:(nonnull id)tableView didRequestNextPageWithMaxId:(NSInteger)maxId {
     if (self.sectionTableView.stream.nextCursor.length > 0 && ![self.sectionTableView.stream hasLoadedCursor:self.sectionTableView.stream.nextCursor]) {

@@ -13,6 +13,7 @@
 #import "User.h"
 #import "Post.h"
 #import "BFAPI.h"
+#import <PINCache/PINCache.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -49,6 +50,9 @@ NS_ASSUME_NONNULL_BEGIN
 // Temporary Defaults
 - (void)resetTemporaryDefaults;
 + (int)getTempId;
+
+// Caches
++ (PINCache *)tempCache;
 
 @end
 

@@ -12,6 +12,11 @@
 #import "Session.h"
 #import <BlocksKit/BlocksKit.h>
 #import <BlocksKit/BlocksKit+UIKit.h>
+#import "BFStreamComponent.h"
+
+@interface SearchResultCell () <BFComponentProtocol>
+
+@end
 
 @implementation SearchResultCell
 
@@ -36,7 +41,8 @@
         
         // general cell styling
         self.selectionStyle = UITableViewCellSelectionStyleNone;
-        self.lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+        
+        self.lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(64, 0, self.frame.size.width - 64, (1 / [UIScreen mainScreen].scale))];
         self.lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
         [self addSubview:self.lineSeparator];
         
@@ -111,7 +117,7 @@
 - (void)layoutSubviews {
     [super layoutSubviews];
     
-    UIEdgeInsets textEdgeInsets = UIEdgeInsetsMake(12, 64, 14, 12);
+    UIEdgeInsets textEdgeInsets = UIEdgeInsetsMake(13, 64, 14, 12);
     
     // image view
     self.profilePicture.frame = CGRectMake(12, self.frame.size.height / 2 - 21, 42, 42);
@@ -152,8 +158,7 @@
     self.detailTextLabel.frame = CGRectMake(self.textLabel.frame.origin.x, self.textLabel.frame.origin.y + self.textLabel.frame.size.height + 2, self.textLabel.frame.size.width, 16);
     
     if (!self.lineSeparator.isHidden) {
-        // self.lineSeparator.frame = CGRectMake(postContentOffset.left, self.frame.size.height - self.lineSeparator.frame.size.height, self.frame.size.width - postContentOffset.left, self.lineSeparator.frame.size.height);
-        self.lineSeparator.frame = CGRectMake(self.textLabel.frame.origin.x, self.frame.size.height - self.lineSeparator.frame.size.height, self.frame.size.width - self.textLabel.frame.origin.x, self.lineSeparator.frame.size.height);
+        self.lineSeparator.frame = CGRectMake(self.lineSeparator.frame.origin.x, self.frame.size.height - self.lineSeparator.frame.size.height, self.frame.size.width - self.lineSeparator.frame.origin.x, self.lineSeparator.frame.size.height);
     }
     
     if (self.camp) {
@@ -411,9 +416,18 @@
     }
 }
 
++ (CGFloat)height {
+    return 64;
+}
+
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated {
     [super setSelected:selected animated:animated];
 
     // Configure the view for the selected state
 }
+
++ (CGFloat)heightForComponent:(BFStreamComponent *)component {
+    return [SearchResultCell height];
+}
+
 @end

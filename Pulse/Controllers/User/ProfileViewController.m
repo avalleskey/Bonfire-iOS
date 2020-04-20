@@ -22,18 +22,17 @@
 #import "BFHeaderView.h"
 #import "SpacerCell.h"
 #import "BFAlertController.h"
-#import "L360ConfettiArea.h"
+#import "UIView+BFEffects.h"
 
 #import <BlocksKit/BlocksKit.h>
 #import <BlocksKit/BlocksKit+UIKit.h>
 @import Firebase;
 
-@interface ProfileViewController () <L360ConfettiAreaDelegate> {
+@interface ProfileViewController () {
     int previousTableViewYOffset;
     CGFloat coverPhotoHeight;
 }
 
-@property (nonatomic) BOOL loading;
 @property (nonatomic) BOOL shimmering;
 
 @property CGFloat minHeaderHeight;
@@ -128,6 +127,8 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
 }
 - (void)updateCoverPhotoView {
     coverPhotoHeight = PROFILE_HEADER_EDGE_INSETS.top + PROFILE_HEADER_AVATAR_BORDER_WIDTH + ceilf(PROFILE_HEADER_AVATAR_SIZE * 0.65);
+    
+    NSLog(@"profile cover photo height: %f", coverPhotoHeight);
     if (self.user.attributes.media.cover.suggested.url.length > 0) {
         [self.coverPhotoView sd_setImageWithURL:[NSURL URLWithString:self.user.attributes.media.cover.suggested.url]];
     
@@ -440,11 +441,9 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
 }
 
 - (void)setLoading:(BOOL)loading {
-    if (loading != _loading) {
-        _loading = loading;
-        
-        self.tableView.loading = _loading;
-    }
+    [super setLoading:loading];
+    
+    self.tableView.loading = loading;
 }
 
 - (void)getUserInfo {
@@ -465,17 +464,7 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
             
             // blast some confetti!
             if ([self.user isBirthday]) {
-                [UIView animateWithDuration:0 animations:^{
-                    L360ConfettiArea *confettiArea = [[L360ConfettiArea alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height)];
-                    confettiArea.userInteractionEnabled = false;
-                                
-                    [self.navigationController.view addSubview:confettiArea];
-                    confettiArea.blastSpread = 0;
-                    confettiArea.delegate = self;
-                    confettiArea.swayLength = 120.f;
-                    [confettiArea burstAt:CGPointMake(self.view.frame.size.width / 2, -80) confettiWidth:12.f numberOfConfetti:60];
-                } completion:^(BOOL finished) {
-                }];
+                [self.navigationController.view showEffect:BFEffectTypeBalloons completion:nil];
             }
             
             if (![self isCurrentUser]) [[Session sharedInstance] addToRecents:self.user];
@@ -653,10 +642,23 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
             [self.tableView hardRefresh:false];
         }
         
-        NSString *url = [NSString stringWithFormat:@"users/%@/posts", [self userIdentifier]]; // sample data
+        NSString *url = [NSString stringWithFormat:@"users/%@/%@", [self userIdentifier], ([self isCurrentUser] ? @"posts" : @"stream")];
         [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
             self.loading = false;
             self.tableView.loadingMore = false;
+            
+            BOOL mock = false; //(cursorType == StreamPagingCursorTypeNone);
+            if (mock) {
+                NSString *bundlePath = [[NSBundle mainBundle] pathForResource:@"User_profile_stream_json_2" ofType:@"json"];
+                NSData *data = [NSData dataWithContentsOfFile:bundlePath];
+
+                if (data) {
+                    NSDictionary *json = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:nil];
+                    if (json == nil) return;
+                    
+                    responseObject = json;
+                }
+            }
             
             SectionStreamPage *page = [[SectionStreamPage alloc] initWithDictionary:responseObject error:nil];
             if (page.data.count > 0) {
@@ -665,11 +667,6 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
                     cursorType == StreamPagingCursorTypeNone) {
                     [self.tableView scrollToTop];
                     [self.tableView.stream flush];
-                    
-                    if (self.user) {
-                        NSString *displayName = [self isCurrentUser] ? @"Your" : [NSString stringWithFormat:@"@%@'s", self.user.attributes.identifier];
-                        sectionTitle = [displayName stringByAppendingString:@" Channel"];
-                    }
                 }
                 
                 if (cursorType == StreamPagingCursorTypeNext) {
@@ -802,7 +799,7 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
                 if ([cell.user.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]) {
                     [cell.actionButton updateStatus:USER_STATUS_ME];
                 }
-                else if (self.loading && cell.user.attributes.context == nil) {
+                else if (self.loading && cell.user.attributes.context.me.status.length == 0) {
                     [cell.actionButton updateStatus:USER_STATUS_LOADING];
                 }
                 else {
@@ -859,7 +856,7 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
         cell.buttonLabel.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightSemibold];
         cell.detailTextLabel.font = [UIFont systemFontOfSize:cell.buttonLabel.font.pointSize weight:UIFontWeightMedium];
         if (row == 1) {
-            cell.buttonLabel.text = @"Following";
+            cell.buttonLabel.text = @"Friends";
             cell.detailTextLabel.text = [NSString stringWithFormat:@"%ld", (long)self.user.attributes.summaries.counts.following];
             cell.bottomSeparator.frame = CGRectMake(12, cell.bottomSeparator.frame.origin.y, self.view.frame.size.width - 12, cell.bottomSeparator.frame.size.height);
         }
@@ -911,26 +908,11 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
 }
 - (CGFloat)numberOfRowsInFirstSection {
     NSInteger rows = 2;
-    if (!(self.tableView.visualError && !(self.tableView.visualError.errorType == ErrorViewTypeNoPosts || self.tableView.visualError.errorType == ErrorViewTypeFirstPost)) && self.user && !([self identityIsBlocked] || [self currentUserIsBlocked])) {
+    if ([self isCurrentUser] && !(self.tableView.visualError && !(self.tableView.visualError.errorType == ErrorViewTypeNoPosts || self.tableView.visualError.errorType == ErrorViewTypeFirstPost)) && self.user && !([self identityIsBlocked] || [self currentUserIsBlocked])) {
         rows += 2;
     }
     
     return rows;
-}
-
-// birthday cellebration lol
-- (NSArray *)colorsForConfettiArea:(L360ConfettiArea *)confettiArea {
-    return @[[UIColor bonfireBlue],  // 0
-    [UIColor bonfireViolet],  // 1
-    [UIColor bonfireRed],  // 2
-    [UIColor bonfireOrange],  // 3
-    [UIColor colorWithRed:0.16 green:0.72 blue:0.01 alpha:1.00], // cash green
-    [UIColor fromHex:@"#8F683C"],  // 5
-    [UIColor colorWithRed:0.96 green:0.76 blue:0.23 alpha:1.00],  // 6
-    [UIColor bonfireCyanWithLevel:800],  // 7
-    [UIColor fromHex:self.user.attributes.color],
-    [UIColor fromHex:self.user.attributes.color],
-    [UIColor fromHex:self.user.attributes.color]]; // 8
 }
 
 - (void)setShimmering:(BOOL)shimmering {

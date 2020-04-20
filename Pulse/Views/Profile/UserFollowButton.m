@@ -20,7 +20,7 @@
     if ([status isEqualToString:USER_STATUS_FOLLOWS] ||
         [status isEqualToString:USER_STATUS_FOLLOW_BOTH]) {
         [self setImage:[[UIImage imageNamed:@"checkIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
-        [self setTitle:@"Following" forState:UIControlStateNormal];
+        [self setTitle:([status isEqualToString:USER_STATUS_FOLLOW_BOTH] ? @"Friends" : @"Subscribed") forState:UIControlStateNormal];
     }
     else if ([status isEqualToString:USER_STATUS_BLOCKED] ||
              [status isEqualToString:USER_STATUS_BLOCKS] ||

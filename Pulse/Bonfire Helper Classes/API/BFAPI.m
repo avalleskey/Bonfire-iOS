@@ -296,7 +296,6 @@
                             SimpleNavigationController *newNavController = [[SimpleNavigationController alloc] initWithRootViewController:epvc];
                             newNavController.transitioningDelegate = [Launcher sharedInstance];
                             [newNavController setLeftAction:SNActionTypeCancel];
-                            [newNavController setRightAction:SNActionTypeShare];
                             newNavController.view.tintColor = epvc.view.tintColor;
                             newNavController.currentTheme = [UIColor contentBackgroundColor];
                             [Launcher present:newNavController animated:YES];
@@ -421,17 +420,13 @@
                 
                 [mutableParams setObject:attachmentsDict forKey:@"attachments"];
             }
-            
-            NSLog(@"params: %@", mutableParams);
-            
+                        
             [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] POST:url parameters:mutableParams progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                 // NSLog(@"CommonTableViewController / getPosts() success! ✅");
                 
                 NSError *postError;
                 Post *post = [[Post alloc] initWithDictionary:responseObject[@"data"] error:&postError];
-                
-                NSLog(@"response obj: %@", responseObject[@"data"]);
-                
+                                
                 BFMiniNotificationObject *notificationObject = [BFMiniNotificationObject notificationWithText:@"Posted!" action:^{
                     NSLog(@"mini notification action!!!");
                     [Launcher openPost:post withKeyboard:false];

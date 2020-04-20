@@ -417,17 +417,17 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
                     cell = [[ButtonCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:buttonCellIdentifier];
                 }
                 
-                if ([component.object isKindOfClass:[NSDictionary class]] &&
-                    [(NSDictionary *)component.object objectForKey:ButtonCellTitleAttributeName]) {
-                    cell.buttonLabel.text = [((NSDictionary *)component.object) valueForKey:ButtonCellTitleAttributeName];
+                if (component.dictionary &&
+                    [component.dictionary objectForKey:ButtonCellTitleAttributeName]) {
+                    cell.buttonLabel.text = [component.dictionary valueForKey:ButtonCellTitleAttributeName];
                 }
                 else {
                     cell.buttonLabel.text = @"";
                 }
                 
-                if ([component.object isKindOfClass:[NSDictionary class]] &&
-                    [(NSDictionary *)component.object objectForKey:ButtonCellTitleColorAttributeName]) {
-                    cell.buttonLabel.textColor = [((NSDictionary *)component.object) valueForKey:ButtonCellTitleColorAttributeName];
+                if (component.dictionary &&
+                    [component.dictionary objectForKey:ButtonCellTitleColorAttributeName]) {
+                    cell.buttonLabel.textColor = [component.dictionary valueForKey:ButtonCellTitleColorAttributeName];
                 }
                 else {
                     cell.buttonLabel.textColor = cell.kButtonColorBonfire;
@@ -795,7 +795,12 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
             SimpleNavigationController *newNavController = [[SimpleNavigationController alloc] initWithRootViewController:p];
             newNavController.transitioningDelegate = [Launcher sharedInstance];
             [newNavController setLeftAction:SNActionTypeBack];
+            if (![p.post.attributes.postedIn.attributes isPrivate]) {
+                [newNavController setRightAction:SNActionTypeShare];
+            }
             newNavController.currentTheme = p.theme;
+            newNavController.view.tintColor = [UIColor fromHex:p.post.themeColor adjustForOptimalContrast:true];
+            [newNavController updateBarColor:[UIColor clearColor] animated:false];
             
             [Launcher push:newNavController animated:YES];
         };

@@ -17,6 +17,7 @@
 #import "NSString+Validation.h"
 #import "BFAlertController.h"
 #import "NSDate+NVTimeAgo.h"
+#import "UIView+BFEffects.h"
 
 #define USER_CONTEXT_BUBBLE_TAG_NEW_USER 1
 #define USER_CONTEXT_BUBBLE_TAG_BIRTHDAY 2
@@ -37,7 +38,7 @@
         self.contentView.clipsToBounds = NO;            //contentView
         self.contentView.superview.clipsToBounds = NO;  //scrollView
                 
-        self.profilePictureContainer = [[UIView alloc] initWithFrame:CGRectMake(0, PROFILE_HEADER_EDGE_INSETS.top, PROFILE_HEADER_AVATAR_SIZE + (PROFILE_HEADER_AVATAR_BORDER_WIDTH * 2), PROFILE_HEADER_AVATAR_SIZE + (PROFILE_HEADER_AVATAR_BORDER_WIDTH * 2))];
+        self.profilePictureContainer = [[UIView alloc] initWithFrame:CGRectMake(0, PROFILE_HEADER_EDGE_INSETS.top - PROFILE_HEADER_AVATAR_BORDER_WIDTH, PROFILE_HEADER_AVATAR_SIZE + (PROFILE_HEADER_AVATAR_BORDER_WIDTH * 2), PROFILE_HEADER_AVATAR_SIZE + (PROFILE_HEADER_AVATAR_BORDER_WIDTH * 2))];
         self.profilePictureContainer.backgroundColor = [UIColor contentBackgroundColor];
         self.profilePictureContainer.layer.cornerRadius = self.profilePictureContainer.frame.size.height / 2;
         self.profilePictureContainer.layer.masksToBounds = false;
@@ -180,6 +181,19 @@
         self.detailTextLabel.numberOfLines = 0;
         self.detailTextLabel.lineBreakMode = NSLineBreakByWordWrapping;
         self.detailTextLabel.backgroundColor = [UIColor clearColor];
+        self.detailTextLabel.userInteractionEnabled = true;
+        [self.detailTextLabel bk_whenTapped:^{
+            if ([self.user isBetaTester]) {
+                BFAlertController *actionSheet = [BFAlertController alertControllerWithTitle:@"Early Adopter" message:([self isCurrentUser] ? @"Thank you for being a part of the Bonfire beta!" : @"This user was part of the limited Bonfire beta.") preferredStyle:BFAlertControllerStyleActionSheet];
+                
+                BFAlertAction *cancelActionSheet = [BFAlertAction actionWithTitle:@"Close" style:BFAlertActionStyleCancel handler:nil];
+                [actionSheet addAction:cancelActionSheet];
+                                
+                [[Launcher topMostViewController] presentViewController:actionSheet animated:true completion:^{
+                    [[[UIApplication sharedApplication] keyWindow] showEffect:BFEffectTypeBalloons completion:nil];
+                }];
+            }
+        }];
         
         // bio
         self.bioLabel = [[TTTAttributedLabel alloc] initWithFrame:CGRectMake(24, 0, self.frame.size.width - 48, 18)];
@@ -445,16 +459,48 @@
             NSAttributedString *attachmentString = [NSAttributedString attributedStringWithAttachment:attachment];
             [displayNameAttributedString appendAttributedString:attachmentString];
         }
+//        else if ([user isBetaTester]) {
+//            NSMutableAttributedString *spacer = [[NSMutableAttributedString alloc] initWithString:@"  "];
+//            [spacer addAttribute:NSFontAttributeName value:PROFILE_HEADER_DISPLAY_NAME_FONT range:NSMakeRange(0, spacer.length)];
+//            [displayNameAttributedString appendAttributedString:spacer];
+//
+//            // verified icon ☑️
+//            NSTextAttachment *attachment = [[NSTextAttachment alloc] init];
+//            attachment.image = [UIImage imageNamed:@"betaIcon_large"];
+//            [attachment setBounds:CGRectMake(0, roundf(PROFILE_HEADER_DISPLAY_NAME_FONT.capHeight - attachment.image.size.height)/2.f-1, attachment.image.size.width, attachment.image.size.height)];
+//
+//            NSAttributedString *attachmentString = [NSAttributedString attributedStringWithAttachment:attachment];
+//            [displayNameAttributedString appendAttributedString:attachmentString];
+//        }
         self.textLabel.attributedText = displayNameAttributedString;
         
         // username
         if (user.attributes.identifier.length > 0) {
-            self.detailTextLabel.text = [NSString stringWithFormat:@"@%@", user.attributes.identifier];
+            NSMutableAttributedString *usernameAttributedString = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"@%@", user.attributes.identifier] attributes:@{NSFontAttributeName:PROFILE_HEADER_USERNAME_FONT, NSForegroundColorAttributeName: [UIColor fromHex:user.attributes.color adjustForOptimalContrast:true]}];
+            
+            if ([user isBetaTester]) {
+                NSMutableAttributedString *spacer = [[NSMutableAttributedString alloc] initWithString:@"  "];
+                [spacer addAttribute:NSFontAttributeName value:PROFILE_HEADER_USERNAME_FONT range:NSMakeRange(0, spacer.length)];
+                [usernameAttributedString appendAttributedString:spacer];
+                
+                // beta tag
+                NSTextAttachment *attachment = [[NSTextAttachment alloc] init];
+                attachment.image = [UIImage imageNamed:@"betaTag"];
+                
+                CGFloat attachmentHeight = MIN(ceilf(PROFILE_HEADER_USERNAME_FONT.lineHeight * 0.9), ceilf(attachment.image.size.height));
+                CGFloat attachmentWidth = ceilf(attachmentHeight * (attachment.image.size.width / attachment.image.size.height));
+                
+                [attachment setBounds:CGRectMake(0, roundf(PROFILE_HEADER_USERNAME_FONT.capHeight - attachmentHeight)/2.f - HALF_PIXEL, attachmentWidth, attachmentHeight)];
+                
+                NSAttributedString *attachmentString = [NSAttributedString attributedStringWithAttachment:attachment];
+                [usernameAttributedString appendAttributedString:attachmentString];
+            }
+            
+            self.detailTextLabel.attributedText = usernameAttributedString;
         }
         else {
             self.detailTextLabel.text = @"";
         }
-        self.detailTextLabel.textColor = [UIColor fromHex:user.attributes.color adjustForOptimalContrast:true];
         
         // bio
         self.bioLabel.hidden = user.attributes.bio.length == 0;
@@ -473,14 +519,14 @@
             NSArray *usernameRanges = [self.user.attributes.bio rangesForUsernameMatches];
             for (NSValue *value in usernameRanges) {
                 NSRange range = [value rangeValue];
-                NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://user?username=%@", LOCAL_APP_URI, [[self.user.attributes.bio substringWithRange:range] stringByReplacingOccurrencesOfString:@"@" withString:@""]]];
+                NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://u/%@", LOCAL_APP_URI, [[self.user.attributes.bio substringWithRange:range] stringByReplacingOccurrencesOfString:@"@" withString:@""]]];
                 [self.bioLabel addLinkToURL:url withRange:range];
             }
         
             NSArray *campRanges = [self.user.attributes.bio rangesForCampTagMatches];
             for (NSValue *value in campRanges) {
                 NSRange range = [value rangeValue];
-                NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://camp?camptag=%@", LOCAL_APP_URI, [[self.user.attributes.bio substringWithRange:range] stringByReplacingOccurrencesOfString:@"#" withString:@""]]];
+                NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://c/%@", LOCAL_APP_URI, [[self.user.attributes.bio substringWithRange:range] stringByReplacingOccurrencesOfString:@"#" withString:@""]]];
                 [self.bioLabel addLinkToURL:url withRange:range];
             }
         }
@@ -499,11 +545,17 @@
             }];
             [details addObject:item];
         }
-        if (details.count == 0 && [user isCurrentIdentity]) {
-            BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeEdit value:(details.count==0?@"Edit Profile":@"") action:^{
-                [Launcher openEditProfile];
-            }];
-            [details addObject:item];
+        if (details.count == 0) {
+            if ([user isCurrentIdentity]) {
+                BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeEdit value:(details.count==0?@"Edit Profile":@"") action:^{
+                    [Launcher openEditProfile];
+                }];
+                [details addObject:item];
+            }
+            else if (user.attributes.createdAt.length > 0) {
+                BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeJoinedAt value:user.attributes.createdAt action:nil];
+                [details addObject:item];
+            }
         }
         
         self.detailsCollectionView.tintColor = self.detailTextLabel.textColor;
@@ -534,6 +586,7 @@
     else {
         displayName = @"Camper";
     }
+    
     NSMutableAttributedString *displayNameAttributedString = [[NSMutableAttributedString alloc] initWithString:displayName attributes:@{NSFontAttributeName:PROFILE_HEADER_DISPLAY_NAME_FONT}];
     if ([user isVerified]) {
         NSMutableAttributedString *spacer = [[NSMutableAttributedString alloc] initWithString:@" "];
@@ -552,12 +605,44 @@
         NSAttributedString *attachmentString = [NSAttributedString attributedStringWithAttachment:attachment];
         [displayNameAttributedString appendAttributedString:attachmentString];
     }
+//    else if ([user isBetaTester]) {
+//        NSMutableAttributedString *spacer = [[NSMutableAttributedString alloc] initWithString:@" "];
+//        [spacer addAttribute:NSFontAttributeName value:PROFILE_HEADER_DISPLAY_NAME_FONT range:NSMakeRange(0, spacer.length)];
+//        [displayNameAttributedString appendAttributedString:spacer];
+//
+//        // verified icon ☑️
+//        NSTextAttachment *attachment = [[NSTextAttachment alloc] init];
+//        attachment.image = [UIImage imageNamed:@"betaIcon_large"];
+//        [attachment setBounds:CGRectMake(0, roundf(PROFILE_HEADER_DISPLAY_NAME_FONT.capHeight - attachment.image.size.height)/2.f-1, attachment.image.size.width, attachment.image.size.height)];
+//
+//        NSAttributedString *attachmentString = [NSAttributedString attributedStringWithAttachment:attachment];
+//        [displayNameAttributedString appendAttributedString:attachmentString];
+//    }
 
     CGRect textLabelRect = [displayNameAttributedString boundingRectWithSize:CGSizeMake(maxWidth, CGFLOAT_MAX) options:(NSStringDrawingUsesFontLeading|NSStringDrawingUsesLineFragmentOrigin) context:nil];
     CGFloat userDisplayNameHeight = ceilf(textLabelRect.size.height);
     height += userDisplayNameHeight + PROFILE_HEADER_DISPLAY_NAME_BOTTOM_PADDING;
     
-    CGRect usernameRect = [[NSString stringWithFormat:@"@%@", user.attributes.identifier] boundingRectWithSize:CGSizeMake(maxWidth, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:PROFILE_HEADER_USERNAME_FONT} context:nil];
+    NSMutableAttributedString *usernameAttributedString = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"@%@", user.attributes.identifier] attributes:@{NSFontAttributeName:PROFILE_HEADER_USERNAME_FONT}];
+    if ([user isBetaTester]) {
+        NSMutableAttributedString *spacer = [[NSMutableAttributedString alloc] initWithString:@"  "];
+        [spacer addAttribute:NSFontAttributeName value:PROFILE_HEADER_USERNAME_FONT range:NSMakeRange(0, spacer.length)];
+        [usernameAttributedString appendAttributedString:spacer];
+        
+        // beta tag
+        NSTextAttachment *attachment = [[NSTextAttachment alloc] init];
+        attachment.image = [UIImage imageNamed:@"betaTag"];
+        
+        CGFloat attachmentHeight = MIN(ceilf(PROFILE_HEADER_USERNAME_FONT.lineHeight * 0.9), ceilf(attachment.image.size.height));
+        CGFloat attachmentWidth = ceilf(attachmentHeight * (attachment.image.size.width / attachment.image.size.height));
+        
+        [attachment setBounds:CGRectMake(0, roundf(PROFILE_HEADER_USERNAME_FONT.capHeight - attachmentHeight)/2.f - HALF_PIXEL, attachmentWidth, attachmentHeight)];
+        
+        NSAttributedString *attachmentString = [NSAttributedString attributedStringWithAttachment:attachment];
+        [usernameAttributedString appendAttributedString:attachmentString];
+    }
+    
+    CGRect usernameRect = [usernameAttributedString boundingRectWithSize:CGSizeMake(maxWidth, CGFLOAT_MAX) options:(NSStringDrawingUsesFontLeading|NSStringDrawingUsesLineFragmentOrigin) context:nil];
     CGFloat usernameHeight = ceilf(usernameRect.size.height);
     height += usernameHeight;
     
@@ -588,9 +673,15 @@
                 BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeWebsite value:user.attributes.website.displayUrl action:nil];
                 [details addObject:item];
             }
-            if (details.count == 0 && [user isCurrentIdentity]) {
-                BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeEdit value:(details.count==0?@"Edit Profile":@"") action:nil];
-                [details addObject:item];
+            if (details.count == 0) {
+                if ([user isCurrentIdentity]) {
+                    BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeEdit value:(details.count==0?@"Edit Profile":@"") action:nil];
+                    [details addObject:item];
+                }
+                else if (user.attributes.createdAt.length > 0) {
+                    BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeJoinedAt value:user.attributes.createdAt action:nil];
+                    [details addObject:item];
+                }
             }
             
             if (details.count > 0) {

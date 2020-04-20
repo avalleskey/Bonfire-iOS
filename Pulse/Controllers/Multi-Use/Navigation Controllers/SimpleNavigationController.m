@@ -54,7 +54,8 @@
     self.transparentOnLoad = false;
     self.opaqueOnScroll = true;
     self.shadowOnScroll = true;
-    self.foregroundBeforeScroll = nil;;
+    self.foregroundBeforeScroll = nil;
+    self.view.tintColor = [UIColor bonfirePrimaryColor];
 }
 
 - (void)viewDidLoad {
@@ -192,7 +193,8 @@
         [button setImage:[[UIImage imageNamed:@"navPlusIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
     }
     else if (actionType == SNActionTypeShare) {
-//        [button setTitle:@"Post" forState:UIControlStateNormal];
+        includeAction = true;
+        [button setImage:[[UIImage imageNamed:@"navShareIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
     }
     else if (actionType == SNActionTypeDone) {
         includeAction = true;
@@ -277,6 +279,12 @@
                     }
                     break;
                 }
+                case SNActionTypeShare:
+                    if ([self.viewControllers[self.viewControllers.count-1] isKindOfClass:[PostViewController class]]) {
+                        PostViewController *activePost = self.viewControllers[self.viewControllers.count-1];
+                        [Launcher sharePost:activePost.post];
+                    }
+                    break;
                 case SNActionTypeSettings:
                     [Launcher openSettings];
                     break;
@@ -381,7 +389,7 @@
 }
 
 - (void)updateBarColor:(id _Nullable)background animated:(BOOL)animated {
-    if ([background isKindOfClass:[NSString class]]) {
+    if (background != [UIColor clearColor] && [background isKindOfClass:[NSString class]]) {
         background = [UIColor fromHex:background adjustForOptimalContrast:false];
     }
 
@@ -393,7 +401,7 @@
         [self setShadowVisibility:true withAnimation:false];
                 
         foreground = [UIColor bonfirePrimaryColor];
-        action = [UIColor bonfirePrimaryColor]; //[UIColor fromHex:[Session sharedInstance].currentUser.attributes.color];
+        action = self.view.tintColor; //[UIColor fromHex:[Session sharedInstance].currentUser.attributes.color];
         background = [UIColor colorNamed:@"Navigation_ClearBackgroundColor"];
         progressBar = [[UIColor bonfirePrimaryColor] colorWithAlphaComponent:0.1];
         

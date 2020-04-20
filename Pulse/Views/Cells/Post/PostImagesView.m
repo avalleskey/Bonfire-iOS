@@ -44,11 +44,7 @@
     [self setCornerRadiusType:BFCornerRadiusTypeMedium];
     
     self.containerView = [[UIView alloc] initWithFrame:self.bounds];
-//    [self.containerView bk_whenTapped:^{
-//        if ([self.imageViews firstObject]) {
-//            [Launcher exapndImageView:(UIImageView *)[self.imageViews firstObject] media:self.media imageViews:self.imageViews selectedIndex:((UIImageView *)[self.imageViews firstObject]).tag];
-//        }
-//    }];
+    self.containerView.layer.borderWidth = HALF_PIXEL;
     [self addSubview:self.containerView];
     
     self.containerView.backgroundColor = [UIColor colorNamed:@"Navigation_ClearBackgroundColor"];
@@ -57,9 +53,7 @@
     
     self.containerView.layer.cornerRadius = self.layer.cornerRadius;
     self.containerView.layer.masksToBounds = true;
-    
-    self.containerView.layer.borderWidth = 0;
-    
+        
     self.imageViews = [[NSMutableArray alloc] init];
     self.media = @[];
     
@@ -92,7 +86,7 @@
     self.containerView.frame = self.bounds;
     [self layoutImageViews];
     
-//    self.containerView.layer.borderColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.12f].CGColor;
+    self.containerView.layer.borderColor = [[UIColor colorNamed:@"FullContrastColor"] colorWithAlphaComponent:0.12f].CGColor;
     
     if (self.captionTextView && ![self.captionTextView isHidden]) {
         CGSize captionSize = [self.captionTextView.text boundingRectWithSize:CGSizeMake(self.frame.size.width - (self.captionTextView.textContainerInset.left + self.captionTextView.textContainerInset.right) - 16, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName: self.captionTextView.font} context:nil].size;

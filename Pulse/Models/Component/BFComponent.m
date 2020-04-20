@@ -11,10 +11,10 @@
 
 @implementation BFComponent
 
-- (id)initWithObject:(id _Nullable)object className:(NSString *)className detailLevel:(BFComponentDetailLevel)detailLevel {
+- (id)initWithSettings:(BFComponentSettings  * _Nullable)settings className:(NSString *)className detailLevel:(BFComponentDetailLevel)detailLevel {
     if (self = [super init]) {
-        if (object) {
-            self.object = object;
+        if (settings) {
+            self.settings = settings;
         }
                 
         self.className = className;
@@ -63,7 +63,7 @@
 #pragma mark - NSCopying
 - (id)copyWithZone:(NSZone *)zone
 {
-    BFComponent *copyObject = [[BFComponent alloc] initWithObject:_object className:_className detailLevel:_detailLevel];
+    BFComponent *copyObject = [[BFComponent alloc] initWithSettings:_settings className:_className detailLevel:_detailLevel];
     
     copyObject.showLineSeparator = _showLineSeparator;
     copyObject.action = _action;
@@ -96,6 +96,16 @@
     }
     
     return string;
+}
+
+@end
+
+@implementation BFComponentSettings
+
++ (BOOL)propertyIsOptional:(NSString*)propertyName
+{
+
+    return YES;
 }
 
 @end

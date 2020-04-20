@@ -25,7 +25,11 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic, strong) Post *post;
 
+// display options
+@property (nonatomic) BOOL truncateMessage;
+
 + (CGFloat)heightForPost:(Post *)post width:(CGFloat)width;
++ (CGFloat)heightForPost:(Post *)post width:(CGFloat)width truncateMessage:(BOOL)truncateMessage;
 
 @end
 

@@ -16,6 +16,7 @@
 #import <FBSDKShareKit/FBSDKShareKit.h>
 #import <PINCache/PINCache.h>
 #import "BFAlertController.h"
+#import "UIView+BFEffects.h"
 
 @interface WaitlistViewController ()
 
@@ -739,7 +740,7 @@
             welcome.transform = CGAffineTransformMakeScale(1, 1);
         } completion:^(BOOL finished) {
             // 2) start balloons
-            [self startBalloons];
+            [self.view showEffect:BFEffectTypeBalloons completion:nil];
             
             wait(4.0f, ^{
                 // 3) present logged in view controller
@@ -749,98 +750,6 @@
         }];
     }];
     
-}
-
-- (void)startBalloons {
-    DLog(@"start balloons!!!!");
-    NSMutableArray *balloons = [NSMutableArray new];
-    
-    [balloons addObject:@{
-        @"color": @"orange",
-        @"scale": @(1.0),
-        @"xPosStart": @(0),
-        @"xPosEnd": @(0.1),
-        @"delay": @(0),
-        @"duration": @(4.5)
-    }];
-    
-    [balloons addObject:@{
-        @"color": @"yellow",
-        @"scale": @(1.25),
-        @"xPosStart": @(0.25),
-        @"xPosEnd": @(0.4),
-        @"delay": @(0.4),
-        @"duration": @(3.75)
-    }];
-    
-    [balloons addObject:@{
-        @"color": @"blue",
-        @"scale": @(0.75),
-        @"xPosStart": @(0.4),
-        @"xPosEnd": @(0.3),
-        @"delay": @(1.0),
-        @"duration": @(4)
-    }];
-    
-    [balloons addObject:@{
-        @"color": @"green",
-        @"scale": @(1.0),
-        @"xPosStart": @(0.1),
-        @"xPosEnd": @(0.15),
-        @"delay": @(1.2),
-        @"duration": @(5)
-    }];
-    
-    [balloons addObject:@{
-        @"color": @"pink",
-        @"scale": @(1.5),
-        @"xPosStart": @(0.8),
-        @"xPosEnd": @(0.65),
-        @"delay": @(1.6),
-        @"duration": @(3.5)
-    }];
-    
-    [balloons addObject:@{
-        @"color": @"purple",
-        @"scale": @(1.75),
-        @"xPosStart": @(0.9),
-        @"xPosEnd": @(0.95),
-        @"delay": @(2.5),
-        @"duration": @(4)
-    }];
-    
-    [balloons addObject:@{
-        @"color": @"orange",
-        @"scale": @(1.75),
-        @"xPosStart": @(0.0),
-        @"xPosEnd": @(0.95),
-        @"delay": @(2.3),
-        @"duration": @(3)
-    }];
-    
-    CGFloat xMin = -40;
-    CGFloat xMax = self.view.frame.size.width + 40;
-    for (NSInteger b = 0; b < balloons.count; b++) {
-        NSDictionary *balloon = balloons[b];
-        
-        UIImage *image = [UIImage imageNamed:[NSString stringWithFormat:@"balloon_%@", balloon[@"color"]]];
-        CGFloat scale = [balloon[@"scale"] floatValue];
-        CGFloat width = image.size.width * scale;
-        CGFloat height = image.size.height * scale;
-        CGFloat xStart = [balloon[@"xPosStart"] floatValue] * ((xMax - width) - xMin);
-        CGFloat xEnd = [balloon[@"xPosEnd"] floatValue] * ((xMax - width) - xMin);
-        
-        UIImageView *imageView = [[UIImageView alloc] initWithImage:image];
-        imageView.contentMode = UIViewContentModeScaleAspectFill;
-        imageView.frame = CGRectMake(xStart, self.view.frame.size.height, width, height);
-        [self.view addSubview:imageView];
-        
-        [UIView animateWithDuration:[balloon[@"duration"] floatValue] delay:[balloon[@"delay"] floatValue] options:UIViewAnimationOptionCurveEaseOut animations:^{
-            imageView.frame = CGRectMake(xEnd, -(height), width, height);
-        } completion:^(BOOL finished) {
-            [imageView removeFromSuperview];
-        }];
-    }
 }
 
 - (void)shakeFriendButton {

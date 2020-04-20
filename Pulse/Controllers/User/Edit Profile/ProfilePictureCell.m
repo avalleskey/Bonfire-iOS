@@ -61,6 +61,22 @@
         self.editPictureImageView.image = [[UIImage imageNamed:@"editProfilePictureIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
         self.editPictureImageView.tintColor = [UIColor bonfirePrimaryColor];
         [self.editPictureImageViewContainer addSubview:self.editPictureImageView];
+        
+        
+        self.editCoverPhotoImageViewContainer = [[UIView alloc] initWithFrame:CGRectMake(self.frame.size.width - 40 + 12, self.frame.size.height - 40 + 6, 40, 40)];
+        self.editCoverPhotoImageViewContainer.backgroundColor = [UIColor bonfireDetailColor];
+        self.editCoverPhotoImageViewContainer.layer.cornerRadius = self.editPictureImageViewContainer.frame.size.height / 2;
+        self.editCoverPhotoImageViewContainer.layer.shadowColor = [UIColor blackColor].CGColor;
+        self.editCoverPhotoImageViewContainer.layer.shadowOffset = CGSizeMake(0, 1);
+        self.editCoverPhotoImageViewContainer.layer.shadowRadius = 2.f;
+        self.editCoverPhotoImageViewContainer.layer.shadowOpacity = 0.12;
+//        [self addSubview:self.editCoverPhotoImageViewContainer];
+        
+        self.editCoverPhotoImageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 32, 32)];
+        self.editCoverPhotoImageView.frame = CGRectMake(4, 4, 32, 32);
+        self.editCoverPhotoImageView.image = [[UIImage imageNamed:@"editProfilePictureIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+        self.editCoverPhotoImageView.tintColor = [UIColor bonfirePrimaryColor];
+        [self.editCoverPhotoImageViewContainer addSubview:self.editCoverPhotoImageView];
     }
     
     return self;
@@ -88,6 +104,8 @@
     self.editPictureImageViewContainer.frame = CGRectMake(self.profilePictureContainer.frame.origin.x + self.profilePictureContainer.frame.size.width - 40 - 6, self.profilePictureContainer.frame.origin.y + self.profilePictureContainer.frame.size.height - 40 - 6, 40, 40);
     
     self.contentView.frame = CGRectMake(0, 16 + ceilf(128 * 0.65), self.frame.size.width, self.frame.size.height - (16 + ceilf(128 * 0.65)));
+    
+    self.editCoverPhotoImageViewContainer.frame = CGRectMake(self.frame.size.width - self.editCoverPhotoImageViewContainer.frame.size.width - 12, self.contentView.frame.origin.y + (-.5 * self.editCoverPhotoImageViewContainer.frame.size.height), self.editCoverPhotoImageViewContainer.frame.size.width, self.editCoverPhotoImageViewContainer.frame.size.height);
 }
 
 + (CGFloat)height {

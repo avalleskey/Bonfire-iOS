@@ -59,6 +59,7 @@ static NSString * const composeTextViewCellReuseIdentifier = @"ComposeTextViewCe
 static NSString * const streamPostReuseIdentifier = @"StreamPost";
 static NSString * const searchResultCellIdentifier = @"SearchResultCell";
 static NSString * const blankCellIdentifier = @"BlankCell";
+static NSString * const autocompleteBlankCellIdentifier = @"BlankCell";
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -70,6 +71,11 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     
     if (self.replyingTo) {
         [FIRAnalytics setScreenName:@"Reply" screenClass:nil];
+        
+        NSString *replyMessage = [[Session tempCache] objectForKey:[self replyMessageCacheKey]];
+        if (replyMessage && [replyMessage isKindOfClass:[NSString class]]) {
+            _prefillMessage = replyMessage;
+        }
     }
     else if (self.quotedObject) {
         [FIRAnalytics setScreenName:@"Quote" screenClass:nil];
@@ -166,6 +172,16 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
+- (NSString *)replyMessageCacheKey {
+    return [NSString stringWithFormat:@"posts/%@/reply_message", self.replyingTo.identifier];
+}
+- (void)saveComposeState {
+    if (!self.replyingTo) return;
+    
+    // save the compose message for 12 hours
+    [[Session tempCache] setObject:_textViewCell.textView.text forKey:[self replyMessageCacheKey] withAgeLimit:60*60*12];
+}
+
 - (void)setupTableView {
     self.tableView = [[UITableView alloc] initWithFrame:self.view.bounds style:UITableViewStyleGrouped];
     self.tableView.delegate = self;
@@ -173,12 +189,16 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
     self.tableView.backgroundColor = [UIColor contentBackgroundColor];
     self.tableView.showsVerticalScrollIndicator = false;
+    self.tableView.editing = false;
     
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:blankCellIdentifier];
     [self.tableView registerClass:[ComposeTextViewCell class] forCellReuseIdentifier:composeTextViewCellReuseIdentifier];
     [self.tableView registerClass:[StreamPostCell class] forCellReuseIdentifier:streamPostReuseIdentifier];
     
     [self.view addSubview:self.tableView];
+    
+    [self.tableView reloadData];
+    [self adjustScrollPosition];
 }
 - (void)setupTitleView {
     self.titleView = [[TappableView alloc] initWithFrame:CGRectMake(0, 0, 102, 40)];
@@ -317,7 +337,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     
     self.toolbarView = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleRegular]];
     self.toolbarView.frame = CGRectMake(0, newToolbarY, self.view.frame.size.width, toolbarHeight);
-    self.toolbarView.backgroundColor = [[UIColor contentBackgroundColor] colorWithAlphaComponent:0.95];
+    self.toolbarView.backgroundColor = [[UIColor contentBackgroundColor] colorWithAlphaComponent:0.7];
     self.toolbarView.layer.masksToBounds = true;
     [self roundCornersOnView:self.toolbarView onTopLeft:true topRight:true bottomLeft:false bottomRight:false radius:10.f];
     [self.view addSubview:self.toolbarView];
@@ -451,23 +471,101 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     }
     
     /* MAKE YOUR CHANGES TO THE FIELD CONTENTS AS NEEDED HERE */
-    CGFloat textViewHeightBefore = textView.frame.size.height;
     [self detectEntities];
-    CGFloat textViewHeightAfter = textView.frame.size.height;
     
     // update height of the cell
     [self.textViewCell resizeTextView];
     
-    [UIView performWithoutAnimation:^{
-        [self.tableView beginUpdates];
-        [self.tableView endUpdates];
-    }];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [UIView performWithoutAnimation:^{
+            [self.tableView beginUpdates];
+            [self.tableView endUpdates];
+        }];
+    });
     
-    if (diff(textViewHeightBefore, textViewHeightAfter) && self.replyingTo != nil) {
-        [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:1] atScrollPosition:UITableViewScrollPositionBottom animated:false];
-        [self scrollViewDidScroll:self.tableView];
+    [self adjustScrollPosition];
+    
+    [self saveComposeState];
+}
+
+- (void)adjustScrollPosition {
+    UITextView *textView = _textViewCell.textView;
+    if (!textView) return;
+    
+    UITextRange *selectedTextRange = textView.selectedTextRange;
+    if (selectedTextRange != nil)
+    {
+        // `caretRect` is in the `textView` coordinate space.
+        CGRect caretRect = [textView caretRectForPosition:selectedTextRange.end];
+
+        // Convert `caretRect` in the main window coordinate space.
+        // Passing `nil` for the view converts to window base coordinates.
+        // Passing any `UIView` object converts to that view coordinate space.
+        CGRect windowRect = [textView convertRect:caretRect toView:self.tableView];
+        CGRect textViewRect = [_textViewCell convertRect:textView.frame toView:self.tableView];
+                
+        CGRect visibleArea = CGRectMake(0, 0, self.view.frame.size.width, 0);
+        visibleArea.origin.y = self.tableView.contentOffset.y + self.tableView.adjustedContentInset.top;
+        visibleArea.size.height = self.tableView.frame.size.height - self.tableView.contentInset.bottom - self.tableView.contentInset.top - self.view.safeAreaInsets.top - self.view.safeAreaInsets.bottom;
+        
+        NSLog(@"visibleArea // x: %f y: %f w: %f h: %f", visibleArea.origin.x, visibleArea.origin.y, visibleArea.size.width, visibleArea.size.height);
+        NSLog(@"windowRect // x: %f y: %f w: %f h: %f", windowRect.origin.x, windowRect.origin.y, windowRect.size.width, windowRect.size.height);
+        
+        BOOL isVisible = CGRectContainsRect(visibleArea, windowRect);
+        NSLog(@"isVisible? %@", isVisible ? @"YES" : @"NO");
+        
+        if (!isVisible) {
+            // needs to scroll
+            BOOL above = windowRect.origin.y <= visibleArea.origin.y;
+            BOOL animate = true;
+            
+            CGFloat newYPos = self.tableView.contentOffset.y;
+            if (above) {
+                // cursor is above visible area
+                NSLog(@"cursor is ABOVE the visible area");
+                if (windowRect.origin.y - _textViewCell.frame.origin.y < (visibleArea.size.height / 3)) {
+                    // scroll to top of the cell
+                    newYPos = floorf(_textViewCell.frame.origin.y);
+                }
+                else {
+                    // scroll to caret position
+                    newYPos = floorf(windowRect.origin.y) - _textViewCell.textView.textContainerInset.top - 16;
+                }
+            }
+            else {
+                // cursor is below visible area
+                NSLog(@"cursor is BELOW the visible area");
+                NSLog(@"adjustedment: %f", ((textViewRect.origin.y + textViewRect.size.height) - (windowRect.origin.y + windowRect.size.height)));
+                
+                if (_textViewCell.textView.frame.origin.y + _textViewCell.textView.frame.size.height > _textViewCell.creatorAvatar.frame.origin.y + _textViewCell.creatorAvatar.frame.size.height) {
+                    newYPos = _textViewCell.frame.origin.y + _textViewCell.textView.frame.origin.y + _textViewCell.textView.frame.size.height - visibleArea.size.height + 12 - ((textViewRect.origin.y + textViewRect.size.height) - (windowRect.origin.y + windowRect.size.height)) + 2;
+                }
+                else {
+                    animate = false;
+                    newYPos = _textViewCell.frame.origin.y + _textViewCell.creatorAvatar.frame.origin.y + _textViewCell.creatorAvatar.frame.size.height - visibleArea.size.height + 12 - ((textViewRect.origin.y + textViewRect.size.height) - (windowRect.origin.y + windowRect.size.height)) + 8;
+                }
+            }
+            
+            newYPos -= self.tableView.adjustedContentInset.top;
+            
+            NSLog(@"newYPos: %f", newYPos);
+            self.scrollDisabled = true;
+            dispatch_async(dispatch_get_main_queue(), ^{
+                self.scrollDisabled = false;
+                [UIView animateWithDuration:animate?0.1f:0 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+                    [self.tableView setContentOffset:CGPointMake(0, newYPos) animated:NO];
+                } completion:^(BOOL finished) {
+                    [self.tableView setContentOffset:CGPointMake(0, newYPos) animated:YES];
+                }];
+            });
+        }
+        else {
+            self.scrollDisabled = false;
+            [self scrollViewDidScroll:self.tableView];
+        }
     }
 }
+
 - (NSInteger)charactersRemainingWithStirng:(NSString *)string {
     NSInteger length = string.length;
     
@@ -822,6 +920,10 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     
     [self.tableView beginUpdates];
     [self.tableView endUpdates];
+    
+    wait(1.f, ^{
+        [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:1] atScrollPosition:UITableViewScrollPositionBottom animated:true];
+    });
 }
 
 - (void)updateToolbarAvailability {
@@ -900,6 +1002,8 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         // meets min. requirements
         [BFAPI createPost:params postingIn:self.postingIn replyingTo:self.replyingTo attachments:nil];
         
+        [[Session tempCache] removeObjectForKey:[self replyMessageCacheKey]];
+        
         if (self.navigationController) {
             [self.navigationController dismissViewControllerAnimated:YES completion:^{
                 if (self.replyingToIcebreaker) {
@@ -952,10 +1056,10 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             NSDictionary *responseData = (NSDictionary *)responseObject[@"data"];
                     
             if (isUser) {
-                self.autoCompleteResults = [[NSMutableArray alloc] initWithArray:responseData[@"results"][@"users"]];
+                self.autoCompleteResults = [self processAutoCompleteResultsArray:responseData[@"results"][@"users"]];
             }
             else if (isCamp) {
-                self.autoCompleteResults = [[NSMutableArray alloc] initWithArray:responseData[@"results"][@"camps"]];
+                self.autoCompleteResults = [self processAutoCompleteResultsArray:responseData[@"results"][@"camps"]];
             }
             
             if (self.autoCompleteResults.count > 0 && self.activeTagRange.location != NSNotFound && self.autoCompleteTableView.alpha != 1) {
@@ -973,6 +1077,26 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         
         [self hideAutoCompleteView];
     }];
+}
+
+- (NSMutableArray *)processAutoCompleteResultsArray:(NSArray *)array {
+    NSMutableArray *newArray = [NSMutableArray new];
+    
+    for (NSDictionary *o in array) {
+        if ([o isKindOfClass:[NSDictionary class]] && [o objectForKey:@"type"]) {
+            if ([o[@"type"] isEqualToString:@"user"]) {
+                [newArray addObject:[[User alloc] initWithDictionary:o error:nil]];
+            }
+            else if ([o[@"type"] isEqualToString:@"camp"]) {
+                Camp *camp = [[Camp alloc] initWithDictionary:o error:nil];
+                if (camp.attributes.identifier.length == 0) continue;
+                
+                [newArray addObject:camp];
+            }
+        }
+    }
+    
+    return newArray;
 }
 
 - (void)setReplyingTo:(Post *)replyingTo {
@@ -1048,27 +1172,6 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     }
 }
 
-//- (void)updateContentInsets {
-//    CGFloat bottomPadding = UIApplication.sharedApplication.keyWindow.safeAreaInsets.bottom;
-//
-//    CGFloat newComposeInputViewY = self.view.frame.size.height;
-//
-//    CGFloat parentPostOffset = 0;
-//
-//    if (self.replyingTo) {
-//        BOOL requiresParentPostPadding = true;
-//
-//        CGFloat textViewHeight = [self.textViewCell height];
-//        CGFloat replyHeight = [self tableView:self.tableView heightForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
-//
-//        parentPostOffset = (self.composeInputView.frame.origin.y - textViewHeight - replyHeight - self.tableView.adjustedContentInset.top);
-//        parentPostOffset = MAX(0, parentPostOffset);
-//    }
-//
-//    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, self.view.frame.size.height - newComposeInputViewY + parentPostOffset, 0);
-//    self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, self.view.frame.size.height - newComposeInputViewY, 0);
-//}
-
 - (void)showAutoCompleteView {
     UIWindow *window = UIApplication.sharedApplication.delegate.window;
     CGFloat bottomPadding = window.safeAreaInsets.bottom;
@@ -1085,9 +1188,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         self.tableView.contentInset = UIEdgeInsetsMake(0, 0, contentInset, 0);
         self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, contentInset, 0);
         
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:1] atScrollPosition:UITableViewScrollPositionBottom animated:true];
-        });
+        [self adjustScrollPosition];
         
         self.toolbarButtonsContainer.transform = CGAffineTransformMakeScale(0.95, 0.95);
         self.toolbarButtonsContainer.alpha = 0;
@@ -1112,9 +1213,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         self.tableView.contentInset = UIEdgeInsetsMake(0, 0, contentInset, 0);
         self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, contentInset, 0);
         
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:1] atScrollPosition:UITableViewScrollPositionBottom animated:true];
-        });
+        [self adjustScrollPosition];
         
         self.toolbarButtonsContainer.transform = CGAffineTransformIdentity;
         self.toolbarButtonsContainer.alpha = 1;
@@ -1159,7 +1258,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             
             cell.lineSeparator.hidden = true;
             cell.topLine.hidden = !self.replyingTo;
-            cell.contentView.backgroundColor = [UIColor colorWithWhite:0.9 alpha:1];
+//            cell.contentView.backgroundColor = [UIColor colorWithWhite:0.9 alpha:1];
                         
             if (cell.tag != 1) {
                 cell.tag = 1;
@@ -1219,36 +1318,13 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             [cell.contentView addSubview:lineSeparator];
         }
         
-        // -- Type --
-        int type = 0;
-        
-        NSDictionary *json;
-        // mix of types
-        if (indexPath.section == 0) {
-            json = self.autoCompleteResults[indexPath.row];
-        }
-        else {
-            json = self.autoCompleteResults[indexPath.row];
-        }
-        if (json[@"type"]) {
-            if ([json[@"type"] isEqualToString:@"camp"]) {
-                type = 1;
+        if (self.autoCompleteResults.count > indexPath.row) {
+            NSObject *object = self.autoCompleteResults[indexPath.row];
+            if ([object isKindOfClass:[Camp class]]) {
+                cell.camp = (Camp *)object;
             }
-            else if ([json[@"type"] isEqualToString:@"user"]) {
-                type = 2;
-            }
-        }
-        
-        if (type != 0) {
-            if (type == 1) {
-                NSError *error;
-                Camp *camp = [[Camp alloc] initWithDictionary:json error:&error];
-                cell.camp = camp;
-            }
-            else {
-                //NSError *error;
-                User *user = [[User alloc] initWithDictionary:self.autoCompleteResults[indexPath.row] error:nil];
-                cell.user = user;
+            else if ([object isKindOfClass:[User class]]) {
+                cell.user = (User *)object;
             }
             
             return cell;
@@ -1256,28 +1332,26 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     }
     
     // if all else fails, return a blank cell
-    UITableViewCell *blankCell = [tableView dequeueReusableCellWithIdentifier:blankCellIdentifier forIndexPath:indexPath];
+    UITableViewCell *blankCell = [tableView dequeueReusableCellWithIdentifier:(tableView == self.tableView?blankCellIdentifier : autocompleteBlankCellIdentifier) forIndexPath:indexPath];
     return blankCell;
 }
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     if (tableView == self.tableView) {
         if (indexPath.section == 0 && indexPath.row == 0 && self.replyingTo) {
             float height = [StreamPostCell heightForPost:self.replyingTo showContext:false showActions:false minimizeLinks:false] + 8; // removed action bar (32pt + 8pt)
-            float minHeight = 48 + (postContentOffset.top + postContentOffset.bottom); // 48 = avatar height
-            if (height < minHeight) {
-                height = minHeight;
-            }
+            float minHeight = 42 + (postContentOffset.top + postContentOffset.bottom); // 42 = avatar height
             
-            return height;
+            return MAX(minHeight, height);
         }
         else if (indexPath.section == 1 && indexPath.row == 0) {
             if (!self.textViewCell) return CGFLOAT_MIN;
-            
+                        
             return [self.textViewCell height];
         }
     }
     else if (tableView == self.autoCompleteTableView) {
-        return 62;
+        
+        return [SearchResultCell height];
     }
     
     return 0;
@@ -1405,11 +1479,14 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             if (self.autoCompleteResults.count > indexPath.row) {
                 BOOL changes = false;
                 NSString *finalString = self.textViewCell.textView.text;
+                NSString *newSubstring = @"";
+                
                 if (cell.user) {
                     NSString *usernameSelected = cell.user.attributes.identifier;
                     
                     if (usernameSelected.length > 0) {
-                        finalString = [self.textViewCell.textView.text stringByReplacingCharactersInRange:self.activeTagRange withString:[NSString stringWithFormat:@"@%@ ", usernameSelected]];
+                        newSubstring = [NSString stringWithFormat:@"@%@ ", usernameSelected];
+                        finalString = [self.textViewCell.textView.text stringByReplacingCharactersInRange:self.activeTagRange withString:newSubstring];
                         changes = true;
                     }
                 }
@@ -1417,6 +1494,8 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                     NSString *campTagSelected = cell.camp.attributes.identifier;
                     
                     if (campTagSelected.length > 0) {
+                        newSubstring = [NSString stringWithFormat:@"#%@ ", campTagSelected];
+                        
                         finalString = [self.textViewCell.textView.text stringByReplacingCharactersInRange:self.activeTagRange withString:[NSString stringWithFormat:@"#%@ ", campTagSelected]];
                         changes = true;
                     }
@@ -1426,6 +1505,12 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                     // set it twice to avoid autocorrection from overriding our changes
                     self.textViewCell.textView.text = finalString;
                     self.textViewCell.textView.text = finalString;
+                    
+                    // set new cursor position
+                    CGFloat newCursorPosition = self.activeTagRange.location + newSubstring.length;
+                    if (self.textViewCell.textView.text.length >= newCursorPosition) {
+                        [self.textViewCell.textView setSelectedRange:NSMakeRange(newCursorPosition, 0)];
+                    }
                     
                     [self textViewDidChange:self.textViewCell.textView];
                     [HapticHelper generateFeedback:FeedbackType_Selection];
@@ -1440,6 +1525,8 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         self.tableView.contentOffset = CGPointMake(0, _lastContentOffsetY);
         return;
     }
+    
+    NSLog(@"scrollViewDidScroll: %f", scrollView.contentOffset.y);
     
     if (scrollView == self.tableView) {
         if ([self.navigationController isKindOfClass:[SimpleNavigationController class]]) {

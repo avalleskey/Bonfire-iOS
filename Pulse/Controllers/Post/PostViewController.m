@@ -15,6 +15,7 @@
 #import "InsightsLogger.h"
 #import "HAWebService.h"
 #import "BFActivityIndicatorView.h"
+#import "UIView+BFEffects.h"
 
 #import "ExpandedPostCell.h"
 #import "StreamPostCell.h"
@@ -25,7 +26,6 @@
     int previousTableViewYOffset;
 }
 
-@property (nonatomic) BOOL loading;
 @property (nonatomic) BOOL loadingParentPosts;
 @property (nonatomic) BOOL loadingReplies;
 @property (nonatomic) BOOL loadingMore;
@@ -113,6 +113,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     [super viewWillAppear:animated];
 
     if ([self isBeingPresented] || [self isMovingToParentViewController]) {
+        [self loadCache];
         [self loadPost];
         [self styleOnAppear];
         
@@ -355,8 +356,6 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             [self.tableView layoutIfNeeded];
             
             self.replySuggestions = @[];
-            
-            [self updateContentInsets];
         }
         else if ([self.tableView.stream addTempSubReply:tempPost]) {
             [self.tableView reloadData];
@@ -406,7 +405,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     self.parentPostScrollIndicator = [[TappableView alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 51 - 12, self.tableView.adjustedContentInset.top - 29 - 12, 61, 39)];
     self.parentPostScrollIndicator.backgroundColor = [[UIColor bonfireDetailColor] colorWithAlphaComponent:0.9];
     self.parentPostScrollIndicator.layer.cornerRadius = self.parentPostScrollIndicator.frame.size.height / 2;
-    self.parentPostScrollIndicator.layer.masksToBounds = true;
+//    self.parentPostScrollIndicator.layer.masksToBounds = true;
     [self.parentPostScrollIndicator bk_whenTapped:^{
         [self.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:YES];
     }];
@@ -432,6 +431,46 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         self.parentPostScrollIndicator.alpha = 0;
     } completion:nil];
 }
+
+- (NSString *)getPostURL {
+    return [NSString stringWithFormat:@"posts/%@", self.post.identifier];
+}
+- (NSString *)replyMessageCacheKey {
+    return [NSString stringWithFormat:@"posts/%@/reply_message", self.post.identifier];
+}
+
+- (void)loadCache {
+    // GET camp from cache
+    Post *postFromCache = [[Session tempCache] objectForKey:[self getPostURL]];
+    if (postFromCache && [postFromCache isKindOfClass:[Post class]]) {
+        BFContext *contextBefore = self.post.attributes.context;
+        
+        self.post = postFromCache;
+        
+        if (contextBefore && ![self.post isRemoved]) {
+            self.post.attributes.context = contextBefore;
+        }
+    }
+    
+    NSString *replyMessage = [[Session tempCache] objectForKey:[self replyMessageCacheKey]];
+    if (replyMessage && [replyMessage isKindOfClass:[NSString class]]) {
+        self.composeInputView.textView.text = replyMessage;
+        [self.composeInputView textViewDidChange:self.composeInputView.textView];
+    }
+}
+- (void)savePostCache {
+    if (!self.post) return;
+    
+    // save the post's cache for 2 days
+    [[Session tempCache] setObject:self.post forKey:[self getPostURL] withAgeLimit:60*60*24*2];
+}
+- (void)saveComposeState {
+    if (!self.post) return;
+    
+    // save the compose message for 12 hours
+    [[Session tempCache] setObject:self.composeInputView.textView.text forKey:[self replyMessageCacheKey] withAgeLimit:60*60*12];
+}
+
 - (void)loadPost {
     if (self.post.identifier.length > 0) {
         self.tableView.visualError  = nil;
@@ -458,20 +497,24 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
 - (void)getPost {
     [self.tableView reloadData];
     [self.tableView layoutSubviews];
-    
-    NSString *url = [NSString stringWithFormat:@"posts/%@", self.post.identifier];
-    
-    NSLog(@"url: %@", url);
-    
+            
     [self loadParentPostsIfNeeded];
     
-    [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+    [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:[self getPostURL] parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSDictionary *responseData = (NSDictionary *)responseObject[@"data"];
                                 
         BFContext *contextBefore = self.post.attributes.context;
         
         // first page
         self.post = [[Post alloc] initWithDictionary:responseData error:nil];
+        
+        if ([self.post.attributes.postedIn.attributes isPrivate]) {
+            [self.launchNavVC setRightAction:SNActionTypeNone];
+        }
+        
+        if ([self.post.attributes.message lowercaseString] && [self.post.attributes.message containsString:@"happy birthday"]) {
+            [self.navigationController.view showEffect:BFEffectTypeBalloons completion:nil];
+        }
                 
         if (contextBefore && ![self.post isRemoved] && !self.post.attributes.context) {
             self.post.attributes.context = contextBefore;
@@ -487,6 +530,8 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             self.tableView.visualError = nil;
         }
         [self.tableView reloadData];
+        
+        [self savePostCache];
         
         // update reply ability using camp
         [self updateComposeInputView];
@@ -610,7 +655,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             
         }];
     }
-    else {
+    else if (self.post.attributes.parent.attributes.context) {
         self.parentPosts = [@[self.post.attributes.parent] mutableCopy];
         
         reloadWithParentPosts();
@@ -904,7 +949,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             
             BOOL canReply = hasContext && !_post.attributes.creatorBot && [self canReply] && !temporary;
             BOOL canShare = ![_post.attributes.postedIn isPrivate] && !temporary;
-            BOOL canVote = hasContext && !_loading;
+            BOOL canVote = hasContext && !temporary;
             
             cell.actionsView.replyButton.userInteractionEnabled = canReply;
             cell.actionsView.shareButton.userInteractionEnabled = canShare;
@@ -954,6 +999,11 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     }
     
     return nil;
+}
+
+- (void)composeInputViewMessageDidChange:(UITextView *)textView {
+    // save cache
+    [self saveComposeState];
 }
 
 - (void)tableView:(nonnull id)tableView didRequestNextPageWithMaxId:(NSInteger)maxId {
@@ -1127,6 +1177,8 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         }
         
         [self.composeInputView reset];
+        
+        [[Session tempCache] removeObjectForKey:[self replyMessageCacheKey]];
     }
 }
 - (void)updateComposeInputView {
@@ -1172,12 +1224,13 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     
     self.theme = theme;
     self.view.tintColor = theme;
-    self.navigationController.view.tintColor = theme;
+//    self.navigationController.view.tintColor = theme;
     self.tableView.tintColor = theme;
     
     [UIView animateWithDuration:0.35f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
         if (self.navigationController && [self.navigationController isKindOfClass:[SimpleNavigationController class]] && self.navigationController.topViewController == self) {
-            [(SimpleNavigationController *)self.navigationController updateBarColor:theme animated:false];
+            self.navigationController.view.tintColor = [UIColor fromHex:self.post.themeColor adjustForOptimalContrast:true];
+            [(SimpleNavigationController *)self.navigationController updateBarColor:[UIColor clearColor] animated:false];
         }
         
         self.composeInputView.theme = theme;
@@ -1252,14 +1305,12 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
 }
 
 - (void)setLoading:(BOOL)loading {
-    if (loading != _loading) {
-        _loading = loading;
-        
-        self.tableView.loading = loading;
-        
-        if (!loading && [self allDoneLoading]) {
-            [self buildConversation];
-        }
+    [super setLoading:loading];
+    
+    self.tableView.loading = loading;
+    
+    if (!loading && [self allDoneLoading]) {
+        [self buildConversation];
     }
 }
 - (void)setLoadingParentPosts:(BOOL)loadingParentPosts {
@@ -1393,6 +1444,8 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             [self.tableView reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:self.parentPosts.count+1 inSection:0]] withRowAnimation:UITableViewRowAnimationFade];
             [self.tableView endUpdates];
         }
+        
+        [self updateContentInsets];
     }
 }
 

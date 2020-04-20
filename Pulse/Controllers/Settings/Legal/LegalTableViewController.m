@@ -36,10 +36,10 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowWithId:(NSString *)rowId {
     if ([rowId isEqualToString:@"terms_and_conditions"]) {
-        [Launcher openURL:@"https://bonfire.camp/terms"];
+        [Launcher openURL:@"https://bonfire.camp/legal/terms"];
     }
     if ([rowId isEqualToString:@"privacy_policy"]) {
-        [Launcher openURL:@"https://bonfire.camp/privacy"];
+        [Launcher openURL:@"https://bonfire.camp/legal/privacy"];
     }
     if ([rowId isEqualToString:@"open_source_libraries"]) {
         OpenSourceLibrariesTableViewController *openSourceLibrariesTableVC = [[OpenSourceLibrariesTableViewController alloc] init];

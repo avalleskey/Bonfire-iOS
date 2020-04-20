@@ -30,4 +30,7 @@ typedef enum {
 @property (nonatomic) BOOL errorLoading;
 @property (nonatomic) CAMP_CARD_SIZE size;
 
+
+@property (nonatomic, strong) UIView *lineSeparator;
+
 @end

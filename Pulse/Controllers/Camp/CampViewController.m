@@ -26,14 +26,16 @@
 #import "BFTipsManager.h"
 #import "BFAlertController.h"
 #import <FBSDKShareKit/FBSDKShareKit.h>
+#import <PINCache/PINCache.h>
+#import <PINOperation/PINOperationQueue.h>
 
 @interface CampViewController () {
     int previousTableViewYOffset;
     CGFloat coverPhotoHeight;
 }
 
-@property (nonatomic) BOOL loading;
 @property (nonatomic) BOOL shimmering;
+@property (nonatomic) BOOL usingCache;
 
 @property (nonatomic, strong) ComplexNavigationController *launchNavVC;
 @property (nonatomic, strong) StartCampUpsellView *startCampUpsellView;
@@ -65,6 +67,8 @@ static NSString * const reuseIdentifier = @"Result";
     }
     
     self.loading = true;
+    
+    [self loadCache];
     [self loadCamp];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(postDeleted:) name:@"PostDeleted" object:nil];
@@ -131,6 +135,8 @@ static NSString * const reuseIdentifier = @"Result";
 }
 - (void)updateCoverPhotoView {
     coverPhotoHeight = CAMP_HEADER_EDGE_INSETS.top + CAMP_HEADER_AVATAR_BORDER_WIDTH + ceilf(CAMP_HEADER_AVATAR_SIZE * 0.65);
+    
+    NSLog(@"camp cover photo height: %f", coverPhotoHeight);
     if (self.camp.attributes.media.cover.suggested.url.length > 0) {
         [self.coverPhotoView sd_setImageWithURL:[NSURL URLWithString:self.camp.attributes.media.cover.suggested.url]];
     
@@ -253,7 +259,6 @@ static NSString * const reuseIdentifier = @"Result";
         [self updateComposeInputView];
         
         // Update Camp
-        [self updateTheme];
         if ([self isEqual:self.navigationController.topViewController]) {
             [self.launchNavVC.searchView updateSearchText:camp.attributes.title];
             self.title = camp.attributes.title;
@@ -289,17 +294,11 @@ static NSString * const reuseIdentifier = @"Result";
         // update table view parent object
         self.startCampUpsellView.camp = self.camp;
         
-        
         if (self.camp == nil) {
             self.composeInputView.defaultPlaceholder = ([UIScreen mainScreen].bounds.size.width > 320 ? @"Start a conversation..." : @"Say something...");
         }
         else {
-            if (self.camp.attributes.title == nil) {
-                self.composeInputView.defaultPlaceholder = ([UIScreen mainScreen].bounds.size.width > 320 ? @"Share with the Camp..." : @"Say something...");
-            }
-            else {
-                self.composeInputView.defaultPlaceholder = [NSString stringWithFormat:@"Share in %@...", self.camp.attributes.title];
-            }
+            self.composeInputView.defaultPlaceholder = ([UIScreen mainScreen].bounds.size.width > 320 ? @"Share with the Camp..." : @"Say something...");
         }
         [self.composeInputView updatePlaceholders];
     }
@@ -320,6 +319,56 @@ static NSString * const reuseIdentifier = @"Result";
     BOOL publicCamp = ![self.camp isPrivate];
     BOOL isChannel = [self.camp isChannel];
     return isChannel || !(self.camp.attributes.summaries.counts.posts == 0 && publicCamp && self.camp.attributes.summaries.counts.members < [Session sharedInstance].defaults.camp.membersThreshold);
+}
+
+- (NSString *)getCampURL {
+    return [NSString stringWithFormat:@"camps/%@", [self campIdentifier]];
+}
+- (NSString *)getCampStreamURL {
+    return [NSString stringWithFormat:@"camps/%@/stream", [self campIdentifier]];
+}
+
+- (void)loadCache {
+    // GET camp from cache
+    Camp *campFromCache = [[Session tempCache] objectForKey:[self getCampURL]];
+    if (campFromCache) {
+        self.camp = campFromCache;
+    }
+    
+//    NSArray *campStreamFromCache = [[Session tempCache] objectForKey:[self getCampStreamURL]];
+//    if (campStreamFromCache && [campStreamFromCache isKindOfClass:[NSArray class]]) {
+//        for (SectionStreamPage *page in campStreamFromCache) {
+//            if ([page isKindOfClass:[SectionStreamPage class]]) {
+//                [self.tableView.stream appendPage:page];
+//            }
+//        }
+//    }
+}
+- (void)saveCampCache {
+    if (!self.camp) return;
+    
+    // save the first page
+    [[Session tempCache] setObject:self.camp forKey:[self getCampURL] withAgeLimit:60*60*24*3];
+}
+- (void)saveFeedCache {
+    return;
+    
+    if (self.tableView.stream.pages.count == 0) return;
+    
+    // save the first page
+    NSMutableArray *array = [NSMutableArray new];
+    
+    const NSInteger maxSections = 10;
+    NSInteger sectionsAdded = 0;
+    for (NSInteger i = 0; i < self.tableView.stream.pages.count && sectionsAdded < maxSections; i++) {
+        SectionStreamPage *page = self.tableView.stream.pages[i];
+        
+        [array addObject:page];
+        
+        sectionsAdded += page.data.count;
+    }
+    
+    [[Session tempCache] setObject:array forKey:[self getCampStreamURL] withAgeLimit:60*60*24*3];
 }
 
 - (void)loadCamp {
@@ -353,7 +402,7 @@ static NSString * const reuseIdentifier = @"Result";
     }
 }
 - (void)getCampInfo {
-    NSString *url = [NSString stringWithFormat:@"camps/%@", [self campIdentifier]];
+    NSString *url = [self getCampURL];
     
     NSLog(@"self.camp identifier: %@", [self campIdentifier]);
     NSLog(@"%@", self.camp.attributes.identifier);
@@ -362,10 +411,6 @@ static NSString * const reuseIdentifier = @"Result";
         
     [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:@{} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSDictionary *responseData = (NSDictionary *)responseObject[@"data"];
-        
-        // this must go before we set self.camp to the new Camp object
-        NSString *colorBefore = self.camp.attributes.color;
-        BOOL requiresColorUpdate = (colorBefore == nil || colorBefore.length == 0);
         
         // first page
         NSError *contextError;
@@ -386,11 +431,7 @@ static NSString * const reuseIdentifier = @"Result";
             [[Session sharedInstance] addToRecents:self.camp];
         }
         
-        // update the theme color (in case we didn't know the camp's color before
-        if (![colorBefore isEqualToString:self.camp.attributes.color]) requiresColorUpdate = true;
-        if (requiresColorUpdate) {
-            [self updateTheme];
-        }
+        [self updateTheme];
         
         // update the title (in case we didn't know the camp's title before)
         self.title = self.camp.attributes.title;
@@ -408,6 +449,8 @@ static NSString * const reuseIdentifier = @"Result";
                 [self showAddIcebreakerUpsell];
             }
         }
+        
+        [self saveCampCache];
         
         // Now that the VC's Camp object is complete,
         // Go on to load the camp content
@@ -689,7 +732,7 @@ static NSString * const reuseIdentifier = @"Result";
         [self.tableView hardRefresh:false];
     }
     
-    NSString *url = [NSString stringWithFormat:@"camps/%@/stream", [self campIdentifier]];
+    NSString *url = [self getCampStreamURL];
     
     [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         self.loading = false;
@@ -710,6 +753,12 @@ static NSString * const reuseIdentifier = @"Result";
                 cursorType == StreamPagingCursorTypePrevious) {
                 [self.tableView.stream prependPage:page];
             }
+        }
+        
+        // update the cache if needed
+        if (page.meta.paging.replaceCache ||
+            cursorType == StreamPagingCursorTypeNone) {
+            [self saveFeedCache];
         }
         
         [self determineEmptyStateVisibility];
@@ -793,11 +842,9 @@ static NSString * const reuseIdentifier = @"Result";
     }];
 }
 - (void)setLoading:(BOOL)loading {
-    if (loading != _loading) {
-        _loading = loading;
-        
-        self.tableView.loading = _loading;
-    }
+    [super setLoading:loading];
+    
+    self.tableView.loading = loading;
 }
 - (void)positionErrorView {
     self.startCampUpsellView.frame = CGRectMake(self.startCampUpsellView.frame.origin.x, 40, self.startCampUpsellView.frame.size.width, self.startCampUpsellView.frame.size.height);

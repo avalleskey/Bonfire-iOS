@@ -23,8 +23,24 @@
 - (NSArray<BFStreamComponent *> *)toStreamComponentsWithDetailLevel:(BFComponentDetailLevel)detailLevel {
     NSMutableArray<BFStreamComponent *> *components = [NSMutableArray<BFStreamComponent *> new];
         
+    if (self.count == 0) return @[];
+    
+    BOOL posts = [[self firstObject] isKindOfClass:[Post class]];
+    BOOL camps = [[self firstObject] isKindOfClass:[Camp class]];
+    BOOL bots = [[self firstObject] isKindOfClass:[Bot class]];
+    BOOL users = [[self firstObject] isKindOfClass:[User class]];
+    
+    if (camps && self.count > 2) {
+        BFStreamComponent *component = [[BFStreamComponent alloc] initWithSettings:nil className:@"CampCardsListCell" detailLevel:BFComponentDetailLevelSome];
+        component.campArray = (NSArray<Camp *><Camp> *)self;
+        component.showLineSeparator = true;
+        [components addObject:component];
+        
+        return @[component];
+    }
+    
     for (id object in self) {
-        if ([object isKindOfClass:[Post class]]) {
+        if (posts) {
             Post *post = (Post *)object;
             
             BOOL showSummaryReplies = (post.attributes.summaries.replies.count > 0);
@@ -57,24 +73,27 @@
             
             [components lastObject].showLineSeparator = true;
         }
-        else if ([object isKindOfClass:[Camp class]]) {
+        else if (camps) {
             Camp *camp = (Camp *)object;
             
-            BFStreamComponent *component = [[BFStreamComponent alloc] initWithObject:camp className:@"SearchResultCell" detailLevel:BFComponentDetailLevelAll];
+            BFStreamComponent *component = [[BFStreamComponent alloc] initWithSettings:nil className:@"SearchResultCell" detailLevel:BFComponentDetailLevelAll];
+            component.camp = camp;
             component.showLineSeparator = true;
             [components addObject:component];
         }
-        else if ([object isKindOfClass:[Bot class]]) {
+        else if (bots) {
             Bot *bot = (Bot *)object;
             
-            BFStreamComponent *component = [[BFStreamComponent alloc] initWithObject:bot className:@"SearchResultCell" detailLevel:BFComponentDetailLevelAll];
+            BFStreamComponent *component = [[BFStreamComponent alloc] initWithSettings:nil className:@"SearchResultCell" detailLevel:BFComponentDetailLevelAll];
+            component.bot = bot;
             component.showLineSeparator = true;
             [components addObject:component];
         }
-        else if ([object isKindOfClass:[User class]]) {
+        else if (users) {
             User *user = (User *)object;
             
-            BFStreamComponent *component = [[BFStreamComponent alloc] initWithObject:user className:@"SearchResultCell" detailLevel:BFComponentDetailLevelAll];
+            BFStreamComponent *component = [[BFStreamComponent alloc] initWithSettings:nil className:@"SearchResultCell" detailLevel:BFComponentDetailLevelAll];
+            component.user = user;
             component.showLineSeparator = true;
             [components addObject:component];
         }

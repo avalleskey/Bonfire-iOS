@@ -238,12 +238,16 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     PostStreamPage *page = [[PostStreamPage alloc] initWithDictionary:@{@"data": @[[post toDictionary]]} error:nil];
     [self.bfTableView.stream appendPage:page];
     
-    BFStreamComponent *selectNewComponent = [[BFStreamComponent alloc] initWithObject:@{ButtonCellTitleAttributeName: @"Choose a New Post", ButtonCellTitleColorAttributeName: [UIColor fromHex:self.camp.attributes.color adjustForOptimalContrast:true]} className:[ButtonCell class] detailLevel:BFComponentDetailLevelAll];
+    BFStreamComponent *selectNewComponent = [[BFStreamComponent alloc] initWithSettings:nil className:@"ButtonCell" detailLevel:BFComponentDetailLevelAll];
+    selectNewComponent.dictionary = @{ButtonCellTitleAttributeName: @"Choose a New Post", ButtonCellTitleColorAttributeName: [UIColor fromHex:self.camp.attributes.color adjustForOptimalContrast:true]};
     selectNewComponent.action = ^{
         [self selectNewIcebreaker];
     };
     selectNewComponent.showLineSeparator = true;
-    self.bfTableView.stream.components = [self.bfTableView.stream.components arrayByAddingObject:selectNewComponent];
+    
+    NSMutableArray<BFStreamComponent *><BFStreamComponent> *mutable = [[NSMutableArray<BFStreamComponent *><BFStreamComponent> alloc] initWithArray:self.bfTableView.stream.components];
+    [mutable addObject:selectNewComponent];
+    self.bfTableView.stream.components = mutable;
 }
 
 @end

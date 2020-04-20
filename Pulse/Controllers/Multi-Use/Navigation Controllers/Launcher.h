@@ -32,7 +32,6 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, copy) void (^_Nullable launchAction)(void);
 
 + (void)openTimeline;
-+ (void)openTrending;
 + (void)openDiscover;
 
 + (void)openSearch;

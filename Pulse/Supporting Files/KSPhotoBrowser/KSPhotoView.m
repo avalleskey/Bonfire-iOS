@@ -106,7 +106,12 @@ static UIColor *BackgroundColor = nil;
         CGSize imageSize = _imageView.image.size;
         CGFloat width = self.frame.size.width - 2 * kKSPhotoViewPadding;
         CGFloat height = width * (imageSize.height / imageSize.width);
-        if (height > maxHeight) {
+        
+        CGFloat deviceRatio = [UIScreen mainScreen].bounds.size.width / [UIScreen mainScreen].bounds.size.height;
+        CGFloat imageRatio = imageSize.width / imageSize.height;
+        BOOL matchesDeviceRatio = deviceRatio == imageRatio;
+        
+        if (height > maxHeight && !matchesDeviceRatio) {
             CGFloat ratio = height / maxHeight;
             height = maxHeight;
             width = width / ratio;
@@ -120,7 +125,7 @@ static UIColor *BackgroundColor = nil;
         CGFloat yTopBound = (HAS_ROUNDED_CORNERS ? safeAreaInsets.top : 0);
         CGFloat adjustedHeight = self.bounds.size.height - (HAS_ROUNDED_CORNERS ? safeAreaInsets.top + safeAreaInsets.bottom : 0);
         
-        if (height <= self.bounds.size.height) {
+        if (!matchesDeviceRatio && height <= self.bounds.size.height) {
             _imageView.center = CGPointMake(self.bounds.size.width/2, yTopBound + (adjustedHeight/2));
         } else {
             _imageView.center = CGPointMake(self.bounds.size.width/2, height/2);

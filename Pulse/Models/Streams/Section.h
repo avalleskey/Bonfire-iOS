@@ -54,6 +54,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface SectionAttributesCtaTarget : BFJSONModel
 
+@property (nonatomic) NSString <Optional> *url;
 @property (nonatomic) Camp <Optional> *camp;
 @property (nonatomic) Identity <Optional> *creator;
 

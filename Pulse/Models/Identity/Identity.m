@@ -29,6 +29,16 @@
 - (BOOL)isVerified {
     return [self.attributes isVerified];
 }
+- (BOOL)isBetaTester {
+    if (self.attributes.createdAt.length == 0) return false;
+    
+    NSDateFormatter *gmtDateFormatter = [[NSDateFormatter alloc] init];
+    gmtDateFormatter.timeZone = [NSTimeZone timeZoneForSecondsFromGMT:0];
+    gmtDateFormatter.dateFormat = @"yyyy-MM-dd'T'HH:mm:ssZ";
+    NSDate *date = [gmtDateFormatter dateFromString:self.attributes.createdAt];
+    
+    return [date compare:[gmtDateFormatter dateFromString:@"2020-04-17T00:00:00Z"]] == NSOrderedAscending;
+}
 - (BOOL)isBot {
     return ([self.type isEqualToString:@"bot"]);
 }

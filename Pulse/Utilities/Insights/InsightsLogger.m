@@ -261,8 +261,6 @@ static InsightsLogger *logger;
                 
                 [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] POST:@"insights/impressions" parameters:@{@"impressions": normalizedBatch} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                     // success
-                    NSLog(@"successfully uploaded batch");
-                    NSLog(@"response: %@", responseObject);
                     [self sync];
                 } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
                     NSLog(@"failed to uploaded insights/impressions batch");

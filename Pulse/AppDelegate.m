@@ -272,6 +272,7 @@
     
     BFAlertAction *clearCache = [BFAlertAction actionWithTitle:@"Clear Cache" style:BFAlertActionStyleDefault handler:^{
         [[PINCache sharedCache] removeAllObjects];
+        [[Session tempCache] removeAllObjects];
     }];
     [options addAction:clearCache];
     
@@ -309,6 +310,7 @@
                 [[NSUserDefaults standardUserDefaults] setObject:newVersion forKey:@"app_last_version"];
                 
                 [[PINCache sharedCache] removeAllObjects];
+                [[Session tempCache] removeAllObjects];
             }
             
             [Launcher launchLoggedIn:false replaceRootViewController:true];
@@ -466,9 +468,17 @@
     
     NSDictionary *data = userInfo[@"data"];
     
-    NSObject *object = [data objectForKey:@"target_object"];
-    NSString *urlString = [data objectForKey:@"target_url"];
-    NSURL *url = [NSURL URLWithString:urlString];
+    NSObject *object;
+    NSString *urlString;
+    NSURL *url;
+    if (data) {
+        object = [data objectForKey:@"target_object"];
+        urlString = [data objectForKey:@"target_url"];
+
+        if (urlString) {
+            url = [NSURL URLWithString:urlString];
+        }
+    }
     
     NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
     if (url) {
@@ -479,7 +489,7 @@
         }
     }
     
-    BOOL appCanOpenURL = ([Configuration isExternalBonfireURL:url] || [Configuration isInternalURL:url]);
+    BOOL appCanOpenURL = url && ([Configuration isExternalBonfireURL:url] || [Configuration isInternalURL:url]);
     BOOL requiresInvite = ![Session sharedInstance].currentUser || [Session sharedInstance].currentUser.attributes.requiresInvite;
     
     if (!requiresInvite) {
@@ -746,33 +756,38 @@
 }
 
 - (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options {
-    BOOL internalURL = [Configuration isInternalURL:url];
-    BOOL externalURL = [Configuration isExternalBonfireURL:url];
-    if (!internalURL && !externalURL) {
+    if (!url || url.absoluteString.length == 0) return false;
+    
+    if (![Configuration isBonfireURL:url]) {
         return false;
     }
     
     NSURLComponents *components = [NSURLComponents componentsWithString:url.absoluteString];
-
     NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
     for(NSURLQueryItem *item in components.queryItems)
     {
         [params setObject:item.value forKey:item.name];
     }
     
+    NSString *pathString = [Configuration pathStringFromBonfireURL:url];
+    NSArray<NSString *> *pathParts = [Configuration pathPartsFromBonfireURL:url];
+    
+    // open app
+    if (pathParts.count == 0) {
+        if ([Configuration isInternalURL:url]) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+    
     BOOL signedIn = [Session sharedInstance].currentUser;
     BOOL requiresInvite = !signedIn || [Session sharedInstance].currentUser.attributes.requiresInvite;
-    
-    id objectFromURL;
-    if (internalURL) {
-        objectFromURL = [Configuration objectFromInternalURL:url];
-    }
-    else {
-        objectFromURL = [Configuration objectFromExternalBonfireURL:url];
-    }
+    id objectFromURL = [Configuration objectFromBonfireURL:url];
     
     if (requiresInvite) {
-        if ([url.path isEqualToString:@"/invite"] && [params objectForKey:@"friend_code"]) {
+        if ([pathString isEqualToString:@"invite"] && [params objectForKey:@"friend_code"]) {
             DLog(@"try to use friend_code: %@", params[@"friend_code"]);
             if ([[Launcher activeViewController] isKindOfClass:[WaitlistViewController class]]) {
                 [(WaitlistViewController *)[Launcher activeViewController] useFriendCode:params[@"friend_code"]];
@@ -780,50 +795,145 @@
         }
     }
     else {
-        if (signedIn && [objectFromURL isKindOfClass:[Identity class]]) {
-            [Launcher openIdentity:(Identity *)objectFromURL];
-            return true;
-        }
-        else if (signedIn && [objectFromURL isKindOfClass:[Camp class]]) {
-            [Launcher openCamp:(Camp *)objectFromURL];
-            return true;
-        }
-        else if (signedIn && [objectFromURL isKindOfClass:[Post class]]) {
-            [Launcher openPost:(Post *)objectFromURL withKeyboard:NO];
-            return true;
-        }
-        else if (signedIn && internalURL && [url.host isEqualToString:@"compose"]) {
-            NSString *message;
-            if ([params objectForKey:@"message"]) {
-                message = params[@"message"];
+        // sign in required
+        if (signedIn) {
+            // Specify exact urls first
+            if ([pathString isEqualToString:@"compose"]) {
+                NSString *message;
+                if ([params objectForKey:@"message"]) {
+                    message = params[@"message"];
+                }
+                
+                [Launcher openComposePost:nil inReplyTo:nil withMessage:message media:nil quotedObject:nil];
+                return true;
             }
-            
-            [Launcher openComposePost:nil inReplyTo:nil withMessage:message media:nil quotedObject:nil];
-            return true;
-        }
-        else if (signedIn && internalURL && [url.host isEqualToString:@"settings"]) {
-            [Launcher openSettings];
-            return true;
+            else if ([pathString isEqualToString:@"settings"]) {
+                [Launcher openSettings];
+                return true;
+            }
+            else if ([pathString isEqualToString:@"search"]) {
+                [Launcher openSearch];
+                return true;
+            }
+            else if ([pathString isEqualToString:@"share"]) {
+                [Launcher openInviteFriends:nil];
+                return true;
+            }
+            else if ([pathString isEqualToString:@"reset_password"]) {
+                if ([[Launcher activeViewController] isKindOfClass:[ResetPasswordViewController class]]) {
+                    // already open
+                    DLog(@"reset password view controller is already open..!");
+                    if ([url.path isEqualToString:@"/confirm"] && [params objectForKey:@"code"]) {
+                        DLog(@"prefill with code: %@", params[@"code"]);
+                        ((ResetPasswordViewController *)[Launcher activeViewController]).prefillCode = params[@"code"];
+                    }
+                }
+                else {
+                    ResetPasswordViewController *resetPasswordVC = [[ResetPasswordViewController alloc] init];
+                    if ([url.path isEqualToString:@"/confirm"] && [params objectForKey:@"code"]) {
+                        resetPasswordVC.prefillCode = params[@"code"];
+                    }
+                    [Launcher present:resetPasswordVC animated:YES];
+                }
+                
+                return true;
+            }
+            else if ([pathParts[0] isEqualToString:@"u"] && [objectFromURL isKindOfClass:[User class]]) {
+                // user
+                if ([pathString isEqualToString:@"u/me"]) {
+                    // user/me
+                    [Launcher openProfile:[[Session sharedInstance] currentUser]];
+                    return true;
+                }
+                else if ([pathString isEqualToString:@"u/me/friends"]) {
+                    // user/me
+                    [Launcher openProfileUsersFollowing:[[Session sharedInstance] currentUser]];
+                    return true;
+                }
+                else if ([pathString isEqualToString:@"u/me/edit"]) {
+                    // user/me/edit
+                    [Launcher openEditProfile];
+                    return true;
+                }
+                
+                if (pathParts.count > 1 && pathParts[1].length > 0) {
+                    User *user = (User *)objectFromURL;
+                    
+                    if (pathParts.count == 2) {
+                        // open profile
+                        [Launcher openProfile:user];
+                        return true;
+                    }
+                    else if (pathParts.count == 3) {
+                        if ([pathParts[2] isEqualToString:@"friends"]) {
+                            DLog(@"Open friends for %@", (user.identifier ? user.identifier : [NSString stringWithFormat:@"@%@", user.attributes.identifier]));
+                            return true;
+                        }
+                        else if ([pathParts[2] isEqualToString:@"mutual_friends"]) {
+                            DLog(@"Open mutual friends for %@", (user.identifier ? user.identifier : [NSString stringWithFormat:@"@%@", user.attributes.identifier]));
+                            [Launcher openProfileUsersFollowing:user];
+                            return true;
+                        }
+                        else if ([pathParts[2] isEqualToString:@"camps"]) {
+                            DLog(@"Open camps joined for %@", (user.identifier ? user.identifier : [NSString stringWithFormat:@"@%@", user.attributes.identifier]));
+                            [Launcher openProfileCampsJoined:user];
+                            return true;
+                        }
+                    }
+                }
+            }
+            else if ([pathParts[0] isEqualToString:@"c"] && [objectFromURL isKindOfClass:[Camp class]]) {
+                // camp
+                if ([pathString isEqualToString:@"c/new"]) {
+                    // user/me
+                    [Launcher openCreateCamp];
+                    return true;
+                }
+                
+                if (pathParts.count > 1 && pathParts[1].length > 0) {
+                    Camp *camp = (Camp *)objectFromURL;
+                    
+                    if (pathParts.count == 2) {
+                        // open camp
+                        [Launcher openCamp:camp];
+                        return true;
+                    }
+                    else if (pathParts.count == 3) {
+                        if ([pathParts[2] isEqualToString:@"members"]) {
+                            DLog(@"Open camp members for %@", (camp.identifier ? camp.identifier : [NSString stringWithFormat:@"#%@", camp.attributes.identifier]));
+                            [Launcher openCampMembersForCamp:camp];
+                            return true;
+                        }
+                    }
+                }
+            }
+            else if ([pathParts[0] isEqualToString:@"p"] && [objectFromURL isKindOfClass:[Post class]]) {
+                if (pathParts.count > 1 && pathParts[1].length > 0) {
+                    Post *post = (Post *)objectFromURL;
+                    
+                    if (pathParts.count == 2) {
+                        // open post
+                        [Launcher openPost:post withKeyboard:false];
+                        return true;
+                    }
+                }
+            }
+            else if ([pathParts[0] isEqualToString:@"l"] && [objectFromURL isKindOfClass:[BFLink class]]) {
+                if (pathParts.count > 1 && pathParts[1].length > 0) {
+                    BFLink *link = (BFLink *)objectFromURL;
+                    
+                    if (pathParts.count == 2) {
+                        // open link conversations
+                        [Launcher openLinkConversations:link withKeyboard:false];
+                        return true;
+                    }
+                }
+            }
         }
     }
     
-    if (internalURL && [url.host isEqualToString:@"reset_password"]) {
-        if ([[Launcher activeViewController] isKindOfClass:[ResetPasswordViewController class]]) {
-            // already open
-            DLog(@"reset password view controller is already open..!");
-            if ([url.path isEqualToString:@"/confirm"] && [params objectForKey:@"code"]) {
-                DLog(@"prefill with code: %@", params[@"code"]);
-                ((ResetPasswordViewController *)[Launcher activeViewController]).prefillCode = params[@"code"];
-            }
-        }
-        else {
-            ResetPasswordViewController *resetPasswordVC = [[ResetPasswordViewController alloc] init];
-            if ([url.path isEqualToString:@"/confirm"] && [params objectForKey:@"code"]) {
-                resetPasswordVC.prefillCode = params[@"code"];
-            }
-            [Launcher present:resetPasswordVC animated:YES];
-        }
-        
+    if ([[UIApplication sharedApplication] canOpenURL:url]) {
+        [Launcher openURL:url.absoluteString];
         return true;
     }
     

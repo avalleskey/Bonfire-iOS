@@ -103,18 +103,4 @@ typedef enum {
 
 @end
 
-@interface JSONValueTransformer (NSAttributedString)
-
-- (NSAttributedString *)NSAttributedStringFromNSString:(NSString *)string;
-- (NSString *)JSONObjectFromNSAttributedString:(NSAttributedString *)string;
-
-@end
-
-@interface JSONValueTransformer (NSObject)
-
-- (NSObject *)NSObjectFromNSString:(NSString *)string;
-- (NSString *)JSONObjectFromNSObject:(NSObject *)object;
-
-@end
-
 NS_ASSUME_NONNULL_END

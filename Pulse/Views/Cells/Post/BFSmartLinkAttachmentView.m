@@ -19,7 +19,7 @@
 #define SMART_LINK_ATTACHMENT_EDGE_INSETS UIEdgeInsetsMake(0, 12, 12, 12)
 
 // title macros
-#define SMART_LINK_ATTACHMENT_TITLE_FONT [UIFont systemFontOfSize:[UIFont preferredFontForTextStyle:UIFontTextStyleBody].pointSize weight:UIFontWeightSemibold]
+#define SMART_LINK_ATTACHMENT_TITLE_FONT [UIFont systemFontOfSize:[UIFont preferredFontForTextStyle:UIFontTextStyleBody].pointSize weight:UIFontWeightBold]
 #define SMART_LINK_ATTACHMENT_TITLE_BOTTOM_PADDING roundf(ceilf(SMART_LINK_ATTACHMENT_TITLE_FONT.lineHeight)/7)
 // detail macros
 #define SMART_LINK_ATTACHMENT_DETAIL_FONT [UIFont systemFontOfSize:[UIFont preferredFontForTextStyle:UIFontTextStyleBody].pointSize-2.f weight:UIFontWeightRegular]
@@ -75,10 +75,12 @@
     [self.postedInButton setTitleColor:[UIColor bonfirePrimaryColor] forState:UIControlStateNormal];
     self.postedInButton.titleLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightBold];
     self.postedInButton.contentEdgeInsets = UIEdgeInsetsMake(0, 32, 0, 10);
-    self.postedInButton.hidden = false;
     [self.postedInButton bk_whenTapped:^{
-        if (self.link.attributes.attribution != nil) {
+        if (self.link.attributes.attribution) {
             [Launcher openCamp:self.link.attributes.attribution];
+        }
+        else if (self.link.attributes.actionUrl) {
+            [Launcher openURL:self.link.attributes.actionUrl];
         }
     }];
     [self.postedInButton bk_addEventHandler:^(id sender) {
@@ -216,10 +218,18 @@
     if (link != _link) {
         _link = link;
         
-        [self.shareLinkButton setTitleColor:[UIColor fromHex:self.link.attributes.attribution.attributes.color adjustForOptimalContrast:true] forState:UIControlStateNormal];
+        UIColor *themeColor = [UIColor bonfirePrimaryColor];
+        if (self.link.attributes.attribution) {
+            themeColor = [UIColor fromHex:self.link.attributes.attribution.attributes.color];
+            [self.shareLinkButton setTitleColor:[UIColor fromHex:[UIColor toHex:themeColor] adjustForOptimalContrast:true] forState:UIControlStateNormal];
+        }
+        else {
+            [self.shareLinkButton setTitleColor:themeColor forState:UIControlStateNormal];
+        }
+        
         self.shareLinkButton.tintColor = self.shareLinkButton.currentTitleColor;
         
-        self.imageView.backgroundColor = [UIColor fromHex:self.link.attributes.attribution.attributes.color];
+        self.imageView.backgroundColor = themeColor;
         if (self.link.attributes.images.count > 0) {
             [self.imageView sd_setImageWithURL:[NSURL URLWithString:self.link.attributes.images[0]]];
         }
@@ -233,27 +243,58 @@
         self.titleLabel.textColor = [UIColor bonfirePrimaryColor];
         self.summaryLabel.textColor = [UIColor bonfireSecondaryColor];
         
-        Camp *postedInCamp = self.link.attributes.attribution;
-        if (postedInCamp && (postedInCamp.attributes.title.length > 0 || postedInCamp.attributes.identifier.length > 0)) {
-            [self drawAttributionButton];
-            
-            BFAvatarView *postedInAvatarView = [self.postedInButton viewWithTag:10];
-            postedInAvatarView.camp = postedInCamp;
-            
-            self.postedInButton.hidden = false;
+        [self drawAttributionButton];
+        
+        Camp *attribution = self.link.attributes.attribution;
+        BFAvatarView *postedInAvatarView = [self.postedInButton viewWithTag:10];
+        
+        if (attribution) {
+            postedInAvatarView.camp = attribution;
         }
         else {
-            self.postedInButton.hidden = true;
+            postedInAvatarView.placeholderAvatar = true;
+            postedInAvatarView.layer.masksToBounds = true;
+            postedInAvatarView.layer.cornerRadius = postedInAvatarView.frame.size.height / 2;
+            
+            postedInAvatarView.backgroundColor = [[UIColor bonfireSecondaryColor] colorWithAlphaComponent:0.16];
+            postedInAvatarView.imageView.tintColor = [UIColor bonfireSecondaryColor];
+            if (link.attributes.iconUrl.length > 0) {
+                NSString *linkId = link.identifier;
+                
+                [postedInAvatarView.imageView sd_cancelCurrentImageLoad];
+                [postedInAvatarView.imageView sd_setImageWithURL:[NSURL URLWithString:link.attributes.iconUrl] completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
+                    if (error && [linkId isEqualToString:link.identifier]) {
+                        postedInAvatarView.imageView.image =  [[UIImage imageNamed:@"smartLinkGenericWebsiteIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+                    }
+                }];
+            }
+            else {
+                [postedInAvatarView.imageView sd_cancelCurrentImageLoad];
+                postedInAvatarView.imageView.image =  [[UIImage imageNamed:@"smartLinkGenericWebsiteIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+            }
         }
         
         [self resizeHeight];
     }
 }
 
-- (void)drawAttributionButton {
-    Camp *postedInCamp = self.link.attributes.attribution;
+- (NSString *)hostString {
+    NSURL *url = [NSURL URLWithString:self.link.attributes.canonicalUrl];
     
-    if (!postedInCamp) return;
+    if (url) {
+        NSString *host = url.host;
+        if (host.length > 4 && [[host substringToIndex:4] isEqualToString:@"www."]) {
+            host = [host substringWithRange:NSMakeRange(4, host.length - 4)];
+        }
+        
+        return host;
+    }
+    
+    return @"View Site";
+}
+
+- (void)drawAttributionButton {
+    Camp *attribution = self.link.attributes.attribution;
     
     // create camp attributed string
     NSMutableAttributedString *creatorString = [[NSMutableAttributedString alloc] init];
@@ -262,53 +303,62 @@
     NSMutableAttributedString *spacer = [[NSMutableAttributedString alloc] initWithString:@" "];
     [spacer addAttribute:NSFontAttributeName value:font range:NSMakeRange(0, spacer.length)];
     
-    NSString *identifier = postedInCamp.attributes.title;
-    if (postedInCamp.attributes.identifier.length > 0) {
-        identifier = [@"#" stringByAppendingString:postedInCamp.attributes.identifier];
+    NSString *attributionString = [self hostString];
+    if (attribution) {
+        attributionString = attribution.attributes.title;
+        if (attribution.attributes.identifier.length > 0) {
+            attributionString = [@"#" stringByAppendingString:attribution.attributes.identifier];
+        }
     }
     
-    // safe guard to prevent initializing a string with a nil value
-    self.postedInButton.hidden = (!identifier || identifier.length == 0);
-    if ([self.postedInButton isHidden]) {
-        [self.postedInButton setTitle:@"" forState:UIControlStateNormal];
-        return;
+    NSMutableAttributedString *attributedAttributionString = [[NSMutableAttributedString alloc] initWithString:(attributionString ? attributionString : @"")];
+    [attributedAttributionString addAttribute:NSForegroundColorAttributeName value:[UIColor bonfirePrimaryColor] range:NSMakeRange(0, attributedAttributionString.length)];
+    [attributedAttributionString addAttribute:NSFontAttributeName value:font range:NSMakeRange(0, attributedAttributionString.length)];
+    
+    [creatorString appendAttributedString:attributedAttributionString];
+    
+    if (attribution) {
+        if ([attribution isPrivate]) {
+            // spacer
+            [creatorString appendAttributedString:spacer];
+            
+            NSTextAttachment *lockAttachment = [[NSTextAttachment alloc] init];
+            lockAttachment.image = [self colorImage:[UIImage imageNamed:@"details_label_private"] color:[UIColor bonfirePrimaryColor]];
+            
+            CGFloat attachmentHeight = MIN(ceilf(font.lineHeight * 0.7), lockAttachment.image.size.height);
+            CGFloat attachmentWidth = attachmentHeight * (lockAttachment.image.size.width / lockAttachment.image.size.height);
+            
+            [lockAttachment setBounds:CGRectMake(0, roundf(font.capHeight - attachmentHeight)/2.f, attachmentWidth, attachmentHeight)];
+                        
+            NSAttributedString *lockAttachmentString = [NSAttributedString attributedStringWithAttachment:lockAttachment];
+            [creatorString appendAttributedString:lockAttachmentString];
+        }
+        else if ([attribution.attributes.display.format isEqualToString:CAMP_DISPLAY_FORMAT_CHANNEL]) {
+            // spacer
+            [creatorString appendAttributedString:spacer];
+            
+            NSTextAttachment *sourceAttachment = [[NSTextAttachment alloc] init];
+            sourceAttachment.image = [self colorImage:[UIImage imageNamed:@"details_label_source"] color:[UIColor bonfirePrimaryColor]];
+            
+            CGFloat attachmentHeight = MIN(ceilf(font.lineHeight * 0.7), sourceAttachment.image.size.height);
+            CGFloat attachmentWidth = attachmentHeight * (sourceAttachment.image.size.width / sourceAttachment.image.size.height);
+            
+            [sourceAttachment setBounds:CGRectMake(0, roundf(font.capHeight - attachmentHeight)/2.f, attachmentWidth, attachmentHeight)];
+            
+            NSAttributedString *lockAttachmentString = [NSAttributedString attributedStringWithAttachment:sourceAttachment];
+            [creatorString appendAttributedString:lockAttachmentString];
+        }
     }
-    
-    NSMutableAttributedString *campTitleString = [[NSMutableAttributedString alloc] initWithString:(identifier ? identifier : @"")];
-    [campTitleString addAttribute:NSForegroundColorAttributeName value:[UIColor bonfirePrimaryColor] range:NSMakeRange(0, campTitleString.length)];
-    [campTitleString addAttribute:NSFontAttributeName value:font range:NSMakeRange(0, campTitleString.length)];
-    
-    [creatorString appendAttributedString:campTitleString];
-    
-    if ([postedInCamp isPrivate]) {
-        // spacer
+    else if (![self.shareLinkButton isHidden]) {
+        NSMutableAttributedString *spacer = [[NSMutableAttributedString alloc] initWithString:@" "];
+        [spacer addAttribute:NSFontAttributeName value:font range:NSMakeRange(0, spacer.length)];
         [creatorString appendAttributedString:spacer];
         
-        NSTextAttachment *lockAttachment = [[NSTextAttachment alloc] init];
-        lockAttachment.image = [self colorImage:[UIImage imageNamed:@"details_label_private"] color:[UIColor bonfirePrimaryColor]];
-        
-        CGFloat attachmentHeight = MIN(ceilf(font.lineHeight * 0.7), lockAttachment.image.size.height);
-        CGFloat attachmentWidth = attachmentHeight * (lockAttachment.image.size.width / lockAttachment.image.size.height);
-        
-        [lockAttachment setBounds:CGRectMake(0, roundf(font.capHeight - attachmentHeight)/2.f, attachmentWidth, attachmentHeight)];
-                    
-        NSAttributedString *lockAttachmentString = [NSAttributedString attributedStringWithAttachment:lockAttachment];
-        [creatorString appendAttributedString:lockAttachmentString];
-    }
-    else if ([postedInCamp.attributes.display.format isEqualToString:CAMP_DISPLAY_FORMAT_CHANNEL]) {
-        // spacer
-        [creatorString appendAttributedString:spacer];
-        
-        NSTextAttachment *sourceAttachment = [[NSTextAttachment alloc] init];
-        sourceAttachment.image = [self colorImage:[UIImage imageNamed:@"details_label_source"] color:[UIColor bonfirePrimaryColor]];
-        
-        CGFloat attachmentHeight = MIN(ceilf(font.lineHeight * 0.7), sourceAttachment.image.size.height);
-        CGFloat attachmentWidth = attachmentHeight * (sourceAttachment.image.size.width / sourceAttachment.image.size.height);
-        
-        [sourceAttachment setBounds:CGRectMake(0, roundf(font.capHeight - attachmentHeight)/2.f, attachmentWidth, attachmentHeight)];
-        
-        NSAttributedString *lockAttachmentString = [NSAttributedString attributedStringWithAttachment:sourceAttachment];
-        [creatorString appendAttributedString:lockAttachmentString];
+        NSTextAttachment *attachment = [[NSTextAttachment alloc] init];
+        attachment.image = [UIImage imageNamed:@"headerDetailDisclosureIcon"];
+        [attachment setBounds:CGRectMake(0, roundf(font.capHeight - (attachment.image.size.height * .75))/2.f, attachment.image.size.width * .75, attachment.image.size.height * .75)];
+        NSAttributedString *attachmentString = [NSAttributedString attributedStringWithAttachment:attachment];
+        [creatorString appendAttributedString:attachmentString];
     }
     
     [self.postedInButton setAttributedTitle:creatorString forState:UIControlStateNormal];
@@ -327,7 +377,7 @@
         height = SMART_LINK_ATTACHMENT_IMAGE_HEIGHT;
     }
     
-    CGFloat postedInButtonHeight = (link.attributes.attribution ? (32 / 2) : 0);
+    CGFloat postedInButtonHeight = (32 / 2);
     height += postedInButtonHeight;
     
     UIEdgeInsets contentInsets = SMART_LINK_ATTACHMENT_EDGE_INSETS;

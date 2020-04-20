@@ -297,23 +297,19 @@ static Launcher *launcher;
 }
 
 + (void)openTimeline {
-//    if ([[Launcher activeViewController] isKindOfClass:[UINavigationController class]]) {
-//        [Launcher launchLoggedIn:false];
-//    }
-
-    if ([[Launcher activeViewController] isKindOfClass:[UITabBarController class]]) {
-        UITabBarController *activeTabBarController = (UITabBarController *)[Launcher activeViewController];
-        [activeTabBarController setSelectedIndex:0];
-    }
-}
-+ (void)openTrending {
-//    if ([[Launcher activeViewController] isKindOfClass:[UINavigationController class]]) {
-//        [Launcher launchLoggedIn:false];
-//    }
-
-    if ([[Launcher activeViewController] isKindOfClass:[UITabBarController class]]) {
-        UITabBarController *activeTabBarController = (UITabBarController *)[Launcher activeViewController];
-        [activeTabBarController setSelectedIndex:0];
+    BOOL signedIn = [Session sharedInstance].currentUser;
+    BOOL requiresInvite = !signedIn || [Session sharedInstance].currentUser.attributes.requiresInvite;
+    
+    if (signedIn && requiresInvite && [Launcher tabController]) {
+        if (![Launcher topMostViewController].tabBarController) {
+            // dismiss to get to root
+            UIViewController *vc = [Launcher topMostViewController].presentingViewController;
+            while (vc.presentingViewController != nil) {
+                [[Launcher topMostViewController] dismissViewControllerAnimated:false completion:nil];
+            }
+        }
+        
+        [[Launcher tabController] setSelectedIndex:0];
     }
 }
 + (void)openSearch {
@@ -431,23 +427,17 @@ static Launcher *launcher;
 }
 + (void)openCampMembersForCamp:(Camp *)camp {
     CampMembersViewController *rm = [[CampMembersViewController alloc] init];
-    
     rm.camp = camp;
-    NSString *themeCSS = [camp.attributes.color lowercaseString];
+        
+    SimpleNavigationController *newLauncher = [[SimpleNavigationController alloc] initWithRootViewController:rm];
+    newLauncher.transitioningDelegate = [Launcher sharedInstance];
+    [newLauncher setLeftAction:SNActionTypeBack];
+    [newLauncher hideBottomHairline];
+    
+    NSString *themeCSS = camp.attributes.color;
     rm.theme = (themeCSS.length == 0) ? [UIColor bonfireGrayWithLevel:800] : [UIColor fromHex:themeCSS];
     
-    rm.title = @"Members";
-    
-    ComplexNavigationController *newLauncher = [[ComplexNavigationController alloc] initWithRootViewController:rm];
-    newLauncher.searchView.textField.text = rm.title;
-    [newLauncher.searchView hideSearchIcon:false];
-    newLauncher.transitioningDelegate = [Launcher sharedInstance];
-    
-    [newLauncher updateBarColor:rm.theme animated:false];
-    
     [self push:newLauncher animated:YES];
-    
-    [newLauncher updateNavigationBarItemsWithAnimation:NO];
 }
 + (void)openIdentity:(Identity *)identity {
     if ([identity.type isEqualToString:@"user"]) {
@@ -569,7 +559,7 @@ static Launcher *launcher;
     [newLauncher.searchView hideSearchIcon:false];
     newLauncher.transitioningDelegate = [Launcher sharedInstance];
     
-    [newLauncher updateBarColor:pc.theme animated:false];
+    [newLauncher updateBarColor:[UIColor clearColor] animated:false];
     
     [self push:newLauncher animated:YES];
     
@@ -583,14 +573,14 @@ static Launcher *launcher;
     NSString *themeCSS = [user.attributes.color lowercaseString];
     pf.theme = (themeCSS.length == 0) ? [UIColor bonfireGrayWithLevel:800] : [UIColor fromHex:themeCSS];
     
-    pf.title = @"Following";
+    pf.title = ([user isCurrentIdentity] ? @"Friends" : @"Mutual Friends");
     
     ComplexNavigationController *newLauncher = [[ComplexNavigationController alloc] initWithRootViewController:pf];
     newLauncher.searchView.textField.text = pf.title;
     [newLauncher.searchView hideSearchIcon:false];
     newLauncher.transitioningDelegate = [Launcher sharedInstance];
     
-    [newLauncher updateBarColor:pf.theme animated:false];
+    [newLauncher updateBarColor:[UIColor clearColor] animated:false];
     
     [self push:newLauncher animated:YES];
     
@@ -603,7 +593,12 @@ static Launcher *launcher;
     SimpleNavigationController *newNavController = [[SimpleNavigationController alloc] initWithRootViewController:p];
     newNavController.transitioningDelegate = [Launcher sharedInstance];
     [newNavController setLeftAction:SNActionTypeBack];
+    if (![post.attributes.postedIn.attributes isPrivate]) {
+        [newNavController setRightAction:SNActionTypeShare];
+    }
     newNavController.currentTheme = p.theme;
+    newNavController.view.tintColor = [UIColor fromHex:post.themeColor adjustForOptimalContrast:true];
+    [newNavController updateBarColor:[UIColor clearColor] animated:false];
     
     [Launcher push:newNavController animated:YES];
 }
@@ -634,7 +629,7 @@ static Launcher *launcher;
     SimpleNavigationController *newNavController = [[SimpleNavigationController alloc] initWithRootViewController:p];
     newNavController.transitioningDelegate = [Launcher sharedInstance];
     [newNavController setLeftAction:SNActionTypeBack];
-    newNavController.currentTheme = p.theme;
+    newNavController.currentTheme = (p.link.attributes.attribution ? p.theme : [UIColor clearColor]);
     
     [Launcher push:newNavController animated:YES];
 }
@@ -875,6 +870,8 @@ static Launcher *launcher;
 }
 
 + (void)openURL:(NSString *)urlString {
+    if (!urlString || urlString.length == 0) return;
+    
     if (![urlString containsString:@"http://"] &&  ![urlString containsString:@"https://"]) {
         urlString = [@"https://" stringByAppendingString:urlString];
     }
@@ -1192,7 +1189,8 @@ static Launcher *launcher;
     BOOL hasTwitter = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"twitter://"]];
     
     if (hasSnapchat || hasInstagram || hasTwitter) {
-        NSString *message = [[NSString stringWithFormat:@"I'm @%@ on @yourbonfire! Find me here: %@", user.attributes.identifier, userShareLink] stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet characterSetWithCharactersInString:@"!*'();:@&=+$,/?%#[]"]];
+        NSString *message = [NSString stringWithFormat:@"I'm @%@ on @yourbonfire! Find me here: %@", user.attributes.identifier, userShareLink];
+        NSString *encodedMessage = [message stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet characterSetWithCharactersInString:@"!*'();:@&=+$,/?%#[]"]];
         
         BFAlertController *moreOptions = [BFAlertController alertControllerWithTitle:@"Share your profile via..." message:nil preferredStyle:BFAlertControllerStyleActionSheet];
         
@@ -1304,27 +1302,22 @@ static Launcher *launcher;
 }
 #endif
 + (UIImage *)imageForPost:(Post *)post {
-    CGRect frame = CGRectMake(0, 0, 420, [ExpandedPostCell heightForPost:post width:420]);
-    ExpandedPostCell *cell = [[ExpandedPostCell alloc] initWithFrame:frame];
-    Post *postMinusVote = [post copy];
-    postMinusVote.attributes.context.post.vote = nil;
-    cell.post = postMinusVote;
-    cell.lineSeparator.hidden = true;
-    cell.moreButton.hidden = true;
+    BFPostAttachmentView *postAttachmentView = [[BFPostAttachmentView alloc] initWithFrame:CGRectMake(0, 0, 420, [BFPostAttachmentView heightForPost:post width:420 truncateMessage:false])];
+    postAttachmentView.truncateMessage = false;
+    postAttachmentView.post = post;
+    [postAttachmentView layoutSubviews];
     
-    return [BFViewExporter imageForCell:cell size:frame.size];
+    return [BFViewExporter imageForView:postAttachmentView container:true];
 }
 + (UIImage *)imageForCamp:(Camp *)camp {
     CGRect frame = CGRectMake(0, 0, 360, [BFCampAttachmentView heightForCamp:camp width:360]);
     BFCampAttachmentView *campAttachmentView = [[BFCampAttachmentView alloc] initWithCamp:camp frame:frame];
-    campAttachmentView.backgroundColor = [UIColor whiteColor];
     
     return [BFViewExporter imageForView:campAttachmentView];
 }
 + (UIImage *)imageForUser:(User *)user {
     CGRect frame = CGRectMake(0, 0, 360, [BFIdentityAttachmentView heightForIdentity:user width:360]);
     BFIdentityAttachmentView *userAttachmentView = [[BFIdentityAttachmentView alloc] initWithIdentity:user frame:frame];
-    userAttachmentView.backgroundColor = [UIColor whiteColor];
     
     return [BFViewExporter imageForView:userAttachmentView];
 }
@@ -1410,8 +1403,7 @@ static Launcher *launcher;
         UIImage *stickerImage = [BFViewExporter imageForView:snapchatShareView container:false];
         
         // Assign sticker image asset and attribution link URL to pasteboard
-        NSArray *pasteboardItems = @[@{@"com.instagram.sharedSticker.backgroundImage": [UIImage imageNamed:@"InstagramShareBG"],
-                                         @"com.instagram.sharedSticker.stickerImage" : stickerImage,
+        NSArray *pasteboardItems = @[@{@"com.instagram.sharedSticker.stickerImage" : stickerImage,
                                        @"com.instagram.sharedSticker.backgroundTopColor" : [@"#" stringByAppendingString:user.attributes.color],
                                        @"com.instagram.sharedSticker.backgroundBottomColor" : [@"#" stringByAppendingString:[UIColor toHex:[UIColor lighterColorForColor:[UIColor fromHex:user.attributes.color] amount:0.3]]],
                                        @"com.instagram.sharedSticker.contentURL" : [NSString stringWithFormat:@"https://bonfire.camp/download"]}];
@@ -1432,8 +1424,7 @@ static Launcher *launcher;
         UIImage *stickerImage = [BFViewExporter imageForView:snapchatShareView container:false];
         
     // Assign sticker image asset and attribution link URL to pasteboard
-        NSArray *pasteboardItems = @[@{@"com.instagram.sharedSticker.backgroundImage": [UIImage imageNamed:@"InstagramShareBG"],
-                                         @"com.instagram.sharedSticker.stickerImage" : stickerImage,
+        NSArray *pasteboardItems = @[@{@"com.instagram.sharedSticker.stickerImage" : stickerImage,
                                        @"com.instagram.sharedSticker.backgroundTopColor" : [@"#" stringByAppendingString:user.attributes.color],
                                        @"com.instagram.sharedSticker.backgroundBottomColor" : [@"#" stringByAppendingString:[UIColor toHex:[UIColor lighterColorForColor:[UIColor fromHex:user.attributes.color] amount:0.3]]],
                                        @"com.instagram.sharedSticker.contentURL" : [NSString stringWithFormat:@"https://bonfire.camp/u/%@", user.identifier]}];
@@ -1456,8 +1447,7 @@ static Launcher *launcher;
         UIImage *stickerImage = [BFViewExporter imageForView:snapchatShareView container:false];
         
     // Assign sticker image asset and attribution link URL to pasteboard
-        NSArray *pasteboardItems = @[@{@"com.instagram.sharedSticker.backgroundImage": [UIImage imageNamed:@"InstagramShareBG"],
-                                         @"com.instagram.sharedSticker.stickerImage" : stickerImage,
+        NSArray *pasteboardItems = @[@{@"com.instagram.sharedSticker.stickerImage" : stickerImage,
                                        @"com.instagram.sharedSticker.backgroundTopColor" : [@"#" stringByAppendingString:camp.attributes.color],
                                        @"com.instagram.sharedSticker.backgroundBottomColor" : [@"#" stringByAppendingString:[UIColor toHex:[UIColor lighterColorForColor:[UIColor fromHex:camp.attributes.color] amount:0.3]]],
                                        @"com.instagram.sharedSticker.contentURL" : [NSString stringWithFormat:@"https://bonfire.camp/c/%@", camp.identifier]}];
@@ -1473,9 +1463,8 @@ static Launcher *launcher;
 + (UIView *)shareViewForObject:(id)object showSwipeUp:(BOOL)showSwipeUp {
     UIView *container = [UIView new];
     
-    UIView *contentView = [[UIView alloc] initWithFrame:CGRectMake(0, 128, 400, 404)];
+    UIView *contentView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 420, 532)];
     contentView.backgroundColor = [UIColor whiteColor];
-    contentView.layer.cornerRadius = 66.f;
     contentView.layer.shadowOffset = CGSizeMake(0, 4.f);
     contentView.layer.shadowColor = [UIColor blackColor].CGColor;
     contentView.layer.shadowRadius = 8.f;
@@ -1485,16 +1474,16 @@ static Launcher *launcher;
     }
     [container addSubview:contentView];
     
-    UIView *imageViewContainer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 374, 374)];
+    UIView *imageViewContainer = [[UIView alloc] initWithFrame:CGRectMake(0, 56, 360, 360)];
     imageViewContainer.backgroundColor = [UIColor whiteColor];
     imageViewContainer.layer.cornerRadius = imageViewContainer.frame.size.width / 2;
     imageViewContainer.layer.shadowOffset = CGSizeMake(0, 6);
     imageViewContainer.layer.shadowColor = [UIColor blackColor].CGColor;
     imageViewContainer.layer.shadowRadius = 10.f;
-    imageViewContainer.layer.shadowOpacity = 0.08f;
+    imageViewContainer.layer.shadowOpacity = 0.12f;
     [container addSubview:imageViewContainer];
     
-    BFAvatarView *avatar = [[BFAvatarView alloc] initWithFrame:CGRectMake(24, 24, imageViewContainer.frame.size.width - (24 * 2), imageViewContainer.frame.size.height - (24 * 2))];
+    BFAvatarView *avatar = [[BFAvatarView alloc] initWithFrame:CGRectMake(16, 16, imageViewContainer.frame.size.width - (16 * 2), imageViewContainer.frame.size.height - (16 * 2))];
     avatar.dimsViewOnTap = false;
     [imageViewContainer addSubview:avatar];
     
@@ -1510,7 +1499,7 @@ static Launcher *launcher;
         [container addSubview:bonfireLogo];
     }
     
-    UILabel *titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, imageViewContainer.frame.origin.y + imageViewContainer.frame.size.height + 18 - contentView.frame.origin.y, 1, 84)];
+    UILabel *titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, imageViewContainer.frame.origin.y + imageViewContainer.frame.size.height + 24 - contentView.frame.origin.y, 1, 84)];
     titleLabel.textColor = [UIColor blackColor];
     titleLabel.font = [UIFont systemFontOfSize:70.f weight:UIFontWeightHeavy];
     titleLabel.textAlignment = NSTextAlignmentCenter;
@@ -1524,7 +1513,7 @@ static Launcher *launcher;
         titleLabel.text = user.attributes.displayName;
         
         tag = user.attributes.identifier ? [@"@" stringByAppendingString:user.attributes.identifier] : @"";
-//        color = [UIColor fromHex:user.attributes.color adjustForOptimalContrast:true];
+        color = [UIColor fromHex:user.attributes.color adjustForOptimalContrast:true];
     }
     else if ([object isKindOfClass:[Bot class]]) {
         Bot *bot = (Bot *)object;
@@ -1532,7 +1521,7 @@ static Launcher *launcher;
         titleLabel.text = bot.attributes.displayName;
         
         tag = bot.attributes.identifier ? [@"@" stringByAppendingString:bot.attributes.identifier] : @"";
-//        color = [UIColor fromHex:bot.attributes.color adjustForOptimalContrast:true];
+        color = [UIColor fromHex:bot.attributes.color adjustForOptimalContrast:true];
     }
     else if ([object isKindOfClass:[Camp class]]) {
         Camp *camp = (Camp *)object;
@@ -1540,7 +1529,7 @@ static Launcher *launcher;
         titleLabel.text = camp.attributes.title;
         
         tag = camp.attributes.identifier ? [@"#" stringByAppendingString:camp.attributes.identifier] : @"";
-//        color = [UIColor fromHex:camp.attributes.color adjustForOptimalContrast:true];
+        color = [UIColor fromHex:camp.attributes.color adjustForOptimalContrast:true];
     }
     else {
         return nil;
@@ -1551,11 +1540,11 @@ static Launcher *launcher;
     // add the message label
     UILabel *tagLabel;
     if (tag.length > 0) {
-        tagLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, titleLabel.frame.origin.y + titleLabel.frame.size.height + 16, contentView.frame.size.width, 67)];
+        tagLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, titleLabel.frame.origin.y + titleLabel.frame.size.height + 8, contentView.frame.size.width, 67)];
         tagLabel.text = tag;
         tagLabel.textAlignment = NSTextAlignmentCenter;
-        tagLabel.textColor = [UIColor bonfireSecondaryColor];
-        tagLabel.font = [UIFont systemFontOfSize:56.f weight:UIFontWeightBold];
+        tagLabel.textColor = color;
+        tagLabel.font = [UIFont systemFontOfSize:48.f weight:UIFontWeightHeavy];
         CGFloat messageLabelWidth = ceilf([tagLabel.text boundingRectWithSize:CGSizeMake(CGFLOAT_MAX, tagLabel.frame.size.height) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName: tagLabel.font} context:nil].size.width);
         SetWidth(tagLabel, messageLabelWidth + (128 * 2));
         [contentView addSubview:tagLabel];
@@ -1575,6 +1564,7 @@ static Launcher *launcher;
     
     // resize the content view
     contentView.frame = CGRectMake(contentView.frame.origin.x, contentView.frame.origin.y,  MAX(MAX(MAX(titleLabel.frame.size.width, tagLabel.frame.size.width), imageViewContainer.frame.size.width + (32 * 2)), 680), swipeUpIcon.frame.origin.y + swipeUpIcon.frame.size.height + 48);
+    [launcher continuityRadiusForView:contentView withRadius:40.f];
         
     // center all the views !
     imageViewContainer.center = CGPointMake(contentView.center.x, imageViewContainer.center.y);
@@ -1602,7 +1592,7 @@ static Launcher *launcher;
     
     KSPhotoBrowser *browser = [KSPhotoBrowser browserWithPhotoItems:items selectedIndex:0];
     browser.bounces = true;
-    browser.backgroundStyle = KSPhotoBrowserBackgroundStyleBlack;
+//    browser.backgroundStyle = KSPhotoBrowserBackgroundStyleBlack;
     browser.dismissalStyle = KSPhotoBrowserInteractiveDismissalStyleSlide;
     browser.modalPresentationCapturesStatusBarAppearance = true;
     [browser showFromViewController:[Launcher topMostViewController]];
@@ -1831,6 +1821,15 @@ static NSString *const iOSAppStoreURLFormat = @"itms-apps://itunes.apple.com/Web
 //    }
     
     return animationController;
+}
+
+- (void)continuityRadiusForView:(UIView *)sender withRadius:(CGFloat)radius {
+    CAShapeLayer * maskLayer = [CAShapeLayer layer];
+    maskLayer.path = [UIBezierPath bezierPathWithRoundedRect:sender.bounds
+                                           byRoundingCorners:UIRectCornerBottomLeft|UIRectCornerBottomRight|UIRectCornerTopLeft|UIRectCornerTopRight
+                                                 cornerRadii:CGSizeMake(radius, radius)].CGPath;
+    
+    sender.layer.mask = maskLayer;
 }
 
 @end

@@ -31,10 +31,8 @@
     int previousTableViewYOffset;
 }
 
-@property (nonatomic) BOOL loading;
 @property (nonatomic) BOOL loadingMore;
 
-@property (nonatomic, strong) BFVisualErrorView *errorView;
 @property CGFloat minHeaderHeight;
 @property CGFloat maxHeaderHeight;
 @property (nonatomic, assign) NSMutableArray *conversation;
@@ -56,12 +54,8 @@ static NSString * const expandRepliesCellIdentifier = @"expandRepliesCell";
     // Do any additional setup after loading the view.
         
     self.view.backgroundColor = [UIColor tableViewBackgroundColor];
-    
-    NSString *themeCSS = self.link.attributes.attribution.attributes.color;
-    self.theme = (themeCSS.length == 0) ? [UIColor bonfireGrayWithLevel:800] : [UIColor fromHex:themeCSS];
         
     [self setupTableView];
-    [self setupErrorView];
     
     self.view.tintColor = self.theme;
     [self.imagePreviewView viewWithTag:10].backgroundColor = self.view.tintColor;
@@ -188,10 +182,6 @@ static NSString * const expandRepliesCellIdentifier = @"expandRepliesCell";
     
     // TODO: implement proper method
     if (tempPost != nil && [tempPost.attributes.attachments.link.identifier isEqualToString:self.link.identifier]) {
-        //        self.errorView.hidden = true;
-        //
-        //        [self.bf_tableView.stream addTempPost:tempPost];
-        //        [self.bf_tableView refreshAtTop];
         if (self.navigationController && [self.navigationController isKindOfClass:[SimpleNavigationController class]]) {
             [(SimpleNavigationController *)self.navigationController setProgress:0.7 animated:YES];
         }
@@ -216,56 +206,15 @@ static NSString * const expandRepliesCellIdentifier = @"expandRepliesCell";
     }
 }
 - (void)newPostFailed:(NSNotification *)notification {
-    // TODO: Allow tap to retry for posts
-    Post *tempPost = notification.object;
-    
-    // TODO: implement proper method
-//    if (tempPost != nil && [tempPost.attributes.parentId isEqualToString:self.post.identifier] && tempPost.attributes.parentId.length > 0) {
-//        // TODO: Check for image as well
-//        [self.stream removeTempPost:tempPost.tempId];
-//        if (self.post.attributes.summaries.counts.replies > 0 && self.tableView.stream.components.count == 0) {
-//            self.post.attributes.summaries.counts.replies = 0;
-//        }
-//
-//        [self.tableView reloadData];
-//        self.errorView.hidden = (self.tableView.stream.components.count != 0);
-//    }
+
 }
 
-#pragma mark - Load post
-- (void)setupParentPostScrollIndicator {
-    self.parentPostScrollIndicator = [[TappableView alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 51 - 12, self.tableView.adjustedContentInset.top - 29 - 12, 61, 39)];
-    self.parentPostScrollIndicator.backgroundColor = [[UIColor contentBackgroundColor] colorWithAlphaComponent:0.9];
-    self.parentPostScrollIndicator.layer.cornerRadius = self.parentPostScrollIndicator.frame.size.height / 2;
-    self.parentPostScrollIndicator.layer.masksToBounds = true;
-    [self.parentPostScrollIndicator bk_whenTapped:^{
-        [self.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:YES];
-    }];
-    UIImageView *imageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"parentPostScrollIndicator"]];
-    imageView.tintColor = [UIColor bonfireSecondaryColor];
-    imageView.frame = CGRectMake(self.parentPostScrollIndicator.frame.size.width / 2 - (imageView.image.size.width / 2), self.parentPostScrollIndicator.frame.size.height / 2 - (imageView.image.size.height / 2), imageView.image.size.width, imageView.image.size.height);
-    imageView.contentMode = UIViewContentModeCenter;
-    imageView.userInteractionEnabled = false;
-    [self.parentPostScrollIndicator addSubview:imageView];
-    
-    self.parentPostScrollIndicator.alpha = 0;
-    [self.view addSubview:self.parentPostScrollIndicator];
-}
-- (void)showParentPostScrollIndicator {
-    [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
-        self.parentPostScrollIndicator.frame = CGRectMake(self.parentPostScrollIndicator.frame.origin.x, self.tableView.adjustedContentInset.top + 12 - 6, self.parentPostScrollIndicator.frame.size.width, self.parentPostScrollIndicator.frame.size.height);
-        self.parentPostScrollIndicator.alpha = 1;
-    } completion:nil];
-}
-- (void)hideParentPostScrollIndicator {
-    [UIView animateWithDuration:0.8f delay:0 usingSpringWithDamping:0.6f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
-        self.parentPostScrollIndicator.frame = CGRectMake(self.parentPostScrollIndicator.frame.origin.x, self.tableView.adjustedContentInset.top - self.parentPostScrollIndicator.frame.size.height - 12, self.parentPostScrollIndicator.frame.size.width, self.parentPostScrollIndicator.frame.size.height);
-        self.parentPostScrollIndicator.alpha = 0;
-    } completion:nil];
-}
+#pragma mark - Load link
+
 - (void)loadLink {
     if (self.link) {
         // fill in post info
+        self.tableView.visualError = nil;
         [self.tableView reloadData];
         [self.tableView layoutSubviews];
         
@@ -275,15 +224,9 @@ static NSString * const expandRepliesCellIdentifier = @"expandRepliesCell";
         [self loadLinkQuotes];
     }
     else {
-        // post not found
-        self.tableView.hidden = true;
+        self.tableView.visualError = [BFVisualError visualErrorOfType:ErrorViewTypeNotFound title:@"Link Not Found" description:@"We couldn't find the link\nyou were looking for" actionTitle:nil actionBlock:nil];
         
-        self.errorView.hidden = false;
-        
-        BFVisualError *visualError = [BFVisualError visualErrorOfType:ErrorViewTypeNotFound title:@"Link Not Found" description:@"We couldn't find the link\nyou were looking for" actionTitle:nil actionBlock:nil];
-        self.errorView.visualError = visualError;
-        
-        [self positionErrorView];
+        [self.tableView reloadData];
         
         [UIView animateWithDuration:0.25f delay:0 usingSpringWithDamping:0.72f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
             ((SimpleNavigationController *)self.navigationController).rightActionView.alpha = 0;
@@ -302,24 +245,17 @@ static NSString * const expandRepliesCellIdentifier = @"expandRepliesCell";
     [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSDictionary *responseData = (NSDictionary *)responseObject[@"data"];
         
-        self.errorView.hidden = true;
-        
-        //BFContext *contextBefore = self.link.attributes.context;
+        self.tableView.visualError = nil;
         
         // first page
         NSError *postError;
         
         self.link = [[BFLink alloc] initWithDictionary:responseData error:&postError];
         
-//        if (contextBefore && !self.link.attributes.context) {
-//            self.link.attributes.context = contextBefore;
-//        }
-        
         // update reply ability using camp
         [self updateComposeInputView];
         
         // update the theme color (in case we didn't know the Camp/Profile color before
-        [self updateTheme];
         [self.tableView reloadData];
         
         if ([self.tableView isHidden]) {
@@ -333,20 +269,22 @@ static NSString * const expandRepliesCellIdentifier = @"expandRepliesCell";
         
         NSHTTPURLResponse *httpResponse = error.userInfo[AFNetworkingOperationFailingURLResponseErrorKey];
         NSInteger statusCode = httpResponse.statusCode;
+        NSInteger bonfireErrorCode = [error bonfireErrorCode];
         
-        if (statusCode == 404) {
+        if (statusCode == 404 || bonfireErrorCode == LINK_NOT_EXISTS) {
             [[NSNotificationCenter defaultCenter] postNotificationName:@"LinkDeleted" object:self.link];
+            [self showLinkNotFound];
+            
+            return;
         }
-        else {
-            // [self.errorView updateType:ErrorViewTypeGeneral];
-            // [self.errorView updateTitle:@"Error Loading Post"];
-            // [self.errorView updateDescription:@"Check your network settings and tap here to try again"];
+        
+        [self hideComposeInputView];
+        
+        if (!self.link.attributes &&  self.tableView.stream.components.count == 0) {
+            self.tableView.visualError = [BFVisualError visualErrorOfType:ErrorViewTypeNotFound title:@"Error Loading Link" description:@"Check your network settings and try again" actionTitle:nil actionBlock:nil];
         }
         
         self.loading = false;
-        /*self.tableView.loading = false;
-         self.tableView.loadingMore = false;
-         self.tableView.error = true;*/
         [self.tableView reloadData];
     }];
 }
@@ -355,77 +293,27 @@ static NSString * const expandRepliesCellIdentifier = @"expandRepliesCell";
         [self getPostsWithCursor:StreamPagingCursorTypeNone];
     }
     else {
-        [self hideComposeInputView];
-        
-        self.errorView.hidden = false;
-        
-        self.loading = false;
-        /*self.tableView.loading = false;
-        self.tableView.loadingMore = false;*/
-        [self.tableView reloadData];
-        
-        ErrorViewType errorType = ErrorViewTypeGeneral;
-        NSString *errorTitle = @"";
-        NSString *errorDescription = @"";
-        
-        // TODO: use actual camp here
-        Camp *camp = nil; //self.link.attributes.postedIn;
-        if (camp != nil) {
-            if (camp.attributes.isSuspended) { // Camp has been blocked
-                errorType = ErrorViewTypeBlocked;
-                errorTitle = @"Post Not Available";
-                errorDescription = @"This post is no longer available";
-            }
-            else if ([camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_BLOCKED]) { // blocked from Camp
-                errorType = ErrorViewTypeBlocked;
-                errorTitle = @"Blocked By Camp";
-                errorDescription = @"Your account is blocked from creating and viewing posts in this Camp";
-            }
-            else if ([camp isPrivate]) { // not blocked, not member
-                // private camp but not a member yet
-                errorType = ErrorViewTypeLocked;
-                errorTitle = @"Private Post";
-                if (camp.attributes.title.length > 0) {
-                    errorDescription = @"You must be a member to view this post";
-                }
-                else {
-                    errorDescription = [NSString stringWithFormat:@"Request access to join the %@ Camp to view this post", camp.attributes.title];
-                }
-            }
-            else {
-                self.tableView.hidden = true;
-                self.errorView.hidden = false;
-                
-                errorType = ErrorViewTypeNotFound;
-                errorTitle = @"Post Not Found";
-                errorDescription = @"We couldn’t find the post\nyou were looking for";
-                
-                [UIView animateWithDuration:0.25f delay:0 usingSpringWithDamping:0.72f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
-                    ((SimpleNavigationController *)self.navigationController).rightActionView.alpha = 0;
-                } completion:^(BOOL finished) {
-                }];
-            }
-        }
-        else {
-            self.tableView.hidden = true;
-            self.errorView.hidden = false;
-            
-            errorTitle = @"Post Not Found";
-            errorDescription = @"We couldn’t find the post\nyou were looking for";
-            errorType = ErrorViewTypeNotFound;
-            
-            [UIView animateWithDuration:0.25f delay:0 usingSpringWithDamping:0.72f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
-                ((SimpleNavigationController *)self.navigationController).rightActionView.alpha = 0;
-            } completion:^(BOOL finished) {
-            }];
-        }
-        
-        // update error view
-        BFVisualError *visualError = [BFVisualError visualErrorOfType:errorType title:errorTitle description:errorDescription actionTitle:nil actionBlock:nil];
-        self.errorView.visualError = visualError;
-        
-        [self positionErrorView];
+        [self showLinkNotFound];
     }
+}
+- (void)showLinkNotFound {
+    [self hideComposeInputView];
+            
+    NSString *errorTitle = @"Link Not Found";
+    NSString *errorDescription = @"We couldn’t find the link\nyou were looking for";
+    ErrorViewType errorType = ErrorViewTypeNotFound;
+    
+    [UIView animateWithDuration:0.25f delay:0 usingSpringWithDamping:0.72f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        ((SimpleNavigationController *)self.navigationController).rightActionView.alpha = 0;
+    } completion:^(BOOL finished) {
+    }];
+    
+    // update error view
+    BFVisualError *visualError = [BFVisualError visualErrorOfType:errorType title:errorTitle description:errorDescription actionTitle:nil actionBlock:nil];
+    self.tableView.visualError = visualError;
+    
+    self.loading = false;
+    [self.tableView reloadData];
 }
 - (void)getPostsWithCursor:(StreamPagingCursorType)cursorType {
     NSString *url = [NSString stringWithFormat:@"links/%@/stream", self.link.identifier];
@@ -457,11 +345,8 @@ static NSString * const expandRepliesCellIdentifier = @"expandRepliesCell";
     
     self.tableView.loading = (self.tableView.stream.components.count == 0);
     if (self.tableView.loading) {
-        self.errorView.hidden = true;
+        self.tableView.visualError = nil;
         [self.tableView hardRefresh:false];
-        
-        self.errorView.hidden = true;
-        self.tableView.hidden = false;
     }
     
     [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
@@ -489,7 +374,13 @@ static NSString * const expandRepliesCellIdentifier = @"expandRepliesCell";
             }
         }
         
-        self.errorView.hidden = (self.tableView.stream.components.count > 0);
+        if (self.tableView.stream.components.count == 0) {
+            // no shares
+            self.tableView.visualError = [BFVisualError visualErrorOfType:ErrorViewTypeNotFound title:@"No Quotes Yet" description:@"Be the first to share the link below" actionTitle:nil actionBlock:nil];
+        }
+        else {
+            self.tableView.visualError = nil;
+        }
         
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(CGFLOAT_MIN * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
             [self.tableView reloadData];
@@ -501,32 +392,19 @@ static NSString * const expandRepliesCellIdentifier = @"expandRepliesCell";
         
         NSHTTPURLResponse *httpResponse = error.userInfo[AFNetworkingOperationFailingURLResponseErrorKey];
         NSInteger statusCode = httpResponse.statusCode;
-        
-        NSData *failingData = (NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey];
-        NSInteger bonfireErrorCode = 0;
-        if (failingData) {
-            id json = [NSJSONSerialization JSONObjectWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] options:0 error:nil];
-            if (json && json[@"error"] && json[@"error"][@"code"]) {
-                bonfireErrorCode = [json[@"error"][@"code"] integerValue];
-            }
-        }
+        NSInteger bonfireErrorCode = [error bonfireErrorCode];
         
         if (statusCode == 404 || bonfireErrorCode == LINK_NOT_EXISTS) {
-            [self.navigationController dismissViewControllerAnimated:true completion:^{
-                BFAlertController *actionSheet = [BFAlertController alertControllerWithTitle:@"Link Doesn't Exist" message:@"The link you're looking for doesn't exist" preferredStyle:BFAlertControllerStyleAlert];
-                
-                BFAlertAction *cancelActionSheet = [BFAlertAction actionWithTitle:@"Okay" style:BFAlertActionStyleCancel handler:nil];
-                [actionSheet addAction:cancelActionSheet];
-                
-                [[Launcher topMostViewController] presentViewController:actionSheet animated:YES completion:nil];
-            }];
+            [self showLinkNotFound];
+            
             return;
         }
+        
+        self.tableView.visualError = [BFVisualError visualErrorOfType:ErrorViewTypeNotFound title:@"Error Loading Quotes" description:@"Check your network settings and try again" actionTitle:nil actionBlock:nil];
         
         self.loading = false;
         self.loadingMore = false;
         
-        self.tableView.userInteractionEnabled = true;
         [self.tableView reloadData];
     }];
 }
@@ -564,6 +442,18 @@ static NSString * const expandRepliesCellIdentifier = @"expandRepliesCell";
         [Launcher expandImageView:self.imagePreviewView];
     }];
     [self.view insertSubview:self.imagePreviewView belowSubview:self.tableView];
+    
+    UITapGestureRecognizer *viewTapGesture = [[UITapGestureRecognizer alloc] bk_initWithHandler:^(UIGestureRecognizer *sender, UIGestureRecognizerState state, CGPoint location) {
+        if (state == UIGestureRecognizerStateEnded) {
+            CGPoint converted = [self.imagePreviewView convertPoint:location fromView:self.view];
+            if (CGRectContainsPoint(self.imagePreviewView.frame, converted)) {
+                [Launcher expandImageView:self.imagePreviewView];
+            }
+        }
+    }];
+    viewTapGesture.cancelsTouchesInView = false;
+    [self.view addGestureRecognizer:viewTapGesture];
+    
     UIView *overlayView = [[UIView alloc] initWithFrame:self.imagePreviewView.bounds];
     overlayView.backgroundColor = self.theme;
     overlayView.alpha = 0;
@@ -822,35 +712,24 @@ static NSString * const expandRepliesCellIdentifier = @"expandRepliesCell";
 
 #pragma mark - Misc.
 - (void)updateTheme {
-    UIColor *theme = [UIColor fromHex:self.link.attributes.attribution.attributes.color];
-    
-    self.theme = theme;
-    self.view.tintColor = theme;
-    self.navigationController.view.tintColor = theme;
-    self.tableView.tintColor = theme;
-    
+    self.view.tintColor = self.theme;
+    self.navigationController.view.tintColor = self.theme;
+    self.tableView.tintColor = self.theme;
+        
     [UIView animateWithDuration:0.35f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
         if (((SimpleNavigationController *)self.navigationController).topViewController == self) {
-            [(SimpleNavigationController *)self.navigationController updateBarColor:theme animated:false];
+            [(SimpleNavigationController *)self.navigationController updateBarColor:self.theme animated:false];
         }
         
-        self.composeInputView.theme = theme;
+        self.composeInputView.theme = self.theme;
         
-        self.imagePreviewView.backgroundColor = theme;
+        self.imagePreviewView.backgroundColor = self.theme;
     } completion:^(BOOL finished) {
     }];
     
     [self.imagePreviewView viewWithTag:10].backgroundColor = self.theme;
 }
 
-- (void)setupErrorView {
-    BFVisualError *visualError = [BFVisualError visualErrorOfType:ErrorViewTypeNotFound title:@"Error loading quotes" description:@"Check your network settings and try again" actionTitle:nil actionBlock:nil];
-    
-    self.errorView = [[BFVisualErrorView alloc] initWithVisualError:visualError];
-    [self positionErrorView];
-    self.errorView.hidden = true;
-    [self.tableView addSubview:self.errorView];
-}
 - (BOOL)canViewPost {
     Camp *camp = nil; //self.link.attributes.postedIn;
     if (camp) {
@@ -865,11 +744,6 @@ static NSString * const expandRepliesCellIdentifier = @"expandRepliesCell";
     }
     
     return false;
-}
-- (void)positionErrorView {
-    LinkPostCell *headerCell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
-    CGFloat heightOfHeader = headerCell.frame.size.height;
-    self.errorView.frame = CGRectMake(self.errorView.frame.origin.x, heightOfHeader + 48, self.errorView.frame.size.width, self.errorView.frame.size.height);
 }
 - (void)updateContentInsets {
     CGFloat topPadding = UIApplication.sharedApplication.keyWindow.safeAreaInsets.bottom;
@@ -895,6 +769,14 @@ static NSString * const expandRepliesCellIdentifier = @"expandRepliesCell";
         _link = link;
         
         [self updateImagePreviewView];
+        
+        NSString *themeCSS = @"ff513c";
+        if (self.link.attributes.attribution) {
+            themeCSS = self.link.attributes.attribution.attributes.color;
+        }
+        self.theme = [UIColor fromHex:themeCSS];
+        
+        [self updateTheme];
     }
 }
 

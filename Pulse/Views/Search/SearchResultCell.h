@@ -12,13 +12,16 @@
 @interface SearchResultCell : UITableViewCell
 
 // ---- OPTIONS ----
-
 @property (nonatomic) BOOL showActionButton;
 @property (nonatomic) BOOL hideCampMemberCount;
 
 
 // ---- VALUES ----
+@property (nonatomic, strong) Camp *camp;
+@property (nonatomic, strong) User *user;
+@property (nonatomic, strong) Bot *bot;
 
+// ---- VIEWS ----
 @property (nonatomic, strong) BFAvatarView *profilePicture;
 @property (nonatomic, strong) UIImageView *checkIcon;
 @property (nonatomic, strong) UIButton *actionButton;
@@ -26,10 +29,7 @@
 
 @property (nonatomic, strong) UIView *lineSeparator;
 
-@property (nonatomic, strong) Camp *camp;
-@property (nonatomic, strong) User *user;
-@property (nonatomic, strong) Bot *bot;
-
-// ---- VIEWS ----
+// ---- METHODS ----
++ (CGFloat)height;
 
 @end

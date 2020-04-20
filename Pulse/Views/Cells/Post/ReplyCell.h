@@ -10,8 +10,10 @@
 #import "PostActionsView.h"
 
 #define replyTextViewFont textViewFont
-#define REPLY_BUBBLE_INSETS UIEdgeInsetsMake(roundf(replyTextViewFont.pointSize*.4), roundf(replyTextViewFont.pointSize*.65), roundf(replyTextViewFont.pointSize*.4), roundf(replyTextViewFont.pointSize*.65))
-#define replyContentOffset UIEdgeInsetsMake(4, 12, 4, 12)
+#define replyNameLabelFont [UIFont systemFontOfSize:replyTextViewFont.pointSize-2.f weight:UIFontWeightSemibold]
+#define REPLY_BUBBLE_INSETS UIEdgeInsetsMake(roundf(replyTextViewFont.pointSize*.5), roundf(replyTextViewFont.pointSize*.65), roundf(replyTextViewFont.pointSize*.4), roundf(replyTextViewFont.pointSize*.65))
+#define REPLY_NAME_BOTTOM_PADDING 3
+#define replyContentOffset UIEdgeInsetsMake(4, 10, 4, 10)
 
 @interface ReplyCell : PostCell <UITextFieldDelegate, PostTextViewDelegate>
 

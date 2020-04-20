@@ -94,6 +94,7 @@
         self.titleLabel.textColor = [UIColor bonfirePrimaryColor];
         self.titleLabel.font = expandedLinkTitleLabelFont;
         self.titleLabel.hidden = true;
+        self.titleLabel.userInteractionEnabled = false;
         self.titleLabel.numberOfLines = 0;
         self.titleLabel.lineBreakMode = NSLineBreakByWordWrapping;
         [self.contentView addSubview:self.titleLabel];
@@ -102,6 +103,7 @@
         self.summaryLabel.font = expandedLinkTextViewFont;
         self.summaryLabel.textColor = [UIColor bonfirePrimaryColor];
         self.summaryLabel.numberOfLines = 0;
+        self.summaryLabel.userInteractionEnabled = false;
         self.summaryLabel.lineBreakMode = NSLineBreakByWordWrapping;
         [self.contentView addSubview:self.summaryLabel];
         
@@ -329,7 +331,7 @@
 + (CGFloat)heightForLink:(BFLink *)link width:(CGFloat)contentWidth {
     CGFloat height = 0; // image height
     
-    CGFloat postedInButtonHeight = 36;
+    CGFloat postedInButtonHeight = link.attributes.attribution ? 36 : 0;
     height += (postedInButtonHeight / 2);
     
     if (link.attributes.linkTitle.length > 0) {

@@ -43,10 +43,11 @@ static NSString * const memberCellIdentifier = @"MemberCell";
     self.navigationItem.hidesBackButton = true;
     self.view.backgroundColor = [UIColor tableViewBackgroundColor];
     
+    self.animateLoading = true;
+    self.loading = true;
+    
     [self setupTableView];
     [self setupErrorView];
-    
-    [self setSpinning:true];
     
     [self getUsersWithCursor:StreamPagingCursorTypeNone];
     
@@ -86,7 +87,13 @@ static NSString * const memberCellIdentifier = @"MemberCell";
 }
 
 - (void)getUsersWithCursor:(StreamPagingCursorType)cursorType {
-    NSString *url = [NSString stringWithFormat:@"users/%@/following", self.user.identifier];
+    NSString *url;
+    if ([self.user isCurrentIdentity]) {
+        url = @"users/me/friends";
+    }
+    else {
+        url = [NSString stringWithFormat:@"users/%@/mutual_friends", (self.user.identifier ? self.user.identifier : self.user.attributes.identifier)];
+    }
     
     NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
     
@@ -96,6 +103,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
             return;
         }
         
+        self.loading = false;
         self.loadingMoreUsers = true;
         [self.stream addLoadedCursor:nextCursor];
         [params setObject:nextCursor forKey:@"next_cursor"];
@@ -207,7 +215,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return 62;
+    return [SearchResultCell height];
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {

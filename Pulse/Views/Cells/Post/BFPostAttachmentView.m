@@ -43,6 +43,7 @@
 - (void)setup {
     [super setup];
     
+    self.truncateMessage = true;
 //    self.backgroundColor = [UIColor clearColor];
     
     self.avatarView = [[BFAvatarView alloc] initWithFrame:CGRectMake(POST_ATTACHMENT_EDGE_INSETS.left, POST_ATTACHMENT_EDGE_INSETS.top, POST_ATTACHMENT_HEADER_HEIGHT, POST_ATTACHMENT_HEADER_HEIGHT)];
@@ -127,7 +128,7 @@
 
 - (void)resizeHeight {
     CGFloat height = 0;
-    if (self.post) height = [BFPostAttachmentView heightForPost:self.post width:self.frame.size.width];
+    if (self.post) height = [BFPostAttachmentView heightForPost:self.post width:self.frame.size.width truncateMessage:self.truncateMessage];
     
     self.frame = CGRectMake(self.frame.origin.x, self.frame.origin.y, self.frame.size.width, height);
     self.contentView.frame = self.bounds;
@@ -176,7 +177,7 @@
         }
         
         // set message
-        self.textLabel.text = [BFPostAttachmentView attachmentMessageForPost:post];
+        self.textLabel.text = [BFPostAttachmentView attachmentMessageForPost:post truncateMessage:self.truncateMessage];
         
         // set image attachments
         self.imagesView.containerView.layer.cornerRadius = 0;
@@ -195,12 +196,15 @@
 }
 
 - (CGFloat)height {
-    return [BFPostAttachmentView heightForPost:self.post width:self.frame.size.width];
+    return [BFPostAttachmentView heightForPost:self.post width:self.frame.size.width truncateMessage:self.truncateMessage];
 }
 
 + (NSString *)attachmentMessageForPost:(Post *)post {
+    return [self attachmentMessageForPost:post truncateMessage:true];
+}
++ (NSString *)attachmentMessageForPost:(Post *)post truncateMessage:(BOOL)truncateMessage {
     if (post.attributes.simpleMessage.length > 0) {
-        return [post.attributes simpleMessageWithTruncationLimit:POST_ATTACHMENT_MESSAGE_TRUNCATION_LIMIT];
+        return [post.attributes simpleMessageWithTruncationLimit:truncateMessage?POST_ATTACHMENT_MESSAGE_TRUNCATION_LIMIT:1500];
     }
     
     NSInteger attachments = 0;
@@ -256,12 +260,15 @@
 }
 
 + (CGFloat)heightForPost:(Post *)post width:(CGFloat)width {
+    return [self heightForPost:post width:width truncateMessage:true];
+}
++ (CGFloat)heightForPost:(Post *)post width:(CGFloat)width truncateMessage:(BOOL)truncateMessage {
     CGFloat height = POST_ATTACHMENT_EDGE_INSETS.top;
     
     height += POST_ATTACHMENT_HEADER_HEIGHT;
     
     // message label
-    NSString *message = [BFPostAttachmentView attachmentMessageForPost:post];
+    NSString *message = [BFPostAttachmentView attachmentMessageForPost:post truncateMessage:truncateMessage];
     if (message.length > 0) {
         CGFloat textLabelHeight = ceilf([message boundingRectWithSize:CGSizeMake(width - POST_ATTACHMENT_EDGE_INSETS.left - POST_ATTACHMENT_EDGE_INSETS.right, CGFLOAT_MAX) options:(NSStringDrawingUsesFontLeading|NSStringDrawingUsesLineFragmentOrigin) attributes:@{NSFontAttributeName: POST_ATTACHMENT_MESSAGE_FONT} context:nil].size.height);
         height += 8 + textLabelHeight;
@@ -279,7 +286,6 @@
         
     return height;
 }
-
 
 - (nullable UIContextMenuConfiguration *)contextMenuInteraction:(nonnull UIContextMenuInteraction *)interaction configurationForMenuAtLocation:(CGPoint)location  API_AVAILABLE(ios(13.0)){
     if (self.post) {

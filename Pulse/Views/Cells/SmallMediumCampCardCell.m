@@ -103,21 +103,6 @@
     self.campTagLabel.trailingBuffer = 16.f;
     self.campTagLabel.textColor = [UIColor bonfirePrimaryColor];
     [self.contentView addSubview:self.campTagLabel];
-    
-    self.membersDetailsButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    self.membersDetailsButton.userInteractionEnabled = false;
-    self.membersDetailsButton.titleLabel.lineBreakMode = NSLineBreakByTruncatingTail;
-    self.membersDetailsButton.frame = CGRectMake(16, self.frame.size.height - 12 - 24, self.frame.size.width - 32, 24);
-    self.membersDetailsButton.titleLabel.font = [UIFont systemFontOfSize:9 weight:UIFontWeightRegular];
-    [self.membersDetailsButton setTitleColor:[UIColor bonfirePrimaryColor] forState:UIControlStateNormal];
-    [self.membersDetailsButton setImage:[[UIImage imageNamed:@"mini_members_icon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
-    self.membersDetailsButton.tintColor = [UIColor bonfireSecondaryColor];
-    [self.membersDetailsButton setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 4)];
-    [self.membersDetailsButton setTitleEdgeInsets:UIEdgeInsetsMake(0, 4, 0, 0)];
-    [self.membersDetailsButton setContentEdgeInsets:UIEdgeInsetsMake(0, 8, 0, 8)];
-    self.membersDetailsButton.backgroundColor = [UIColor bonfireDetailColor];
-    self.membersDetailsButton.layer.cornerRadius = self.membersDetailsButton.frame.size.height / 2;
-//    [self.contentView addSubview:self.membersDetailsButton];
 }
 
 - (void)layoutSubviews {
@@ -144,9 +129,6 @@
     if (![self.campTagLabel isHidden]) {
         self.campTagLabel.frame = CGRectMake(contentPadding, self.campTagLabel.frame.origin.y, contentWidth, self.campTagLabel.frame.size.height);
     }
-
-    CGFloat membersDetailsWidth = MIN(self.frame.size.width - (12 * 2), self.membersDetailsButton.intrinsicContentSize.width + self.membersDetailsButton.imageEdgeInsets.right);
-    self.membersDetailsButton.frame = CGRectMake(self.frame.size.width / 2 - (membersDetailsWidth / 2), self.frame.size.height - 12 - self.membersDetailsButton.frame.size.height, membersDetailsWidth, self.membersDetailsButton.frame.size.height);
     
     self.layer.shadowPath = [UIBezierPath bezierPathWithRoundedRect:self.bounds cornerRadius:self.layer.cornerRadius].CGPath;
     self.contentView.layer.shadowPath = [UIBezierPath bezierPathWithRoundedRect:self.bounds cornerRadius:self.layer.cornerRadius].CGPath;
@@ -205,8 +187,24 @@
         self.campTitleLabel.attributedText = displayNameAttributedString;
         
         if (camp.attributes.identifier.length > 0) {
-            self.campTagLabel.text = [NSString stringWithFormat:@"#%@", camp.attributes.identifier];
-            self.campTagLabel.textColor = [UIColor fromHex:camp.attributes.color adjustForOptimalContrast:true];
+            UIColor *color = [UIColor fromHex:camp.attributes.color adjustForOptimalContrast:true];
+            
+            NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] init];
+            
+            NSAttributedString *detailAttributedText = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"#%@", camp.attributes.identifier] attributes:@{NSForegroundColorAttributeName: color, NSFontAttributeName: self.campTagLabel.font}];
+            [attributedString appendAttributedString:detailAttributedText];
+            
+//            NSAttributedString *spacer = [[NSAttributedString alloc] initWithString:@" " attributes:@{NSFontAttributeName: self.campTagLabel.font}];
+//            if ([camp isPrivate]) {
+//                [attributedString appendAttributedString:spacer];
+//                [attributedString appendAttributedString:[self privateIconAttributedStringWithColor:color]];
+//            }
+//            else if ([self.camp isChannel])  {
+//                [attributedString appendAttributedString:spacer];
+//                [attributedString appendAttributedString:[self sourceIconAttributedStringWithColor:color]];
+//            }
+            
+            self.campTagLabel.attributedText = attributedString;
         }
         else if (camp.attributes.summaries.counts.postsNewForyou > 0) {
             NSInteger new = MAX(camp.attributes.summaries.counts.posts24hr, camp.attributes.summaries.counts.postsNewForyou);
@@ -214,15 +212,7 @@
             self.campTagLabel.textColor = [UIColor fromHex:@"0076FF" adjustForOptimalContrast:true];
         }
         else if ([camp isPrivate]) {
-            NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] init];
-            
-            NSTextAttachment *attachment = [[NSTextAttachment alloc] init];
-            attachment.image = [self colorImage:[UIImage imageNamed:@"details_label_private"] color:[UIColor bonfireSecondaryColor]];
-            CGFloat attachmentHeight = MIN(ceilf(self.campTagLabel.font.lineHeight * 0.7), attachment.image.size.height);
-            CGFloat attachmentWidth = attachmentHeight * (attachment.image.size.width / attachment.image.size.height);
-            [attachment setBounds:CGRectMake(0, roundf(self.campTagLabel.font.capHeight - attachmentHeight)/2.f + 0.5, attachmentWidth, attachmentHeight)];
-            NSAttributedString *attachmentString = [NSAttributedString attributedStringWithAttachment:attachment];
-            [attributedString appendAttributedString:attachmentString];
+            NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithAttributedString:[self privateIconAttributedStringWithColor:nil]];
                        
             NSAttributedString *detailAttributedText = [[NSAttributedString alloc] initWithString:@" Private" attributes:@{NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor], NSFontAttributeName: [UIFont systemFontOfSize:self.campTagLabel.font.pointSize weight:UIFontWeightBold]}];
             [attributedString appendAttributedString:detailAttributedText];
@@ -263,37 +253,16 @@
             self.campTagLabel.attributedText = attributedString;
         }
         else {
-            self.campTagLabel.text = @"";
+            NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithAttributedString:[self publicIconAttributedStringWithColor:nil]];
+                       
+            NSAttributedString *detailAttributedText = [[NSAttributedString alloc] initWithString:@" Public" attributes:@{NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor], NSFontAttributeName: [UIFont systemFontOfSize:self.campTagLabel.font.pointSize weight:UIFontWeightBold]}];
+            [attributedString appendAttributedString:detailAttributedText];
+            
+            self.campTagLabel.attributedText = attributedString;
         }
         self.campTagLabel.hidden = self.campTagLabel.attributedText.length == 0;
         
         self.campAvatar.camp = camp;
-        
-        // set details view up with members
-        BFDetailItem *detailItem;
-        
-        // set details view up with members
-        if ((camp.attributes.display.sourceLink || camp.attributes.display.sourceUser))  {
-            if (camp.attributes.display.sourceLink) {
-                detailItem = [[BFDetailItem alloc] initWithType:([camp isFeed] ? BFDetailItemTypeSourceLink_Feed : BFDetailItemTypeSourceLink) value:[NSString stringWithFormat:@"%@", camp.attributes.display.sourceLink.attributes.canonicalUrl] action:nil];
-            }
-            else if (camp.attributes.display.sourceUser) {
-                detailItem = [[BFDetailItem alloc] initWithType:([camp isFeed] ? BFDetailItemTypeSourceUser_Feed : BFDetailItemTypeSourceUser) value:[NSString stringWithFormat:@"%@", camp.attributes.display.sourceUser.attributes.identifier] action:nil];
-            }
-            
-            if ([self.camp isFeed]) {
-                [self.membersDetailsButton setImage:[[UIImage imageNamed:@"mini_feed_icon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
-            }
-            else {
-                [self.membersDetailsButton setImage:[[UIImage imageNamed:@"mini_source_icon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
-            }
-        }
-        else {
-            detailItem = [[BFDetailItem alloc] initWithType:[camp isChannel]?BFDetailItemTypeSubscribers:BFDetailItemTypeMembers value:[NSString stringWithFormat:@"%ld", (long)camp.attributes.summaries.counts.members] action:nil];
-            [self.membersDetailsButton setImage:[[UIImage imageNamed:@"mini_members_icon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
-        }
-        
-        [self.membersDetailsButton setTitle:[detailItem prettyValue] forState:UIControlStateNormal];
         
         if (!self.tapToJoin) {
             BOOL useText = false;
@@ -339,6 +308,45 @@
     }
 }
 
+- (NSAttributedString *)publicIconAttributedStringWithColor:(UIColor * _Nullable)tintColor {
+    if (!tintColor) tintColor = [UIColor bonfireSecondaryColor];
+    
+    NSTextAttachment *attachment = [[NSTextAttachment alloc] init];
+    attachment.image = [self colorImage:[UIImage imageNamed:@"details_label_public"] color:tintColor];
+    CGFloat attachmentHeight = MIN(ceilf(self.campTagLabel.font.lineHeight * 0.75), attachment.image.size.height);
+    CGFloat attachmentWidth = attachmentHeight * (attachment.image.size.width / attachment.image.size.height);
+    [attachment setBounds:CGRectMake(0, roundf(self.campTagLabel.font.capHeight - attachmentHeight)/2.f + 0.5, attachmentWidth, attachmentHeight)];
+    NSAttributedString *attachmentString = [NSAttributedString attributedStringWithAttachment:attachment];
+    
+    return attachmentString;
+}
+
+- (NSAttributedString *)privateIconAttributedStringWithColor:(UIColor * _Nullable)tintColor {
+    if (!tintColor) tintColor = [UIColor bonfireSecondaryColor];
+    
+    NSTextAttachment *attachment = [[NSTextAttachment alloc] init];
+    attachment.image = [self colorImage:[UIImage imageNamed:@"details_label_private"] color:tintColor];
+    CGFloat attachmentHeight = MIN(ceilf(self.campTagLabel.font.lineHeight * 0.75), attachment.image.size.height);
+    CGFloat attachmentWidth = attachmentHeight * (attachment.image.size.width / attachment.image.size.height);
+    [attachment setBounds:CGRectMake(0, roundf(self.campTagLabel.font.capHeight - attachmentHeight)/2.f + 0.5, attachmentWidth, attachmentHeight)];
+    NSAttributedString *attachmentString = [NSAttributedString attributedStringWithAttachment:attachment];
+    
+    return attachmentString;
+}
+
+- (NSAttributedString *)sourceIconAttributedStringWithColor:(UIColor * _Nullable)tintColor {
+    if (!tintColor) tintColor = [UIColor bonfireSecondaryColor];
+    
+    NSTextAttachment *attachment = [[NSTextAttachment alloc] init];
+    attachment.image = [self colorImage:[UIImage imageNamed:@"mini_source_icon"] color:tintColor];
+    CGFloat attachmentHeight = MIN(ceilf(self.campTagLabel.font.lineHeight * 1.1), attachment.image.size.height);
+    CGFloat attachmentWidth = attachmentHeight * (attachment.image.size.width / attachment.image.size.height);
+    [attachment setBounds:CGRectMake(0, roundf(self.campTagLabel.font.capHeight - attachmentHeight)/2.f + 0.5, attachmentWidth, attachmentHeight)];
+    NSAttributedString *attachmentString = [NSAttributedString attributedStringWithAttachment:attachment];
+    
+    return attachmentString;
+}
+
 - (void)setTapToJoin:(BOOL)tapToJoin {
     if (_tapToJoin != tapToJoin) {
         _tapToJoin = tapToJoin;
@@ -381,11 +389,9 @@
         [UIView animateWithDuration:0.5f delay:0 options:(UIViewAnimationOptionCurveEaseOut|UIViewAnimationOptionAllowUserInteraction|UIViewAnimationOptionBeginFromCurrentState) animations:^{
             if (joined) {
                 self.contentView.backgroundColor = [[UIColor fromHex:self.camp.attributes.color] colorWithAlphaComponent:0.06];
-                self.membersDetailsButton.backgroundColor = self.backgroundColor;
             }
             else {
                 self.contentView.backgroundColor = [UIColor cardBackgroundColor];
-                self.membersDetailsButton.backgroundColor = [UIColor colorWithRed:0.98 green:0.98 blue:0.985 alpha:1];
             }
         } completion:nil];
     }

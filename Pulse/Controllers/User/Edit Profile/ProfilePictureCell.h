@@ -20,6 +20,9 @@ NS_ASSUME_NONNULL_BEGIN
 @property (strong, nonatomic) UIView *editPictureImageViewContainer;
 @property (strong, nonatomic) UIImageView *editPictureImageView;
 
+@property (strong, nonatomic) UIView *editCoverPhotoImageViewContainer;
+@property (strong, nonatomic) UIImageView *editCoverPhotoImageView;
+
 + (CGFloat)height;
 
 @end

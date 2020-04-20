@@ -12,7 +12,6 @@
 #import "MemberRequestCell.h"
 #import "AddManagerCell.h"
 #import "ButtonCell.h"
-#import "ComplexNavigationController.h"
 #import "HAWebService.h"
 #import "Launcher.h"
 #import "UIColor+Palette.h"
@@ -37,7 +36,6 @@
     NSInteger activeTab;
 }
 
-@property (nonatomic, strong) ComplexNavigationController *launchNavVC;
 @property (nonatomic, strong) NSMutableArray <SmartList *> *tabs;
 
 @property (nonatomic, strong) NSString *searchPhrase;
@@ -57,12 +55,10 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
-    self.view.tintColor = self.theme;
-    
-    //self.view.frame = CGRectMake(0, [[UIApplication sharedApplication] delegate].window.safeAreaInsets.top + self.navigationController.navigationBar.frame.size.height, self.view.frame.size.width, [UIScreen mainScreen].bounds.size.height - ([[UIApplication sharedApplication] delegate].window.safeAreaInsets.top + self.navigationController.navigationBar.frame.size.height));
-    
-    self.launchNavVC = (ComplexNavigationController *)self.navigationController;
+        
+    self.animateLoading = true;
+    self.bigSpinner.backgroundColor = [UIColor clearColor];
+        
     self.navigationItem.hidesBackButton = true;
     
     self.tableView = [[UITableView alloc] initWithFrame:self.view.bounds style:UITableViewStyleGrouped];
@@ -84,6 +80,41 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     [self.tableView registerClass:[SearchResultCell class] forCellReuseIdentifier:memberCellIdentifier];
     [self.tableView registerClass:[AddManagerCell class] forCellReuseIdentifier:addManagerCellIdentifier];
     
+    [self updateNavigationTitle];
+    if (self.camp.identifier.length == 0 ||
+        self.camp.attributes.identifier.length == 0 ||
+        self.camp.attributes.color.length == 0) {
+        self.loading = true;
+        [self getCamp:^(BOOL success) {
+            if (success) {
+                [self objectIsReady];
+                self.loading = false;
+            }
+            else {
+                [self.navigationController dismissViewControllerAnimated:YES completion:nil];
+            }
+        }];
+    }
+    else {
+        [self objectIsReady];
+    }
+    
+    // Google Analytics
+    [FIRAnalytics setScreenName:@"Camp Members" screenClass:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(campManagersUpdated:) name:@"CampManagersUpdated" object:nil];
+}
+
+- (void)updateNavigationTitle {
+    if (self.camp.attributes.title.length > 0) {
+        self.title = self.camp.attributes.title;
+    }
+    else {
+        self.title = @"";
+    }
+}
+
+- (void)objectIsReady {
     [self loadJSON];
     [self createSegmentedControl];
     [self createShareView];
@@ -92,11 +123,6 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     [self tabTappedAtIndex:0];
     
     NSLog(@"self.isAdmin:: %@", [self isAdmin] ? @"YES" : @"NO");
-    
-    // Google Analytics
-    [FIRAnalytics setScreenName:@"Camp Members" screenClass:nil];
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(campManagersUpdated:) name:@"CampManagersUpdated" object:nil];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -105,11 +131,57 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     NSLog(@"view controller safe area insets:");
     NSLog(@"%f", self.tableView.adjustedContentInset.top);
     
-    self.segmentedControl.frame = CGRectMake(0, self.navigationController.navigationBar.frame.size.height + self.navigationController.navigationBar.frame.origin.y, self.view.frame.size.width, 48);
+    if (self.segmentedControl) {
+        self.segmentedControl.frame = CGRectMake(0, self.navigationController.navigationBar.frame.size.height + self.navigationController.navigationBar.frame.origin.y, self.view.frame.size.width, 48);
+    }
 }
 
 - (void)dealloc {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+- (NSString *)preferredIdentifier {
+    return (self.camp.identifier.length > 0 ? self.camp.identifier : self.camp.attributes.identifier);
+}
+
+- (void)getCamp:(void (^ _Nullable)(BOOL success))handler {
+    NSString *url = [NSString stringWithFormat:@"camps/%@", [self preferredIdentifier]];
+        
+    [[HAWebService authenticatedManager] GET:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        NSError *error;
+        
+        Camp *camp = [[Camp alloc] initWithDictionary:responseObject[@"data"] error:&error];
+        if (error) { NSLog(@"GET -> /users/me; User error: %@", error); }
+        
+        self.camp = camp;
+        
+        [self updateNavigationTitle];
+        self.theme = (camp.attributes.color.length == 0) ? [UIColor bonfireGrayWithLevel:800] : [UIColor fromHex:camp.attributes.color];
+        
+        BOOL isMember = [self.camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_MEMBER];
+        
+        if (handler) {
+            handler(isMember);
+        }
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        NSLog(@"❌ Failed to get User ID");
+        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
+        NSLog(@"%@", ErrorResponse);
+        
+        if (handler) {
+            handler(FALSE);
+        }
+    }];
+}
+
+- (void)setTheme:(UIColor *)theme {
+    [super setTheme:theme];
+    
+    if ([self.navigationController isKindOfClass:[SimpleNavigationController class]]) {
+        self.navigationController.view.tintColor = [UIColor fromHex:[UIColor toHex:self.theme] adjustForOptimalContrast:true];
+        [(SimpleNavigationController *)self.navigationController updateBarColor:[UIColor clearColor] animated:YES];
+        [(SimpleNavigationController *)self.navigationController hideBottomHairline];
+    }
 }
 
 - (void)campManagersUpdated:(NSNotification *)notification {
@@ -155,7 +227,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
 
 - (void)createSegmentedControl {
     self.segmentedControl = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 48)];
-    self.segmentedControl.backgroundColor = [UIColor contentBackgroundColor];
+    self.segmentedControl.backgroundColor = [UIColor colorNamed:@"Navigation_ClearBackgroundColor"];
     
     UIView *lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, self.segmentedControl.frame.size.height, self.view.frame.size.width, (1 / [UIScreen mainScreen].scale))];
     lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
@@ -164,8 +236,14 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     
     // add segmented control segments
     CGFloat buttonWidth = (self.tabs.count > 3 ? 0 : self.view.frame.size.width / self.tabs.count); // buttonWidth of 0 denotes a dynamic width button
-    CGFloat buttonPadding = 10; // only used if the button has a dynamic width
+    CGFloat buttonPadding = 0; // only used if the button has a dynamic width
     CGFloat lastButtonX = 0;
+    
+    UIView *selectedBackground = [[UIView alloc] initWithFrame:CGRectMake(0, self.segmentedControl.frame.size.height - 2, buttonWidth, 2)];
+    selectedBackground.layer.cornerRadius = 1;
+    selectedBackground.backgroundColor = [UIColor bonfirePrimaryColor];
+    selectedBackground.tag = 5;
+    [self.segmentedControl addSubview:selectedBackground];
     
     for (NSInteger i = 0; i < self.tabs.count; i++) {
         SmartList *list = self.tabs[i];
@@ -183,6 +261,8 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
         }
         
         [button bk_whenTapped:^{
+            [self.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:YES];
+            
             [HapticHelper generateFeedback:FeedbackType_Selection];
             
             [self.view endEditing:TRUE];
@@ -190,22 +270,22 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
         }];
         
         [button bk_addEventHandler:^(id sender) {
-            [UIView animateWithDuration:0.2f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-                button.backgroundColor = [UIColor contentHighlightedColor];
+            [UIView animateWithDuration:0.6f delay:0 usingSpringWithDamping:0.6f initialSpringVelocity:0.5f options:(UIViewAnimationOptionCurveEaseOut|UIViewAnimationOptionAllowUserInteraction) animations:^{
+                button.alpha = 0.5;
             } completion:nil];
         } forControlEvents:UIControlEventTouchDown];
         [button bk_addEventHandler:^(id sender) {
-            [UIView animateWithDuration:0.2f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-                button.backgroundColor = [UIColor clearColor];
+            [UIView animateWithDuration:0.5f delay:0.15 usingSpringWithDamping:0.6f initialSpringVelocity:0.5f options:(UIViewAnimationOptionCurveEaseOut|UIViewAnimationOptionAllowUserInteraction) animations:^{
+                button.alpha = 1;
             } completion:nil];
         } forControlEvents:(UIControlEventTouchUpInside|UIControlEventTouchCancel|UIControlEventTouchDragExit)];
         
-        if (i < self.tabs.count - 1) {
-            // => not the last tab
-            UIView *horizontalSeparator = [[UIView alloc] initWithFrame:CGRectMake(button.frame.size.width - (1 / [UIScreen mainScreen].scale), 14, (1 / [UIScreen mainScreen].scale), 24)];
-            horizontalSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
-            [button addSubview:horizontalSeparator];
-        }
+//        if (i < self.tabs.count - 1) {
+//            // => not the last tab
+//            UIView *horizontalSeparator = [[UIView alloc] initWithFrame:CGRectMake(button.frame.size.width - (1 / [UIScreen mainScreen].scale), 14, (1 / [UIScreen mainScreen].scale), 24)];
+//            horizontalSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
+//            [button addSubview:horizontalSeparator];
+//        }
         
         [self.segmentedControl addSubview:button];
         
@@ -214,6 +294,8 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     
     self.tableView.contentInset = UIEdgeInsetsMake(self.segmentedControl.frame.size.height, 0, self.tableView.contentInset.bottom, 0);
     self.tableView.scrollIndicatorInsets = self.tableView.contentInset;
+    
+    self.segmentedControl.frame = CGRectMake(0, self.navigationController.navigationBar.frame.size.height + self.navigationController.navigationBar.frame.origin.y, self.view.frame.size.width, 48);
 }
 - (void)createShareView {
     CGFloat baseHeight = 56;
@@ -232,7 +314,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     self.shareButton.frame = CGRectMake(12, 8, self.view.frame.size.width - (12 * 2), baseHeight - (8 * 2));
     self.shareButton.layer.cornerRadius = 14.f;
     self.shareButton.layer.masksToBounds = true;
-    self.shareButton.backgroundColor = [UIColor fromHex:[UIColor toHex:self.view.tintColor]];
+    self.shareButton.backgroundColor = [UIColor fromHex:[UIColor toHex:self.theme]];
     self.shareButton.adjustsImageWhenHighlighted = false;
     if ([UIColor useWhiteForegroundForColor:self.shareButton.backgroundColor]) {
         self.shareButton.tintColor = [UIColor whiteColor];
@@ -271,17 +353,27 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
         activeTab = tabIndex;
         self.searchPhrase = @""; // reset search phrase
         
+        UIButton *selectedButton;
         for (UIButton *button in self.segmentedControl.subviews) {
             if (![button isKindOfClass:[UIButton class]]) continue;
             
             if (button.tag == tabIndex) {
-                [button setTitleColor:[UIColor fromHex:[UIColor toHex:self.view.tintColor] adjustForOptimalContrast:true] forState:UIControlStateNormal];
-                button.titleLabel.font = [UIFont systemFontOfSize:button.titleLabel.font.pointSize weight:UIFontWeightBold];
+                selectedButton = button;
+                [button setTitleColor:[UIColor bonfirePrimaryColor] forState:UIControlStateNormal];
             }
             else {
                 [button setTitleColor:[UIColor bonfireSecondaryColor] forState:UIControlStateNormal];
-                button.titleLabel.font = [UIFont systemFontOfSize:button.titleLabel.font.pointSize weight:UIFontWeightSemibold];
             }
+        }
+        
+        if (selectedButton) {
+            UIView *selectedBackground = [self.segmentedControl viewWithTag:5];
+            CGFloat scale = selectedButton.transform.a;
+            [UIView animateWithDuration:0.15f delay:0 usingSpringWithDamping:0.95f initialSpringVelocity:0.5f options:(UIViewAnimationOptionCurveEaseOut|UIViewAnimationOptionAllowUserInteraction) animations:^{
+                SetWidth(selectedBackground, selectedButton.frame.size.width / scale);
+                selectedBackground.center = CGPointMake(selectedButton.frame.origin.x + selectedButton.frame.size.width / 2, selectedBackground.center.y);
+            } completion:^(BOOL finished) {
+            }];
         }
         
         [self loadTabData:false];
@@ -326,7 +418,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
         [self.tableView reloadData];
     }
     
-    NSString *url = [section.url stringByReplacingOccurrencesOfString:@"{camp.id}" withString:self.camp.identifier];
+    NSString *url = [section.url stringByReplacingOccurrencesOfString:@"{camp.id}" withString:[self preferredIdentifier]];
     
     NSLog(@"final url: %@", url);
     
@@ -608,7 +700,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
             else if ([s.identifier isEqualToString:@"members_moderator"]) {
                 cell.textLabel.text = @"Add Managers";
             }
-            cell.textLabel.textColor = [UIColor fromHex:[UIColor toHex:self.view.tintColor] adjustForOptimalContrast:true];
+            cell.textLabel.textColor = [UIColor fromHex:[UIColor toHex:self.theme] adjustForOptimalContrast:true];
             cell.imageView.tintColor = cell.textLabel.textColor;
             
             return cell;
@@ -662,7 +754,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     NSInteger row = ((UITapGestureRecognizer *)sender).view.tag;
     NSLog(@"row: %li", (long)row);
     
-    NSString *url = [NSString stringWithFormat:@"camps/%@/members/requests", self.camp.identifier];
+    NSString *url = [NSString stringWithFormat:@"camps/%@/members/requests", [self preferredIdentifier]];
     
     NSDictionary *request = nil;
     SmartListSection *requestsSection = [self sectionForIdentifier:@"members_requests"];
@@ -696,7 +788,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     NSInteger row = ((UITapGestureRecognizer *)sender).view.tag;
     NSLog(@"row: %li", (long)row);
     
-    NSString *url = [NSString stringWithFormat:@"camps/%@/members/requests", self.camp.identifier];
+    NSString *url = [NSString stringWithFormat:@"camps/%@/members/requests", [self preferredIdentifier]];
     
     NSDictionary *request = nil;
     SmartListSection *requestsSection = [self sectionForIdentifier:@"members_requests"];
@@ -735,7 +827,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
         }
     }
     
-    return 62;
+    return [SearchResultCell height];
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
@@ -784,7 +876,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
         
         UIButton *shareWithFriends = [UIButton buttonWithType:UIButtonTypeSystem];
         [shareWithFriends setTitle:[NSString stringWithFormat:@"Share %@", self.camp.attributes.title] forState:UIControlStateNormal];
-        [shareWithFriends setTitleColor:[UIColor fromHex:[UIColor toHex:self.view.tintColor] adjustForOptimalContrast:true] forState:UIControlStateNormal];
+        [shareWithFriends setTitleColor:[UIColor fromHex:[UIColor toHex:self.theme] adjustForOptimalContrast:true] forState:UIControlStateNormal];
         shareWithFriends.frame = CGRectMake(8, title.frame.origin.y + title.frame.size.height + 6, upsell.frame.size.width - 16, 19);
         shareWithFriends.titleLabel.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightMedium];
         [shareWithFriends bk_whenTapped:^{
@@ -805,7 +897,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
         self.searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(12, 10, self.view.frame.size.width - (12 * 2), 36)];
         self.searchView.placeholder = @"Search Members";
         [self.searchView updateSearchText:self.searchPhrase];
-        self.searchView.textField.tintColor = self.view.tintColor;
+        self.searchView.textField.tintColor = self.theme;
         self.searchView.textField.delegate = self;
         [self.searchView.textField bk_addEventHandler:^(id sender) {
             self.searchPhrase = self.searchView.textField.text;
@@ -963,7 +1055,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
 }
 
 - (void)removeManagerRole:(NSString *)managerType user:(User *)user {
-    NSString *url = [NSString stringWithFormat:@"camps/%@/members/roles", self.camp.identifier];
+    NSString *url = [NSString stringWithFormat:@"camps/%@/members/roles", [self preferredIdentifier]];
     
     // create the group
     JGProgressHUD *HUD = [JGProgressHUD progressHUDWithStyle:JGProgressHUDStyleExtraLight];

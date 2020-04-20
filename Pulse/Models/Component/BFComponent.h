@@ -13,6 +13,7 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @class BFComponent;
+@class BFComponentSettings;
 
 @protocol BFComponent;
 
@@ -31,7 +32,7 @@ typedef enum {
     BFComponentDetailLevelMinimum // no actions, no context
 } BFComponentDetailLevel;
 
-- (id)initWithObject:(id _Nullable)object className:(NSString *)className detailLevel:(BFComponentDetailLevel)detailLevel;
+- (id)initWithSettings:(BFComponentSettings * _Nullable)settings className:(NSString *)className detailLevel:(BFComponentDetailLevel)detailLevel;
 
 - (void)updateCellHeight;
 
@@ -39,11 +40,20 @@ typedef enum {
 @property (nonatomic) NSString *className;
 - (Class _Nullable)cellClass;
 
-@property (nonatomic) NSObject *object;
+@property (nonatomic) BFComponentSettings <Optional> *settings;
 @property (nonatomic) CGFloat cellHeight;
 @property (nonatomic) BFComponentDetailLevel detailLevel;
 @property (nonatomic) BOOL showLineSeparator;
 @property (nonatomic, copy) void (^_Nullable action)(void);
+
+@end
+
+@interface BFComponentSettings : BFJSONModel
+
+@property (nonatomic) NSInteger number;
+@property (nonatomic) UIColor <Optional> *color;
+@property (nonatomic) NSString <Optional> *title;
+@property (nonatomic) NSString <Optional> *text;
 
 @end
 

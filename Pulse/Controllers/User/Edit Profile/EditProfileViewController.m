@@ -69,12 +69,13 @@ enum {
 - (void)viewDidLoad {
     [super viewDidLoad];
     
+    self.animateLoading = false;
     self.user = [Session sharedInstance].currentUser;
     inputValues = [NSMutableDictionary dictionary];
     
     self.title = @"Edit Profile";
     self.view.backgroundColor = [UIColor tableViewBackgroundColor];
-            
+    
     self.themeColor = [UIColor fromHex:[[Session sharedInstance] currentUser].attributes.color];
     self.view.tintColor = self.themeColor;
     
@@ -250,6 +251,7 @@ enum {
         }
         
         profilePictureCell.editPictureImageView.tintColor = [UIColor fromHex:[UIColor toHex:self.view.tintColor] adjustForOptimalContrast:true];
+        profilePictureCell.editCoverPhotoImageView.tintColor = [UIColor fromHex:[UIColor toHex:self.view.tintColor] adjustForOptimalContrast:true];
         
         for (UITableViewCell *cell in [self.tableView visibleCells]) {
             if ([cell isKindOfClass:[InputCell class]]) {
@@ -707,6 +709,7 @@ enum {
                 }
                 
                 cell.editPictureImageView.tintColor = [UIColor fromHex:[UIColor toHex:self.view.tintColor] adjustForOptimalContrast:true];
+                cell.editCoverPhotoImageView.tintColor = [UIColor fromHex:[UIColor toHex:self.view.tintColor] adjustForOptimalContrast:true];
             }
             
             return cell;
@@ -716,6 +719,9 @@ enum {
             
             cell.lineSeparator.frame = CGRectMake(12, cell.frame.size.height - cell.lineSeparator.frame.size.height, self.view.frame.size.width - 12, cell.lineSeparator.frame.size.height);
             cell.lineSeparator.hidden = false;
+            cell.input.textColor = [UIColor bonfirePrimaryColor];
+            cell.textView.textColor = [UIColor bonfirePrimaryColor];
+            
             // Configure the cell...
             if (indexPath.row == 1) {
                 cell.type = InputCellTypeTextField;
@@ -835,6 +841,7 @@ enum {
             cell.input.autocapitalizationType = UITextAutocapitalizationTypeNone;
             cell.input.autocorrectionType = UITextAutocorrectionTypeNo;
             cell.input.keyboardType = UIKeyboardTypeEmailAddress;
+            cell.input.textColor = [UIColor bonfirePrimaryColor];
             
             cell.lineSeparator.frame = CGRectMake(12, cell.frame.size.height - cell.lineSeparator.frame.size.height, self.view.frame.size.width - 12, cell.lineSeparator.frame.size.height);
             cell.lineSeparator.hidden = (self.user.attributes.phone.length == 0);
@@ -853,13 +860,13 @@ enum {
 
             cell.input.placeholder = @"Add Phone Number";
             cell.input.text = [self formatPhoneNumber:self.user.attributes.phone];
+            cell.input.textColor = [UIColor bonfireSecondaryColor];
             
             cell.input.tag = PHONE_FIELD;
             cell.input.autocapitalizationType = UITextAutocapitalizationTypeNone;
             cell.input.autocorrectionType = UITextAutocorrectionTypeNo;
             cell.input.keyboardType = UIKeyboardTypePhonePad;
             cell.input.userInteractionEnabled = false;
-            cell.input.alpha = 0.75;
             
             cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
             

@@ -29,7 +29,7 @@
 
 #define IS_IPHONE        (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone)
 
-@interface OnboardingViewController () <RSKImageCropViewControllerDelegate, RSKImageCropViewControllerDataSource> {
+@interface OnboardingViewController () <RSKImageCropViewControllerDelegate, RSKImageCropViewControllerDataSource, ResetPasswordViewControllerDelegate> {
     UIEdgeInsets safeAreaInsets;
     NSMutableDictionary *campsJoined;
 }
@@ -162,6 +162,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 }
 - (void)receivedNotificationsUpdate:(NSNotification *)notificaiton {
     [[PINCache sharedCache] removeAllObjects];
+    [[Session tempCache] removeAllObjects];
     
     // last step: download defaults, then launch
     [[Session sharedInstance] initDefaultsWithCompletion:^(BOOL success) {
@@ -257,12 +258,12 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         BFAlertController *actionSheet = [BFAlertController alertControllerWithTitle:nil message:nil preferredStyle:BFAlertControllerStyleActionSheet];
         
         BFAlertAction *privacyPolicy = [BFAlertAction actionWithTitle:@"Privacy Policy" style:BFAlertActionStyleDefault handler:^{
-            [Launcher openURL:@"https://bonfire.camp/privacy"];
+            [Launcher openURL:@"https://bonfire.camp/legal/privacy"];
         }];
         [actionSheet addAction:privacyPolicy];
         
         BFAlertAction *termsOfService = [BFAlertAction actionWithTitle:@"Terms of Service" style:BFAlertActionStyleDefault handler:^{
-            [Launcher openURL:@"https://bonfire.camp/terms"];
+            [Launcher openURL:@"https://bonfire.camp/legal/terms"];
         }];
         [actionSheet addAction:termsOfService];
         
@@ -481,6 +482,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             forgotYourPassword.frame = CGRectMake(0, textField.frame.origin.y + textField.frame.size.height + 16, self.view.frame.size.width, 32);
             [forgotYourPassword bk_whenTapped:^{
                 ResetPasswordViewController *resetPasswordVC = [[ResetPasswordViewController alloc] init];
+                resetPasswordVC.delegate = self;
                 
                 NSInteger lookupStep = [self getIndexOfStepWithId:@"user_identification"];
                 UITextField *lookupTextField = self.steps[lookupStep][@"textField"];
@@ -1676,28 +1678,52 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         NSHTTPURLResponse *httpResponse = error.userInfo[AFNetworkingOperationFailingURLResponseErrorKey];
         NSInteger statusCode = httpResponse.statusCode;
-        
-        NSString *errorTitle = @"Uh oh!";
-        NSString *errorMessage = @"We encountered an error while signing you in. Please try again and check back soon for an update.";
-        if (statusCode == 412) {
-            // invalid request parameter
-            // --> invalid password
-            errorTitle = @"Please try again";
-            errorMessage = @"The username and password you entered did not match our records. Please double-check and try again!";
-            
-            [FIRAnalytics logEventWithName:@"onboarding_invalid_credentials"
-                                parameters:@{}];
-        }
-        
-        BFAlertController *alert = [BFAlertController alertControllerWithTitle:errorTitle message:errorMessage preferredStyle:BFAlertControllerStyleAlert];
-        BFAlertAction *gotItAction = [BFAlertAction actionWithTitle:@"Okay" style:BFAlertActionStyleCancel handler:nil];
-        [alert addAction:gotItAction];
+        NSInteger bonfireErrorCode = [error bonfireErrorCode];
         
         // not long enough –> shake input block
         [self removeSpinnerForStep:self.currentStep];
-        [self shakeInputBlock];
         
-        [self enableNextButton];
+        if (bonfireErrorCode == USER_PASSWORD_REQ_RESET) {
+            // user requires a password reset
+            ResetPasswordViewController *setNewPasswordVC = [[ResetPasswordViewController alloc] init];
+            setNewPasswordVC.delegate = self;
+            setNewPasswordVC.contextType = ResetPasswordContextTypeRequired;
+            
+            NSInteger lookupStep = [self getIndexOfStepWithId:@"user_identification"];
+            UITextField *lookupTextField = self.steps[lookupStep][@"textField"];
+            setNewPasswordVC.prefillLookup = lookupTextField.text;
+            
+            setNewPasswordVC.transitioningDelegate = [Launcher sharedInstance];
+            
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [Launcher present:setNewPasswordVC animated:YES];
+                
+                [self removeSpinnerForStep:self.currentStep];
+                [self enableNextButton];
+            });
+        }
+        else {
+            [self shakeInputBlock];
+            [self enableNextButton];
+            
+            NSString *errorTitle = @"Uh oh!";
+            NSString *errorMessage = @"We encountered an error while signing you in. Please try again and check back soon for an update.";
+            if (statusCode == 412) {
+                // invalid request parameter
+                // --> invalid password
+                errorTitle = @"Please try again";
+                errorMessage = @"The username and password you entered did not match our records. Please double-check and try again!";
+                
+                [FIRAnalytics logEventWithName:@"onboarding_invalid_credentials"
+                                    parameters:@{}];
+            }
+            
+            BFAlertController *alert = [BFAlertController alertControllerWithTitle:errorTitle message:errorMessage preferredStyle:BFAlertControllerStyleAlert];
+            BFAlertAction *gotItAction = [BFAlertAction actionWithTitle:@"Okay" style:BFAlertActionStyleCancel handler:nil];
+            [alert addAction:gotItAction];
+            
+            [[Launcher topMostViewController] presentViewController:alert animated:true completion:nil];
+        }
         
         [self startPhoneVerificationCodeTimer];
         [UIView animateWithDuration:0.25f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
@@ -1707,9 +1733,17 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                 view.alpha = 1;
             }
         } completion:nil];
-        
-        [[Launcher topMostViewController] presentViewController:alert animated:true completion:nil];
     }];
+}
+- (void)passwordDidChange:(NSString *)newPassword {
+    if (!newPassword || newPassword.length == 0) return;
+    
+    NSInteger passwordStep = [self getIndexOfStepWithId:@"user_password"];
+    UITextField *passwordTextField = self.steps[passwordStep][@"textField"];
+    passwordTextField.text = newPassword;
+    [self textFieldChanged:passwordTextField];
+    
+    [self attemptToSignIn];
 }
 - (NSString *)identificationValue {
     NSInteger identificationStep = [self getIndexOfStepWithId:@"user_identification"];

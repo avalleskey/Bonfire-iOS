@@ -69,7 +69,7 @@ static Class ImageManagerClass = nil;
         
         _dismissalStyle = KSPhotoBrowserInteractiveDismissalStyleRotation;
         _pageindicatorStyle = KSPhotoBrowserPageIndicatorStyleDot;
-        _backgroundStyle = KSPhotoBrowserBackgroundStyleBlurPhoto;
+        _backgroundStyle = KSPhotoBrowserBackgroundStyleBlack;
         _loadingStyle = KSPhotoBrowserImageLoadingStyleIndeterminate;
         
         _reusableItemViews = [[NSMutableSet alloc] init];

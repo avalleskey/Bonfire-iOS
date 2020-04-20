@@ -353,12 +353,10 @@ static NSString * const reuseIdentifier = @"Cell";
     if ([self showTrending] && indexPath.item < self.trendingResults.count) {
         cell.gifUrl = self.trendingResults[indexPath.item][@"media"][0][@"tinygif"][@"url"];
         cell.fullGifUrl = self.trendingResults[indexPath.item][@"media"][0][@"gif"][@"url"];
-        NSLog(@"trending:: cell.gifUrl: %@", cell.gifUrl);
     }
     else if (indexPath.item < self.searchResults.count) {
         cell.gifUrl = self.searchResults[indexPath.item][@"media"][0][@"tinygif"][@"url"];
         cell.fullGifUrl = self.searchResults[indexPath.item][@"media"][0][@"gif"][@"url"];
-        NSLog(@"search:: cell.gifUrl: %@", cell.gifUrl);
     }
     else {
         cell.loading = true;

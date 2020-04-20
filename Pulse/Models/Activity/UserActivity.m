@@ -202,23 +202,3 @@
 }
 
 @end
-
-@implementation JSONValueTransformer (NSAttributedString)
-
-- (NSAttributedString *)NSAttributedStringFromNSString:(NSString *)string {
-    NSData* data = [string dataUsingEncoding:NSUTF8StringEncoding];
-    
-    NSAttributedString *attrString = [NSKeyedUnarchiver unarchiveObjectWithData:data];
-        
-    return attrString; // transformed object
-}
-
-- (NSString *)JSONObjectFromNSAttributedString:(NSAttributedString *)string {
-    NSData *data = [NSKeyedArchiver archivedDataWithRootObject:string];
-
-    NSString *convertedStr = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-    
-    return convertedStr; // transformed object
-}
-
-@end

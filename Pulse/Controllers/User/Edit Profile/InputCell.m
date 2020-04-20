@@ -21,6 +21,8 @@
     
     if (self) {
         self.selectionStyle = UITableViewCellSelectionStyleNone;
+        
+        self.backgroundColor = [UIColor contentBackgroundColor];
         self.contentView.backgroundColor = [UIColor contentBackgroundColor];
         
         self.inputLabel = [[UILabel alloc] init];

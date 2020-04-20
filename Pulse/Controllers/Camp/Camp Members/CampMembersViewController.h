@@ -14,9 +14,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface CampMembersViewController : ThemedViewController <UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate>
 
-@property (nonatomic, strong) UITableView *tableView;
-
 @property (nonatomic, strong) Camp *camp;
+
+@property (nonatomic, strong) UITableView *tableView;
 @property (nonatomic, strong) UIView *segmentedControl;
 
 @property (nonatomic, strong) UIView *shareView;

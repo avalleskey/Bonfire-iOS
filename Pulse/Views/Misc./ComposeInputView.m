@@ -707,9 +707,11 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         [self.mediaScrollView setContentOffset:CGPointMake(MAX(-self.mediaScrollView.contentInset.left, self.mediaScrollView.contentSize.width - self.mediaScrollView.frame.size.width + self.mediaScrollView.contentInset.left), 0) animated:true];
     }
     
-//    wait(0.3f, ^{
-//        [self.textView becomeFirstResponder];
-//    });
+    wait(0.3f, ^{
+        if (self.textView && [self.textView canBecomeFirstResponder]) {
+            [self.textView becomeFirstResponder];
+        }
+    });
 }
 
 - (void)addSelectImageViewToMediaTray {
@@ -928,7 +930,6 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     }
     
     return [super hitTest:point withEvent:event];
-    
 }
 
 - (void)showReplyingTo {
@@ -1278,7 +1279,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     return blankCell;
 }
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return 62;
+    return [SearchResultCell height];
 }
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     return 1;

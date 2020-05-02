@@ -460,7 +460,8 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
             BFAlertController *alert = [BFAlertController alertControllerWithTitle:@"Password Doesn't Match" message:@"The passwords you provided don't match. Please try again or go back to set a new one." preferredStyle:BFAlertControllerStyleAlert];
             BFAlertAction *gotItAction = [BFAlertAction actionWithTitle:@"Okay" style:BFAlertActionStyleCancel handler:nil];
             [alert addAction:gotItAction];
-            [self presentViewController:alert animated:true completion:nil];
+            
+            [alert show];
         }
     }
 }

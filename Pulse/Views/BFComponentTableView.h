@@ -47,6 +47,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic) BOOL loading;
 @property (nonatomic) BOOL loadingMore;
+
+@property (nonatomic) BOOL preventScrollingWhileLoading;
+
 @property (nonatomic, copy, nullable) void (^onScrollBlock)(void);
 
 typedef enum {

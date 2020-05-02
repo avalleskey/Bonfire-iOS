@@ -79,7 +79,7 @@
                     BFAlertAction *cancelActionSheet = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
                     [actionSheet addAction:cancelActionSheet];
                     
-                    [[Launcher topMostViewController] presentViewController:actionSheet animated:true completion:nil];
+                    [actionSheet show];
                 }
                 else {
                     openEditProfile();
@@ -150,7 +150,7 @@
                 BFAlertAction *cancelActionSheet = [BFAlertAction actionWithTitle:@"Close" style:BFAlertActionStyleCancel handler:nil];
                 [actionSheet addAction:cancelActionSheet];
                 
-                [[Launcher topMostViewController] presentViewController:actionSheet animated:true completion:nil];
+                [actionSheet show];
             }
         }];
         [self addSubview:self.campAvatarReasonView];
@@ -189,9 +189,7 @@
                 BFAlertAction *cancelActionSheet = [BFAlertAction actionWithTitle:@"Close" style:BFAlertActionStyleCancel handler:nil];
                 [actionSheet addAction:cancelActionSheet];
                                 
-                [[Launcher topMostViewController] presentViewController:actionSheet animated:true completion:^{
-                    [[[UIApplication sharedApplication] keyWindow] showEffect:BFEffectTypeBalloons completion:nil];
-                }];
+                [actionSheet show];
             }
         }];
         

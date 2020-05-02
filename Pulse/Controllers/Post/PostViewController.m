@@ -92,8 +92,6 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             self.launchNavVC.onScrollLowerBound = -1;
             [self.launchNavVC childTableViewDidScroll:self.tableView];
         }
-        
-        self.loading = true;
     }
     
     self.view.tintColor = self.theme;
@@ -462,7 +460,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     if (!self.post) return;
     
     // save the post's cache for 2 days
-    [[Session tempCache] setObject:self.post forKey:[self getPostURL] withAgeLimit:60*60*24*2];
+    [[Session tempCache] setObject:self.post forKey:[self getPostURL] withCost:2 ageLimit:60*60*24*2];
 }
 - (void)saveComposeState {
     if (!self.post) return;
@@ -495,6 +493,8 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     }
 }
 - (void)getPost {
+    self.loading = true;
+    
     [self.tableView reloadData];
     [self.tableView layoutSubviews];
             
@@ -512,8 +512,11 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             [self.launchNavVC setRightAction:SNActionTypeNone];
         }
         
-        if ([self.post.attributes.message lowercaseString] && [self.post.attributes.message containsString:@"happy birthday"]) {
+        if ([self.post.attributes.message lowercaseString] && [[self.post.attributes.message lowercaseString] containsString:@"happy birthday"]) {
             [self.navigationController.view showEffect:BFEffectTypeBalloons completion:nil];
+        }
+        else if ([self.post isEmojiPost]) {
+            [self.navigationController.view showEffect:BFEffectTypeEmojis options:@{BFEffectEmojiStringAttributeName: self.post.attributes.message} completion:nil];
         }
                 
         if (contextBefore && ![self.post isRemoved] && !self.post.attributes.context) {
@@ -529,6 +532,8 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         else {
             self.tableView.visualError = nil;
         }
+        
+        self.loading = false;
         [self.tableView reloadData];
         
         [self savePostCache];
@@ -598,8 +603,6 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             }
             
             [self updateContentInsets];
-            
-            self.tableView.scrollEnabled = true;
                        
            [self showParentPostScrollIndicator];
         });
@@ -734,6 +737,8 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     [self.tableView reloadData];
 }
 - (void)getRepliesWithCursor:(StreamPagingCursorType)cursorType {
+    self.loadingReplies = true;
+    
     self.tableView.visualError = nil;
     [self.tableView reloadData];
     
@@ -771,7 +776,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     NSLog(@"params: %@", params);
     
     [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        self.loading = false;
+        self.loadingReplies = false;
         
         NSInteger componentsBefore = self.tableView.stream.components.count;
         PostStreamPage *page = [[PostStreamPage alloc] initWithDictionary:responseObject error:nil];
@@ -819,10 +824,9 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         NSLog(@"FeedViewController / getReplies() - error: %@", error);
         //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
         
-        self.loading = false;
+        self.loadingReplies = false;
         self.tableView.loadingMore = false;
         
-        self.tableView.userInteractionEnabled = true;
         [self.tableView reloadData];
     }];
 }
@@ -949,25 +953,29 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             
             BOOL canReply = hasContext && !_post.attributes.creatorBot && [self canReply] && !temporary;
             BOOL canShare = ![_post.attributes.postedIn isPrivate] && !temporary;
+            BOOL canQuote = canShare;
             BOOL canVote = hasContext && !temporary;
             
-            cell.actionsView.replyButton.userInteractionEnabled = canReply;
-            cell.actionsView.shareButton.userInteractionEnabled = canShare;
-            cell.actionsView.voteButton.userInteractionEnabled = canVote;
+            cell.actionsView.replyButton.enabled = canReply;
+            cell.actionsView.quoteButton.enabled = canQuote;
+            cell.actionsView.shareButton.enabled = canShare;
+            cell.actionsView.voteButton.enabled = canVote;
             
             if (cell.actionsView.tag == 1 && hasContext) {
                 cell.actionsView.tag = 0;
                 [UIView animateWithDuration:0.25f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-                    cell.actionsView.replyButton.alpha = [cell.actionsView.replyButton isUserInteractionEnabled] ? 1 : 0.5;
-                    cell.actionsView.voteButton.alpha = [cell.actionsView.voteButton isUserInteractionEnabled] ? 1 : 0.5;
-                    cell.actionsView.shareButton.alpha = [cell.actionsView.shareButton isUserInteractionEnabled] ? 1 : 0.5;
+                    cell.actionsView.replyButton.alpha = [cell.actionsView.replyButton isEnabled] ? 1 : 0.5;
+                    cell.actionsView.quoteButton.alpha = [cell.actionsView.quoteButton isEnabled] ? 1 : 0.5;
+                    cell.actionsView.voteButton.alpha = [cell.actionsView.voteButton isEnabled] ? 1 : 0.5;
+                    cell.actionsView.shareButton.alpha = [cell.actionsView.shareButton isEnabled] ? 1 : 0.5;
                 } completion:nil];
             }
             else {
                 cell.actionsView.tag = 1;
-                cell.actionsView.replyButton.alpha = [cell.actionsView.replyButton isUserInteractionEnabled] ? 1 : 0.5;
-                cell.actionsView.voteButton.alpha = [cell.actionsView.voteButton isUserInteractionEnabled] ? 1 : 0.5;
-                cell.actionsView.shareButton.alpha = [cell.actionsView.shareButton isUserInteractionEnabled] ? 1 : 0.5;
+                cell.actionsView.replyButton.alpha = [cell.actionsView.replyButton isEnabled] ? 1 : 0.5;
+                cell.actionsView.quoteButton.alpha = [cell.actionsView.quoteButton isEnabled] ? 1 : 0.5;
+                cell.actionsView.voteButton.alpha = [cell.actionsView.voteButton isEnabled] ? 1 : 0.5;
+                cell.actionsView.shareButton.alpha = [cell.actionsView.shareButton isEnabled] ? 1 : 0.5;
             }
         }
         
@@ -1307,8 +1315,6 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
 - (void)setLoading:(BOOL)loading {
     [super setLoading:loading];
     
-    self.tableView.loading = loading;
-    
     if (!loading && [self allDoneLoading]) {
         [self buildConversation];
     }
@@ -1322,9 +1328,16 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         }
     }
 }
+- (void)setLoadingReplies:(BOOL)loadingReplies {
+    if (loadingReplies != _loadingReplies) {
+        _loadingReplies = loadingReplies;
+        
+        self.tableView.loading = loadingReplies;
+    }
+}
 
 - (BOOL)allDoneLoading {
-    return !self.loading && !self.loadingParentPosts;
+    return !self.loading && !self.loadingParentPosts && !self.loadingReplies;
 }
 
 - (void)buildConversation {

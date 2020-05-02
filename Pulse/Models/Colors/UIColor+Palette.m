@@ -147,25 +147,25 @@
 }
 
 + (UIColor *)lighterColorForColor:(UIColor *)c amount:(CGFloat)amount {
-    if (amount == 0) amount = 0.2;
-        
-    CGFloat h, s, b, a;
-    
-    if ([c getHue:&h saturation:&s brightness:&b alpha:&a])
-        return [UIColor colorWithHue:h saturation:MAX(s*(1-amount), 0) brightness:MIN(s*(1+amount), 1) alpha:1];
-    
-    return [UIColor whiteColor];
+    CGFloat h,s,b,a;
+    if ([c getHue:&h saturation:&s brightness:&b alpha:&a]) {
+        NSLog(@"h: %f s: %f b:%f", h, s, b);
+        return [UIColor colorWithHue:h
+                          saturation:CLAMP(s * 1.2, 0.25, 1)
+                          brightness:CLAMP(b * (1 + amount), 0.02, 1)
+                               alpha:a];
+    }
+    return nil;
 }
-
 + (UIColor *)darkerColorForColor:(UIColor *)c amount:(CGFloat)amount {
-    if (amount == 0) amount = 0.2;
-    
-    CGFloat h, s, b, a;
-    
-    if ([c getHue:&h saturation:&s brightness:&b alpha:&a])
-        return [UIColor colorWithHue:h saturation:MAX(s*(1+amount), 0) brightness:MIN(s*(1-amount), 1) alpha:1];
-    
-    return [UIColor blackColor];
+    CGFloat h,s,b,a;
+    if ([c getHue:&h saturation:&s brightness:&b alpha:&a]) {
+        return [UIColor colorWithHue:h
+                          saturation:CLAMP(s * 1.2, 0.25, 1)
+                          brightness:CLAMP(b * (1 - amount), 0.02, 1)
+                               alpha:a];
+    }
+    return nil;
 }
 + (NSString *)toHex:(UIColor *)color {
     const CGFloat *components = CGColorGetComponents(color.CGColor);

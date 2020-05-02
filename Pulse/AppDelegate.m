@@ -190,7 +190,7 @@
             [alert setTextField:textField];
             [textField becomeFirstResponder];
             
-            [[Launcher topMostViewController] presentViewController:alert animated:true completion:nil];
+            [alert show];
         }];
         
         [options addAction:changeURL];
@@ -229,7 +229,7 @@
             [alert addAction:ok];
             [alert addAction:cancel];
             
-            [[Launcher topMostViewController] presentViewController:alert animated:true completion:nil];
+            [alert show];
         }];
         
         [options addAction:apnsToken];
@@ -264,7 +264,7 @@
             [alert addAction:copy];
             [alert addAction:cancel];
             
-            [[Launcher topMostViewController] presentViewController:alert animated:true completion:nil];
+            [alert show];
         }];
         
         [options addAction:apnsToken];
@@ -279,11 +279,11 @@
     BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
     [options addAction:cancel];
     
-    [[Launcher topMostViewController] presentViewController:options animated:true completion:nil];
+    [options show];
 }
 
 - (void)launchLoggedInWithCompletion:(void (^_Nullable)(BOOL success))handler {
-    [[Session sharedInstance] getNewAccessToken:^(BOOL success, NSString * _Nonnull newToken) {
+    [[Session sharedInstance] getNewAccessToken:^(BOOL success, NSString * _Nonnull newToken, NSInteger bonfireErrorCode) {
         if (success) {
             NSInteger launches = [[NSUserDefaults standardUserDefaults] integerForKey:@"launches"];
             launches = launches + 1;

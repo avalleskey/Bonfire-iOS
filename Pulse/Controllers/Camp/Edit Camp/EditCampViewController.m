@@ -462,7 +462,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     BFAlertAction *okAction = [BFAlertAction actionWithTitle:@"Got it" style:BFAlertActionStyleDefault handler:nil];
     [alert addAction:okAction];
     
-    [[Launcher topMostViewController] presentViewController:alert animated:true completion:nil];
+    [alert show];
 }
 
 #pragma mark - Table view data source
@@ -616,7 +616,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
                         }];
                         [confirmActionSheet addAction:cancelActionSheet];
                         
-                        [self.navigationController presentViewController:confirmActionSheet animated:true completion:nil];
+                        [confirmActionSheet show];
                     }
                     else {
                         [self.inputValues setObject:(cell.toggle.isOn ? @"1" : @"0") forKey:indexPath];
@@ -852,7 +852,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
     BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
     [imagePickerOptions addAction:cancel];
     
-    [self presentViewController:imagePickerOptions animated:true completion:nil];
+    [imagePickerOptions show];
 }
 
 
@@ -902,7 +902,8 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
 
     BFAlertAction *closeAction = [BFAlertAction actionWithTitle:@"Close" style:BFAlertActionStyleCancel handler:nil];
     [actionSheet addAction:closeAction];
-    [[Launcher topMostViewController] presentViewController:actionSheet animated:true completion:nil];
+    
+    [actionSheet show];
 }
 
 - (void)chooseFromLibraryForProfilePicture:(id)sender {
@@ -936,7 +937,8 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
                 
                     BFAlertAction *closeAction = [BFAlertAction actionWithTitle:@"Close" style:BFAlertActionStyleCancel handler:nil];
                     [actionSheet addAction:closeAction];
-                    [[Launcher topMostViewController] presentViewController:actionSheet animated:true completion:nil];
+                    
+                    [actionSheet show];
                 });
 
                 break;

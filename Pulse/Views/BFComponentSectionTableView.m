@@ -1020,9 +1020,6 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
             SimpleNavigationController *newNavController = [[SimpleNavigationController alloc] initWithRootViewController:p];
             newNavController.transitioningDelegate = [Launcher sharedInstance];
             [newNavController setLeftAction:SNActionTypeBack];
-            if (![p.post.attributes.postedIn.attributes isPrivate]) {
-                [newNavController setRightAction:SNActionTypeShare];
-            }
             newNavController.currentTheme = p.theme;
             newNavController.view.tintColor = [UIColor fromHex:p.post.themeColor adjustForOptimalContrast:true];
             [newNavController updateBarColor:[UIColor clearColor] animated:false];

@@ -83,7 +83,7 @@
                     BFAlertAction *cancelActionSheet = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
                     [actionSheet addAction:cancelActionSheet];
                     
-                    [[Launcher topMostViewController] presentViewController:actionSheet animated:true completion:nil];
+                    [actionSheet show];
                 }
                 else {
                     openEditCamp();
@@ -170,7 +170,7 @@
                 BFAlertAction *cancelActionSheet = [BFAlertAction actionWithTitle:@"Close" style:BFAlertActionStyleCancel handler:nil];
                 [actionSheet addAction:cancelActionSheet];
                 
-                [[Launcher topMostViewController] presentViewController:actionSheet animated:true completion:nil];
+                [actionSheet show];
             }
         }];
         [self addSubview:self.campAvatarReasonView];
@@ -288,7 +288,8 @@
                     alert.preferredAction = openAppStore;
                     BFAlertAction *cancelAction = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
                     [alert addAction:cancelAction];
-                    [[Launcher activeViewController] presentViewController:alert animated:true completion:nil];
+                    
+                    [alert show];
                 }
             }
             else if ([self.actionButton.status isEqualToString:CAMP_STATUS_BLOCKED]) {
@@ -416,7 +417,8 @@
                     alert.preferredAction = assignDirector;
                     BFAlertAction *cancelAction = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
                     [alert addAction:cancelAction];
-                    [[Launcher activeViewController] presentViewController:alert animated:true completion:nil];
+                    
+                    [alert show];
                }
             }
         }
@@ -890,7 +892,7 @@
             BFAlertAction *cancelLeaveCamp = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
             [confirmDeletePostActionSheet addAction:cancelLeaveCamp];
             
-            [[Launcher topMostViewController] presentViewController:confirmDeletePostActionSheet animated:true completion:nil];
+            [confirmDeletePostActionSheet show];
         }
         else {
             leave();
@@ -902,7 +904,7 @@
     BFAlertAction *alertCancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
     [postNotifications addAction:alertCancel];
     
-    [[Launcher topMostViewController] presentViewController:postNotifications animated:true completion:nil];
+    [postNotifications show];
 }
 
 + (CGFloat)heightForCamp:(Camp *)camp isLoading:(BOOL)loading {

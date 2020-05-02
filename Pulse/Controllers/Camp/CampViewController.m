@@ -278,6 +278,8 @@ static NSString * const reuseIdentifier = @"Result";
             [self.tableView.stream performEventType:SectionStreamEventTypeCampUpdated object:camp];
         }
         
+        [self updateTheme];
+        
         if ([self.camp isPrivate] && self.tableView.stream.sections.count > 0 && ([self.camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_LEFT] || [self.camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_NO_RELATION])) {
             [self.tableView.stream flush];
             
@@ -348,7 +350,7 @@ static NSString * const reuseIdentifier = @"Result";
     if (!self.camp) return;
     
     // save the first page
-    [[Session tempCache] setObject:self.camp forKey:[self getCampURL] withAgeLimit:60*60*24*3];
+    [[Session tempCache] setObject:self.camp forKey:[self getCampURL] withCost:2 ageLimit:60*60*24*3];
 }
 - (void)saveFeedCache {
     return;
@@ -1036,6 +1038,13 @@ static NSString * const reuseIdentifier = @"Result";
         }];
         [moreOptions addAction:shareOnImessage];
         
+        BFAlertAction *shareOnBonfire = [BFAlertAction actionWithTitle:@"Bonfire" style:BFAlertActionStyleDefault handler:^{
+            NSLog(@"share on bonfire");
+            
+            [Launcher openComposePost:nil inReplyTo:nil withMessage:nil media:nil quotedObject:self.camp];
+        }];
+        [moreOptions addAction:shareOnBonfire];
+        
         BFAlertAction *moreShareOptions = [BFAlertAction actionWithTitle:@"Other" style:BFAlertActionStyleDefault handler:^{
             [Launcher shareCamp:self.camp];
         }];
@@ -1044,7 +1053,7 @@ static NSString * const reuseIdentifier = @"Result";
         BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
         [moreOptions addAction:cancel];
         
-        [[Launcher topMostViewController] presentViewController:moreOptions animated:YES completion:nil];
+        [moreOptions show];
     }
     else {
         [Launcher shareCamp:self.camp];

@@ -450,7 +450,7 @@
                     BFAlertAction *cancelActionSheet = [BFAlertAction actionWithTitle:@"Okay" style:BFAlertActionStyleCancel handler:nil];
                     [actionSheet addAction:cancelActionSheet];
                     
-                    [[Launcher topMostViewController] presentViewController:actionSheet animated:YES completion:nil];
+                    [actionSheet show];
                 }
                 else {
                     [BFAPI createPost_failed:params postingIn:postingIn replyingTo:replyingTo tempPost:tempPost attachments:attachments];
@@ -479,7 +479,7 @@
     }];
     [actionSheet addAction:cancelActionSheet];
     
-    [[Launcher topMostViewController] presentViewController:actionSheet animated:YES completion:nil];
+    [actionSheet show];
 
 }
 + (void)deletePost:(Post *)post completion:(void (^ _Nullable)(BOOL success, id responseObject))handler {

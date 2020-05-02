@@ -10,12 +10,39 @@
 
 @implementation UIView (BFEffects)
 
+NSString * const BFEffectEmojiStringAttributeName = @"emoji_string";
+NSString * const BFEffectEmojisArrayAttributeName = @"emojis_array";
+
 - (void)showEffect:(BFEffectType)effectType completion:(void (^__nullable)(void))completion {
+    [self showEffect:effectType options:nil completion:completion];
+}
+- (void)showEffect:(BFEffectType)effectType options:(NSDictionary * _Nullable)options completion:(void (^__nullable)(void))completion {
+    if (!options) options = @{};
+    
     if (effectType == BFEffectTypeBalloons) {
         [self balloons:completion];
     }
     else if (effectType == BFEffectTypeEmojis) {
-        [self emojis:@"🔥" completion:completion];
+        NSMutableArray *emojis = [NSMutableArray new];
+        
+        NSString *emojiString = (NSString *)[options objectForKey:BFEffectEmojiStringAttributeName];
+        NSArray *emojisArray = (NSArray *)[options objectForKey:BFEffectEmojisArrayAttributeName];
+        
+        if (emojiString) {
+            for (int i = 0; i < emojiString.length; i++) {
+                [emojis addObject:[emojiString substringWithRange:[emojiString rangeOfComposedCharacterSequencesForRange:NSMakeRange(i, 1)]]];
+            }
+        }
+        else if (emojisArray) {
+            [emojis addObjectsFromArray:emojisArray];
+        }
+        else {
+            [emojis addObjectsFromArray:@[@"🔥"]];
+        }
+        
+        if (emojis.count > 0) {
+            [self emojis:emojis completion:completion];
+        }
     }
 }
 
@@ -104,7 +131,7 @@
         imageView.frame = CGRectMake(xStart, self.frame.size.height, width, height);
         [self addSubview:imageView];
         
-        [UIView animateWithDuration:[balloon[@"duration"] floatValue] delay:[balloon[@"delay"] floatValue] options:UIViewAnimationOptionCurveEaseOut animations:^{
+        [UIView animateWithDuration:[balloon[@"duration"] floatValue] delay:[balloon[@"delay"] floatValue] options:UIViewAnimationOptionCurveLinear animations:^{
             imageView.frame = CGRectMake(xEnd, -(height), width, height);
         } completion:^(BOOL finished) {
             [imageView removeFromSuperview];
@@ -118,36 +145,38 @@
         }];
     }
 }
-- (void)emojis:(NSString *)emoji completion:(void (^__nullable)(void))completion {
+- (void)emojis:(NSArray<NSString *> *)emojis completion:(void (^__nullable)(void))completion {
     DLog(@"start emojis!!!!");
-    CGFloat emojis = 30;
+    CGFloat count = 24;
     
-    for (NSInteger b = 0; b < emojis; b++) {
-        UIFont *font = [UIFont systemFontOfSize:32+arc4random_uniform(64)];
+    for (NSInteger b = 0; b < count; b++) {
+        UIFont *font = [UIFont systemFontOfSize:48+arc4random_uniform(48)];
+        
+        double r = drand48();
         
         NSUInteger x = arc4random_uniform(self.frame.size.width + 32) - 16;
-        NSUInteger xFinal = x + (arc4random_uniform(32) - 16);
+        NSUInteger xFinal = x + (32*r - 16);
         
         CGFloat y = self.frame.size.height + font.lineHeight;
         
         UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(x, y, font.lineHeight, font.lineHeight)];
-        label.text = emoji;
+        label.text = emojis[b % emojis.count];
         label.tag = b;
         label.font = font;
         [self addSubview:label];
         
-        srand48(time(&b));
-        double r = drand48();
-        CGFloat duration = 3.f + (2.f * r);
+        CGFloat duration = 0.8f + (2.f * r);
+                
+        NSLog(@"x: %lu", (unsigned long)x);
+        NSLog(@"xFinal: %lu", (unsigned long)xFinal);
+        NSLog(@"font size: %f", font.pointSize);
         
-        CGFloat delay = pow(2, b / 10) - 1;
-        
-        [UIView animateWithDuration:duration delay:delay options:UIViewAnimationOptionCurveEaseOut animations:^{
+        [UIView animateWithDuration:duration delay:0.04*b options:UIViewAnimationOptionCurveEaseOut animations:^{
             label.frame = CGRectMake(xFinal, label.frame.size.height * -1, label.frame.size.width, label.frame.size.height);
         } completion:^(BOOL finished) {
             [label removeFromSuperview];
             
-            if (label.tag == emojis - 1) {
+            if (label.tag == count - 1) {
                 // last one
                 if (completion) {
                     completion();

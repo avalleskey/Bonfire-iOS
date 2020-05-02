@@ -21,6 +21,8 @@ typedef NS_ENUM(NSInteger, BFAlertControllerStyle) {
     BFAlertControllerStyleAlert
 };
 
+@class AlertViewControllerPresenter;
+
 @interface BFAlertAction : NSObject <NSCopying>
 
 + (instancetype)actionWithTitle:(nullable NSString *)title style:(BFAlertActionStyle)style handler:(void (^ __nullable)(void))actionHandler;
@@ -43,6 +45,7 @@ extern NSString * const BFAlertActionIconFacebook;
 extern NSString * const BFAlertActionIconSnapchat;
 extern NSString * const BFAlertActionIconInstagramStories;
 extern NSString * const BFAlertActionIconImessage;
+extern NSString * const BFAlertActionIconBonfire;
 extern NSString * const BFAlertActionIconCopyLink;
 extern NSString * const BFAlertActionIconCamp;
 extern NSString * const BFAlertActionIconQuote;
@@ -60,6 +63,9 @@ extern NSString * const BFAlertActionIconOther;
 + (instancetype)alertControllerWithTitle:(nullable NSString *)title message:(nullable NSString *)message preferredStyle:(BFAlertControllerStyle)preferredStyle;
 + (instancetype)alertControllerWithIcon:(UIImage *)icon title:(nullable NSString *)title message:(nullable NSString *)message preferredStyle:(BFAlertControllerStyle)preferredStyle;
 
+@property (nonatomic, strong) AlertViewControllerPresenter *presenter;
+- (void)show;
+
 - (void)addAction:(BFAlertAction *)action;
 @property (nonatomic, strong) NSMutableArray<BFAlertAction *> *actions;
 
@@ -74,6 +80,12 @@ extern NSString * const BFAlertActionIconOther;
 @property (nonatomic) CGFloat currentKeyboardHeight;
 
 @property (nonatomic, readonly) BFAlertControllerStyle preferredStyle;
+
+@end
+
+@interface AlertViewControllerPresenter : UIViewController
+
+@property UIWindow *win;
 
 @end
 

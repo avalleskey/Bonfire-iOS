@@ -114,7 +114,7 @@ static NSString * const autocompleteBlankCellIdentifier = @"BlankCell";
                 BFAlertAction *cancelActionSheet = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
                 [confirmActionSheet addAction:cancelActionSheet];
                 
-                [self.navigationController presentViewController:confirmActionSheet animated:true completion:nil];
+                [confirmActionSheet show];
             }
             else {
                 [self.navigationController dismissViewControllerAnimated:YES completion:nil];
@@ -865,7 +865,8 @@ static NSString * const autocompleteBlankCellIdentifier = @"BlankCell";
                 
                     BFAlertAction *closeAction = [BFAlertAction actionWithTitle:@"Close" style:BFAlertActionStyleCancel handler:nil];
                     [actionSheet addAction:closeAction];
-                    [[Launcher topMostViewController] presentViewController:actionSheet animated:true completion:nil];
+                    
+                    [actionSheet show];
                 });
 
                 break;

@@ -37,12 +37,21 @@
     self.voteButton.adjustsImageWhenDisabled = false;
     [self.voteButton setTitleColor:[UIColor bonfireSecondaryColor] forState:UIControlStateNormal];
     [self.voteButton setImage:[[UIImage imageNamed:@"postActionBolt"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
-    [self.voteButton setTitleEdgeInsets:UIEdgeInsetsMake(1, 5, 0, 0)];
-    [self.voteButton setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 5)];
+    [self.voteButton setTitleEdgeInsets:UIEdgeInsetsMake(1, 0, 0, 0)];
+    [self.voteButton setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 0)];
     self.voteButton.frame = CGRectMake(68, 0, self.voteButton.intrinsicContentSize.width + self.voteButton.currentImage.size.width - self.voteButton.titleEdgeInsets.left + (12 * 2), self.frame.size.height);
 //    self.voteButton.backgroundColor = [UIColor colorWithWhite:0 alpha:0.2f];
     [self addTapHandlersToAction:self.voteButton];
     [self addSubview:self.voteButton];
+    
+    self.quoteButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    self.quoteButton.adjustsImageWhenHighlighted = false;
+    self.quoteButton.adjustsImageWhenDisabled = false;
+    [self.quoteButton setImage:[[UIImage imageNamed:@"postActionQuote"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+    self.quoteButton.tintColor = [UIColor bonfireSecondaryColor];
+    self.quoteButton.frame = CGRectMake(0, 0, self.quoteButton.currentImage.size.width + (12 * 2), POST_ACTIONS_VIEW_HEIGHT);
+    [self addTapHandlersToAction:self.quoteButton];
+    [self addSubview:self.quoteButton];
     
     self.shareButton = [UIButton buttonWithType:UIButtonTypeCustom];
     self.shareButton.adjustsImageWhenHighlighted = false;
@@ -75,6 +84,7 @@
         
     SetX(self.shareButton, self.frame.size.width - self.shareButton.frame.size.width + 12);
     SetX(self.voteButton, self.shareButton.frame.origin.x - self.voteButton.frame.size.width);
+    SetX(self.quoteButton, self.voteButton.frame.origin.x - self.quoteButton.frame.size.width);
     
     SetWidth(self.repliesSnaphotView, self.replyButton.frame.size.width);
     SetWidth(self.replyActionView, self.repliesSnaphotView.frame.size.width);

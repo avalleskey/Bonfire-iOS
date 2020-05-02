@@ -50,6 +50,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     self.bfTableView = [[BFComponentTableView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - self.navigationController.navigationBar.frame.origin.y - self.navigationController.navigationBar.frame.size.height) style:UITableViewStyleGrouped];
     self.bfTableView.stream.detailLevel = BFComponentDetailLevelSome;
     self.bfTableView.extendedDelegate = self;
+    self.bfTableView.preventScrollingWhileLoading = true;
 }
 
 - (void)getIcebreakers {
@@ -205,7 +206,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
         BFAlertAction *cancelActionSheet = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
         [actionSheet addAction:cancelActionSheet];
         
-        [[Launcher topMostViewController] presentViewController:actionSheet animated:YES completion:nil];
+        [actionSheet show];
     }
 }
 - (void)selectNewIcebreaker  {

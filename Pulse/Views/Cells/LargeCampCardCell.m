@@ -173,7 +173,7 @@
                     BFAlertAction *cancelLeaveCamp = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
                     [confirmDeletePostActionSheet addAction:cancelLeaveCamp];
                     
-                    [UIViewParentController(self) presentViewController:confirmDeletePostActionSheet animated:true completion:nil];
+                    [confirmDeletePostActionSheet show];
                 }
                 else {
                     leave();

@@ -343,36 +343,36 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
             BFAlertAction *alertCancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
             [alertConfirmController addAction:alertCancel];
             
-            [[Launcher topMostViewController] presentViewController:alertConfirmController animated:true completion:nil];
+            [alertConfirmController show];
         }];
         [actionSheet addAction:blockUsername];
     }
     
-//    if (![self isBot] && ![self isCurrentUser] && ([self.user.attributes.context.me.status isEqualToString:USER_STATUS_FOLLOWS] || [self.user.attributes.context.me.status isEqualToString:USER_STATUS_FOLLOW_BOTH])) {
-//        BOOL userPostNotificationsOn = self.user.attributes.context.me.follow.me.subscription != nil;
-//        BFAlertAction *togglePostNotifications = [BFAlertAction actionWithTitle:[NSString stringWithFormat:@"Turn Post Notifications %@", userPostNotificationsOn ? @"Off" : @"On"] style:BFAlertActionStyleDefault handler:^{
-//            NSLog(@"toggle post notifications");
-//            // confirm action
-//            if ([Session sharedInstance].deviceToken.length > 0) {
-//                if (userPostNotificationsOn) {
-//                    [self.user unsubscribeFromPostNotifications];
-//                }
-//                else {
-//                    [self.user subscribeToPostNotifications];
-//                }
-//            }
-//            else {
-//                // confirm action
-//                BFAlertController *notificationsNotice = [BFAlertController alertControllerWithTitle:@"Notifications Not Enabled" message:@"In order to enable Post Notifications, you must turn on notifications for Bonfire in the iOS Settings" preferredStyle:BFAlertControllerStyleAlert];
-//
-//                BFAlertAction *alertCancel = [BFAlertAction actionWithTitle:@"Okay" style:BFAlertActionStyleCancel handler:nil];
-//                [notificationsNotice addAction:alertCancel];
-//
-//                [[Launcher topMostViewController] presentViewController:notificationsNotice animated:true completion:nil];
-//            }
-//        }];
-//        [actionSheet addAction:togglePostNotifications];
-//    }
+    if (![self isBot] && ![self isCurrentUser] && ([self.user.attributes.context.me.status isEqualToString:USER_STATUS_FOLLOWS] || [self.user.attributes.context.me.status isEqualToString:USER_STATUS_FOLLOW_BOTH])) {
+        BOOL userPostNotificationsOn = self.user.attributes.context.me.follow.me.subscription != nil;
+        BFAlertAction *togglePostNotifications = [BFAlertAction actionWithTitle:[NSString stringWithFormat:@"Turn Post Notifications %@", userPostNotificationsOn ? @"Off" : @"On"] style:BFAlertActionStyleDefault handler:^{
+            NSLog(@"toggle post notifications");
+            // confirm action
+            if ([Session sharedInstance].deviceToken.length > 0) {
+                if (userPostNotificationsOn) {
+                    [self.user unsubscribeFromPostNotifications];
+                }
+                else {
+                    [self.user subscribeToPostNotifications];
+                }
+            }
+            else {
+                // confirm action
+                BFAlertController *notificationsNotice = [BFAlertController alertControllerWithTitle:@"Notifications Not Enabled" message:@"In order to enable Post Notifications, you must turn on notifications for Bonfire in the iOS Settings" preferredStyle:BFAlertControllerStyleAlert];
+
+                BFAlertAction *alertCancel = [BFAlertAction actionWithTitle:@"Okay" style:BFAlertActionStyleCancel handler:nil];
+                [notificationsNotice addAction:alertCancel];
+
+                [notificationsNotice show];
+            }
+        }];
+        [actionSheet addAction:togglePostNotifications];
+    }
     
     // 1.A.* -- Any user, any page, any following state
     BFAlertAction *shareUser = [BFAlertAction actionWithTitle:[NSString stringWithFormat:@"Share %@ via...", [self isCurrentUser] ? @"your profile" : [NSString stringWithFormat:@"@%@", identity.attributes.identifier]] style:BFAlertActionStyleDefault handler:^{
@@ -397,7 +397,7 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
     BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
     [actionSheet addAction:cancel];
     
-    [[Launcher topMostViewController] presentViewController:actionSheet animated:NO completion:nil];
+    [actionSheet show];
 }
 
 - (void)showErrorViewWithType:(ErrorViewType)type title:(NSString *)title description:(NSString *)description actionTitle:(nullable NSString *)actionTitle actionBlock:(void (^ __nullable)(void))actionBlock {

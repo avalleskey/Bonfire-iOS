@@ -18,9 +18,16 @@
 #import "BFStreamComponent.h"
 
 #define REPLY_POST_MAX_CHARACTERS 125
-#define REPLY_POST_EMOJI_SIZE_MULTIPLIER 1.5
+#define REPLY_POST_EMOJI_SIZE_MULTIPLIER 1
+
+#define repliesButtonLineTag 10
+#define repliesButtonHeight 24
 
 @interface ReplyCell () <BFComponentProtocol>
+
+@property (nonatomic, strong) CAShapeLayer *bubbleLayer;
+@property (nonatomic, strong) CAShapeLayer *bubbleBigDotLayer;
+@property (nonatomic, strong) CAShapeLayer *bubbleLittleDotLayer;
 
 @end
 
@@ -100,6 +107,27 @@
         self.imagesView.layer.cornerRadius = 0;
         self.imagesView.userInteractionEnabled = true;
         
+        self.repliesButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        [self.repliesButton setImage:[[UIImage imageNamed:@"postRepliesIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+        [self.repliesButton setTintColor:[[UIColor bonfireSecondaryColor] colorWithAlphaComponent:0.75]];
+        [self.repliesButton setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 6)];
+        [self.repliesButton setTitleEdgeInsets:UIEdgeInsetsMake(0, 6, 0, 0)];
+        self.repliesButton.frame = CGRectMake(0, 0, self.frame.size.width, repliesButtonHeight);
+        [self.repliesButton setTitle:@"2 Replies" forState:UIControlStateNormal];
+        [self.repliesButton setContentHorizontalAlignment:UIControlContentHorizontalAlignmentLeft];
+        [self.repliesButton setTitleColor:[UIColor bonfireSecondaryColor] forState:UIControlStateNormal];
+        [self.repliesButton.titleLabel setFont:[UIFont systemFontOfSize:14.f weight:UIFontWeightRegular]];
+        
+//        UIView *repliesLine = [[UIView alloc] initWithFrame:CGRectMake(replyContentOffset.left+REPLY_BUBBLE_INSETS.left, 0, 12, 1 + HALF_PIXEL)];
+//
+//        repliesLine.layer.cornerRadius = repliesLine.frame.size.height / 2;
+//        repliesLine.backgroundColor = [UIColor bonfireSecondaryColor];
+//        repliesLine.tag = repliesButtonLineTag;
+//        repliesLine.alpha = 0.75;
+//        [self.repliesButton addSubview:repliesLine];
+        
+        [self addSubview:self.repliesButton];
+        
         self.topLine = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 3, 0)];
         self.topLine.backgroundColor = [UIColor threadLineColor];
         self.topLine.layer.cornerRadius = self.topLine.frame.size.width / 2;
@@ -134,23 +162,9 @@
         } forControlEvents:(UIControlEventTouchUpInside|UIControlEventTouchCancel|UIControlEventTouchDragExit)];
         [self.contentView addSubview:self.topLevelReplyButton];
         
-        self.bubbleBackgroundView = [[UIView alloc] init];
-        self.bubbleBackgroundView.layer.masksToBounds = false;
-        [self.contentView insertSubview:self.bubbleBackgroundView atIndex:0];
-        
-        self.bubbleBackgroundDot1 = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 10, 10)];
-        self.bubbleBackgroundDot1.layer.cornerRadius = self.bubbleBackgroundDot1.frame.size.height / 2;
-        self.bubbleBackgroundDot1.layer.masksToBounds = true;
-        self.bubbleBackgroundDot1.backgroundColor = [UIColor whiteColor];
-        self.bubbleBackgroundDot1.alpha = 1;
-        [self.contentView insertSubview:self.bubbleBackgroundDot1 belowSubview:self.bubbleBackgroundView];
-        
-        self.bubbleBackgroundDot2 = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 6, 6)];
-        self.bubbleBackgroundDot2.layer.cornerRadius = self.bubbleBackgroundDot2.frame.size.height / 2;
-        self.bubbleBackgroundDot2.layer.masksToBounds = true;
-        self.bubbleBackgroundDot2.backgroundColor = [UIColor whiteColor];
-        self.bubbleBackgroundDot2.alpha = 0.25;
-        [self.contentView insertSubview:self.bubbleBackgroundDot2 belowSubview:self.bubbleBackgroundView];
+        self.bubbleLayer = [CAShapeLayer layer];
+        self.bubbleLayer.fillColor = [UIColor blueColor].CGColor;
+        [self.contentView.layer insertSublayer:self.bubbleLayer atIndex:0];
     }
     
     return self;
@@ -165,10 +179,13 @@
     if (self.levelsDeep == 0 && [self.post isRemoved]) {
         contentEdgeInsets.right = replyContentOffset.right;
     }
+//    if (![self.repliesButton isHidden]) {
+//        contentEdgeInsets.bottom += repliesButtonHeight;
+//    }
     
-    CGFloat bubbleCornerRadius = (self.textView.messageLabel.font.lineHeight+REPLY_BUBBLE_INSETS.top+REPLY_BUBBLE_INSETS.bottom)/1.75;
+    CGFloat bubbleCornerRadius = ceilf((self.textView.messageLabel.font.lineHeight+REPLY_BUBBLE_INSETS.top+REPLY_BUBBLE_INSETS.bottom)/1.8);
     CGFloat yBottom = contentEdgeInsets.top + REPLY_BUBBLE_INSETS.top;
-    
+        
     CGFloat bubbleWidth = 0;
     
     if (![self.nameLabel isHidden]) {
@@ -250,28 +267,23 @@
         CGFloat messageWidth = self.textView.messageLabel.frame.size.width + (REPLY_BUBBLE_INSETS.left + REPLY_BUBBLE_INSETS.right);
         
         bubbleWidth = MAX(bubbleWidth, messageWidth);
-    }
-    
-    self.bubbleBackgroundView.frame = CGRectMake(contentEdgeInsets.left, contentEdgeInsets.top, bubbleWidth, self.frame.size.height - contentEdgeInsets.top - contentEdgeInsets.bottom);
-    [self continuityRadiusForView:self.bubbleBackgroundView withRadius:bubbleCornerRadius];
-//        yBottom = self.bubbleBackgroundView.frame.origin.y + self.bubbleBackgroundView.frame.size.height;
-    
-    CGFloat bubbleDotSize1 = bubbleCornerRadius * 0.7;
-    self.bubbleBackgroundDot1.frame = CGRectMake(self.bubbleBackgroundView.frame.origin.x, self.bubbleBackgroundView.frame.origin.y + self.bubbleBackgroundView.frame.size.height - bubbleDotSize1 - (bubbleDotSize1 * 0.05), bubbleDotSize1, bubbleDotSize1);
-    self.bubbleBackgroundDot1.layer.cornerRadius = self.bubbleBackgroundDot1.frame.size.height / 2;
-    
-    CGFloat bubbleDotSize2 = bubbleCornerRadius * 0.25;
-    self.bubbleBackgroundDot2.frame = CGRectMake(self.bubbleBackgroundView.frame.origin.x - (bubbleDotSize2 * 1.35), self.bubbleBackgroundView.frame.origin.y + self.bubbleBackgroundView.frame.size.height - bubbleDotSize2, bubbleDotSize2, bubbleDotSize2);
-    self.bubbleBackgroundDot2.layer.cornerRadius = self.bubbleBackgroundDot2.frame.size.height / 2;
-    
-    if (![self.topLevelReplyButton isHidden]) {
-        self.topLevelReplyButton.frame = CGRectMake(self.bubbleBackgroundView.frame.origin.x + self.bubbleBackgroundView.frame.size.width + ceilf(REPLY_BUBBLE_INSETS.right * .5), self.bubbleBackgroundView.frame.origin.y + self.bubbleBackgroundView.frame.size.height / 2 - self.topLevelReplyButton.frame.size.height / 2, self.topLevelReplyButton.frame.size.width, self.topLevelReplyButton.frame.size.height);
+        
+        yBottom = self.textView.frame.origin.y + self.textView.frame.size.height;
     }
     
     CGFloat avatarSize = [ReplyCell avatarSizeForLevel:self.levelsDeep];
     self.primaryAvatarView.frame = CGRectMake(edgeInsets.left, 0, avatarSize, avatarSize);
     self.primaryAvatarView.center = CGPointMake(self.primaryAvatarView.center.x, self.frame.size.height - contentEdgeInsets.bottom - ((replyTextViewFont.lineHeight + REPLY_BUBBLE_INSETS.top + REPLY_BUBBLE_INSETS.bottom) / 2));
+    
+    if (![self.repliesButton isHidden]) {
+        self.repliesButton.frame = CGRectMake(contentEdgeInsets.left + REPLY_BUBBLE_INSETS.left, yBottom, [self.repliesButton intrinsicContentSize].width + self.repliesButton.imageEdgeInsets.right, self.repliesButton.frame.size.height);
         
+        bubbleWidth = MAX(bubbleWidth, self.repliesButton.frame.size.width + (REPLY_BUBBLE_INSETS.left + REPLY_BUBBLE_INSETS.right));
+    }
+    
+    self.bubbleLayer.frame = CGRectMake(contentEdgeInsets.left, contentEdgeInsets.top, bubbleWidth, self.frame.size.height - contentEdgeInsets.top - contentEdgeInsets.bottom);
+    self.bubbleLayer.path = [self createBubblePath:self.bubbleLayer.bounds cornerRadius:bubbleCornerRadius];
+    
      NSInteger profilePicPadding = 4;
      self.topLine.frame = CGRectMake(self.primaryAvatarView.frame.origin.x + (self.primaryAvatarView.frame.size.width / 2) - (self.topLine.frame.size.width / 2), - (self.topLine.layer.cornerRadius / 2), self.topLine.frame.size.width, self.primaryAvatarView.frame.origin.y - profilePicPadding + (self.topLine.layer.cornerRadius / 2));
      
@@ -282,6 +294,21 @@
     if (!self.lineSeparator.isHidden) {
         self.lineSeparator.frame = CGRectMake(0, self.frame.size.height - self.lineSeparator.frame.size.height, self.frame.size.width, self.lineSeparator.frame.size.height);
     }
+}
+
+- (CGPathRef)createBubblePath:(CGRect)rect cornerRadius:(CGFloat)cornerRadius {
+    UIBezierPath *bubble = [UIBezierPath bezierPathWithRoundedRect:rect cornerRadius:cornerRadius*.9];
+    
+    CGFloat bubbleDotSize1 = cornerRadius * 0.7;
+    CGFloat bubbleDotSize2 = cornerRadius * 0.25;
+    
+    UIBezierPath *bigDot = [UIBezierPath bezierPathWithRoundedRect:CGRectMake(rect.origin.x, rect.origin.y + rect.size.height - bubbleDotSize1 - (bubbleDotSize1 * 0.05), bubbleDotSize1, bubbleDotSize1) cornerRadius:bubbleDotSize1/2];
+    UIBezierPath *littleDot = [UIBezierPath bezierPathWithRoundedRect:CGRectMake(rect.origin.x - (bubbleDotSize2 * 1.35), rect.origin.y + rect.size.height - bubbleDotSize2, bubbleDotSize2, bubbleDotSize2) cornerRadius:bubbleDotSize2/2];
+    
+    [bubble appendPath:bigDot];
+    [bubble appendPath:littleDot];
+    
+    return bubble.CGPath;
 }
 
 - (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection {
@@ -404,39 +431,42 @@
     self.nameLabel.tintColor = [UIColor bonfireSecondaryColor];
     
     if (_levelsDeep == -1) {
+        UIColor *themeColor = [UIColor fromHex:[Session sharedInstance].currentUser.attributes.color adjustForOptimalContrast:true];
         if ([self.post.attributes.creator isCurrentIdentity]) {
             if (@available(iOS 13.0, *)) {
                 if ([UITraitCollection currentTraitCollection].userInterfaceStyle == UIUserInterfaceStyleDark) {
-                    self.bubbleBackgroundView.backgroundColor = [UIColor darkerColorForColor:[UIColor fromHex:[Session sharedInstance].currentUser.attributes.color adjustForOptimalContrast:true] amount:0.7];
+                    self.bubbleLayer.fillColor = [themeColor colorWithAlphaComponent:0.12].CGColor;
                 }
                 else {
-                    self.bubbleBackgroundView.backgroundColor = [UIColor lighterColorForColor:[UIColor fromHex:[Session sharedInstance].currentUser.attributes.color adjustForOptimalContrast:true] amount:0.85];
+                    self.bubbleLayer.fillColor = [themeColor colorWithAlphaComponent:0.1].CGColor;
                 }
             }
             else {
-                self.bubbleBackgroundView.backgroundColor = [UIColor lighterColorForColor:[UIColor fromHex:[Session sharedInstance].currentUser.attributes.color adjustForOptimalContrast:true] amount:0.85];
+                self.bubbleLayer.fillColor = [themeColor colorWithAlphaComponent:0.1].CGColor;
             }
             self.nameLabel.textColor = [UIColor fromHex:[Session sharedInstance].currentUser.attributes.color adjustForOptimalContrast:true];
-            self.textView.textColor = [UIColor bonfirePrimaryColor];;
+            self.textView.textColor = [UIColor bonfirePrimaryColor];
             self.textView.messageLabel.tintColor = [UIColor colorNamed:@"CreatorLinkColor"];
         }
+        else if ([self.post containsMention]) {
+            self.bubbleLayer.fillColor = [UIColor colorNamed:@"MentionBackgroundColor"].CGColor;
+            self.nameLabel.textColor = [UIColor bonfirePrimaryColor];
+            self.textView.textColor = [UIColor bonfirePrimaryColor];;
+            self.textView.messageLabel.tintColor = [UIColor colorNamed:@"MentionLinkColor"];
+        }
         else {
-           self.bubbleBackgroundView.backgroundColor = [UIColor colorNamed:@"BubbleColor"]; //tintColor;
-           self.nameLabel.textColor = [UIColor bonfirePrimaryColor];
-           self.textView.textColor = [UIColor bonfirePrimaryColor];;
-           self.textView.messageLabel.tintColor = [UIColor colorNamed:@"LinkColor"];
+            self.bubbleLayer.fillColor = [UIColor colorNamed:@"BubbleColor"].CGColor;
+            self.nameLabel.textColor = [UIColor bonfirePrimaryColor];
+            self.textView.textColor = [UIColor bonfirePrimaryColor];;
+            self.textView.messageLabel.tintColor = [UIColor colorNamed:@"LinkColor"];
         }
         
-        self.bubbleBackgroundView.alpha = 1;
-        self.bubbleBackgroundDot2.alpha = 0.75;
         self.topLevelReplyButton.hidden = true;
     }
     else if (_levelsDeep == 0) {
-        self.bubbleBackgroundView.backgroundColor = [UIColor fromHex:[UIColor toHex:self.tintColor] adjustForOptimalContrast:false];//[UIColor fromHex:[UIColor toHex:self.tintColor] adjustForOptimalContrast:false];
-//            self.bubbleBackgroundView.layer.shadowOpacity = 0;
-        self.bubbleBackgroundDot2.alpha = 0.5;
+        self.bubbleLayer.fillColor = [UIColor fromHex:[UIColor toHex:self.tintColor] adjustForOptimalContrast:false].CGColor;//[UIColor fromHex:[UIColor toHex:self.tintColor] adjustForOptimalContrast:false];
         
-        UIColor *textColor = [UIColor useWhiteForegroundForColor:self.bubbleBackgroundView.backgroundColor] ? [UIColor whiteColor] : [UIColor blackColor];
+        UIColor *textColor = [UIColor bonfirePrimaryColor];
         self.textView.textColor = textColor;
         self.textView.messageLabel.tintColor = [textColor colorWithAlphaComponent:0.8];
 //            self.nameLabel.tintColor = textColor;
@@ -444,11 +474,10 @@
         self.topLevelReplyButton.hidden = [self.post isRemoved];
     }
     else {
-        self.bubbleBackgroundView.backgroundColor = [UIColor tableViewBackgroundColor];//[UIColor fromHex:[UIColor toHex:[UIColor darkerColorForColor:self.tintColor amount:0.1]] adjustForOptimalContrast:false];
+        self.bubbleLayer.fillColor = [UIColor tableViewBackgroundColor].CGColor;//[UIColor fromHex:[UIColor toHex:[UIColor darkerColorForColor:self.tintColor amount:0.1]] adjustForOptimalContrast:false];
 //            self.bubbleBackgroundView.layer.shadowOpacity = 0;
-        self.bubbleBackgroundDot2.alpha = 0.25;
         
-        UIColor *textColor = [UIColor useWhiteForegroundForColor:self.bubbleBackgroundView.backgroundColor] ? [UIColor whiteColor] : [UIColor blackColor];
+        UIColor *textColor = [UIColor bonfirePrimaryColor];
         self.textView.textColor = textColor;
         self.textView.messageLabel.tintColor = [textColor colorWithAlphaComponent:0.8];
 //            self.nameLabel.tintColor = textColor;
@@ -456,9 +485,6 @@
         //self.textView.messageLabel.linkAttributes = @{(__bridge NSString *)kCTForegroundColorAttributeName: [UIColor linkColor]};
         self.topLevelReplyButton.hidden = true;
     }
-//    self.nameLabel.hidden = self.levelsDeep != 0;
-    self.bubbleBackgroundDot1.backgroundColor = self.bubbleBackgroundView.backgroundColor;
-    self.bubbleBackgroundDot2.backgroundColor = self.bubbleBackgroundView.backgroundColor;
 }
 
 - (void)setPost:(Post *)post {
@@ -569,6 +595,10 @@
         else if (self.identityAttachmentView) {
             [self removeIdentityAttachment];
         }
+        
+        BOOL hasSubReplies = post.attributes.summaries.counts.replies > 0;
+        [self.repliesButton setTitle:[NSString stringWithFormat:@"%ld %@", (long)post.attributes.summaries.counts.replies, (post.attributes.summaries.counts.replies == 1) ? @"Reply" : @"Replies"] forState:UIControlStateNormal];
+        self.repliesButton.hidden = !hasSubReplies;
     }
 }
 
@@ -656,6 +686,11 @@
     }
     else {
         // no message, but has image
+    }
+    
+    BOOL hasSubReplies = post.attributes.summaries.counts.replies > 0;
+    if (hasSubReplies) {
+        height += repliesButtonHeight;
     }
     
     if (height == baseHeight) {

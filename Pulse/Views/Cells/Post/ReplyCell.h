@@ -21,11 +21,8 @@
 
 @property (nonatomic) NSInteger levelsDeep;
 
-@property (nonatomic, strong) UIView *bubbleBackgroundView;
-@property (nonatomic, strong) UIView *bubbleBackgroundDot1;
-@property (nonatomic, strong) UIView *bubbleBackgroundDot2;
-
 @property (nonatomic, strong) UIButton *topLevelReplyButton;
+@property (nonatomic, strong) UIButton *repliesButton;
 
 + (CGFloat)avatarSizeForLevel:(NSInteger)level;
 + (CGFloat)avatarPaddingForLevel:(NSInteger)level;

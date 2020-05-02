@@ -253,6 +253,22 @@
     
 //    self.tabBar.clipsToBounds = true;
     self.tabBar.tintColor = [UIColor bonfirePrimaryColor];
+    
+    [self.viewControllers enumerateObjectsUsingBlock:^(UIViewController *vc, NSUInteger idx, BOOL *stop) {
+        vc.tabBarItem.title = nil;
+        
+        UIView *tabBarItemView = [self viewForTabInTabBar:self.tabBar withIndex:idx];
+        UIImageView *tabBarImageView = nil;
+        for (UIImageView *subview in [tabBarItemView subviews]) {
+            if ([subview isKindOfClass:[UIImageView class]]) {
+                tabBarImageView = subview;
+                break;
+            }
+        }
+        CGFloat offset = (tabBarItemView.frame.size.height / 2) - tabBarImageView.center.y;
+        
+        vc.tabBarItem.imageInsets = UIEdgeInsetsMake(0, 0, 0 -.5*offset - (!HAS_ROUNDED_CORNERS ? 0 : 0), 0);
+    }];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -309,35 +325,6 @@
             }
         }
 //        [self.tabBar.superview addSubview:self.navigationAvatarView];
-
-        if (!IS_IPAD && SYSTEM_VERSION_LESS_THAN(@"13")) {
-            NSMutableArray *vcArray = [[NSMutableArray alloc] initWithArray:self.viewControllers];
-            
-            for (NSInteger i = 0; i < [vcArray count]; i++) {
-                UINavigationController *navVC = vcArray[i];
-                UIView *tabBarItemView = [self viewForTabInTabBar:self.tabBar withIndex:i];
-                UIImageView *tabBarImageView = nil;
-                for (UIImageView *subview in [tabBarItemView subviews]) {
-                    if ([subview isKindOfClass:[UIImageView class]]) {
-                        tabBarImageView = subview;
-                        break;
-                    }
-                }
-                CGFloat offset = (tabBarItemView.frame.size.height / 2) - tabBarImageView.center.y - (!HAS_ROUNDED_CORNERS ? 1 : 0);
-                
-                NSLog(@"offset: %f", offset);
-                navVC.tabBarItem.imageInsets = UIEdgeInsetsMake(offset, 0, -offset, 0);
-                
-                [navVC.tabBarItem setTitleTextAttributes:@{NSForegroundColorAttributeName: [UIColor clearColor]}
-                                                forState:UIControlStateNormal];
-                [navVC.tabBarItem setTitleTextAttributes:@{NSForegroundColorAttributeName: [UIColor clearColor]}
-                                                forState:UIControlStateSelected];
-                
-                [vcArray replaceObjectAtIndex:i withObject:navVC];
-            }
-            
-            self.viewControllers = [vcArray copy];
-        }
     }
 }
 

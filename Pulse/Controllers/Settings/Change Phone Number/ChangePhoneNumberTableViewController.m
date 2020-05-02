@@ -101,7 +101,8 @@
         BFAlertController *alert = [BFAlertController alertControllerWithTitle:@"Please Enter a New Number" message:@"The number you entered matches the existing phone number on your account" preferredStyle:BFAlertControllerStyleAlert];
         BFAlertAction *gotItAction = [BFAlertAction actionWithTitle:@"Okay" style:BFAlertActionStyleCancel handler:nil];
         [alert addAction:gotItAction];
-        [[Launcher activeViewController] presentViewController:alert animated:true completion:nil];
+        
+        [alert show];
         
         return;
     }
@@ -138,7 +139,8 @@
         BFAlertController *alert = [BFAlertController alertControllerWithTitle:@"Uh oh!" message:@"We encountered a network error while looking up your account. Check your network settings and try again." preferredStyle:BFAlertControllerStyleAlert];
         BFAlertAction *gotItAction = [BFAlertAction actionWithTitle:@"Okay" style:BFAlertActionStyleCancel handler:nil];
         [alert addAction:gotItAction];
-        [[Launcher activeViewController] presentViewController:alert animated:true completion:nil];
+        
+        [alert show];
     }];
 }
 - (void)promptToVerifyPhoneNumber:(NSString *)phoneNumber {
@@ -178,7 +180,7 @@
     [alert setTextField:textField];
     [textField becomeFirstResponder];
     
-    [[Launcher topMostViewController] presentViewController:alert animated:true completion:nil];
+    [alert show];
 }
 
 - (void)attemptToSavePhoneNumber:(NSString *)phoneNumber verificationCode:(NSString *)verificationCode {

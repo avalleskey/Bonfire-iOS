@@ -41,7 +41,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (NSDictionary *)getAccessTokenWithVerification:(BOOL)verify;
 - (NSString *)refreshToken;
 + (void)authenticate:(void (^)(BOOL success, NSString *token))handler;
-- (void)getNewAccessToken:(void (^)(BOOL success, NSString *newToken))handler;
+- (void)getNewAccessToken:(void (^)(BOOL success, NSString *newToken, NSInteger bonfireErrorCode))handler;
 
 #pragma mark - APNS
 @property (readwrite,copy) NSString *deviceToken;

@@ -11,12 +11,13 @@
 @interface ExpandedPostActionsView : UIView
 
 @property (nonatomic, strong) UIButton *replyButton;
+@property (nonatomic, strong) UIButton *quoteButton;
 @property (nonatomic, strong) UIButton *voteButton;
 @property (nonatomic, strong) UIButton *shareButton;
-//@property (nonatomic, strong) UIButton *moreButton;
 
-@property (nonatomic, strong) UIView *middleSeparator;
 @property (nonatomic, strong) UIView *topSeparator;
 @property (nonatomic, strong) UIView *bottomSeparator;
+
+@property (nonatomic) BOOL loading;
 
 @end

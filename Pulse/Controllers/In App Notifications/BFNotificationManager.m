@@ -83,8 +83,12 @@
     //[HapticHelper generateFeedback:FeedbackType_Impact_Medium];
     
     // set a timer to dismiss the notification view
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3.f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        [self dismissNotificationView:notificationView];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(4.5f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        for (BFNotificationView *subview in self.notifications) {
+            if (subview == notificationView) {
+                [self dismissNotificationView:notificationView];
+            }
+        }
     });
 }
 - (void)hideAllNotifications {
@@ -95,7 +99,7 @@
 }
 
 - (void)dismissNotificationView:(BFNotificationView *)notificationView {
-    [UIView animateWithDuration:1.2 delay:0 usingSpringWithDamping:0.6f initialSpringVelocity:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+    [UIView animateWithDuration:0.8 delay:0 usingSpringWithDamping:0.8f initialSpringVelocity:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
         notificationView.center = CGPointMake(notificationView.center.x, -1 * (notificationView.frame.size.height * 2) - 16);
     } completion:^(BOOL finished) {
         [notificationView removeFromSuperview];

@@ -145,8 +145,11 @@
                 }];
             }
         }];
+        [self.actionsView.quoteButton bk_whenTapped:^{
+            [Launcher openComposePost:nil inReplyTo:nil withMessage:nil media:nil quotedObject:self.post];
+        }];
         [self.actionsView.shareButton bk_whenTapped:^{
-            [Launcher openPostActions:self.post];
+            [Launcher sharePost:self.post];
         }];
         [self.contentView addSubview:self.actionsView];
         

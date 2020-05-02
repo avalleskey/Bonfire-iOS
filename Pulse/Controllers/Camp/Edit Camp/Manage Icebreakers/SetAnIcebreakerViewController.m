@@ -73,6 +73,7 @@ static NSString * const postCellReuseIdentifier = @"PostCell";
     self.bfTableView = [[BFComponentTableView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - self.navigationController.navigationBar.frame.origin.y - self.navigationController.navigationBar.frame.size.height) style:UITableViewStyleGrouped];
     self.bfTableView.stream.detailLevel = BFComponentDetailLevelMinimum;
     self.bfTableView.extendedDelegate = self;
+    self.bfTableView.preventScrollingWhileLoading = true;
 }
 
 - (void)getPosts {

@@ -188,7 +188,17 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
     [titleButton setTitle:self.title forState:UIControlStateNormal];
     titleButton.frame = CGRectMake(0, 0, [titleButton intrinsicContentSize].width, self.navigationController.navigationBar.frame.size.height);
     [titleButton bk_whenTapped:^{
-        [self.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:YES];
+        [self.tableView reloadData];
+        
+        for (NSInteger s = 0; s < [self.tableView numberOfSections]; s++) {
+            if ([self.tableView numberOfRowsInSection:s] > 0) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    NSIndexPath *rowIndexPath = [NSIndexPath indexPathForRow:0 inSection:s];
+                    [self.tableView scrollToRowAtIndexPath:rowIndexPath atScrollPosition:UITableViewScrollPositionNone animated:YES];
+                });
+                break;
+            }
+        }
         
         if (!self.loading) {
             [self refreshIfNeeded];
@@ -299,6 +309,10 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
     }
 }
 - (void)refresh {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self.refreshControl performSelector:@selector(endRefreshing) withObject:nil afterDelay:0.0];
+    });
+    
     if (self.loading) {
         return;
     }
@@ -311,13 +325,7 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
 - (void)setLoading:(BOOL)loading {
     [super setLoading:loading];
     
-    if (!self.loading) {
-        self.titleView.shimmering = false;
-
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [self.refreshControl performSelector:@selector(endRefreshing) withObject:nil afterDelay:0.0];
-        });
-    }
+    self.titleView.shimmering = self.loading;
 }
 
 - (void)getActivitiesWithCursor:(StreamPagingCursorType)cursorType {
@@ -583,9 +591,6 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
             SimpleNavigationController *newNavController = [[SimpleNavigationController alloc] initWithRootViewController:p];
             newNavController.transitioningDelegate = [Launcher sharedInstance];
             [newNavController setLeftAction:SNActionTypeBack];
-            if (![p.post.attributes.postedIn.attributes isPrivate]) {
-                [newNavController setRightAction:SNActionTypeShare];
-            }
             newNavController.currentTheme = p.theme;
             newNavController.view.tintColor = [UIColor fromHex:p.post.themeColor adjustForOptimalContrast:true];
             [newNavController updateBarColor:[UIColor clearColor] animated:false];

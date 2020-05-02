@@ -461,7 +461,7 @@ static Session *session;
     }];
 }
 
-- (void)getNewAccessToken:(void (^)(BOOL success, NSString *newToken))handler {
+- (void)getNewAccessToken:(void (^)(BOOL success, NSString *newToken, NSInteger bonfireErrorCode))handler {
     NSLog(@"🆕🔑 getNewAccessToken:");
     
     // GET NEW ACCESS TOKEN
@@ -470,7 +470,7 @@ static Session *session;
         // access token is already valid -- must have already been refreshed
         NSLog(@"🔑✅ getNewAccessToken: NO NEED");
         
-        handler(true, currentAccessToken[@"access_token"]);
+        handler(true, currentAccessToken[@"access_token"], 0);
     }
     else if ([[Session sharedInstance] refreshToken] != nil) {
         // has a seemingly valid refresh token, so we should attempt
@@ -485,11 +485,11 @@ static Session *session;
                 if (accessToken == nil) {
                     // original effort failed to get a new access token
                     // NSLog(@"original effort failed");
-                    handler(false, nil);
+                    handler(false, nil, 0);
                 }
                 else {
                     // NSLog(@"original effort SUCCEEDED WOOOOOO");
-                    handler(true, accessToken[@"access_token"]);
+                    handler(true, accessToken[@"access_token"], 0);
                 }
             }];
         }
@@ -500,6 +500,7 @@ static Session *session;
             // get new access token
             HAWebService *refreshTokenManager = [[HAWebService alloc] init];
             [refreshTokenManager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", [Configuration API_KEY]] forHTTPHeaderField:@"Authorization"];
+            [refreshTokenManager.requestSerializer setTimeoutInterval:30];
             NSLog(@"refreshtoken [HAWebService authenticatedManager]: %@", refreshTokenManager);
             
             NSDictionary *params = @{@"grant_type": @"refresh_token", @"refresh_token": [[Session sharedInstance] refreshToken]};
@@ -515,7 +516,7 @@ static Session *session;
                 
                 [[Session sharedInstance] setAccessToken:cleanDictionary];
                 
-                handler(true, cleanDictionary[@"access_token"]);
+                handler(true, cleanDictionary[@"access_token"], 0);
                 
                 self.refreshingToken = false;
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
@@ -530,10 +531,13 @@ static Session *session;
                 if (accessToken != nil) {
                     // already refreshed! good to go
                     NSLog(@"access token? %@", accessToken[@"access_token"]);
-                    handler(true, accessToken[@"access_token"]);
+                    handler(true, accessToken[@"access_token"], 0);
+                }
+                else if ([error bonfireErrorCode] > 0) {
+                    handler(false, nil, [error bonfireErrorCode]);
                 }
                 else {
-                    handler(false, nil);
+                    [self getNewAccessToken:handler];
                 }
                 
                 self.refreshingToken = false;
@@ -542,7 +546,7 @@ static Session *session;
     }
     else {
         // NSLog(@"refresh token  ==  nil");
-        handler(false, nil);
+        handler(false, nil, 0);
     }
 }
 
@@ -593,7 +597,11 @@ static Session *session;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         _sharedCampCache = [[PINCache alloc] initWithName:@"BonfireTemporaryCache" rootPath:[NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) firstObject] serializer:nil deserializer:nil keyEncoder:nil keyDecoder:nil ttlCache:true];
+        _sharedCampCache.memoryCache.costLimit = 100;
+        
     });
+    
+    NSLog(@"total memory cost:: %lu", (unsigned long)_sharedCampCache.memoryCache.totalCost);
     
     return _sharedCampCache;
 }

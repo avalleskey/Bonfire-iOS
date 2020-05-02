@@ -228,45 +228,27 @@
     if (!self.message || self.message.length == 0 || !self.entities || self.entities.count == 0) return;
     
     [self.messageLabel.textStorage removeAttribute:NSLinkAttributeName range:NSMakeRange(0, self.messageLabel.text.length)];
+
+    NSMutableDictionary *usernameTags = [NSMutableDictionary new];
+    NSMutableDictionary *camptagTags = [NSMutableDictionary new];
     
     for (PostEntity *entity in self.entities) {
-        if ([entity.type isEqualToString:POST_ENTITY_TYPE_PROFILE]) {
-            NSArray *usernameRanges = [self.message rangesForUsernameMatches];
-            for (NSValue *value in usernameRanges) {
-                NSRange range = [value rangeValue];
-                NSURL *url;
-                
-                #ifdef DEBUG
-                url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://u/%@", LOCAL_APP_URI, [[self.message substringWithRange:range] stringByReplacingOccurrencesOfString:@"@" withString:@""]]];
-                #else
-                url = [NSURL URLWithString:entity.actionUrl];
-                #endif
-                
-                if (range.length + range.location <= self.entityBasedMaxCharacters && range.length + range.location <= self.message.length) {
-                    [self.messageLabel setCustomLink:url forTextAtRange:range];
-                }
-            }
-            
+        if ([entity.type isEqualToString:POST_ENTITY_TYPE_PROFILE] && ![usernameTags.allKeys containsObject:entity.displayText]) {
+            #ifdef DEBUG
+            [usernameTags setValue:[NSString stringWithFormat:@"%@://u/%@", LOCAL_APP_URI, [entity.displayText stringByReplacingOccurrencesOfString:@"@" withString:@""]] forKey:entity.displayText];
+            #else
+            [usernameTags setValue:entity.actionUrl forKey:entity.displayText];
+            #endif
+                        
             continue;
         }
         
-        if ([entity.type isEqualToString:POST_ENTITY_TYPE_CAMP]) {
-            NSArray *campRanges = [self.message rangesForCampTagMatches];
-
-            for (NSValue *value in campRanges) {
-                NSRange range = [value rangeValue];
-                NSURL *url;
-                
-                #ifdef DEBUG
-                url = [NSURL URLWithString:[NSString stringWithFormat:@"%@://c/%@", LOCAL_APP_URI, [[self.message substringWithRange:range] stringByReplacingOccurrencesOfString:@"#" withString:@""]]];
-                #else
-                url = [NSURL URLWithString:entity.actionUrl];
-                #endif
-                                
-                if (range.length + range.location <= self.entityBasedMaxCharacters && range.length + range.location <= self.message.length) {
-                    [self.messageLabel setCustomLink:url forTextAtRange:range];
-                }
-            }
+        if ([entity.type isEqualToString:POST_ENTITY_TYPE_CAMP] && ![camptagTags.allKeys containsObject:entity.displayText]) {
+            #ifdef DEBUG
+            [camptagTags setValue:[NSString stringWithFormat:@"%@://c/%@", LOCAL_APP_URI, [entity.displayText stringByReplacingOccurrencesOfString:@"#" withString:@""]] forKey:entity.displayText];
+            #else
+            [camptagTags setValue:entity.actionUrl forKey:entity.displayText];
+            #endif
             
             continue;
         }
@@ -282,6 +264,42 @@
             }
             
             continue;
+        }
+    }
+    
+    if (usernameTags.allKeys.count > 0) {
+        NSArray *usernameRanges = [self.message rangesForUsernameMatches];
+        
+        for (NSValue *value in usernameRanges) {
+            NSRange range = [value rangeValue];
+            
+            if (range.length + range.location <= self.entityBasedMaxCharacters && range.length + range.location <= self.message.length) {
+                NSString *textAtRange = [self.message substringWithRange:range];
+                
+                NSString *urlString = [usernameTags.allKeys containsObject:textAtRange] ? usernameTags[textAtRange] : nil;
+                if (urlString && urlString.length > 0) {
+                    NSURL *url = [NSURL URLWithString:urlString];
+                    [self.messageLabel setCustomLink:url forTextAtRange:range];
+                }
+            }
+        }
+    }
+    
+    if (camptagTags.allKeys.count > 0) {
+        NSArray *camptagRanges = [self.message rangesForCampTagMatches];
+        
+        for (NSValue *value in camptagRanges) {
+            NSRange range = [value rangeValue];
+            
+            if (range.length + range.location <= self.entityBasedMaxCharacters && range.length + range.location <= self.message.length) {
+                NSString *textAtRange = [self.message substringWithRange:range];
+                
+                NSString *urlString = [camptagTags.allKeys containsObject:textAtRange] ? camptagTags[textAtRange] : nil;
+                if (urlString && urlString.length > 0) {
+                    NSURL *url = [NSURL URLWithString:urlString];
+                    [self.messageLabel setCustomLink:url forTextAtRange:range];
+                }
+            }
         }
     }
 }

@@ -131,7 +131,7 @@
     self.shareLinkButton = [UIButton buttonWithType:UIButtonTypeSystem];
     self.shareLinkButton.frame = CGRectMake(0, 0, self.frame.size.width, 40);
     [self.shareLinkButton.titleLabel setFont:[UIFont systemFontOfSize:16.f weight:UIFontWeightSemibold]];
-    [self.shareLinkButton setImage:[[UIImage imageNamed:@"postActionQuote"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+    [self.shareLinkButton setImage:[[UIImage imageNamed:@"postActionQuote_small"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
     [self.shareLinkButton setTitle:@"Quote" forState:UIControlStateNormal];
     [self.shareLinkButton setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 8)];
     [self.shareLinkButton setTitleEdgeInsets:UIEdgeInsetsMake(0, 8, 0, 0)];

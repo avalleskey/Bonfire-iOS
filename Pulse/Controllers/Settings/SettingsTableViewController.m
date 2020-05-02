@@ -51,18 +51,41 @@
     
     [self setJsonFile:@"SettingsModel"];
     
+    NSMutableArray <SmartListSection> *sections = [[NSMutableArray<SmartListSection> alloc] initWithArray:self.list.sections];
+    
     // remove bonfire beta section if release
     if ([Configuration isRelease] && self.list) {
-        NSMutableArray <SmartListSection> *sections = [[NSMutableArray<SmartListSection> alloc] initWithArray:self.list.sections];
         for (NSInteger i = sections.count - 1; i >= 0; i--) {
             SmartListSection *section = sections[i];
             if ([section.identifier isEqualToString:@"bonfire_beta"]) {
                 [sections removeObject:section];
             }
         }
-        self.list.sections = sections;
-        [self.tableView reloadData];
     }
+    // remove "Change Password" if they signed up with phone #
+    if ([Session sharedInstance].currentUser.attributes.email.length == 0) {
+        for (NSInteger i = sections.count - 1; i >= 0; i--) {
+            SmartListSection *section = sections[i];
+
+            if ([section.identifier isEqualToString:@"my_account"]) {
+                NSMutableArray<SmartListSectionRow *><SmartListSectionRow> *rows = [[NSMutableArray<SmartListSectionRow *><SmartListSectionRow> alloc] initWithArray:section.rows];
+                
+                if (!rows) continue;
+                
+                for (NSInteger r = rows.count - 1; r >= 0; r--) {
+                    SmartListSectionRow *row = rows[r];
+                    if ([row.identifier isEqualToString:@"change_password"]) {
+                        [rows removeObject:row];
+                    }
+                }
+                
+                section.rows = rows;
+            }
+        }
+    }
+    
+    self.list.sections = sections;
+    [self.tableView reloadData];
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowWithId:(NSString *)rowId {
@@ -135,7 +158,7 @@
         BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
         [areYouSure addAction:cancel];
         
-        [self.navigationController presentViewController:areYouSure animated:true completion:nil];
+        [areYouSure show];
     }
     if ([rowId isEqualToString:@"invite_friends_beta"]) {
         [Launcher copyBetaInviteLink];

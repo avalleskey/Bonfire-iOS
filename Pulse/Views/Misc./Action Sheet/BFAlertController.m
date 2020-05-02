@@ -65,6 +65,9 @@
         else if ([lowerCaseTitle isEqualToString:@"imessage"]) {
             iconName = [BFAlertActionIcon iconNameWithTitle:BFAlertActionIconImessage];
         }
+        else if ([lowerCaseTitle isEqualToString:@"bonfire"]) {
+            iconName = [BFAlertActionIcon iconNameWithTitle:BFAlertActionIconBonfire];
+        }
 //        else if ([lowerCaseTitle isEqualToString:@"copy link to post"]) {
 //            iconName = [BFAlertActionIcon iconNameWithTitle:BFAlertActionIconCopyLink];
 //        }
@@ -125,6 +128,7 @@ NSString * const BFAlertActionIconFacebook = @"facebook";
 NSString * const BFAlertActionIconSnapchat = @"snapchat";
 NSString * const BFAlertActionIconInstagramStories = @"ig_stories";
 NSString * const BFAlertActionIconImessage = @"imessage";
+NSString * const BFAlertActionIconBonfire = @"bonfire";
 NSString * const BFAlertActionIconCopyLink = @"link";
 NSString * const BFAlertActionIconCamp = @"camp";
 NSString * const BFAlertActionIconQuote = @"quote";
@@ -216,6 +220,19 @@ static NSString * const buttonCellIdentifier = @"ButtonCell";
     return alertController;
 }
 
+- (void)show {
+    self.presenter = [[AlertViewControllerPresenter alloc] init];
+    self.presenter.view.backgroundColor = UIColor.clearColor;
+    
+    UIWindow *win = [[UIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
+    self.presenter.win = win;
+    win.rootViewController = self.presenter;
+    win.windowLevel = UIWindowLevelAlert;
+    [win makeKeyAndVisible];
+    
+    [self.presenter presentViewController:self animated:NO completion:nil];
+}
+
 - (id)currentFirstResponder
 {
     self.previousFirstResponder = nil;
@@ -268,7 +285,7 @@ static NSString * const buttonCellIdentifier = @"ButtonCell";
     if ([self isBeingPresented] || [self isMovingToParentViewController]) {
         [[Launcher activeViewController] setEditing:false animated:YES];
         
-        [UIView animateWithDuration:0.25f delay:0 usingSpringWithDamping:1 initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveLinear animations:^{
+        [UIView animateWithDuration:0.25f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
             self.view.backgroundColor = [UIColor colorWithWhite:0 alpha:0.4];
         } completion:nil];
         
@@ -277,7 +294,7 @@ static NSString * const buttonCellIdentifier = @"ButtonCell";
             self.contentView.transform = CGAffineTransformMakeScale(1.06, 1.06);
             self.contentView.alpha = 0;
             
-            [UIView animateWithDuration:0.2f delay:0.15f usingSpringWithDamping:0.85f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
+            [UIView animateWithDuration:0.2f delay:0.15f usingSpringWithDamping:0.82f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
                 self.contentView.transform = CGAffineTransformMakeScale(1, 1);
                 self.contentView.alpha = 1;
             } completion:nil];
@@ -676,7 +693,7 @@ static NSString * const buttonCellIdentifier = @"ButtonCell";
             self.contentView.frame = CGRectMake(self.contentView.frame.origin.x, self.view.frame.size.height, self.contentView.frame.size.width, self.contentView.frame.size.height);
         }
     } completion:^(BOOL finished) {
-        [self dismissViewControllerAnimated:false completion:^{
+        [self.presenter dismissViewControllerAnimated:false completion:^{
             if (handler) {
                 handler();
             }
@@ -722,6 +739,17 @@ static NSString * const buttonCellIdentifier = @"ButtonCell";
     [UIView animateWithDuration:[duration floatValue] delay:0 options:[[notification.userInfo objectForKey:UIKeyboardAnimationCurveUserInfoKey] intValue] << 16 animations:^{
         self.contentView.center = CGPointMake(self.view.frame.size.width / 2, self.view.frame.size.height / 2);
     } completion:nil];
+}
+
+@end
+
+@implementation AlertViewControllerPresenter
+
+- (void) dismissViewControllerAnimated:(BOOL)flag completion:(void (^)(void))completion {
+    [_win resignKeyWindow]; //optional nilling the window works
+    _win.hidden = YES; //optional nilling the window works
+    _win = nil;
+    [super dismissViewControllerAnimated:flag completion:completion];
 }
 
 @end

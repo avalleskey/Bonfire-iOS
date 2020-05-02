@@ -1305,7 +1305,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
     [imagePickerOptions addAction:cancel];
     
-    [self presentViewController:imagePickerOptions animated:true completion:nil];
+    [imagePickerOptions show];
 }
 
 
@@ -1355,7 +1355,8 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 
     BFAlertAction *closeAction = [BFAlertAction actionWithTitle:@"Close" style:BFAlertActionStyleCancel handler:nil];
     [actionSheet addAction:closeAction];
-    [[Launcher topMostViewController] presentViewController:actionSheet animated:true completion:nil];
+    
+    [actionSheet show];
 }
 
 - (void)chooseFromLibraryForProfilePicture:(id)sender {
@@ -1389,7 +1390,8 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                 
                     BFAlertAction *closeAction = [BFAlertAction actionWithTitle:@"Close" style:BFAlertActionStyleCancel handler:nil];
                     [actionSheet addAction:closeAction];
-                    [[Launcher topMostViewController] presentViewController:actionSheet animated:true completion:nil];
+                    
+                    [actionSheet show];
                 });
 
                 break;

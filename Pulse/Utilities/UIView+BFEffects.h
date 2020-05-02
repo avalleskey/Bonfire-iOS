@@ -12,6 +12,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface UIView(BFEffects)
 
+extern NSString * const BFEffectEmojiStringAttributeName;
+extern NSString * const BFEffectEmojisArrayAttributeName;
+
 typedef enum {
     BFEffectTypeBalloons,
     BFEffectTypeEmojis
@@ -21,6 +24,7 @@ typedef enum {
 /// @param effectType The type of effect to show
 /// @param completion if implemented, the completion handler is called upon completion of the effect
 - (void)showEffect:(BFEffectType)effectType completion:(void (^__nullable)(void))completion;
+- (void)showEffect:(BFEffectType)effectType options:(NSDictionary * _Nullable)options completion:(void (^__nullable)(void))completion;
 
 @end
 

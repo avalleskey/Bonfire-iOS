@@ -18,17 +18,6 @@
 - (id)initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
     if (self) {
-//        self.layer.cornerRadius = 10.f;
-//        self.layer.masksToBounds = true;
-//        self.layer.borderColor = [[UIColor tableViewSeparatorColor] colorWithAlphaComponent:0.75].CGColor;
-//        self.layer.borderWidth = (1 / [UIScreen mainScreen].scale);
-        
-        _middleSeparator = [[UIView alloc] initWithFrame:CGRectMake(self.frame.size.width / 2, 8, (1 / [UIScreen mainScreen].scale), self.frame.size.height - 16)];
-        _middleSeparator.layer.cornerRadius = _middleSeparator.frame.size.width / 2;
-        _middleSeparator.layer.masksToBounds = true;
-        _middleSeparator.backgroundColor = [UIColor colorWithWhite:0.92 alpha:1];
-        //[self addSubview:_middleSeparator];
-        
         _replyButton = [UIButton buttonWithType:UIButtonTypeCustom];
         _replyButton.frame = CGRectMake(0, 0, 48, 48);
         [_replyButton setImage:[[UIImage imageNamed:@"replyIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
@@ -37,12 +26,12 @@
         [self addTapHandlersToAction:_replyButton];
         [self addSubview:_replyButton];
         
-//        _moreButton = [UIButton buttonWithType:UIButtonTypeCustom];
-//        _moreButton.frame = CGRectMake(0, 0, 48, 48);
-//        [_moreButton setImage:[[UIImage imageNamed:@"navMoreIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
-//        _moreButton.adjustsImageWhenHighlighted = false;
-//        [self addTapHandlersToAction:_moreButton];
-//        [self addSubview:_moreButton];
+        _quoteButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        _quoteButton.frame = CGRectMake(0, 0, 48, 48);
+        [_quoteButton setImage:[[UIImage imageNamed:@"quoteIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+        _quoteButton.adjustsImageWhenHighlighted = false;
+        [self addTapHandlersToAction:_quoteButton];
+        [self addSubview:_quoteButton];
         
         _shareButton = [UIButton buttonWithType:UIButtonTypeCustom];
         _shareButton.frame = CGRectMake(0, 0, 48, 48);
@@ -85,10 +74,39 @@
 - (void)layoutSubviews {
     [super layoutSubviews];
     
-    CGFloat buttonWidth = self.frame.size.width / 3;
-    _replyButton.frame = CGRectMake(0, 0, buttonWidth, self.frame.size.height);
-    _voteButton.frame = CGRectMake(_replyButton.frame.origin.x + _replyButton.frame.size.width, 0, buttonWidth, self.frame.size.height);
-    _shareButton.frame = CGRectMake(self.frame.size.width - buttonWidth, 0, buttonWidth, self.frame.size.height);
+    BOOL showReplyButton = true; //_loading || [_replyButton isEnabled];
+    BOOL showQuoteButton = true; //_loading || [_quoteButton isEnabled];
+    BOOL showVoteButton = true; //_loading || [_voteButton isEnabled];
+    BOOL showShareButton = true; //_loading || [_shareButton isEnabled];
+    
+    NSInteger buttons = 0;
+    if (showReplyButton) buttons += 1;
+    if (showQuoteButton) buttons += 1;
+    if (showVoteButton) buttons += 1;
+    if (showShareButton) buttons += 1;
+    
+    CGFloat lastX = 0;
+    CGFloat buttonWidth = self.frame.size.width / buttons;
+    
+    if (showReplyButton) {
+        _replyButton.frame = CGRectMake(lastX, 0, buttonWidth, self.frame.size.height);
+        lastX = _replyButton.frame.origin.x + _replyButton.frame.size.width;
+    }
+    
+    if (showQuoteButton) {
+        _quoteButton.frame = CGRectMake(lastX, 0, buttonWidth, self.frame.size.height);
+        lastX = _quoteButton.frame.origin.x + _quoteButton.frame.size.width;
+    }
+    
+    if (showVoteButton) {
+        _voteButton.frame = CGRectMake(lastX, 0, buttonWidth, self.frame.size.height);
+        lastX = _voteButton.frame.origin.x + _voteButton.frame.size.width;
+    }
+    
+    if (showShareButton) {
+        _shareButton.frame = CGRectMake(lastX, 0, buttonWidth, self.frame.size.height);
+        lastX = _shareButton.frame.origin.x + _shareButton.frame.size.width;
+    }
 }
 
 @end

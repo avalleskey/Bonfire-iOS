@@ -214,6 +214,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     
     self.tabs = [[NSMutableArray alloc] init];
     for (NSInteger i = 0; i < ((NSArray *)json[@"tabs"]).count; i++) {
+        NSLog(@"tab: %@", (NSArray *)json[@"tabs"]);
         SmartList *list = [[SmartList alloc] initWithDictionary:((NSArray *)json[@"tabs"])[i] error:nil];
         
         if ([list.identifier isEqualToString:@"pending"]) {
@@ -223,6 +224,8 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
         
         [self.tabs addObject:list];
     }
+    
+    NSLog(@"tabs: %@", self.tabs);
 }
 
 - (void)createSegmentedControl {
@@ -380,9 +383,14 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     }
 }
 - (void)loadTabData:(BOOL)forceRefresh {
-    for (NSInteger i = 0; i < self.tabs[activeTab].sections.count; i++) {
+    NSLog(@"load tab data!!");
+    NSLog(@"self.tabs: %@", self.tabs);
+    NSLog(@"active tab: %@", self.tabs[activeTab]);
+    
+    SmartList *tab = self.tabs[activeTab];
+    for (NSInteger i = 0; i < tab.sections.count; i++) {
         // load each section as needed
-        SmartListSection *section = self.tabs[activeTab].sections[i];
+        SmartListSection *section = tab.sections[i];
         if (section.state == SmartListStateEmpty || forceRefresh) {
             // need to load it!
             [self loadDataForSection:section cursorType:StreamPagingCursorTypeNone];
@@ -756,25 +764,29 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     
     NSString *url = [NSString stringWithFormat:@"camps/%@/members/requests", [self preferredIdentifier]];
     
-    NSDictionary *request = nil;
+    NSDictionary *request = @{};
     SmartListSection *requestsSection = [self sectionForIdentifier:@"members_requests"];
     if (requestsSection == nil) return;
     
+    NSLog(@"requestsSection: %@", requestsSection);
+    
+    NSLog(@"requests before:: %lu", (unsigned long)requestsSection.data.count);
     if (objectExists(row, requestsSection.data)) {
         request = requestsSection.data[row];
         [requestsSection.data removeObjectAtIndex:row];
     }
+    NSLog(@"requests after:: %lu", (unsigned long)requestsSection.data.count);
     
     NSLog(@"request to approve: %@", request);
     
-    if (request != nil) {
+    if ([request valueForKey:@"id"]) {
         [self.tableView reloadData];
         
+        NSLog(@"make request: %@", url);
+        NSLog(@"with params: %@", @{@"user_id": request[@"id"]});
         [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] POST:url parameters:@{@"user_id": request[@"id"]} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
             NSLog(@"approved request!");
-            
-            // TODO: set members list back to empty
-            // [self getMembers];
+                        
             SmartListSection *membersSection = [self sectionForIdentifier:@"members_current"];
             if (membersSection != nil) {
                 membersSection.data = [[NSMutableArray alloc] init]; // reset back to empty
@@ -794,10 +806,12 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     SmartListSection *requestsSection = [self sectionForIdentifier:@"members_requests"];
     if (requestsSection == nil) return;
     
+    NSLog(@"requests before:: %lu", (unsigned long)requestsSection.data.count);
     if (objectExists(row, requestsSection.data)) {
         request = requestsSection.data[row];
         [requestsSection.data removeObjectAtIndex:row];
     }
+    NSLog(@"requests after:: %lu", (unsigned long)requestsSection.data.count);
     
     NSLog(@"request to decline: %@", request);
     
@@ -1032,7 +1046,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
                 BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
                 [actionSheet addAction:cancel];
                 
-                [[Launcher topMostViewController] presentViewController:actionSheet animated:true completion:nil];
+                [actionSheet show];
             }
             else {
                 [Launcher openProfile:user];

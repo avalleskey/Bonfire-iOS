@@ -149,6 +149,7 @@
 		D97681CC22F604E3001F1BFC /* BFCampAttachmentView.m in Sources */ = {isa = PBXBuildFile; fileRef = D97681CB22F604E3001F1BFC /* BFCampAttachmentView.m */; };
 		D97681CF22F604F2001F1BFC /* BFIdentityAttachmentView.m in Sources */ = {isa = PBXBuildFile; fileRef = D97681CE22F604F2001F1BFC /* BFIdentityAttachmentView.m */; };
 		D97681D222F62CA9001F1BFC /* BFStyles.m in Sources */ = {isa = PBXBuildFile; fileRef = D97681D122F62CA9001F1BFC /* BFStyles.m */; };
+		D977A237245C96E9000842DB /* BFVideoPlayerAttachmentView.m in Sources */ = {isa = PBXBuildFile; fileRef = D977A236245C96E9000842DB /* BFVideoPlayerAttachmentView.m */; };
 		D97CA42124217CCD00C09140 /* NSString+Validation.m in Sources */ = {isa = PBXBuildFile; fileRef = D9E8E87F21C2014000DDFEBA /* NSString+Validation.m */; };
 		D97CA423242181AA00C09140 /* NSStringValidationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = D97CA422242181AA00C09140 /* NSStringValidationTests.m */; };
 		D97CA4252422E3E800C09140 /* Onboarding Flow.rtf in Resources */ = {isa = PBXBuildFile; fileRef = D97CA4242422E3E700C09140 /* Onboarding Flow.rtf */; };
@@ -313,7 +314,7 @@
 		D904283E233BE3800051D3AF /* LinkConversationsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LinkConversationsViewController.m; sourceTree = "<group>"; };
 		D9042840233C17170051D3AF /* BFSmartLinkAttachmentView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BFSmartLinkAttachmentView.m; sourceTree = "<group>"; };
 		D9042841233C17180051D3AF /* BFSmartLinkAttachmentView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BFSmartLinkAttachmentView.h; sourceTree = "<group>"; };
-		D907B07D214EEC5000A59712 /* Bonfire b1.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Bonfire b1.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		D907B07D214EEC5000A59712 /* Bonfire b3.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Bonfire b3.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D907B080214EEC5000A59712 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		D907B081214EEC5000A59712 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; wrapsLines = 0; };
 		D907B087214EEC5000A59712 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -567,6 +568,8 @@
 		D97681D022F62CA9001F1BFC /* BFStyles.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BFStyles.h; sourceTree = "<group>"; };
 		D97681D122F62CA9001F1BFC /* BFStyles.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BFStyles.m; sourceTree = "<group>"; };
 		D97681D322F633A2001F1BFC /* BFUserAttachmentView_style.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = BFUserAttachmentView_style.json; sourceTree = "<group>"; };
+		D977A235245C96E9000842DB /* BFVideoPlayerAttachmentView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BFVideoPlayerAttachmentView.h; sourceTree = "<group>"; };
+		D977A236245C96E9000842DB /* BFVideoPlayerAttachmentView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BFVideoPlayerAttachmentView.m; sourceTree = "<group>"; };
 		D97CA422242181AA00C09140 /* NSStringValidationTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NSStringValidationTests.m; sourceTree = "<group>"; };
 		D97CA4242422E3E700C09140 /* Onboarding Flow.rtf */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; path = "Onboarding Flow.rtf"; sourceTree = "<group>"; };
 		D97CA4262427C8B800C09140 /* ChangePhoneNumberTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ChangePhoneNumberTableViewController.h; sourceTree = "<group>"; };
@@ -873,7 +876,7 @@
 		D907B07E214EEC5000A59712 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				D907B07D214EEC5000A59712 /* Bonfire b1.app */,
+				D907B07D214EEC5000A59712 /* Bonfire b3.app */,
 				D907B095214EEC5300A59712 /* PulseTests.xctest */,
 				D907B0A0214EEC5300A59712 /* PulseUITests.xctest */,
 			);
@@ -1155,6 +1158,8 @@
 				D97681C822F604C9001F1BFC /* BFAttachmentView.m */,
 				D939AE6F235F518800317A76 /* BFPostDeletedAttachmentView.h */,
 				D939AE6E235F518700317A76 /* BFPostDeletedAttachmentView.m */,
+				D977A235245C96E9000842DB /* BFVideoPlayerAttachmentView.h */,
+				D977A236245C96E9000842DB /* BFVideoPlayerAttachmentView.m */,
 			);
 			path = "Attachment View";
 			sourceTree = "<group>";
@@ -2008,7 +2013,7 @@
 			);
 			name = Pulse;
 			productName = Pulse;
-			productReference = D907B07D214EEC5000A59712 /* Bonfire b1.app */;
+			productReference = D907B07D214EEC5000A59712 /* Bonfire b3.app */;
 			productType = "com.apple.product-type.application";
 		};
 		D907B094214EEC5300A59712 /* PulseTests */ = {
@@ -2479,6 +2484,7 @@
 				D9267C7121D7FB0D00E21862 /* NotificationsSettingsTableViewController.m in Sources */,
 				D98767CC2304B4B9007320C6 /* InviteFriendsViewController.m in Sources */,
 				D944456A22E7882F00C75615 /* CampsList.m in Sources */,
+				D977A237245C96E9000842DB /* BFVideoPlayerAttachmentView.m in Sources */,
 				D96A508923464828006D76C4 /* Bot.m in Sources */,
 				D96A06EE223CBED100406C81 /* HelloViewController.m in Sources */,
 				D96AB13E2380810D00838D58 /* OrientationViewController.m in Sources */,
@@ -2687,7 +2693,7 @@
 				CODE_SIGN_ENTITLEMENTS = Pulse/Pulse.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 4WLQG965T9;
 				EXCLUDED_SOURCE_FILE_NAMES = "*.value";
@@ -2703,7 +2709,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "Ingenious.bonfire$(BUNDLE_ID_SUFFIX)";
 				PRODUCT_NAME = "Bonfire b$(CURRENT_PROJECT_VERSION)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2726,7 +2732,7 @@
 				CODE_SIGN_ENTITLEMENTS = Pulse/Pulse.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 4WLQG965T9;
 				EXCLUDED_SOURCE_FILE_NAMES = "*.value";
 				FRAMEWORK_SEARCH_PATHS = (
@@ -2741,7 +2747,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "Ingenious.bonfire$(BUNDLE_ID_SUFFIX)";
 				PRODUCT_NAME = Bonfire;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2994,7 +3000,7 @@
 				CODE_SIGN_ENTITLEMENTS = Pulse/Pulse.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 4WLQG965T9;
 				EXCLUDED_SOURCE_FILE_NAMES = "*.value";
 				FRAMEWORK_SEARCH_PATHS = (
@@ -3009,7 +3015,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "Ingenious.bonfire$(BUNDLE_ID_SUFFIX)";
 				PRODUCT_NAME = Bonfire;
 				PROVISIONING_PROFILE_SPECIFIER = "";

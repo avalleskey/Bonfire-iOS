@@ -232,6 +232,7 @@
             }
             else if ([identifier isEqualToString:@"facebook"]) {
                 FBSDKShareLinkContent *content = [[FBSDKShareLinkContent alloc] init];
+                content.quote = @"Join me on Bonfire 🔥";
                 content.contentURL = [NSURL URLWithString:downloadURL];
                 content.hashtag = [FBSDKHashtag hashtagWithString:@"#Bonfire"];
                 [FBSDKShareDialog showFromViewController:[Launcher topMostViewController]

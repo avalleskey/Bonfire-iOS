@@ -46,7 +46,7 @@ static HAWebService *manager;
     
     [manager addBonfireHeaders];
     [manager.requestSerializer setValue:contentType forHTTPHeaderField:@"Content-Type"];
-    [manager.requestSerializer setTimeoutInterval:50];
+    [manager.requestSerializer setTimeoutInterval:25];
     
     if (options & HAWebServiceManagerOptionAllowCache) {
 //        [manager.requestSerializer setCachePolicy:]
@@ -114,7 +114,7 @@ static HAWebService *manager;
             //since there was an error, call you refresh method and then redo the original task
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
                 
-                [[Session sharedInstance] getNewAccessToken:^(BOOL success, NSString * _Nonnull newToken) {
+                [[Session sharedInstance] getNewAccessToken:^(BOOL success, NSString * _Nonnull newToken, NSInteger bonfireErrorCode) {
                     if (success) {
                         //  queue up and execute the original task
                         NSURLSessionDataTask *originalTask = [super dataTaskWithRequest:request uploadProgress:uploadProgressBlock downloadProgress:downloadProgressBlock completionHandler:completionHandler];

@@ -92,7 +92,7 @@
     [buttons addObject:@{@"id": @"bonfire", @"image": [UIImage imageNamed:@"share_bonfire"], @"color": [UIColor fromHex:@"FF513C" adjustForOptimalContrast:false]}];
 
     BOOL hasInstagram = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"instagram-stories://"]];
-    BOOL hasSnapchat = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"snapchat://"]];
+    BOOL hasSnapchat = false; //[[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"snapchat://"]];
     BOOL hasTwitter = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"twitter://"]];
     
     if (hasInstagram) {
@@ -168,6 +168,7 @@
             }
             else if ([identifier isEqualToString:@"facebook"]) {
                 FBSDKShareLinkContent *content = [[FBSDKShareLinkContent alloc] init];
+                content.quote = [NSString stringWithFormat:@"Help me start a Camp on Bonfire! Join %@: %@", self.camp.attributes.title, campShareLink];
                 content.contentURL = [NSURL URLWithString:campShareLink];
                 content.hashtag = [FBSDKHashtag hashtagWithString:@"#Bonfire"];
                 [FBSDKShareDialog showFromViewController:[Launcher topMostViewController]

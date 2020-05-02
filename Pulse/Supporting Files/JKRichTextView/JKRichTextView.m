@@ -83,7 +83,7 @@ static CGSize const JKRichTextViewInvalidedIntrinsicContentSize = (CGSize){-1, -
     self.shouldPassthoughUntouchableText = true;
     self.shouldAutoDetectDataWhileEditing = NO;
     self.backgroundColor = [UIColor clearColor];
-    self.selectable = false;
+    self.selectable = true;
     self.editable = false;
     self.clipsToBounds = false;
     self.userInteractionEnabled = true;
@@ -99,14 +99,11 @@ static CGSize const JKRichTextViewInvalidedIntrinsicContentSize = (CGSize){-1, -
     }
     
     UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] bk_initWithHandler:^(UIGestureRecognizer *sender, UIGestureRecognizerState state, CGPoint location) {
-        NSLog(@"state:: %ld", (long)sender.state);
         if (sender.state == UIGestureRecognizerStateEnded) {
             NSURL *linkAtPoint = [self linkAtPoint:location];
             
             if (!linkAtPoint) return;
-            
-            NSLog(@"tapped link at point:: %@", linkAtPoint.absoluteString);
-            
+                        
             if ([Configuration isBonfireURL:linkAtPoint]) {
                 [[[UIApplication sharedApplication] delegate] application:[UIApplication sharedApplication] openURL:linkAtPoint options:@{}];
             }
@@ -124,8 +121,6 @@ static CGSize const JKRichTextViewInvalidedIntrinsicContentSize = (CGSize){-1, -
     
     UIContextMenuConfiguration *configuration;
     if (link) {
-        NSLog(@"yooooo has a link");
-        NSLog(@"link:: %@", link.absoluteString);
         id linkObject = [Configuration objectFromBonfireURL:link];
         
         if (linkObject) {
@@ -294,9 +289,8 @@ static CGSize const JKRichTextViewInvalidedIntrinsicContentSize = (CGSize){-1, -
     }
 
     NSRange range;
-    
+        
     NSURL *url = [self.textStorage attribute:NSLinkAttributeName atIndex:idx effectiveRange:&range];
-    NSLog(@"range:: (%lu, %lu)", (unsigned long)range.location, (unsigned long)range.length);
     return url;
 }
 
@@ -473,6 +467,8 @@ static CGSize const JKRichTextViewInvalidedIntrinsicContentSize = (CGSize){-1, -
         @throw [NSException exceptionWithName:NSInvalidArgumentException reason:nil userInfo:@{ NSLocalizedDescriptionKey: [NSString stringWithFormat:@"[ERROR] JKRichTextView Cannot set custom link because text range(%@) is out of range.", NSStringFromRange(textRange)]}];
         return;
     }
+    
+//    NSLog(@"set custom link for url (%@) at text range (%lu, %lu)", url.absoluteString, (long)textRange.location, (long)textRange.length);
     
     [self.textStorage beginEditing];
     [self.textStorage addAttribute:NSLinkAttributeName value:url range:textRange];

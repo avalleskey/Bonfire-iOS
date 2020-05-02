@@ -598,7 +598,8 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                 
                     BFAlertAction *closeAction = [BFAlertAction actionWithTitle:@"Close" style:BFAlertActionStyleCancel handler:nil];
                     [actionSheet addAction:closeAction];
-                    [[Launcher topMostViewController] presentViewController:actionSheet animated:true completion:nil];
+                    
+                    [actionSheet show];
                 });
 
                 break;

@@ -169,7 +169,7 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
         filterQuery = self.searchPhrase;
         [params setObject:filterQuery forKey:@"filter_query"];
     }
-    
+        
     [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         if (![self.searchPhrase isEqualToString:filterQuery]) {
             return;
@@ -357,14 +357,30 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
             [self.searchView updateSearchText:self.searchPhrase];
             self.searchView.textField.tintColor = self.view.tintColor;
             self.searchView.textField.delegate = self;
+            self.searchView.textField.returnKeyType = UIReturnKeySearch;
             [self.searchView.textField becomeFirstResponder];
+            
+            __weak typeof(self) weakSelf = self;
             [self.searchView.textField bk_addEventHandler:^(id sender) {
-                self.searchPhrase = self.searchView.textField.text;
+                weakSelf.searchPhrase = weakSelf.searchView.textField.text;
                 
-                [self.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:NO];
-                [self getCampsWithCursor:StreamPagingCursorTypeNone];
-                [self.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:NO];
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                    if ([weakSelf.searchPhrase isEqualToString:weakSelf.searchView.textField.text]) {
+                        [weakSelf.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:NO];
+                        [weakSelf getCampsWithCursor:StreamPagingCursorTypeNone];
+                        [weakSelf.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:NO];
+                    }
+                });
             } forControlEvents:UIControlEventEditingChanged];
+            [self.searchView.textField setBk_shouldReturnBlock:^BOOL(UITextField *textField) {
+                weakSelf.searchPhrase = weakSelf.searchView.textField.text;
+                
+                [weakSelf.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:NO];
+                [weakSelf getCampsWithCursor:StreamPagingCursorTypeNone];
+                [weakSelf.tableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:NO];
+                
+                return true;
+            }];
         }
         self.searchView.frame = CGRectMake(12, 10, self.view.frame.size.width - (12 * 2), 36);
         

@@ -70,7 +70,7 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
 - (id)initWithFrame:(CGRect)frame style:(UITableViewStyle)style {
     self = [super initWithFrame:frame style:style];
     if (self) {
-        [self setup];
+        [self initSetup];
     }
     
     return self;
@@ -78,12 +78,12 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
 - (id)init {
     self = [super init];
     if (self) {
-        [self setup];
+        [self initSetup];
     }
     
     return self;
 }
-- (void)setup {
+- (void)initSetup {
     self.stream = [[PostStream alloc] init];
     self.stream.delegate = self;
     
@@ -571,7 +571,9 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
         _loading = loading;
     }
     
-    self.scrollEnabled = !loading;
+    if (self.preventScrollingWhileLoading) {
+        self.scrollEnabled = !loading;
+    }
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
@@ -795,9 +797,6 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
             SimpleNavigationController *newNavController = [[SimpleNavigationController alloc] initWithRootViewController:p];
             newNavController.transitioningDelegate = [Launcher sharedInstance];
             [newNavController setLeftAction:SNActionTypeBack];
-            if (![p.post.attributes.postedIn.attributes isPrivate]) {
-                [newNavController setRightAction:SNActionTypeShare];
-            }
             newNavController.currentTheme = p.theme;
             newNavController.view.tintColor = [UIColor fromHex:p.post.themeColor adjustForOptimalContrast:true];
             [newNavController updateBarColor:[UIColor clearColor] animated:false];

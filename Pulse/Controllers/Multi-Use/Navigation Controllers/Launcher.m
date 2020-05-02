@@ -593,9 +593,6 @@ static Launcher *launcher;
     SimpleNavigationController *newNavController = [[SimpleNavigationController alloc] initWithRootViewController:p];
     newNavController.transitioningDelegate = [Launcher sharedInstance];
     [newNavController setLeftAction:SNActionTypeBack];
-    if (![post.attributes.postedIn.attributes isPrivate]) {
-        [newNavController setRightAction:SNActionTypeShare];
-    }
     newNavController.currentTheme = p.theme;
     newNavController.view.tintColor = [UIColor fromHex:post.themeColor adjustForOptimalContrast:true];
     [newNavController updateBarColor:[UIColor clearColor] animated:false];
@@ -727,7 +724,7 @@ static Launcher *launcher;
     
     dispatch_async(dispatch_get_main_queue(), ^{
         NSLog(@"inside dispatch async block main thread from main thread");
-        [[Launcher topMostViewController] presentViewController:actionSheet animated:true completion:nil];
+        [actionSheet show];
     });
 }
 - (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker {
@@ -872,7 +869,7 @@ static Launcher *launcher;
 + (void)openURL:(NSString *)urlString {
     if (!urlString || urlString.length == 0) return;
     
-    if (![urlString containsString:@"http://"] &&  ![urlString containsString:@"https://"]) {
+    if (![urlString containsString:@"http://"] && ![urlString containsString:@"https://"]) {
         urlString = [@"https://" stringByAppendingString:urlString];
     }
     
@@ -1045,7 +1042,7 @@ static Launcher *launcher;
             BFAlertAction *cancelDeletePost = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
             [confirmDeletePostActionSheet addAction:cancelDeletePost];
             
-            [[Launcher topMostViewController] presentViewController:confirmDeletePostActionSheet animated:YES completion:nil];
+            [confirmDeletePostActionSheet show];
         }];
         [actionSheet addAction:deletePost];
     }
@@ -1064,7 +1061,7 @@ static Launcher *launcher;
             BFAlertAction *cancelDeletePost = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
             [confirmReportPostActionSheet addAction:cancelDeletePost];
             
-            [[Launcher topMostViewController] presentViewController:confirmReportPostActionSheet animated:YES completion:nil];
+            [confirmReportPostActionSheet show];
         }];
         [actionSheet addAction:reportPost];
     }
@@ -1126,12 +1123,17 @@ static Launcher *launcher;
         [Launcher openDebugView:post];
     }];
     [actionSheet addAction:debugPost];
+    
+    BFAlertAction *hidePost = [BFAlertAction actionWithTitle:@"Hide Post" style:BFAlertActionStyleDefault handler:^{
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"PostDeleted" object:post];
+    }];
+    [actionSheet addAction:hidePost];
     #endif
         
     BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
     [actionSheet addAction:cancel];
     
-    [[Launcher topMostViewController] presentViewController:actionSheet animated:true completion:nil];
+    [actionSheet show];
 }
 
 + (void)sharePost:(Post *)post {
@@ -1154,31 +1156,31 @@ static Launcher *launcher;
 }
 + (void)openPostActions:(Post *)post {
     BFAlertController *confirmDeletePostActionSheet = [BFAlertController alertControllerWithTitle:nil message:nil preferredStyle:BFAlertControllerStyleActionSheet];
-    
+
     BFAlertAction *quotePost = [BFAlertAction actionWithTitle:@"Quote Post" style:BFAlertActionStyleDefault handler:^{
         [Launcher openComposePost:nil inReplyTo:nil withMessage:nil media:nil quotedObject:post];
     }];
     [confirmDeletePostActionSheet addAction:quotePost];
-    
+
     BFAlertAction *copyLink = [BFAlertAction actionWithTitle:@"Copy link to Post" style:BFAlertActionStyleDefault handler:^{
         NSString *url = [NSString stringWithFormat:@"https://bonfire.camp/p/%@", post.identifier];
         UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
         pasteboard.string = url;
-        
+
         BFMiniNotificationObject *notificationObject = [BFMiniNotificationObject notificationWithText:@"Copied!" action:nil];
         [[BFMiniNotificationManager manager] presentNotification:notificationObject completion:nil];
     }];
     [confirmDeletePostActionSheet addAction:copyLink];
-    
+
     BFAlertAction *shareVia = [BFAlertAction actionWithTitle:@"Share via..." style:BFAlertActionStyleDefault handler:^{
         [Launcher sharePost:post];
     }];
     [confirmDeletePostActionSheet addAction:shareVia];
-    
+
     BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
     [confirmDeletePostActionSheet addAction:cancel];
-    
-    [[Launcher topMostViewController] presentViewController:confirmDeletePostActionSheet animated:true completion:nil];
+
+    [confirmDeletePostActionSheet show];
 }
 + (void)shareCurrentUser {
     User *user = [Session sharedInstance].currentUser;
@@ -1199,7 +1201,7 @@ static Launcher *launcher;
                 NSLog(@"share on snapchat");
                 
                 if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"twitter://post"]]) {
-                    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[NSString stringWithFormat:@"twitter://post?message=%@", message]] options:@{} completionHandler:nil];
+                    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[NSString stringWithFormat:@"twitter://post?message=%@", encodedMessage]] options:@{} completionHandler:nil];
                 }
             }];
             [moreOptions addAction:shareOnTwitter];
@@ -1244,7 +1246,7 @@ static Launcher *launcher;
         BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
         [moreOptions addAction:cancel];
         
-        [[Launcher topMostViewController] presentViewController:moreOptions animated:YES completion:nil];
+        [moreOptions show];
     }
     else {
         [Launcher shareIdentity:user];
@@ -1683,7 +1685,7 @@ static NSString *const iOSAppStoreURLFormat = @"itms-apps://itunes.apple.com/Web
             
             dispatch_async(dispatch_get_main_queue(), ^{
                 [[NSUserDefaults standardUserDefaults] setObject:[NSDate new] forKey:@"push_notifications_last_requested"];
-                [[Launcher topMostViewController] presentViewController:accessRequest animated:YES completion:nil];
+                [accessRequest show];
             });
         }
         else if (settings.authorizationStatus != UNAuthorizationStatusDenied) {

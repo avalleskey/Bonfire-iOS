@@ -42,7 +42,7 @@
 - (void)setup {
     [super setup];
     
-    self.headerBackdrop = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, CAMP_ATTACHMENT_EDGE_INSETS.top + CAMP_ATTACHMENT_AVATAR_SIZE / 2)];
+    self.headerBackdrop = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, CAMP_ATTACHMENT_EDGE_INSETS.top + CAMP_ATTACHMENT_AVATAR_SIZE * .6)];
     self.headerBackdrop.backgroundColor = [UIColor bonfireOrange];
     [self.contentView addSubview:self.headerBackdrop];
     

@@ -18,6 +18,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic, strong) UIButton *replyButton;
 @property (nonatomic, strong) UIButton *voteButton;
+@property (nonatomic, strong) UIButton *quoteButton;
 @property (nonatomic, strong) UIButton *shareButton;
 
 @property (nonatomic, strong) UIView *replyActionView;

@@ -96,19 +96,23 @@
                 }];
             }
         }];
+        [self.actionsView.quoteButton bk_whenTapped:^{
+            [Launcher openComposePost:nil inReplyTo:nil withMessage:nil media:nil quotedObject:self.post];
+        }];
         [self.actionsView.shareButton bk_whenTapped:^{
-            [Launcher openPostActions:self.post];
+            [Launcher sharePost:self.post];
         }];
         [self.contentView addSubview:self.actionsView];
         
         self.lineSeparator.hidden = true;
+        
+        [self.actionsView.repliesSnaphotView bk_whenTapped:^{
+            [Launcher openPost:self.post withKeyboard:false];
+        }];
+        [self.actionsView.replyButton bk_whenTapped:^{
+            [Launcher openComposePost:self.post.attributes.postedIn inReplyTo:self.post withMessage:nil media:nil quotedObject:nil];
+        }];
     }
-    [self.actionsView.repliesSnaphotView bk_whenTapped:^{
-        [Launcher openPost:self.post withKeyboard:false];
-    }];
-    [self.actionsView.replyButton bk_whenTapped:^{
-        [Launcher openComposePost:self.post.attributes.postedIn inReplyTo:self.post withMessage:nil media:nil quotedObject:nil];
-    }];
     
     return self;
 }
@@ -221,9 +225,11 @@
     
     BOOL canReply = !_post.attributes.creatorBot && [_post.attributes.context.post.permissions canReply] && self.post.tempId.length == 0;
     BOOL canShare = ![_post.attributes.postedIn isPrivate] && _post.tempId.length == 0;
+    BOOL canQuote = canShare;
     
     self.actionsView.userInteractionEnabled = !self.loading && !self.post.tempId;
     self.actionsView.replyButton.userInteractionEnabled = canReply;
+    self.actionsView.quoteButton.userInteractionEnabled = canQuote;
     self.actionsView.shareButton.userInteractionEnabled = canShare;
 }
 
@@ -328,9 +334,11 @@
         
         BOOL canReply = !_post.attributes.creatorBot && [_post.attributes.context.post.permissions canReply] && self.post.tempId.length == 0;
         BOOL canShare = ![_post.attributes.postedIn isPrivate] && _post.tempId.length == 0;
+        BOOL canQuote = canShare;
         
         self.userInteractionEnabled = !(temporary);
         self.actionsView.replyButton.alpha = !temporary && canReply ? 1 : 0.25;
+        self.actionsView.quoteButton.alpha = !temporary && canQuote ? 1 : 0.25;
         self.actionsView.shareButton.alpha = !temporary && canShare ? 1 : 0.25;
         self.actionsView.voteButton.alpha = temporary ? 0.25 : 1;
                 

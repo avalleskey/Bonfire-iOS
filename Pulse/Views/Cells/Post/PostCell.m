@@ -260,81 +260,83 @@
         }
     }
     
-    if (showCamptag && post.attributes.postedIn != 0) {
-        // create spacer
-        NSMutableAttributedString *spacer = [[NSMutableAttributedString alloc] initWithString:@" "];
-        [spacer addAttribute:NSFontAttributeName value:font range:NSMakeRange(0, spacer.length)];
-        
-        if (showUsername) {
-            // spacer
-            [creatorString appendAttributedString:spacer];
-            
-            NSTextAttachment *attachment = [[NSTextAttachment alloc] init];
-            attachment.image = [UIImage imageNamed:@"postedInTriangleIcon"];
-            [attachment setBounds:CGRectMake(0, roundf(font.capHeight - attachment.image.size.height)/2.f, attachment.image.size.width, attachment.image.size.height)];
-            
-            NSAttributedString *attachmentString = [NSAttributedString attributedStringWithAttachment:attachment];
-            [creatorString appendAttributedString:attachmentString];
-            
-            // spacer
-            [creatorString appendAttributedString:spacer];
-        }
-        
+    if (showCamptag && post.attributes.postedIn && post.attributes.postedIn.attributes) {
         NSString *identifier = post.attributes.postedIn.attributes.title;
         if (post.attributes.postedIn.attributes.identifier.length > 0) {
             identifier = [@"#" stringByAppendingString:post.attributes.postedIn.attributes.identifier];
         }
         
-        NSMutableAttributedString *campTitleString = [[NSMutableAttributedString alloc] initWithString:identifier];
-        [campTitleString addAttribute:NSForegroundColorAttributeName value:primaryColor range:NSMakeRange(0, campTitleString.length)];
-        [campTitleString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:font.pointSize weight:UIFontWeightSemibold] range:NSMakeRange(0, campTitleString.length)];
-        
-        [creatorString appendAttributedString:campTitleString];
-        
-        if ([post.attributes.postedIn isPrivate]) {
-            // spacer
-            [creatorString appendAttributedString:spacer];
+        if (identifier) {
+            // create spacer
+            NSMutableAttributedString *spacer = [[NSMutableAttributedString alloc] initWithString:@" "];
+            [spacer addAttribute:NSFontAttributeName value:font range:NSMakeRange(0, spacer.length)];
             
-            NSTextAttachment *lockAttachment = [[NSTextAttachment alloc] init];
-            lockAttachment.image = [self colorImage:[UIImage imageNamed:@"details_label_private"] color:[UIColor bonfirePrimaryColor]];
+            if (showUsername) {
+                // spacer
+                [creatorString appendAttributedString:spacer];
+                
+                NSTextAttachment *attachment = [[NSTextAttachment alloc] init];
+                attachment.image = [UIImage imageNamed:@"postedInTriangleIcon"];
+                [attachment setBounds:CGRectMake(0, roundf(font.capHeight - attachment.image.size.height)/2.f, attachment.image.size.width, attachment.image.size.height)];
+                
+                NSAttributedString *attachmentString = [NSAttributedString attributedStringWithAttachment:attachment];
+                [creatorString appendAttributedString:attachmentString];
+                
+                // spacer
+                [creatorString appendAttributedString:spacer];
+            }
             
-            CGFloat attachmentHeight = MIN(ceilf(font.lineHeight * 0.7), lockAttachment.image.size.height);
-            CGFloat attachmentWidth = attachmentHeight * (lockAttachment.image.size.width / lockAttachment.image.size.height);
+            NSMutableAttributedString *campTitleString = [[NSMutableAttributedString alloc] initWithString:identifier];
+            [campTitleString addAttribute:NSForegroundColorAttributeName value:primaryColor range:NSMakeRange(0, campTitleString.length)];
+            [campTitleString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:font.pointSize weight:UIFontWeightSemibold] range:NSMakeRange(0, campTitleString.length)];
             
-            [lockAttachment setBounds:CGRectMake(0, roundf(font.capHeight - attachmentHeight)/2.f, attachmentWidth, attachmentHeight)];
-                        
-            NSAttributedString *lockAttachmentString = [NSAttributedString attributedStringWithAttachment:lockAttachment];
-            [creatorString appendAttributedString:lockAttachmentString];
-        }
-        else if ([post.attributes.postedIn isChannel]) {
-            // spacer
-            [creatorString appendAttributedString:spacer];
+            [creatorString appendAttributedString:campTitleString];
             
-            NSTextAttachment *sourceAttachment = [[NSTextAttachment alloc] init];
-            sourceAttachment.image = [self colorImage:[UIImage imageNamed:@"details_label_source"] color:[UIColor bonfirePrimaryColor]];
-            
-            CGFloat attachmentHeight = MIN(ceilf(font.lineHeight * 0.7), sourceAttachment.image.size.height);
-            CGFloat attachmentWidth = attachmentHeight * (sourceAttachment.image.size.width / sourceAttachment.image.size.height);
-            
-            [sourceAttachment setBounds:CGRectMake(0, roundf(font.capHeight - attachmentHeight)/2.f, attachmentWidth, attachmentHeight)];
-            
-            NSAttributedString *lockAttachmentString = [NSAttributedString attributedStringWithAttachment:sourceAttachment];
-            [creatorString appendAttributedString:lockAttachmentString];
-        }
-        else if ([post.attributes.postedIn isFeed]) {
-            // spacer
-            [creatorString appendAttributedString:spacer];
-            
-            NSTextAttachment *sourceAttachment = [[NSTextAttachment alloc] init];
-            sourceAttachment.image = [self colorImage:[UIImage imageNamed:@"details_label_feed"] color:[UIColor bonfirePrimaryColor]];
-            
-            CGFloat attachmentHeight = MIN(ceilf(font.lineHeight * 0.7), sourceAttachment.image.size.height);
-            CGFloat attachmentWidth = attachmentHeight * (sourceAttachment.image.size.width / sourceAttachment.image.size.height);
-            
-            [sourceAttachment setBounds:CGRectMake(0, roundf(font.capHeight - attachmentHeight)/2.f, attachmentWidth, attachmentHeight)];
-            
-            NSAttributedString *lockAttachmentString = [NSAttributedString attributedStringWithAttachment:sourceAttachment];
-            [creatorString appendAttributedString:lockAttachmentString];
+            if ([post.attributes.postedIn isPrivate]) {
+                // spacer
+                [creatorString appendAttributedString:spacer];
+                
+                NSTextAttachment *lockAttachment = [[NSTextAttachment alloc] init];
+                lockAttachment.image = [self colorImage:[UIImage imageNamed:@"details_label_private"] color:[UIColor bonfirePrimaryColor]];
+                
+                CGFloat attachmentHeight = MIN(ceilf(font.lineHeight * 0.7), lockAttachment.image.size.height);
+                CGFloat attachmentWidth = attachmentHeight * (lockAttachment.image.size.width / lockAttachment.image.size.height);
+                
+                [lockAttachment setBounds:CGRectMake(0, roundf(font.capHeight - attachmentHeight)/2.f, attachmentWidth, attachmentHeight)];
+                            
+                NSAttributedString *lockAttachmentString = [NSAttributedString attributedStringWithAttachment:lockAttachment];
+                [creatorString appendAttributedString:lockAttachmentString];
+            }
+            else if ([post.attributes.postedIn isChannel]) {
+                // spacer
+                [creatorString appendAttributedString:spacer];
+                
+                NSTextAttachment *sourceAttachment = [[NSTextAttachment alloc] init];
+                sourceAttachment.image = [self colorImage:[UIImage imageNamed:@"details_label_source"] color:[UIColor bonfirePrimaryColor]];
+                
+                CGFloat attachmentHeight = MIN(ceilf(font.lineHeight * 0.7), sourceAttachment.image.size.height);
+                CGFloat attachmentWidth = attachmentHeight * (sourceAttachment.image.size.width / sourceAttachment.image.size.height);
+                
+                [sourceAttachment setBounds:CGRectMake(0, roundf(font.capHeight - attachmentHeight)/2.f, attachmentWidth, attachmentHeight)];
+                
+                NSAttributedString *lockAttachmentString = [NSAttributedString attributedStringWithAttachment:sourceAttachment];
+                [creatorString appendAttributedString:lockAttachmentString];
+            }
+            else if ([post.attributes.postedIn isFeed]) {
+                // spacer
+                [creatorString appendAttributedString:spacer];
+                
+                NSTextAttachment *sourceAttachment = [[NSTextAttachment alloc] init];
+                sourceAttachment.image = [self colorImage:[UIImage imageNamed:@"details_label_feed"] color:[UIColor bonfirePrimaryColor]];
+                
+                CGFloat attachmentHeight = MIN(ceilf(font.lineHeight * 0.7), sourceAttachment.image.size.height);
+                CGFloat attachmentWidth = attachmentHeight * (sourceAttachment.image.size.width / sourceAttachment.image.size.height);
+                
+                [sourceAttachment setBounds:CGRectMake(0, roundf(font.capHeight - attachmentHeight)/2.f, attachmentWidth, attachmentHeight)];
+                
+                NSAttributedString *lockAttachmentString = [NSAttributedString attributedStringWithAttachment:sourceAttachment];
+                [creatorString appendAttributedString:lockAttachmentString];
+            }
         }
     }
     

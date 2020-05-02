@@ -24,6 +24,8 @@
 @property (nonatomic) BOOL upToDate;
 @property (nonatomic, strong) NSDate *lastFetch;
 
+@property (nonatomic, strong) UIButton *refreshButton;
+
 @end
 
 @implementation WaitlistViewController
@@ -67,7 +69,7 @@
 
 - (void)getRank:(BOOL)force {
     NSTimeInterval secondsSinceLastFetch = [self.lastFetch timeIntervalSinceNow];
-    // NSLog(@"seconds since last fetch: %f", -secondsSinceLastFetch);
+
     if (!force && secondsSinceLastFetch < -(60)) {
         // already refreshed within the last minute -- no need
         return;
@@ -75,6 +77,10 @@
     else {
         self.lastFetch = [NSDate date];
     }
+    
+    [UIView animateWithDuration:0.25f animations:^{
+        self.refreshButton.alpha = 0;
+    }];
     
     if (self.presentedViewController) {
         [self.presentedViewController dismissViewControllerAnimated:true completion:nil];
@@ -95,6 +101,10 @@
                 // get the user
                 [self updateUser];
             }
+            
+            [UIView animateWithDuration:0.25f animations:^{
+                self.refreshButton.alpha = 1;
+            }];
         }
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         [self loadCache];
@@ -123,8 +133,12 @@
             [alert addAction:tryAgain];
             alert.preferredAction = tryAgain;
 
-            [[Launcher topMostViewController] presentViewController:alert animated:true completion:nil];
+            [alert show];
         }
+        
+        [UIView animateWithDuration:0.25f animations:^{
+            self.refreshButton.alpha = 1;
+        }];
     }];
 }
 
@@ -153,7 +167,7 @@
                 
                 [alert addAction:cancel];
                 
-                [[Launcher topMostViewController] presentViewController:alert animated:true completion:nil];
+                [alert show];
             }
         }
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
@@ -183,9 +197,11 @@
     [self initCenterView];
     [self initBigSpinner];
     
+    UIEdgeInsets safeAreaInsets = [UIApplication sharedApplication].delegate.window.safeAreaInsets;
+    
     self.instructionLabel = [[UILabel alloc] initWithFrame:CGRectMake(24, self.view.frame.size.height, self.view.frame.size.width - 48, 42)];
     self.instructionLabel.textAlignment = NSTextAlignmentCenter;
-    self.instructionLabel.text = [NSString stringWithFormat:@"You're in line!\nJoin now to claim @%@", [Session sharedInstance].currentUser.attributes.identifier];
+    self.instructionLabel.text = [NSString stringWithFormat:@"You're in line @%@!\nShare with friends to skip 🔥", [Session sharedInstance].currentUser.attributes.identifier];
     self.instructionLabel.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightMedium];
     self.instructionLabel.textColor = [UIColor bonfirePrimaryColor];
     self.instructionLabel.numberOfLines = 0;
@@ -196,7 +212,7 @@
     [self.view addSubview:self.instructionLabel];
     
     self.redeemButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    self.redeemButton.frame = CGRectMake(24, self.view.frame.size.height - 48 - [UIApplication sharedApplication].keyWindow.safeAreaInsets.bottom - (HAS_ROUNDED_CORNERS ? 12 : 24), self.view.frame.size.width - (24 * 2), 48);
+    self.redeemButton.frame = CGRectMake(24, self.view.frame.size.height - 48 - safeAreaInsets.bottom - (HAS_ROUNDED_CORNERS ? 12 : 24), self.view.frame.size.width - (24 * 2), 48);
     self.redeemButton.backgroundColor = [UIColor bonfireBrand];
     [self.redeemButton setBackgroundImage:[self gradientImageForView:self.redeemButton topLeftColor:[UIColor colorWithDisplayP3Red:1 green:0.35 blue:0.93 alpha:1] bottomRightColor:[UIColor colorWithDisplayP3Red:0.90 green:0 blue:0 alpha:1]] forState:UIControlStateNormal];
     self.redeemButton.titleLabel.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightSemibold];
@@ -237,7 +253,7 @@
         [alert setTextField:textField];
         [textField becomeFirstResponder];
         
-        [[Launcher topMostViewController] presentViewController:alert animated:true completion:nil];
+        [alert show];
     }];
     [self.redeemButton bk_addEventHandler:^(id sender) {
         [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
@@ -260,6 +276,20 @@
     self.redeemButtonHelperLabel.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightRegular];
     self.redeemButtonHelperLabel.text = @"Invited by a friend?";
     [self.view addSubview:self.redeemButtonHelperLabel];
+        
+    self.refreshButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    self.refreshButton.frame = CGRectMake(self.view.frame.size.width - 44 - 11, safeAreaInsets.top + 2, 44, 44);
+    [self.refreshButton setImage:[[UIImage imageNamed:@"navRefreshIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+    self.refreshButton.imageEdgeInsets = UIEdgeInsetsMake(-4, 0, 4, 0);
+    self.refreshButton.tintColor = [[UIColor bonfireSecondaryColor] colorWithAlphaComponent:0.5];
+    self.refreshButton.adjustsImageWhenHighlighted = false;
+    self.refreshButton.contentMode = UIViewContentModeCenter;
+    [self.refreshButton bk_whenTapped:^{
+        [self setSpinning:true animated:true];
+        [self getRank:true];
+    }];
+    self.refreshButton.alpha = 0;
+    [self.view addSubview:self.refreshButton];
     
     [self setSpinning:true animated:false];
 }
@@ -286,10 +316,12 @@
             self.bigSpinner.alpha = 1;
             self.bigSpinner.transform = CGAffineTransformMakeScale(1, 1);
         } completion:^(BOOL finished) {
-
+            [self.invitesNeededLabel pauseLabel];
         }];
     }
     else {
+        [self.invitesNeededLabel restartLabel];
+        [self.invitesNeededLabel pauseLabel];
         [UIView animateWithDuration:animated?0.4f:0 delay:0 usingSpringWithDamping:0.75f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
             self.bigSpinner.alpha = 0;
             self.bigSpinner.transform = CGAffineTransformMakeScale(0.8, 0.8);
@@ -300,6 +332,8 @@
             self.centerView.alpha = 1;
             self.centerView.transform = CGAffineTransformMakeScale(1, 1);
         } completion:^(BOOL finished) {
+            [self.invitesNeededLabel unpauseLabel];
+            
             self.centerView.userInteractionEnabled = true;
         }];
     }
@@ -332,7 +366,7 @@
     
     [self initInvitedProgressView];
     
-    self.invitesNeededLabel = [[MarqueeLabel alloc] initWithFrame:CGRectMake(0, self.invitedProgressView.frame.origin.y + self.invitedProgressView.frame.size.height + 12, self.centerView.frame.size.width, 21) duration:13.f andFadeLength:16.f];
+    self.invitesNeededLabel = [[MarqueeLabel alloc] initWithFrame:CGRectMake(0, self.invitedProgressView.frame.origin.y + self.invitedProgressView.frame.size.height + 12, self.centerView.frame.size.width, 21) duration:24.f andFadeLength:16.f];
     self.invitesNeededLabel.textAlignment = NSTextAlignmentCenter;
     self.invitesNeededLabel.numberOfLines = 0;
     self.invitesNeededLabel.lineBreakMode = NSLineBreakByWordWrapping;
@@ -494,8 +528,8 @@
                 NSString *friendsNeededString = [NSString stringWithFormat:@"%lu friend%@", (long)invitesNeeded_after, (invitesNeeded_after == 1 ? @"" : @"s")];
                 NSString *friendCode = [Session sharedInstance].currentUser.attributes.invites.friendCode;
                 
-                NSMutableAttributedString *attributedInvitesNeededString = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"Invite %@ to skip the line       Your Friend Code is %@   ", friendsNeededString, friendCode] attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightRegular], NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
-                [attributedInvitesNeededString addAttributes:@{NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightBold], NSForegroundColorAttributeName: [UIColor bonfirePrimaryColor]} range:[attributedInvitesNeededString.string rangeOfString:friendsNeededString]];
+                NSMutableAttributedString *attributedInvitesNeededString = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"👋  Skip the line!   1️⃣ Invite %@ to sign up    2️⃣ Tell them to use Friend Code: %@    🔥 Check the app, refresh, and you're in!", friendsNeededString, friendCode] attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightRegular], NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
+                [attributedInvitesNeededString addAttributes:@{NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightSemibold], NSForegroundColorAttributeName: [UIColor bonfirePrimaryColor]} range:[attributedInvitesNeededString.string rangeOfString:friendsNeededString]];
                 [attributedInvitesNeededString addAttributes:@{NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightBold], NSForegroundColorAttributeName: [UIColor bonfirePrimaryColor]} range:[attributedInvitesNeededString.string rangeOfString:friendCode]];
                 self.invitesNeededLabel.attributedText = attributedInvitesNeededString;
                 

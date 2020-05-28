@@ -21,6 +21,12 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface BFStreamComponent : BFComponent
 
+typedef enum {
+    BFStreamComponentSizeDefault, // StreamPostCell
+    BFStreamComponentSizeExpanded, // ExpandedPostCell
+    BFStreamComponentSizeReply // ReplyCell
+} BFStreamComponentSize;
+
 // Convenience methods for Posts
 - (id)initWithPost:(Post *)post;
 - (id)initWithPost:(Post *)post cellClass:(Class _Nullable)cellClass;

@@ -13,7 +13,9 @@ NS_ASSUME_NONNULL_BEGIN
 typedef NS_ENUM(NSInteger, BFAlertActionStyle) {
     BFAlertActionStyleDefault = 0,
     BFAlertActionStyleCancel,
-    BFAlertActionStyleDestructive
+    BFAlertActionStyleDestructive,
+    BFAlertActionStyleSemiDestructive,
+    BFAlertActionStyleSpacer
 };
 
 typedef NS_ENUM(NSInteger, BFAlertControllerStyle) {
@@ -61,13 +63,15 @@ extern NSString * const BFAlertActionIconOther;
 
 + (instancetype)alertControllerWithPreferredStyle:(BFAlertControllerStyle)preferredStyle;
 + (instancetype)alertControllerWithTitle:(nullable NSString *)title message:(nullable NSString *)message preferredStyle:(BFAlertControllerStyle)preferredStyle;
-+ (instancetype)alertControllerWithIcon:(UIImage *)icon title:(nullable NSString *)title message:(nullable NSString *)message preferredStyle:(BFAlertControllerStyle)preferredStyle;
++ (instancetype)alertControllerWithIcon:(nullable UIImage *)icon title:(nullable NSString *)title message:(nullable NSString *)message preferredStyle:(BFAlertControllerStyle)preferredStyle;
 
 @property (nonatomic, strong) AlertViewControllerPresenter *presenter;
 - (void)show;
 
 - (void)addAction:(BFAlertAction *)action;
 @property (nonatomic, strong) NSMutableArray<BFAlertAction *> *actions;
+
+- (void)addSpacer;
 
 // Preferred action is bold
 @property (nonatomic, strong, nullable) BFAlertAction *preferredAction;

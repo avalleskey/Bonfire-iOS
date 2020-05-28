@@ -115,7 +115,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
         self.loading = true;
     }
     
-    [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+    [[[HAWebService manager] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         if (params[@"s"] && ![params[@"s"] isEqualToString:self.searchPhrase]) {
             NSLog(@"search phrase has changed");
             return;

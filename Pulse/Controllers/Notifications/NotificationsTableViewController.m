@@ -303,7 +303,6 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
 
 - (void)refreshIfNeeded {
     NSTimeInterval secondsSinceLastFetch = [self.lastFetch timeIntervalSinceNow];
-    NSLog(@"tab bar has badge value: %@", [[Launcher tabController].badges objectForKey:[NSString stringWithFormat:@"%lu", (unsigned long)[[Launcher tabController].tabBar.items indexOfObject:self.navigationController.tabBarItem]]] ? @"YES" : @"NO");
     if ([[Launcher tabController].badges objectForKey:[NSString stringWithFormat:@"%lu", (unsigned long)[[Launcher tabController].tabBar.items indexOfObject:self.navigationController.tabBarItem]]] || secondsSinceLastFetch < -(2 * 60)) {
         [self refresh];
     }
@@ -355,7 +354,7 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
         self.tableView.alpha = 1;
     }
         
-    [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:@"users/me/notifications" parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+    [[[HAWebService manager] authenticate] GET:@"users/me/notifications" parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         // NSLog(@"response object for notifications: %@", responseObject[@"data"]);
         
         if (self.loadingPrevCursor.length > 0) {

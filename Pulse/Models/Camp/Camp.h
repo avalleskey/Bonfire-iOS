@@ -26,6 +26,8 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)isPrivate;
 - (BOOL)isSupported; // ensure all walls are supported by the installed version
 
+- (NSString *)mostDescriptiveIdentifier;
+
 #pragma mark - API Methods
 - (void)subscribeToCamp;
 - (void)unsubscribeFromCamp;

@@ -242,7 +242,7 @@ static NSString * const expandRepliesCellIdentifier = @"expandRepliesCell";
     
     NSLog(@"url: %@", url);
     
-    [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+    [[[HAWebService manager] authenticate] GET:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSDictionary *responseData = (NSDictionary *)responseObject[@"data"];
         
         self.tableView.visualError = nil;
@@ -349,7 +349,7 @@ static NSString * const expandRepliesCellIdentifier = @"expandRepliesCell";
         [self.tableView hardRefresh:false];
     }
     
-    [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+    [[[HAWebService manager] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         self.loading = false;
         self.tableView.loading = false;
         

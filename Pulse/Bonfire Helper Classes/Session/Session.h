@@ -37,8 +37,10 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)addToRecents:(id)object;
 
 #pragma mark - Auth
-- (void)setAccessToken:(NSDictionary *)accessToken;
+@property (nonatomic, strong) NSDictionary * _Nullable accessToken;
+@property (nonatomic, strong) NSString * _Nullable accessTokenString;
 - (NSDictionary *)getAccessTokenWithVerification:(BOOL)verify;
+
 - (NSString *)refreshToken;
 + (void)authenticate:(void (^)(BOOL success, NSString *token))handler;
 - (void)getNewAccessToken:(void (^)(BOOL success, NSString *newToken, NSInteger bonfireErrorCode))handler;
@@ -53,6 +55,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 // Caches
 + (PINCache *)tempCache;
+
+#pragma mark - Rate limiting
++ (BOOL)canCreateNewAccount;
 
 @end
 

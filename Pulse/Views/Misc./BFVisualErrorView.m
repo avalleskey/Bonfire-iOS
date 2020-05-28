@@ -39,7 +39,7 @@
     return self;
 }
 
-- (void)setVisualError:(BFVisualError *)visualError {
+- (void)setVisualError:(BFVisualError * _Nullable)visualError {
     [self updateType:visualError.errorType];
     
     if (visualError != _visualError) {

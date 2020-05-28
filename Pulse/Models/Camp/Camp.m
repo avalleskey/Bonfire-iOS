@@ -76,6 +76,16 @@
     
     return supported;
 }
+- (NSString *)mostDescriptiveIdentifier {
+    if (self.attributes.identifier && self.attributes.identifier.length > 0) {
+        return self.attributes.identifier;
+    }
+    else if (self.identifier) {
+        return self.identifier;
+    }
+    
+    return @"";
+}
 
 #pragma mark - API Methods
 - (void)subscribeToCamp  {
@@ -87,12 +97,17 @@
     NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
     [dateFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ssZ"];
     subscription.createdAt = [dateFormatter stringFromDate:date];
-    self.attributes.context.camp.membership.subscription = subscription;
+    
+    BFContextCampMembership *membership = self.attributes.context.camp.membership ?: [[BFContextCampMembership alloc] init];
+    membership.subscription = subscription;
+    self.attributes.context.camp.membership = membership;
+    
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"CampUpdated" object:self];
     
     NSString *deviceToken = [[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"];
     NSString *url = [NSString stringWithFormat:@"camps/%@/members/subscriptions", [self campIdentifier]];
-    [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] POST:url parameters:deviceToken?@{@"vendor": @"APNS", @"token": deviceToken}:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"CampUpdated" object:self];
+    [[[HAWebService manager] authenticate] POST:url parameters:deviceToken?@{@"vendor": @"APNS", @"token": deviceToken}:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+//        [[NSNotificationCenter defaultCenter] postNotificationName:@"CampUpdated" object:self];
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         
     }];
@@ -103,9 +118,11 @@
     // Update the object
     self.attributes.context.camp.membership.subscription = nil;
     
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"CampUpdated" object:self];
+    
     NSString *url = [NSString stringWithFormat:@"camps/%@/members/subscriptions", [self campIdentifier]];
-    [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] DELETE:url parameters:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"CampUpdated" object:self];
+    [[[HAWebService manager] authenticate] DELETE:url parameters:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+//        [[NSNotificationCenter defaultCenter] postNotificationName:@"CampUpdated" object:self];
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         
     }];

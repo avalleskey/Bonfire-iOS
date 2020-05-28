@@ -29,6 +29,8 @@
 #import <PINCache/PINCache.h>
 #import "BFAlertController.h"
 #import <Lockbox/Lockbox.h>
+#import "BFMiniNotificationManager.h"
+#import "UIView+BFEffects.h"
 @import Firebase;
 
 #define HOME_FEED_CACHE_KEY @"home_stream_cache"
@@ -95,19 +97,16 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
                 
         [self positionErrorView];
         
-        if ([BFTipsManager hasSeenTip:@"about_sparks_info"] == false) {
-            [self hideComposeInputView];
+        if (![BFTipsManager hasSeenTip:@"about_sparks_info"]) {
+            BFAlertController *about = [BFAlertController alertControllerWithIcon:[UIImage imageNamed:@"alert_icon_sparks"] title:@"About Sparks" message:@"Sparks show a post to more people. Only the creator can see who sparks a post." preferredStyle:BFAlertControllerStyleActionSheet];
             
-            BFTipObject *tipObject = [BFTipObject tipWithCreatorType:BFTipCreatorTypeBonfireTip creator:nil title:@"Sparks help posts go viral 🚀" text:@"Sparks show a post to more people. Only the creator can see who sparks a post." cta:nil imageUrl:nil action:^{
-                NSLog(@"tip tapped");
-            }];
-            [[BFTipsManager manager] presentTip:tipObject completion:^{
-                NSLog(@"presentTip() completion");
-            }];
+            BFAlertAction *gotIt = [BFAlertAction actionWithTitle:@"Got it" style:BFAlertActionStyleCancel handler:nil];
+            [about addAction:gotIt];
+            
+            [about show];
         }
-        else {
-            [self showComposeInputView];
-        }
+        
+        [self showComposeInputView];
     }
     else {
         [InsightsLogger.sharedInstance openAllVisiblePostInsightsInTableView:self.sectionTableView seenIn:InsightSeenInHomeView];
@@ -134,72 +133,91 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
         [self setupContent];
         
 //        NSLog(@"launches: %ld", (long)[[NSUserDefaults standardUserDefaults] integerForKey:@"launches"]);
-//        if (![[NSUserDefaults standardUserDefaults] boolForKey:@"hasSeenAppStoreReviewController"] && [Session sharedInstance].currentUser.attributes.summaries.counts.posts >= 3 && [[NSUserDefaults standardUserDefaults] integerForKey:@"launches"] > 3) {
-//            [[NSUserDefaults standardUserDefaults] setBool:true forKey:@"hasSeenAppStoreReviewController"];
-//
-//            // use BFAlertController
-//            BFAlertController *alert = [BFAlertController
-//                                        alertControllerWithTitle:@"Hello! 👋"
-//                                        message:@"What emoji best describes how you feel about Bonfire?"
-//                                        preferredStyle:BFAlertControllerStyleActionSheet];
-//
-//            BFAlertAction *good = [BFAlertAction actionWithTitle:@"👍" style:BFAlertActionStyleDefault
-//                                                       handler:^{
-//                // show app store rate dialog
-//                [Launcher requestAppStoreRating];
-//            }];
-//
-//            BFAlertAction *neutral = [BFAlertAction actionWithTitle:@"🤷‍♂️"        style:BFAlertActionStyleDefault
-//                                                            handler:nil];
-//
-//            BFAlertAction *bad = [BFAlertAction actionWithTitle:@"👎" style:BFAlertActionStyleDefault
-//                                                       handler:^{
-//            BFAlertController *badAlert = [BFAlertController
-//                                           alertControllerWithTitle:@"Oh no!"
-//                                           message:@"Sorry you feel that way.\nLet us know how we can do better!"
-//                                           preferredStyle:BFAlertControllerStyleActionSheet];
-//
-//            BFAlertAction *reportBug = [BFAlertAction actionWithTitle:@"Report a Bug" style:BFAlertActionStyleDefault
-//                                                              handler:^{
-//                // show app store rate dialog
-//                Camp *camp = [[Camp alloc] init];
-//                camp.identifier = @"-wWoxVq1VBA6R";
-//                [Launcher openCamp:camp];
-//                                                           }];
-//
-//            BFAlertAction *shareFeedback = [BFAlertAction actionWithTitle:@"Share Feedback" style:BFAlertActionStyleDefault
-//                                                                  handler:^{
-//                Camp *camp = [[Camp alloc] init];
-//                camp.identifier = @"-mb4egjBg9vYK";
-//                camp.attributes = [[CampAttributes alloc] initWithDictionary:@{@"identifier": @"BonfireFeedback", @"title": @"Bonfire Feedback"} error:nil];
-//                [Launcher openCamp:camp];
-//            }];
-//
-//            BFAlertAction *writeEmail = [BFAlertAction actionWithTitle:@"Contact Support" style:BFAlertActionStyleDefault
-//                                                           handler:^{
-//                NSString *url = @"mailto:support@bonfire.camp";
-//                [[UIApplication sharedApplication] openURL:[NSURL URLWithString:url] options:@{} completionHandler:nil];
-//                                                           }];
-//
-//            BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Close" style:BFAlertActionStyleCancel
-//                                                               handler:nil];
-//
-//            [badAlert addAction:reportBug];
-//            [badAlert addAction:shareFeedback];
-//            [badAlert addAction:writeEmail];
-//            [badAlert addAction:cancel];
-//
-//            [[Launcher topMostViewController] presentViewController:badAlert animated:YES completion:nil];
-//                                                       }];
-//
-//            [alert addAction:good];
-//            [alert addAction:neutral];
-//            [alert addAction:bad];
-//
-//            wait(1.5, ^{
-//                [[Launcher topMostViewController] presentViewController:alert animated:YES completion:nil];
-//            });
-//        }
+        if (![[NSUserDefaults standardUserDefaults] boolForKey:@"hasSeenAppStoreReviewController"] && [Session sharedInstance].currentUser.attributes.summaries.counts.posts >= 3 && [[NSUserDefaults standardUserDefaults] integerForKey:@"launches"] > 3) {
+            [[NSUserDefaults standardUserDefaults] setBool:true forKey:@"hasSeenAppStoreReviewController"];
+
+            [FIRAnalytics logEventWithName:@"feelings_toward_bonfire_requested" parameters:@{}];
+            
+            // use BFAlertController
+            BFAlertController *alert = [BFAlertController
+                                        alertControllerWithTitle:@"Hello! 👋"
+                                        message:@"What emoji best describes how you feel about Bonfire?"
+                                        preferredStyle:BFAlertControllerStyleActionSheet];
+
+            BFAlertAction *good = [BFAlertAction actionWithTitle:@"👍" style:BFAlertActionStyleDefault
+                                                       handler:^{
+                [FIRAnalytics logEventWithName:@"bonfire_experience_positive" parameters:@{}];
+                [FIRAnalytics logEventWithName:@"app_store_rating_requested" parameters:@{}];
+                
+                [[Launcher topMostViewController].view showEffect:BFEffectTypeEmojis options:@{BFEffectEmojiStringAttributeName: @"🔥"} completion:nil];
+                
+                // show app store rate dialog
+                [Launcher requestAppStoreRating];
+            }];
+
+            BFAlertAction *neutral = [BFAlertAction actionWithTitle:@"🤷‍♂️"        style:BFAlertActionStyleDefault
+                                                            handler:^{
+                [FIRAnalytics logEventWithName:@"bonfire_experience_neutral" parameters:@{}];
+                
+                [[Launcher topMostViewController].view showEffect:BFEffectTypeEmojis options:@{BFEffectEmojiStringAttributeName: @"🤷‍♂️"} completion:nil];
+            }];
+
+            BFAlertAction *bad = [BFAlertAction actionWithTitle:@"👎" style:BFAlertActionStyleDefault
+                                                       handler:^{
+                [FIRAnalytics logEventWithName:@"bonfire_experience_negative" parameters:@{}];
+                
+                BFAlertController *badAlert = [BFAlertController
+                                               alertControllerWithTitle:@"Oh no!"
+                                               message:@"Sorry you feel that way.\nLet us know how we can do better!"
+                                               preferredStyle:BFAlertControllerStyleActionSheet];
+
+                BFAlertAction *reportBug = [BFAlertAction actionWithTitle:@"Report a Bug" style:BFAlertActionStyleDefault
+                                                                  handler:^{
+                    [FIRAnalytics logEventWithName:@"bonfire_experience_positive-report_bug" parameters:@{}];
+                    
+                    // show app store rate dialog
+                    Camp *camp = [[Camp alloc] init];
+                    camp.identifier = @"-wWoxVq1VBA6R";
+                    [Launcher openCamp:camp];
+                                                               }];
+
+                BFAlertAction *shareFeedback = [BFAlertAction actionWithTitle:@"Share Feedback" style:BFAlertActionStyleDefault
+                                                                      handler:^{
+                    [FIRAnalytics logEventWithName:@"bonfire_experience_positive-share_feedback" parameters:@{}];
+                    
+                    Camp *camp = [[Camp alloc] init];
+                    camp.identifier = @"-mb4egjBg9vYK";
+                    camp.attributes = [[CampAttributes alloc] initWithDictionary:@{@"identifier": @"BonfireFeedback", @"title": @"Bonfire Feedback"} error:nil];
+                    [Launcher openCamp:camp];
+                }];
+
+                BFAlertAction *writeEmail = [BFAlertAction actionWithTitle:@"Contact Support" style:BFAlertActionStyleDefault
+                                                               handler:^{
+                    [FIRAnalytics logEventWithName:@"bonfire_experience_positive-contact_support" parameters:@{}];
+                    
+                    NSString *url = @"mailto:support@bonfire.camp";
+                    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:url] options:@{} completionHandler:nil];
+                                                               }];
+
+                BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Close" style:BFAlertActionStyleCancel
+                                                                   handler:nil];
+
+                [badAlert addAction:reportBug];
+                [badAlert addAction:shareFeedback];
+                [badAlert addAction:writeEmail];
+                [badAlert addAction:cancel];
+
+                [badAlert show];
+            }];
+
+            [alert addAction:good];
+            [alert addAction:neutral];
+            [alert addAction:bad];
+
+            wait(1.5, ^{
+                [alert show];
+            });
+        }
     }
     
     self.errorView.center = CGPointMake(self.view.frame.size.width / 2, self.sectionTableView.frame.size.height / 2 - self.navigationController.navigationBar.frame.size.height - self.navigationController.navigationBar.frame.origin.y);
@@ -591,7 +609,7 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
     else if (cursorType == StreamPagingCursorTypePrevious) {
         cursorType = StreamPagingCursorTypeNone;
     }
-    
+        
     self.sectionTableView.loading = (self.sectionTableView.stream.sections.count == 0);
     if (self.sectionTableView.loading) {
         self.errorView.hidden = true;
@@ -602,7 +620,7 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
         self.titleView.shimmering = true;
     }
     
-    [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+    [[[HAWebService manager] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         self.loading = false;
         self.sectionTableView.loading = false;
         self.userDidRefresh = false;
@@ -615,9 +633,10 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
         
         BOOL newPosts = false;
         if (page.data.count > 0) {
+            BOOL scrollToTopFirst = false;
             if (page.meta.paging.replaceCache &&
                 cursorType != StreamPagingCursorTypeNext) {
-                [self.sectionTableView scrollToTop];
+                scrollToTopFirst = true;
                 sectionsBefore = 0;
                 [self.sectionTableView.stream flush];
             }
@@ -631,7 +650,14 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
             }
                         
             if (self.userDidRefresh || sectionsBefore == 0 || cursorType == StreamPagingCursorTypeNone) {
-                [self.sectionTableView hardRefresh:true];
+                if (scrollToTopFirst) {
+                    [self.sectionTableView scrollToTopWithCompletion:^{
+                        [self.sectionTableView hardRefresh:true];
+                    }];
+                }
+                else {
+                    [self.sectionTableView hardRefresh:true];
+                }
                 
                 [self hideMorePostsIndicator:true];
             }
@@ -642,12 +668,19 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
             }
             else {
                 // previous currsor
-                [self.sectionTableView refreshAtTop];
-                
-                normalizedScrollViewContentOffsetY = self.sectionTableView.contentOffset.y + self.sectionTableView.adjustedContentInset.top;
-                
-                if (newPosts && normalizedScrollViewContentOffsetY > 0) {
-                    [self showMorePostsIndicator:YES];
+                if (scrollToTopFirst) {
+                    [self.sectionTableView scrollToTopWithCompletion:^{
+                        [self.sectionTableView hardRefresh:true];
+                    }];
+                }
+                else {
+                    [self.sectionTableView refreshAtTop];
+                    
+                    normalizedScrollViewContentOffsetY = self.sectionTableView.contentOffset.y + self.sectionTableView.adjustedContentInset.top;
+                    
+                    if (newPosts && normalizedScrollViewContentOffsetY > 0) {
+                        [self showMorePostsIndicator:YES];
+                    }
                 }
             }
         }

@@ -16,6 +16,7 @@
 #import "Session.h"
 #import <HapticHelper/HapticHelper.h>
 #import <PINCache/PINCache.h>
+#import "BFAlertController.h"
 @import Firebase;
 @import UserNotifications;
 
@@ -235,13 +236,24 @@
         } completion:nil];
     } forControlEvents:(UIControlEventTouchUpInside|UIControlEventTouchCancel|UIControlEventTouchDragExit)];
     
+    BOOL canSignUp = [Session canCreateNewAccount];
     [self.signUpButton bk_whenTapped:^{
-        OnboardingViewController *obvc = [[OnboardingViewController alloc] init];
-        obvc.transitioningDelegate = [Launcher sharedInstance];
-        obvc.modalPresentationStyle = UIModalPresentationFullScreen;
-        obvc.signInLikely = false;
-        
-        [self presentViewController:obvc animated:YES completion:nil];
+        if (canSignUp) {
+            OnboardingViewController *obvc = [[OnboardingViewController alloc] init];
+            obvc.transitioningDelegate = [Launcher sharedInstance];
+            obvc.modalPresentationStyle = UIModalPresentationFullScreen;
+            obvc.signInLikely = false;
+            
+            [self presentViewController:obvc animated:YES completion:nil];
+        }
+        else {
+            BFAlertController *alert = [BFAlertController alertControllerWithTitle:@"Let's Consider Others" message:@"You've hit the maximum amount of sign ups per day. Please consider others and refrain from registering accounts you don't intend on using." preferredStyle:BFAlertControllerStyleAlert];
+            
+            BFAlertAction *gotItAction = [BFAlertAction actionWithTitle:@"Okay" style:BFAlertActionStyleCancel handler:nil];
+            [alert addAction:gotItAction];
+            
+            [alert show];
+        }
     }];
     
     UIImageView *signInButtonBg = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, self.signUpButton.frame.size.width, self.signUpButton.frame.size.width * 3)];

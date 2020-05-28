@@ -17,6 +17,7 @@ extern NSString *const ButtonCellTitleColorAttributeName;
 
 @property (nonatomic) UIColor *kButtonColorDefault;
 @property (nonatomic) UIColor *kButtonColorDestructive;
+@property (nonatomic) UIColor *kButtonColorSemiDestructive;
 @property (nonatomic) UIColor *kButtonColorTheme;
 @property (nonatomic) UIColor *kButtonColorBonfire;
 

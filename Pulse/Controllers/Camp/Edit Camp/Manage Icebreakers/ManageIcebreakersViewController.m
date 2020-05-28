@@ -56,7 +56,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
 - (void)getIcebreakers {
     NSString *url = [[NSString alloc] initWithFormat:@"camps/%@/posts/icebreakers", self.camp.identifier];
     
-    [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+    [[[HAWebService manager] authenticate] GET:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         PostStreamPage *page = [[PostStreamPage alloc] initWithDictionary:responseObject error:nil];
         if (page.data.count > 0) {
             [self updatePostStreamWithPost:[page.data firstObject]];

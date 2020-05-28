@@ -72,12 +72,12 @@
         }
     }
     
-    NSString *timeStamp = self.attributes.createdAt.length > 0 ? [NSDate mysqlDatetimeFormattedAsTimeAgo:self.attributes.createdAt withForm:TimeAgoShortForm] : @"";
-    
-    NSMutableAttributedString *timeStampString = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@" %@", timeStamp]];
-    [timeStampString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:fontSize weight:UIFontWeightRegular] range:NSMakeRange(0, timeStampString.length)];
-    [timeStampString addAttribute:NSForegroundColorAttributeName value:[UIColor bonfireSecondaryColor] range:NSMakeRange(0, timeStampString.length)];
-    [attributedString appendAttributedString:timeStampString];
+//    NSString *timeStamp = self.attributes.createdAt.length > 0 ? [NSDate mysqlDatetimeFormattedAsTimeAgo:self.attributes.createdAt withForm:TimeAgoShortForm] : @"";
+//
+//    NSMutableAttributedString *timeStampString = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@" %@", timeStamp]];
+//    [timeStampString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:fontSize weight:UIFontWeightRegular] range:NSMakeRange(0, timeStampString.length)];
+//    [timeStampString addAttribute:NSForegroundColorAttributeName value:[UIColor bonfireSecondaryColor] range:NSMakeRange(0, timeStampString.length)];
+//    [attributedString appendAttributedString:timeStampString];
     
     if (self.attributes.previewPost.attributes.message.length > 0) {
         NSString *message = self.attributes.previewPost.attributes.message;

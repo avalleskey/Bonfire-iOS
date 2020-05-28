@@ -8,6 +8,9 @@
 
 #import <XCTest/XCTest.h>
 
+#import <Security/Security.h>
+#import <CommonCrypto/CommonHMAC.h>
+
 @interface PulseTests : XCTestCase
 
 @end

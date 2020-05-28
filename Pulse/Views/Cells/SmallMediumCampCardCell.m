@@ -289,14 +289,6 @@
                 useImage = true;
                 self.campAvatarReasonImageView.image = [UIImage imageNamed:@"newIcon"];
             }
-            else  if ([camp.attributes.context.camp.membership.role.type isEqualToString:CAMP_ROLE_ADMIN]) {
-                useImage = true;
-                self.campAvatarReasonImageView.image = [UIImage imageNamed:@"directorIcon"];
-            }
-            if ([camp.attributes.context.camp.membership.role.type isEqualToString:CAMP_ROLE_MODERATOR]) {
-                useImage = true;
-                self.campAvatarReasonImageView.image = [UIImage imageNamed:@"managerIcon"];
-            }
             if (useImage) {
                 self.campAvatarReasonImageView.contentMode = UIViewContentModeScaleAspectFill;
             }

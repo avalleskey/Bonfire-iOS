@@ -136,7 +136,7 @@
     }
     
     if (![self.moreButton isHidden]) {
-        CGFloat moreButtonPadding = 12;
+        CGFloat moreButtonPadding = 14;
         CGFloat moreButtonWidth = self.moreButton.currentImage.size.width + (moreButtonPadding * 2);
         self.moreButton.frame = CGRectMake(self.frame.size.width - moreButtonWidth - postContentOffset.right + moreButtonPadding, yBottom - moreButtonPadding, moreButtonWidth, self.nameLabel.frame.size.height + (moreButtonPadding * 2));
     }
@@ -165,6 +165,15 @@
         [self.imagesView startSpinnersAsNeeded];
         
         yBottom = self.imagesView.frame.origin.y + self.imagesView.frame.size.height;
+    }
+    
+    if (self.videoPlayerAttachmentView) {
+        CGFloat videoSize = self.frame.size.width - offset.left - postContentOffset.right;
+        
+        [self.videoPlayerAttachmentView layoutSubviews];
+        self.videoPlayerAttachmentView.frame = CGRectMake(offset.left, yBottom + ([self.textView isHidden] ? 5 : 8), videoSize, videoSize);
+        
+        yBottom = self.videoPlayerAttachmentView.frame.origin.y + self.videoPlayerAttachmentView.frame.size.height;
     }
     
     if (self.linkAttachmentView) {
@@ -386,6 +395,9 @@
             if (self.linkAttachmentView) {
                 [self removeLinkAttachment];
             }
+            if (self.videoPlayerAttachmentView) {
+                [self removeVideoPlayerAttachmentView];
+            }
             if (self.smartLinkAttachmentView) {
                 [self removeSmartLinkAttachment];
             }
@@ -408,7 +420,7 @@
             }
             
             BOOL hasMessage = (self.post.attributes.simpleMessage.length > 0);
-                        
+                      
             if (self.post.attributes.attachments.media.count > 0) {
                 [self.imagesView setMedia:self.post.attributes.attachments.media];
             }
@@ -444,6 +456,15 @@
             // removed post removed attachment
             if (self.postRemovedAttachmentView) {
                 [self removePostRemovedAttachment];
+            }
+            
+            // video attachment
+            if ([self.post hasVideoAttachment]) {
+                [self initVideoPlayerAttachmentView];
+                self.videoPlayerAttachmentView.videoURL = self.post.attributes.attachments.video.attributes.hostedVersions.suggested.url;
+            }
+            else if (self.videoPlayerAttachmentView) {
+                [self removeVideoPlayerAttachmentView];
             }
             
             // smart link attachment
@@ -564,6 +585,11 @@
         height = height + imageHeight;
     }
     
+    if ([post hasVideoAttachment]) {
+        CGFloat videoPlayerAttachmentHeight = screenWidth-postContentOffset.left-postContentOffset.right;
+        height += videoPlayerAttachmentHeight + (hasMessage ? 8 : 5); // 8 above
+    }
+    
     if ([post hasLinkAttachment]) {
         CGFloat linkPreviewHeight;
         if ([post.attributes.attachments.link isSmartLink]) {
@@ -618,7 +644,7 @@
         height += detailsHeight + postContentOffset.bottom;
     }
     
-    CGFloat minHeight = postContentOffset.top + (hasContext ? postContextHeight - 2 : 0) + 48 + postContentOffset.bottom;
+    CGFloat minHeight = postContentOffset.top + (hasContext ? postContextHeight - 2 : 0) + 42 + postContentOffset.bottom;
     
     return MAX(minHeight, height);
 }
@@ -638,7 +664,12 @@
         parentUsername = post.attributes.parentCreatorUsername;
     }
     
-    if (parentUsername) {
+    if (post.attributes.pinned) {
+        attributedText = [[NSMutableAttributedString alloc] initWithString:@"Pinned Post" attributes:@{NSFontAttributeName: font, NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
+        
+        icon = [[UIImage imageNamed:@"notificationIndicator_pin"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+    }
+    else if (parentUsername) {
         attributedText = [[NSMutableAttributedString alloc] initWithString:@"Replying to " attributes:@{NSFontAttributeName: font, NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
         
         if ([parentUsername isEqualToString:[Session sharedInstance].currentUser.attributes.identifier]) {

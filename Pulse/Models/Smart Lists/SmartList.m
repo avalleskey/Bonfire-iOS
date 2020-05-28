@@ -23,6 +23,7 @@
 
 NSString * const SmartListSectionDataTypeUser = @"user";
 NSString * const SmartListSectionDataTypeCamp = @"camp";
+NSString * const SmartListSectionDataTypePost = @"post";
 
 + (JSONKeyMapper *)keyMapper
 {

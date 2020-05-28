@@ -483,7 +483,7 @@
                 
                 // beta tag
                 NSTextAttachment *attachment = [[NSTextAttachment alloc] init];
-                attachment.image = [UIImage imageNamed:@"betaTag"];
+                attachment.image = [UIImage imageNamed:@"betaIcon_large"];
                 
                 CGFloat attachmentHeight = MIN(ceilf(PROFILE_HEADER_USERNAME_FONT.lineHeight * 0.9), ceilf(attachment.image.size.height));
                 CGFloat attachmentWidth = ceilf(attachmentHeight * (attachment.image.size.width / attachment.image.size.height));

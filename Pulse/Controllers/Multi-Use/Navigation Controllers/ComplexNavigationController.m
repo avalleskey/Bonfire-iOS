@@ -30,6 +30,7 @@
 #import "UIColor+Palette.h"
 #import "UINavigationItem+Margin.h"
 #import "ProfileCampsListViewController.h"
+#import "BFAlertController.h"
 #import "ProfileFollowingListViewController.h"
 
 #define barColorUpdateDuration 0.6
@@ -482,9 +483,18 @@
     }
     
     if ([self.topViewController isKindOfClass:[CampViewController class]]) {
-        [self setRightAction:LNActionTypeShare];
-        
         CampViewController *campViewController = (CampViewController *)self.topViewController;
+        
+        if ([campViewController.camp.attributes.context.camp.membership.role.type isEqualToString:CAMP_ROLE_ADMIN]) {
+            [self setRightAction:LNActionTypeDirector];
+        }
+        else if ([campViewController.camp.attributes.context.camp.membership.role.type isEqualToString:CAMP_ROLE_MODERATOR]) {
+            [self setRightAction:LNActionTypeManager];
+        }
+        else {
+            [self setRightAction:LNActionTypeShare];
+        }
+        
         if (campViewController.camp.identifier && campViewController.camp.identifier.length > 0) {
             // hide the more button
             self.rightActionButton.alpha = 1;
@@ -629,6 +639,14 @@
     else if (actionType == LNActionTypeSettings) {
         [button setImage:[[UIImage imageNamed:@"navSettingsIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
     }
+    else if (actionType == LNActionTypeManager) {
+        [button setImage:[[UIImage imageNamed:@"navManagerIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+//        [button setImageEdgeInsets:UIEdgeInsetsMake(0, 12, 0, 0)];
+    }
+    else if (actionType == LNActionTypeDirector) {
+        [button setImage:[[UIImage imageNamed:@"navDirectorIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+//        [button setImageEdgeInsets:UIEdgeInsetsMake(0, 12, 0, 0)];
+    }
     
     if (button.currentTitle.length > 0) {
         [button.titleLabel setFont:[UIFont systemFontOfSize:18.f weight:UIFontWeightMedium]];
@@ -738,6 +756,55 @@
                 [Launcher openSettings];
                 break;
             }
+            case LNActionTypeManager: {
+                if ([self.viewControllers[self.viewControllers.count-1] isKindOfClass:[CampViewController class]]) {
+                    Camp *activeCamp = ((CampViewController *)self.viewControllers[self.viewControllers.count-1]).camp;
+                    
+                    BFAlertController *actionSheet = [BFAlertController alertControllerWithTitle:@"Manager" message:@"You can accept new member requests, block members, remove posts, and more." preferredStyle:BFAlertControllerStyleActionSheet];
+                    
+                    BFAlertAction *cta = [BFAlertAction actionWithTitle:@"Manage Members" style:BFAlertActionStyleDefault handler:^{
+                        [Launcher openCampMembersForCamp:activeCamp];
+                    }];
+                    [actionSheet addAction:cta];
+                    
+                    BFAlertAction *cta2 = [BFAlertAction actionWithTitle:@"Moderate Posts" style:BFAlertActionStyleDefault handler:^{
+                        [Launcher openCampModerateForCamp:activeCamp];
+                    }];
+                    [actionSheet addAction:cta2];
+                    
+                    BFAlertAction *cancelActionSheet = [BFAlertAction actionWithTitle:@"Close" style:BFAlertActionStyleCancel handler:nil];
+                    [actionSheet addAction:cancelActionSheet];
+                    
+                    [actionSheet show];
+                }
+            }
+            case LNActionTypeDirector: {
+                if ([self.viewControllers[self.viewControllers.count-1] isKindOfClass:[CampViewController class]]) {
+                    Camp *activeCamp = ((CampViewController *)self.viewControllers[self.viewControllers.count-1]).camp;
+                    
+                    BFAlertController *actionSheet = [BFAlertController alertControllerWithTitle:@"Director" message:@"You can customize the Camp settings, accept new member requests, block members, remove posts, and more." preferredStyle:BFAlertControllerStyleActionSheet];
+                    
+                    BFAlertAction *cta = [BFAlertAction actionWithTitle:@"Edit Camp" style:BFAlertActionStyleDefault handler:^{
+                        [Launcher openEditCamp:activeCamp];
+                    }];
+                    [actionSheet addAction:cta];
+                    
+                    BFAlertAction *cta2 = [BFAlertAction actionWithTitle:@"Manage Members" style:BFAlertActionStyleDefault handler:^{
+                        [Launcher openCampMembersForCamp:activeCamp];
+                    }];
+                    [actionSheet addAction:cta2];
+                    
+                    BFAlertAction *cta3 = [BFAlertAction actionWithTitle:@"Moderate Posts" style:BFAlertActionStyleDefault handler:^{
+                        [Launcher openCampModerateForCamp:activeCamp];
+                    }];
+                    [actionSheet addAction:cta3];
+                    
+                    BFAlertAction *cancelActionSheet = [BFAlertAction actionWithTitle:@"Close" style:BFAlertActionStyleCancel handler:nil];
+                    [actionSheet addAction:cancelActionSheet];
+                    
+                    [actionSheet show];
+                }
+            }
                 
             default:
                 break;
@@ -782,16 +849,58 @@
     }
 }
 - (void)setRightAction:(LNActionType)actionType {
+    [self setRightAction:actionType animated:false];
+}
+- (void)setRightAction:(LNActionType)actionType animated:(BOOL)animated {
     if ((NSInteger)actionType != self.rightActionButton.tag) {
-        [self.rightActionButton removeFromSuperview];
-        if (actionType == LNActionTypeNone) {
-            self.rightActionButton = nil;
+        UIButton *newButton;
+        if (actionType != LNActionTypeNone) {
+            newButton = [self createActionButtonForType:actionType];
+            newButton.frame = CGRectMake(self.navigationBar.frame.size.width - newButton.frame.size.width, newButton.frame.origin.y, newButton.frame.size.width, newButton.frame.size.height);
+        }
+        
+        if (self.rightActionButton && animated) {
+            UIButton *oldButton = self.rightActionButton;
+            
+            // animate out the old button
+            [UIView animateWithDuration:0.2f delay:0 usingSpringWithDamping:0.8f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
+                oldButton.transform = CGAffineTransformMakeScale(0.01, 0.01);
+                oldButton.alpha = 0;
+            } completion:^(BOOL finished) {
+                [oldButton removeFromSuperview];
+            }];
+            
+            if (newButton) {
+                // animate in the new button
+                self.rightActionButton = newButton;
+                self.rightActionButton.alpha = 0;
+                self.rightActionButton.transform = CGAffineTransformMakeScale(0.01, 0.01);
+                self.rightActionButton.tag = actionType;
+                [UIView animateWithDuration:0.3f delay:0.15f usingSpringWithDamping:0.8f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
+                    self.rightActionButton.transform = CGAffineTransformMakeScale(1, 1);
+                    self.rightActionButton.alpha = 1;
+                } completion:nil];
+            }
+            else {
+                self.rightActionButton = nil;
+            }
         }
         else {
-            self.rightActionButton = [self createActionButtonForType:actionType];
-            self.rightActionButton.frame = CGRectMake(self.navigationBar.frame.size.width - self.rightActionButton.frame.size.width, self.rightActionButton.frame.origin.y, self.rightActionButton.frame.size.width, self.rightActionButton.frame.size.height);
+            // replace without animation
+            if (self.rightActionButton) {
+                // existing button that needs to be removed
+                [self.rightActionButton removeFromSuperview];
+            }
             
-            self.rightActionButton.tag = actionType;
+            if (newButton) {
+                self.rightActionButton = newButton;
+                self.rightActionButton.tag = actionType;
+                self.rightActionButton.transform = CGAffineTransformMakeScale(1, 1);
+                self.rightActionButton.alpha = 1;
+            }
+            else {
+                self.rightActionButton = nil;
+            }
         }
     }
 }

@@ -15,7 +15,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface BFVisualErrorView : UIView
 
 - (id)initWithVisualError:(BFVisualError *)visualError;
-@property (nonatomic, strong) BFVisualError *visualError;
+@property (nonatomic, strong) BFVisualError * _Nullable visualError;
 
 @property (nonatomic, strong) UIImageView *imageView;
 @property (nonatomic, strong) UILabel *errorTitle;

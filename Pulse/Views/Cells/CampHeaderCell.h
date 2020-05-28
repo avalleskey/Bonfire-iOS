@@ -43,7 +43,6 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) UILabel *descriptionLabel;
 
 @property (nonatomic, strong) CampFollowButton *actionButton;
-@property (strong, nonatomic) UIButton *secondaryActionButton;
 
 @property (nonatomic, strong) BFAvatarView *campAvatar;
 @property (strong, nonatomic) UIView *avatarContainer;
@@ -60,6 +59,16 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) BFAvatarView *member7;
 
 @property (nonatomic, strong) UIView *lineSeparator;
+
+typedef enum {
+    BFCampHeaderLiveModeNone,
+    BFCampHeaderLiveModeChat,
+    BFCampHeaderLiveModeAudio,
+    BFCampHeaderLiveModeVideo,
+    BFCampHeaderLiveModeStory
+} BFCampHeaderLiveMode;
+@property (nonatomic) BFCampHeaderLiveMode liveMode;
+@property (nonatomic, strong) CAGradientLayer *gradientRingLayer;
 
 + (CGFloat)heightForCamp:(Camp *)camp isLoading:(BOOL)loading;
 

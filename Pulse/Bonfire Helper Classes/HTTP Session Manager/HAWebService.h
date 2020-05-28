@@ -33,6 +33,7 @@ typedef NS_OPTIONS(NSUInteger, HAWebServiceManagerOptions) {
 + (BOOL)hasInternet;
 
 - (instancetype)authenticate;
+@property (nonatomic, strong) NSString *accessToken;
 
 @end
 

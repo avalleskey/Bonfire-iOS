@@ -39,8 +39,14 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
     self.pages = [NSMutableArray new];
     self.components = [NSArray<BFStreamComponent *><BFStreamComponent> new];
     self.finalComponents = [NSMutableArray<BFStreamComponent *><BFStreamComponent> new];
-    self.tempComponents = [NSMutableArray<BFStreamComponent *><BFStreamComponent> new];
+    
+    [self flushTempPosts];
+    
     self.cursorsLoaded = [NSMutableDictionary new];
+}
+- (void)flushTempPosts {
+    self.tempPosts = [NSMutableArray<Post *> new];
+    self.tempComponents = [NSMutableArray<BFStreamComponent *><BFStreamComponent> new];
 }
 
 #pragma mark - NSCopying
@@ -75,13 +81,18 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
 }
 
 - (void)refreshComponents {
-    NSMutableArray <BFStreamComponent *> *newComponents = [NSMutableArray<BFStreamComponent *> new];
+    NSMutableArray <BFStreamComponent *><BFStreamComponent> *newComponents = [NSMutableArray<BFStreamComponent *><BFStreamComponent> new];
     
     for (PostStreamPage *page in self.pages) {
-        [newComponents addObjectsFromArray:[page.data toStreamComponentsWithDetailLevel:_detailLevel]];
+        [newComponents addObjectsFromArray:[page.data toStreamComponentsWithDetailLevel:_detailLevel size:self.componentSize]];
     }
     
     self.finalComponents = newComponents;
+}
+- (void)refreshTempComponents {
+    NSArray <BFStreamComponent *> *newComponents = [self.tempPosts toStreamComponentsWithDetailLevel:_detailLevel size:self.componentSize];
+    
+    self.tempComponents = [newComponents mutableCopy];
 }
 
 - (void)prependPage:(PostStreamPage *)page {
@@ -96,7 +107,7 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
     [self streamUpdated:false];
 }
 - (void)prependComponentsFromPage:(PostStreamPage *)page {
-    NSArray <BFStreamComponent *> *components = [page.data toStreamComponentsWithDetailLevel:_detailLevel];
+    NSArray <BFStreamComponent *> *components = [page.data toStreamComponentsWithDetailLevel:_detailLevel size:self.componentSize];
     
     [self.finalComponents insertObjects:components atIndexes:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, components.count)]];
 }
@@ -113,42 +124,65 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
     [self streamUpdated:false];
 }
 - (void)appendComponentsFromPage:(PostStreamPage *)page {
-    NSArray <BFStreamComponent *> *components = [page.data toStreamComponentsWithDetailLevel:_detailLevel];
+    NSArray <BFStreamComponent *> *components = [page.data toStreamComponentsWithDetailLevel:_detailLevel size:self.componentSize];
     
     [self.finalComponents addObjectsFromArray:components];
 }
 
-- (BOOL)removeTempPost:(NSString *)tempId {
-    __block BOOL changes = false;
-    
-    NSMutableArray <BFStreamComponent *> *markedForDeletion = [NSMutableArray<BFStreamComponent *> new];
-    for (BFStreamComponent *component in self.tempComponents) {
-        if ([component.post.tempId isEqualToString:tempId]) {
-            changes = true;
-            
-            [markedForDeletion addObject:component];
-        }
-    }
-    [self.tempComponents removeObjectsInArray:markedForDeletion];
-    
-    return changes;
-}
 - (NSString *)addTempPost:(Post *)post {
     NSString *tempId = [NSString stringWithFormat:@"%d", [Session getTempId]];
     post.tempId = tempId;
     
-    NSArray <BFStreamComponent *> *componentsFromPost = [@[post] toStreamComponentsWithDetailLevel:_detailLevel];
     if (self.tempPostPosition == PostStreamOptionTempPostPositionTop) {
-        [self.tempComponents insertObjects:componentsFromPost atIndexes:[NSIndexSet indexSetWithIndex:0]];
+        [self.tempPosts insertObject:post atIndex:0];
     }
     else {
-        [self.tempComponents addObjectsFromArray:componentsFromPost];
+        [self.tempPosts addObject:post];
     }
     
+    [self refreshTempComponents];
     [self streamUpdated:false];
     
     return tempId;
 }
+- (BOOL)updateTempPost:(Post *)post withId:(NSString *)tempId {
+    BOOL __block changes = false;
+    
+    NSMutableArray <Post *> *mutableTempPosts = [[NSMutableArray<Post *> alloc] initWithArray:self.tempPosts];
+    [mutableTempPosts enumerateObjectsUsingBlock:^(Post *p, NSUInteger i2, BOOL *stop) {
+        if ([post.tempId isEqualToString:tempId]) {
+            [mutableTempPosts replaceObjectAtIndex:i2 withObject:post];
+            changes = true;
+        }
+    }];
+    
+    if (changes) {
+        [self refreshTempComponents];
+        [self streamUpdated:false];
+    }
+    
+    return changes;
+}
+- (BOOL)removeTempPost:(NSString *)tempId {
+    __block BOOL changes = false;
+    
+    NSMutableArray <Post *> *markedForDeletion = [NSMutableArray<Post *> new];
+    [self.tempPosts enumerateObjectsUsingBlock:^(Post *p, NSUInteger i2, BOOL *stop) {
+        if ([p.tempId isEqualToString:tempId]) {
+            [markedForDeletion addObject:p];
+            changes = true;
+        }
+    }];
+    [self.tempPosts removeObjectsInArray:markedForDeletion];
+    
+    if (changes) {
+        [self refreshTempComponents];
+        [self streamUpdated:false];
+    }
+    
+    return changes;
+}
+
 
 - (NSString *)addTempSubReply:(Post *)subReply {
     NSString *tempId = [NSString stringWithFormat:@"%d", [Session getTempId]];
@@ -360,14 +394,16 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
             
             NSMutableArray <Post *> *mutableReplies = [[NSMutableArray<Post *> alloc] initWithArray:post.attributes.summaries.replies];
             [mutableReplies enumerateObjectsUsingBlock:^(Post *reply, NSUInteger i4, BOOL *stop) {
-                if ([reply.attributes.creator.identifier isEqualToString:user.identifier]) {
+                if (user.identifier.length > 0 && [reply.attributes.creator.identifier isEqualToString:user.identifier]) {
                     sectionChanges = true;
                     postChanges = true;
                     replyChanges = true;
                     
                     reply.attributes.creator = user;
                     
-                    [mutableReplies replaceObjectAtIndex:i4 withObject:reply];
+                    if (reply) {
+                        [mutableReplies replaceObjectAtIndex:i4 withObject:reply];
+                    }
                 }
             }];
             
@@ -378,7 +414,9 @@ NSString * const PostStreamOptionTempPostPositionKey = @"temp_post_position";
                 
                 post = [post copy];
                 
-                [mutablePosts replaceObjectAtIndex:i3 withObject:post];
+                if (post) {
+                    [mutablePosts replaceObjectAtIndex:i3 withObject:post];
+                }
             }
         }];
         

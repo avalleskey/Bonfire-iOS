@@ -13,7 +13,6 @@
 #import <BlocksKit/BlocksKit.h>
 #import <BlocksKit/BlocksKit+UIKit.h>
 #import <JGProgressHUD/JGProgressHUD.h>
-#import <FBSDKShareKit/FBSDKShareKit.h>
 #import <PINCache/PINCache.h>
 #import "BFAlertController.h"
 #import "UIView+BFEffects.h"
@@ -42,6 +41,13 @@
     });
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(enteredForeground) name:@"applicationWillEnterForeground" object:nil];
+}
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    
+    if (![self.bigSpinner isHidden] && !self.bigSpinner.animating) {
+        [self addAnimationToBigSpinner];
+    }
 }
 
 - (void)dealloc {
@@ -135,6 +141,10 @@
 
             [alert show];
         }
+        else if ([error bonfireErrorCode] == OPERATION_NOT_PERMITTED) {
+            // check the user
+            [self updateUser];
+        }
         
         [UIView animateWithDuration:0.25f animations:^{
             self.refreshButton.alpha = 1;
@@ -158,8 +168,8 @@
                 });
                 
                 BFAlertController *alert = [BFAlertController
-                                           alertControllerWithTitle:@"Uh oh!"
-                                           message:@"Your friend is out of invites. Try using another Friend Code or invite some friends to skip the line!"
+                                           alertControllerWithTitle:@"Psst.. don't tell anyone 🤫"
+                                           message:@"Even though your friend has no invites, we'll still let you in early. Check back soon 🙃"
                                            preferredStyle:BFAlertControllerStyleAlert];
 
                 BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Okay" style:BFAlertActionStyleCancel
@@ -178,6 +188,22 @@
         wait(0.45f, ^{
             [self shakeFriendButton];
         });
+        
+        NSInteger errorCode = [error bonfireErrorCode];
+        
+        if (errorCode == FRIEND_CODE_NOT_EXISTS) {
+            BFAlertController *alert = [BFAlertController
+                                       alertControllerWithTitle:@"Friend Code Doesn't Exist"
+                                       message:@"We couldn't find anyone with that Friend Code. Check your spelling and try again!"
+                                       preferredStyle:BFAlertControllerStyleAlert];
+
+            BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Okay" style:BFAlertActionStyleCancel
+                                                           handler:nil];
+            
+            [alert addAction:cancel];
+            
+            [alert show];
+        }
     }];
 }
 - (void)updateUser {
@@ -315,6 +341,8 @@
             
             self.bigSpinner.alpha = 1;
             self.bigSpinner.transform = CGAffineTransformMakeScale(1, 1);
+            
+            self.refreshButton.alpha = 0;
         } completion:^(BOOL finished) {
             [self.invitesNeededLabel pauseLabel];
         }];
@@ -325,6 +353,8 @@
         [UIView animateWithDuration:animated?0.4f:0 delay:0 usingSpringWithDamping:0.75f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
             self.bigSpinner.alpha = 0;
             self.bigSpinner.transform = CGAffineTransformMakeScale(0.8, 0.8);
+            
+            self.refreshButton.alpha = 1;
         } completion:^(BOOL finished) {
             [self.bigSpinner.layer removeAnimationForKey:@"rotationAnimation"];
         }];
@@ -452,14 +482,6 @@
             }
             else if ([identifier isEqualToString:@"instagram"]) {
                 [Launcher shareOnInstagram];
-            }
-            else if ([identifier isEqualToString:@"facebook"]) {
-                FBSDKShareLinkContent *content = [[FBSDKShareLinkContent alloc] init];
-                content.contentURL = [NSURL URLWithString:@"https://bonfire.camp/download"];
-                content.hashtag = [FBSDKHashtag hashtagWithString:@"#Bonfire"];
-                [FBSDKShareDialog showFromViewController:[Launcher topMostViewController]
-                                              withContent:content
-                                                                 delegate:nil];
             }
             else if ([identifier isEqualToString:@"imessage"]) {
                 [Launcher shareOniMessage:message image:nil];

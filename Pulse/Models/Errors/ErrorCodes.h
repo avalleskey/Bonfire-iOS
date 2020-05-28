@@ -48,6 +48,7 @@ extern const NSInteger CAMP_NOT_EXISTS;
 extern const NSInteger USER_NOT_EXISTS;
 extern const NSInteger POST_NOT_EXISTS;
 extern const NSInteger LINK_NOT_EXISTS;
+extern const NSInteger FRIEND_CODE_NOT_EXISTS;
 extern const NSInteger CAMP_INACCESSIBLE_BLOCKED;
 extern const NSInteger USER_INACCESSIBLE_BLOCKED;
 extern const NSInteger POST_INACCESSIBLE;
@@ -59,9 +60,10 @@ extern const NSInteger CAMP_INACCESSIBLE_BLOCKS_THEM;
  * Errors 800-899: User information failure
  */
 extern const NSInteger USER_PASSWORD_REQ_RESET;
-extern const NSInteger USER_PROFILE_SUSPENDED;
+extern const NSInteger ACTIONER_PROFILE_SUSPENDED;
 extern const NSInteger USER_EMAIL_TAKEN;
 extern const NSInteger USER_PHONE_TAKEN; // Phone is already registered to a user
+extern const NSInteger USER_USERNAME_SUSPENDED;
 extern const NSInteger USER_USERNAME_TAKEN;
 
 /**

@@ -11,6 +11,7 @@
 #import <BlocksKit/BlocksKit+UIKit.h>
 #import "UIColor+Palette.h"
 #import "ButtonCell.h"
+#import "SpacerCell.h"
 #import "Launcher.h"
 #import "UIResponder+FirstResponder.h"
 
@@ -67,6 +68,9 @@
         }
         else if ([lowerCaseTitle isEqualToString:@"bonfire"]) {
             iconName = [BFAlertActionIcon iconNameWithTitle:BFAlertActionIconBonfire];
+        }
+        else if ([lowerCaseTitle isEqualToString:@"copy link"]) {
+            iconName = [BFAlertActionIcon iconNameWithTitle:BFAlertActionIconCopyLink];
         }
 //        else if ([lowerCaseTitle isEqualToString:@"copy link to post"]) {
 //            iconName = [BFAlertActionIcon iconNameWithTitle:BFAlertActionIconCopyLink];
@@ -168,6 +172,7 @@ NSString * const BFAlertActionIconOther = @"other";
 
 static NSString * const blankCellIdentifier = @"BlankCell";
 static NSString * const buttonCellIdentifier = @"ButtonCell";
+static NSString * const spacerCellIdentifier = @"SpacerCell";
 #define headerEdgeInsets UIEdgeInsetsMake(24, 32, 24, 32)
 
 - (id)init {
@@ -213,9 +218,11 @@ static NSString * const buttonCellIdentifier = @"ButtonCell";
     return alertController;
 }
 
-+ (instancetype)alertControllerWithIcon:(UIImage *)icon title:(nullable NSString *)title message:(nullable NSString *)message preferredStyle:(BFAlertControllerStyle)preferredStyle {
++ (instancetype)alertControllerWithIcon:(nullable UIImage *)icon title:(nullable NSString *)title message:(nullable NSString *)message preferredStyle:(BFAlertControllerStyle)preferredStyle {
     BFAlertController *alertController = [self alertControllerWithTitle:title message:message preferredStyle:preferredStyle];
-    alertController.icon = icon;
+    if (icon) {
+        alertController.icon = icon;
+    }
         
     return alertController;
 }
@@ -228,9 +235,11 @@ static NSString * const buttonCellIdentifier = @"ButtonCell";
     self.presenter.win = win;
     win.rootViewController = self.presenter;
     win.windowLevel = UIWindowLevelAlert;
-    [win makeKeyAndVisible];
     
-    [self.presenter presentViewController:self animated:NO completion:nil];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [win makeKeyAndVisible];
+        [self.presenter presentViewController:self animated:NO completion:nil];
+    });
 }
 
 - (id)currentFirstResponder
@@ -270,6 +279,16 @@ static NSString * const buttonCellIdentifier = @"ButtonCell";
     [self resize];
 }
 
+- (void)addSpacer {
+    if (!self.actions) {
+        self.actions = [NSMutableArray new];
+    }
+    [self.actions addObject:[BFAlertAction actionWithTitle:nil style:BFAlertActionStyleSpacer handler:nil]];
+
+    [self.tableView reloadData];
+    [self resize];
+}
+
 - (void)viewDidLoad {
     [super viewDidLoad];
 
@@ -284,6 +303,10 @@ static NSString * const buttonCellIdentifier = @"ButtonCell";
     
     if ([self isBeingPresented] || [self isMovingToParentViewController]) {
         [[Launcher activeViewController] setEditing:false animated:YES];
+        
+        [UIView animateWithDuration:0.2f animations:^{
+            [self setNeedsStatusBarAppearanceUpdate];
+        }];
         
         [UIView animateWithDuration:0.25f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
             self.view.backgroundColor = [UIColor colorWithWhite:0 alpha:0.4];
@@ -331,7 +354,7 @@ static NSString * const buttonCellIdentifier = @"ButtonCell";
 }
 
 - (UIStatusBarStyle)preferredStatusBarStyle {
-    return self.presentingViewController.preferredStatusBarStyle;
+    return UIStatusBarStyleLightContent;
 }
 
 - (void)initViews {
@@ -390,6 +413,7 @@ static NSString * const buttonCellIdentifier = @"ButtonCell";
     // register classes
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:blankCellIdentifier];
     [self.tableView registerClass:[ButtonCell class] forCellReuseIdentifier:buttonCellIdentifier];
+    [self.tableView registerClass:[SpacerCell class] forCellReuseIdentifier:spacerCellIdentifier];
 }
 
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
@@ -450,6 +474,7 @@ static NSString * const buttonCellIdentifier = @"ButtonCell";
             self.textField.layer.borderWidth = 1;
             self.textField.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightRegular];
             self.textField.textColor = [UIColor bonfirePrimaryColor];
+            self.textField.keyboardAppearance = UIKeyboardAppearanceDark;
             
             UIView *paddingView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 10, 1)];
             self.textField.leftViewMode = UITextFieldViewModeAlways;
@@ -514,46 +539,62 @@ static NSString * const buttonCellIdentifier = @"ButtonCell";
     if (indexPath.row < self.actions.count) {
         BFAlertAction *action = self.actions[indexPath.row];
         
-        ButtonCell *cell = [tableView dequeueReusableCellWithIdentifier:buttonCellIdentifier forIndexPath:indexPath];
-        
-        if (cell == nil) {
-            cell = [[ButtonCell alloc] initWithStyle:UITableViewCellStyleValue2 reuseIdentifier:buttonCellIdentifier];
-        }
-        
-        cell.backgroundColor = [UIColor cardBackgroundColor];
-                
-        // Configure the cell...
-        if (action.title) {
-            cell.buttonLabel.text = action.title;
-        }
-        cell.buttonLabel.textAlignment = NSTextAlignmentCenter;
-        
-        cell.topSeparator.hidden = indexPath.row == 0 && !self.headerView && (self.title.length == 0 && self.message.length == 0);
-        cell.bottomSeparator.hidden = true;
-        
-        CGFloat buttonFontPointSize = 18;
-        if (action.style == BFAlertActionStyleCancel) {
-            cell.buttonLabel.textColor = cell.kButtonColorDefault;
-        }
-        else if (action.style == BFAlertActionStyleDestructive) {
-            cell.buttonLabel.textColor = cell.kButtonColorDestructive;
+        if (action.style == BFAlertActionStyleSpacer) {
+            SpacerCell *cell = [tableView dequeueReusableCellWithIdentifier:spacerCellIdentifier forIndexPath:indexPath];
+            
+            if (cell == nil) {
+                cell = [[SpacerCell alloc] initWithStyle:UITableViewCellStyleValue2 reuseIdentifier:spacerCellIdentifier];
+            }
+            
+            cell.bottomSeparator.hidden = true;
+            
+            return cell;
         }
         else {
-            cell.buttonLabel.textColor = cell.kButtonColorDefault;
+            ButtonCell *cell = [tableView dequeueReusableCellWithIdentifier:buttonCellIdentifier forIndexPath:indexPath];
+            
+            if (cell == nil) {
+                cell = [[ButtonCell alloc] initWithStyle:UITableViewCellStyleValue2 reuseIdentifier:buttonCellIdentifier];
+            }
+            
+            cell.backgroundColor = [UIColor cardBackgroundColor];
+                    
+            // Configure the cell...
+            if (action.title) {
+                cell.buttonLabel.text = action.title;
+            }
+            cell.buttonLabel.textAlignment = NSTextAlignmentCenter;
+            
+            cell.topSeparator.hidden = indexPath.row == 0 && !self.headerView && (self.title.length == 0 && self.message.length == 0);
+            cell.bottomSeparator.hidden = true;
+            
+            CGFloat buttonFontPointSize = 18;
+            if (action.style == BFAlertActionStyleCancel) {
+                cell.buttonLabel.textColor = cell.kButtonColorDefault;
+            }
+            else if (action.style == BFAlertActionStyleDestructive) {
+                cell.buttonLabel.textColor = cell.kButtonColorDestructive;
+            }
+            else if (action.style == BFAlertActionStyleSemiDestructive) {
+                cell.buttonLabel.textColor = cell.kButtonColorSemiDestructive;
+            }
+            else {
+                cell.buttonLabel.textColor = cell.kButtonColorDefault;
+            }
+            
+            if (action == self.preferredAction || (!self.preferredAction && action.style == BFAlertActionStyleCancel)) {
+                cell.buttonLabel.font = [UIFont systemFontOfSize:buttonFontPointSize weight:UIFontWeightSemibold];
+            }
+            else {
+                cell.buttonLabel.font = [UIFont systemFontOfSize:buttonFontPointSize weight:UIFontWeightRegular];
+            }
+            
+            if (action.icon) {
+                cell.iconImageView.image = action.icon;
+            }
+            
+            return cell;
         }
-        
-        if (action == self.preferredAction || (!self.preferredAction && action.style == BFAlertActionStyleCancel)) {
-            cell.buttonLabel.font = [UIFont systemFontOfSize:buttonFontPointSize weight:UIFontWeightSemibold];
-        }
-        else {
-            cell.buttonLabel.font = [UIFont systemFontOfSize:buttonFontPointSize weight:UIFontWeightRegular];
-        }
-        
-        if (action.icon) {
-            cell.iconImageView.image = action.icon;
-        }
-        
-        return cell;
     }
     
     // if all else fails, return a blank cell
@@ -567,7 +608,18 @@ static NSString * const buttonCellIdentifier = @"ButtonCell";
     return self.actions.count;
 }
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return 56;
+    if (indexPath.row < self.actions.count) {
+        BFAlertAction *action = self.actions[indexPath.row];
+        
+        if (action.style == BFAlertActionStyleSpacer) {
+            return [SpacerCell height];
+        }
+        else {
+            return [ButtonCell height];
+        }
+    }
+    
+    return CGFLOAT_MIN;
 }
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.row < self.actions.count) {
@@ -643,8 +695,6 @@ static NSString * const buttonCellIdentifier = @"ButtonCell";
 }
 
 - (void)resize {
-    CGFloat height = 0;
-    
     UIEdgeInsets edgeInsets;
     if (self.preferredStyle == BFAlertControllerStyleAlert) {
         edgeInsets = UIEdgeInsetsMake(0, 32, 0, 32);
@@ -653,7 +703,10 @@ static NSString * const buttonCellIdentifier = @"ButtonCell";
         edgeInsets = UIEdgeInsetsMake(0, (HAS_ROUNDED_CORNERS ? 8 : 0), 0, (HAS_ROUNDED_CORNERS ? 8 : 0));
     }
     
-    self.contentView.frame = CGRectMake(edgeInsets.left, self.contentView.frame.origin.y, self.view.frame.size.width - (edgeInsets.left + edgeInsets.right), 0);
+    CGFloat height = 0;
+    CGFloat width = MIN(IPAD_CONTENT_MAX_WIDTH, self.view.frame.size.width - edgeInsets.left - edgeInsets.right);
+    
+    self.contentView.frame = CGRectMake(self.view.frame.size.width / 2 - width / 2, self.contentView.frame.origin.y, width, 0);
     
     if (self.pullTabIndicatorView) {
         self.pullTabIndicatorView.frame = CGRectMake(self.contentView.frame.size.width / 2 - self.pullTabIndicatorView.frame.size.width / 2, self.pullTabIndicatorView.frame.origin.y, self.pullTabIndicatorView.frame.size.width, self.pullTabIndicatorView.frame.size.height);
@@ -749,7 +802,15 @@ static NSString * const buttonCellIdentifier = @"ButtonCell";
     [_win resignKeyWindow]; //optional nilling the window works
     _win.hidden = YES; //optional nilling the window works
     _win = nil;
-    [super dismissViewControllerAnimated:flag completion:completion];
+    [super dismissViewControllerAnimated:flag completion:^{
+        if (completion) completion();
+        
+        [UIView animateWithDuration:0.2f animations:^{
+            [[Launcher activeViewController] setNeedsStatusBarAppearanceUpdate];
+        }];
+    }];
+    
+    
 }
 
 @end

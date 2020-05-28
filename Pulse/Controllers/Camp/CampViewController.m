@@ -25,7 +25,7 @@
 #import "SetAnIcebreakerViewController.h"
 #import "BFTipsManager.h"
 #import "BFAlertController.h"
-#import <FBSDKShareKit/FBSDKShareKit.h>
+#import "BFMiniNotificationManager.h"
 #import <PINCache/PINCache.h>
 #import <PINOperation/PINOperationQueue.h>
 
@@ -73,6 +73,8 @@ static NSString * const reuseIdentifier = @"Result";
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(postDeleted:) name:@"PostDeleted" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(campUpdated:) name:@"CampUpdated" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(campRefreshRequired:) name:@"CampRefreshRequired" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(campStreamUpdating:) name:@"CampStreamUpdating" object:nil];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(newPostBegan:) name:@"NewPostBegan" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(newPostCompleted:) name:@"NewPostCompleted" object:nil];
@@ -241,9 +243,6 @@ static NSString * const reuseIdentifier = @"Result";
 - (void)campUpdated:(NSNotification *)notification {
     Camp *camp = notification.object;
     
-    NSLog(@"camp updated::");
-    NSLog(@"%@", camp);
-    
     if (camp != nil &&
         [camp.identifier isEqualToString:self.camp.identifier]) {
         // if new Camp has no context, use existing context
@@ -289,6 +288,30 @@ static NSString * const reuseIdentifier = @"Result";
         [self.tableView hardRefresh:false];
     }
 }
+- (void)campRefreshRequired:(NSNotification *)notification {
+    Camp *camp = notification.object;
+    
+    if (camp != nil &&
+        [camp.identifier isEqualToString:self.camp.identifier]) {
+        [self.tableView scrollToTopWithCompletion:^{
+            [self.tableView.stream flush];
+            [self getPostsWithCursor:StreamPagingCursorTypeNone];
+        }];
+    }
+}
+- (void)campStreamUpdating:(NSNotification *)notification {
+    Camp *camp = notification.object;
+    
+    if (camp != nil &&
+        [camp.identifier isEqualToString:self.camp.identifier]) {
+        [self.tableView scrollToTopWithCompletion:^{
+            [self.tableView.stream flush];
+            self.tableView.loading = true;
+            [self.tableView hardRefresh:false];
+        }];
+    }
+}
+
 - (void)setCamp:(Camp *)camp {
     if (camp != _camp) {
         _camp = camp;
@@ -411,7 +434,7 @@ static NSString * const reuseIdentifier = @"Result";
     
     self.shimmering = true;
         
-    [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:@{} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+    [[[HAWebService manager] authenticate] GET:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSDictionary *responseData = (NSDictionary *)responseObject[@"data"];
         
         // first page
@@ -524,16 +547,18 @@ static NSString * const reuseIdentifier = @"Result";
 }
 
 - (void)hideMoreButton {
-    [UIView animateWithDuration:0.25f delay:0 usingSpringWithDamping:0.72f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        self.launchNavVC.rightActionButton.alpha = 0;
-    } completion:^(BOOL finished) {
-    }];
+    [self.launchNavVC setRightAction:LNActionTypeNone animated:true];
 }
 - (void)showMoreButton {
-    [UIView animateWithDuration:0.25f delay:0 usingSpringWithDamping:0.72f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        self.launchNavVC.rightActionButton.alpha = 1;
-    } completion:^(BOOL finished) {
-    }];
+    if ([self.camp.attributes.context.camp.membership.role.type isEqualToString:CAMP_ROLE_ADMIN]) {
+        [self.launchNavVC setRightAction:LNActionTypeDirector animated:true];
+    }
+    else if ([self.camp.attributes.context.camp.membership.role.type isEqualToString:CAMP_ROLE_MODERATOR]) {
+        [self.launchNavVC setRightAction:LNActionTypeManager animated:true];
+    }
+    else {
+        [self.launchNavVC setRightAction:LNActionTypeShare animated:true];
+    }
 }
 
 - (void)showComposeInputView {
@@ -736,7 +761,7 @@ static NSString * const reuseIdentifier = @"Result";
     
     NSString *url = [self getCampStreamURL];
     
-    [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+    [[[HAWebService manager] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         self.loading = false;
         self.tableView.loadingMore = false;
         
@@ -1005,16 +1030,6 @@ static NSString * const reuseIdentifier = @"Result";
             [moreOptions addAction:shareOnTwitter];
         }
         
-        BFAlertAction *shareOnFacebook = [BFAlertAction actionWithTitle:@"Facebook" style:BFAlertActionStyleDefault handler:^{
-            FBSDKShareLinkContent *content = [[FBSDKShareLinkContent alloc] init];
-            content.contentURL = [NSURL URLWithString:campShareLink];
-            content.hashtag = [FBSDKHashtag hashtagWithString:@"#Bonfire"];
-            [FBSDKShareDialog showFromViewController:[Launcher topMostViewController]
-                                         withContent:content
-                                            delegate:nil];
-        }];
-        [moreOptions addAction:shareOnFacebook];
-        
         if (hasSnapchat) {
             BFAlertAction *shareOnSnapchat = [BFAlertAction actionWithTitle:@"Snapchat" style:BFAlertActionStyleDefault handler:^{
                 NSLog(@"share on snapchat");
@@ -1038,12 +1053,24 @@ static NSString * const reuseIdentifier = @"Result";
         }];
         [moreOptions addAction:shareOnImessage];
         
-        BFAlertAction *shareOnBonfire = [BFAlertAction actionWithTitle:@"Bonfire" style:BFAlertActionStyleDefault handler:^{
-            NSLog(@"share on bonfire");
+//        BFAlertAction *shareOnBonfire = [BFAlertAction actionWithTitle:@"Bonfire" style:BFAlertActionStyleDefault handler:^{
+//            NSLog(@"share on bonfire");
+//
+//            [Launcher openComposePost:nil inReplyTo:nil withMessage:nil media:nil quotedObject:self.camp];
+//        }];
+//        [moreOptions addAction:shareOnBonfire];
+        
+        BFAlertAction *copyLink = [BFAlertAction actionWithTitle:@"Copy Link" style:BFAlertActionStyleDefault handler:^{
+            NSLog(@"copy link");
             
-            [Launcher openComposePost:nil inReplyTo:nil withMessage:nil media:nil quotedObject:self.camp];
+            NSString *url = [NSString stringWithFormat:@"https://bonfire.camp/c/%@", [self.camp mostDescriptiveIdentifier]];
+            UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
+            pasteboard.string = url;
+
+            BFMiniNotificationObject *notificationObject = [BFMiniNotificationObject notificationWithText:@"Copied!" action:nil];
+            [[BFMiniNotificationManager manager] presentNotification:notificationObject completion:nil];
         }];
-        [moreOptions addAction:shareOnBonfire];
+        [moreOptions addAction:copyLink];
         
         BFAlertAction *moreShareOptions = [BFAlertAction actionWithTitle:@"Other" style:BFAlertActionStyleDefault handler:^{
             [Launcher shareCamp:self.camp];

@@ -17,6 +17,10 @@
 #import <SDWebImage/SDImageCache.h>
 #import "BFAlertController.h"
 
+@interface ExpandedPostCell () <BFComponentProtocol>
+
+@end
+
 @implementation ExpandedPostCell
 
 @synthesize post = _post;
@@ -118,7 +122,7 @@
         self.textView.maxCharacters = 10000;
         self.textView.postId = self.post.identifier;
                 
-        self.activityView = [[PostActivityView alloc] initWithFrame:CGRectMake(0, self.textView.frame.origin.y + self.textView.frame.size.height, self.frame.size.width, 30)];
+        self.activityView = [[PostActivityView alloc] initWithFrame:CGRectMake(0, self.textView.frame.origin.y + self.textView.frame.size.height, self.frame.size.width, expandedActivityViewHeight)];
         [self.contentView addSubview:self.activityView];
         
         // actions view
@@ -312,7 +316,7 @@
         self.actionsView.frame = CGRectMake(expandedPostContentOffset.left, yBottom + 20, self.frame.size.width - (expandedPostContentOffset.left + expandedPostContentOffset.right), self.actionsView.frame.size.height);
         yBottom = self.actionsView.frame.origin.y + self.actionsView.frame.size.height;
         
-        self.activityView.frame = CGRectMake(0, yBottom, self.frame.size.width, 30);
+        self.activityView.frame = CGRectMake(0, yBottom, self.frame.size.width, self.activityView.frame.size.height);
 //        yBottom = self.activityView.frame.origin.y + self.activityView.frame.size.height;
         
         self.actionsView.topSeparator.frame = CGRectMake(0, self.actionsView.topSeparator.frame.origin.y, self.actionsView.frame.size.width, self.actionsView.topSeparator.frame.size.height);
@@ -705,11 +709,17 @@
         CGFloat actionsHeight = 20 + expandedActionsViewHeight; // 12 = padding above actions view
         height += actionsHeight;
         
-        CGFloat activityHeight = 30;
-        height += activityHeight;
+        height += expandedActivityViewHeight;
     }
     
     return expandedPostContentOffset.top + height + expandedPostContentOffset.bottom; // 1 = line separator
+}
+
++ (CGFloat)heightForComponent:(BFStreamComponent *)component {
+    Post *post = component.post;
+    
+    if (!post) return 0;
+    return [ExpandedPostCell heightForPost:post width:[UIScreen mainScreen].bounds.size.width];
 }
 
 @end

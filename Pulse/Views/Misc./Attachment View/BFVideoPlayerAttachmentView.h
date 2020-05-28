@@ -12,7 +12,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface BFVideoPlayerAttachmentView : BFAttachmentView
 
-- (instancetype)initWithVideoURL:(NSString *)videoURL frame:(CGRect)frame;
 @property (nonatomic, strong) NSString *videoURL;
 
 @property (nonatomic) BOOL looping;

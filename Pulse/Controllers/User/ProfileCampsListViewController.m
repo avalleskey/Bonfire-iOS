@@ -148,7 +148,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
         self.loading = true;
     }
     
-    [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+    [[[HAWebService manager] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         CampListStreamPage *page = [[CampListStreamPage alloc] initWithDictionary:responseObject error:nil];
         
         if (page.data.count > 0) {

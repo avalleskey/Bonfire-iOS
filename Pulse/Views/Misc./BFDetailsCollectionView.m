@@ -10,6 +10,7 @@
 #import "KTCenterFlowLayout.h"
 #import "Launcher.h"
 #import "UIColor+Palette.h"
+#import "BFAlertController.h"
 
 #define BFDetail_PADDING_INSETS UIEdgeInsetsMake(10, 10, 10, 10)
 #define BFDetail_FONT [UIFont systemFontOfSize:12.f weight:UIFontWeightRegular]
@@ -60,7 +61,6 @@
         _details = details;
         
         [self reloadData];
-        [self setNeedsLayout];
         [self layoutSubviews];
         
         // resize to fit
@@ -126,10 +126,10 @@
         iconView.image = [[UIImage imageNamed:@"details_label_feed"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
     }
     else if (item.type == BFDetailItemTypePostNotificationsOn) {
-        iconView.image = [[UIImage imageNamed:@"details_label_notifications"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+        iconView.image = [[UIImage imageNamed:@"details_label_notifications--small"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
     }
     else if (item.type == BFDetailItemTypePostNotificationsOff) {
-        iconView.image = [[UIImage imageNamed:@"details_label_notifications_off"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+        iconView.image = [[UIImage imageNamed:@"details_label_notifications_off--small"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
     }
     else if (item.type == BFDetailItemTypeEdit) {
         iconView.image = [[UIImage imageNamed:@"details_label_edit"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
@@ -137,6 +137,9 @@
     else if (item.type == BFDetailItemTypeCreatedAt ||
              item.type == BFDetailItemTypeJoinedAt) {
         iconView.image = [[UIImage imageNamed:@"details_label_calendar"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+    }
+    else if (item.type == BFDetailItemTypeMatureContent) {
+        iconView.image = [[UIImage imageNamed:@"details_label_flag"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
     }
     iconView.tintColor = [UIColor bonfireSecondaryColor];
     
@@ -222,13 +225,38 @@
     if (self) {
         _type = type;
         _value = value;
-        _action = action;
+        
+        if (action) {
+            _action = action;
+        }
+        else if (type == BFDetailItemTypeMatureContent) {
+            // standardized handler
+            _action = ^{
+                BFAlertController *actionSheet = [BFAlertController alertControllerWithTitle:@"Mature Content" message:@"This Camp has an 18+ age restriction because it includes alcohol or drugs, is sexual in nature, or other age-restricted content." preferredStyle:BFAlertControllerStyleActionSheet];
+                
+                BFAlertAction *cancelActionSheet = [BFAlertAction actionWithTitle:@"Close" style:BFAlertActionStyleCancel handler:nil];
+                [actionSheet addAction:cancelActionSheet];
+                
+                [actionSheet show];
+            };
+        }
         
         _selectable = (_action ||
                        _type == BFDetailItemTypeWebsite ||
                        _type == BFDetailItemTypeSourceLink);
     }
     return self;
+}
+
+- (NSNumberFormatter *)decimalStyleNumberFormatter {
+    static NSNumberFormatter *_sharedDecimalStyleNumberFormatter = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        _sharedDecimalStyleNumberFormatter = [NSNumberFormatter new];
+        [_sharedDecimalStyleNumberFormatter setNumberStyle:NSNumberFormatterDecimalStyle];
+    });
+        
+    return _sharedDecimalStyleNumberFormatter;
 }
 
 - (NSString *)prettyValue {
@@ -239,21 +267,41 @@
         
         return prettyValue;
     }
-    else if (self.type == BFDetailItemTypeMembers) {
-        if (prettyValue.length == 0) {
-            prettyValue = @"0";
+    else if (self.type == BFDetailItemTypeMembers ||
+             self.type == BFDetailItemTypeSubscribers) {
+        NSInteger memberCount = [(prettyValue?prettyValue:@"0") integerValue];
+        
+        if (memberCount < 500) {
+            prettyValue = [[self decimalStyleNumberFormatter] stringFromNumber:[NSNumber numberWithInteger:[prettyValue integerValue]]];
+        }
+        else if (memberCount < 1000) {
+            prettyValue = @"500+";
+        }
+        else if (memberCount < 5000) {
+            prettyValue = @"1k+";
+        }
+        else if (memberCount < 10000) {
+            prettyValue = @"5k+";
+        }
+        else if (memberCount < 25000) {
+            prettyValue = @"1k+";
+        }
+        else if (memberCount < 100000) {
+            prettyValue = @"25k+";
+        }
+        else if (memberCount < 1000000) {
+            prettyValue = @"100k+";
+        }
+        else {
+            prettyValue = @"1m+";
         }
         
-        prettyValue = [prettyValue stringByAppendingString:[NSString stringWithFormat:@" %@", ([prettyValue isEqualToString:@"1"] ? @"member" : @"members")]];
-        
-        return prettyValue;
-    }
-    else if (self.type == BFDetailItemTypeSubscribers) {
-        if (prettyValue.length == 0) {
-            prettyValue = @"0";
+        if (self.type == BFDetailItemTypeMembers) {
+            prettyValue = [prettyValue stringByAppendingString:[NSString stringWithFormat:@" %@", ([prettyValue isEqualToString:@"1"] ? @"member" : @"members")]];
         }
-        
-        prettyValue = [prettyValue stringByAppendingString:[NSString stringWithFormat:@" %@", ([prettyValue isEqualToString:@"1"] ? @"subscriber" : @"subscribers")]];
+        else if (self.type == BFDetailItemTypeSubscribers) {
+            prettyValue = [prettyValue stringByAppendingString:[NSString stringWithFormat:@" %@", ([prettyValue isEqualToString:@"1"] ? @"subscriber" : @"subscribers")]];
+        }
         
         return prettyValue;
     }
@@ -306,6 +354,9 @@
         }
         
         return prettyValue;
+    }
+    else if (self.type == BFDetailItemTypeMatureContent) {
+        return prettyValue ? prettyValue : @"Mature";
     }
     
     return prettyValue;

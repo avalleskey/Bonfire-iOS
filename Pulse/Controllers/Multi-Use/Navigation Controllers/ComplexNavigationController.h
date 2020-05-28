@@ -26,10 +26,13 @@ typedef enum {
     LNActionTypeShare = 6,
     LNActionTypeBack = 7,
     LNActionTypeInfo = 8,
-    LNActionTypeSettings = 9
+    LNActionTypeSettings = 9,
+    LNActionTypeManager = 10,
+    LNActionTypeDirector = 11
 } LNActionType;
 - (void)setLeftAction:(LNActionType)actionType;
 - (void)setRightAction:(LNActionType)actionType;
+- (void)setRightAction:(LNActionType)actionType animated:(BOOL)animated;
 
 @property (nonatomic, strong) SloppySwiper *swiper;
 

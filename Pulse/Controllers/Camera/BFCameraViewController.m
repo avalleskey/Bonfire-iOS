@@ -991,7 +991,7 @@ typedef enum {
             CGFloat diff = fabs(_centerBegin.y - newCenterY);
             CGFloat max = self.centerFinal.y - self.centerBegin.y;
             CGFloat percentage = CLAMP(diff / max, 0, 1);
-            newCenterY = recognizer.view.center.y + (translation.y / (1 + 10 * percentage));
+            newCenterY = recognizer.view.center.y + (translation.y / (1 + 6 * percentage));
 
             recognizer.view.center = CGPointMake(recognizer.view.center.x,
                                                  newCenterY);
@@ -1168,11 +1168,6 @@ typedef enum {
             } completion:nil];
         }
     }
-}
-
-#pragma mark - BFCameraSwiperDelegate
-- (void)didFinishSwiping {
-    NSLog(@"did finish swiping");
 }
 
 + (UIColor *)gradientBaseColorForColor:(UIColor *)color {

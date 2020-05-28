@@ -217,25 +217,29 @@
         
         self.detailsCollectionView.hidden = !self.showDetails;
         if (![self.detailsCollectionView isHidden]) {
-            NSMutableArray *details = [[NSMutableArray alloc] init];
-            if (identity.attributes.location.displayText.length > 0) {
-                BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeLocation value:identity.attributes.location.displayText action:nil];
-                [details addObject:item];
-            }
-            if (identity.attributes.website.displayUrl.length > 0) {
-                BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeWebsite value:identity.attributes.website.displayUrl action:^{
-                    [Launcher openURL:identity.attributes.website.actionUrl];
-                }];
-                [details addObject:item];
-            }
-            
-            self.detailsCollectionView.details = [details copy];
+            self.detailsCollectionView.details = [BFIdentityAttachmentView detailsForIdentity:self.identity];
         }
     }
 }
 
 - (CGFloat)height {
     return [BFIdentityAttachmentView heightForIdentity:self.identity width:self.frame.size.width];
+}
+
++ (NSArray<BFDetailItem *> *)detailsForIdentity:(Identity *)identity {
+    NSMutableArray *details = [[NSMutableArray alloc] init];
+    if (identity.attributes.location.displayText.length > 0) {
+        BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeLocation value:identity.attributes.location.displayText action:nil];
+        [details addObject:item];
+    }
+    if (identity.attributes.website.displayUrl.length > 0) {
+        BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeWebsite value:identity.attributes.website.displayUrl action:^{
+            [Launcher openURL:identity.attributes.website.actionUrl];
+        }];
+        [details addObject:item];
+    }
+    
+    return [details copy];
 }
 
 + (CGFloat)heightForIdentity:(Identity *)identity width:(CGFloat)width showBio:(BOOL)showBio showDetails:(BOOL)showDetails {
@@ -294,27 +298,28 @@
     }
     
     if (showDetails && identity.identifier.length > 0) {
-        NSMutableArray *details = [[NSMutableArray alloc] init];
-        if (identity.attributes.location.displayText.length > 0) {
-            BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeLocation value:identity.attributes.location.displayText action:nil];
-            [details addObject:item];
-        }
-        if (identity.attributes.website.displayUrl.length > 0) {
-            BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeWebsite value:identity.attributes.website.displayUrl action:nil];
-            [details addObject:item];
-        }
+        NSArray *details = [self detailsForIdentity:identity];
         
         if (details.count > 0) {
-            BFDetailsCollectionView *detailCollectionView = [[BFDetailsCollectionView alloc] initWithFrame:CGRectMake(USER_ATTACHMENT_EDGE_INSETS.left, 0, width - USER_ATTACHMENT_EDGE_INSETS.left - USER_ATTACHMENT_EDGE_INSETS.right, 16)];
-            detailCollectionView.delegate = detailCollectionView;
-            detailCollectionView.dataSource = detailCollectionView;
-            [detailCollectionView setDetails:details];
+            [[self staticDetailsCollectionView] setDetails:details];
                         
-            height = height + (identity.attributes.bio.length > 0 ? USER_ATTACHMENT_BIO_BOTTOM_PADDING : USER_ATTACHMENT_USERNAME_BOTTOM_PADDING) + detailCollectionView.collectionViewLayout.collectionViewContentSize.height;
+            height += (identity.attributes.bio.length > 0 ? USER_ATTACHMENT_BIO_BOTTOM_PADDING : USER_ATTACHMENT_USERNAME_BOTTOM_PADDING) + [self staticDetailsCollectionView].frame.size.height;
         }
     }
     
     return height + USER_ATTACHMENT_EDGE_INSETS.bottom;
+}
+
++ (BFDetailsCollectionView *)staticDetailsCollectionView {
+    static BFDetailsCollectionView *_staticDetailsCollectionView = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        _staticDetailsCollectionView = [[BFDetailsCollectionView alloc] initWithFrame:CGRectMake(USER_ATTACHMENT_EDGE_INSETS.left, 0, [UIScreen mainScreen].bounds.size.width - USER_ATTACHMENT_EDGE_INSETS.left - USER_ATTACHMENT_EDGE_INSETS.right, 16)];
+        _staticDetailsCollectionView.delegate = _staticDetailsCollectionView;
+        _staticDetailsCollectionView.dataSource = _staticDetailsCollectionView;
+    });
+        
+    return _staticDetailsCollectionView;
 }
 
 + (CGFloat)heightForIdentity:(Identity *)identity width:(CGFloat)width {

@@ -674,7 +674,7 @@ static NSString * const paginationCellReuseIdentifier = @"PaginationCell";
     self.segmentedControl = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 48)];
     self.segmentedControl.backgroundColor = [UIColor colorNamed:@"Navigation_ClearBackgroundColor"];
     
-    UIView *lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, self.segmentedControl.frame.size.height, self.view.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+    UIView *lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, self.segmentedControl.frame.size.height, self.view.frame.size.width, HALF_PIXEL)];
     lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
     [self.segmentedControl addSubview:lineSeparator];
     [self.view addSubview:self.segmentedControl];

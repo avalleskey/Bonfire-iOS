@@ -22,6 +22,7 @@
 #define expandedPostContentOffset UIEdgeInsetsMake(12, 12, 0, 12)
 #define expandedTextViewFont [UIFont preferredFontForTextStyle:UIFontTextStyleBody]
 #define expandedActionsViewHeight 40
+#define expandedActivityViewHeight 30
 
 @interface ExpandedPostCell : PostCell <UITextFieldDelegate, PostTextViewDelegate>
 

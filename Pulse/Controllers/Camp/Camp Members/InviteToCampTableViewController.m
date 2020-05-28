@@ -23,7 +23,6 @@
 #import <Contacts/Contacts.h>
 #import <UIView+WebCache.h>
 #import "Launcher.h"
-#import <FBSDKShareKit/FBSDKShareKit.h>
 #import <NBPhoneNumberUtil.h>
 
 @import Firebase;
@@ -153,7 +152,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
     NSString *filterTypes = @"suggested";
     [params setObject:filterTypes forKey:@"filter_types"];
     
-    [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+    [[[HAWebService manager] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         if (![self.searchPhrase isEqualToString:filterQuery]) {
             return;
         }
@@ -504,14 +503,6 @@ static NSString * const memberCellIdentifier = @"MemberCell";
             }
             else if ([identifier isEqualToString:@"imessage"]) {
                 [Launcher shareOniMessage:[NSString stringWithFormat:@"Help me start a Camp on Bonfire! Join %@: %@", self.camp.attributes.title, campShareLink] image:nil];
-            }
-            else if ([identifier isEqualToString:@"facebook"]) {
-                FBSDKShareLinkContent *content = [[FBSDKShareLinkContent alloc] init];
-                content.contentURL = [NSURL URLWithString:campShareLink];
-                content.hashtag = [FBSDKHashtag hashtagWithString:@"#Bonfire"];
-                [FBSDKShareDialog showFromViewController:[Launcher topMostViewController]
-                                               withContent:content
-                                                  delegate:nil];
             }
             else if ([identifier isEqualToString:@"more"]) {
                 [Launcher shareCamp:self.camp];

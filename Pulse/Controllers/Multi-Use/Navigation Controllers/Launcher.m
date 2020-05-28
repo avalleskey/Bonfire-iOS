@@ -9,6 +9,7 @@
 #import "Launcher.h"
 #import "SimpleNavigationController.h"
 #import "CampMembersViewController.h"
+#import "CampModerateViewController.h"
 #import "ProfileCampsListViewController.h"
 #import "ProfileFollowingListViewController.h"
 
@@ -27,21 +28,23 @@
 #import "QuickReplyViewController.h"
 #import "KSPhotoBrowser.h"
 #import "OutOfDateClientViewController.h"
+#import "AccountSuspendedViewController.h"
 #import "ExpandedPostCell.h"
 #import "BFViewExporter.h"
 #import "InviteToCampTableViewController.h"
 #import "BFBotAttachmentView.h"
 #import "BFAlertController.h"
+#import "BFTipsManager.h"
 #import "InviteFriendsViewController.h"
 #import <SEJSONViewController/SEJSONViewController.h>
 #import "WaitlistViewController.h"
+#import "EditCampViewController.h"
 
 #import <SafariServices/SafariServices.h>
 #import <StoreKit/StoreKit.h>
 #import <JGProgressHUD.h>
 #import "BFMiniNotificationManager.h"
 #import <SCSDKCreativeKit/SCSDKCreativeKit.h>
-#import <FBSDKShareKit/FBSDKShareKit.h>
 @import Firebase;
 
 #if !TARGET_OS_MACCATALYST
@@ -239,61 +242,63 @@ static Launcher *launcher;
 }
 
 + (void)launchLoggedIn:(BOOL)animated replaceRootViewController:(BOOL)replaceRootViewController {
-    AppDelegate *ad = (AppDelegate *)[UIApplication sharedApplication].delegate;
-    
-    if ([Session sharedInstance].currentUser.attributes.requiresInvite) {
-        if ([[Launcher activeViewController] isKindOfClass:[WaitlistViewController class]]) {
-            return;
-        }
+    dispatch_async(dispatch_get_main_queue(), ^{
+        AppDelegate *ad = (AppDelegate *)[UIApplication sharedApplication].delegate;
         
-        WaitlistViewController *waitlistVC = [[WaitlistViewController alloc] init];
-        waitlistVC.transitioningDelegate = [Launcher sharedInstance];
-        
-        UIViewController *presentingViewController;
-        if ([Launcher activeViewController].parentViewController != nil) {
-            presentingViewController = [Launcher activeViewController].parentViewController;
-        }
-        else {
-            presentingViewController = [Launcher activeViewController];
-        }
-        
-        if (replaceRootViewController) {
-            waitlistVC.modalPresentationStyle = UIModalPresentationOverCurrentContext;
-            [[UIApplication sharedApplication] delegate].window.rootViewController = waitlistVC;
-            [[[UIApplication sharedApplication] delegate].window makeKeyAndVisible];
-        }
-        else {
-            waitlistVC.modalPresentationStyle = UIModalPresentationFullScreen;
-            [presentingViewController presentViewController:waitlistVC animated:animated completion:nil];
-        }
-    }
-    else if (![Launcher activeViewController].navigationController.tabBarController) {
-        TabController *tbc = [[TabController alloc] init];
-        tbc.delegate = ad;
-        tbc.transitioningDelegate = [Launcher sharedInstance];
-        tbc.modalPresentationStyle = UIModalPresentationFullScreen;
-        
-        UIViewController *presentingViewController;
-        if ([Launcher activeViewController].parentViewController != nil) {
-            presentingViewController = [Launcher activeViewController].parentViewController;
-        }
-        else {
-            presentingViewController = [Launcher activeViewController];
-        }
-        
-        if (replaceRootViewController) {
-            [[UIApplication sharedApplication] delegate].window.rootViewController = tbc;
-            [[[UIApplication sharedApplication] delegate].window makeKeyAndVisible];
-        }
-        
-        [presentingViewController presentViewController:tbc animated:animated completion:^{
-            if ([Launcher sharedInstance].launchAction) {
-                NSLog(@"open launch action");
-                [Launcher sharedInstance].launchAction();
-                [Launcher sharedInstance].launchAction = nil;
+        if ([Session sharedInstance].currentUser.attributes.requiresInvite) {
+            if ([[Launcher activeViewController] isKindOfClass:[WaitlistViewController class]]) {
+                return;
             }
-        }];
-    }
+            
+            WaitlistViewController *waitlistVC = [[WaitlistViewController alloc] init];
+            waitlistVC.transitioningDelegate = [Launcher sharedInstance];
+            
+            UIViewController *presentingViewController;
+            if ([Launcher activeViewController].parentViewController != nil) {
+                presentingViewController = [Launcher activeViewController].parentViewController;
+            }
+            else {
+                presentingViewController = [Launcher activeViewController];
+            }
+            
+            if (replaceRootViewController) {
+                waitlistVC.modalPresentationStyle = UIModalPresentationOverCurrentContext;
+                [[UIApplication sharedApplication] delegate].window.rootViewController = waitlistVC;
+                [[[UIApplication sharedApplication] delegate].window makeKeyAndVisible];
+            }
+            else {
+                waitlistVC.modalPresentationStyle = UIModalPresentationFullScreen;
+                [presentingViewController presentViewController:waitlistVC animated:animated completion:nil];
+            }
+        }
+        else if (![Launcher activeViewController].navigationController.tabBarController) {
+            TabController *tbc = [[TabController alloc] init];
+            tbc.delegate = ad;
+            tbc.transitioningDelegate = [Launcher sharedInstance];
+            tbc.modalPresentationStyle = UIModalPresentationFullScreen;
+            
+            UIViewController *presentingViewController;
+            if ([Launcher activeViewController].parentViewController != nil) {
+                presentingViewController = [Launcher activeViewController].parentViewController;
+            }
+            else {
+                presentingViewController = [Launcher activeViewController];
+            }
+            
+            if (replaceRootViewController) {
+                [[UIApplication sharedApplication] delegate].window.rootViewController = tbc;
+                [[[UIApplication sharedApplication] delegate].window makeKeyAndVisible];
+            }
+            
+            [presentingViewController presentViewController:tbc animated:animated completion:^{
+                if ([Launcher sharedInstance].launchAction) {
+                    NSLog(@"open launch action");
+                    [Launcher sharedInstance].launchAction();
+                    [Launcher sharedInstance].launchAction = nil;
+                }
+            }];
+        }
+    });
 }
 
 + (void)openTimeline {
@@ -436,6 +441,20 @@ static Launcher *launcher;
     
     NSString *themeCSS = camp.attributes.color;
     rm.theme = (themeCSS.length == 0) ? [UIColor bonfireGrayWithLevel:800] : [UIColor fromHex:themeCSS];
+    
+    [self push:newLauncher animated:YES];
+}
++ (void)openCampModerateForCamp:(Camp *)camp {
+    CampModerateViewController *vc = [[CampModerateViewController alloc] init];
+    vc.camp = camp;
+    vc.title = @"Moderate Posts";
+        
+    SimpleNavigationController *newLauncher = [[SimpleNavigationController alloc] initWithRootViewController:vc];
+    newLauncher.transitioningDelegate = [Launcher sharedInstance];
+    [newLauncher setLeftAction:SNActionTypeBack];
+    
+    NSString *themeCSS = camp.attributes.color;
+    vc.theme = (themeCSS.length == 0) ? [UIColor bonfireGrayWithLevel:800] : [UIColor fromHex:themeCSS];
     
     [self push:newLauncher animated:YES];
 }
@@ -594,8 +613,7 @@ static Launcher *launcher;
     newNavController.transitioningDelegate = [Launcher sharedInstance];
     [newNavController setLeftAction:SNActionTypeBack];
     newNavController.currentTheme = p.theme;
-    newNavController.view.tintColor = [UIColor fromHex:post.themeColor adjustForOptimalContrast:true];
-    [newNavController updateBarColor:[UIColor clearColor] animated:false];
+    [newNavController updateBarColor:[UIColor fromHex:post.themeColor] animated:false];
     
     [Launcher push:newNavController animated:YES];
 }
@@ -644,6 +662,24 @@ static Launcher *launcher;
 + (void)openCreateCamp {
     CreateCampViewController *c = [[CreateCampViewController alloc] init];
     [self present:c animated:YES];
+}
++ (void)openEditCamp:(Camp *)camp {
+    if (!camp || !camp.identifier || !camp.attributes) return;
+    
+    EditCampViewController *epvc = [[EditCampViewController alloc] init];
+    epvc.themeColor = [UIColor fromHex:camp.attributes.color];
+    epvc.view.tintColor = epvc.themeColor;
+    epvc.camp = camp;
+    
+    SimpleNavigationController *newNavController = [[SimpleNavigationController alloc] initWithRootViewController:epvc];
+    newNavController.transitioningDelegate = [Launcher sharedInstance];
+    newNavController.modalPresentationStyle = UIModalPresentationFullScreen;
+    newNavController.opaqueOnScroll = false;
+    newNavController.shadowOnScroll = true;
+    newNavController.transparentOnLoad = true;
+    newNavController.currentTheme = nil;
+    
+    [Launcher present:newNavController animated:YES];
 }
 
 + (void)openComposePost {
@@ -798,14 +834,15 @@ static Launcher *launcher;
 + (void)openOnboarding {
     if (![[Launcher activeViewController] isKindOfClass:[HelloViewController class]] &&
         ![[Launcher activeViewController] isKindOfClass:[OnboardingViewController class]] &&
-        ![[Launcher activeViewController] isKindOfClass:[OutOfDateClientViewController class]]) {
+        ![[Launcher activeViewController] isKindOfClass:[OutOfDateClientViewController class]] &&
+        ![[Launcher activeViewController] isKindOfClass:[AccountSuspendedViewController class]]) {
         HelloViewController *vc = [[HelloViewController alloc] init];
         vc.transitioningDelegate = [Launcher sharedInstance];
         vc.modalPresentationStyle = UIModalPresentationFullScreen;
         
-        [[Launcher topMostViewController] presentViewController:vc animated:YES completion:^{
-
-        }];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [[Launcher topMostViewController] presentViewController:vc animated:YES completion:nil];
+        });
     }
 }
 + (void)setRootViewController:(UIViewController *)rootViewController {
@@ -900,6 +937,12 @@ static Launcher *launcher;
     [self present:c animated:YES];
 }
 
++ (void)openAccountSuspended {
+    AccountSuspendedViewController *c = [[AccountSuspendedViewController alloc] init];
+    c.transitioningDelegate = [Launcher sharedInstance];
+    [self present:c animated:YES];
+}
+
 + (void)openDebugView:(id)object {
     #ifdef DEBUG
     SimpleNavigationController *navController;
@@ -972,15 +1015,20 @@ static Launcher *launcher;
 }
 
 + (void)openActionsForPost:(Post *)post {
+    if (!post.identifier) return;
+    
     // Three Categories of Post Actions
     // 1) Any user
     // 2) Creator
     // 3) Admin
     BOOL isCreator = ([post.attributes.creator.identifier isEqualToString:[Session sharedInstance].currentUser.identifier]);
     BOOL canDelete = isCreator || [post.attributes.context.post.permissions canDelete];
+    BOOL canUpdateCamp = [post.attributes.context.camp.permissions canUpdate];
     BOOL insideCamp = ([Launcher activeNavigationController] &&
                        [[[[Launcher activeNavigationController] viewControllers] lastObject] isKindOfClass:[CampViewController class]] &&
                        [((CampViewController *)[[[Launcher activeNavigationController] viewControllers] lastObject]).camp.identifier isEqualToString:post.attributes.postedIn.identifier]);
+    BOOL insidePost = ([[Launcher activeViewController] isKindOfClass:[PostViewController class]] &&
+                       [((PostViewController *)[Launcher activeViewController]).post.identifier isEqualToString:post.identifier]);
     
     // Page action can be shown on
     // A) Any page
@@ -988,11 +1036,64 @@ static Launcher *launcher;
     
     BFAlertController *actionSheet = [BFAlertController alertControllerWithTitle:nil message:nil preferredStyle:BFAlertControllerStyleActionSheet];
     
+    #ifdef DEBUG
+    BFAlertAction *debugPost = [BFAlertAction actionWithTitle:@"Debug Post" style:BFAlertActionStyleDefault handler:^{
+        [Launcher openDebugView:post];
+    }];
+    [actionSheet addAction:debugPost];
+    
+    BFAlertAction *hidePost = [BFAlertAction actionWithTitle:@"Hide Post" style:BFAlertActionStyleDefault handler:^{
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"PostDeleted" object:post];
+    }];
+    [actionSheet addAction:hidePost];
+    
+    [actionSheet addSpacer];
+    #endif
+    
+    if (canUpdateCamp) {
+        if (insideCamp) {
+            BOOL isPinned = post.attributes.pinned;
+            
+            BFAlertAction *pinPost = [BFAlertAction actionWithTitle:(isPinned ? @"Unpin from Camp" : @"Pin to Camp") style:BFAlertActionStyleDefault handler:^{
+                if (!isPinned && ![BFTipsManager hasSeenTip:@"about_pinned_posts"]) {
+                    BFAlertController *about = [BFAlertController alertControllerWithIcon:[UIImage imageNamed:@"alert_icon_pin"] title:@"Pin this Post?" message:@"This post will appear at the top of its Camp and replace any previously pinned post for the Camp." preferredStyle:BFAlertControllerStyleAlert];
+                    
+                    if (isPinned) {
+                        BFAlertAction *pinPost = [BFAlertAction actionWithTitle:@"Unpin Post" style:BFAlertActionStyleDefault handler:^{
+                            [post unpinFromCamp];
+                        }];
+                        [about addAction:pinPost];
+                    }
+                    else {
+                        BFAlertAction *pinPost = [BFAlertAction actionWithTitle:@"Pin Post" style:BFAlertActionStyleDefault handler:^{
+                            [post pinToCamp];
+                        }];
+                        [about addAction:pinPost];
+                    }
+                    
+                    BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
+                    [about addAction:cancel];
+                    
+                    [about show];
+                }
+                else if (isPinned) {
+                    [post unpinFromCamp];
+                }
+                else {
+                    [post pinToCamp];
+                }
+            }];
+            [actionSheet addAction:pinPost];
+        }
+        
+        [actionSheet addSpacer];
+    }
+    
     if (canDelete) {
-        BFAlertAction *deletePost = [BFAlertAction actionWithTitle:@"Delete" style:BFAlertActionStyleDestructive handler:^{
+        BFAlertAction *deletePost = [BFAlertAction actionWithTitle:@"Remove Post" style:BFAlertActionStyleDestructive handler:^{
             NSLog(@"delete post");
             // confirm action
-            BFAlertController *confirmDeletePostActionSheet = [BFAlertController alertControllerWithTitle:@"Delete Post" message:@"Are you sure you want to delete this post?" preferredStyle:BFAlertControllerStyleAlert];
+            BFAlertController *confirmDeletePostActionSheet = [BFAlertController alertControllerWithTitle:@"Remove Post" message:@"Are you sure you want to remove this post?" preferredStyle:BFAlertControllerStyleAlert];
             
             BFAlertAction *confirmDeletePost = [BFAlertAction actionWithTitle:@"Delete" style:BFAlertActionStyleDestructive handler:^{
                 JGProgressHUD *HUD = [JGProgressHUD progressHUDWithStyle:JGProgressHUDStyleExtraLight];
@@ -1047,37 +1148,60 @@ static Launcher *launcher;
         [actionSheet addAction:deletePost];
     }
     
-    if (!isCreator) {
-        BFAlertAction *reportPost = [BFAlertAction actionWithTitle:@"Report" style:BFAlertActionStyleDestructive handler:^{
-            NSLog(@"report post");
-            // confirm action
-            BFAlertController *confirmReportPostActionSheet = [BFAlertController alertControllerWithTitle:@"Report Post" message:@"Are you sure you want to report this post?" preferredStyle:BFAlertControllerStyleAlert];
-            
-            BFAlertAction *confirmReportPost = [BFAlertAction actionWithTitle:@"Report" style:BFAlertActionStyleDestructive handler:^{
-                [post report];
-            }];
-            [confirmReportPostActionSheet addAction:confirmReportPost];
-            
-            BFAlertAction *cancelDeletePost = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
-            [confirmReportPostActionSheet addAction:cancelDeletePost];
-            
-            [confirmReportPostActionSheet show];
+    if (canUpdateCamp) {
+        BFAlertAction *markAsSpam = [BFAlertAction actionWithTitle:@"Mark as Spam" style:BFAlertActionStyleDestructive handler:^{
+            NSLog(@"mark as spam");
+            //[post markAsSpam]
         }];
-        [actionSheet addAction:reportPost];
+        [actionSheet addAction:markAsSpam];
+        
+        BFAlertAction *silenceUser = [BFAlertAction actionWithTitle:@"Silence User" style:BFAlertActionStyleSemiDestructive handler:^{
+            NSLog(@"silence creator");
+            //[post silenceCreator]
+        }];
+        [actionSheet addAction:silenceUser];
+        
+        BFAlertAction *blockUser = [BFAlertAction actionWithTitle:@"Block User" style:BFAlertActionStyleDestructive handler:^{
+            NSLog(@"remove post & block user");
+            //[post blockUser]
+        }];
+        [actionSheet addAction:blockUser];
+    }
+    else {
+        if (!isCreator) {
+            BFAlertAction *reportPost = [BFAlertAction actionWithTitle:@"Report" style:BFAlertActionStyleDestructive handler:^{
+                NSLog(@"report post");
+                // confirm action
+                BFAlertController *confirmReportPostActionSheet = [BFAlertController alertControllerWithTitle:@"Report Post" message:@"Are you sure you want to report this post?" preferredStyle:BFAlertControllerStyleAlert];
+                
+                BFAlertAction *confirmReportPost = [BFAlertAction actionWithTitle:@"Report" style:BFAlertActionStyleDestructive handler:^{
+                    [post report];
+                }];
+                [confirmReportPostActionSheet addAction:confirmReportPost];
+                
+                BFAlertAction *cancelDeletePost = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
+                [confirmReportPostActionSheet addAction:cancelDeletePost];
+                
+                [confirmReportPostActionSheet show];
+            }];
+            [actionSheet addAction:reportPost];
+        }
     }
     
-    BOOL isMuted = post.attributes.context.post.muted;
-    BFAlertAction *postMuteAction = [BFAlertAction actionWithTitle:(isMuted ? @"Unmute Conversation" : @"Mute Conversation") style:BFAlertActionStyleDefault handler:^{
-        NSLog(@"mute updates");
-        
-        if (isMuted) {
-            [post unMute];
-        }
-        else {
-            [post mute];
-        }
-    }];
-    [actionSheet addAction:postMuteAction];
+    if (insidePost) {
+        BOOL isMuted = post.attributes.context.post.muted;
+        BFAlertAction *postMuteAction = [BFAlertAction actionWithTitle:(isMuted ? @"Unmute Conversation" : @"Mute Conversation") style:BFAlertActionStyleDefault handler:^{
+            NSLog(@"mute updates");
+            
+            if (isMuted) {
+                [post unMute];
+            }
+            else {
+                [post mute];
+            }
+        }];
+        [actionSheet addAction:postMuteAction];
+    }
     
     // 1.B.* -- Any user, outside camp, any following state
     if (post.attributes.postedIn == nil) {
@@ -1109,26 +1233,6 @@ static Launcher *launcher;
             [actionSheet addAction:openCamp];
         }
     }
-    
-    // 1.A.* -- Any user, any page, any following state
-    BFAlertAction *sharePost = [BFAlertAction actionWithTitle:@"Share via..." style:BFAlertActionStyleDefault handler:^{
-        NSLog(@"share post");
-        
-        [Launcher sharePost:post];
-    }];
-    [actionSheet addAction:sharePost];
-    
-    #ifdef DEBUG
-    BFAlertAction *debugPost = [BFAlertAction actionWithTitle:@"Debug Post" style:BFAlertActionStyleDefault handler:^{
-        [Launcher openDebugView:post];
-    }];
-    [actionSheet addAction:debugPost];
-    
-    BFAlertAction *hidePost = [BFAlertAction actionWithTitle:@"Hide Post" style:BFAlertActionStyleDefault handler:^{
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"PostDeleted" object:post];
-    }];
-    [actionSheet addAction:hidePost];
-    #endif
         
     BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
     [actionSheet addAction:cancel];
@@ -1206,16 +1310,6 @@ static Launcher *launcher;
             }];
             [moreOptions addAction:shareOnTwitter];
         }
-        
-        BFAlertAction *shareOnFacebook = [BFAlertAction actionWithTitle:@"Facebook" style:BFAlertActionStyleDefault handler:^{
-            FBSDKShareLinkContent *content = [[FBSDKShareLinkContent alloc] init];
-            content.contentURL = [NSURL URLWithString:userShareLink];
-            content.hashtag = [FBSDKHashtag hashtagWithString:@"#Bonfire"];
-            [FBSDKShareDialog showFromViewController:[Launcher topMostViewController]
-                                         withContent:content
-                                            delegate:nil];
-        }];
-        [moreOptions addAction:shareOnFacebook];
         
         if (hasSnapchat) {
             BFAlertAction *shareOnSnapchat = [BFAlertAction actionWithTitle:@"Snapchat" style:BFAlertActionStyleDefault handler:^{
@@ -1643,6 +1737,58 @@ static Launcher *launcher;
     return !CGSizeEqualToSize(imageView.image.size, CGSizeZero);
 }
 
++ (BFVideoPlayerViewController *)openVideoViewer:(UIView * _Nullable)sender delegate:(id<BFSwippableViewControllerDelegate> _Nullable)delegate {
+    BFVideoPlayerViewController *vc = [[BFVideoPlayerViewController alloc] init];
+    if (delegate) {
+        vc.delegate = delegate;
+    }
+    
+    vc.centerLaunch = [self absolutePointForView:sender];
+    vc.senderView = sender;
+    vc.modalPresentationStyle = UIModalPresentationOverFullScreen;
+    vc.modalPresentationCapturesStatusBarAppearance = true;
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NSLog(@"inside dispatch async block main thread from main thread");
+        [[Launcher topMostViewController] presentViewController:vc animated:NO completion:nil];
+    });
+    
+    return vc;
+}
+
+#pragma mark - Experiences
++ (BFLiveAudioViewController *)openLiveAudioCamp:(Camp *)camp sender:(UIView * _Nullable)sender delegate:(id<BFSwippableViewControllerDelegate> _Nullable)delegate {
+    BFLiveAudioViewController *vc = [[BFLiveAudioViewController alloc] init];
+    if (delegate) {
+        vc.delegate = delegate;
+    }
+    
+    vc.camp = camp;
+    vc.centerLaunch = [self absolutePointForView:sender];
+    vc.senderView = sender;
+    vc.modalPresentationStyle = UIModalPresentationOverFullScreen;
+    vc.modalPresentationCapturesStatusBarAppearance = true;
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NSLog(@"inside dispatch async block main thread from main thread");
+        [[Launcher topMostViewController] presentViewController:vc animated:NO completion:nil];
+    });
+    
+    return vc;
+}
+
++ (CGPoint)absolutePointForView:(UIView *)view {
+    CGPoint centerPoint = CGPointZero;
+    if (view) {
+        CGPoint localPoint = [view bounds].origin;
+        CGPoint basePoint = [view convertPoint:localPoint toView:nil];
+        
+        centerPoint = CGPointMake(basePoint.x + view.frame.size.width / 2, basePoint.y + view.frame.size.height / 2);
+    }
+    
+    return centerPoint;
+}
+
 #define APP_STORE_ID 1438702812 //Change this one to your ID
 static NSString *const iOSAppStoreURLFormat = @"itms-apps://itunes.apple.com/WebObjects/MZStore.woa/wa/viewContentsUserReviews?type=Purple+Software&id=%d";
 + (void)requestAppStoreRating {
@@ -1698,6 +1844,10 @@ static NSString *const iOSAppStoreURLFormat = @"itms-apps://itunes.apple.com/Web
 }
 
 + (void)present:(UIViewController *)viewController animated:(BOOL)animated {
+    if ([[Launcher activeViewController] isKindOfClass:[AccountSuspendedViewController class]]) {
+        return;
+    }
+    
     viewController.transitioningDelegate = [Launcher sharedInstance];
     viewController.modalPresentationStyle = UIModalPresentationFullScreen;
     

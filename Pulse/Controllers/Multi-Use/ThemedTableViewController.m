@@ -42,7 +42,6 @@ NSString * const rotationAnimationKey = @"rotationAnimation";
     self.view.backgroundColor = [UIColor contentBackgroundColor];
     self.tableView = [[UITableView alloc] initWithFrame:self.view.bounds style:UITableViewStyleGrouped];
     self.tableView.backgroundColor = [UIColor contentBackgroundColor];
-//    self.tableView.alpha = 0;
     [self.view addSubview:self.tableView];
     
     self.refreshControl = [[UIRefreshControl alloc] init];
@@ -78,8 +77,37 @@ NSString * const rotationAnimationKey = @"rotationAnimation";
     
     return nil;
 }
+- (void)setTableView:(UITableView *)tableView {
+    if (tableView != _tableView) {
+        if (_tableView) {
+            [_tableView removeFromSuperview];
+        }
+        
+        _tableView = tableView;
+
+        if (_tableView == nil) {
+            return;
+        }
+        else {
+            [_bfTableView removeFromSuperview];
+            _bfTableView = nil;
+            
+            [_sectionTableView removeFromSuperview];
+            _sectionTableView = nil;
+            
+            _tableView.frame = self.view.bounds;
+            [self.view addSubview:_tableView];
+            
+            _tableView.refreshControl = self.refreshControl;
+        }
+    }
+}
 - (void)setBfTableView:(BFComponentTableView *)bfTableView {
     if (bfTableView != _bfTableView) {
+        if (_bfTableView) {
+            [_bfTableView removeFromSuperview];
+        }
+        
         _bfTableView = bfTableView;
 
         if (_bfTableView == nil) {
@@ -92,10 +120,6 @@ NSString * const rotationAnimationKey = @"rotationAnimation";
             [_sectionTableView removeFromSuperview];
             _sectionTableView = nil;
             
-            if (_bfTableView.superview) {
-                [_bfTableView removeFromSuperview];
-            }
-            
             _bfTableView.frame = self.view.bounds;
             [self.view addSubview:_bfTableView];
             
@@ -103,9 +127,13 @@ NSString * const rotationAnimationKey = @"rotationAnimation";
         }
     }
 }
-- (void)setSectionTableView:(BFComponentSectionTableView *)bf_tableView {
-    if (bf_tableView != _sectionTableView) {
-        _sectionTableView = bf_tableView;
+- (void)setSectionTableView:(BFComponentSectionTableView *)sectionTableView {
+    if (sectionTableView != _sectionTableView) {
+        if (_sectionTableView) {
+            [_sectionTableView removeFromSuperview];
+        }
+        
+        _sectionTableView = sectionTableView;
 
         if (_sectionTableView == nil) {
             return;
@@ -116,10 +144,6 @@ NSString * const rotationAnimationKey = @"rotationAnimation";
             
             [_bfTableView removeFromSuperview];
             _bfTableView = nil;
-            
-            if (_sectionTableView.superview) {
-                [_sectionTableView removeFromSuperview];
-            }
             
             _sectionTableView.frame = self.view.bounds;
             [self.view addSubview:_sectionTableView];

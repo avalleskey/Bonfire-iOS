@@ -9,7 +9,9 @@
 #import "NSArray+Components.h"
 
 #import "StreamPostCell.h"
+#import "ExpandedPostCell.h"
 #import "ReplyCell.h"
+
 #import "AddReplyCell.h"
 #import "ExpandThreadCell.h"
 
@@ -18,9 +20,12 @@
 @implementation NSArray (Components)
 
 - (NSArray<BFStreamComponent *> *)toStreamComponents {
-    return  [self toStreamComponentsWithDetailLevel:BFComponentDetailLevelAll];
+    return [self toStreamComponentsWithDetailLevel:BFComponentDetailLevelAll];
 }
 - (NSArray<BFStreamComponent *> *)toStreamComponentsWithDetailLevel:(BFComponentDetailLevel)detailLevel {
+    return [self toStreamComponentsWithDetailLevel:detailLevel size:BFStreamComponentSizeDefault];
+}
+- (NSArray<BFStreamComponent *> *)toStreamComponentsWithDetailLevel:(BFComponentDetailLevel)detailLevel size:(BFStreamComponentSize)size {
     NSMutableArray<BFStreamComponent *> *components = [NSMutableArray<BFStreamComponent *> new];
         
     if (self.count == 0) return @[];
@@ -48,27 +53,37 @@
             BOOL showAddReply = (showSummaryReplies || showMoreReplies || post.attributes.summaries.counts.replies > 0);
             
             // Add the parent post
-            BFStreamComponent *component = [[BFStreamComponent alloc] initWithPost:post cellClass:[StreamPostCell class] detailLevel:detailLevel];
-            [components addObject:component];
-
-            if (detailLevel < BFComponentDetailLevelMinimum) {
-                if (showSummaryReplies) {
-                    // Add reply cells underneath the parent post
-                    for (Post *reply in post.attributes.summaries.replies) {
-                        BFStreamComponent *replyComponent = [[BFStreamComponent alloc] initWithPost:reply cellClass:[ReplyCell class]];
-                        [components addObject:replyComponent];
+            if (size == BFStreamComponentSizeDefault) {
+                BFStreamComponent *component = [[BFStreamComponent alloc] initWithPost:post cellClass:[StreamPostCell class] detailLevel:detailLevel];
+                [components addObject:component];
+                
+                if (detailLevel < BFComponentDetailLevelMinimum) {
+                    if (showSummaryReplies) {
+                        // Add reply cells underneath the parent post
+                        for (Post *reply in post.attributes.summaries.replies) {
+                            BFStreamComponent *replyComponent = [[BFStreamComponent alloc] initWithPost:reply cellClass:[ReplyCell class]];
+                            [components addObject:replyComponent];
+                        }
+                    }
+                    
+                    if (showMoreReplies) {
+                        BFStreamComponent *showMoreRepliesComponent = [[BFStreamComponent alloc] initWithPost:post cellClass:[ExpandThreadCell class]];
+                        [components addObject:showMoreRepliesComponent];
+                    }
+                    
+                    if (showAddReply) {
+                        BFStreamComponent *addReplyComponent = [[BFStreamComponent alloc] initWithPost:post cellClass:[AddReplyCell class]];
+                        [components addObject:addReplyComponent];
                     }
                 }
-                
-                if (showMoreReplies) {
-                    BFStreamComponent *showMoreRepliesComponent = [[BFStreamComponent alloc] initWithPost:post cellClass:[ExpandThreadCell class]];
-                    [components addObject:showMoreRepliesComponent];
-                }
-                
-                if (showAddReply) {
-                    BFStreamComponent *addReplyComponent = [[BFStreamComponent alloc] initWithPost:post cellClass:[AddReplyCell class]];
-                    [components addObject:addReplyComponent];
-                }
+            }
+            else if (size == BFStreamComponentSizeExpanded) {
+                BFStreamComponent *component = [[BFStreamComponent alloc] initWithPost:post cellClass:[ExpandedPostCell class] detailLevel:detailLevel];
+                [components addObject:component];
+            }
+            else if (size == BFStreamComponentSizeReply) {
+                BFStreamComponent *component = [[BFStreamComponent alloc] initWithPost:post cellClass:[ReplyCell class] detailLevel:detailLevel];
+                [components addObject:component];
             }
             
             [components lastObject].showLineSeparator = true;

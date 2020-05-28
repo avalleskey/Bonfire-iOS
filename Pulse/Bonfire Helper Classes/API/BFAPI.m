@@ -441,6 +441,8 @@
                 // NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
                 
                 NSInteger errorCode = [error bonfireErrorCode];
+                NSHTTPURLResponse *httpResponse = error.userInfo[AFNetworkingOperationFailingURLResponseErrorKey];
+                NSInteger statusCode = httpResponse.statusCode;
                 
                 if (errorCode == POST_INACCESSIBLE) {
                     [[NSNotificationCenter defaultCenter] postNotificationName:@"NewPostFailed" object:tempPost];
@@ -452,7 +454,7 @@
                     
                     [actionSheet show];
                 }
-                else {
+                else if (statusCode != 504) {
                     [BFAPI createPost_failed:params postingIn:postingIn replyingTo:replyingTo tempPost:tempPost attachments:attachments];
                 }
             }];

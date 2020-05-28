@@ -27,6 +27,7 @@
 @interface IdentityAttributes ()
 
 @property (nonatomic) BOOL anonymous;
+@property (nonatomic) BOOL suspended;
 @property (nonatomic) BOOL requiresInvite;
 @property (nonatomic) NSString <Optional> *bio;
 @property (nonatomic) UserDetailsLocation <Optional> *location;

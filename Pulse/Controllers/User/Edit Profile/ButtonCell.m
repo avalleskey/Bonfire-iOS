@@ -41,6 +41,7 @@ NSString *const ButtonCellTitleColorAttributeName = @"color";
         
         self.kButtonColorDefault = [UIColor bonfirePrimaryColor];
         self.kButtonColorDestructive = [UIColor fromHex:@"ff0900" adjustForOptimalContrast:true];
+        self.kButtonColorSemiDestructive = [UIColor fromHex:@"F6B420" adjustForOptimalContrast:false];
         self.kButtonColorTheme = [UIColor bonfirePrimaryColor];
         self.kButtonColorBonfire = [UIColor bonfireBrand];
                 

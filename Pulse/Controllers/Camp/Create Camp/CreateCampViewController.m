@@ -26,7 +26,6 @@
 #import <JGProgressHUD/JGProgressHUD.h>
 #import <HapticHelper/HapticHelper.h>
 #include <stdlib.h>
-#import <FBSDKShareKit/FBSDKShareKit.h>
 #import <RSKImageCropper/RSKImageCropper.h>
 
 
@@ -559,14 +558,6 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                 }
                 else if ([identifier isEqualToString:@"imessage"]) {
                     [Launcher shareOniMessage:[NSString stringWithFormat:@"Help me start a Camp on Bonfire! Join %@: %@", self.camp.attributes.title, campShareLink] image:nil];
-                }
-                else if ([identifier isEqualToString:@"facebook"]) {
-                    FBSDKShareLinkContent *content = [[FBSDKShareLinkContent alloc] init];
-                    content.contentURL = [NSURL URLWithString:campShareLink];
-                    content.hashtag = [FBSDKHashtag hashtagWithString:@"#Bonfire"];
-                    [FBSDKShareDialog showFromViewController:[Launcher topMostViewController]
-                                                 withContent:content
-                                                    delegate:nil];
                 }
                 else if ([identifier isEqualToString:@"more"]) {
                     [Launcher shareCamp:self.camp];

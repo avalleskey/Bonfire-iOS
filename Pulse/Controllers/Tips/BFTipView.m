@@ -53,7 +53,9 @@
 }
 
 - (void)setup {
-    self.frame = CGRectMake(12, [UIScreen mainScreen].bounds.size.height, [UIScreen mainScreen].bounds.size.width - 24, 0);
+    CGFloat width = MIN(IPAD_CONTENT_MAX_WIDTH, [UIScreen mainScreen].bounds.size.width - 24);
+    
+    self.frame = CGRectMake([UIScreen mainScreen].bounds.size.width / 2 - width / 2, [UIScreen mainScreen].bounds.size.height, width, 0);
     self.layer.cornerRadius = 14.f;
     self.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.12].CGColor;
     self.layer.shadowOffset = CGSizeMake(0, 1.5);

@@ -103,9 +103,13 @@
         self.imagePreview.frame = CGRectMake(self.frame.size.width - (self.profilePicture.frame.size.width - 4) - 12, self.profilePicture.frame.origin.y + 2, self.profilePicture.frame.size.width - 4, self.profilePicture.frame.size.height - 4);
     }
     
-    CGFloat leftOffset = 64;
-    CGFloat contentWidth = self.frame.size.width - leftOffset - 12;
-    CGFloat textLabelWidth = ([self.imagePreview isHidden] ? contentWidth : self.imagePreview.frame.origin.x - 8 - leftOffset);
+    UIEdgeInsets contentInset = ACTIVITY_CELL_CONTENT_INSET;
+    if (![self.imagePreview isHidden]) {
+        contentInset.right = self.frame.size.width - self.imagePreview.frame.origin.x + 8;
+    }
+    
+    CGFloat contentWidth = self.frame.size.width - contentInset.left - contentInset.right;
+    CGFloat textLabelWidth = contentWidth;
     
     CGRect textLabelRect = [self.textLabel.attributedText boundingRectWithSize:CGSizeMake(textLabelWidth, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) context:nil];
     CGFloat textLabelHeight = textLabelRect.size.height;
@@ -115,13 +119,13 @@
     int lineCount = roundf(rHeight/charSize);
     
     if (lineCount > 2 || self.campPreviewView || self.identityAttachmentView) {
-        self.textLabel.frame = CGRectMake(leftOffset, ACTIVITY_CELL_CONTENT_INSET.top, textLabelWidth, ceilf(textLabelRect.size.height));
+        self.textLabel.frame = CGRectMake(contentInset.left, ACTIVITY_CELL_CONTENT_INSET.top, textLabelWidth, ceilf(textLabelRect.size.height));
     }
     else if (lineCount == 1) {
-        self.textLabel.frame = CGRectMake(leftOffset, self.profilePicture.frame.origin.y, textLabelWidth, self.profilePicture.frame.size.height - 1);
+        self.textLabel.frame = CGRectMake(contentInset.left, self.profilePicture.frame.origin.y, textLabelWidth, self.profilePicture.frame.size.height - 1);
     }
     else if (lineCount == 2) {
-        self.textLabel.frame = CGRectMake(leftOffset, ACTIVITY_CELL_CONTENT_INSET.top + 5, textLabelWidth, ceilf(textLabelRect.size.height));
+        self.textLabel.frame = CGRectMake(contentInset.left, ACTIVITY_CELL_CONTENT_INSET.top + 5, textLabelWidth, ceilf(textLabelRect.size.height));
         self.textLabel.center = CGPointMake(self.textLabel.center.x, self.profilePicture.center.y);
     }
         

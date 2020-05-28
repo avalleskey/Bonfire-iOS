@@ -14,6 +14,7 @@
 #import "PostTextView.h"
 #import "PostImagesView.h"
 
+#import "BFVideoPlayerAttachmentView.h"
 #import "BFLinkAttachmentView.h"
 #import "BFCampAttachmentView.h"
 #import "BFIdentityAttachmentView.h"
@@ -60,6 +61,10 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) BFLinkAttachmentView * _Nullable linkAttachmentView;
 - (void)removeLinkAttachment;
 - (void)initLinkAttachment;
+
+@property (nonatomic, strong) BFVideoPlayerAttachmentView * _Nullable videoPlayerAttachmentView;
+- (void)removeVideoPlayerAttachmentView;
+- (void)initVideoPlayerAttachmentView;
 
 @property (nonatomic, strong) BFSmartLinkAttachmentView * _Nullable smartLinkAttachmentView;
 - (void)removeSmartLinkAttachment;

@@ -32,7 +32,7 @@
     // set icon + title
     UIEdgeInsets imageEdgeInsets = UIEdgeInsetsMake(0, 0, 0, self.imageEdgeInsets.right);
     if ([status isEqualToString:CAMP_STATUS_MEMBER]) {
-        [self setImage:[[UIImage imageNamed:@"settingsIcon_small"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+        [self setImage:[[UIImage imageNamed:@"checkIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
         [self setTitle:self.followingString forState:UIControlStateNormal];
     }
     else if ([status isEqualToString:CAMP_STATUS_REQUESTED]) {

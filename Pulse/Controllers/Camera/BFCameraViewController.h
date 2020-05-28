@@ -25,7 +25,6 @@ NS_ASSUME_NONNULL_BEGIN
 @interface BFCameraViewController : UIViewController <BFCameraSwiperDelegate>
 
 @property (nonatomic, weak) id <BFCameraViewControllerDelegate> delegate;
-@property (nonatomic, strong) BFCameraSwiper * _Nullable swiper;
 
 // top buttons
 @property (nonatomic, strong) UIButton *closeButton;

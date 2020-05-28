@@ -44,6 +44,19 @@
                     "state": 0
                 }
             ]
-        }
+        },
+        {
+            "id": "blocked_members",
+            "title": "Blocked",
+            "sections": [
+                {
+                    "id": "members_blocked",
+                    "url": "camps/{camp.id}/members",
+                    "state": 0,
+                    "cursored": true,
+                    "type": "user"
+                }
+            ]
+        },
     ]
 }

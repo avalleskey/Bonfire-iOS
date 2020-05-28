@@ -170,7 +170,7 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
         [params setObject:filterQuery forKey:@"filter_query"];
     }
         
-    [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+    [[[HAWebService manager] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         if (![self.searchPhrase isEqualToString:filterQuery]) {
             return;
         }

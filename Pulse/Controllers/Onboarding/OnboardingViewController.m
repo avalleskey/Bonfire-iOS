@@ -22,6 +22,7 @@
 #import "BFAlertController.h"
 #import <PINCache/PINCache.h>
 #import <libPhoneNumber-iOS/NBPhoneNumberUtil.h>
+#import <Lockbox/Lockbox.h>
 
 @import UserNotifications;
 @import Firebase;
@@ -43,6 +44,7 @@
 @property (nonatomic) CGFloat currentKeyboardHeight;
 
 @property (nonatomic) BOOL phoneNumberSignUpAllowed;
+@property (nonatomic) BOOL preventNewAccountCreation;
 
 typedef enum {
     BFSignUpMethodEmailAddress,
@@ -58,7 +60,7 @@ typedef enum {
 @property (nonatomic, strong) NSMutableArray <Camp *> *campSuggestions;
 
 #define kOnboardingTextFieldTag_Email 201
-#define  kOnboardingTextFieldTag_OneTimeCode 202
+#define kOnboardingTextFieldTag_OneTimeCode 202
 #define kOnboardingTextFieldTag_Password 203
 #define kOnboardingTextFieldTag_DisplayName 204
 #define kOnboardingTextFieldTag_Username 205
@@ -77,6 +79,10 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     self.view.tintColor = [UIColor bonfireBrand];
     
     self.phoneNumberSignUpAllowed = [[NSLocale currentLocale].countryCode isEqualToString:@"US"];
+    
+    // rate limit to 2 sign ups / day
+    self.preventNewAccountCreation = ![Session canCreateNewAccount];
+    //
     
     [self setupViews];
     [self setupSteps];
@@ -729,6 +735,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     [self greyOutNextButton];
 }
 - (void)prepareForSignUp {
+    self.signInLikely = false;
     // only skip password
     for (NSInteger i = 0; i < self.steps.count; i++) {
         NSMutableDictionary *step = [[NSMutableDictionary alloc] initWithDictionary:self.steps[i]];
@@ -1160,7 +1167,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     
     NSString *url = @"oauth"; // sample data
     
-    [[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] POST:url parameters:@{@"phone": [self formatPhoneNumber:textField.text], @"grant_type": @"password"} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+    [[HAWebService manager] POST:url parameters:@{@"phone": [self formatPhoneNumber:textField.text], @"grant_type": @"password"} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         self.secondsRemaining = 30;
         [self startPhoneVerificationCodeTimer];
         
@@ -1172,6 +1179,15 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             completion(false, error);
         }
     }];
+}
+
+- (void)showAccountCreationCapAlert {
+    BFAlertController *alert = [BFAlertController alertControllerWithTitle:@"Let's Consider Others" message:@"You've hit the maximum amount of sign ups per day. Please consider others and refrain from registering accounts you don't intend on using." preferredStyle:BFAlertControllerStyleAlert];
+    
+    BFAlertAction *gotItAction = [BFAlertAction actionWithTitle:@"Okay" style:BFAlertActionStyleCancel handler:nil];
+    [alert addAction:gotItAction];
+    
+    [alert show];
 }
 
 - (void)handleNext {
@@ -1200,13 +1216,18 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                     }
                     
                     if (self.requiresRegistration) {
-                        [self prepareForSignUp];
+                        if (self.preventNewAccountCreation) {
+                            [self showAccountCreationCapAlert];
+                        }
+                        else {
+                            [self prepareForSignUp];
+                            [self nextStep:true];
+                        }
                     }
                     else {
                         [self prepareForSignIn];
+                        [self nextStep:true];
                     }
-                    
-                    [self nextStep:true];
                 }
                 else  {
                     [self removeSpinnerForStep:self.currentStep];
@@ -1254,16 +1275,20 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                 
                 if (isValid) {
                     self.requiresRegistration = !isOccupied;
-                    if (isOccupied) {
-                        // proceed to login
-                        [self prepareForSignIn];
+                    
+                    if (self.requiresRegistration) {
+                        if (self.preventNewAccountCreation) {
+                            [self showAccountCreationCapAlert];
+                        }
+                        else {
+                            [self prepareForSignUp];
+                            [self nextStep:true];
+                        }
                     }
                     else {
-                        // proceed to sign up
-                        [self prepareForSignUp];
+                        [self prepareForSignIn];
+                        [self nextStep:true];
                     }
-                    
-                    [self nextStep:true];
                 }
                 else {
                     [self showEmailAddressNotValid];
@@ -1440,6 +1465,10 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         else {
             // verify username is available
             [self greyOutNextButton];
+            [UIView animateWithDuration:0.3f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+                self.closeButton.alpha = 0;
+                self.backButton.alpha = 0;
+            } completion:nil];
             [self showSpinnerForStep:self.currentStep];
             
             // validate username is available and sign up if it is :)
@@ -1492,11 +1521,21 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                     
                     [alert show];
                 }
+                
+                [UIView animateWithDuration:0.3f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+                    self.closeButton.alpha = 1;
+                    self.backButton.alpha = 1;
+                } completion:nil];
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
                 // not long enough –> shake input block
                 [self removeSpinnerForStep:self.currentStep];
                 [self shakeInputBlock];
                 [self enableNextButton];
+
+                [UIView animateWithDuration:0.3f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+                    self.closeButton.alpha = 1;
+                    self.backButton.alpha = 1;
+                } completion:nil];
                 
                 NSInteger code = 0;
                 
@@ -1691,6 +1730,17 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         
         // not long enough –> shake input block
         [self removeSpinnerForStep:self.currentStep];
+        [self enableNextButton];
+        [self startPhoneVerificationCodeTimer];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [UIView animateWithDuration:0.25f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+                self.backButton.alpha = 1;
+                self.closeButton.alpha = 1;
+                for (UIView *view in viewsToHide) {
+                    view.alpha = 1;
+                }
+            } completion:nil];
+        });
         
         if (bonfireErrorCode == USER_PASSWORD_REQ_RESET) {
             // user requires a password reset
@@ -1706,14 +1756,14 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             
             dispatch_async(dispatch_get_main_queue(), ^{
                 [Launcher present:setNewPasswordVC animated:YES];
-                
-                [self removeSpinnerForStep:self.currentStep];
-                [self enableNextButton];
             });
         }
         else {
             [self shakeInputBlock];
-            [self enableNextButton];
+            dispatch_async(dispatch_get_main_queue(), ^{
+                UIView *currentTextField = (UITextField *)[self.steps[self.currentStep] objectForKey:@"textField"];
+                [currentTextField becomeFirstResponder];
+            });
             
             NSString *errorTitle = @"Uh oh!";
             NSString *errorMessage = @"We encountered an error while signing you in. Please try again and check back soon for an update.";
@@ -1733,15 +1783,6 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             
             [alert show];
         }
-        
-        [self startPhoneVerificationCodeTimer];
-        [UIView animateWithDuration:0.25f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
-            self.backButton.alpha = 1;
-            self.closeButton.alpha = 1;
-            for (UIView *view in viewsToHide) {
-                view.alpha = 1;
-            }
-        } completion:nil];
     }];
 }
 - (void)passwordDidChange:(NSString *)newPassword {
@@ -1799,6 +1840,19 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         NSError *error;
         User *user = [[User alloc] initWithDictionary:responseObject[@"data"] error:&error];
         [[Session sharedInstance] updateUser:user];
+        
+        // rate limit to 2 sign ups / day
+        NSArray *deviceSignUps = [Lockbox unarchiveObjectForKey:@"device_sign_ups"];
+        NSMutableArray *newSignUps;
+        if (deviceSignUps) {
+            newSignUps = [[NSMutableArray alloc] initWithArray:deviceSignUps];
+        }
+        else {
+            newSignUps = [NSMutableArray new];
+        }
+        [newSignUps addObject:@{@"id": user.identifier, @"created_at": user.attributes.createdAt}];
+        [Lockbox archiveObject:newSignUps forKey:@"device_sign_ups"];
+        //
         
         [FIRAnalytics logEventWithName:@"onboarding_signed_up"
                             parameters:@{}];
@@ -2076,27 +2130,30 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 
 #pragma mark - Step Status Indicators
 - (void)shakeInputBlock {
-    UIView *currentBlock = self.steps[self.currentStep][@"block"];
-    
-    CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"position"];
-    [animation setDuration:0.08];
-    [animation setRepeatCount:4];
-    [animation setAutoreverses:YES];
-    [animation setFromValue:[NSValue valueWithCGPoint:
-                             CGPointMake([currentBlock center].x - 8.f, [currentBlock center].y)]];
-    [animation setToValue:[NSValue valueWithCGPoint:
-                           CGPointMake([currentBlock center].x + 8.f, [currentBlock center].y)]];
-    [[currentBlock layer] addAnimation:animation forKey:@"position"];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        UIView *currentBlock = self.steps[self.currentStep][@"block"];
+        CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"position"];
+        [animation setDuration:0.08];
+        [animation setRepeatCount:4];
+        [animation setAutoreverses:YES];
+        [animation setFromValue:[NSValue valueWithCGPoint:
+                                 CGPointMake([currentBlock center].x - 8.f, [currentBlock center].y)]];
+        [animation setToValue:[NSValue valueWithCGPoint:
+                               CGPointMake([currentBlock center].x + 8.f, [currentBlock center].y)]];
+        [[currentBlock layer] addAnimation:animation forKey:@"position"];
+    });
 }
 - (void)greyOutNextButton {
     self.nextButton.enabled = false;
     self.nextButton.backgroundColor = [UIColor bonfireDisabledColor];
 }
 - (void)enableNextButton {
-    self.nextButton.enabled = true;
-    self.nextButton.backgroundColor = self.view.tintColor;
-    [self.nextButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    self.nextButton.userInteractionEnabled = true;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        self.nextButton.enabled = true;
+        self.nextButton.backgroundColor = self.view.tintColor;
+        [self.nextButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        self.nextButton.userInteractionEnabled = true;
+    });
 }
 
 #pragma mark Input Spinner
@@ -2141,21 +2198,23 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     UITextField *textField = (UITextField *)[[self.steps objectAtIndex:step] objectForKey:@"textField"];
     UIImageView *miniSpinner = [block viewWithTag:1111];
     
-    [UIView animateWithDuration:0.6f delay:0 options:UIViewAnimationOptionTransitionCrossDissolve animations:^{
-        miniSpinner.alpha = 0;
-    } completion:^(BOOL finished) {
-        [miniSpinner removeFromSuperview];
-        
-        [UIView transitionWithView:textField duration:0.3 options:UIViewAnimationOptionTransitionCrossDissolve animations:^{
-            textField.textColor = [UIColor bonfirePrimaryColor];
-            textField.tintColor = [self.view tintColor];
-            if (textField.placeholder != nil) {
-                textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:textField.placeholder attributes:@{NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
-            }
-            textField.leftView.alpha = 1;
-            textField.rightView.alpha = 1;
-        } completion:nil];
-    }];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [UIView animateWithDuration:0.6f delay:0 options:UIViewAnimationOptionTransitionCrossDissolve animations:^{
+            miniSpinner.alpha = 0;
+        } completion:^(BOOL finished) {
+            [miniSpinner removeFromSuperview];
+            
+            [UIView transitionWithView:textField duration:0.3 options:UIViewAnimationOptionTransitionCrossDissolve animations:^{
+                textField.textColor = [UIColor bonfirePrimaryColor];
+                textField.tintColor = [self.view tintColor];
+                if (textField.placeholder != nil) {
+                    textField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:textField.placeholder attributes:@{NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
+                }
+                textField.leftView.alpha = 1;
+                textField.rightView.alpha = 1;
+            } completion:nil];
+        }];
+    });
 }
 
 #pragma mark Big Spinner
@@ -2221,7 +2280,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     CGRect keyboardFrameBeginRect = [keyboardFrameBegin CGRectValue];
     _currentKeyboardHeight = keyboardFrameBeginRect.size.height;
     
-    self.nextButton.frame = CGRectMake(self.nextButton.frame.origin.x, (self.view.frame.size.height / self.view.transform.d) - _currentKeyboardHeight - self.nextButton.frame.size.height - self.nextButton.frame.origin.x, self.nextButton.frame.size.width, self.nextButton.frame.size.height);
+    self.nextButton.frame = CGRectMake(self.nextButton.frame.origin.x, (self.view.frame.size.height / self.view.transform.d) - _currentKeyboardHeight - self.nextButton.frame.size.height - 24, self.nextButton.frame.size.width, self.nextButton.frame.size.height);
     self.nextBlockerInfoLabel.frame = CGRectMake(self.nextButton.frame.origin.x, self.nextButton.frame.origin.y - 16 - 21, self.nextButton.frame.size.width, 16);
     self.legalDisclosureLabel.frame = CGRectMake(self.legalDisclosureLabel.frame.origin.x, self.nextButton.frame.origin.y - 16 - self.legalDisclosureLabel.frame.size.height, self.legalDisclosureLabel.frame.size.width, self.legalDisclosureLabel.frame.size.height);
 }
@@ -2229,7 +2288,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     _currentKeyboardHeight = 0;
     
     UIWindow *window = UIApplication.sharedApplication.keyWindow;
-    CGFloat bottomPadding = (HAS_ROUNDED_CORNERS ? window.safeAreaInsets.bottom + 12 : self.nextButton.frame.origin.x);
+    CGFloat bottomPadding = (HAS_ROUNDED_CORNERS ? window.safeAreaInsets.bottom + 12 : 24);
     
     NSNumber *duration = [notification.userInfo objectForKey:UIKeyboardAnimationDurationUserInfoKey];
     [UIView animateWithDuration:[duration floatValue] delay:0 options:[[notification.userInfo objectForKey:UIKeyboardAnimationCurveUserInfoKey] intValue] << 16 animations:^{

@@ -134,6 +134,8 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     if (self.segmentedControl) {
         self.segmentedControl.frame = CGRectMake(0, self.navigationController.navigationBar.frame.size.height + self.navigationController.navigationBar.frame.origin.y, self.view.frame.size.width, 48);
     }
+    
+    [self.tableView reloadData];
 }
 
 - (void)dealloc {
@@ -221,6 +223,10 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
             // don't include the pending tab if the person isn't a member or the camp is public
             if (![self isMember] || ![self.camp isPrivate] || !self.camp.attributes.context.camp.permissions.members.approve) continue;
         }
+        else if ([list.identifier isEqualToString:@"blocked_members"]) {
+            if (!([self.camp.attributes.context.camp.membership.role.type isEqualToString:CAMP_ROLE_MODERATOR] ||
+                  [self.camp.attributes.context.camp.membership.role.type isEqualToString:CAMP_ROLE_ADMIN])) continue;
+        }
         
         [self.tabs addObject:list];
     }
@@ -229,17 +235,21 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
 }
 
 - (void)createSegmentedControl {
-    self.segmentedControl = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 48)];
+    self.segmentedControl = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 48)];
     self.segmentedControl.backgroundColor = [UIColor colorNamed:@"Navigation_ClearBackgroundColor"];
+    self.segmentedControl.showsHorizontalScrollIndicator = false;
+    self.segmentedControl.showsVerticalScrollIndicator = false;
+    self.segmentedControl.decelerationRate = UIScrollViewDecelerationRateFast;
+    self.segmentedControl.clipsToBounds = false;
     
-    UIView *lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, self.segmentedControl.frame.size.height, self.view.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+    UIView *lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, self.segmentedControl.frame.size.height, self.view.frame.size.width, HALF_PIXEL)];
     lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
     [self.segmentedControl addSubview:lineSeparator];
     [self.view addSubview:self.segmentedControl];
     
     // add segmented control segments
     CGFloat buttonWidth = (self.tabs.count > 3 ? 0 : self.view.frame.size.width / self.tabs.count); // buttonWidth of 0 denotes a dynamic width button
-    CGFloat buttonPadding = 0; // only used if the button has a dynamic width
+    CGFloat buttonPadding = 24; // only used if the button has a dynamic width
     CGFloat lastButtonX = 0;
     
     UIView *selectedBackground = [[UIView alloc] initWithFrame:CGRectMake(0, self.segmentedControl.frame.size.height - 2, buttonWidth, 2)];
@@ -293,6 +303,9 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
         [self.segmentedControl addSubview:button];
         
         lastButtonX = button.frame.origin.x + button.frame.size.width;
+    }
+    if (buttonWidth == 0) {
+        self.segmentedControl.contentSize = CGSizeMake(lastButtonX, self.segmentedControl.frame.size.height);
     }
     
     self.tableView.contentInset = UIEdgeInsetsMake(self.segmentedControl.frame.size.height, 0, self.tableView.contentInset.bottom, 0);
@@ -375,6 +388,8 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
             [UIView animateWithDuration:0.15f delay:0 usingSpringWithDamping:0.95f initialSpringVelocity:0.5f options:(UIViewAnimationOptionCurveEaseOut|UIViewAnimationOptionAllowUserInteraction) animations:^{
                 SetWidth(selectedBackground, selectedButton.frame.size.width / scale);
                 selectedBackground.center = CGPointMake(selectedButton.frame.origin.x + selectedButton.frame.size.width / 2, selectedBackground.center.y);
+                
+                [self.segmentedControl scrollRectToVisible:selectedButton.frame animated:NO];
             } completion:^(BOOL finished) {
             }];
         }
@@ -448,7 +463,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
         [params setObject:nextCursor forKey:@"next_cursor"];
     }
     
-    [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+    [[[HAWebService manager] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         if (![self.searchPhrase isEqualToString:filterQuery]) {
             return;
         }
@@ -767,24 +782,17 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     NSDictionary *request = @{};
     SmartListSection *requestsSection = [self sectionForIdentifier:@"members_requests"];
     if (requestsSection == nil) return;
-    
-    NSLog(@"requestsSection: %@", requestsSection);
-    
-    NSLog(@"requests before:: %lu", (unsigned long)requestsSection.data.count);
+        
     if (objectExists(row, requestsSection.data)) {
         request = requestsSection.data[row];
         [requestsSection.data removeObjectAtIndex:row];
     }
-    NSLog(@"requests after:: %lu", (unsigned long)requestsSection.data.count);
-    
-    NSLog(@"request to approve: %@", request);
     
     if ([request valueForKey:@"id"]) {
         [self.tableView reloadData];
         
-        NSLog(@"make request: %@", url);
         NSLog(@"with params: %@", @{@"user_id": request[@"id"]});
-        [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] POST:url parameters:@{@"user_id": request[@"id"]} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        [[[HAWebService manager] authenticate] POST:url parameters:@{@"user_id": request[@"id"]} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
             NSLog(@"approved request!");
                         
             SmartListSection *membersSection = [self sectionForIdentifier:@"members_current"];
@@ -818,7 +826,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     if (request != nil) {
         [self.tableView reloadData];
         
-        [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] DELETE:url parameters:@{@"user_id": request[@"id"]} success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        [[[HAWebService manager] authenticate] DELETE:url parameters:@{@"user_id": request[@"id"]} success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
             NSLog(@"declined request!");
             
             // TODO: set members list back to empty
@@ -1083,7 +1091,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     
     NSLog(@"params: %@", params);
     
-    [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] POST:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+    [[[HAWebService manager] authenticate] POST:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         // on the completion of each request
         NSLog(@"success!");
         BFMiniNotificationObject *notificationObject = [BFMiniNotificationObject notificationWithText:[NSString stringWithFormat:@"Removed %@", ([managerType isEqualToString:CAMP_ROLE_ADMIN] ? @"Director" : @"Manager")] action:nil];

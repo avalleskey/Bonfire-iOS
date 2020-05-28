@@ -43,6 +43,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic) NSString <Optional> *type;
 @property (nonatomic) PostAttributes <Optional> *attributes;
 
+- (BOOL)hasVideoAttachment;
 - (BOOL)hasLinkAttachment;
 - (BOOL)hasUserAttachment;
 - (BOOL)hasCampAttachment;
@@ -66,6 +67,12 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)unMute;
 - (void)unMuteWithCmpletion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
 
+- (void)pinToCamp;
+- (void)pinToCampWithCmpletion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
+
+- (void)unpinFromCamp;
+- (void)unpinFromCampWithCmpletion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler;
+
 @end
 
 @interface PostAttributes : BFJSONModel
@@ -80,6 +87,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic) NSString <Optional> *url;
 @property (nonatomic) BOOL hasMedia;
 @property (nonatomic) NSArray <Optional> *media;
+@property (nonatomic) BOOL pinned;
 // parent post ID --> used for Post replies
 @property (nonatomic) Post <Optional> *parent;
 @property (nonatomic) NSString <Optional> *parentId;
@@ -152,6 +160,7 @@ extern NSString * const POST_DISPLAY_FORMAT_;
 @interface PostAttachments : BFJSONModel
 
 @property (nonatomic) NSArray <PostAttachmentsMedia *> <PostAttachmentsMedia, Optional> *media;
+@property (nonatomic) PostAttachmentsMedia <Optional> *video;
 @property (nonatomic) BFLink <Optional> *link;
 @property (nonatomic) Camp <Optional> *camp;
 @property (nonatomic) User <Optional> *user;

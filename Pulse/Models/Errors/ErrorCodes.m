@@ -47,6 +47,7 @@ const NSInteger CAMP_NOT_EXISTS               = 701;
 const NSInteger USER_NOT_EXISTS               = 702;
 const NSInteger POST_NOT_EXISTS               = 703;
 const NSInteger LINK_NOT_EXISTS               = 704;
+const NSInteger FRIEND_CODE_NOT_EXISTS        = 705;
 const NSInteger CAMP_INACCESSIBLE_BLOCKED     = 711;
 const NSInteger USER_INACCESSIBLE_BLOCKED     = 712;
 const NSInteger POST_INACCESSIBLE             = 713;
@@ -57,11 +58,12 @@ const NSInteger CAMP_INACCESSIBLE_BLOCKS_THEM = 740;
 /**
  * Errors 800-899: User information failure
  */
-const NSInteger USER_PASSWORD_REQ_RESET = 800;
-const NSInteger USER_PROFILE_SUSPENDED  = 810;
-const NSInteger USER_EMAIL_TAKEN        = 820;
-const NSInteger USER_PHONE_TAKEN        = 821; // Phone is already registered to a user
-const NSInteger USER_USERNAME_TAKEN     = 830;
+const NSInteger USER_PASSWORD_REQ_RESET     = 800;
+const NSInteger ACTIONER_PROFILE_SUSPENDED  = 810;
+const NSInteger USER_EMAIL_TAKEN            = 820;
+const NSInteger USER_PHONE_TAKEN            = 821; // Phone is already registered to a user
+const NSInteger USER_USERNAME_SUSPENDED     = 822;
+const NSInteger USER_USERNAME_TAKEN         = 830;
 
 /**
  * Errors 900-999: Generic errors

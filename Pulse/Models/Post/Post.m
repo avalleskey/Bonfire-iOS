@@ -38,6 +38,16 @@
     if ([[self.attributes.creator.identifier lowercaseString] isEqualToString:[[Session sharedInstance].currentUser.identifier lowercaseString]]) {
         instance.isCreator = true;
     }
+    
+    if ([self.identifier isEqualToString:@"33896"]) {
+        PostAttachmentsMedia *mediaObj = [instance.attributes.attachments.media firstObject];
+        mediaObj.attributes.type = PostAttachmentMediaTypeVideo;
+        mediaObj.attributes.hostedVersions.full.url = @"http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/VolkswagenGTIReview.mp4";
+        
+        instance.attributes.attachments.video = mediaObj;
+        instance.attributes.attachments.media = nil;
+    }
+    
     [instance updateThemeColor];
         
     return instance;
@@ -46,7 +56,7 @@
 - (void)updateThemeColor {
     Camp *postedIn = self.attributes.postedIn;
     if (!postedIn && self.attributes.parent && self.attributes.parent.attributes.postedIn) {
-        postedIn =  self.attributes.parent.attributes.postedIn;
+        postedIn = self.attributes.parent.attributes.postedIn;
     }
     
     if (postedIn) {
@@ -60,6 +70,10 @@
 + (BOOL)propertyIsOptional:(NSString*)propertyName
 {
     return YES;
+}
+
+- (BOOL)hasVideoAttachment {
+    return (self.attributes.attachments.video != nil);
 }
 
 - (BOOL)hasLinkAttachment {
@@ -198,6 +212,90 @@
 }
 - (void)unMute {
     [self unMuteWithCmpletion:nil];
+}
+
+- (void)pinToCamp {
+    [self pinToCampWithCmpletion:nil];
+}
+- (void)pinToCampWithCmpletion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler {
+    if (!self.attributes.postedIn.identifier) {
+        if (handler) {
+            handler(false, self);
+        }
+        
+        return;
+    }
+    
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"CampStreamUpdating" object:self.attributes.postedIn];
+    
+    [FIRAnalytics logEventWithName:@"post_pin"
+                            parameters:@{}];
+    
+    // /camps/{campId}/posts/{postId}/pinned
+    NSString *url = [NSString stringWithFormat:@"camps/%@/posts/%@/pinned", self.attributes.postedIn.identifier, self.identifier];
+    [[HAWebService authenticatedManager] POST:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        BFMiniNotificationObject *notificationObject = [BFMiniNotificationObject notificationWithText:@"Pinned!" action:nil];
+        [[BFMiniNotificationManager manager] presentNotification:notificationObject completion:nil];
+        
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"CampRefreshRequired" object:self.attributes.postedIn];
+        
+        if (handler) {
+            handler(true, self);
+        }
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"CampRefreshRequired" object:self.attributes.postedIn];
+        
+        if (handler) {
+            handler(false, self);
+        }
+    }];
+    
+    // update model
+    Post *post = [[Post alloc] initWithDictionary:[self toDictionary] error:nil];
+    PostAttributes *attributes = [[PostAttributes alloc] initWithDictionary:[post.attributes toDictionary] error:nil];
+    attributes.pinned = true;
+    post.attributes = attributes;
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"PostUpdated" object:post];
+}
+
+- (void)unpinFromCamp {
+    [self unpinFromCampWithCmpletion:nil];
+}
+- (void)unpinFromCampWithCmpletion:(void (^_Nullable)(BOOL success, id _Nullable responseObject))handler {
+    if (!self.attributes.postedIn.identifier) {
+        if (handler) {
+            handler(false, self);
+        }
+        
+        return;
+    }
+    
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"CampStreamUpdating" object:self.attributes.postedIn];
+    
+    [FIRAnalytics logEventWithName:@"post_unpin"
+                            parameters:@{}];
+    
+    NSString *url = [NSString stringWithFormat:@"camps/%@/posts/%@/pinned", self.attributes.postedIn.identifier, self.identifier];
+    [[HAWebService authenticatedManager] DELETE:url parameters:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"CampRefreshRequired" object:self.attributes.postedIn];
+        
+        if (handler) {
+            handler(true, self);
+        }
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"CampRefreshRequired" object:self.attributes.postedIn];
+        
+        if (handler) {
+            handler(false, self);
+        }
+    }];
+    
+    // update model
+    Post *post = [[Post alloc] initWithDictionary:[self toDictionary] error:nil];
+    PostAttributes *attributes = [[PostAttributes alloc] initWithDictionary:[post.attributes toDictionary] error:nil];
+    attributes.pinned = false;
+    post.attributes = attributes;
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"PostUpdated" object:post];
 }
 
 @end

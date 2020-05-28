@@ -111,6 +111,10 @@
 		D9504D3E22284D8000DD35B0 /* PostActivityView.m in Sources */ = {isa = PBXBuildFile; fileRef = D9504D3D22284D8000DD35B0 /* PostActivityView.m */; };
 		D952CAD322F9DB4800BAE564 /* BFLinkAttachmentView.m in Sources */ = {isa = PBXBuildFile; fileRef = D952CAD222F9DB4800BAE564 /* BFLinkAttachmentView.m */; };
 		D952CAD622FB2C9900BAE564 /* NSURL+WebsiteTypeValidation.m in Sources */ = {isa = PBXBuildFile; fileRef = D952CAD522FB2C9900BAE564 /* NSURL+WebsiteTypeValidation.m */; };
+		D955EA3B247ED46200947D17 /* PostModerationOptionsTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D955EA3A247ED46200947D17 /* PostModerationOptionsTableViewCell.m */; };
+		D955EA3E247EE99F00947D17 /* PostModerationInsightsTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D955EA3D247EE99F00947D17 /* PostModerationInsightsTableViewCell.m */; };
+		D955EA42247EED4800947D17 /* InsightTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D955EA41247EED4800947D17 /* InsightTableViewCell.m */; };
+		D955EA48247F4F0200947D17 /* NewHomeCollectionViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D955EA47247F4F0200947D17 /* NewHomeCollectionViewController.m */; };
 		D95CBC302177E7EA001E6D2D /* LocalDefaults.json in Resources */ = {isa = PBXBuildFile; fileRef = D95CBC2F2177E67C001E6D2D /* LocalDefaults.json */; };
 		D95EE37C2295A491006E4D8E /* BFHeaderView.m in Sources */ = {isa = PBXBuildFile; fileRef = D95EE37B2295A491006E4D8E /* BFHeaderView.m */; };
 		D95EE38D229C47CE006E4D8E /* BFNotificationView.m in Sources */ = {isa = PBXBuildFile; fileRef = D95EE389229C47CE006E4D8E /* BFNotificationView.m */; };
@@ -162,6 +166,13 @@
 		D97D3AB6241045F8006A6BA1 /* GIFCollectionViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D97D3AB5241045F7006A6BA1 /* GIFCollectionViewCell.m */; };
 		D97D3AB92412DD17006A6BA1 /* BFActivityIndicatorView.m in Sources */ = {isa = PBXBuildFile; fileRef = D97D3AB82412DD17006A6BA1 /* BFActivityIndicatorView.m */; };
 		D97D63AE243D1FEC002F8810 /* UIView+BFEffects.m in Sources */ = {isa = PBXBuildFile; fileRef = D97D63AD243D1FEC002F8810 /* UIView+BFEffects.m */; };
+		D97E83FE246217780048CFC5 /* AccountSuspendedViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D97E83FD246217780048CFC5 /* AccountSuspendedViewController.m */; };
+		D97E84012464C3020048CFC5 /* CampModerateViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D97E84002464C3010048CFC5 /* CampModerateViewController.m */; };
+		D97E840C246B09E40048CFC5 /* NSString+getQueryStringParameter.m in Sources */ = {isa = PBXBuildFile; fileRef = D97E840B246B09E40048CFC5 /* NSString+getQueryStringParameter.m */; };
+		D97E840F24723FEA0048CFC5 /* BFSwippableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D97E840E24723FEA0048CFC5 /* BFSwippableViewController.m */; };
+		D97E8413247305040048CFC5 /* BFVideoPlayerViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D97E8412247305030048CFC5 /* BFVideoPlayerViewController.m */; };
+		D97E841624732A6F0048CFC5 /* UIView+Guides.m in Sources */ = {isa = PBXBuildFile; fileRef = D97E841524732A6F0048CFC5 /* UIView+Guides.m */; };
+		D97E841924737D290048CFC5 /* BFLiveAudioViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D97E841824737D280048CFC5 /* BFLiveAudioViewController.m */; };
 		D98212332319A05C00B8B6E9 /* BFViewExporter.m in Sources */ = {isa = PBXBuildFile; fileRef = D98212322319A05C00B8B6E9 /* BFViewExporter.m */; };
 		D9824236219CAA0D003626DA /* EditCampViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9824235219CAA0D003626DA /* EditCampViewController.m */; };
 		D983D733216E5A5900F9D201 /* LoadingCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D983D732216E5A5900F9D201 /* LoadingCell.m */; };
@@ -490,6 +501,14 @@
 		D952CAD222F9DB4800BAE564 /* BFLinkAttachmentView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BFLinkAttachmentView.m; sourceTree = "<group>"; };
 		D952CAD422FB2C9900BAE564 /* NSURL+WebsiteTypeValidation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSURL+WebsiteTypeValidation.h"; sourceTree = "<group>"; };
 		D952CAD522FB2C9900BAE564 /* NSURL+WebsiteTypeValidation.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSURL+WebsiteTypeValidation.m"; sourceTree = "<group>"; };
+		D955EA39247ED46200947D17 /* PostModerationOptionsTableViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PostModerationOptionsTableViewCell.h; sourceTree = "<group>"; };
+		D955EA3A247ED46200947D17 /* PostModerationOptionsTableViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PostModerationOptionsTableViewCell.m; sourceTree = "<group>"; };
+		D955EA3C247EE99F00947D17 /* PostModerationInsightsTableViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PostModerationInsightsTableViewCell.h; sourceTree = "<group>"; };
+		D955EA3D247EE99F00947D17 /* PostModerationInsightsTableViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PostModerationInsightsTableViewCell.m; sourceTree = "<group>"; };
+		D955EA40247EED4800947D17 /* InsightTableViewCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InsightTableViewCell.h; sourceTree = "<group>"; };
+		D955EA41247EED4800947D17 /* InsightTableViewCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = InsightTableViewCell.m; sourceTree = "<group>"; };
+		D955EA46247F4F0200947D17 /* NewHomeCollectionViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NewHomeCollectionViewController.h; sourceTree = "<group>"; };
+		D955EA47247F4F0200947D17 /* NewHomeCollectionViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NewHomeCollectionViewController.m; sourceTree = "<group>"; };
 		D95A04AB22F2206700518718 /* Social.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Social.framework; path = System/Library/Frameworks/Social.framework; sourceTree = SDKROOT; };
 		D95CBC2F2177E67C001E6D2D /* LocalDefaults.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = LocalDefaults.json; sourceTree = "<group>"; };
 		D95EE37A2295A491006E4D8E /* BFHeaderView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BFHeaderView.h; sourceTree = "<group>"; };
@@ -589,6 +608,21 @@
 		D97D3AB82412DD17006A6BA1 /* BFActivityIndicatorView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BFActivityIndicatorView.m; sourceTree = "<group>"; };
 		D97D63AC243D1FEC002F8810 /* UIView+BFEffects.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "UIView+BFEffects.h"; sourceTree = "<group>"; };
 		D97D63AD243D1FEC002F8810 /* UIView+BFEffects.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "UIView+BFEffects.m"; sourceTree = "<group>"; };
+		D97E83FC246217780048CFC5 /* AccountSuspendedViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AccountSuspendedViewController.h; sourceTree = "<group>"; };
+		D97E83FD246217780048CFC5 /* AccountSuspendedViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AccountSuspendedViewController.m; sourceTree = "<group>"; };
+		D97E83FF2464C3010048CFC5 /* CampModerateViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CampModerateViewController.h; sourceTree = "<group>"; };
+		D97E84002464C3010048CFC5 /* CampModerateViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CampModerateViewController.m; sourceTree = "<group>"; };
+		D97E84082469B3910048CFC5 /* CryptoKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CryptoKit.framework; path = System/Library/Frameworks/CryptoKit.framework; sourceTree = SDKROOT; };
+		D97E840A246B09E40048CFC5 /* NSString+getQueryStringParameter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSString+getQueryStringParameter.h"; sourceTree = "<group>"; };
+		D97E840B246B09E40048CFC5 /* NSString+getQueryStringParameter.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSString+getQueryStringParameter.m"; sourceTree = "<group>"; };
+		D97E840D24723FE90048CFC5 /* BFSwippableViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BFSwippableViewController.h; sourceTree = "<group>"; };
+		D97E840E24723FEA0048CFC5 /* BFSwippableViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BFSwippableViewController.m; sourceTree = "<group>"; };
+		D97E8411247305030048CFC5 /* BFVideoPlayerViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BFVideoPlayerViewController.h; sourceTree = "<group>"; };
+		D97E8412247305030048CFC5 /* BFVideoPlayerViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BFVideoPlayerViewController.m; sourceTree = "<group>"; };
+		D97E841424732A6F0048CFC5 /* UIView+Guides.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "UIView+Guides.h"; sourceTree = "<group>"; };
+		D97E841524732A6F0048CFC5 /* UIView+Guides.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "UIView+Guides.m"; sourceTree = "<group>"; };
+		D97E841724737D270048CFC5 /* BFLiveAudioViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BFLiveAudioViewController.h; sourceTree = "<group>"; };
+		D97E841824737D280048CFC5 /* BFLiveAudioViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BFLiveAudioViewController.m; sourceTree = "<group>"; };
 		D98212312319A05C00B8B6E9 /* BFViewExporter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BFViewExporter.h; sourceTree = "<group>"; };
 		D98212322319A05C00B8B6E9 /* BFViewExporter.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BFViewExporter.m; sourceTree = "<group>"; };
 		D9824234219CAA0C003626DA /* EditCampViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EditCampViewController.h; sourceTree = "<group>"; };
@@ -836,6 +870,7 @@
 		77CE9C1AB8339425CADD90CD /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D97E84082469B3910048CFC5 /* CryptoKit.framework */,
 				D95A04AB22F2206700518718 /* Social.framework */,
 				D9E8E88121C2F63F00DDFEBA /* SafariServices.framework */,
 				D9B2D57321ACAED5007B3C0C /* Intents.framework */,
@@ -886,6 +921,7 @@
 		D907B07F214EEC5000A59712 /* Pulse */ = {
 			isa = PBXGroup;
 			children = (
+				D955EA45247F4EE500947D17 /* Concepts */,
 				D96C1FAB22D18E6A000DAF99 /* Styles */,
 				D9B2D57221ACAEBE007B3C0C /* Pulse.entitlements */,
 				D907B089214EEC5300A59712 /* Assets.xcassets */,
@@ -1215,6 +1251,28 @@
 			path = User;
 			sourceTree = "<group>";
 		};
+		D955EA3F247EECC000947D17 /* Moderation */ = {
+			isa = PBXGroup;
+			children = (
+				D955EA39247ED46200947D17 /* PostModerationOptionsTableViewCell.h */,
+				D955EA3A247ED46200947D17 /* PostModerationOptionsTableViewCell.m */,
+				D955EA3C247EE99F00947D17 /* PostModerationInsightsTableViewCell.h */,
+				D955EA3D247EE99F00947D17 /* PostModerationInsightsTableViewCell.m */,
+				D955EA40247EED4800947D17 /* InsightTableViewCell.h */,
+				D955EA41247EED4800947D17 /* InsightTableViewCell.m */,
+			);
+			path = Moderation;
+			sourceTree = "<group>";
+		};
+		D955EA45247F4EE500947D17 /* Concepts */ = {
+			isa = PBXGroup;
+			children = (
+				D955EA46247F4F0200947D17 /* NewHomeCollectionViewController.h */,
+				D955EA47247F4F0200947D17 /* NewHomeCollectionViewController.m */,
+			);
+			path = Concepts;
+			sourceTree = "<group>";
+		};
 		D95CBC2E2177DF63001E6D2D /* Defaults */ = {
 			isa = PBXGroup;
 			children = (
@@ -1364,6 +1422,7 @@
 		D974B74221614B6D00C03269 /* Post */ = {
 			isa = PBXGroup;
 			children = (
+				D955EA3F247EECC000947D17 /* Moderation */,
 				D904283A233937C40051D3AF /* LinkPostCell.h */,
 				D904283B233937C40051D3AF /* LinkPostCell.m */,
 				D9684D2322C402BE0035DEF8 /* AddReplyCell.h */,
@@ -1410,6 +1469,7 @@
 				D912BD6F222C744D00F9F4EC /* Camp Members */,
 				D9133B4E2266528C00B5D65C /* Edit Camp */,
 				D9133B4F2266529300B5D65C /* Create Camp */,
+				D97E84022464C3080048CFC5 /* Moderate */,
 			);
 			path = Camp;
 			sourceTree = "<group>";
@@ -1455,6 +1515,26 @@
 				D97D3AB5241045F7006A6BA1 /* GIFCollectionViewCell.m */,
 			);
 			path = "GIFs by Tenor";
+			sourceTree = "<group>";
+		};
+		D97E84022464C3080048CFC5 /* Moderate */ = {
+			isa = PBXGroup;
+			children = (
+				D97E83FF2464C3010048CFC5 /* CampModerateViewController.h */,
+				D97E84002464C3010048CFC5 /* CampModerateViewController.m */,
+			);
+			path = Moderate;
+			sourceTree = "<group>";
+		};
+		D97E8410247304E00048CFC5 /* Media */ = {
+			isa = PBXGroup;
+			children = (
+				D97E841724737D270048CFC5 /* BFLiveAudioViewController.h */,
+				D97E841824737D280048CFC5 /* BFLiveAudioViewController.m */,
+				D97E8411247305030048CFC5 /* BFVideoPlayerViewController.h */,
+				D97E8412247305030048CFC5 /* BFVideoPlayerViewController.m */,
+			);
+			path = Media;
 			sourceTree = "<group>";
 		};
 		D983D72C216D7F3E00F9D201 /* Camp */ = {
@@ -1635,6 +1715,7 @@
 		D9C8B57121A5F15E00A9A282 /* Controllers */ = {
 			isa = PBXGroup;
 			children = (
+				D97E8410247304E00048CFC5 /* Media */,
 				D97D3AB02410383D006A6BA1 /* GIFs by Tenor */,
 				D97D3A9824030BD3006A6BA1 /* Camera */,
 				D96AB13B238080F300838D58 /* Orientation (WIP) */,
@@ -1659,7 +1740,11 @@
 				D90047CF22860669006B4B3D /* BFColorPickerViewController.m */,
 				D99314062301F2A2004C192B /* OutOfDateClientViewController.h */,
 				D99314072301F2A2004C192B /* OutOfDateClientViewController.m */,
+				D97E83FC246217780048CFC5 /* AccountSuspendedViewController.h */,
+				D97E83FD246217780048CFC5 /* AccountSuspendedViewController.m */,
 				D92C85A72399567D00AB19FB /* Waitlist */,
+				D97E840D24723FE90048CFC5 /* BFSwippableViewController.h */,
+				D97E840E24723FEA0048CFC5 /* BFSwippableViewController.m */,
 			);
 			path = Controllers;
 			sourceTree = "<group>";
@@ -1734,6 +1819,7 @@
 		D9C8B57621A5F28C00A9A282 /* Cells */ = {
 			isa = PBXGroup;
 			children = (
+				D974B74221614B6D00C03269 /* Post */,
 				D963024A23D63C2E0025D2CF /* BFSectionHeaderCell.h */,
 				D963024B23D63C2E0025D2CF /* BFSectionHeaderCell.m */,
 				41EB16E4236FCD5300116C90 /* ThemeSelectorInputCell.h */,
@@ -1754,7 +1840,6 @@
 				D921171321A6488F00853F3F /* ContactCell.m */,
 				D921170F21A6162500853F3F /* InviteFriendHeaderCell.h */,
 				D921171021A6162500853F3F /* InviteFriendHeaderCell.m */,
-				D974B74221614B6D00C03269 /* Post */,
 				D9114F8121954D4E0033765A /* MemberRequestCell.h */,
 				D9114F8221954D4F0033765A /* MemberRequestCell.m */,
 				D91643122164143700523770 /* CampHeaderCell.h */,
@@ -1763,8 +1848,6 @@
 				D923802A2183D98100E01A34 /* PaginationCell.m */,
 				D9B2D59021B86C6B007B3C0C /* ActivityCell.h */,
 				D9B2D59121B86C6B007B3C0C /* ActivityCell.m */,
-				D9B2D59A21B8BD8A007B3C0C /* NSAttributedString+NotificationConveniences.h */,
-				D9B2D59B21B8BD8A007B3C0C /* NSAttributedString+NotificationConveniences.m */,
 				D9E8E87B21C1C9D600DDFEBA /* ToggleCell.h */,
 				D9E8E87A21C1C9D600DDFEBA /* ToggleCell.m */,
 				D912BD71222DA86B00F9F4EC /* AddManagerCell.h */,
@@ -1918,6 +2001,8 @@
 			isa = PBXGroup;
 			children = (
 				D971623E21DC3D3E00138BF9 /* Insights */,
+				D9B2D59A21B8BD8A007B3C0C /* NSAttributedString+NotificationConveniences.h */,
+				D9B2D59B21B8BD8A007B3C0C /* NSAttributedString+NotificationConveniences.m */,
 				D9FFFB47227BE2BC004E3779 /* BFMacros.h */,
 				D907B1032150697400A59712 /* NSArray+Clean.h */,
 				D907B1012150697300A59712 /* NSArray+Clean.m */,
@@ -1952,6 +2037,10 @@
 				D939C6CB23DE1EA6006F3965 /* UIView+RoundedCorners.m */,
 				D97D63AC243D1FEC002F8810 /* UIView+BFEffects.h */,
 				D97D63AD243D1FEC002F8810 /* UIView+BFEffects.m */,
+				D97E840A246B09E40048CFC5 /* NSString+getQueryStringParameter.h */,
+				D97E840B246B09E40048CFC5 /* NSString+getQueryStringParameter.m */,
+				D97E841424732A6F0048CFC5 /* UIView+Guides.h */,
+				D97E841524732A6F0048CFC5 /* UIView+Guides.m */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -2326,6 +2415,7 @@
 				D9AE329D220A3F6000334340 /* PostCell.m in Sources */,
 				D96AD79C218102AF00849F6B /* InputCell.m in Sources */,
 				D9267C6021D6ABAC00E21862 /* SmartListTableViewController.m in Sources */,
+				D97E84012464C3020048CFC5 /* CampModerateViewController.m in Sources */,
 				D9C8B564219F897700A9A282 /* CampCardsListCell.m in Sources */,
 				D9742E7721C459DE002CBEFC /* ComposeViewController.m in Sources */,
 				D939C6CC23DE1EA6006F3965 /* UIView+RoundedCorners.m in Sources */,
@@ -2338,6 +2428,7 @@
 				D924BE2D21542EE400EB7385 /* PostTextView.m in Sources */,
 				D94FD1F4216D730300B84E45 /* CampSummaries.m in Sources */,
 				D907B1042150697400A59712 /* NSArray+Clean.m in Sources */,
+				D955EA3E247EE99F00947D17 /* PostModerationInsightsTableViewCell.m in Sources */,
 				D9742E8021C5AB3E002CBEFC /* PrivacySelectorTableViewController.m in Sources */,
 				D98212332319A05C00B8B6E9 /* BFViewExporter.m in Sources */,
 				D97D3A9B24030BEC006A6BA1 /* BFCameraViewController.m in Sources */,
@@ -2371,6 +2462,7 @@
 				D907B1052150697400A59712 /* NSDictionary+Clean.m in Sources */,
 				D9504D382223328600DD35B0 /* QuickReplyViewController.m in Sources */,
 				D924BE2A21542E8F00EB7385 /* ExpandedPostActionsView.m in Sources */,
+				D97E841924737D290048CFC5 /* BFLiveAudioViewController.m in Sources */,
 				D96A06F12241E45E00406C81 /* ComposeTextViewCell.m in Sources */,
 				D93F7F132257179800450D9E /* GTMNSString+HTML.m in Sources */,
 				D9A7A2A2225D400B0091B53C /* ResetPasswordViewController.m in Sources */,
@@ -2394,6 +2486,7 @@
 				D9BD77172177DD1F00DAB9BE /* Defaults.m in Sources */,
 				D912BD7D2232F3A100F9F4EC /* UserActivity.m in Sources */,
 				D9742E7D21C57CCE002CBEFC /* BFAvatarView.m in Sources */,
+				D97E8413247305040048CFC5 /* BFVideoPlayerViewController.m in Sources */,
 				D97D3AA72404ABD3006A6BA1 /* BFCameraSwiper.m in Sources */,
 				D9C9DF1C22BC4C0000ADDC65 /* BFContext.m in Sources */,
 				D971623A21DBF91100138BF9 /* InsightsLogger.m in Sources */,
@@ -2403,6 +2496,7 @@
 				D9C03944215D6F1900B30A41 /* ComplexNavigationController.m in Sources */,
 				D9FFFB4D227C9778004E3779 /* CampMedia.m in Sources */,
 				D96AB134237DEF2200838D58 /* BFJSONModel.m in Sources */,
+				D97E841624732A6F0048CFC5 /* UIView+Guides.m in Sources */,
 				D912BD80223314B900F9F4EC /* UserActivityStream.m in Sources */,
 				D91643142164143700523770 /* CampHeaderCell.m in Sources */,
 				D94FD1F5216D730300B84E45 /* Camp.m in Sources */,
@@ -2422,6 +2516,7 @@
 				D9FFFB62227E5E08004E3779 /* KSProgressView.m in Sources */,
 				D9A1CC1221E52950006D377C /* PostContextView.m in Sources */,
 				D907B090214EEC5300A59712 /* main.m in Sources */,
+				D955EA48247F4F0200947D17 /* NewHomeCollectionViewController.m in Sources */,
 				D944456622E6478800C75615 /* BFAlternativeHeaderView.m in Sources */,
 				D921171421A6488F00853F3F /* ContactCell.m in Sources */,
 				D923802B2183D98100E01A34 /* PaginationCell.m in Sources */,
@@ -2439,6 +2534,7 @@
 				D96AB12D2372739E00838D58 /* Identity.m in Sources */,
 				D9BD47D2235A4BFE001E027E /* BotFollowButton.m in Sources */,
 				D9133B552267EBD600B5D65C /* KTCenterFlowLayout.m in Sources */,
+				D97E83FE246217780048CFC5 /* AccountSuspendedViewController.m in Sources */,
 				D97681CC22F604E3001F1BFC /* BFCampAttachmentView.m in Sources */,
 				D907B082214EEC5000A59712 /* AppDelegate.m in Sources */,
 				D96AD799218102A200849F6B /* ThemeSelectorCell.m in Sources */,
@@ -2465,12 +2561,14 @@
 				D9BD47BA23563D57001E027E /* JKRichTextViewEmojiDataHandler.m in Sources */,
 				D9C8B55E219F5D3300A9A282 /* Launcher.m in Sources */,
 				D94DE3342199203C00CA3E1F /* SSWAnimator.m in Sources */,
+				D955EA3B247ED46200947D17 /* PostModerationOptionsTableViewCell.m in Sources */,
 				D9FFFB63227E5E08004E3779 /* KSPhotoBrowser.m in Sources */,
 				D9B2D57721AE3265007B3C0C /* Reachability.m in Sources */,
 				D9DCACC821B9E0EA0038C7ED /* PostStream.m in Sources */,
 				D9B2D57F21B0AB4B007B3C0C /* SimpleNavigationController.m in Sources */,
 				D990F30A23106B0800184B58 /* NSString+UTF.m in Sources */,
 				D98FD22122B016C100F1D947 /* UIImage+fixOrientation.m in Sources */,
+				D97E840C246B09E40048CFC5 /* NSString+getQueryStringParameter.m in Sources */,
 				D9BD47BB23563D57001E027E /* JKRichTextViewLinkDataHandler.m in Sources */,
 				D97681C922F604C9001F1BFC /* BFAttachmentView.m in Sources */,
 				D939C6C623DA5ECF006F3965 /* BFComponentTableView.m in Sources */,
@@ -2491,10 +2589,12 @@
 				D94C479923FC607700AAFCD2 /* UIView+Styles.m in Sources */,
 				D9B2D59221B86C6B007B3C0C /* ActivityCell.m in Sources */,
 				D998462921934309000B901F /* CampMembersViewController.m in Sources */,
+				D97E840F24723FEA0048CFC5 /* BFSwippableViewController.m in Sources */,
 				D963024C23D63C2E0025D2CF /* BFSectionHeaderCell.m in Sources */,
 				D9B2D58621B1F09E007B3C0C /* SearchNavigationController.m in Sources */,
 				D9C8B58421A5F6A600A9A282 /* PostViewController.m in Sources */,
 				D944456322E6433300C75615 /* SmallMediumCampCardCell.m in Sources */,
+				D955EA42247EED4800947D17 /* InsightTableViewCell.m in Sources */,
 				D9E5EB8421FF6AEE00B9F5FD /* ThemedTableViewController.m in Sources */,
 				D9E5EB7E21FC199000B9F5FD /* ProfileFollowingListViewController.m in Sources */,
 				D9BF52AA21D45F84004E9F12 /* MiniToLargeViewInteractive.m in Sources */,
@@ -2709,7 +2809,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.0.4;
 				PRODUCT_BUNDLE_IDENTIFIER = "Ingenious.bonfire$(BUNDLE_ID_SUFFIX)";
 				PRODUCT_NAME = "Bonfire b$(CURRENT_PROJECT_VERSION)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2718,7 +2818,7 @@
 				SWIFT_OBJC_BRIDGING_HEADER = "Pulse/Pulse-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 4.2;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -2747,7 +2847,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.0.4;
 				PRODUCT_BUNDLE_IDENTIFIER = "Ingenious.bonfire$(BUNDLE_ID_SUFFIX)";
 				PRODUCT_NAME = Bonfire;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2755,7 +2855,7 @@
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = "Pulse/Pulse-Bridging-Header.h";
 				SWIFT_VERSION = 4.2;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
@@ -2821,7 +2921,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = Ingenious.PulseTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Bonfire b13.app/Bonfire b13";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Bonfire b6.app/Bonfire b6";
 			};
 			name = Debug;
 		};
@@ -2887,7 +2987,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = Ingenious.PulseTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Bonfire b13.app/Bonfire b13";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Bonfire b6.app/Bonfire b6";
 			};
 			name = Release;
 		};
@@ -3015,7 +3115,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.0.4;
 				PRODUCT_BUNDLE_IDENTIFIER = "Ingenious.bonfire$(BUNDLE_ID_SUFFIX)";
 				PRODUCT_NAME = Bonfire;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -3023,7 +3123,7 @@
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = "Pulse/Pulse-Bridging-Header.h";
 				SWIFT_VERSION = 4.2;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Beta;
 		};
@@ -3089,7 +3189,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = Ingenious.PulseTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Bonfire b13.app/Bonfire b13";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Bonfire b6.app/Bonfire b6";
 			};
 			name = Beta;
 		};

@@ -25,6 +25,7 @@
 #import "HAWebService.h"
 #import "BFComponentSectionTableView.h"
 #import "WaitlistViewController.h"
+#import "AccountSuspendedViewController.h"
 
 #import <Lockbox/Lockbox.h>
 #import <AudioToolbox/AudioServices.h>
@@ -37,8 +38,6 @@
 
 @interface AppDelegate () <CrashlyticsDelegate>
 
-@property (nonatomic, strong) Session *session;
-
 @end
 
 @implementation AppDelegate
@@ -47,11 +46,9 @@
     [self setupEnvironment];
     
     [UNUserNotificationCenter currentNotificationCenter].delegate = self;
-    
-    self.session = [Session sharedInstance];
-    
-    NSDictionary *accessToken = [self.session getAccessTokenWithVerification:true];
-    NSString *refreshToken = self.session.refreshToken;
+        
+    NSDictionary *accessToken = [[Session sharedInstance] getAccessTokenWithVerification:true];
+    NSString *refreshToken = [Session sharedInstance].refreshToken;
     DSpacer();
     // NSLog(@"self.session.currentUser: %@", self.session.currentUser.identifier);
     DSimpleLog(@"[🙎‍♂️] @%@ (id: %@)", [Session sharedInstance].currentUser.attributes.identifier, [Session sharedInstance].currentUser.identifier);
@@ -65,7 +62,7 @@
     self.window.rootViewController = launchScreen;
     [self.window makeKeyAndVisible];
     
-    if ((accessToken != nil || refreshToken != nil) && self.session.currentUser.identifier != nil) {
+    if ((accessToken != nil || refreshToken != nil) && [Session sharedInstance].currentUser.identifier != nil) {
         [self launchLoggedInWithCompletion:nil];
     }
     else {
@@ -89,7 +86,7 @@
     });
     
     [self setupRoundedCorners];
-    
+        
     return YES;
 }
 
@@ -137,7 +134,7 @@
 
 - (void)statusBarTouchedAction {
     BOOL isDevelopment = [Configuration isDevelopment];
-    BFAlertController *options = [BFAlertController alertControllerWithIcon:[UIImage imageNamed:@"alert_icon_settings"] title:@"Internal Tools" message:(isDevelopment ? @"Bonfire Development" : @"Bonfire Production") preferredStyle:BFAlertControllerStyleAlert];
+    BFAlertController *options = [BFAlertController alertControllerWithIcon:[UIImage imageNamed:@"alert_icon_settings"] title:@"Internal Tools" message:(isDevelopment ? @"Bonfire Development" : ([[Configuration PRODUCTION_BASE_URI] isEqualToString:@"https://api.bonfire.camp"] ? @"Bonfire Production" : @"Bonfire Staging")) preferredStyle:BFAlertControllerStyleAlert];
     
     if (isDevelopment) {
         BFAlertAction *switchToProduction = [BFAlertAction actionWithTitle:@"Switch to Production Mode" style:BFAlertActionStyleDefault handler:^{
@@ -148,52 +145,6 @@
             [Launcher openOnboarding];
         }];
         [options addAction:switchToProduction];
-        
-        BFAlertAction *changeURL = [BFAlertAction actionWithTitle:@"Set API URL" style:BFAlertActionStyleDefault handler:^{
-            [options dismissViewControllerAnimated:YES completion:nil];
-            
-            // use BFAlertController
-            BFAlertController *alert= [BFAlertController
-                                       alertControllerWithTitle:@"Set API"
-                                       message:@"Enter the base URI used when prefixing API requests."
-                                       preferredStyle:BFAlertControllerStyleAlert];
-            
-            BFAlertAction *ok = [BFAlertAction actionWithTitle:@"Save" style:BFAlertActionStyleDefault
-                                                       handler:^(){
-                                                           //Do Some action here
-                                                           UITextField *textField = alert.textField;
-                                                           
-                                                           [Configuration replaceDevelopmentURIWith:textField.text];
-                                                       }];
-            BFAlertAction *saveAndQuit = [BFAlertAction actionWithTitle:@"Save & Quit" style:BFAlertActionStyleDefault
-                                                                handler:^(){
-                                                                    //Do Some action here
-                                                                    UITextField *textField = alert.textField;
-                                                                    
-                                                                    [Configuration replaceDevelopmentURIWith:textField.text];
-                                                                    
-                                                                    exit(0);
-                                                                }];
-            BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel
-                                                           handler:^() {
-                                                               [alert dismissViewControllerAnimated:YES completion:nil];
-                                                           }];
-            
-            [alert addAction:ok];
-            [alert addAction:saveAndQuit];
-            [alert addAction:cancel];
-            
-            UITextField *textField = [UITextField new];
-            textField.placeholder = @"Development Base URI";
-            textField.text = [Configuration DEVELOPMENT_BASE_URI];
-            textField.keyboardType = UIKeyboardTypeURL;
-            [alert setTextField:textField];
-            [textField becomeFirstResponder];
-            
-            [alert show];
-        }];
-        
-        [options addAction:changeURL];
     }
     else {
         BFAlertAction *switchToDevelopmentMode = [BFAlertAction actionWithTitle:@"Switch to Development Mode" style:BFAlertActionStyleDefault handler:^{
@@ -205,6 +156,51 @@
         }];
         [options addAction:switchToDevelopmentMode];
     }
+    
+    BFAlertAction *changeURL = [BFAlertAction actionWithTitle:@"Set API URL" style:BFAlertActionStyleDefault handler:^{
+        [options dismissViewControllerAnimated:YES completion:nil];
+        
+        // use BFAlertController
+        BFAlertController *alert= [BFAlertController
+                                   alertControllerWithTitle:@"Set API"
+                                   message:@"Enter the base URI used when prefixing API requests."
+                                   preferredStyle:BFAlertControllerStyleAlert];
+        
+        BFAlertAction *ok = [BFAlertAction actionWithTitle:@"Save" style:BFAlertActionStyleDefault
+                                                   handler:^(){
+            //Do Some action here
+            UITextField *textField = alert.textField;
+                                                       
+            [Configuration replaceCurrentURIWith:textField.text];
+            
+            [[BFMiniNotificationManager manager] presentNotification:[BFMiniNotificationObject notificationWithText:@"Updated!" action:nil] completion:nil];
+        }];
+        BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel
+                                                       handler:nil];
+        
+        [alert addAction:ok];
+        if (!isDevelopment && ![[Configuration PRODUCTION_BASE_URI] isEqualToString:@"https://api.bonfire.camp"]) {
+            BFAlertAction *reset = [BFAlertAction actionWithTitle:@"Reset" style:BFAlertActionStyleDestructive
+                                                          handler:^(){
+                [Configuration replaceCurrentURIWith:@"https://api.bonfire.camp"];
+                
+                [[BFMiniNotificationManager manager] presentNotification:[BFMiniNotificationObject notificationWithText:@"Reset!" action:nil] completion:nil];
+            }];
+            [alert addAction:reset];
+        }
+        [alert addAction:cancel];
+        
+        UITextField *textField = [UITextField new];
+        textField.placeholder = @"Base URI";
+        textField.text = [Configuration CURRENT_BASE_URI];
+        textField.keyboardType = UIKeyboardTypeURL;
+        [alert setTextField:textField];
+        [textField becomeFirstResponder];
+        
+        [alert show];
+    }];
+    
+    [options addAction:changeURL];
     
     NSString *token = [[NSUserDefaults standardUserDefaults] stringForKey:@"device_token"];
     if (token != nil) {
@@ -235,26 +231,25 @@
         [options addAction:apnsToken];
     }
     
-    NSString *sesssionToken = [NSString stringWithFormat:@"%@", [[Session sharedInstance] getAccessTokenWithVerification:true][@"access_token"]];
-    if (sesssionToken.length > 0) {
+    if ([Session sharedInstance].accessTokenString.length > 0) {
         BFAlertAction *apnsToken = [BFAlertAction actionWithTitle:@"View Access Token" style:BFAlertActionStyleDefault handler:^{
             [options dismissViewControllerAnimated:YES completion:nil];
             
             // use BFAlertController
             BFAlertController *alert = [BFAlertController
                                         alertControllerWithTitle:@"Access Token"
-                                        message:sesssionToken
+                                        message:[Session sharedInstance].accessTokenString
                                         preferredStyle:BFAlertControllerStyleAlert];
             
             BFAlertAction *copy = [BFAlertAction actionWithTitle:@"Copy" style:BFAlertActionStyleDefault
                                                        handler:^{
                                                            UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
-                                                           pasteboard.string = sesssionToken;
+                                                           pasteboard.string = [Session sharedInstance].accessTokenString;
                                                        }];
             
             BFAlertAction *imessage = [BFAlertAction actionWithTitle:@"iMessage" style:BFAlertActionStyleDefault
                                                        handler:^{
-                                                           [Launcher shareOniMessage:sesssionToken image:nil];
+                                                           [Launcher shareOniMessage:[Session sharedInstance].accessTokenString image:nil];
                                                        }];
             
             BFAlertAction *cancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel
@@ -285,6 +280,15 @@
 - (void)launchLoggedInWithCompletion:(void (^_Nullable)(BOOL success))handler {
     [[Session sharedInstance] getNewAccessToken:^(BOOL success, NSString * _Nonnull newToken, NSInteger bonfireErrorCode) {
         if (success) {
+            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+                [BFAPI getUser:nil];
+                
+                #ifdef DEBUG
+                #else
+                [[Session sharedInstance] syncDeviceToken];
+                #endif
+            });
+            
             NSInteger launches = [[NSUserDefaults standardUserDefaults] integerForKey:@"launches"];
             launches = launches + 1;
             [[NSUserDefaults standardUserDefaults] setInteger:launches forKey:@"launches"];
@@ -313,6 +317,7 @@
                 [[Session tempCache] removeAllObjects];
             }
             
+                
             [Launcher launchLoggedIn:false replaceRootViewController:true];
             
             if (handler) {
@@ -332,7 +337,8 @@
 }
 
 - (void)launchOnboarding {
-    if (![self.window.rootViewController isKindOfClass:[HelloViewController class]]) {
+    if (![self.window.rootViewController isKindOfClass:[HelloViewController class]] &&
+        ![self.window.rootViewController isKindOfClass:[AccountSuspendedViewController class]]) {
         HelloViewController *vc = [[HelloViewController alloc] init];
         vc.fromLaunch = true;
         self.window.rootViewController = vc;
@@ -359,9 +365,7 @@
     [formatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ssZ"];
     
     NSDate *tokenExpiration = [formatter dateFromString:token[@"expires_at"]];
-    
-    NSLog(@"token app version: %@", token[@"app_version"]);
-    
+        
     NSString *version = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
     if ([now compare:tokenExpiration] == NSOrderedDescending || ![token[@"app_version"] isEqualToString:version]) {
         // loginExpiration in the future
@@ -483,7 +487,7 @@
     NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
     if (url) {
         NSURLComponents *components = [NSURLComponents componentsWithString:url.absoluteString];
-        for(NSURLQueryItem *item in components.queryItems)
+        for (NSURLQueryItem *item in components.queryItems)
         {
             [params setObject:item.value forKey:item.name];
         }
@@ -649,44 +653,41 @@
     // Start the background task
     CFABackgroundTask *task = [UIApplication cfa_backgroundTask];
     [[HAWebService manager].session getTasksWithCompletionHandler:^(NSArray<NSURLSessionDataTask *> * _Nonnull dataTasks, NSArray<NSURLSessionUploadTask *> * _Nonnull uploadTasks, NSArray<NSURLSessionDownloadTask *> * _Nonnull downloadTasks) {
-        DLog(@"data tasks: %@", dataTasks);
-        DLog(@"upload tasks: %@", uploadTasks);
-        DLog(@"data tasks: %@", downloadTasks);
+//        DLog(@"data tasks: %@", dataTasks);
+//        DLog(@"upload tasks: %@", uploadTasks);
+//        DLog(@"data tasks: %@", downloadTasks);
         
         if (dataTasks.count > 0 || uploadTasks.count > 0 || downloadTasks.count > 0) {
-            DLog(@"more than one active data task !!!");
-            
             for (NSURLSessionDataTask *task in dataTasks) {
-                DLog(@"resume this data task!!!");
-                DLog(@"state:: %lu", task.state);
+//                DLog(@"resume this data task!!!");
+//                DLog(@"state:: %lu", task.state);
                 [task resume];
             }
             for (NSURLSessionDataTask *task in uploadTasks) {
-                DLog(@"resume this upload task!!!");
-                DLog(@"state:: %lu", task.state);
+//                DLog(@"resume this upload task!!!");
+//                DLog(@"state:: %lu", task.state);
                 [task resume];
             }
             for (NSURLSessionDataTask *task in downloadTasks) {
-                DLog(@"resume this download task!!!");
-                DLog(@"state:: %lu", task.state);
+//                DLog(@"resume this download task!!!");
+//                DLog(@"state:: %lu", task.state);
                 [task resume];
             }
             
             // Wait 5 seconds….
             float delayInSeconds = 15.f;
-            DLog(@"delay time: %f", delayInSeconds);
             
             dispatch_time_t delayTimer = dispatch_time(DISPATCH_TIME_NOW, delayInSeconds * NSEC_PER_SEC);
             dispatch_after(delayTimer, dispatch_get_main_queue(), ^(void){
-                DLog(@"Application state: %ld", [[UIApplication sharedApplication] applicationState]);
-                DLog(@"Background Time Remaining: %0.1f", [[UIApplication sharedApplication] backgroundTimeRemaining]);
+//                DLog(@"Application state: %ld", [[UIApplication sharedApplication] applicationState]);
+//                DLog(@"Background Time Remaining: %0.1f", [[UIApplication sharedApplication] backgroundTimeRemaining]);
                 
                 // End the task
                 [task invalidate];
             });
         }
         else {
-            DLog(@"no data tasks to resume");
+//            DLog(@"no data tasks to resume");
             [task invalidate];
         }
     }];

@@ -15,6 +15,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (NSArray<BFStreamComponent *> *)toStreamComponents;
 - (NSArray<BFStreamComponent *> *)toStreamComponentsWithDetailLevel:(BFComponentDetailLevel)detailLevel;
+- (NSArray<BFStreamComponent *> *)toStreamComponentsWithDetailLevel:(BFComponentDetailLevel)detailLevel size:(BFStreamComponentSize)size;
 
 @end
 

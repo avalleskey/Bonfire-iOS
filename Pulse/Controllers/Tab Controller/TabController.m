@@ -55,7 +55,7 @@
 
         [vcArray replaceObjectAtIndex:i withObject:navVC];
     }
-            
+    
     self.viewControllers = vcArray;
     
     self.badges = [NSMutableDictionary new];

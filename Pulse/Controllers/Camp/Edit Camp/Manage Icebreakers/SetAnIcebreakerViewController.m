@@ -94,7 +94,7 @@ static NSString * const postCellReuseIdentifier = @"PostCell";
     
     self.bfTableView.loading = true;
     
-    [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+    [[[HAWebService manager] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         PostStreamPage *page = [[PostStreamPage alloc] initWithDictionary:responseObject error:nil];
         if (page.data.count > 0 && ![self.bfTableView.stream.nextCursor isEqualToString:page.meta.paging.nextCursor]) {
             [self.bfTableView.stream appendPage:page];

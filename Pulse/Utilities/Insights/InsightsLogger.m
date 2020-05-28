@@ -259,7 +259,7 @@ static InsightsLogger *logger;
                 
                 NSDictionary *normalizedBatch = [self normalizeBatch:batch];
                 
-                [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] POST:@"insights/impressions" parameters:@{@"impressions": normalizedBatch} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+                [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] POST:@"insights/impressions?urlparam=true" parameters:@{@"impressions": normalizedBatch} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                     // success
                     [self sync];
                 } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {

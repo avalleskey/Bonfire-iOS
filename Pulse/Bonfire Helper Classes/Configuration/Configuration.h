@@ -36,10 +36,12 @@ extern NSString * const LOCAL_APP_URI;
 #pragma mark - Internal Swich Methods
 + (void)switchToDevelopment;
 + (void)switchToProduction;
-+ (void)replaceDevelopmentURIWith:(NSString *)newURI;
++ (void)replaceCurrentURIWith:(NSString *)newURI;
 
 #pragma mark - Misc. Getters
++ (NSString *)CURRENT_BASE_URI;
 + (NSString *)DEVELOPMENT_BASE_URI;
++ (NSString *)PRODUCTION_BASE_URI;
 + (BOOL)isDebug;
 + (BOOL)isBeta;
 + (BOOL)isRelease;

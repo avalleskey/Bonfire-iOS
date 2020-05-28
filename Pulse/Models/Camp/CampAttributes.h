@@ -25,6 +25,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic) NSString <Optional> *title;
 @property (nonatomic) NSString <Optional> *theDescription;
 @property (nonatomic) NSString <Optional> *color;
+@property (nonatomic) BOOL nsfw; // not safe for work (18+, mature content)
 @property (nonatomic) CampMedia <Optional> *media;
 
 // status

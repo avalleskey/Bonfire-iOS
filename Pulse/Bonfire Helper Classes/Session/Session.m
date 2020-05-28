@@ -25,7 +25,6 @@
 
 @property (nonatomic) BOOL refreshingToken;
 
-
 @end
 
 @implementation Session
@@ -35,6 +34,8 @@ static Session *session;
 + (Session *)sharedInstance {
     if (!session) {
         session = [[Session alloc] init];
+        
+        session.accessToken = [Lockbox unarchiveObjectForKey:@"access_token"];
         
         if ([[NSUserDefaults standardUserDefaults] objectForKey:@"device_token"]) {
             // "user_device_token"  = the device token that is currently associated with a user
@@ -47,21 +48,10 @@ static Session *session;
             NSLog(@"🙎‍♂️ User: @%@", session.currentUser.attributes.identifier);
         }
         
-        if ([session getAccessTokenWithVerification:true] != nil && session.currentUser.identifier != nil) {
-            // update user object
-            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-                [BFAPI getUser:nil];
-                
-                #ifdef DEBUG
-                #else
-                [session syncDeviceToken];
-                #endif
-            });
-        }
-        
         [session initDefaultsWithCompletion:nil];
         [session resetTemporaryDefaults];
     }
+    
     return session;
 }
 
@@ -288,28 +278,37 @@ static Session *session;
 
 // Auth Tokens
 - (void)setAccessToken:(NSDictionary *)accessToken {
-    NSMutableDictionary *authTokenWithAppVersion = [[NSMutableDictionary alloc] initWithDictionary:accessToken];
-    NSString *version = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
-    [authTokenWithAppVersion setValue:version forKey:@"app_version"];
-    
-    NSLog(@"🆕🔑 New access token : %@ (called via setAccessToken in Session.m)", accessToken);
-    
-    [Lockbox archiveObject:authTokenWithAppVersion forKey:@"access_token"];
+    if (_accessToken != accessToken) {
+        _accessToken = accessToken;
+        
+        if (_accessToken) {
+            _accessTokenString = [_accessToken objectForKey:@"access_token"];
+        }
+        else {
+            _accessTokenString = nil;
+        }
+        
+        NSMutableDictionary *authTokenWithAppVersion = [[NSMutableDictionary alloc] initWithDictionary:accessToken];
+        NSString *version = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
+        [authTokenWithAppVersion setValue:version forKey:@"app_version"];
+        
+        NSLog(@"🆕🔑 New access token : %@ (called via updateAccessToken in Session.m)", accessToken);
+        
+        [Lockbox archiveObject:authTokenWithAppVersion forKey:@"access_token"];
+    }
 }
 - (NSString *)refreshToken {
-    NSDictionary *accessToken = [Lockbox unarchiveObjectForKey:@"access_token"];
-    if (accessToken == nil) { return nil; }
+    if (!self.accessToken) { return nil; }
         
-    if (accessToken[@"refresh_token"] &&
-        [accessToken[@"refresh_token"] isKindOfClass:[NSString class]]) {
-        return accessToken[@"refresh_token"];
+    if ([self.accessToken objectForKey:@"refresh_token"] &&
+        [self.accessToken[@"refresh_token"] isKindOfClass:[NSString class]]) {
+        return self.accessToken[@"refresh_token"];
     }
     
     return nil;
 }
 - (NSDictionary *)getAccessTokenWithVerification:(BOOL)verify {
-    NSDictionary *accessToken =  [Lockbox unarchiveObjectForKey:@"access_token"];
-    return verify ? [session verifyToken:accessToken] : accessToken;
+    return verify ? [session verifyToken:self.accessToken] : self.accessToken;
 }
 
 - (void)signOut {
@@ -423,8 +422,8 @@ static Session *session;
                                            fromDate: now
                                              toDate: (tokenExpiration==nil?now:tokenExpiration)
                                             options: 0];
-     NSLog(@"minutes until token expiration:: %ld", (long)[comps minute]);
-     NSLog(@"token app version: %@", token[@"app_version"]);
+    NSLog(@"minutes until token expiration:: %ld", (long)[comps minute]);
+    NSLog(@"token app version: %@", token[@"app_version"]);
     
     NSString *version = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
     if ([comps minute] <= 0 || ![token[@"app_version"] isEqualToString:version]) {
@@ -604,6 +603,43 @@ static Session *session;
     NSLog(@"total memory cost:: %lu", (unsigned long)_sharedCampCache.memoryCache.totalCost);
     
     return _sharedCampCache;
+}
+
+#pragma mark - Rate limiting
++ (BOOL)canCreateNewAccount {
+    NSArray *deviceSignUps = [Lockbox unarchiveObjectForKey:@"device_sign_ups"];
+    if (deviceSignUps && deviceSignUps.count > 0) {
+        NSInteger signUpsToday = 0;
+        
+        NSDateFormatter *inputFormatter = [[NSDateFormatter alloc] init];
+        [inputFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ssZ"];
+        NSCalendar *calendar = [[NSCalendar alloc] initWithCalendarIdentifier:NSCalendarIdentifierGregorian];
+        
+        for (NSDictionary *signUp in deviceSignUps) {
+            if ([signUp isKindOfClass:[NSDictionary class]] && [signUp objectForKey:@"created_at"]) {
+                NSString *createdAt = [signUp objectForKey:@"created_at"];
+                
+                NSDateComponents *components;
+                if (createdAt.length > 0) {
+                    NSDate *date = [inputFormatter dateFromString:createdAt];
+                    
+                    NSUInteger unitFlags = NSCalendarUnitMinute;
+                    components = [calendar components:unitFlags fromDate:date toDate:[NSDate new] options:0];
+                    
+                    if (components && [components minute] < 60 * 24) {
+                        // within the last day
+                        signUpsToday++;
+                    }
+                }
+            }
+        }
+        
+        if (signUpsToday >= 2) {
+            return false;
+        }
+    }
+    
+    return true;
 }
 
 @end

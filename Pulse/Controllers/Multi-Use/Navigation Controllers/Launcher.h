@@ -19,6 +19,9 @@
 #import "BFCameraViewController.h"
 #import "GIFCollectionViewController.h"
 
+#import "BFVideoPlayerViewController.h"
+#import "BFLiveAudioViewController.h"
+
 #define VIEW_CONTROLLER_PUSH_TAG 99
 
 NS_ASSUME_NONNULL_BEGIN
@@ -42,6 +45,9 @@ NS_ASSUME_NONNULL_BEGIN
 + (void)openCamp:(Camp *)camp controller:(CampViewController * _Nullable)controller;
 + (CampViewController *)campViewControllerForCamp:(Camp *)camp;
 
++ (void)openCampMembersForCamp:(Camp *)camp;
++ (void)openCampModerateForCamp:(Camp *)camp;
+
 + (void)openPost:(Post *)post withKeyboard:(BOOL)withKeyboard;
 + (PostViewController *)postViewControllerForPost:(Post *)post;
 
@@ -53,12 +59,12 @@ NS_ASSUME_NONNULL_BEGIN
 + (void)openBot:(Bot *)bot;
 + (ProfileViewController *)profileViewControllerForBot:(Bot *)bot;
 
-+ (void)openCampMembersForCamp:(Camp *)camp;
 + (void)openLinkConversations:(BFLink *)link withKeyboard:(BOOL)withKeyboard;
 + (void)openPostReply:(Post *)post sender:(UIView *)sender;
 + (void)openProfileCampsJoined:(User *)user;
 + (void)openProfileUsersFollowing:(User *)user;
 + (void)openCreateCamp;
++ (void)openEditCamp:(Camp *)camp;
 + (void)openComposePost;
 + (void)openComposePost:(Camp * _Nullable)camp inReplyTo:(Post * _Nullable)replyingTo withMessage:(NSString * _Nullable)message media:(NSArray * _Nullable)media quotedObject:(NSObject * _Nullable)quotedObject;
 + (void)openComposeCamera:(id<BFCameraViewControllerDelegate>)sender;
@@ -73,6 +79,7 @@ NS_ASSUME_NONNULL_BEGIN
 + (void)openDebugView:(id)object;
 
 + (void)openOutOfDateClient;
++ (void)openAccountSuspended;
 
 + (void)copyBetaInviteLink;
 
@@ -93,8 +100,14 @@ NS_ASSUME_NONNULL_BEGIN
 + (void)shareUserOnInstagram:(User *)user;
 + (void)shareCampOnInstagram:(Camp *)camp;
 
+#pragma mark - Media Viewer
 + (void)expandImageView:(UIImageView *)imageView;
 + (void)exapndImageView:(UIImageView *)imageView media:(NSArray *)media imageViews:(NSArray <UIImageView *> *)imageViews selectedIndex:(NSInteger)selectedIndex;
++ (BFVideoPlayerViewController *)openVideoViewer:(UIView * _Nullable)sender delegate:(id<BFSwippableViewControllerDelegate> _Nullable)delegate;
+
+#pragma mark - Experiences
++ (BFLiveAudioViewController *)openLiveAudioCamp:(Camp *)camp sender:(UIView * _Nullable)sender delegate:(id<BFSwippableViewControllerDelegate> _Nullable)delegate;
+
 + (void)requestAppStoreRating;
 + (void)requestNotifications;
 

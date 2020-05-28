@@ -209,9 +209,12 @@
     if (camp != _camp) {
         _camp = camp;
         
-        self.tintColor = [UIColor fromHex:camp.attributes.color];
+        UIColor *color = [UIColor fromHex:camp.attributes.color];
         
-        self.campHeaderView.backgroundColor = [UIColor fromHex:camp.attributes.color];
+        self.tintColor = color;
+        
+        self.campHeaderView.backgroundColor = color;
+        
         // set profile pictures
         for (NSInteger i = 0; i < 4; i++) {
             BFAvatarView *avatarView;

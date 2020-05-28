@@ -13,7 +13,6 @@
 #import <BlocksKit/BlocksKit.h>
 #import <BlocksKit/BlocksKit+UIKit.h>
 #import <JGProgressHUD/JGProgressHUD.h>
-#import <FBSDKShareKit/FBSDKShareKit.h>
 #import "BFMiniNotificationManager.h"
 
 @interface InviteFriendsViewController ()
@@ -229,15 +228,6 @@
             }
             else if ([identifier isEqualToString:@"instagram"]) {
                 [Launcher shareOnInstagram];
-            }
-            else if ([identifier isEqualToString:@"facebook"]) {
-                FBSDKShareLinkContent *content = [[FBSDKShareLinkContent alloc] init];
-                content.quote = @"Join me on Bonfire 🔥";
-                content.contentURL = [NSURL URLWithString:downloadURL];
-                content.hashtag = [FBSDKHashtag hashtagWithString:@"#Bonfire"];
-                [FBSDKShareDialog showFromViewController:[Launcher topMostViewController]
-                                              withContent:content
-                                                                 delegate:nil];
             }
             else if ([identifier isEqualToString:@"imessage"]) {
                 downloadURL = @"https://apps.apple.com/us/app/bonfire-groups-and-news/id1438702812";

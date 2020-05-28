@@ -21,8 +21,6 @@
 
 @interface CampCardsListCell () <BFComponentProtocol>
 
-@property (nonatomic) int currentPage;
-
 @end
 
 @implementation CampCardsListCell

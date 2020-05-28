@@ -122,6 +122,18 @@
     [self.contentView insertSubview:self.imagesView belowSubview:self.primaryAvatarView];
 }
 
+- (void)removeVideoPlayerAttachmentView {
+    [self.videoPlayerAttachmentView removeFromSuperview];
+    self.videoPlayerAttachmentView = nil;
+}
+- (void)initVideoPlayerAttachmentView {
+    if (!self.videoPlayerAttachmentView) {
+        // need to initialize a user preview view
+        self.videoPlayerAttachmentView = [[BFVideoPlayerAttachmentView alloc] init];
+        [self.contentView addSubview:self.videoPlayerAttachmentView];
+    }
+}
+
 - (void)removeLinkAttachment {
     [self.linkAttachmentView removeFromSuperview];
     self.linkAttachmentView = nil;

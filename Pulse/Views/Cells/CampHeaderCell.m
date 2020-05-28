@@ -17,7 +17,6 @@
 #import "CampViewController.h"
 #import "Launcher.h"
 #import "UIColor+Palette.h"
-#import "EditCampViewController.h"
 #import "BFAlertController.h"
 #import "NSDate+NVTimeAgo.h"
 #import "AddManagerTableViewController.h"
@@ -25,8 +24,12 @@
 
 #define CAMP_CONTEXT_BUBBLE_TAG_ACTIVE 1
 #define CAMP_CONTEXT_BUBBLE_TAG_NEW_CAMP 2
-#define CAMP_CONTEXT_BUBBLE_TAG_ADMIN 3
-#define CAMP_CONTEXT_BUBBLE_TAG_MODERATOR 4
+#define CAMP_CONTEXT_BUBBLE_TAG_LIVE_MODE_CHAT 3
+#define CAMP_CONTEXT_BUBBLE_TAG_LIVE_MODE_AUDIO 4
+#define CAMP_CONTEXT_BUBBLE_TAG_LIVE_MODE_VIDEO 5
+#define CAMP_CONTEXT_BUBBLE_TAG_LIVE_MODE_STORY 6
+
+#define testingGroundsCampId @"-ZL8PgwP2aGl9"
 
 @implementation CampHeaderCell
 
@@ -56,41 +59,60 @@
         self.campAvatar = [[BFAvatarView alloc] initWithFrame:CGRectMake(CAMP_HEADER_AVATAR_BORDER_WIDTH, CAMP_HEADER_AVATAR_BORDER_WIDTH, CAMP_HEADER_AVATAR_SIZE, CAMP_HEADER_AVATAR_SIZE)];
         self.campAvatar.dimsViewOnTap = true;
         [self.campAvatar bk_whenTapped:^{
-            void(^expandProfilePic)(void) = ^() {
-                [Launcher expandImageView:self.campAvatar.imageView];
-            };
-            
-            BOOL hasPicture = (self.campAvatar.camp.attributes.media.avatar.suggested.url.length > 0);
-            if ([self.camp.attributes.context.camp.permissions canUpdate]) {
-                void(^openEditCamp)(void) = ^() {
-                    [self openEditCamp];
-                };
-                
-                if (hasPicture) {
-                    // confirm action
-                    BFAlertController *actionSheet = [BFAlertController alertControllerWithTitle:nil message:nil preferredStyle:BFAlertControllerStyleActionSheet];
-                    
-                    BFAlertAction *action1 = [BFAlertAction actionWithTitle:@"View Camp Photo" style:BFAlertActionStyleDefault handler:^{
-                        expandProfilePic();
-                    }];
-                    [actionSheet addAction:action1];
-                    
-                    BFAlertAction *action2 = [BFAlertAction actionWithTitle:@"Edit Camp" style:BFAlertActionStyleDefault handler:^{
-                        openEditCamp();
-                    }];
-                    [actionSheet addAction:action2];
-                    
-                    BFAlertAction *cancelActionSheet = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
-                    [actionSheet addAction:cancelActionSheet];
-                    
-                    [actionSheet show];
+            if (self.liveMode == BFCampHeaderLiveModeStory ||
+                self.liveMode == BFCampHeaderLiveModeVideo) {
+                BFVideoPlayerViewController *videoVC = [Launcher openVideoViewer:self.campAvatar delegate:nil];
+                videoVC.videoURL = @"http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4";
+                if (self.liveMode == BFCampHeaderLiveModeStory) {
+                    videoVC.format = BFVideoPlayerFormatStory;
                 }
                 else {
-                    openEditCamp();
+                    videoVC.format = BFVideoPlayerFormatVideo;
                 }
             }
-            else if (hasPicture) {
-                expandProfilePic();
+            else if (self.liveMode == BFCampHeaderLiveModeAudio) {
+                [Launcher openLiveAudioCamp:self.camp sender:self.campAvatar delegate:nil];
+            }
+            else if (self.liveMode == BFCampHeaderLiveModeChat) {
+                
+            }
+            else {
+                void(^expandProfilePic)(void) = ^() {
+                    [Launcher expandImageView:self.campAvatar.imageView];
+                };
+                
+                BOOL hasPicture = (self.campAvatar.camp.attributes.media.avatar.suggested.url.length > 0);
+                if ([self.camp.attributes.context.camp.permissions canUpdate]) {
+                    void(^openEditCamp)(void) = ^() {
+                        [Launcher openEditCamp:self.camp];
+                    };
+                    
+                    if (hasPicture) {
+                        // confirm action
+                        BFAlertController *actionSheet = [BFAlertController alertControllerWithTitle:nil message:nil preferredStyle:BFAlertControllerStyleActionSheet];
+                        
+                        BFAlertAction *action1 = [BFAlertAction actionWithTitle:@"View Camp Photo" style:BFAlertActionStyleDefault handler:^{
+                            expandProfilePic();
+                        }];
+                        [actionSheet addAction:action1];
+                        
+                        BFAlertAction *action2 = [BFAlertAction actionWithTitle:@"Edit Camp" style:BFAlertActionStyleDefault handler:^{
+                            openEditCamp();
+                        }];
+                        [actionSheet addAction:action2];
+                        
+                        BFAlertAction *cancelActionSheet = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
+                        [actionSheet addAction:cancelActionSheet];
+                        
+                        [actionSheet show];
+                    }
+                    else {
+                        openEditCamp();
+                    }
+                }
+                else if (hasPicture) {
+                    expandProfilePic();
+                }
             }
         }];
         for (id interaction in self.campAvatar.interactions) {
@@ -142,21 +164,8 @@
                         [Launcher shareCamp:self.camp];
                     }];
                 }
-                else if (self.campAvatarReasonView.tag == CAMP_CONTEXT_BUBBLE_TAG_MODERATOR) {
-                    title = @"Manager";
-                    message = @"You can accept new member requests, block members, remove posts, and more.";
+                else if (self.campAvatarReasonView.tag > CAMP_CONTEXT_BUBBLE_TAG_NEW_CAMP && self.campAvatarReasonView.tag <=BFCampHeaderLiveModeStory) {
                     
-                    cta = [BFAlertAction actionWithTitle:@"Manage Members" style:BFAlertActionStyleDefault handler:^{
-                        [Launcher openCampMembersForCamp:self.camp];
-                    }];
-                }
-                else if (self.campAvatarReasonView.tag == CAMP_CONTEXT_BUBBLE_TAG_ADMIN) {
-                    title = @"Director";
-                    message = @"You can customize the Camp settings, accept new member requests, block members, remove posts, and more.";
-                    
-                    cta = [BFAlertAction actionWithTitle:@"Edit Camp" style:BFAlertActionStyleDefault handler:^{
-                        [self openEditCamp];
-                    }];
                 }
                 
                 if (!title && !message && !cta) return;
@@ -187,6 +196,23 @@
         self.campAvatarReasonImageView.layer.cornerRadius = self.campAvatarReasonView.layer.cornerRadius;
         self.campAvatarReasonImageView.layer.masksToBounds = true;
         [self.campAvatarReasonView addSubview:self.campAvatarReasonImageView];
+        
+        self.gradientRingLayer = [CAGradientLayer layer];
+        self.gradientRingLayer.frame = CGRectMake(7, 7, CAMP_HEADER_AVATAR_SIZE + 7 * 2, CAMP_HEADER_AVATAR_SIZE + 7 * 2);
+        self.gradientRingLayer.cornerRadius = self.gradientRingLayer.frame.size.height / 2;
+        
+        CGRect outerRect = CGRectMake(0, 0, self.gradientRingLayer.frame.size.width, self.gradientRingLayer.frame.size.height);
+        CGFloat inset = 3; // adjust as necessary for more or less meaty donuts
+        CGFloat innerDiameter = outerRect.size.width - 2.0 * inset;
+        CGRect innerRect = CGRectMake(inset, inset, innerDiameter, innerDiameter);
+        UIBezierPath *outerCircle = [UIBezierPath bezierPathWithRoundedRect:outerRect cornerRadius:outerRect.size.width * 0.5];
+        UIBezierPath *innerCircle = [UIBezierPath bezierPathWithRoundedRect:innerRect cornerRadius:innerRect.size.width * 0.5];
+        [outerCircle appendPath:innerCircle];
+        CAShapeLayer *maskLayer = [CAShapeLayer new];
+        maskLayer.fillRule = kCAFillRuleEvenOdd; // Going from the outside of the layer, each time a path is crossed, add one. Each time the count is odd, we are "inside" the path.
+        maskLayer.path = outerCircle.CGPath;
+        self.gradientRingLayer.mask = maskLayer;
+        [self.avatarContainer.layer insertSublayer:self.gradientRingLayer atIndex:0];
         
         self.member2 = [[BFAvatarView alloc] initWithFrame:CGRectMake(0, 0, 46, 46)];
         self.member2.tag = 0;
@@ -241,11 +267,12 @@
         [self.actionButton bk_whenTapped:^{
             // update state if possible
             if ([self.actionButton.status isEqualToString:CAMP_STATUS_MEMBER]) {
-                [self openPostNotificationSettings];
+                // confirm they want to leave
+                [self openCampOptions];
             }
             else if ([self.actionButton.status isEqualToString:CAMP_STATUS_REQUESTED]) {
-                [self.actionButton updateStatus:CAMP_STATUS_NO_RELATION];
                 [self leaveCamp];
+                [self.actionButton updateStatus:CAMP_STATUS_NO_RELATION];
             }
             else if ([self.actionButton.status isEqualToString:CAMP_STATUS_LEFT] ||
                      [self.actionButton.status isEqualToString:CAMP_STATUS_NO_RELATION] ||
@@ -328,23 +355,6 @@
   }
   
   return [super hitTest:point withEvent:event];
-}
-
-- (void)openEditCamp {
-    EditCampViewController *epvc = [[EditCampViewController alloc] init];
-    epvc.themeColor = [UIColor fromHex:self.camp.attributes.color];
-    epvc.view.tintColor = epvc.themeColor;
-    epvc.camp = self.camp;
-    
-    SimpleNavigationController *newNavController = [[SimpleNavigationController alloc] initWithRootViewController:epvc];
-    newNavController.transitioningDelegate = [Launcher sharedInstance];
-    newNavController.modalPresentationStyle = UIModalPresentationFullScreen;
-    newNavController.opaqueOnScroll = false;
-    newNavController.shadowOnScroll = true;
-    newNavController.transparentOnLoad = true;
-    newNavController.currentTheme = nil;
-    
-    [Launcher present:newNavController animated:YES];
 }
 
 - (void)addTapHandlers:(NSArray *)views {
@@ -441,14 +451,14 @@
         
     // profile pic collage
     self.avatarContainer.center = CGPointMake(self.frame.size.width / 2, self.avatarContainer.center.y);
-    bottomY = CAMP_HEADER_EDGE_INSETS.top + self.avatarContainer.frame.size.height;
+    bottomY = CAMP_HEADER_EDGE_INSETS.top + (CAMP_HEADER_AVATAR_SIZE + (CAMP_HEADER_AVATAR_BORDER_WIDTH * 2));
     
     if (![self.campAvatarReasonView isHidden]) {
         self.campAvatarReasonView.center = CGPointMake(self.avatarContainer.frame.origin.x + self.avatarContainer.frame.size.width - (40 / 2) - 3, self.avatarContainer.frame.origin.y + self.avatarContainer.frame.size.height - (40 / 2) - 3);
     }
-    
-    CGFloat contentViewOffset = self.avatarContainer.frame.origin.y + self.campAvatar.frame.origin.y +  ceilf(self.campAvatar.frame.size.height * 0.65);
-    self.contentView.frame = CGRectMake(0, contentViewOffset, self.frame.size.width, self.frame.size.height - contentViewOffset);
+        
+    CGFloat contentViewYOffset = CAMP_HEADER_EDGE_INSETS.top +  ceilf(CAMP_HEADER_AVATAR_SIZE * 0.65);
+    self.contentView.frame = CGRectMake(0, contentViewYOffset, self.frame.size.width, self.frame.size.height - contentViewYOffset);
     
     // subtract content view inset
     bottomY -= self.contentView.frame.origin.y;
@@ -683,28 +693,45 @@
             components = [calendar components:unitFlags fromDate:date toDate:[NSDate new] options:0];
         }
         
-        if (camp.attributes.summaries.counts.scoreIndex > 0) {
-            useImage = true;
-            self.campAvatarReasonLabel.text = @"";
-            self.campAvatarReasonImageView.image = [UIImage imageNamed:@"hotIcon"];
-            self.campAvatarReasonImageView.backgroundColor = [UIColor fromHex:camp.scoreColor];
-            self.campAvatarReasonView.tag = CAMP_CONTEXT_BUBBLE_TAG_ACTIVE;
+        BFCampHeaderLiveMode mockMode = BFCampHeaderLiveModeAudio;
+        if ([camp.identifier isEqualToString:testingGroundsCampId]) {
+            [self setLiveMode:BFCampHeaderLiveModeAudio];
         }
-        else if (components && [components day] < 7) {
-            useImage = true;
-            self.campAvatarReasonImageView.image = [UIImage imageNamed:@"newIcon"];
-            self.campAvatarReasonView.tag = CAMP_CONTEXT_BUBBLE_TAG_NEW_CAMP;
+        else {
+            [self setLiveMode:BFCampHeaderLiveModeNone];
         }
-        else  if ([camp.attributes.context.camp.membership.role.type isEqualToString:CAMP_ROLE_ADMIN]) {
-            useImage = true;
-            self.campAvatarReasonImageView.image = [UIImage imageNamed:@"directorIcon"];
-            self.campAvatarReasonView.tag = CAMP_CONTEXT_BUBBLE_TAG_ADMIN;
+        
+        if (self.liveMode == BFCampHeaderLiveModeVideo ||
+            self.liveMode == BFCampHeaderLiveModeStory) {
+            useText = true;
+            self.campAvatarReasonLabel.text = @"📹";
+            self.campAvatarReasonView.tag = (self.liveMode == BFCampHeaderLiveModeVideo ? CAMP_CONTEXT_BUBBLE_TAG_LIVE_MODE_VIDEO : CAMP_CONTEXT_BUBBLE_TAG_LIVE_MODE_STORY);
         }
-        if ([camp.attributes.context.camp.membership.role.type isEqualToString:CAMP_ROLE_MODERATOR]) {
-            useImage = true;
-            self.campAvatarReasonImageView.image = [UIImage imageNamed:@"managerIcon"];
-            self.campAvatarReasonView.tag = CAMP_CONTEXT_BUBBLE_TAG_MODERATOR;
+        else if (self.liveMode == BFCampHeaderLiveModeAudio) {
+            useText = true;
+            self.campAvatarReasonLabel.text = @"🎤";
+            self.campAvatarReasonView.tag = CAMP_CONTEXT_BUBBLE_TAG_LIVE_MODE_AUDIO;
         }
+        else if (self.liveMode == BFCampHeaderLiveModeChat) {
+            useText = true;
+            self.campAvatarReasonLabel.text = @"💬";
+            self.campAvatarReasonView.tag = CAMP_CONTEXT_BUBBLE_TAG_LIVE_MODE_CHAT;
+        }
+        else {
+            if (camp.attributes.summaries.counts.scoreIndex > 0) {
+                useImage = true;
+                self.campAvatarReasonLabel.text = @"";
+                self.campAvatarReasonImageView.image = [UIImage imageNamed:@"hotIcon"];
+                self.campAvatarReasonImageView.backgroundColor = [UIColor fromHex:camp.scoreColor];
+                self.campAvatarReasonView.tag = CAMP_CONTEXT_BUBBLE_TAG_ACTIVE;
+            }
+            else if (components && [components day] < 7) {
+                useImage = true;
+                self.campAvatarReasonImageView.image = [UIImage imageNamed:@"newIcon"];
+                self.campAvatarReasonView.tag = CAMP_CONTEXT_BUBBLE_TAG_NEW_CAMP;
+            }
+        }
+        
         BOOL hideReasonView = !useText && !useImage;
         if (hideReasonView != [self.campAvatarReasonView isHidden]) {
             self.campAvatarReasonView.hidden = hideReasonView;
@@ -750,62 +777,7 @@
             }
         }
         
-        NSMutableArray *details = [[NSMutableArray alloc] init];
-        if (self.camp.attributes.identifier.length > 0 || self.camp.identifier.length > 0) {
-            // camp type (& visibility)
-            if (self.camp.attributes.display.sourceLink || self.camp.attributes.display.sourceUser) {
-                if (self.camp.attributes.display.sourceLink) {
-                    BFDetailItem *sourceLink = [[BFDetailItem alloc] initWithType:([self.camp isFeed] ? BFDetailItemTypeSourceLink_Feed : BFDetailItemTypeSourceLink) value:[NSString stringWithFormat:@"%@", self.camp.attributes.display.sourceLink.attributes.canonicalUrl] action:^{
-                        [Launcher openURL:self.camp.attributes.display.sourceLink.attributes.actionUrl];
-                    }];
-                    sourceLink.selectable = true;
-                    [details addObject:sourceLink];
-                }
-                else if (self.camp.attributes.display.sourceUser) {
-                    BFDetailItem *sourceUser = [[BFDetailItem alloc] initWithType:([self.camp isFeed] ? BFDetailItemTypeSourceUser_Feed : BFDetailItemTypeSourceUser) value:[NSString stringWithFormat:@"%@", self.camp.attributes.display.sourceUser.attributes.identifier] action:^{
-                        [Launcher openProfile:self.camp.attributes.display.sourceUser];
-                    }];
-                    sourceUser.selectable = true;
-                    [details addObject:sourceUser];
-                }
-            }
-                
-            if (![self.camp isChannel]) {
-                BFDetailItem *visibility = [[BFDetailItem alloc] initWithType:([self.camp isPrivate] ? BFDetailItemTypePrivacyPrivate : BFDetailItemTypePrivacyPublic) value:([self.camp isPrivate] ? @"Private" : @"Public") action:nil];
-                [details addObject:visibility];
-            }
-            
-            // member / subscriber count
-            if (![camp isFeed] && self.camp.attributes.summaries.counts != nil) {
-                if ([self.camp isChannel]) {
-                    BFDetailItem *subscribers = [[BFDetailItem alloc] initWithType:BFDetailItemTypeSubscribers value:[NSString stringWithFormat:@"%ld", (long)self.camp.attributes.summaries.counts.members] action:nil];
-                    subscribers.selectable = false;
-                    [details addObject:subscribers];
-                }
-                else {
-                    BFDetailItem *members = [[BFDetailItem alloc] initWithType:BFDetailItemTypeMembers value:[NSString stringWithFormat:@"%ld", (long)self.camp.attributes.summaries.counts.members] action:^{
-                        [Launcher openCampMembersForCamp:self.camp];
-                    }];
-                    if ([self.camp isPrivate] && ![self.camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_MEMBER]) {
-                        members.selectable = false;
-                    }
-                    [details addObject:members];
-                }
-            }
-        }
-        
-//        self.secondaryActionButton.hidden = !([self.camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_MEMBER] && self.camp.attributes.context.camp.membership);
-//        if (![self.secondaryActionButton isHidden]) {
-//            BOOL subscribed = self.camp.attributes.context.camp.membership.subscription != nil;
-//            if (subscribed) {
-//                [self.secondaryActionButton setImage:[[UIImage imageNamed:@"details_label_notifications"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
-//                self.secondaryActionButton.tintColor = [UIColor bonfirePrimaryColor];
-//            }
-//            else {
-//                [self.secondaryActionButton setImage:[[UIImage imageNamed:@"details_label_notifications_off"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
-//                self.secondaryActionButton.tintColor = [UIColor bonfireSecondaryColor];
-//            }
-//        }
+        NSArray *details = [CampHeaderCell detailItemsForCamp:camp];
         
         self.detailsCollectionView.hidden = (details.count == 0);
         self.detailsCollectionView.tintColor = [UIColor fromHex:self.camp.attributes.color adjustForOptimalContrast:true];
@@ -816,59 +788,177 @@
         
         if ([camp isChannel] || [camp isFeed]) {
             self.actionButton.followString = @"Subscribe";
+            self.actionButton.followingString = @"Subscribed";
         }
         else {
-            self.actionButton.followString = [NSString stringWithFormat:@"Join %@", @"Camp"];
+            self.actionButton.followString = @"Join Camp";
+            self.actionButton.followingString = @"Joined";
         }
-        self.actionButton.followingString = @"Options";
     }
 }
 
-- (void)openPostNotificationSettings {
-    BOOL campPostNotifications = self.camp.attributes.context.camp.membership.subscription != nil;
-    UIImage *icon = (campPostNotifications ? [UIImage imageNamed:@"alert_icon_notifications_on"] : [UIImage imageNamed:@"alert_icon_notifications_off"]);
-    
-    BFAlertController *postNotifications = [BFAlertController alertControllerWithIcon:icon title:(campPostNotifications?@"Post Notifications are on":@"Post Notifications are off") message:(campPostNotifications ? @"You will receive notifications for new posts inside this Camp" : @"You will only receive notifications when you are mentioned or replied to") preferredStyle:BFAlertControllerStyleActionSheet];
-    
-    NSString *actionTitle = [@"Turn Post Notifications " stringByAppendingString:(campPostNotifications?@"Off":@"On")];
-
-    BFAlertAction *togglePostNotifications = [BFAlertAction actionWithTitle:actionTitle style:BFAlertActionStyleDefault handler:^{
-        NSLog(@"toggle post notifications");
-        // confirm action
-        Camp *campCopy = [self.camp copy];
-        if (campPostNotifications) {
-            BFMiniNotificationObject *notificationObject = [BFMiniNotificationObject notificationWithText:@"Saved!" action:nil];
-            [[BFMiniNotificationManager manager] presentNotification:notificationObject completion:nil];
+- (void)setLiveMode:(BFCampHeaderLiveMode)liveMode {
+    if (liveMode != _liveMode) {
+        CGPoint avatarContainerCenterPoint = self.avatarContainer.center;
+        if (_liveMode == BFCampHeaderLiveModeNone) {
+            // from  not live -> live
+            [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.8f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
+                self.avatarContainer.frame = CGRectMake(0, 0, CAMP_HEADER_AVATAR_SIZE + (CAMP_HEADER_AVATAR_BORDER_WIDTH * 4), CAMP_HEADER_AVATAR_SIZE + (CAMP_HEADER_AVATAR_BORDER_WIDTH * 4));
+                self.avatarContainer.layer.cornerRadius = self.avatarContainer.frame.size.width / 2;
+                self.avatarContainer.center = avatarContainerCenterPoint;
+                self.campAvatar.center = CGPointMake(self.avatarContainer.frame.size.width / 2, self.avatarContainer.frame.size.height / 2);
+                self.gradientRingLayer.opacity = 1;
+                self.gradientRingLayer.frame = CGRectMake(self.avatarContainer.frame.size.width / 2 - self.gradientRingLayer.frame.size.width / 2, self.avatarContainer.frame.size.height / 2 - self.gradientRingLayer.frame.size.height / 2, self.gradientRingLayer.frame.size.width, self.gradientRingLayer.frame.size.height);
+            } completion:nil];
+        }
+        else if (liveMode == BFCampHeaderLiveModeNone) {
+            // from live -> not live
+            [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.8f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
+                self.avatarContainer.frame = CGRectMake(0, 0, CAMP_HEADER_AVATAR_SIZE + (CAMP_HEADER_AVATAR_BORDER_WIDTH * 2), CAMP_HEADER_AVATAR_SIZE + (CAMP_HEADER_AVATAR_BORDER_WIDTH * 2));
+                self.avatarContainer.layer.cornerRadius = self.avatarContainer.frame.size.width / 2;
+                self.avatarContainer.center = avatarContainerCenterPoint;
+                self.campAvatar.center = CGPointMake(self.avatarContainer.frame.size.width / 2, self.avatarContainer.frame.size.height / 2);
+                self.gradientRingLayer.opacity = 0;
+            } completion:nil];
+        }
+        
+        _liveMode = liveMode;
+        
+        if (liveMode == BFCampHeaderLiveModeNone) {
             
-            [campCopy unsubscribeFromCamp];
         }
         else {
-            BFMiniNotificationObject *notificationObject = [BFMiniNotificationObject notificationWithText:@"Saved!" action:nil];
-            [[BFMiniNotificationManager manager] presentNotification:notificationObject completion:nil];
+            NSArray *gradientColors = [NSArray arrayWithObjects:(id)[UIColor bonfireBrand].CGColor, (id)[UIColor yellowColor].CGColor, nil];
+            if (liveMode == BFCampHeaderLiveModeStory) {
+                gradientColors = [NSArray arrayWithObjects:(id)[UIColor colorWithRed: 1.00 green: 0.00 blue: 0.00 alpha: 1.00].CGColor, (id)[UIColor colorWithRed: 1.00 green: 0.50 blue: 0.00 alpha: 1.00].CGColor, nil];
+            }
+            else if (liveMode == BFCampHeaderLiveModeVideo) {
+                gradientColors = [NSArray arrayWithObjects:(id)[UIColor colorWithRed: 1.00 green: 0.00 blue: 0.00 alpha: 1.00].CGColor, (id)[UIColor colorWithRed: 1.00 green: 0.50 blue: 0.00 alpha: 1.00].CGColor, nil];
+            }
+            else if (liveMode == BFCampHeaderLiveModeAudio) {
+                gradientColors = [NSArray arrayWithObjects:(id)[UIColor colorWithRed: 0.18 green: 0.00 blue: 1.00 alpha: 1.00].CGColor, (id)[UIColor colorWithRed: 0.97 green: 0.00 blue: 1.00 alpha: 1.00].CGColor, nil];
+            }
+            else if (liveMode == BFCampHeaderLiveModeChat) {
+                gradientColors = [NSArray arrayWithObjects:(id)[UIColor colorWithRed: 0.39 green: 0.85 blue: 0.14 alpha: 1.00].CGColor, (id)[UIColor colorWithRed: 0.00 green: 0.83 blue: 1.00 alpha: 1.00].CGColor, nil];
+            }
             
-            [campCopy subscribeToCamp];
+            self.gradientRingLayer.colors = gradientColors;
+            self.gradientRingLayer.startPoint = CGPointMake(0, 0);
+            self.gradientRingLayer.endPoint = CGPointMake(1, 1);
         }
-    }];
-    [postNotifications addAction:togglePostNotifications];
-    
-    if ([self.camp.attributes.context.camp.permissions canUpdate]) {
-        BFAlertAction *editCamp = [BFAlertAction actionWithTitle:@"Edit Camp" style:BFAlertActionStyleDefault handler:^{
-            [self openEditCamp];
+    }
+}
+
++ (NSArray<BFDetailItem *> *)detailItemsForCamp:(Camp *)camp {
+    NSMutableArray *details = [[NSMutableArray alloc] init];
+    if (camp.attributes.identifier.length > 0 || camp.identifier.length > 0) {
+        // camp type (& visibility)
+        if (camp.attributes.display.sourceLink || camp.attributes.display.sourceUser) {
+            if (camp.attributes.display.sourceLink) {
+                BFDetailItem *sourceLink = [[BFDetailItem alloc] initWithType:([camp isFeed] ? BFDetailItemTypeSourceLink_Feed : BFDetailItemTypeSourceLink) value:[NSString stringWithFormat:@"%@", camp.attributes.display.sourceLink.attributes.canonicalUrl] action:^{
+                    [Launcher openURL:camp.attributes.display.sourceLink.attributes.actionUrl];
+                }];
+                sourceLink.selectable = true;
+                [details addObject:sourceLink];
+            }
+            else if (camp.attributes.display.sourceUser) {
+                BFDetailItem *sourceUser = [[BFDetailItem alloc] initWithType:([camp isFeed] ? BFDetailItemTypeSourceUser_Feed : BFDetailItemTypeSourceUser) value:[NSString stringWithFormat:@"%@", camp.attributes.display.sourceUser.attributes.identifier] action:^{
+                    [Launcher openProfile:camp.attributes.display.sourceUser];
+                }];
+                sourceUser.selectable = true;
+                [details addObject:sourceUser];
+            }
+        }
+            
+        if (![camp isChannel]) {
+            BFDetailItem *visibility = [[BFDetailItem alloc] initWithType:([camp isPrivate] ? BFDetailItemTypePrivacyPrivate : BFDetailItemTypePrivacyPublic) value:([camp isPrivate] ? @"Private" : @"Public") action:nil];
+            [details addObject:visibility];
+        }
+        
+        if (camp.attributes.nsfw) {
+            BFDetailItem *nsfw = [[BFDetailItem alloc] initWithType:BFDetailItemTypeMatureContent value:@"Mature" action:nil];
+            [details addObject:nsfw];
+        }
+        
+        // member / subscriber count
+        if (![camp isFeed] && camp.attributes.summaries.counts != nil) {
+            if ([camp isChannel]) {
+                BFDetailItem *subscribers = [[BFDetailItem alloc] initWithType:BFDetailItemTypeSubscribers value:[NSString stringWithFormat:@"%ld", (long)camp.attributes.summaries.counts.members] action:nil];
+                subscribers.selectable = false;
+                [details addObject:subscribers];
+            }
+            else {
+                BFDetailItem *members = [[BFDetailItem alloc] initWithType:BFDetailItemTypeMembers value:[NSString stringWithFormat:@"%ld", (long)camp.attributes.summaries.counts.members] action:^{
+                    [Launcher openCampMembersForCamp:camp];
+                }];
+                if ([camp isPrivate] && ![camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_MEMBER]) {
+                    members.selectable = false;
+                }
+                [details addObject:members];
+            }
+        }
+        
+        BOOL campPostNotifications = camp.attributes.context.camp.membership.subscription != nil;
+        BFDetailItem *notifications = [[BFDetailItem alloc] initWithType:(campPostNotifications?BFDetailItemTypePostNotificationsOn:BFDetailItemTypePostNotificationsOff) value:@"" action:^{
+            BOOL campPostNotifications = camp.attributes.context.camp.membership.subscription != nil;
+            UIImage *icon = (campPostNotifications ? [UIImage imageNamed:@"alert_icon_notifications_on"] : [UIImage imageNamed:@"alert_icon_notifications_off"]);
+            
+            BFAlertController *postNotifications = [BFAlertController alertControllerWithIcon:icon title:(campPostNotifications?@"Post Notifications are on":@"Post Notifications are off") message:(campPostNotifications ? @"You will receive notifications for new posts inside this Camp" : @"You will only receive notifications when you are mentioned or replied to") preferredStyle:BFAlertControllerStyleActionSheet];
+            
+            NSString *actionTitle = [@"Turn Post Notifications " stringByAppendingString:(campPostNotifications?@"Off":@"On")];
+
+            BFAlertAction *togglePostNotifications = [BFAlertAction actionWithTitle:actionTitle style:BFAlertActionStyleDefault handler:^{
+                NSLog(@"toggle post notifications");
+                // confirm action
+                Camp *campCopy = [camp copy];
+                if (campPostNotifications) {
+                    BFMiniNotificationObject *notificationObject = [BFMiniNotificationObject notificationWithText:@"Saved!" action:nil];
+                    [[BFMiniNotificationManager manager] presentNotification:notificationObject completion:nil];
+                    
+                    [campCopy unsubscribeFromCamp];
+                }
+                else {
+                    BFMiniNotificationObject *notificationObject = [BFMiniNotificationObject notificationWithText:@"Saved!" action:nil];
+                    [[BFMiniNotificationManager manager] presentNotification:notificationObject completion:nil];
+                    
+                    [campCopy subscribeToCamp];
+                }
+            }];
+            [postNotifications addAction:togglePostNotifications];
+            
+            // confirm action
+            BFAlertAction *alertCancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
+            [postNotifications addAction:alertCancel];
+            
+            [postNotifications show];
         }];
-        [postNotifications addAction:editCamp];
+        [details addObject:notifications];
+        
+        if ([camp.attributes.context.camp.permissions canUpdate]) {
+            BFDetailItem *edit = [[BFDetailItem alloc] initWithType:BFDetailItemTypeEdit value:@"" action:^{
+                [Launcher openEditCamp:camp];
+            }];
+            [details addObject:edit];
+        }
     }
     
-    BFAlertAction *leaveCamp = [BFAlertAction actionWithTitle:([self.camp isChannel] || [self.camp isFeed] ? @"Unsubscribe" : @"Leave Camp") style:BFAlertActionStyleDestructive handler:^{
+    return [details copy];
+}
+- (void)openCampOptions {
+    BFAlertController *postNotifications = [BFAlertController alertControllerWithIcon:nil title:self.camp.attributes.title message:(self.camp.attributes.identifier.length>0 ? [@"#" stringByAppendingString:self.camp.attributes.identifier] : nil) preferredStyle:BFAlertControllerStyleActionSheet];
+    
+    BFAlertAction *leaveCamp = [BFAlertAction actionWithTitle:([self.camp isChannel] || [self.camp isFeed] ? @"Unsubscribe" : @"Leave Camp") style:BFAlertActionStyleDefault handler:^{
         // confirm action
         BOOL privateCamp = [self.camp isPrivate];
         BOOL lastMember = self.camp.attributes.summaries.counts.members <= 1;
+        BOOL isMember = [self.camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_MEMBER];
         
         void (^leave)(void) = ^(){
             [self.actionButton updateStatus:CAMP_STATUS_LEFT];
             [self leaveCamp];
         };
         
-        if (privateCamp || lastMember) {
+        if (privateCamp || lastMember || isMember) {
             NSString *message;
             if (privateCamp && lastMember) {
                 message = @"All camps must have at least one member. If you leave, this Camp and all of its posts will be deleted after 30 days of inactivity.";
@@ -877,9 +967,21 @@
                 // leaving as the last member in a public camp
                 message = @"All camps must have at least one member. If you leave, this Camp will be archived and eligible for anyone to reopen.";
             }
-            else {
+            else if (privateCamp) {
                 // leaving a private camp, but the user isn't the last one
                 message = @"You will no longer have access to this Camp's posts";
+            }
+            else {
+                // leaving a public camp (generic)
+                if ([self.camp isChannel]) {
+                    message = @"You will no longer receive posts from this Camp";
+                }
+                else if ([self.camp isFeed]) {
+                    message = @"You will no longer receive posts from this Feed";
+                }
+                else {
+                    message = @"You will no longer be a part of this Camp";
+                }
             }
             
             BFAlertController *confirmDeletePostActionSheet = [BFAlertController alertControllerWithTitle:(([self.camp isChannel] || [self.camp isFeed]) ? @"Unsubscribe?" : @"Leave Camp?") message:message preferredStyle:BFAlertControllerStyleAlert];
@@ -973,28 +1075,7 @@
     }
 
     if (camp.attributes.identifier.length > 0 || camp.identifier.length > 0) {
-        NSMutableArray *details = [[NSMutableArray alloc] init];
-        
-        // camp type (& visibility)
-        if (camp.attributes.display.sourceLink) {
-            BFDetailItem *sourceLink = [[BFDetailItem alloc] initWithType:([camp isFeed] ? BFDetailItemTypeSourceLink_Feed : BFDetailItemTypeSourceLink) value:[NSString stringWithFormat:@"%@", camp.attributes.display.sourceLink.attributes.canonicalUrl] action:nil];
-            [details addObject:sourceLink];
-        }
-        else if (camp.attributes.display.sourceUser) {
-            BFDetailItem *sourceUser = [[BFDetailItem alloc] initWithType:([camp isFeed] ? BFDetailItemTypeSourceUser_Feed : BFDetailItemTypeSourceUser) value:[NSString stringWithFormat:@"%@", camp.attributes.display.sourceUser.attributes.identifier] action:nil];
-            [details addObject:sourceUser];
-        }
-        
-        if (![camp isChannel]) {
-            BFDetailItem *visibility = [[BFDetailItem alloc] initWithType:([camp isPrivate] ? BFDetailItemTypePrivacyPrivate : BFDetailItemTypePrivacyPublic) value:(camp ? @"Private" : @"Public") action:nil];
-            [details addObject:visibility];
-        }
-        
-        // member / subscriber count
-        if (![camp isFeed] && camp.attributes.summaries.counts != nil) {
-            BFDetailItem *members = [[BFDetailItem alloc] initWithType:([camp isChannel] ? BFDetailItemTypeSubscribers : BFDetailItemTypeMembers) value:[NSString stringWithFormat:@"%ld", (long)camp.attributes.summaries.counts.members] action:nil];
-            [details addObject:members];
-        }
+        NSArray *details = [CampHeaderCell detailItemsForCamp:camp];
          
         if (details.count > 0) {
             BFDetailsCollectionView *detailCollectionView = [[BFDetailsCollectionView alloc] initWithFrame:CGRectMake(CAMP_HEADER_EDGE_INSETS.left, 0, [UIScreen mainScreen].bounds.size.width - CAMP_HEADER_EDGE_INSETS.left - CAMP_HEADER_EDGE_INSETS.right, 16)];

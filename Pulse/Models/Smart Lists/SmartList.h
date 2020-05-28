@@ -9,6 +9,7 @@
 #import "BFJSONModel.h"
 #import "UserListStream.h"
 #import "CampListStream.h"
+#import "PostStream.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -24,7 +25,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic) NSString <Optional> *identifier;
 @property (nonatomic) NSString <Optional> *title;
-@property (nonatomic) NSArray <SmartListSection *> <SmartListSection> *sections;
+@property (nonatomic) NSArray <SmartListSection *> <Optional, SmartListSection> *sections;
+@property (nonatomic) SmartListSection <Optional> *stream;
 
 @end
 
@@ -49,12 +51,16 @@ typedef enum {
 // if cursored
 @property (nonatomic) UserListStream <Optional> *userStream;
 @property (nonatomic) CampListStream <Optional> *campStream;
+@property (nonatomic) PostStream <Optional> *postStream;
 // else
 @property (nonatomic) NSMutableArray <Optional> *data;
 
 extern NSString * const SmartListSectionDataTypeUser;
 extern NSString * const SmartListSectionDataTypeCamp;
+extern NSString * const SmartListSectionDataTypePost;
+
 @property (nonatomic) NSString <Optional> *type;
+@property (nonatomic) BOOL searchable;
 
 @end
 

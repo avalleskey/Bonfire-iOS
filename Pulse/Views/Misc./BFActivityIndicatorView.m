@@ -96,7 +96,7 @@ static NSString * const rotationAnimationKey = @"rotationAnimation";
         CABasicAnimation *rotationAnimation;
         rotationAnimation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.z"];
         rotationAnimation.toValue = [NSNumber numberWithFloat: M_PI * 2.0 /* full rotation*/ * 1 * 1.f ];
-        rotationAnimation.duration = 0.75f;
+        rotationAnimation.duration = self.style == BFActivityIndicatorViewStyleLarge ? 0.75f : 0.6f;
         rotationAnimation.cumulative = YES;
         rotationAnimation.repeatCount = HUGE_VALF;
         

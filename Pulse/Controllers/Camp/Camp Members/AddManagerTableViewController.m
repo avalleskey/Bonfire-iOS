@@ -142,7 +142,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
     NSString *filterTypes = [NSString stringWithFormat:@"member,%@", [self.managerType isEqualToString:CAMP_ROLE_ADMIN] ? @"moderator" : @"admin"];
     [params setObject:filterTypes forKey:@"filter_types"];
     
-    [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+    [[[HAWebService manager] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         if (![self.searchPhrase isEqualToString:filterQuery]) {
             return;
         }
@@ -358,7 +358,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
     for (NSString *identifier in self.selectedMembers) {
         NSDictionary *params = @{@"user_id": identifier, @"role": self.managerType};
         
-        [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] POST:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        [[[HAWebService manager] authenticate] POST:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
             // on the completion of each request
             NSLog(@"success");
             

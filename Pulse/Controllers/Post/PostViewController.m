@@ -126,6 +126,8 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     }
     else {
         [InsightsLogger.sharedInstance openAllVisiblePostInsightsInTableView:self.tableView seenIn:InsightSeenInCampView];
+        
+        [self.tableView reloadData];
     }
     
     [self setNeedsStatusBarAppearanceUpdate];
@@ -334,7 +336,9 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     if (post && [post.identifier isEqualToString:self.post.identifier]) {
         self.post = post;
         
-        [self.navigationController dismissViewControllerAnimated:YES completion:nil];
+        if (self.navigationController == [Launcher topMostViewController]) {
+            [self.navigationController dismissViewControllerAnimated:YES completion:nil];
+        }
     }
 }
 - (void)newPostBegan:(NSNotification *)notification {
@@ -367,10 +371,15 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
 
     NSDictionary *info = notification.object;
     Post *post = info[@"post"];
+    NSString *tempId = info[@"tempId"];
 
     if (post != nil && (post.attributes.parent.identifier || post.attributes.parentId)) {
         if ([post.attributes.parent.identifier isEqualToString:self.post.identifier] ||
             [post.attributes.parentId isEqualToString:self.post.identifier]) {
+            if (tempId) {
+                [self.tableView.stream updateTempPost:post withId:tempId];
+            }
+            
             [self.tableView.stream removeLoadedCursor:self.tableView.stream.prevCursor];
             [self getRepliesWithCursor:StreamPagingCursorTypePrevious];
         }
@@ -478,7 +487,6 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         [self.tableView layoutSubviews];
         
         [self getPost];
-        
         [self loadPostReplies];
     }
     else {
@@ -500,7 +508,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
             
     [self loadParentPostsIfNeeded];
     
-    [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:[self getPostURL] parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+    [[[HAWebService manager] authenticate] GET:[self getPostURL] parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSDictionary *responseData = (NSDictionary *)responseObject[@"data"];
                                 
         BFContext *contextBefore = self.post.attributes.context;
@@ -534,7 +542,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         }
         
         self.loading = false;
-        [self.tableView reloadData];
+        [self.tableView hardRefresh:true];
         
         [self savePostCache];
         
@@ -626,7 +634,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         self.loadingParentPosts = true;
         [self.parentPostSpinner startAnimating];
         
-        [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:@{@"prev_cursor": cursor} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        [[[HAWebService manager] authenticate] GET:url parameters:@{@"prev_cursor": cursor} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
             NSMutableArray *responseData = [[NSMutableArray alloc] initWithArray:(NSArray *)responseObject[@"data"]];
             
             if ([responseData isKindOfClass:[NSArray class]] && responseData.count > 0) {
@@ -774,8 +782,8 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     
     NSLog(@"📲: %@", url);
     NSLog(@"params: %@", params);
-    
-    [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        
+    [[[HAWebService manager] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         self.loadingReplies = false;
         
         NSInteger componentsBefore = self.tableView.stream.components.count;
@@ -791,7 +799,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                 [self.tableView.stream appendPage:page];
             }
             else {
-                self.tableView.stream.tempComponents = [NSMutableArray<BFStreamComponent *><BFStreamComponent> new];
+                [self.tableView.stream flushTempPosts];
                 
                 [self.tableView.stream prependPage:page];
             }
@@ -807,7 +815,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                 [self.tableView refreshAtBottom];
             }
         }
-        else {
+        else if (cursorType != StreamPagingCursorTypeNext) {
             [self.tableView hardRefresh:false];
         }
         
@@ -816,7 +824,6 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         }
         
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(CGFLOAT_MIN * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            [self.tableView reloadData];
             [self.tableView layoutIfNeeded];
             [self updateContentInsets];
         });
@@ -1237,8 +1244,8 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     
     [UIView animateWithDuration:0.35f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
         if (self.navigationController && [self.navigationController isKindOfClass:[SimpleNavigationController class]] && self.navigationController.topViewController == self) {
-            self.navigationController.view.tintColor = [UIColor fromHex:self.post.themeColor adjustForOptimalContrast:true];
-            [(SimpleNavigationController *)self.navigationController updateBarColor:[UIColor clearColor] animated:false];
+//            self.navigationController.view.tintColor = [UIColor fromHex:self.post.themeColor adjustForOptimalContrast:true];
+            [(SimpleNavigationController *)self.navigationController updateBarColor:[UIColor fromHex:self.post.themeColor] animated:false];
         }
         
         self.composeInputView.theme = theme;

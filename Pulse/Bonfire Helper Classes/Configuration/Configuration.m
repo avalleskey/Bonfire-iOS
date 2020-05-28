@@ -345,26 +345,39 @@ NSString * const LOCAL_APP_URI = @"bonfireapp";
     [HAWebService reset];
     #endif
 }
-+ (void)replaceDevelopmentURIWith:(NSString *)newURI {
++ (void)replaceCurrentURIWith:(NSString *)newURI {
     #ifdef DEBUG
     Configuration *sharedConfiguration = [Configuration sharedConfiguration];
     
     NSString *localPath = [[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0] stringByAppendingPathComponent:ConfigurationPLIST_DEBUG@".plist"];
     NSMutableDictionary *configurations = [[NSMutableDictionary alloc] initWithDictionary:[NSDictionary dictionaryWithContentsOfFile:localPath]];
     NSMutableDictionary *environments = [[NSMutableDictionary alloc] initWithDictionary:configurations[@"environments"]];
-    NSMutableDictionary *development = [[NSMutableDictionary alloc] initWithDictionary:environments[ConfigurationDEVELOPMENT]];
-    [development setObject:newURI forKey:ConfigurationAPI_BASE_URI];
     
-    [environments setObject:development forKey:ConfigurationDEVELOPMENT];
-    [configurations setObject:environments forKey:@"environments"];
+    if ([self isDevelopment]) {
+        NSMutableDictionary *development = [[NSMutableDictionary alloc] initWithDictionary:environments[ConfigurationDEVELOPMENT]];
+        [development setObject:newURI forKey:ConfigurationAPI_BASE_URI];
+        
+        [environments setObject:development forKey:ConfigurationDEVELOPMENT];
+        [configurations setObject:environments forKey:@"environments"];
+    }
+    else {
+        NSMutableDictionary *production = [[NSMutableDictionary alloc] initWithDictionary:environments[ConfigurationPRODUCTION]];
+        [production setObject:newURI forKey:ConfigurationAPI_BASE_URI];
+        
+        [environments setObject:production forKey:ConfigurationPRODUCTION];
+        [configurations setObject:environments forKey:@"environments"];
+    }
     
     NSError *error = nil;
     NSData *plistData = [NSPropertyListSerialization dataWithPropertyList:configurations format:NSPropertyListXMLFormat_v1_0 options:0 error:&error];
     
     if (plistData) {
         [plistData writeToFile:localPath atomically:YES];
-        if (sharedConfiguration.development) {
+        if ([self isDevelopment]) {
             sharedConfiguration.variables = configurations[@"environments"][ConfigurationDEVELOPMENT];
+        }
+        else {
+            sharedConfiguration.variables = configurations[@"environments"][ConfigurationPRODUCTION];
         }
     }
         
@@ -373,6 +386,23 @@ NSString * const LOCAL_APP_URI = @"bonfireapp";
 }
 
 #pragma mark - Misc. Getters
++ (NSString *)CURRENT_BASE_URI {
+    #ifdef DEBUG
+    
+    // Load Variables for Current Configuration
+    if ([self isDevelopment]) {
+        return [self DEVELOPMENT_BASE_URI];
+    }
+    else {
+        return [self PRODUCTION_BASE_URI];
+    }
+    
+    #else
+    
+    return nil;
+    
+    #endif
+}
 + (NSString *)DEVELOPMENT_BASE_URI {
     #ifdef DEBUG
     
@@ -380,8 +410,22 @@ NSString * const LOCAL_APP_URI = @"bonfireapp";
     NSString *localPath = [[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0] stringByAppendingPathComponent:ConfigurationPLIST_DEBUG@".plist"];
     NSDictionary *configurations = [NSDictionary dictionaryWithContentsOfFile:localPath];
     
-    // Load Variables for Current Configuration
     return configurations[@"environments"][ConfigurationDEVELOPMENT][ConfigurationAPI_BASE_URI];
+    
+    #else
+    
+    return nil;
+    
+    #endif
+}
++ (NSString *)PRODUCTION_BASE_URI {
+    #ifdef DEBUG
+    
+    // Load Configurations
+    NSString *localPath = [[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0] stringByAppendingPathComponent:ConfigurationPLIST_DEBUG@".plist"];
+    NSDictionary *configurations = [NSDictionary dictionaryWithContentsOfFile:localPath];
+    
+    return configurations[@"environments"][ConfigurationPRODUCTION][ConfigurationAPI_BASE_URI];
     
     #else
     

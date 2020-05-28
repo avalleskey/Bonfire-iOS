@@ -32,10 +32,13 @@ typedef enum {
 @property (nonatomic, strong) NSMutableArray <PostStreamPage *> *pages;
 
 @property (nonatomic, strong) NSArray <BFStreamComponent *><BFStreamComponent> *components;
-@property (nonatomic, strong) NSMutableArray <BFStreamComponent *><BFStreamComponent> *tempComponents;
 @property (nonatomic, strong) NSMutableArray <BFStreamComponent *><BFStreamComponent> *finalComponents;
 
+@property (nonatomic, strong) NSMutableArray <Post *> *tempPosts;
+@property (nonatomic, strong) NSMutableArray <BFStreamComponent *><BFStreamComponent> *tempComponents;
+
 - (void)flush;
+- (void)flushTempPosts;
 
 @property (nonatomic) NSString *prevCursor;
 @property (nonatomic) NSString *nextCursor;
@@ -46,6 +49,7 @@ typedef enum {
 // Used when creating a post
 // returns unique ID for new post, which can be used to remove/replace new post
 - (NSString *)addTempPost:(Post *)post;
+- (BOOL)updateTempPost:(Post *)post withId:(NSString *)tempId;
 - (BOOL)removeTempPost:(NSString *)tempId;
 
 - (NSString *)addTempSubReply:(Post *)subReply;
@@ -68,6 +72,7 @@ typedef enum {
 - (BOOL)performEventType:(PostStreamEventType)eventType object:(id)object;
 
 @property (nonatomic) BFComponentDetailLevel detailLevel;
+@property (nonatomic) BFStreamComponentSize componentSize;
 
 @end
 

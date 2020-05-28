@@ -17,7 +17,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) Camp *camp;
 
 @property (nonatomic, strong) UITableView *tableView;
-@property (nonatomic, strong) UIView *segmentedControl;
+@property (nonatomic, strong) UIScrollView *segmentedControl;
 
 @property (nonatomic, strong) UIView *shareView;
 @property (nonatomic, strong) UIButton *shareButton;

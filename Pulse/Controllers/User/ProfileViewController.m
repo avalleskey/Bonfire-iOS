@@ -451,7 +451,7 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
     
     self.shimmering = true;
     
-    [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:@{} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+    [[[HAWebService manager] authenticate] GET:url parameters:@{} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSDictionary *responseData = (NSDictionary *)responseObject[@"data"];
         
         NSLog(@"response data:: user:: %@", responseData);
@@ -511,7 +511,11 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
         
         NSHTTPURLResponse *httpResponse = error.userInfo[AFNetworkingOperationFailingURLResponseErrorKey];
         NSInteger statusCode = httpResponse.statusCode;
-        if (statusCode == 404) {
+        NSInteger errorCode = [error bonfireErrorCode];
+        if (errorCode == USER_USERNAME_SUSPENDED) {
+            [self displayUserAsSuspended];
+        }
+        else if (statusCode == 404) {
             [self showErrorViewWithType:ErrorViewTypeNotFound title:@"User Not Found" description:@"We couldn’t find the User\nyou were looking for" actionTitle:nil actionBlock:nil];
             
             [self hideMoreButton];
@@ -528,6 +532,22 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
         
         self.shimmering = false;
     }];
+}
+
+- (void)displayUserAsSuspended {
+    // clean the user object
+    User *user = [[User alloc] init];
+    user.identifier = self.user.identifier;
+    user.attributes = [[IdentityAttributes alloc] initWithDictionary:@{@"identifier": self.user.attributes.identifier, @"suspended": @(1)} error:nil];
+    self.user = user;
+    
+    [self updateTheme];
+    
+    [self showErrorViewWithType:ErrorViewTypeGeneral title:@"Account Suspended"description:@"Bonfire suspends accounts that violate Bonfire's Community Rules" actionTitle:@"Community Rules" actionBlock:^{
+        [Launcher openURL:@"https://bonfire.camp/legal/community"];
+    }];
+    
+    [self hideMoreButton];
 }
 
 - (void)updateTheme {
@@ -643,22 +663,9 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
         }
         
         NSString *url = [NSString stringWithFormat:@"users/%@/%@", [self userIdentifier], ([self isCurrentUser] ? @"posts" : @"stream")];
-        [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        [[[HAWebService manager] authenticate] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
             self.loading = false;
             self.tableView.loadingMore = false;
-            
-            BOOL mock = false; //(cursorType == StreamPagingCursorTypeNone);
-            if (mock) {
-                NSString *bundlePath = [[NSBundle mainBundle] pathForResource:@"User_profile_stream_json_2" ofType:@"json"];
-                NSData *data = [NSData dataWithContentsOfFile:bundlePath];
-
-                if (data) {
-                    NSDictionary *json = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:nil];
-                    if (json == nil) return;
-                    
-                    responseObject = json;
-                }
-            }
             
             SectionStreamPage *page = [[SectionStreamPage alloc] initWithDictionary:responseObject error:nil];
             if (page.data.count > 0) {
@@ -710,7 +717,11 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
         } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
             NSLog(@"ProfileViewController / getPostsWithMaxId() - error: %@", error);
             
-            if (self.tableView.stream.sections.count == 0) {
+            NSInteger errorCode = [error bonfireErrorCode];
+            if (errorCode == USER_USERNAME_SUSPENDED) {
+                [self displayUserAsSuspended];
+            }
+            else if (self.tableView.stream.sections.count == 0) {
                 [self showErrorViewWithType:([HAWebService hasInternet] ? ErrorViewTypeGeneral : ErrorViewTypeNoInternet) title:([HAWebService hasInternet] ? @"Error Loading" : @"No Internet") description:@"Check your network settings and tap below to try again" actionTitle:@"Refresh" actionBlock:^{
                     self.loading = true;
                     [self refresh];

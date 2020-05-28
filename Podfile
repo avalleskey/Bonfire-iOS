@@ -36,9 +36,8 @@ target 'Pulse' do
   pod 'SEJSONViewController'
   pod 'MarqueeLabel', '~> 3.2.1'
   pod 'SKInnerShadowLayer'
+  pod "UIView+Copy"
   
-  pod 'FBSDKCoreKit'
-  pod 'FBSDKShareKit'
   pod 'SnapSDK', :subspecs => ['SCSDKCreativeKit']
   
   # analytics

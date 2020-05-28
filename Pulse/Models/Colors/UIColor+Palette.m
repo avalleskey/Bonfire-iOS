@@ -22,10 +22,10 @@
     
     if (adjustForOptimalContrast) {
         if ([[hex lowercaseString] isEqualToString:@"fff"] || [[hex lowercaseString] isEqualToString:@"ffffff"]) {
-            hex = @"fefefe";
+            hex = @"eeeeee";
         }
         else if ([[hex lowercaseString] isEqualToString:@"000"] || [[hex lowercaseString] isEqualToString:@"000000"]) {
-            hex = @"010101";
+            hex = @"444444";
         }
     }
     

@@ -44,7 +44,7 @@
         self.morePostsIcon.contentMode = UIViewContentModeCenter;
         [self.contentView addSubview:self.morePostsIcon];
         
-        self.lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, self.frame.size.height - (1 / [UIScreen mainScreen].scale), self.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+        self.lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, self.frame.size.height - HALF_PIXEL, self.frame.size.width, HALF_PIXEL)];
         self.lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
         self.lineSeparator.hidden = true;
         [self addSubview:self.lineSeparator];
@@ -58,7 +58,7 @@
     
     self.contentView.frame = CGRectMake(0, 0, self.frame.size.width, [ExpandThreadCell height]);
     
-    self.lineSeparator.frame = CGRectMake(0, self.contentView.frame.size.height - (1 / [UIScreen mainScreen].scale), self.frame.size.width, (1 / [UIScreen mainScreen].scale));
+    self.lineSeparator.frame = CGRectMake(0, self.contentView.frame.size.height - HALF_PIXEL, self.frame.size.width, HALF_PIXEL);
     
     CGFloat morePostsIconSize = [ReplyCell avatarSizeForLevel:self.levelsDeep];
     UIEdgeInsets contentEdgeInsets = [ReplyCell contentEdgeInsetsForLevel:self.levelsDeep];

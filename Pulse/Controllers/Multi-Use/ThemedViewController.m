@@ -62,6 +62,13 @@
         if (self.bigSpinner) {
             self.bigSpinner.color = theme;
         }
+        
+//        self.view.backgroundColor = [UIColor backgroundColorFromHex:[UIColor toHex:theme]];
+        
+//        UIView *primaryView = [self primaryView];
+//        if (primaryView) {
+//            primaryView.backgroundColor = [UIColor backgroundColorFromHex:[UIColor toHex:theme]];
+//        }
     }
 }
 
@@ -72,10 +79,23 @@
     self.bigSpinner.center = self.view.center;
     self.bigSpinner.alpha = 0;
     self.bigSpinner.tag = 1111;
-    self.bigSpinner.backgroundColor = [UIColor contentBackgroundColor];
+    self.bigSpinner.backgroundColor = [UIColor clearColor];
     self.bigSpinner.layer.cornerRadius = 10.f;
 
     [self.view addSubview:self.bigSpinner];
+}
+
+- (UIView *)primaryView {
+    for (UIView *subview in self.view.subviews) {
+        if ([subview isKindOfClass:[UITableView class]]) {
+            return subview;
+        }
+        else if ([subview isKindOfClass:[UICollectionView class]]) {
+            return subview;
+        }
+    }
+    
+    return nil;
 }
 
 - (void)setSpinning:(BOOL)spinning {
@@ -86,13 +106,20 @@
     if (spinning != _spinning) {
         _spinning = spinning;
     }
+    
+    UIView *primaryView = [self primaryView];
 
     if (spinning) {
-//        [self.bigSpinner startAnimating];
-        [self.view bringSubviewToFront:self.bigSpinner];
+        [self.bigSpinner startAnimating];
 
-//        self.view.userInteractionEnabled = false;
+        if (primaryView) {
+            primaryView.userInteractionEnabled = false;
+        }
         [UIView animateWithDuration:animated?0.4f:0 delay:0 usingSpringWithDamping:0.75f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
+            if (primaryView) {
+                primaryView.transform = CGAffineTransformMakeTranslation(0, 56);
+                primaryView.alpha = 0;
+            }
             self.bigSpinner.alpha = 1;
             self.bigSpinner.transform = CGAffineTransformMakeScale(1, 1);
         } completion:^(BOOL finished) {
@@ -105,8 +132,15 @@
             self.bigSpinner.transform = CGAffineTransformMakeScale(0.8, 0.8);
         } completion:^(BOOL finished) {
             [self.bigSpinner stopAnimating];
-            self.view.userInteractionEnabled = true;
         }];
+        if (primaryView) {
+            [UIView animateWithDuration:animated?0.56f:0 delay:0.1f usingSpringWithDamping:0.7f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
+                primaryView.transform = CGAffineTransformMakeTranslation(0, 0);
+                primaryView.alpha = 1;
+            } completion:^(BOOL finished) {
+                primaryView.userInteractionEnabled = true;
+            }];
+        }
     }
 }
 

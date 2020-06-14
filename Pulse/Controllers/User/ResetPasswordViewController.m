@@ -46,7 +46,7 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
-    self.view.backgroundColor = [UIColor contentBackgroundColor];
+    self.view.backgroundColor = [UIColor colorNamed:@"Navigation_ClearBackgroundColor"];
     self.view.tintColor = [UIColor bonfireBrand];
     
     if (self.prefillLookup.length == 0 && [Session sharedInstance].currentUser) {
@@ -145,7 +145,7 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
     self.nextButton = [UIButton buttonWithType:UIButtonTypeCustom];
     self.nextButton.frame = CGRectMake(24, self.view.frame.size.height, self.view.frame.size.width - (24 * 2), 48);
     self.nextButton.backgroundColor = [self.view tintColor];
-    self.nextButton.titleLabel.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightSemibold];
+    self.nextButton.titleLabel.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightBold];
     [self.nextButton setTitleColor:[UIColor bonfireSecondaryColor] forState:UIControlStateDisabled];
     [self continuityRadiusForView:self.nextButton withRadius:14.f];
     [self.nextButton setTitle:@"Next" forState:UIControlStateNormal];
@@ -153,9 +153,10 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
     [self greyOutNextButton];
     
     [self.nextButton bk_addEventHandler:^(id sender) {
-        [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-            self.nextButton.alpha = 0.8;
-            self.nextButton.transform = CGAffineTransformMakeScale(0.8, 0.8);
+        [HapticHelper generateFeedback:FeedbackType_Selection];
+        
+        [UIView animateWithDuration:0.55f delay:0 usingSpringWithDamping:0.65f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+            self.nextButton.transform = CGAffineTransformMakeScale(0.9, 0.9);
         } completion:nil];
     } forControlEvents:UIControlEventTouchDown];
     
@@ -302,7 +303,7 @@ static NSInteger const CONFIRM_NEW_PASSWORD_FIELD = 204;
         textField.delegate = self;
         textField.returnKeyType = UIReturnKeyNext;
         // textField.autocorrectionType = UITextAutocorrectionTypeNo;
-        textField.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightMedium];
+        textField.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightSemibold];
         
         [inputBlock addSubview:textField];
         

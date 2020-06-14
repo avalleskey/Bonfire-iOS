@@ -345,7 +345,7 @@ static NSString * const paginationCellReuseIdentifier = @"PaginationCell";
         cell.gutterPadding = 12;
         UIView *separator = [cell viewWithTag:10];
         if (!separator) {
-            separator = [[UIView alloc] initWithFrame:CGRectMake(cell.gutterPadding, 52 - (1 / [UIScreen mainScreen].scale), self.view.frame.size.width - (cell.gutterPadding * 2), (1 / [UIScreen mainScreen].scale))];
+            separator = [[UIView alloc] initWithFrame:CGRectMake(cell.gutterPadding, 52 - HALF_PIXEL, self.view.frame.size.width - (cell.gutterPadding * 2), HALF_PIXEL)];
             separator.backgroundColor = [UIColor tableViewSeparatorColor];
             separator.tag = 10;
             [cell addSubview:separator];
@@ -669,7 +669,7 @@ static NSString * const paginationCellReuseIdentifier = @"PaginationCell";
 }
 
 - (void)createSegmentedControl {
-    NSArray *tabs = @[@"All", @"Camps", @"Users"];
+    NSArray *tabs = @[@"All", @"Camps", @"People"];
     
     self.segmentedControl = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 48)];
     self.segmentedControl.backgroundColor = [UIColor colorNamed:@"Navigation_ClearBackgroundColor"];
@@ -693,7 +693,7 @@ static NSString * const paginationCellReuseIdentifier = @"PaginationCell";
     for (NSInteger i = 0; i < tabs.count; i++) {
         UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
         button.tag = i;
-        [button.titleLabel setFont:[UIFont systemFontOfSize:16.f weight:UIFontWeightSemibold]];
+        [button.titleLabel setFont:[UIFont systemFontOfSize:16.f weight:UIFontWeightBold]];
         [button setTitle:tabs[i] forState:UIControlStateNormal];
         
         if (buttonWidth == 0) {
@@ -726,7 +726,7 @@ static NSString * const paginationCellReuseIdentifier = @"PaginationCell";
         
 //        if (i < tabs.count - 1) {
 //            // => not the last tab
-//            UIView *horizontalSeparator = [[UIView alloc] initWithFrame:CGRectMake(button.frame.size.width - (1 / [UIScreen mainScreen].scale), 14, (1 / [UIScreen mainScreen].scale), 24)];
+//            UIView *horizontalSeparator = [[UIView alloc] initWithFrame:CGRectMake(button.frame.size.width - HALF_PIXEL, 14, HALF_PIXEL, 24)];
 //            horizontalSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
 //            [button addSubview:horizontalSeparator];
 //        }
@@ -754,10 +754,10 @@ static NSString * const paginationCellReuseIdentifier = @"PaginationCell";
                 searchView.placeholder = @"Camps";
             }
             else if (activeTab == 2) {
-                searchView.placeholder = @"Users";
+                searchView.placeholder = @"People";
             }
             else {
-                searchView.placeholder = @"Camps & Users";
+                searchView.placeholder = @"Camps & People";
             }
         }
     

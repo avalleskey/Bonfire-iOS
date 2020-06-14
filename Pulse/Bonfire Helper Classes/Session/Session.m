@@ -314,8 +314,7 @@ static Session *session;
 - (void)signOut {
     // cancel all existing requests
     HAWebService *manager = [HAWebService manager]; //manager should be instance which you are using across application
-    [manager.session invalidateAndCancel];
-    [HAWebService reset];
+//    [manager.session invalidateAndCancel];
     
     // keep the config
     NSInteger launches = [[NSUserDefaults standardUserDefaults] integerForKey:@"launches"];
@@ -326,6 +325,7 @@ static Session *session;
     
     // send DELETE request to API
     NSDictionary *accessToken = [[Session sharedInstance] getAccessTokenWithVerification:true];
+    
     if (accessToken != nil) {
         NSLog(@"⚡️⚡️⚡️⚡️⚡️⚡️  SIGN OUT  ⚡️⚡️⚡️⚡️⚡️⚡️⚡️");
         
@@ -333,11 +333,12 @@ static Session *session;
         
         NSString *url = [NSString stringWithFormat:@"%@/%@/oauth/access_token", [Configuration API_BASE_URI], [Configuration API_CURRENT_VERSION]];
         
+        // Create a new instance before it gets reset
+        HAWebService *logoutManager = [[HAWebService alloc] init];
         NSLog(@"let's authenticate........");
         [Session authenticate:^(BOOL success, NSString *token) {
             if (success) {
-                HAWebService *logoutManager = [[HAWebService alloc] init];
-                                 
+                [logoutManager.requestSerializer setTimeoutInterval:10];
                 [logoutManager.requestSerializer setValue:[NSString stringWithFormat:@"Bearer %@", token] forHTTPHeaderField:@"Authorization"];
                 logoutManager.requestSerializer.HTTPMethodsEncodingParametersInURI = [NSSet setWithObjects:@"GET", @"HEAD", nil];
                 
@@ -347,6 +348,9 @@ static Session *session;
                     
                     [logoutManager DELETE:url parameters:@{@"access_token": token} success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                         NSLog(@"✌️ Logged out of User");
+                                                
+                        // reset the [HAWebService authenticatedManager]
+                        [HAWebService reset];
                         
                         [Launcher openOnboarding];
                     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
@@ -366,13 +370,9 @@ static Session *session;
             }
         }];
     }
-    
+        
     // clear session
     session = nil;
-    
-    // reset the [HAWebService authenticatedManager]
-    [[HAWebService manager].session invalidateAndCancel];
-    [HAWebService reset];
     
     // clear feed cache
     [[PINCache sharedCache] removeAllObjects];
@@ -475,7 +475,7 @@ static Session *session;
         // has a seemingly valid refresh token, so we should attempt
         NSLog(@"🔑⏳ getNewAccessToken: REFRESH TOKEN AVAILABLE");
         
-        if ([self refreshingToken]) {
+        if (self.refreshingToken) {
             // NSLog(@"already refreshing....");
             [self fireOnRefreshingTokenCompletion:^(void) {
                 // NSLog(@"all requests finished!");
@@ -515,9 +515,8 @@ static Session *session;
                 
                 [[Session sharedInstance] setAccessToken:cleanDictionary];
                 
-                handler(true, cleanDictionary[@"access_token"], 0);
-                
                 self.refreshingToken = false;
+                handler(true, cleanDictionary[@"access_token"], 0);
             } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
                 NSLog(@"/oauth error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);
                 NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
@@ -525,6 +524,8 @@ static Session *session;
                 
                 // check if another access token was already retrieved in the mean time
                 // -> this happens when you have multiple requests attempting to use an expired token and consequently, multiple requests are made to renew the access token. the subsequent requests will fail with an error code 48, due to sending an invalid token (since it has already been used for a refresh)
+                
+                self.refreshingToken = false;
                 
                 NSDictionary *accessToken = [[Session sharedInstance] getAccessTokenWithVerification:true];
                 if (accessToken != nil) {
@@ -538,8 +539,6 @@ static Session *session;
                 else {
                     [self getNewAccessToken:handler];
                 }
-                
-                self.refreshingToken = false;
             }];
         }
     }
@@ -599,9 +598,7 @@ static Session *session;
         _sharedCampCache.memoryCache.costLimit = 100;
         
     });
-    
-    NSLog(@"total memory cost:: %lu", (unsigned long)_sharedCampCache.memoryCache.totalCost);
-    
+        
     return _sharedCampCache;
 }
 
@@ -635,7 +632,7 @@ static Session *session;
         }
         
         if (signUpsToday >= 2) {
-            return false;
+//            return false;
         }
     }
     

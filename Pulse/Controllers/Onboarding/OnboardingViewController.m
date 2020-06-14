@@ -75,13 +75,13 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
-    self.view.backgroundColor = [UIColor contentBackgroundColor];
+    self.view.backgroundColor = [UIColor colorNamed:@"Navigation_ClearBackgroundColor"];
     self.view.tintColor = [UIColor bonfireBrand];
     
     self.phoneNumberSignUpAllowed = [[NSLocale currentLocale].countryCode isEqualToString:@"US"];
     
     // rate limit to 2 sign ups / day
-    self.preventNewAccountCreation = ![Session canCreateNewAccount];
+    self.preventNewAccountCreation = false;// ![Session canCreateNewAccount];
     //
     
     [self setupViews];
@@ -212,7 +212,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     self.nextButton = [UIButton buttonWithType:UIButtonTypeCustom];
     self.nextButton.frame = CGRectMake(self.view.frame.size.width / 2 - buttonWidth / 2, self.view.frame.size.height - 48 - (HAS_ROUNDED_CORNERS ? [[UIApplication sharedApplication] keyWindow].safeAreaInsets.bottom + 12 : 24), buttonWidth, 48);
     self.nextButton.backgroundColor = [self.view tintColor];
-    self.nextButton.titleLabel.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightSemibold];
+    self.nextButton.titleLabel.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightBold];
     [self.nextButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [self.nextButton setTitleColor:[UIColor bonfireSecondaryColor] forState:UIControlStateDisabled];
     [self continuityRadiusForView:self.nextButton withRadius:14.f];
@@ -221,9 +221,10 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     [self greyOutNextButton];
     
     [self.nextButton bk_addEventHandler:^(id sender) {
-        [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-            self.nextButton.alpha = 0.8;
-            self.nextButton.transform = CGAffineTransformMakeScale(0.92, 0.92);
+        [HapticHelper generateFeedback:FeedbackType_Selection];
+        
+        [UIView animateWithDuration:0.55f delay:0 usingSpringWithDamping:0.65f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+            self.nextButton.transform = CGAffineTransformMakeScale(0.9, 0.9);
         } completion:nil];
     } forControlEvents:UIControlEventTouchDown];
     
@@ -434,7 +435,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         
         textField.delegate = self;
         textField.returnKeyType = UIReturnKeyNext;
-        textField.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightMedium];
+        textField.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightSemibold];
         
         [inputBlock addSubview:textField];
         
@@ -534,20 +535,10 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                 if (textField.keyboardType == UIKeyboardTypeEmailAddress) {
                     // switch to phone
                     self.signUpMethod = BFSignUpMethodPhoneNumber;
-                    
-                    [switchSignUpMethodButton setTitle:@"Use email instead" forState:UIControlStateNormal];
-                    textField.placeholder = @"Phone Number";
-                    textField.keyboardType = UIKeyboardTypePhonePad;
-                    textField.textContentType = UITextContentTypeTelephoneNumber;
                 }
                 else {
                     // switch to email
                     self.signUpMethod = BFSignUpMethodEmailAddress;
-                    
-                    [switchSignUpMethodButton setTitle:@"Use phone instead" forState:UIControlStateNormal];
-                    textField.placeholder = @"Email Address";
-                    textField.keyboardType = UIKeyboardTypeEmailAddress;
-                    textField.textContentType = UITextContentTypeEmailAddress;
                 }
                 [textField reloadInputViews];
             }];
@@ -734,6 +725,28 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     }
     [self greyOutNextButton];
 }
+- (void)setSignUpMethod:(BFSignUpMethod)signUpMethod {
+    if (signUpMethod != _signUpMethod) {
+        _signUpMethod = signUpMethod;
+        
+        UIView *userIdentificationBlock = self.steps[[self getIndexOfStepWithId:@"user_identification"]][@"block"];
+        UITextField *textField = self.steps[[self getIndexOfStepWithId:@"user_identification"]][@"textField"];
+        UIButton *switchSignUpMethodButton = (UIButton *)[userIdentificationBlock viewWithTag:10];
+        
+        if (signUpMethod == BFSignUpMethodPhoneNumber) {
+            [switchSignUpMethodButton setTitle:@"Use email instead" forState:UIControlStateNormal];
+            textField.placeholder = @"Phone Number";
+            textField.keyboardType = UIKeyboardTypePhonePad;
+            textField.textContentType = UITextContentTypeTelephoneNumber;
+        }
+        else if (signUpMethod == BFSignUpMethodEmailAddress) {
+            [switchSignUpMethodButton setTitle:@"Use phone instead" forState:UIControlStateNormal];
+            textField.placeholder = @"Email Address";
+            textField.keyboardType = UIKeyboardTypeEmailAddress;
+            textField.textContentType = UITextContentTypeEmailAddress;
+        }
+    }
+}
 - (void)prepareForSignUp {
     self.signInLikely = false;
     // only skip password
@@ -828,6 +841,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                 self.nextButton.backgroundColor = [self currentColor];
                 [self.nextButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
                 self.closeButton.tintColor = [self currentColor];
+                self.view.backgroundColor = [UIColor backgroundColorFromHex:[UIColor toHex:[self currentColor]]];
             } completion:nil];
         }
         if ([nextStep[@"id"] isEqualToString:@"user_profile_picture"]) {
@@ -1255,20 +1269,26 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                 }
             }];
         }
-        else if ([textField.text validateBonfireEmail] == BFValidationErrorNone) {
-            self.signUpMethod = BFSignUpMethodEmailAddress;
+        else if ([textField.text validateBonfireEmail] == BFValidationErrorNone ||
+                 [textField.text validateBonfireUsername] == BFValidationErrorNone) {
+            BOOL isEmail = ([textField.text validateBonfireEmail] == BFValidationErrorNone);
             
             // check for similar names
             [self greyOutNextButton];
             [self showSpinnerForStep:self.currentStep];
             
-            NSString *url = @"accounts/validate/email"; // sample data
+            NSString *text = textField.text;
             
-            [[HAWebService managerWithContentType:kCONTENT_TYPE_URL_ENCODED] GET:url parameters:@{@"email": textField.text} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, NSDictionary *responseObject) {
+            NSString *url = [@"accounts/validate/" stringByAppendingString:(isEmail?@"email":@"username")];
+            NSDictionary *params = (isEmail ? @{@"email": textField.text} : @{@"username": textField.text});
+            
+            [[HAWebService managerWithContentType:kCONTENT_TYPE_URL_ENCODED] GET:url parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, NSDictionary *responseObject) {
                 [self removeSpinnerForStep:self.currentStep];
                 
                 BOOL isValid = [responseObject[@"data"][@"valid"] boolValue];
                 BOOL isOccupied = [responseObject[@"data"][@"occupied"] boolValue];
+                NSArray *authMethods = [responseObject[@"data"] objectForKey:@"auth_methods"] ? responseObject[@"data"][@"auth_methods"] : @[];
+                if (!authMethods) authMethods = @[];
                 
                 NSLog(@"isValid? %@", (isValid ? @"YES" : @"NO" ));
                 NSLog(@"isOccupied? %@", (isOccupied ? @"YES" : @"NO" ));
@@ -1277,6 +1297,8 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                     self.requiresRegistration = !isOccupied;
                     
                     if (self.requiresRegistration) {
+                        self.signUpMethod = BFSignUpMethodEmailAddress;
+                        
                         if (self.preventNewAccountCreation) {
                             [self showAccountCreationCapAlert];
                         }
@@ -1284,6 +1306,20 @@ static NSString * const blankCellIdentifier = @"BlankCell";
                             [self prepareForSignUp];
                             [self nextStep:true];
                         }
+                    }
+                    else if (isOccupied && authMethods.count == 1 && [(NSString *)authMethods[0] isEqualToString:@"phone"]) {
+                        self.signUpMethod = BFSignUpMethodPhoneNumber;
+                        
+                        // usernames that only have a
+                        [self removeSpinnerForStep:self.currentStep];
+                        [self shakeInputBlock];
+                        [self enableNextButton];
+                        
+                        BFAlertController *alert = [BFAlertController alertControllerWithTitle:[NSString stringWithFormat:@"Enter @%@ Phone Number", [text stringByReplacingOccurrencesOfString:@"@" withString:@""]] message:@"Accounts with no email address must sign in using a phone number" preferredStyle:BFAlertControllerStyleAlert];
+                        BFAlertAction *gotItAction = [BFAlertAction actionWithTitle:@"Okay" style:BFAlertActionStyleCancel handler:nil];
+                        [alert addAction:gotItAction];
+                        
+                        [alert show];
                     }
                     else {
                         [self prepareForSignIn];
@@ -1572,15 +1608,27 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         
         // save profile picture and color
         [self uploadProfilePicture:^(BOOL success, NSString *profilePictureURL) {
-            NSMutableDictionary *updateParams = [[NSMutableDictionary alloc] initWithDictionary:@{@"color": [UIColor toHex:self.colors[self.themeColor]]}];
+            NSString *newColor = [UIColor toHex:self.colors[self.themeColor]];
+            NSString *existingColor = [Session sharedInstance].currentUser.attributes.color;
+            
+            NSMutableDictionary *updateParams = [NSMutableDictionary new];
+            
+            if (![newColor isEqualToString:existingColor]) {
+                [updateParams setObject:newColor forKey:@"color"];
+            }
             
             if (profilePictureURL && profilePictureURL.length > 0) {
                 [updateParams setObject:profilePictureURL forKey:@"avatar"];
             }
             
-            [self attemptToUpdateUser:updateParams completion:^(BOOL success) {
-                NSLog(@"successfully updated: %@", [updateParams allKeys]);
-            }];
+            if (updateParams.allKeys.count > 0) {
+                [self attemptToUpdateUser:updateParams completion:^(BOOL success) {
+                    NSLog(@"successfully updated: %@", [updateParams allKeys]);
+                }];
+            }
+            else {
+                [self nextStep:true];
+            }
         }];
     }
     else if ([step[@"id"] isEqualToString:@"user_camp_suggestions"]) {
@@ -1841,6 +1889,8 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         User *user = [[User alloc] initWithDictionary:responseObject[@"data"] error:&error];
         [[Session sharedInstance] updateUser:user];
         
+        NSLog(@"user color: #%@", user.attributes.color);
+        
         // rate limit to 2 sign ups / day
         NSArray *deviceSignUps = [Lockbox unarchiveObjectForKey:@"device_sign_ups"];
         NSMutableArray *newSignUps;
@@ -2020,6 +2070,8 @@ static NSString * const blankCellIdentifier = @"BlankCell";
             self.nextButton.backgroundColor = sender.backgroundColor;
             self.closeButton.tintColor = sender.backgroundColor;
             self.backButton.tintColor = sender.backgroundColor;
+            
+            self.view.backgroundColor = [UIColor backgroundColorFromHex:[UIColor toHex:sender.backgroundColor]];
             
             checkView.transform = CGAffineTransformMakeScale(1, 1);
             checkView.alpha = 1;
@@ -2565,7 +2617,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
 - (CGSize)collectionView:(UICollectionView *)collectionView
                   layout:(UICollectionViewLayout *)collectionViewLayout
   sizeForItemAtIndexPath:(NSIndexPath *)indexPath {
-    return CGSizeMake(148, SMALL_MEDIUM_CARD_HEIGHT);
+    return CGSizeMake(156, SMALL_MEDIUM_CARD_HEIGHT);
 }
 
 #pragma mark - UICollectionViewDelegate

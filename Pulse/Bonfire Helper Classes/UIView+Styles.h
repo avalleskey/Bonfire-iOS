@@ -25,6 +25,8 @@ typedef enum {
 
 - (void)themeChanged;
 
+- (void)setContinuityRadius:(CGFloat)radius;
+
 @end
 
 NS_ASSUME_NONNULL_END

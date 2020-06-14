@@ -166,10 +166,6 @@ NSString * const BFEffectEmojisArrayAttributeName = @"emojis_array";
         [self addSubview:label];
         
         CGFloat duration = 0.8f + (2.f * r);
-                
-        NSLog(@"x: %lu", (unsigned long)x);
-        NSLog(@"xFinal: %lu", (unsigned long)xFinal);
-        NSLog(@"font size: %f", font.pointSize);
         
         [UIView animateWithDuration:duration delay:0.04*b options:UIViewAnimationOptionCurveEaseOut animations:^{
             label.frame = CGRectMake(xFinal, label.frame.size.height * -1, label.frame.size.width, label.frame.size.height);

@@ -11,6 +11,8 @@
 #import "Camp.h"
 #import "Bot.h"
 
+#define AVATAR_CORNER_RADIUS_MULTIPLIER 0.31
+
 NS_ASSUME_NONNULL_BEGIN
 
 // Macro that defines how much lighter/darker the marshmallow icon is than the profile picture background

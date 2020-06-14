@@ -43,14 +43,15 @@
         
         [containerView addSubview:toView];
         
-        CGFloat animationDuration = 0.45;
-        CGFloat animationDamping = 0.85;
+        CGFloat animationDuration = 0.5;
+        CGFloat animationDamping = 0.88;
         if (self.direction == SOLTransitionDirectionUp || self.direction == SOLTransitionDirectionDown) {
             toView.center = CGPointMake(toView.center.x, containerView.frame.size.height * 1.5);
             toView.layer.cornerRadius = HAS_ROUNDED_CORNERS ? 32.f : 8.f;
+            fromView.layer.cornerRadius = toView.layer.cornerRadius;
             fromView.layer.masksToBounds = true;
-            animationDuration = 0.5;
-            animationDamping = 0.98;
+            animationDuration = 0.6;
+            animationDamping = 0.84;
             toView.layer.masksToBounds = true;
         }
         else {
@@ -67,7 +68,8 @@
                 fromView.alpha = 0.8;
             }
             else {
-                fromView.alpha = 0.8;
+                fromView.alpha = 0.6;
+                fromView.transform = CGAffineTransformMakeScale(0.92, 0.92);
             }
             
             toView.center = CGPointMake(containerView.frame.size.width / 2, containerView.frame.size.height / 2);
@@ -89,7 +91,7 @@
         fromView.alpha = 1;
         
         toView.layer.rasterizationScale = [UIScreen mainScreen].scale;
-        toView.layer.shouldRasterize = true;
+        fromView.layer.rasterizationScale = [UIScreen mainScreen].scale;
         
         CGFloat animationDuration;
         
@@ -102,7 +104,8 @@
             animationDuration = 0.55f;
         }
         else {
-            toView.alpha = 0.8;
+            toView.alpha = 0.6;
+            toView.transform = CGAffineTransformMakeScale(0.92, 0.92);
             fromView.layer.cornerRadius = HAS_ROUNDED_CORNERS ? 32.f : 8.f;
             fromView.layer.masksToBounds = true;
             
@@ -111,6 +114,7 @@
         
         [UIView animateWithDuration:animationDuration delay:0 usingSpringWithDamping:0.9 initialSpringVelocity:0.5f options:(UIViewAnimationOptionCurveEaseInOut|UIViewAnimationOptionAllowUserInteraction) animations:^{
             toView.alpha = 1;
+            toView.transform = CGAffineTransformIdentity;
             
             if (self.direction == SOLTransitionDirectionUp || self.direction == SOLTransitionDirectionDown) {
                 fromView.center = CGPointMake(fromView.center.x, containerView.frame.size.height * 1.5);
@@ -118,8 +122,11 @@
         } completion:^(BOOL finished) {
             [fromView removeFromSuperview];
             toView.userInteractionEnabled = YES;
-            toView.layer.shouldRasterize = false;
+//            fromView.layer.shouldRasterize = false;
+//            toView.layer.shouldRasterize = false;
             fromView.layer.cornerRadius = 0;
+            toView.layer.cornerRadius = 0;
+            toView.layer.cornerRadius = toView.layer.cornerRadius;
             [transitionContext completeTransition:![transitionContext transitionWasCancelled]];
         }];
     }

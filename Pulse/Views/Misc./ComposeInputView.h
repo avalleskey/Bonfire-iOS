@@ -29,8 +29,8 @@
 @property (nonatomic, strong) Post *post;
 @property (nonatomic, strong) Post *replyingTo;
 
-//@property (nonatomic, strong) UIVisualEffectView *contentView;
-@property (nonatomic, strong) UIView *contentView;
+@property (nonatomic, strong) UIVisualEffectView *contentView;
+//@property (nonatomic, strong) UIView *contentView;
 @property (nonatomic, strong) UIButton *takePictureButton;
 @property (nonatomic, strong) UIButton *choosePictureButton;
 @property (nonatomic, strong) UIButton *chooseGIFButton;

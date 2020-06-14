@@ -62,7 +62,7 @@
         self.charactersRemainingLabel.font = [UIFont systemFontOfSize:12.f weight:UIFontWeightMedium];
         [self.contentView addSubview:self.charactersRemainingLabel];
         
-        self.lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, self.frame.size.height, self.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+        self.lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, self.frame.size.height, self.frame.size.width, HALF_PIXEL)];
         self.lineSeparator.hidden = true;
         self.lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
         [self.contentView addSubview:self.lineSeparator];

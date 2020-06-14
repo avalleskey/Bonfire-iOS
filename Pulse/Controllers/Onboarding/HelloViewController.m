@@ -40,7 +40,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    self.view.backgroundColor = [UIColor contentBackgroundColor];
+    self.view.backgroundColor = [UIColor colorNamed:@"Navigation_ClearBackgroundColor"];
     self.view.tintColor = [UIColor bonfirePrimaryColor];
     
     currentPage = 0;
@@ -219,15 +219,17 @@
     self.signUpButton = [UIButton buttonWithType:UIButtonTypeCustom];
     self.signUpButton.frame = CGRectMake(self.view.frame.size.width / 2 - buttonWidth / 2, self.signInButton.frame.origin.y - 48, buttonWidth, 48);
     self.signUpButton.layer.masksToBounds = true;
-    self.signUpButton.layer.cornerRadius = 14.f;
+    [self.signUpButton setContinuityRadius:14.f];
     self.signUpButton.backgroundColor = [UIColor bonfireBrand];
     [self.signUpButton setTitle:@"Sign Up" forState:UIControlStateNormal];
     [self.signUpButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    self.signUpButton.titleLabel.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightSemibold];
+    self.signUpButton.titleLabel.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightBold];
     self.signUpButton.adjustsImageWhenHighlighted = false;
     [self.signUpButton bk_addEventHandler:^(id sender) {
-        [UIView animateWithDuration:0.4f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-            self.signUpButton.transform = CGAffineTransformMakeScale(0.92, 0.92);
+        [HapticHelper generateFeedback:FeedbackType_Selection];
+        
+        [UIView animateWithDuration:0.55f delay:0 usingSpringWithDamping:0.65f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+            self.signUpButton.transform = CGAffineTransformMakeScale(0.9, 0.9);
         } completion:nil];
     } forControlEvents:UIControlEventTouchDown];
     [self.signUpButton bk_addEventHandler:^(id sender) {
@@ -311,7 +313,7 @@
     self.whereConversationsHappenLabel.textAlignment = NSTextAlignmentCenter;
     self.whereConversationsHappenLabel.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightMedium];
     self.whereConversationsHappenLabel.textColor = [UIColor bonfirePrimaryColor];
-    self.whereConversationsHappenLabel.text = @"Bonfire is where\nconversations happen";
+    self.whereConversationsHappenLabel.text = @"Welcome to Bonfire!\nWe're happy to have you.";
     self.whereConversationsHappenLabel.alpha = 0;
     self.whereConversationsHappenLabel.lineBreakMode = NSLineBreakByWordWrapping;
     self.whereConversationsHappenLabel.numberOfLines = 2;

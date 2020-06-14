@@ -38,6 +38,7 @@ NS_ASSUME_NONNULL_BEGIN
 + (void)openDiscover;
 
 + (void)openSearch;
++ (void)openNotifications;
 + (void)openSearchFromRect:(CGRect)rect;
 + (void)openGIFSearch:(id<GIFCollectionViewControllerDelegate>)sender;
 
@@ -85,7 +86,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 // share sheets
 + (void)sharePost:(Post *)post;
-+ (void)openPostActions:(Post *)post;
 + (void)shareCamp:(Camp *)camp;
 + (void)shareCurrentUser;
 + (void)shareIdentity:(Identity *)identity;

@@ -138,7 +138,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
         if (self.stream.users.count == 0) {
             self.errorView.hidden = false;
             
-            BFVisualError *visualError = [BFVisualError visualErrorOfType:ErrorViewTypeNoPosts title:@"No Users to Show" description:[NSString stringWithFormat:@"@%@ doesn't follow anyone", self.user.attributes.identifier] actionTitle:nil actionBlock:nil];
+            BFVisualError *visualError = [BFVisualError visualErrorOfType:ErrorViewTypeNoPosts title:@"No Friends to Show" description:@"" actionTitle:nil actionBlock:nil];
             self.errorView.visualError = visualError;
             
             [self positionErrorView];

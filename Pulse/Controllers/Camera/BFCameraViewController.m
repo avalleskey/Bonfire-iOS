@@ -1201,8 +1201,8 @@ typedef enum {
 
     CAGradientLayer *gradientLayer = [CAGradientLayer layer];
     gradientLayer.colors = gradientColors;
-    gradientLayer.startPoint = CGPointMake(0, 0);
-    gradientLayer.endPoint = CGPointMake(0.5, 1);
+    gradientLayer.startPoint = CGPointMake(0.5, 1);
+    gradientLayer.endPoint = CGPointMake(0.5, 0);
     gradientLayer.frame = CGRectMake(0, 0, size.width, size.height);
     gradientLayer.name = @"gradient";
     gradientLayer.cornerRadius = size.width / 2;

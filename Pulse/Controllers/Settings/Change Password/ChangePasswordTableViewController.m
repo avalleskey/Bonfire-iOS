@@ -48,15 +48,15 @@
     }];
     [self.saveButton setTitleTextAttributes:@{
                                               NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightBold],
-                                              NSForegroundColorAttributeName: [UIColor bonfirePrimaryColor]
+                                              NSForegroundColorAttributeName: [UIColor whiteColor]
                                               } forState:UIControlStateNormal];
     [self.saveButton setTitleTextAttributes:@{
                                               NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightBold],
-                                              NSForegroundColorAttributeName: [UIColor bonfirePrimaryColor]
+                                              NSForegroundColorAttributeName: [UIColor whiteColor]
                                               } forState:UIControlStateHighlighted];
     [self.saveButton setTitleTextAttributes:@{
                                               NSFontAttributeName: [UIFont systemFontOfSize:18.f weight:UIFontWeightBold],
-                                              NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]
+                                              NSForegroundColorAttributeName: [UIColor colorWithWhite:1 alpha:0.5]
                                               } forState:UIControlStateDisabled];
     self.navigationItem.rightBarButtonItem = self.saveButton;
     self.saveButton.enabled = false;

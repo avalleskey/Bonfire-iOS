@@ -210,7 +210,7 @@
 }
 
 - (void)updateDescriptionLabel {
-    BOOL isMember = [self.camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_MEMBER];
+    BOOL isMember = [self.camp isMember];
     NSInteger threshold = [Session sharedInstance].defaults.camp.membersThreshold;
     NSInteger members = self.camp.attributes.summaries.counts.members;
     NSInteger friendsNeeded = threshold - members;

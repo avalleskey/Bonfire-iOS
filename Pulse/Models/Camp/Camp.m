@@ -49,17 +49,14 @@
 }
 
 #pragma mark - Helper methods
+- (BOOL)isMember {
+    return [self.attributes.context.camp.status isEqualToString:CAMP_STATUS_MEMBER];
+}
 - (BOOL)isVerified {
     return self.attributes.isVerified;
 }
 - (BOOL)isDefaultCamp {
     return !self.attributes.display.format || self.attributes.display.format.length == 0;
-}
-- (BOOL)isChannel {
-    return [self.attributes.display.format isEqualToString:CAMP_DISPLAY_FORMAT_CHANNEL];
-}
-- (BOOL)isFeed {    
-    return [self.attributes.display.format isEqualToString:CAMP_DISPLAY_FORMAT_FEED];
 }
 - (BOOL)isPrivate {
     return [self.attributes isPrivate];
@@ -76,6 +73,15 @@
     
     return supported;
 }
+- (BOOL)isFavorite {
+    return [self.attributes.context.camp isFavorite];
+}
+- (BOOL)isChannel {
+    return [self.attributes.display.format isEqualToString:CAMP_DISPLAY_FORMAT_CHANNEL];
+}
+- (BOOL)isFeed {
+    return [self.attributes.display.format isEqualToString:CAMP_DISPLAY_FORMAT_FEED];
+}
 - (NSString *)mostDescriptiveIdentifier {
     if (self.attributes.identifier && self.attributes.identifier.length > 0) {
         return self.attributes.identifier;
@@ -85,6 +91,41 @@
     }
     
     return @"";
+}
+
+- (NSString *)memberCountTieredRepresentation {
+    NSInteger memberCount = (self.attributes.summaries.counts.members ? self.attributes.summaries.counts.members : 0);
+    
+    return [Camp memberCountTieredRepresentationFromInteger:memberCount];
+}
++ (NSString *)memberCountTieredRepresentationFromInteger:(NSInteger)memberCount {
+    NSString *stringValue = [NSString stringWithFormat:@"%lu", (long)memberCount];
+    if (memberCount < 500) {
+        // keep prettyValue the same
+    }
+    else if (memberCount < 1000) {
+        stringValue = @"500+";
+    }
+    else if (memberCount < 5000) {
+        stringValue = @"1k+";
+    }
+    else if (memberCount < 10000) {
+        stringValue = @"5k+";
+    }
+    else if (memberCount < 25000) {
+        stringValue = @"1k+";
+    }
+    else if (memberCount < 100000) {
+        stringValue = @"25k+";
+    }
+    else if (memberCount < 1000000) {
+        stringValue = @"100k+";
+    }
+    else {
+        stringValue = @"1m+";
+    }
+    
+    return stringValue;
 }
 
 #pragma mark - API Methods
@@ -121,6 +162,37 @@
     [[NSNotificationCenter defaultCenter] postNotificationName:@"CampUpdated" object:self];
     
     NSString *url = [NSString stringWithFormat:@"camps/%@/members/subscriptions", [self campIdentifier]];
+    [[[HAWebService manager] authenticate] DELETE:url parameters:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+//        [[NSNotificationCenter defaultCenter] postNotificationName:@"CampUpdated" object:self];
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        
+    }];
+}
+
+- (void)favorite  {
+    [FIRAnalytics logEventWithName:@"favorite_camp" parameters:@{}];
+    
+    // Update the object
+    self.attributes.context.camp.isFavorite = true;
+    
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"CampUpdated" object:self];
+    
+    NSString *url = [NSString stringWithFormat:@"camps/%@/favorite", [self campIdentifier]];
+    [[[HAWebService manager] authenticate] POST:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+//        [[NSNotificationCenter defaultCenter] postNotificationName:@"CampUpdated" object:self];
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        
+    }];
+}
+- (void)unFavorite {
+    [FIRAnalytics logEventWithName:@"unfavorite_camp" parameters:@{}];
+    
+    // Update the object
+    self.attributes.context.camp.isFavorite = false;
+    
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"CampUpdated" object:self];
+    
+    NSString *url = [NSString stringWithFormat:@"camps/%@/favorite", [self campIdentifier]];
     [[[HAWebService manager] authenticate] DELETE:url parameters:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
 //        [[NSNotificationCenter defaultCenter] postNotificationName:@"CampUpdated" object:self];
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {

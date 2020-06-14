@@ -51,13 +51,13 @@
     self.navigationBar.barTintColor = [UIColor colorNamed:@"Navigation_ClearBackgroundColor"];
     self.navigationBar.shadowImage = [self imageWithColor:[UIColor clearColor]];
     
-    self.bottomHairline = [[UIView alloc] initWithFrame:CGRectMake(0, self.navigationBar.frame.size.height, self.view.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+    self.bottomHairline = [[UIView alloc] initWithFrame:CGRectMake(0, self.navigationBar.frame.size.height, self.view.frame.size.width, HALF_PIXEL)];
     self.bottomHairline.backgroundColor = [UIColor tableViewSeparatorColor];
     self.bottomHairline.alpha = 0;
     [self.navigationBar addSubview:self.bottomHairline];
     
     self.cancelButton = [UIButton buttonWithType:UIButtonTypeSystem];
-    self.cancelButton.titleLabel.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightSemibold];
+    self.cancelButton.titleLabel.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightBold];
     [self.cancelButton setTitleColor:self.view.tintColor forState:UIControlStateNormal];
     [self.cancelButton setTitle:@"Cancel" forState:UIControlStateNormal];
     [self.cancelButton bk_whenTapped:^{

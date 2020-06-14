@@ -38,7 +38,7 @@
         // general cell styling
         self.selectionStyle = UITableViewCellSelectionStyleNone;
         
-        self.lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, self.frame.size.height, self.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+        self.lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, self.frame.size.height, self.frame.size.width, HALF_PIXEL)];
         [self.contentView addSubview:self.lineSeparator];
     }
     return self;

@@ -113,7 +113,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
         if (!descriptionLabel) {
             descriptionLabel = [[UILabel alloc] initWithFrame:CGRectMake(24, 165, self.view.frame.size.width - 48, 32)];
             descriptionLabel.tag = 12;
-            descriptionLabel.text = @"Introduce new members to the Camp by prompting them to reply to a post when they join";
+            descriptionLabel.text = @"Introduce new campers by prompting them to reply to a post when they join";
             descriptionLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightRegular];
             descriptionLabel.textAlignment = NSTextAlignmentCenter;
             descriptionLabel.textColor = [UIColor bonfireSecondaryColor];
@@ -151,7 +151,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
 - (CGFloat)heightForRowInFirstSection:(NSInteger)row {
     if (row == 0) {
         // how to set icebreaker dialog
-        CGFloat descriptionHeight = ceilf([@"Introduce new members to the Camp by prompting them to reply to a post when they join" boundingRectWithSize:CGSizeMake(self.view.frame.size.width - 48, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:14.f weight:UIFontWeightRegular]} context:nil].size.height);
+        CGFloat descriptionHeight = ceilf([@"Introduce new campers by prompting them to reply to a post when they join" boundingRectWithSize:CGSizeMake(self.view.frame.size.width - 48, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:14.f weight:UIFontWeightRegular]} context:nil].size.height);
         
         return 165 + descriptionHeight + 24 + (self.loading ? 52 : 0);
     }

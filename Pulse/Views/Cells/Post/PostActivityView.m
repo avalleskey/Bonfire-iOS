@@ -98,7 +98,7 @@
         self.dateLabel = [[UILabel alloc] initWithFrame:self.bounds];
         self.dateLabel.textColor = self.tintColor;
         self.dateLabel.textAlignment = NSTextAlignmentCenter;
-        self.dateLabel.font = [UIFont systemFontOfSize:postActivityFontSize weight:UIFontWeightSemibold];
+        self.dateLabel.font = [UIFont systemFontOfSize:postActivityFontSize weight:UIFontWeightBold];
         
         [self updateDateLabelText];
     }
@@ -126,7 +126,7 @@
             [outputFormatter_part2 setDateFormat:@" h:mm a"];
             NSMutableAttributedString *dateString = [[NSMutableAttributedString alloc] initWithString:[outputFormatter_part1 stringFromDate:date]];
             [dateString addAttribute:NSForegroundColorAttributeName value:self.dateLabel.textColor range:NSMakeRange(0, dateString.length)];
-            [dateString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:postActivityFontSize weight:UIFontWeightSemibold] range:NSMakeRange(0, dateString.length)];
+            [dateString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:postActivityFontSize weight:UIFontWeightBold] range:NSMakeRange(0, dateString.length)];
             NSMutableAttributedString *timeString = [[NSMutableAttributedString alloc] initWithString:[outputFormatter_part2 stringFromDate:date]];
             [timeString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:postActivityFontSize weight:UIFontWeightRegular] range:NSMakeRange(0, timeString.length)];
             [dateString appendAttributedString:timeString];
@@ -156,7 +156,7 @@
         self.firstToReplyLabel.tag = PostActivityViewTagAddReply;
         self.firstToReplyLabel.textColor = self.tintColor;
         self.firstToReplyLabel.textAlignment = NSTextAlignmentCenter;
-        self.firstToReplyLabel.font = [UIFont systemFontOfSize:postActivityFontSize weight:UIFontWeightSemibold];
+        self.firstToReplyLabel.font = [UIFont systemFontOfSize:postActivityFontSize weight:UIFontWeightBold];
         
         self.firstToReplyLabel.transform = CGAffineTransformMakeTranslation(0, self.frame.size.height);
         self.firstToReplyLabel.alpha = 0;
@@ -222,12 +222,12 @@
             else {
                 [self.liveCountButton setTitle:@"Spark this post to help it go viral!" forState:UIControlStateNormal];
             }
-            [self.liveCountButton.titleLabel setFont:[UIFont systemFontOfSize:postActivityFontSize weight:UIFontWeightSemibold]];
+            [self.liveCountButton.titleLabel setFont:[UIFont systemFontOfSize:postActivityFontSize weight:UIFontWeightBold]];
             [self.liveCountButton setTitleColor:self.tintColor forState:UIControlStateNormal];
         }
         else {
             NSMutableAttributedString *liveString = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"This conversation is hot 🔥"]];
-            [liveString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:postActivityFontSize weight:UIFontWeightSemibold] range:NSMakeRange(0, liveString.length)];
+            [liveString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:postActivityFontSize weight:UIFontWeightBold] range:NSMakeRange(0, liveString.length)];
             [liveString addAttribute:NSForegroundColorAttributeName value:[UIColor bonfireBrand] range:NSMakeRange(0, liveString.length)];
             [self.liveCountButton setAttributedTitle:liveString forState:UIControlStateNormal];
         }

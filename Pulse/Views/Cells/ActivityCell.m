@@ -74,7 +74,7 @@
         self.campPreviewView = [[BFCampAttachmentView alloc] initWithFrame:CGRectMake(self.frame.size.width - (self.profilePicture.frame.size.width - 4) - 12, self.profilePicture.frame.origin.y + 2, self.profilePicture.frame.size.width - 4, self.profilePicture.frame.size.height - 4)];
          [self.contentView addSubview:self.campPreviewView];
         
-        self.lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+        self.lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, HALF_PIXEL)];
         self.lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
         [self addSubview:self.lineSeparator];
         

@@ -55,7 +55,7 @@
     self.layer.shadowOffset = CGSizeMake(0, 1);
     self.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.08f].CGColor;
     self.layer.shadowOpacity = 1.f;
-    self.layer.borderWidth = (1 / [UIScreen mainScreen].scale);
+    self.layer.borderWidth = HALF_PIXEL;
     self.layer.borderColor = [UIColor colorWithWhite:0 alpha:0.1f].CGColor;
     self.contentView.layer.cornerRadius = self.layer.cornerRadius;
     self.contentView.layer.masksToBounds = true;
@@ -152,11 +152,11 @@
                 if (privateCamp || lastMember) {
                     NSString *message;
                     if (privateCamp && lastMember) {
-                        message = @"All camps must have at least one member. If you leave, this Camp and all of its posts will be deleted after 30 days of inactivity.";
+                        message = @"All camps must have at least one camper. If you leave, this Camp and all of its posts will be deleted after 30 days of inactivity.";
                     }
                     else if (lastMember) {
                         // leaving as the last member in a public camp
-                        message = @"All camps must have at least one member. If you leave, this Camp will be archived and eligible for anyone to reopen.";
+                        message = @"All camps must have at least one camper. If you leave, this Camp will be archived and eligible for anyone to reopen.";
                     }
                     else {
                         // leaving a private camp, but the user isn't the last one

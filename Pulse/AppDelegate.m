@@ -14,8 +14,7 @@
 #import "MyCampsTableViewController.h"
 #import "NotificationsTableViewController.h"
 #import "HomeTableViewController.h"
-#import "CampCardsListCell.h"
-#import "MiniAvatarListCell.h"
+#import "CampCardsListCollectionViewCell.h"
 #import "UIColor+Palette.h"
 #import "InsightsLogger.h"
 #import "BFNotificationManager.h"
@@ -26,6 +25,7 @@
 #import "BFComponentSectionTableView.h"
 #import "WaitlistViewController.h"
 #import "AccountSuspendedViewController.h"
+#import "CampsCollectionViewController.h"
 
 #import <Lockbox/Lockbox.h>
 #import <AudioToolbox/AudioServices.h>
@@ -46,7 +46,7 @@
     [self setupEnvironment];
     
     [UNUserNotificationCenter currentNotificationCenter].delegate = self;
-        
+    
     NSDictionary *accessToken = [[Session sharedInstance] getAccessTokenWithVerification:true];
     NSString *refreshToken = [Session sharedInstance].refreshToken;
     DSpacer();
@@ -392,6 +392,7 @@
         if ([viewController isKindOfClass:[UINavigationController class]]) {
             UINavigationController *currentNavigationController = (UINavigationController *)viewController;
             UITableView *tableView;
+            UICollectionView *collectionView;
             if ([currentNavigationController.visibleViewController isKindOfClass:[UITableViewController class]]) {
                 tableView = ((UITableViewController *)currentNavigationController.visibleViewController).tableView;
             }
@@ -400,6 +401,9 @@
             }
             else if ([currentNavigationController.visibleViewController isKindOfClass:[ProfileViewController class]]) {
                 tableView = ((ProfileViewController *)currentNavigationController.visibleViewController).tableView;
+            }
+            else if ([currentNavigationController.visibleViewController isKindOfClass:[CampsCollectionViewController class]]) {
+                collectionView = ((CampsCollectionViewController *)currentNavigationController.visibleViewController).collectionView;
             }
             
             if ([currentNavigationController.visibleViewController isKindOfClass:[NotificationsTableViewController class]]) {
@@ -442,15 +446,19 @@
                         }
                     }
                 }
-                
-                if ([currentNavigationController.visibleViewController isKindOfClass:[MyCampsTableViewController class]]) {
-                    MyCampsTableViewController *tableViewController = (MyCampsTableViewController *)currentNavigationController.visibleViewController;
-                    
-                    for (NSInteger i = 0; i < [tableViewController.tableView numberOfSections]; i++) {
-                        if ([[tableViewController.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:i]] isKindOfClass:[CampCardsListCell class]]) {
-                            CampCardsListCell *firstCell = [tableViewController.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:i]];
+            }
+            else if (collectionView && [collectionView numberOfSections] > 0) {
+                for (NSInteger i = 0; i < [collectionView numberOfSections]; i++) {
+                    if ([collectionView numberOfItemsInSection:i] > 0) {
+                        CGPoint topOfHeader = CGPointMake(-collectionView.contentInset.left, -collectionView.adjustedContentInset.top);
+                        [collectionView setContentOffset:topOfHeader animated:YES];
+                        
+                        if ([[collectionView cellForItemAtIndexPath:[NSIndexPath indexPathForItem:0 inSection:i]] isKindOfClass:[CampCardsListCollectionViewCell class]]) {
+                            CampCardsListCollectionViewCell *firstCell = (CampCardsListCollectionViewCell *)[collectionView cellForItemAtIndexPath:[NSIndexPath indexPathForItem:0 inSection:i]];
                             [firstCell.collectionView setContentOffset:CGPointMake(-12, 0) animated:YES];
                         }
+                        
+                        break;
                     }
                 }
             }

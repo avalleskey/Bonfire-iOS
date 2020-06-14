@@ -81,6 +81,71 @@
         return [UIColor bonfireGrayWithLevel:800];
     }
 }
+
++ (UIColor * _Nonnull)backgroundColorFromHex:(NSString *)hex {
+    unsigned rgbValue = 0;
+    hex = [hex stringByReplacingOccurrencesOfString:@"#" withString:@""];
+    
+    if (hex.length == 0 || hex.length > 6) hex = @"616d7c";
+    
+    if ([[hex lowercaseString] isEqualToString:@"fff"] || [[hex lowercaseString] isEqualToString:@"ffffff"]) {
+        hex = @"eeeeee";
+    }
+    else if ([[hex lowercaseString] isEqualToString:@"000"] || [[hex lowercaseString] isEqualToString:@"000000"]) {
+        hex = @"444444";
+    }
+    
+    if (hex != nil && hex.length == 6) {
+        NSScanner *scanner = [NSScanner scannerWithString:hex];
+        [scanner setScanLocation:0]; // bypass '#' character
+        [scanner scanHexInt:&rgbValue];
+
+        // bonfire brand -> p3
+        CGFloat r = ((rgbValue & 0xFF0000) >> 16)/255.0;
+        CGFloat g = ((rgbValue & 0xFF00) >> 8)/255.0;
+        CGFloat b = (rgbValue & 0xFF)/255.0;
+        
+        __block UIColor *ogColor = [UIColor colorWithRed:r green:g blue:b alpha:1.0];
+        if (@available(iOS 13.0, *)) {
+            // build dynamic UIColor
+            return [UIColor colorWithDynamicProvider:^UIColor * _Nonnull(UITraitCollection * _Nonnull traitCollection) {
+                CGFloat h,s,b,a;
+                [ogColor getHue:&h saturation:&s brightness:&b alpha:&a];
+                return [UIColor colorWithHue:h
+                                      saturation:0.05
+                                      brightness:(traitCollection.userInterfaceStyle==UIUserInterfaceStyleDark?0.02:0.98)
+                                           alpha:a];
+            }];
+        }
+        else {
+            CGFloat h,s,b,a;
+            [ogColor getHue:&h saturation:&s brightness:&b alpha:&a];
+            return [UIColor colorWithHue:h
+                              saturation:0.05
+                              brightness:0.98
+                                   alpha:a];
+        }
+    }
+    else {
+        if (@available(iOS 13.0, *)) {
+            // build dynamic UIColor
+            return [UIColor colorWithDynamicProvider:^UIColor * _Nonnull(UITraitCollection * _Nonnull traitCollection) {
+                if (traitCollection.userInterfaceStyle == UIUserInterfaceStyleDark) {
+                    return [UIColor colorWithWhite:0.02 alpha:1];
+                }
+                else {
+                    return [UIColor colorWithWhite:0.98 alpha:1];
+                }
+            }];
+        }
+        else {
+            return [UIColor colorWithWhite:0.98 alpha:1];
+        }
+    }
+    
+    return [UIColor tableViewBackgroundColor];
+}
+
 + (CGFloat)contrastRatioBetween:(UIColor *)color1 and:(UIColor *)color2 {
     CGFloat luminance1 = [UIColor luminanceWithColor:color1];
     CGFloat luminance2 = [UIColor luminanceWithColor:color2];
@@ -275,7 +340,7 @@
     }
 }
 + (UIColor * _Nonnull) bonfireBrand {
-    return [UIColor colorWithDisplayP3Red:1.00 green:0.36 blue:0.29 alpha:1.0];
+    return [UIColor colorWithDisplayP3Red:0.92 green:0.34 blue:0.31 alpha:1.0];
 }
 
 + (UIColor * _Nonnull) bonfirePrimaryColor {

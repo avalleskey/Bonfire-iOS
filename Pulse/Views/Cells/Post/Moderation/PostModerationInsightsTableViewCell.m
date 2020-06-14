@@ -56,12 +56,12 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     
     _tableView.backgroundColor = [UIColor clearColor];
     _tableView.clipsToBounds = false;
-    _tableView.scrollEnabled = true;
+    _tableView.scrollEnabled = false;
     _tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
     
     [self.contentView addSubview:_tableView];
     
-    self.lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+    self.lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, HALF_PIXEL)];
     self.lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
     [self addSubview:self.lineSeparator];
 }
@@ -111,6 +111,9 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     UITableViewCell *blankCell = [tableView dequeueReusableCellWithIdentifier:blankCellIdentifier forIndexPath:indexPath];
     return blankCell;
 }
+- (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
+    return CGFLOAT_MIN;
+}
 
 - (void)layoutSubviews {
     [super layoutSubviews];
@@ -144,7 +147,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     
     // report count
     NSDictionary *reportCount = @{
-        @"text": @"Reported by {x} members",
+        @"text": @"Reported by {x} campers",
         @"image": @"moderationInsightReported"
     };
     [i addObject:reportCount];

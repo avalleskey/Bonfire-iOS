@@ -114,11 +114,11 @@
         self.linkURLLabel.font = [UIFont systemFontOfSize:14.f];
         [self.contentView addSubview:self.linkURLLabel];
         
-        self.activityLineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+        self.activityLineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, HALF_PIXEL)];
         self.activityLineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
         [self.contentView addSubview:self.activityLineSeparator];
         
-        self.lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+        self.lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, HALF_PIXEL)];
         self.lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
         [self.contentView addSubview:self.lineSeparator];
     }

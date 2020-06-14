@@ -35,8 +35,6 @@
 
 @property (nonatomic, strong) BFVisualErrorView *errorView;
 
-@property (nonatomic, strong) FBShimmeringView *titleView;
-
 @end
 
 
@@ -57,15 +55,14 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     
+    self.view.backgroundColor = [UIColor tableViewBackgroundColor];
     self.simpleNav = (SimpleNavigationController *)self.navigationController;
         
     [self initDefaults];
     
     [self setupTableView];
     
-    self.loading = true;
     [self getAll];
-    [self setSpinning:true];
         
     // Google Analytics
     [FIRAnalytics setScreenName:@"Discover" screenClass:nil];
@@ -77,33 +74,6 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     self.errorLoadingLists = false;
 }
 
-- (void)viewWillAppear:(BOOL)animated {
-    [super viewWillAppear:animated];
-    
-    if ([self isBeingPresented] || [self isMovingToParentViewController]) {
-        [self setupTitleView];
-    }
-}
-- (void)viewDidAppear:(BOOL)animated {
-    [super viewDidAppear:animated];
-}
-
-- (void)setupTitleView {
-    UIButton *titleButton = [UIButton buttonWithType:UIButtonTypeSystem];
-    [titleButton setTitleColor:[UIColor bonfirePrimaryColor] forState:UIControlStateNormal];
-    titleButton.titleLabel.font = ([self.navigationController.navigationBar.titleTextAttributes objectForKey:NSFontAttributeName] ? self.navigationController.navigationBar.titleTextAttributes[NSFontAttributeName] : [UIFont systemFontOfSize:18.f weight:UIFontWeightBold]);
-    [titleButton setTitle:self.title forState:UIControlStateNormal];
-    titleButton.frame = CGRectMake(0, 0, [titleButton intrinsicContentSize].width, self.navigationController.navigationBar.frame.size.height);
-    [titleButton bk_whenTapped:^{
-        [self.tableView scrollRectToVisible:CGRectZero animated:YES];
-    }];
-    
-    self.titleView = [[FBShimmeringView alloc] initWithFrame:titleButton.frame];
-    [self.titleView addSubview:titleButton];
-    self.titleView.contentView = titleButton;
-    
-    self.navigationItem.titleView = titleButton;
-}
 - (void)setupErrorView {
     self.errorView = [[BFVisualErrorView alloc] initWithFrame:CGRectMake(16, 0, self.view.frame.size.width - 32, 100)];
     [self showErrorViewWithType:ErrorViewTypeNotFound title:@"Error Loading" description:@"Check your network settings and tap below to try again" actionTitle:@"Refresh" actionBlock:^{
@@ -152,14 +122,6 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     }
 }
 
-- (void)setLoading:(BOOL)loading {
-    [super setLoading:loading];
-    
-    if (!self.loading) {
-        self.titleView.shimmering = false;
-    }
-}
-
 - (void)showErrorViewWithType:(ErrorViewType)type title:(NSString *)title description:(NSString *)description actionTitle:(nullable NSString *)actionTitle actionBlock:(void (^ __nullable)(void))actionBlock {
     BFVisualError *visualError = [BFVisualError visualErrorOfType:type title:title description:description actionTitle:actionTitle actionBlock:actionBlock];
     self.errorView.visualError = visualError;
@@ -168,15 +130,17 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     [self positionErrorView];
 }
 - (void)positionErrorView {
-    self.errorView.center = CGPointMake(self.view.frame.size.width / 2, self.tableView.frame.size.height / 2 - self.navigationController.navigationBar.frame.size.height - self.navigationController.navigationBar.frame.origin.y);
+    self.errorView.center = CGPointMake(self.tableView.frame.size.width / 2, (self.tableView.frame.size.height - self.tableView.adjustedContentInset.top - self.tableView.adjustedContentInset.bottom) / 2 - [self tableView:self.tableView heightForHeaderInSection:0]);
 }
 
-- (void)setupTableView {    
+- (void)setupTableView {
+    self.tableView.tag = 2;
     self.tableView.delegate = self;
     self.tableView.dataSource = self;
-    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 40 + 16, 0);
+    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 24, 0);
     [self.tableView setSeparatorColor:[UIColor clearColor]];
     [self.tableView.refreshControl addTarget:self action:@selector(getAll) forControlEvents:UIControlEventValueChanged];
+    self.tableView.backgroundColor = self.view.backgroundColor;
     
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:blankReuseIdentifier];
     [self.tableView registerClass:[CampCardsListCell class] forCellReuseIdentifier:cardsListCellReuseIdentifier];
@@ -184,11 +148,9 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
 }
 
 - (void)getLists {
-    if (self.lists.count > 0) {
-        self.titleView.shimmering = true;
-    }
-    else  {
+    if (self.lists.count == 0) {
         self.loading = true;
+        [self setSpinning:true];
     }
     
     [[HAWebService authenticatedManager] GET:@"users/me/camps/lists" parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
@@ -207,6 +169,8 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
         [self.refreshControl endRefreshing];
         
         [self update];
+        
+        self.tableView.alpha = 1;
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         NSLog(@"‼️ MyCampsViewController / getLists() - error: %@", error);
         //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
@@ -221,16 +185,16 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
 
 #pragma mark - Table view data source
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    return (self.loading ? 0 : 1 + self.lists.count + 1);
+    return (self.loading ? 0 : 1 + self.lists.count);
 }
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     if (section < self.lists.count + 1) {
         return 1;
     }
-    else if (section == self.lists.count + 1) {
-        // quick links [@"Suggest a Feature", @"Report a Bug"]
-        return (self.lists.count > 0) ? 2 : 0;
-    }
+//    else if (section == self.lists.count + 1) {
+//        // quick links [@"Suggest a Feature", @"Report a Bug"]
+//        return (self.lists.count > 0) ? 2 : 0;
+//    }
 
     return 0;
 }
@@ -264,37 +228,37 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
         
         return cell;
     }
-    else if (indexPath.section == self.lists.count + 1) {
-        // quick links [@"Copy Beta Invite Link", @"Suggest a Feature", @"Report Bug"]
-        ButtonCell *cell = [tableView dequeueReusableCellWithIdentifier:buttonCellReuseIdentifier forIndexPath:indexPath];
-        
-        if (cell == nil) {
-            cell = [[ButtonCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:buttonCellReuseIdentifier];
-        }
-        
-        if (indexPath.row == 0) {
-            cell.buttonLabel.text = @"Suggest a Feature";
-        }
-        else if (indexPath.row == 1) {
-            cell.buttonLabel.text = @"Report Bug";
-        }
-        
-        cell.gutterPadding = 12;
-        UIView *separator = [cell viewWithTag:10];
-        if (!separator) {
-            separator = [[UIView alloc] initWithFrame:CGRectMake(cell.gutterPadding, 52 - (1 / [UIScreen mainScreen].scale), self.view.frame.size.width - (cell.gutterPadding * 2), (1 / [UIScreen mainScreen].scale))];
-            separator.backgroundColor = [UIColor tableViewSeparatorColor];
-            separator.tag = 10;
-            [cell addSubview:separator];
-        }
-        
-        separator.hidden = (indexPath.row == 1);
-        
-        cell.buttonLabel.textColor = [UIColor linkColor];
-        cell.buttonLabel.font = [UIFont systemFontOfSize:22.f weight:UIFontWeightMedium];
-        
-        return cell;
-    }
+//    else if (indexPath.section == self.lists.count + 1) {
+//        // quick links [@"Copy Beta Invite Link", @"Suggest a Feature", @"Report Bug"]
+//        ButtonCell *cell = [tableView dequeueReusableCellWithIdentifier:buttonCellReuseIdentifier forIndexPath:indexPath];
+//
+//        if (cell == nil) {
+//            cell = [[ButtonCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:buttonCellReuseIdentifier];
+//        }
+//
+//        if (indexPath.row == 0) {
+//            cell.buttonLabel.text = @"Suggest a Feature";
+//        }
+//        else if (indexPath.row == 1) {
+//            cell.buttonLabel.text = @"Report Bug";
+//        }
+//
+//        cell.gutterPadding = 12;
+//        UIView *separator = [cell viewWithTag:10];
+//        if (!separator) {
+//            separator = [[UIView alloc] initWithFrame:CGRectMake(cell.gutterPadding, 52 - HALF_PIXEL, self.view.frame.size.width - (cell.gutterPadding * 2), HALF_PIXEL)];
+//            separator.backgroundColor = [UIColor tableViewSeparatorColor];
+//            separator.tag = 10;
+//            [cell addSubview:separator];
+//        }
+//
+//        separator.hidden = (indexPath.row == 1);
+//
+//        cell.buttonLabel.textColor = [UIColor linkColor];
+//        cell.buttonLabel.font = [UIFont systemFontOfSize:22.f weight:UIFontWeightMedium];
+//
+//        return cell;
+//    }
     
     UITableViewCell *blankCell = [tableView dequeueReusableCellWithIdentifier:blankReuseIdentifier forIndexPath:indexPath];
     
@@ -330,33 +294,29 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
             return SMALL_MEDIUM_CARD_HEIGHT;
         }
     }
-    if (indexPath.section == self.lists.count + 1) {
-        return 52;
-    }
+//    if (indexPath.section == self.lists.count + 1) {
+//        return 52;
+//    }
     
     return 0;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    if (section == -1) {
-        return 56;
-    }
+//    if (section == 0) return CGFLOAT_MIN;
     if (section == 0) {
-        return CGFLOAT_MIN;
+        return 56;
     }
     if (section >= 1 + self.lists.count) return CGFLOAT_MIN;
     
     return 56;
 }
 - (nullable UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
+//    if (section == 0) return nil;
     if (section == 0) {
-        return nil;
-    }
-    if (section == -1) {
         // search view
         UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 56)];
         // header.backgroundColor = [UIColor colorNamed:@"Navigation_ClearBackgroundColor"];
-        
+
         BFSearchView *searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(12, 10, self.view.frame.size.width - (12 * 2), 36)];
         searchView.theme = BFTextFieldThemeAuto;
         [searchView.textField bk_removeAllBlockObservers];
@@ -368,11 +328,11 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
             [Launcher openSearch];
         }];
         [header addSubview:searchView];
-        
-        UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(0, header.frame.size.height - (1 / [UIScreen mainScreen].scale), self.view.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+
+        UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(0, header.frame.size.height - HALF_PIXEL, self.view.frame.size.width, HALF_PIXEL)];
         separator.backgroundColor = [UIColor tableViewSeparatorColor];
         // [header addSubview:separator];
-        
+
         return header;
     }
     
@@ -413,10 +373,11 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     
     UIView *titleLabelView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 56)];
 
-    UILabel *titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(12, titleLabelView.frame.size.height - 24 - 11, self.view.frame.size.width - 24, 24)];
+    UILabel *titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(12, titleLabelView.frame.size.height - 26 - 11, self.view.frame.size.width - 24, 26)];
+    titleLabel.clipsToBounds = false;
     if (title.length > 0) {
         titleLabel.text = title;
-        titleLabel.font = [UIFont systemFontOfSize:22.f weight:UIFontWeightBold];
+        titleLabel.font = [UIFont boldSystemFontOfSize:22.f];
         titleLabel.textColor = [UIColor bonfirePrimaryColor];
         
         UIFont *font = [UIFont systemFontOfSize:22.f weight:UIFontWeightBold];
@@ -443,20 +404,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     [header addSubview:titleLabelView];
     
     header.frame = CGRectMake(0, 0, header.frame.size.width, titleLabelView.frame.origin.y + titleLabelView.frame.size.height);
-    
-//    if (section > 1 && section < (2 + self.lists.count) && [[NSString stringWithFormat:@"%@", self.lists[section-2].identifier] isEqualToString:@"1"]) {
-//        UIButton *inviteFriends = [UIButton buttonWithType:UIButtonTypeSystem];
-//        [inviteFriends setTitle:@"Invite Friends" forState:UIControlStateNormal];
-//        inviteFriends.titleLabel.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightMedium];
-//        [inviteFriends setTitleColor:[UIColor bonfireBrand] forState:UIControlStateNormal];
-//        inviteFriends.frame = CGRectMake(0, 0, 400, 24);
-//        inviteFriends.frame = CGRectMake(header.frame.size.width - inviteFriends.intrinsicContentSize.width - titleLabel.frame.origin.x, titleLabelView.frame.origin.y + titleLabel.frame.origin.y + 2, inviteFriends.intrinsicContentSize.width, inviteFriends.frame.size.height - 2);
-//        [inviteFriends bk_whenTapped:^{
-//            [Launcher openInviteFriends:self];
-//        }];
-//        [header addSubview:inviteFriends];
-//    }
-    
+
     if (icon) {
         UIImageView *iconImageView = [[UIImageView alloc] initWithFrame:CGRectMake(titleLabel.frame.origin.x, header.frame.size.height - 11 - 24, 24, 24)];
         iconImageView.image = icon;
@@ -481,10 +429,7 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     
     UIView *footer = [[UIView alloc] init];
     if (section == 0) {
-        footer.frame = CGRectMake(0, 0, self.view.frame.size.width, (1 / [UIScreen mainScreen].scale));
-    }
-    else if (section == 1) {
-        footer.frame = CGRectMake(0, 0, self.view.frame.size.width, 24);
+        footer.frame = CGRectMake(0, 0, self.view.frame.size.width, HALF_PIXEL);
     }
     else {
         footer.frame = CGRectMake(0, 0, self.view.frame.size.width, 24);
@@ -493,10 +438,10 @@ static NSString * const buttonCellReuseIdentifier = @"ButtonCell";
     UIView *separator = [[UIView alloc] init];
     separator.backgroundColor = [UIColor tableViewSeparatorColor];
     if (section == 0) {
-        separator.frame = CGRectMake(0, footer.frame.size.height - (1 / [UIScreen mainScreen].scale), self.view.frame.size.width, 1 / [UIScreen mainScreen].scale);
+        separator.frame = CGRectMake(0, footer.frame.size.height - HALF_PIXEL, self.view.frame.size.width, 1 / [UIScreen mainScreen].scale);
     }
     else {
-        separator.frame = CGRectMake(12, footer.frame.size.height - (1 / [UIScreen mainScreen].scale), self.view.frame.size.width - 24, 1 / [UIScreen mainScreen].scale);
+        separator.frame = CGRectMake(12, footer.frame.size.height - HALF_PIXEL, self.view.frame.size.width - 24, 1 / [UIScreen mainScreen].scale);
     }
     [footer addSubview:separator];
     

@@ -26,7 +26,7 @@
 }
 
 - (void)setup {
-    self.title = @"Notifications";
+    self.title = @"Activity";
     self.smartListDelegate = self;
     
     [self setJsonFile:@"Notifications"];

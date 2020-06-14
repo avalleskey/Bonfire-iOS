@@ -20,7 +20,7 @@
 #define expandedImageHeightDefault 240
 
 #define expandedPostContentOffset UIEdgeInsetsMake(12, 12, 0, 12)
-#define expandedTextViewFont [UIFont preferredFontForTextStyle:UIFontTextStyleBody]
+#define expandedTextViewFont [UIFont systemFontOfSize:[UIFont preferredFontForTextStyle:UIFontTextStyleBody].pointSize+1.f weight:UIFontWeightRegular]
 #define expandedActionsViewHeight 40
 #define expandedActivityViewHeight 30
 

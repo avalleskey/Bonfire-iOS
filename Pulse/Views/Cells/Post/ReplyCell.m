@@ -26,8 +26,6 @@
 @interface ReplyCell () <BFComponentProtocol>
 
 @property (nonatomic, strong) CAShapeLayer *bubbleLayer;
-@property (nonatomic, strong) CAShapeLayer *bubbleBigDotLayer;
-@property (nonatomic, strong) CAShapeLayer *bubbleLittleDotLayer;
 
 @end
 
@@ -330,7 +328,7 @@
         return replyTextViewFont.lineHeight + ((REPLY_BUBBLE_INSETS.top + REPLY_BUBBLE_INSETS.bottom) / 2);
     }
     
-    return 28;
+    return 36;
 }
 + (CGFloat)avatarPaddingForLevel:(NSInteger)level {
     if (level == 0) {

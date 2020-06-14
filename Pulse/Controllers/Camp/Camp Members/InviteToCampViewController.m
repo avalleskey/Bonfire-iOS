@@ -218,7 +218,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
     
     // search view
     self.searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(12, 8, self.view.frame.size.width - (12 * 2), 36)];
-    self.searchView.textField.placeholder = @"Search Members";
+    self.searchView.textField.placeholder = @"Search Campers";
     [self.searchView updateSearchText:self.searchPhrase];
     self.searchView.textField.tintColor = self.view.tintColor;
     self.searchView.textField.delegate = self;

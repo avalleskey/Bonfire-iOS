@@ -8,6 +8,7 @@
 
 #import "SettingsTableViewController.h"
 #import "Legal/LegalTableViewController.h"
+#import "App Icon/AppIconTableViewController.h"
 #import "Notifications/NotificationsSettingsTableViewController.h"
 #import "ChangePasswordTableViewController.h"
 #import "BFAlertController.h"
@@ -92,7 +93,15 @@
     if ([rowId isEqualToString:@"edit_profile"]) {
         [Launcher openEditProfile];
     }
-    if ([rowId isEqualToString:@"change_password"]) {
+    else if ([rowId isEqualToString:@"app_icon"]) {
+        // push notifications settings
+        AppIconTableViewController *appIconTableVC = [[AppIconTableViewController alloc] init];
+        SimpleNavigationController *simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:appIconTableVC];
+        [simpleNav setLeftAction:SNActionTypeBack];
+        
+        [Launcher push:simpleNav animated:YES];
+    }
+    else if ([rowId isEqualToString:@"change_password"]) {
 //        // push change password
         ChangePasswordTableViewController *changePasswordTableVC = [[ChangePasswordTableViewController alloc] init];
         SimpleNavigationController *simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:changePasswordTableVC];
@@ -100,34 +109,34 @@
         
         [Launcher push:simpleNav animated:YES];
     }
-    if ([rowId isEqualToString:@"share_profile"]) {
+    else if ([rowId isEqualToString:@"share_profile"]) {
         [Launcher shareCurrentUser];
     }
-    if ([rowId isEqualToString:@"notifications"]) {
+    else if ([rowId isEqualToString:@"Activity"]) {
         // push notifications settings
         NotificationsSettingsTableViewController *notificationsTableVC = [[NotificationsSettingsTableViewController alloc] init];
         [Launcher push:notificationsTableVC animated:YES];
     }
-    if ([rowId isEqualToString:@"get_help"]) {
+    else if ([rowId isEqualToString:@"get_help"]) {
         Camp *camp = [[Camp alloc] init];
         camp.identifier = @"-5Orj2GW2ywG3";
         camp.attributes = [[CampAttributes alloc] initWithDictionary:@{@"identifier": @"BonfireSupport", @"title": @"Bonfire Support"} error:nil];
         [Launcher openCamp:camp];
     }
-    if ([rowId isEqualToString:@"give_feedback"]) {
+    else if ([rowId isEqualToString:@"give_feedback"]) {
         Camp *camp = [[Camp alloc] init];
         camp.identifier = @"-mb4egjBg9vYK";
         camp.attributes = [[CampAttributes alloc] initWithDictionary:@{@"identifier": @"BonfireFeedback", @"title": @"Bonfire Feedback"} error:nil];
         [Launcher openCamp:camp];
     }
-    if ([rowId isEqualToString:@"rate_app_store"]) {
+    else if ([rowId isEqualToString:@"rate_app_store"]) {
         [Launcher requestAppStoreRating];
     }
-    if ([rowId isEqualToString:@"community_guidelines"]) {
+    else if ([rowId isEqualToString:@"community_guidelines"]) {
         // push community guidelines
         [Launcher openURL:@"https://bonfire.camp/legal/community"];
     }
-    if ([rowId isEqualToString:@"legal"]) {
+    else if ([rowId isEqualToString:@"legal"]) {
         // push legal
         LegalTableViewController *legalTableVC = [[LegalTableViewController alloc] init];
         SimpleNavigationController *simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:legalTableVC];
@@ -135,7 +144,7 @@
         
         [Launcher push:simpleNav animated:YES];
     }
-    if ([rowId isEqualToString:@"sign_out"]) {
+    else if ([rowId isEqualToString:@"sign_out"]) {
         // sign out
         BFAlertController *areYouSure = [BFAlertController alertControllerWithTitle:@"Sign Out?" message:@"Please confirm you would like to sign out" preferredStyle:BFAlertControllerStyleAlert];
         
@@ -160,10 +169,10 @@
         
         [areYouSure show];
     }
-    if ([rowId isEqualToString:@"invite_friends_beta"]) {
+    else if ([rowId isEqualToString:@"invite_friends_beta"]) {
         [Launcher copyBetaInviteLink];
     }
-    if ([rowId isEqualToString:@"report_bug"]) {
+    else if ([rowId isEqualToString:@"report_bug"]) {
         Camp *camp = [[Camp alloc] initWithDictionary:@{@"id": @"-wWoxVq1VBA6R", @"attributes": @{@"identifier": @"BonfireBugs", @"title": @"Bonfire Bugs"}} error:nil];
         [Launcher openCamp:camp];
     }
@@ -172,7 +181,7 @@
 - (UIView *)alternativeViewForHeaderInSection:(NSInteger)section {
     if (section == 0) {
         BFIdentityAttachmentView *attachmentView = [[BFIdentityAttachmentView alloc] initWithIdentity:[Session sharedInstance].currentUser frame:CGRectMake(0, 0, self.view.frame.size.width, 100)];
-        attachmentView.backgroundColor = [UIColor contentBackgroundColor];
+        attachmentView.backgroundColor = [UIColor clearColor];
         attachmentView.userInteractionEnabled = false;
         attachmentView.layer.cornerRadius = 0;
         attachmentView.contentView.layer.cornerRadius = 0;

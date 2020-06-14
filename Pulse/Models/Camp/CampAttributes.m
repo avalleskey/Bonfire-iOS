@@ -8,6 +8,7 @@
     return [[JSONKeyMapper alloc] initWithModelToJSONDictionary:@{
                                                                   @"theDescription": @"description",
                                                                   @"isPrivate": @"private",
+                                                                  @"isFavorite": @"favorite",
                                                                   @"isSuspended": @"suspended",
                                                                   @"isVerified": @"verified",
                                                                   @"createdAt": @"created_at"

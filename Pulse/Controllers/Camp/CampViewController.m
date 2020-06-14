@@ -82,6 +82,12 @@ static NSString * const reuseIdentifier = @"Result";
     
     // Google Analytics
     [FIRAnalytics setScreenName:@"Camp" screenClass:nil];
+    
+    if (self.camp.attributes.color.length > 0) {
+        [UIView performWithoutAnimation:^{
+            [self updateTheme];
+        }];
+    }
 }
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
@@ -525,7 +531,7 @@ static NSString * const reuseIdentifier = @"Result";
     
     [[NSUserDefaults standardUserDefaults] setBool:true forKey:[NSString stringWithFormat:@"upsells/icebreaker/%@", self.camp.identifier]];
     
-    BFTipObject *tipObject = [BFTipObject tipWithCreatorType:BFTipCreatorTypeCamp creator:self.camp title:[NSString stringWithFormat:@"Tap to Add an Icebreaker ❄️"] text:@"Introduce new members to the Camp with an Icebreaker post when they join" cta:nil imageUrl:nil action:^{
+    BFTipObject *tipObject = [BFTipObject tipWithCreatorType:BFTipCreatorTypeCamp creator:self.camp title:[NSString stringWithFormat:@"Tap to Add an Icebreaker ❄️"] text:@"Introduce new campers with an Icebreaker post when they join" cta:nil imageUrl:nil action:^{
         SetAnIcebreakerViewController *mibvc = [[SetAnIcebreakerViewController alloc] init];
         mibvc.view.tintColor = self.view.tintColor;
         mibvc.camp = self.camp;
@@ -649,6 +655,9 @@ static NSString * const reuseIdentifier = @"Result";
         else {
             self.tableView.refreshControl.tintColor = [UIColor blackColor];
         }
+        
+//        self.view.backgroundColor = [UIColor backgroundColorFromHex:self.camp.attributes.color];
+//        self.composeInputView.contentView.backgroundColor = [self.view.backgroundColor colorWithAlphaComponent:0.7];
     } completion:^(BOOL finished) {
     }];
 }
@@ -722,7 +731,7 @@ static NSString * const reuseIdentifier = @"Result";
                         ![self.camp.attributes isSuspended] && // Camp not blocked
                         ![self.camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_BLOCKED] && // User blocked by Camp
                         (![self.camp isPrivate] || // (public camp OR
-                         [self.camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_MEMBER]);
+                         [self.camp isMember]);
     
     return canViewPosts;
 }
@@ -1209,11 +1218,11 @@ static NSString * const reuseIdentifier = @"Result";
 //        height += 24; // bottom padding
 //        SetHeight(upsellView, height);
 //
-//        UIView *topLineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, upsellView.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+//        UIView *topLineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, upsellView.frame.size.width, HALF_PIXEL)];
 //        topLineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
 //        [upsellView addSubview:topLineSeparator];
 //
-//        UIView *lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, upsellView.frame.size.height - (1 / [UIScreen mainScreen].scale), upsellView.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+//        UIView *lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, upsellView.frame.size.height - HALF_PIXEL, upsellView.frame.size.width, HALF_PIXEL)];
 //        lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
 //        [upsellView addSubview:lineSeparator];
 //
@@ -1262,7 +1271,7 @@ static NSString * const reuseIdentifier = @"Result";
     if ([self.camp.attributes.context.camp.permissions canUpdate]) {
         if (!self.loading && self.camp.attributes.summaries.counts != nil && self.camp.attributes.summaries.counts.posts > 0 &&  self.camp.attributes.summaries.counts.icebreakers == 0 && ![[NSUserDefaults standardUserDefaults] boolForKey:[NSString stringWithFormat:@"upsells/icebreaker/%@", self.camp.identifier]]) {
             [upsell setObject:@"icebreakerSnowflake" forKey:@"image"];
-            [upsell setObject:@"Introduce new members to the Camp\nwith an Icebreaker post when they join" forKey:@"text"];
+            [upsell setObject:@"Introduce new campers with an\nIcebreaker post when they join" forKey:@"text"];
             [upsell setObject:@"Add Icebreaker" forKey:@"action_title"];
             [upsell setObject:^{
                 SetAnIcebreakerViewController *mibvc = [[SetAnIcebreakerViewController alloc] init];

@@ -120,7 +120,7 @@
             [button setTitle:option[@"title"] forState:UIControlStateNormal];
             [button bk_whenTapped:^{
                 if (self.optionTappedAction) {
-                    self.optionTappedAction((PostModerationOption)button.tag);
+                    self.optionTappedAction((NSInteger)button.tag);
                 }
             }];
             [self addTouchDownEffects:button];

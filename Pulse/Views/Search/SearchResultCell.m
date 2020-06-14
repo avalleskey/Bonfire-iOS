@@ -42,7 +42,7 @@
         // general cell styling
         self.selectionStyle = UITableViewCellSelectionStyleNone;
         
-        self.lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(64, 0, self.frame.size.width - 64, (1 / [UIScreen mainScreen].scale))];
+        self.lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(64, 0, self.frame.size.width - 64, HALF_PIXEL)];
         self.lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
         [self addSubview:self.lineSeparator];
         
@@ -222,10 +222,10 @@
             [attributedString appendAttributedString:dotSeparator];
             
             
-            detailText = [NSString stringWithFormat:@" %ld", (long)self.camp.attributes.summaries.counts.members];
+            detailText = [NSString stringWithFormat:@" %@", [self.camp memberCountTieredRepresentation]];
         }
         else {
-            detailText = [NSString stringWithFormat:@" %ld %@%@", (long)self.camp.attributes.summaries.counts.members, ([self.camp isChannel] ? @"subscriber" : @"member"), (membersCount == 1 ? @"" : @"s")];
+            detailText = [NSString stringWithFormat:@" %@ %@%@", [self.camp memberCountTieredRepresentation], ([self.camp isChannel] ? @"subscriber" : @"camper"), (membersCount == 1 ? @"" : @"s")];
         }
         
         NSTextAttachment *attachment = [[NSTextAttachment alloc] init];
@@ -344,6 +344,9 @@
             if (![self.actionButton isHidden]) {
                 if ([camp isChannel] || [camp isFeed]) {
                     [self.actionButton setTitle:@"Subscribe" forState:UIControlStateNormal];
+                }
+                else if ([camp isPrivate]) {
+                    [self.actionButton setTitle:@"Request" forState:UIControlStateNormal];
                 }
                 else {
                     [self.actionButton setTitle:@"Join" forState:UIControlStateNormal];

@@ -8,6 +8,57 @@
 	<string>$(PRODUCT_NAME)</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIcons</key>
+	<dict>
+		<key>CFBundleAlternateIcons</key>
+		<dict>
+			<key>AlternativeAppIcon_blm</key>
+			<dict>
+				<key>CFBundleIconFiles</key>
+				<array>
+					<string>AlternativeAppIcon_blm</string>
+				</array>
+				<key>UIPrerenderedIcon</key>
+				<false/>
+			</dict>
+			<key>AlternativeAppIcon_campgrounds</key>
+			<dict>
+				<key>CFBundleIconFiles</key>
+				<array>
+					<string>AlternativeAppIcon_campgrounds</string>
+				</array>
+				<key>UIPrerenderedIcon</key>
+				<false/>
+			</dict>
+			<key>AlternativeAppIcon_retro</key>
+			<dict>
+				<key>CFBundleIconFiles</key>
+				<array>
+					<string>AlternativeAppIcon_retro</string>
+				</array>
+				<key>UIPrerenderedIcon</key>
+				<false/>
+			</dict>
+			<key>AlternativeAppIcon_skeuomorphic</key>
+			<dict>
+				<key>CFBundleIconFiles</key>
+				<array>
+					<string>AlternativeAppIcon_skeuomorphic</string>
+				</array>
+				<key>UIPrerenderedIcon</key>
+				<false/>
+			</dict>
+			<key>AlternativeAppIcon_sunrise</key>
+			<dict>
+				<key>CFBundleIconFiles</key>
+				<array>
+					<string>AlternativeAppIcon_sunrise</string>
+				</array>
+				<key>UIPrerenderedIcon</key>
+				<false/>
+			</dict>
+		</dict>
+	</dict>
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -103,6 +154,34 @@
 		<string>Inter-Regular.otf</string>
 		<string>Inter-SemiBold.otf</string>
 		<string>Inter-SemiBoldItalic.otf</string>
+		<string>EuclidCircularBTrial-Bold.otf</string>
+		<string>EuclidCircularBTrial-BoldItalic.otf</string>
+		<string>EuclidCircularBTrial-Light.otf</string>
+		<string>EuclidCircularBTrial-LightItalic.otf</string>
+		<string>EuclidCircularBTrial-Medium.otf</string>
+		<string>EuclidCircularBTrial-MediumItalic.otf</string>
+		<string>EuclidCircularBTrial-Regular.otf</string>
+		<string>EuclidCircularBTrial-RegularItalic.otf</string>
+		<string>EuclidCircularBTrial-Semibold.otf</string>
+		<string>EuclidCircularBTrial-SemiboldItalic.otf</string>
+		<string>EuclidFlexTrial-Bold.otf</string>
+		<string>EuclidFlexTrial-BoldItalic.otf</string>
+		<string>EuclidFlexTrial-Light.otf</string>
+		<string>EuclidFlexTrial-LightItalic.otf</string>
+		<string>EuclidFlexTrial-Medium.otf</string>
+		<string>EuclidFlexTrial-MediumItalic.otf</string>
+		<string>EuclidFlexTrial-Regular.otf</string>
+		<string>EuclidFlexTrial-Italic.otf</string>
+		<string>EuclidFlexTrial-Semibold.otf</string>
+		<string>EuclidFlexTrial-SemiboldItalic.otf</string>
+		<string>EuclidFlexTrial-Thin.otf</string>
+		<string>EuclidFlexTrial-ThinItalic.otf</string>
+		<string>EuclidFlexTrial-Ultralight.otf</string>
+		<string>EuclidFlexTrial-UltralightItalic.otf</string>
+		<string>TTNorms-Black.otf</string>
+		<string>TTNorms-Bold.otf</string>
+		<string>TTNorms-Medium.otf</string>
+		<string>TTNorms-Regular.otf</string>
 	</array>
 	<key>UIBackgroundModes</key>
 	<array>

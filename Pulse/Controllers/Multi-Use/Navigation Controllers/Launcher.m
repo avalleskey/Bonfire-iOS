@@ -39,6 +39,7 @@
 #import <SEJSONViewController/SEJSONViewController.h>
 #import "WaitlistViewController.h"
 #import "EditCampViewController.h"
+#import "NotificationsTableViewController.h"
 
 #import <SafariServices/SafariServices.h>
 #import <StoreKit/StoreKit.h>
@@ -46,6 +47,8 @@
 #import "BFMiniNotificationManager.h"
 #import <SCSDKCreativeKit/SCSDKCreativeKit.h>
 @import Firebase;
+
+#import "MasterViewController.h"
 
 #if !TARGET_OS_MACCATALYST
 #import <Messages/Messages.h>
@@ -277,6 +280,8 @@ static Launcher *launcher;
             tbc.transitioningDelegate = [Launcher sharedInstance];
             tbc.modalPresentationStyle = UIModalPresentationFullScreen;
             
+//            MasterViewController *tbc = [[MasterViewController alloc] init];
+            
             UIViewController *presentingViewController;
             if ([Launcher activeViewController].parentViewController != nil) {
                 presentingViewController = [Launcher activeViewController].parentViewController;
@@ -329,6 +334,17 @@ static Launcher *launcher;
     [searchNav.searchView.textField becomeFirstResponder];
     
     [Launcher present:searchNav animated:YES];
+}
++ (void)openNotifications {
+    NotificationsTableViewController *viewController = [[NotificationsTableViewController alloc] init];
+    viewController.title = @"Activity";
+    
+    SimpleNavigationController *simpleNav = [[SimpleNavigationController alloc] initWithRootViewController:viewController];
+    simpleNav.currentTheme = [UIColor clearColor];
+    [simpleNav setRightAction:SNActionTypeDone];
+    simpleNav.modalPresentationStyle = UIModalPresentationFullScreen;
+    
+    [self present:simpleNav animated:YES];
 }
 + (void)openGIFSearch:(id<GIFCollectionViewControllerDelegate>)sender {
     GIFCollectionViewController *searchController = [[GIFCollectionViewController alloc] init];
@@ -938,6 +954,10 @@ static Launcher *launcher;
 }
 
 + (void)openAccountSuspended {
+    if ([[Launcher activeViewController] isKindOfClass:[AccountSuspendedViewController class]]) {
+        return;
+    }
+    
     AccountSuspendedViewController *c = [[AccountSuspendedViewController alloc] init];
     c.transitioningDelegate = [Launcher sharedInstance];
     [self present:c animated:YES];
@@ -1149,23 +1169,23 @@ static Launcher *launcher;
     }
     
     if (canUpdateCamp) {
-        BFAlertAction *markAsSpam = [BFAlertAction actionWithTitle:@"Mark as Spam" style:BFAlertActionStyleDestructive handler:^{
-            NSLog(@"mark as spam");
-            //[post markAsSpam]
-        }];
-        [actionSheet addAction:markAsSpam];
-        
-        BFAlertAction *silenceUser = [BFAlertAction actionWithTitle:@"Silence User" style:BFAlertActionStyleSemiDestructive handler:^{
-            NSLog(@"silence creator");
-            //[post silenceCreator]
-        }];
-        [actionSheet addAction:silenceUser];
-        
-        BFAlertAction *blockUser = [BFAlertAction actionWithTitle:@"Block User" style:BFAlertActionStyleDestructive handler:^{
-            NSLog(@"remove post & block user");
-            //[post blockUser]
-        }];
-        [actionSheet addAction:blockUser];
+//        BFAlertAction *markAsSpam = [BFAlertAction actionWithTitle:@"Mark as Spam" style:BFAlertActionStyleDestructive handler:^{
+//            NSLog(@"mark as spam");
+//            //[post markAsSpam]
+//        }];
+//        [actionSheet addAction:markAsSpam];
+//
+//        BFAlertAction *silenceUser = [BFAlertAction actionWithTitle:@"Silence User" style:BFAlertActionStyleSemiDestructive handler:^{
+//            NSLog(@"silence creator");
+//            //[post silenceCreator]
+//        }];
+//        [actionSheet addAction:silenceUser];
+//
+//        BFAlertAction *blockUser = [BFAlertAction actionWithTitle:@"Block User" style:BFAlertActionStyleDestructive handler:^{
+//            NSLog(@"remove post & block user");
+//            //[post blockUser]
+//        }];
+//        [actionSheet addAction:blockUser];
     }
     else {
         if (!isCreator) {
@@ -1844,8 +1864,9 @@ static NSString *const iOSAppStoreURLFormat = @"itms-apps://itunes.apple.com/Web
 }
 
 + (void)present:(UIViewController *)viewController animated:(BOOL)animated {
-    if ([[Launcher activeViewController] isKindOfClass:[AccountSuspendedViewController class]]) {
-        return;
+    if ([[self activeViewController] isKindOfClass:[BFAlertController class]]) {
+        // dismiss any alert controller first
+        [((BFAlertController *)[self activeViewController]) dismissWithAnimation:false completion:nil];
     }
     
     viewController.transitioningDelegate = [Launcher sharedInstance];

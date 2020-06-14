@@ -7,6 +7,7 @@
 //
 
 #import "UIFont+App.h"
+#import <UIFont+Poppins.h>
 
 @implementation UIFont (App)
 
@@ -14,32 +15,35 @@
 #pragma clang diagnostic ignored "-Wobjc-protocol-method-implementation"
 
 //+ (UIFont *)boldSystemFontOfSize:(CGFloat)fontSize {
-//    return [UIFont fontWithName:@"Inter-Bold" size:fontSize];
+//    return [UIFont fontWithName:@"AvenirNext-Bold" size:fontSize];
 //}
 //
 //+ (UIFont *)systemFontOfSize:(CGFloat)fontSize {
-//    return [UIFont fontWithName:@"Inter-Regular" size:fontSize];
+//    return [UIFont fontWithName:@"AvenirNext-Medium" size:fontSize];
 //}
 //
 //+ (UIFont *)systemFontOfSize:(CGFloat)fontSize weight:(UIFontWeight)weight {
-//    NSString *extension = @"Regular";
+//    NSString *extension = @"Medium";
 //    if (weight == UIFontWeightUltraLight) {
 //        extension = @"UltraLight";
+//    }
+//    else if (weight == UIFontWeightLight) {
+//        extension = @"Regular";
 //    }
 //    else if (weight == UIFontWeightMedium) {
 //        extension = @"Medium";
 //    }
 //    else if (weight == UIFontWeightSemibold) {
-//        extension = @"SemiBold";
+//        extension = @"DemiBold";
 //    }
 //    else if (weight == UIFontWeightBold) {
 //        extension = @"Bold";
 //    }
 //    else if (weight == UIFontWeightHeavy) {
-//        extension = @"ExtraBold";
+//        extension = @"Heavy";
 //    }
-//    
-//    return [UIFont fontWithName:[@"Inter-" stringByAppendingString:extension] size:fontSize];
+//
+//    return [UIFont fontWithName:[@"AvenirNext-" stringByAppendingString:extension] size:fontSize];
 //}
 
 #pragma clang diagnostic pop

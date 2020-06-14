@@ -47,7 +47,7 @@ NSString *const ButtonCellTitleColorAttributeName = @"color";
                 
         self.buttonLabel = [[UILabel alloc] init];
         self.buttonLabel.text = @"";
-        self.buttonLabel.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightMedium];
+        self.buttonLabel.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightBold];
         self.buttonLabel.textColor = [UIColor bonfirePrimaryColor];
         [self.contentView addSubview:self.buttonLabel];
         
@@ -61,7 +61,6 @@ NSString *const ButtonCellTitleColorAttributeName = @"color";
         
         self.iconImageView = [[UIImageView alloc] initWithFrame:CGRectMake(12, 0, 24, 24)];
         self.iconImageView.tintColor = [UIColor bonfireSecondaryColor];
-        self.iconImageView.alpha = 0.5;
         self.iconImageView.hidden = true;
         self.iconImageView.contentMode = UIViewContentModeScaleAspectFit;
         [self.contentView addSubview:self.iconImageView];

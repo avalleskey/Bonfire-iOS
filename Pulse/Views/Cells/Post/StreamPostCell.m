@@ -43,6 +43,8 @@
     if (self) {
         self.selectable = true;
         
+        self.clipsToBounds = true;
+        
         self.contextView = [[PostContextView alloc] init];
         [self.contextView.highlightView bk_whenTapped:^{
             if (self.post.attributes.parent) {
@@ -270,7 +272,7 @@
             bubble.transform = CGAffineTransformMakeScale(0.01, 0.01);
             
             [self.contentView bringSubviewToFront:self.textView];
-            [self.contentView insertSubview:bubble belowSubview:self.textView];
+            [self insertSubview:bubble aboveSubview:self.contentView];
             
             [UIView animateWithDuration:animated?1.3f:0 delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
                 bubble.transform = CGAffineTransformIdentity;
@@ -281,6 +283,13 @@
             } completion:^(BOOL finished) {
                 [bubble removeFromSuperview];
             }];
+            
+            [UIView animateWithDuration:animated?0.6f:0 delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+                self.contentView.transform = CGAffineTransformMakeScale(0.96, 0.96);
+            } completion:nil];
+            [UIView animateWithDuration:animated?0.5f:0 delay:animated?0.1f:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+                self.contentView.transform = CGAffineTransformMakeScale(1, 1);
+            } completion:nil];
         };
         
         if (animated) {
@@ -687,7 +696,7 @@
         
         attributedText = [[NSMutableAttributedString alloc] initWithString:@"You were mentioned by " attributes:@{NSFontAttributeName: font, NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
         
-        attributedCreatorText = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"@%@", creatorUsername] attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:15.f weight:UIFontWeightSemibold], NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
+        attributedCreatorText = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"@%@", creatorUsername] attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:15.f weight:UIFontWeightBold], NSForegroundColorAttributeName: [UIColor bonfireSecondaryColor]}];
         [attributedText appendAttributedString:attributedCreatorText];
         
         icon = [[UIImage imageNamed:@"notificationIndicator_mention"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];

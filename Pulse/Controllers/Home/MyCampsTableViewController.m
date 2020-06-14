@@ -65,6 +65,7 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
     // load cache
     [self loadCache];
     [self loadSuggestedCamps];
+    
     [self getCampsWithCursor:StreamPagingCursorTypeNone];
     if (self.stream.camps.count == 0) {
         [self setSpinning:true];
@@ -113,7 +114,7 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
     [self positionErrorView];
 }
 - (void)positionErrorView {
-    self.errorView.center = CGPointMake(self.view.frame.size.width / 2, self.tableView.frame.size.height / 2 - self.navigationController.navigationBar.frame.size.height - self.navigationController.navigationBar.frame.origin.y);
+    self.errorView.center = CGPointMake((self.tableView.frame.size.width - self.tableView.contentInset.left - self.tableView.contentInset.right) / 2, self.tableView.frame.size.height / 2 - self.navigationController.navigationBar.frame.size.height - self.navigationController.navigationBar.frame.origin.y - self.tableView.contentInset.top - self.tableView.contentInset.bottom);
 }
 
 - (void)setupTableView {
@@ -246,7 +247,7 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
 }
 
 - (void)setupErrorView {
-    self.errorView = [[BFVisualErrorView alloc] initWithFrame:CGRectMake(16, 0, self.view.frame.size.width - 32, 100)];
+    self.errorView = [[BFVisualErrorView alloc] initWithFrame:CGRectMake(16, 0, (self.tableView.frame.size.width - self.tableView.contentInset.left - self.tableView.contentInset.right) - 32, 100)];
     [self showErrorViewWithType:ErrorViewTypeNotFound title:@"Error Loading" description:@"Check your network settings and tap below to try again" actionTitle:@"Refresh" actionBlock:^{
         [self refreshMyCamps:nil];
     }];
@@ -545,7 +546,7 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
     if (stream.camps.count > 0) {
         if (!_isSearching && indexPath.section == 0) {
             if (indexPath.row == 0) {
-                return self.suggestedCamps.count > 0 ? SMALL_MEDIUM_CARD_HEIGHT : 0;
+                return self.suggestedCamps.count > 0 ? SMALL_MEDIUM_CARD_HEIGHT - 12 : 0;
             }
         }
         else if (indexPath.section == 1 && stream.camps.count > 0) {
@@ -598,7 +599,7 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
                 bigTitleLabel.textColor = [UIColor colorWithWhite:0.07f alpha:1];
                 [bigTitleView addSubview:bigTitleLabel];
 
-                UIView *headerSeparator = [[UIView alloc] initWithFrame:CGRectMake(16, bigTitleView.frame.size.height - (1 / [UIScreen mainScreen].scale), self.view.frame.size.width - 32, 1 / [UIScreen mainScreen].scale)];
+                UIView *headerSeparator = [[UIView alloc] initWithFrame:CGRectMake(16, bigTitleView.frame.size.height - HALF_PIXEL, self.view.frame.size.width - 32, 1 / [UIScreen mainScreen].scale)];
                 headerSeparator.backgroundColor = [UIColor colorWithWhite:0 alpha:0.08f];
                 [bigTitleView addSubview:headerSeparator];
 
@@ -691,7 +692,7 @@ static NSString * const cardsListCellReuseIdentifier = @"CardsListCell";
     
     UIView *separator = [[UIView alloc] init];
     separator.backgroundColor = [UIColor tableViewSeparatorColor];
-    separator.frame = CGRectMake(12, footer.frame.size.height - (1 / [UIScreen mainScreen].scale), self.view.frame.size.width - 24, 1 / [UIScreen mainScreen].scale);
+    separator.frame = CGRectMake(12, footer.frame.size.height - HALF_PIXEL, self.view.frame.size.width - 24, 1 / [UIScreen mainScreen].scale);
     [footer addSubview:separator];
     
     return footer;

@@ -345,7 +345,7 @@ static NSString * const autocompleteBlankCellIdentifier = @"BlankCell";
     self.toolbarButtonsContainer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, toolbarHeight)];
     [self.toolbarView.contentView addSubview:self.toolbarButtonsContainer];
     
-    UIView *lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.toolbarView.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+    UIView *lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.toolbarView.frame.size.width, HALF_PIXEL)];
     lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
     //[self.toolbarView.contentView addSubview:lineSeparator];
     
@@ -1313,7 +1313,7 @@ static NSString * const autocompleteBlankCellIdentifier = @"BlankCell";
         
         // create a line separator
         if (![cell.contentView viewWithTag:2]) {
-            UIView *lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, cell.contentView.frame.size.height - (1 / [UIScreen mainScreen].scale), self.view.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+            UIView *lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, cell.contentView.frame.size.height - HALF_PIXEL, self.view.frame.size.width, HALF_PIXEL)];
             lineSeparator.tag = 2;
             lineSeparator.backgroundColor = [[UIColor bonfirePrimaryColor] colorWithAlphaComponent:0.06];
             [cell.contentView addSubview:lineSeparator];
@@ -1451,11 +1451,11 @@ static NSString * const autocompleteBlankCellIdentifier = @"BlankCell";
 //            replyingToLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightMedium];
 //            [replyingToView addSubview:replyingToLabel];
 //
-//            UIView *lineSeparator_t = [[UIView alloc] initWithFrame:CGRectMake(0, 0, replyingToView.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+//            UIView *lineSeparator_t = [[UIView alloc] initWithFrame:CGRectMake(0, 0, replyingToView.frame.size.width, HALF_PIXEL)];
 //            lineSeparator_t.backgroundColor = [UIColor tableViewSeparatorColor];
 //            //[replyingToView addSubview:lineSeparator_t];
 //
-//            UIView *lineSeparator_b = [[UIView alloc] initWithFrame:CGRectMake(0, replyingToView.frame.size.height - (1 / [UIScreen mainScreen].scale), replyingToView.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+//            UIView *lineSeparator_b = [[UIView alloc] initWithFrame:CGRectMake(0, replyingToView.frame.size.height - HALF_PIXEL, replyingToView.frame.size.width, HALF_PIXEL)];
 //            lineSeparator_b.backgroundColor = [UIColor tableViewSeparatorColor];
 //            //[replyingToView addSubview:lineSeparator_b];
 //

@@ -105,6 +105,12 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     
     // Google Analytics
     [FIRAnalytics setScreenName:@"Conversation" screenClass:nil];
+    
+    if (self.post.themeColor.length > 0) {
+        [UIView performWithoutAnimation:^{
+            [self updateTheme];
+        }];
+    }
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -406,7 +412,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
 
 #pragma mark - Load post
 - (BOOL)hasParentPost {
-    return self.post.attributes.parent || self.post.attributes.thread.prevCursor.length > 0;
+    return self.post.attributes.parent || self.post.attributes.thread.prevCursor.length > 0 || self.post.attributes.parentId.length > 0;
 }
 - (void)setupParentPostScrollIndicator {
     self.parentPostScrollIndicator = [[TappableView alloc] initWithFrame:CGRectMake(self.view.frame.size.width - 51 - 12, self.tableView.adjustedContentInset.top - 29 - 12, 61, 39)];
@@ -562,7 +568,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                 
         [[NSNotificationCenter defaultCenter] postNotificationName:@"PostUpdated" object:self.post];
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-        NSLog(@"CampViewController / getCamp() - error: %@", error);
+        NSLog(@"PostViewController / getParentPosts() - error: %@", error);
         //        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
         
         NSHTTPURLResponse *httpResponse = error.userInfo[AFNetworkingOperationFailingURLResponseErrorKey];
@@ -589,10 +595,6 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     }
 }
 - (void)getParentPosts {
-    if (![self hasParentPost]) {
-        return;
-    }
-    
     self.launchNavVC.onScrollLowerBound = 12;
     
     // call this in order to handle the scroll down effect
@@ -616,61 +618,39 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         });
     };
     
-    if (self.post.attributes.thread.prevCursor.length > 0) {
-        NSString *identifier = self.post.identifier;
-        NSString *cursor = self.post.attributes.thread.prevCursor;
+    NSString *url = [NSString stringWithFormat:@"posts/%@/thread", self.post.identifier];
+    NSLog(@"url: %@", url);
+    
+    self.parentPostSpinner.hidden = false;
+    self.loadingParentPosts = true;
+    [self.parentPostSpinner startAnimating];
+    
+    [[[HAWebService manager] authenticate] GET:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        NSMutableArray *responseData = [[NSMutableArray alloc] initWithArray:(NSArray *)responseObject[@"data"]];
         
-        BOOL useParentPostPrevCursor = (self.post.attributes.parent || self.post.attributes.parentId.length > 0) && self.post.attributes.parent.attributes.thread.prevCursor;
-        if (useParentPostPrevCursor) {
-            identifier = (self.post.attributes.parent ? self.post.attributes.parent.identifier : self.post.attributes.parentId);
-            cursor = self.post.attributes.parent.attributes.thread.prevCursor;
-        }
-        
-        NSString *url = [NSString stringWithFormat:@"posts/%@/thread", identifier];
-        
-        NSLog(@"url: %@", url);
-        
-        self.parentPostSpinner.hidden = false;
-        self.loadingParentPosts = true;
-        [self.parentPostSpinner startAnimating];
-        
-        [[[HAWebService manager] authenticate] GET:url parameters:@{@"prev_cursor": cursor} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-            NSMutableArray *responseData = [[NSMutableArray alloc] initWithArray:(NSArray *)responseObject[@"data"]];
-            
-            if ([responseData isKindOfClass:[NSArray class]] && responseData.count > 0) {
-                // convert NSDictionary objects to Post objects (if able)
-                [responseData enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-                    if ([obj isKindOfClass:[NSDictionary class]]) {
-                        Post *post = [[Post alloc] initWithDictionary:obj error:nil];
-                        [responseData replaceObjectAtIndex:idx withObject:post];
-                    }
-                    else {
-                        [responseData removeObject:obj];
-                    }
-                }];
-                
-                if (useParentPostPrevCursor) {
-                    self.parentPosts = [[@[self.post.attributes.parent] arrayByAddingObjectsFromArray:responseData] mutableCopy];
+        if ([responseData isKindOfClass:[NSArray class]] && responseData.count > 0) {
+            // convert NSDictionary objects to Post objects (if able)
+            [responseData enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+                if ([obj isKindOfClass:[NSDictionary class]]) {
+                    Post *post = [[Post alloc] initWithDictionary:obj error:nil];
+                    [responseData replaceObjectAtIndex:idx withObject:post];
                 }
                 else {
-                    self.parentPosts = responseData;
+                    [responseData removeObject:obj];
                 }
-            }
-            else {
-                self.parentPosts = [@[] mutableCopy];
-            }
+            }];
             
-            reloadWithParentPosts();
-        } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-            NSLog(@"CampViewController / getCamp() - error: %@", error);
-            
-        }];
-    }
-    else if (self.post.attributes.parent.attributes.context) {
-        self.parentPosts = [@[self.post.attributes.parent] mutableCopy];
+            self.parentPosts = responseData;
+        }
+        else {
+            self.parentPosts = [@[] mutableCopy];
+        }
         
         reloadWithParentPosts();
-    }
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        NSLog(@"CampViewController / getCamp() - error: %@", error);
+        
+    }];
 }
 - (void)loadPostReplies {
     if ([self canViewPost]) {
@@ -701,7 +681,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
                 errorType = ErrorViewTypeLocked;
                 errorTitle = @"Private Post";
                 if (camp.attributes.title.length > 0) {
-                    errorDescription = @"You must be a member to view this post";
+                    errorDescription = @"You must be a part of the Camp to view this post";
                 }
                 else {
                     errorDescription = [NSString stringWithFormat:@"Request access to join the %@ Camp to view this post", camp.attributes.title];
@@ -841,6 +821,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
 #pragma mark - Table view
 - (void)setupTableView {
     self.tableView = [[BFComponentTableView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - self.navigationController.navigationBar.frame.origin.y - self.navigationController.navigationBar.frame.size.height) style:UITableViewStyleGrouped];
+    self.tableView.backgroundColor = [UIColor tableViewBackgroundColor];
     self.tableView.extendedDelegate = self;
     self.tableView.stream.detailLevel = BFComponentDetailLevelSome;
     self.tableView.loadingStyle = BFComponentTableViewLoadingStyleSpinner;
@@ -848,7 +829,6 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 70, 0);
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
     self.tableView.refreshControl = nil;
-    self.tableView.backgroundColor = [UIColor tableViewBackgroundColor];
     self.tableView.tintColor = self.theme;
     self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
     
@@ -1249,6 +1229,9 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         }
         
         self.composeInputView.theme = theme;
+        
+//        self.tableView.backgroundColor = [UIColor backgroundColorFromHex:self.post.themeColor];
+//        self.composeInputView.contentView.backgroundColor = [self.tableView.backgroundColor colorWithAlphaComponent:0.7];
     } completion:^(BOOL finished) {
     }];
 }
@@ -1259,7 +1242,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
     self.shareUpsellView.backgroundColor = [self.tableView.backgroundColor colorWithAlphaComponent:0.8];
     self.shareUpsellView.layer.masksToBounds = false;
     
-    UIView *lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+    UIView *lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, HALF_PIXEL)];
     lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
     [self.shareUpsellView.contentView addSubview:lineSeparator];
     

@@ -33,7 +33,7 @@
         self.contentView.backgroundColor = [UIColor clearColor];
         
         self.profilePicture = [[BFAvatarView alloc] init];
-        self.profilePicture.frame = CGRectMake(64, 10, 28, 28);
+        self.profilePicture.frame = CGRectMake(64, 10, 36, 36);
         self.profilePicture.openOnTap = false;
         self.profilePicture.user = [Session sharedInstance].currentUser;
         self.profilePicture.userInteractionEnabled = false;
@@ -50,7 +50,7 @@
         self.addReplyButton.layer.borderWidth = 1;
         [self.contentView addSubview:self.addReplyButton];
         
-        self.lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+        self.lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, HALF_PIXEL)];
         self.lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
         [self addSubview:self.lineSeparator];
     }
@@ -64,6 +64,7 @@
     
     UIEdgeInsets contentEdgeInsets = [ReplyCell contentEdgeInsetsForLevel:self.levelsDeep];
     self.addReplyButton.frame = CGRectMake(contentEdgeInsets.left, self.frame.size.height / 2 - self.addReplyButton.frame.size.height / 2, self.frame.size.width - contentEdgeInsets.left - contentEdgeInsets.right, [AddReplyCell baseHeight]);
+    [self.addReplyButton setCornerRadiusType:BFCornerRadiusTypeCircle];
     
     self.profilePicture.frame = CGRectMake([ReplyCell edgeInsetsForLevel:self.levelsDeep].left, self.addReplyButton.frame.origin.y + self.addReplyButton.frame.size.height / 2 - self.profilePicture.frame.size.height / 2, self.profilePicture.frame.size.width, self.profilePicture.frame.size.height);
         

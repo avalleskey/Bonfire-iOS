@@ -97,14 +97,17 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
                 
         [self positionErrorView];
         
-        if (![BFTipsManager hasSeenTip:@"about_sparks_info"]) {
-            BFAlertController *about = [BFAlertController alertControllerWithIcon:[UIImage imageNamed:@"alert_icon_sparks"] title:@"About Sparks" message:@"Sparks show a post to more people. Only the creator can see who sparks a post." preferredStyle:BFAlertControllerStyleActionSheet];
-            
-            BFAlertAction *gotIt = [BFAlertAction actionWithTitle:@"Got it" style:BFAlertActionStyleCancel handler:nil];
-            [about addAction:gotIt];
-            
-            [about show];
-        }
+        wait(1.2f, ^{
+            if ([Launcher activeViewController] == self && // ensure the view is still in the foreground
+                ![BFTipsManager hasSeenTip:@"about_sparks_info"]) {
+                BFAlertController *about = [BFAlertController alertControllerWithIcon:[UIImage imageNamed:@"alert_icon_sparks"] title:@"About Sparks" message:@"Sparks show a post to more people. Only the creator can see who sparks a post." preferredStyle:BFAlertControllerStyleActionSheet];
+                
+                BFAlertAction *gotIt = [BFAlertAction actionWithTitle:@"Got it" style:BFAlertActionStyleCancel handler:nil];
+                [about addAction:gotIt];
+                
+                [about show];
+            }
+        });
         
         [self showComposeInputView];
     }
@@ -373,8 +376,7 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
     
     [self.view addSubview:self.composeInputView];
     
-    self.composeInputView.contentView.backgroundColor = [UIColor colorNamed:@"TabBarBackgroundColor"];
-    self.composeInputView.textView.backgroundColor = [UIColor contentBackgroundColor];
+    self.composeInputView.contentView.backgroundColor = [[UIColor tableViewBackgroundColor] colorWithAlphaComponent:0.8];
     self.composeInputView.tintColor = [UIColor bonfireBrand];
 }
 - (void)privacySelectionDidSelectToPost:(Camp *)selection {
@@ -1019,7 +1021,8 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
         self.composeInputView.tag = 1;
         self.composeInputView.transform = CGAffineTransformMakeTranslation(0, self.composeInputView.frame.size.height);
         self.composeInputView.hidden = false;
-        [UIView animateWithDuration:0.4f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        
+        [UIView animateWithDuration:0.65f delay:0 usingSpringWithDamping:0.8f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
             self.composeInputView.transform = CGAffineTransformIdentity;
         } completion:^(BOOL finished) {
             self.composeInputView.tag = 0;
@@ -1036,7 +1039,8 @@ static NSString * const recentCardsCellReuseIdentifier = @"RecentCampsCell";
     
     if (![self.composeInputView isHidden]) {
         self.composeInputView.tag = 1;
-        [UIView animateWithDuration:0.5f delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        
+        [UIView animateWithDuration:0.75f delay:0 usingSpringWithDamping:0.6f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
             self.composeInputView.transform = CGAffineTransformMakeTranslation(0, self.composeInputView.frame.size.height);
         } completion:^(BOOL finished) {
             self.composeInputView.tag = 0;

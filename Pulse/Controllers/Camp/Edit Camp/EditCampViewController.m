@@ -31,7 +31,7 @@
 
 @import Firebase;
 
-#define CAMP_PRIVATE_DESCRIPTION @"When your Camp is private, only people you approve can see content posted inside your Camp. Your existing members won’t be affected."
+#define CAMP_PRIVATE_DESCRIPTION @"When your Camp is private, only people you approve can see content posted inside your Camp. Your existing campers won’t be affected."
 
 @interface EditCampViewController () <UITextFieldDelegate, UITextViewDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate, RSKImageCropViewControllerDelegate, RSKImageCropViewControllerDataSource, UITableViewDelegate, UITableViewDataSource	> {
     UIImage *newAvatar;
@@ -602,7 +602,7 @@ static NSString * const buttonReuseIdentifier = @"ButtonCell";
                     if (!cell.toggle.isOn && [self.camp isPrivate]) {
                         NSLog(@"toggle is now on");
                         // confirm action
-                        BFAlertController *confirmActionSheet = [BFAlertController alertControllerWithTitle:@"Change Privacy?" message:@"When your Camp is public, everyone can see content posted inside your Camp. Also, any pending member requests will be automatically approved once you save." preferredStyle:BFAlertControllerStyleAlert];
+                        BFAlertController *confirmActionSheet = [BFAlertController alertControllerWithTitle:@"Change Privacy?" message:@"When your Camp is public, everyone can see content posted inside your Camp. Also, any pending camper requests will be automatically approved once you save." preferredStyle:BFAlertControllerStyleAlert];
                         confirmActionSheet.view.tintColor = self.themeColor;
                         
                         BFAlertAction *confirmAction = [BFAlertAction actionWithTitle:@"Confirm" style:BFAlertActionStyleDefault handler:^{

@@ -25,7 +25,7 @@
     
     if (self) {
         self.selectionStyle = UITableViewCellSelectionStyleNone;
-        self.backgroundColor = [UIColor contentBackgroundColor];
+        self.backgroundColor = [UIColor clearColor];
         
         self.shimmerContainer = [[FBShimmeringView alloc] init];
         self.shimmerContainer.shimmeringSpeed = 800;
@@ -75,8 +75,8 @@
 {
     [super layoutSubviews];
     
-    // self.lineSeparator.frame = CGRectMake(self.textView.frame.origin.x, self.frame.size.height - (1 / [UIScreen mainScreen].scale), self.frame.size.width - self.textView.frame.origin.x, 1 / [UIScreen mainScreen].scale);
-    self.lineSeparator.frame = CGRectMake(0, self.frame.size.height - (1 / [UIScreen mainScreen].scale), self.frame.size.width, 1 / [UIScreen mainScreen].scale);
+    // self.lineSeparator.frame = CGRectMake(self.textView.frame.origin.x, self.frame.size.height - HALF_PIXEL, self.frame.size.width - self.textView.frame.origin.x, 1 / [UIScreen mainScreen].scale);
+    self.lineSeparator.frame = CGRectMake(0, self.frame.size.height - HALF_PIXEL, self.frame.size.width, 1 / [UIScreen mainScreen].scale);
     
     self.shimmerContainer.frame = self.bounds;
     self.shimmerContentView.frame = self.bounds;

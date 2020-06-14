@@ -378,7 +378,7 @@
     self.actionButton.frame = CGRectMake(12, PROFILE_HEADER_FOLLOW_BUTTON_TOP_PADDING + bottomY, self.frame.size.width - 24, 38);
     
     // line separator
-    self.lineSeparator.frame = CGRectMake(0, self.lineSeparator.superview.frame.size.height - (1 / [UIScreen mainScreen].scale), self.frame.size.width, (1 / [UIScreen mainScreen].scale));
+    self.lineSeparator.frame = CGRectMake(0, self.lineSeparator.superview.frame.size.height - HALF_PIXEL, self.frame.size.width, HALF_PIXEL);
 }
 
 - (BOOL)isCurrentUser {
@@ -543,17 +543,15 @@
             }];
             [details addObject:item];
         }
-        if (details.count == 0) {
-            if ([user isCurrentIdentity]) {
-                BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeEdit value:(details.count==0?@"Edit Profile":@"") action:^{
-                    [Launcher openEditProfile];
-                }];
-                [details addObject:item];
-            }
-            else if (user.attributes.createdAt.length > 0) {
-                BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeJoinedAt value:user.attributes.createdAt action:nil];
-                [details addObject:item];
-            }
+        if ([user isCurrentIdentity]) {
+            BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeEdit value:(details.count==0?@"Edit Profile":@"") action:^{
+                [Launcher openEditProfile];
+            }];
+            [details addObject:item];
+        }
+        else if (user.attributes.createdAt.length > 0) {
+            BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeJoinedAt value:user.attributes.createdAt action:nil];
+            [details addObject:item];
         }
         
         self.detailsCollectionView.tintColor = self.detailTextLabel.textColor;
@@ -671,15 +669,13 @@
                 BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeWebsite value:user.attributes.website.displayUrl action:nil];
                 [details addObject:item];
             }
-            if (details.count == 0) {
-                if ([user isCurrentIdentity]) {
-                    BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeEdit value:(details.count==0?@"Edit Profile":@"") action:nil];
-                    [details addObject:item];
-                }
-                else if (user.attributes.createdAt.length > 0) {
-                    BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeJoinedAt value:user.attributes.createdAt action:nil];
-                    [details addObject:item];
-                }
+            if ([user isCurrentIdentity]) {
+                BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeEdit value:(details.count==0?@"Edit Profile":@"") action:nil];
+                [details addObject:item];
+            }
+            else if (user.attributes.createdAt.length > 0) {
+                BFDetailItem *item = [[BFDetailItem alloc] initWithType:BFDetailItemTypeJoinedAt value:user.attributes.createdAt action:nil];
+                [details addObject:item];
             }
             
             if (details.count > 0) {

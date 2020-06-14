@@ -250,6 +250,8 @@ static InsightsLogger *logger;
     [self addCurrentBatchToQueue];
 }
 - (void)uploadBatches {
+    HAWebService *uploadService = [[HAWebService alloc] init];
+    
     [Session authenticate:^(BOOL success, NSString * _Nonnull token) {
         if (success) {
             NSMutableArray *queuedBatchesCopy = [[NSMutableArray alloc] initWithArray:logger.queuedBatches];
@@ -259,7 +261,7 @@ static InsightsLogger *logger;
                 
                 NSDictionary *normalizedBatch = [self normalizeBatch:batch];
                 
-                [[[HAWebService managerWithContentType:kCONTENT_TYPE_JSON] authenticate] POST:@"insights/impressions?urlparam=true" parameters:@{@"impressions": normalizedBatch} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+                [[uploadService authenticate] POST:@"insights/impressions?urlparam=true" parameters:@{@"impressions": normalizedBatch} progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
                     // success
                     [self sync];
                 } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {

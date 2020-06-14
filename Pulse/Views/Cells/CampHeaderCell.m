@@ -198,11 +198,11 @@
         [self.campAvatarReasonView addSubview:self.campAvatarReasonImageView];
         
         self.gradientRingLayer = [CAGradientLayer layer];
-        self.gradientRingLayer.frame = CGRectMake(7, 7, CAMP_HEADER_AVATAR_SIZE + 7 * 2, CAMP_HEADER_AVATAR_SIZE + 7 * 2);
+        self.gradientRingLayer.frame = CGRectMake(0, 0, CAMP_HEADER_AVATAR_SIZE + 10 * 2, CAMP_HEADER_AVATAR_SIZE + 10 * 2);
         self.gradientRingLayer.cornerRadius = self.gradientRingLayer.frame.size.height / 2;
         
         CGRect outerRect = CGRectMake(0, 0, self.gradientRingLayer.frame.size.width, self.gradientRingLayer.frame.size.height);
-        CGFloat inset = 3; // adjust as necessary for more or less meaty donuts
+        CGFloat inset = 5; // adjust as necessary for more or less meaty donuts
         CGFloat innerDiameter = outerRect.size.width - 2.0 * inset;
         CGRect innerRect = CGRectMake(inset, inset, innerDiameter, innerDiameter);
         UIBezierPath *outerCircle = [UIBezierPath bezierPathWithRoundedRect:outerRect cornerRadius:outerRect.size.width * 0.5];
@@ -383,21 +383,7 @@
     
     [[NSNotificationCenter defaultCenter] postNotificationName:@"CampUpdated" object:self.camp];
 }
-//- (void)incrementMembersCount {
-//    CampCounts *counts = [[CampCounts alloc] initWithDictionary:[self.camp.attributes.summaries.counts toDictionary] error:nil];
-//    counts.members = counts.members + 1;
-//    self.camp.attributes.summaries.counts = counts;
-//
-//    [[NSNotificationCenter defaultCenter] postNotificationName:@"CampUpdated" object:self.camp];
-//}
-//- (void)decrementMembersCount {
-//    // only decrement if they were a member before! requests don't count.
-//    CampCounts *counts = [[CampCounts alloc] initWithDictionary:[self.camp.attributes.summaries.counts toDictionary] error:nil];
-//    counts.members = counts.members > 0 ? counts.members - 1 : 0;
-//    self.camp.attributes.summaries.counts = counts;
-//
-//    [[NSNotificationCenter defaultCenter] postNotificationName:@"CampUpdated" object:self.camp];
-//}
+
 - (void)leaveCamp {
     [BFAPI unfollowCamp:self.camp completion:^(BOOL success, id responseObject) {
         if (success) {
@@ -891,54 +877,56 @@
                 BFDetailItem *members = [[BFDetailItem alloc] initWithType:BFDetailItemTypeMembers value:[NSString stringWithFormat:@"%ld", (long)camp.attributes.summaries.counts.members] action:^{
                     [Launcher openCampMembersForCamp:camp];
                 }];
-                if ([camp isPrivate] && ![camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_MEMBER]) {
+                if ([camp isPrivate] && ![camp isMember]) {
                     members.selectable = false;
                 }
                 [details addObject:members];
             }
         }
         
-        BOOL campPostNotifications = camp.attributes.context.camp.membership.subscription != nil;
-        BFDetailItem *notifications = [[BFDetailItem alloc] initWithType:(campPostNotifications?BFDetailItemTypePostNotificationsOn:BFDetailItemTypePostNotificationsOff) value:@"" action:^{
+        if ([camp isMember]) {
             BOOL campPostNotifications = camp.attributes.context.camp.membership.subscription != nil;
-            UIImage *icon = (campPostNotifications ? [UIImage imageNamed:@"alert_icon_notifications_on"] : [UIImage imageNamed:@"alert_icon_notifications_off"]);
-            
-            BFAlertController *postNotifications = [BFAlertController alertControllerWithIcon:icon title:(campPostNotifications?@"Post Notifications are on":@"Post Notifications are off") message:(campPostNotifications ? @"You will receive notifications for new posts inside this Camp" : @"You will only receive notifications when you are mentioned or replied to") preferredStyle:BFAlertControllerStyleActionSheet];
-            
-            NSString *actionTitle = [@"Turn Post Notifications " stringByAppendingString:(campPostNotifications?@"Off":@"On")];
+            BFDetailItem *notifications = [[BFDetailItem alloc] initWithType:(campPostNotifications?BFDetailItemTypePostNotificationsOn:BFDetailItemTypePostNotificationsOff) value:@"" action:^{
+                BOOL campPostNotifications = camp.attributes.context.camp.membership.subscription != nil;
+                UIImage *icon = (campPostNotifications ? [UIImage imageNamed:@"alert_icon_notifications_on"] : [UIImage imageNamed:@"alert_icon_notifications_off"]);
+                
+                BFAlertController *postNotifications = [BFAlertController alertControllerWithIcon:icon title:(campPostNotifications?@"Post Notifications are on":@"Post Notifications are off") message:(campPostNotifications ? @"You will receive notifications for new posts inside this Camp" : @"You will only receive notifications when you are mentioned or replied to") preferredStyle:BFAlertControllerStyleActionSheet];
+                
+                NSString *actionTitle = [@"Turn Post Notifications " stringByAppendingString:(campPostNotifications?@"Off":@"On")];
 
-            BFAlertAction *togglePostNotifications = [BFAlertAction actionWithTitle:actionTitle style:BFAlertActionStyleDefault handler:^{
-                NSLog(@"toggle post notifications");
+                BFAlertAction *togglePostNotifications = [BFAlertAction actionWithTitle:actionTitle style:BFAlertActionStyleDefault handler:^{
+                    NSLog(@"toggle post notifications");
+                    // confirm action
+                    Camp *campCopy = [camp copy];
+                    if (campPostNotifications) {
+                        BFMiniNotificationObject *notificationObject = [BFMiniNotificationObject notificationWithText:@"Saved!" action:nil];
+                        [[BFMiniNotificationManager manager] presentNotification:notificationObject completion:nil];
+                        
+                        [campCopy unsubscribeFromCamp];
+                    }
+                    else {
+                        BFMiniNotificationObject *notificationObject = [BFMiniNotificationObject notificationWithText:@"Saved!" action:nil];
+                        [[BFMiniNotificationManager manager] presentNotification:notificationObject completion:nil];
+                        
+                        [campCopy subscribeToCamp];
+                    }
+                }];
+                [postNotifications addAction:togglePostNotifications];
+                
                 // confirm action
-                Camp *campCopy = [camp copy];
-                if (campPostNotifications) {
-                    BFMiniNotificationObject *notificationObject = [BFMiniNotificationObject notificationWithText:@"Saved!" action:nil];
-                    [[BFMiniNotificationManager manager] presentNotification:notificationObject completion:nil];
-                    
-                    [campCopy unsubscribeFromCamp];
-                }
-                else {
-                    BFMiniNotificationObject *notificationObject = [BFMiniNotificationObject notificationWithText:@"Saved!" action:nil];
-                    [[BFMiniNotificationManager manager] presentNotification:notificationObject completion:nil];
-                    
-                    [campCopy subscribeToCamp];
-                }
+                BFAlertAction *alertCancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
+                [postNotifications addAction:alertCancel];
+                
+                [postNotifications show];
             }];
-            [postNotifications addAction:togglePostNotifications];
+            [details addObject:notifications];
             
-            // confirm action
-            BFAlertAction *alertCancel = [BFAlertAction actionWithTitle:@"Cancel" style:BFAlertActionStyleCancel handler:nil];
-            [postNotifications addAction:alertCancel];
-            
-            [postNotifications show];
-        }];
-        [details addObject:notifications];
-        
-        if ([camp.attributes.context.camp.permissions canUpdate]) {
-            BFDetailItem *edit = [[BFDetailItem alloc] initWithType:BFDetailItemTypeEdit value:@"" action:^{
-                [Launcher openEditCamp:camp];
-            }];
-            [details addObject:edit];
+            if ([camp.attributes.context.camp.permissions canUpdate]) {
+                BFDetailItem *edit = [[BFDetailItem alloc] initWithType:BFDetailItemTypeEdit value:@"" action:^{
+                    [Launcher openEditCamp:camp];
+                }];
+                [details addObject:edit];
+            }
         }
     }
     
@@ -951,7 +939,7 @@
         // confirm action
         BOOL privateCamp = [self.camp isPrivate];
         BOOL lastMember = self.camp.attributes.summaries.counts.members <= 1;
-        BOOL isMember = [self.camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_MEMBER];
+        BOOL isMember = [self.camp isMember];
         
         void (^leave)(void) = ^(){
             [self.actionButton updateStatus:CAMP_STATUS_LEFT];
@@ -961,11 +949,11 @@
         if (privateCamp || lastMember || isMember) {
             NSString *message;
             if (privateCamp && lastMember) {
-                message = @"All camps must have at least one member. If you leave, this Camp and all of its posts will be deleted after 30 days of inactivity.";
+                message = @"All camps must have at least one camper. If you leave, this Camp and all of its posts will be deleted after 30 days of inactivity.";
             }
             else if (lastMember) {
                 // leaving as the last member in a public camp
-                message = @"All camps must have at least one member. If you leave, this Camp will be archived and eligible for anyone to reopen.";
+                message = @"All camps must have at least one camper. If you leave, this Camp will be archived and eligible for anyone to reopen.";
             }
             else if (privateCamp) {
                 // leaving a private camp, but the user isn't the last one

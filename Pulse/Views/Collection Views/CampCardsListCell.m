@@ -14,6 +14,7 @@
 
 #import "ComplexNavigationController.h"
 #import "UIColor+Palette.h"
+#import "BFAlertController.h"
 
 #import "BFStreamComponent.h"
 
@@ -85,11 +86,12 @@ static NSString * const errorCampCellReuseIdentifier = @"ErrorCampCell";
     
     [self.contentView addSubview:_collectionView];
     
-    self.lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+    self.lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, HALF_PIXEL)];
     self.lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
     self.lineSeparator.hidden = true;
     [self addSubview:self.lineSeparator];
 }
+
 - (NSInteger)numberOfSectionsInCollectionView:(UICollectionView *)collectionView {
     return 1;
 }
@@ -181,45 +183,45 @@ static NSString * const errorCampCellReuseIdentifier = @"ErrorCampCell";
     return blankCell;
 }
 
-- (UIContextMenuConfiguration *)collectionView:(UICollectionView *)collectionView contextMenuConfigurationForItemAtIndexPath:(NSIndexPath *)indexPath point:(CGPoint)point  API_AVAILABLE(ios(13.0)){
-    if ([[collectionView cellForItemAtIndexPath:indexPath] isKindOfClass:[CampCardCell class]]) {
-        Camp *camp = ((CampCardCell *)[collectionView cellForItemAtIndexPath:indexPath]).camp;
-        
-        if (camp) {
-            UIAction *shareViaAction = [UIAction actionWithTitle:@"Share Camp via..." image:[UIImage systemImageNamed:@"square.and.arrow.up"] identifier:@"share_via" handler:^(__kindof UIAction * _Nonnull action) {
-                [Launcher shareCamp:camp];
-            }];
-            
-            UIMenu *menu = [UIMenu menuWithTitle:@"" children:@[shareViaAction]];
-            
-            CampViewController *campVC = [Launcher campViewControllerForCamp:camp];
-            
-            UIContextMenuConfiguration *configuration = [UIContextMenuConfiguration configurationWithIdentifier:indexPath previewProvider:^(){return campVC;} actionProvider:^(NSArray* suggestedAction){return menu;}];
-            return configuration;
-        }
-    }
-    
-    return nil;
-}
-
-- (void)collectionView:(UICollectionView *)collectionView willPerformPreviewActionForMenuWithConfiguration:(UIContextMenuConfiguration *)configuration animator:(id<UIContextMenuInteractionCommitAnimating>)animator  API_AVAILABLE(ios(13.0)){
-    void(^completionAction)(void);
-    
-    if ([animator.previewViewController isKindOfClass:[CampViewController class]]) {
-        CampViewController *c = (CampViewController *)animator.previewViewController;
-        completionAction = ^{
-            [Launcher openCamp:c.camp controller:c];
-        };
-    }
-
-    [animator addCompletion:^{
-        wait(0, ^{
-            if (completionAction) {
-                completionAction();
-            }
-        });
-    }];
-}
+//- (UIContextMenuConfiguration *)collectionView:(UICollectionView *)collectionView contextMenuConfigurationForItemAtIndexPath:(NSIndexPath *)indexPath point:(CGPoint)point  API_AVAILABLE(ios(13.0)){
+//    if ([[collectionView cellForItemAtIndexPath:indexPath] isKindOfClass:[CampCardCell class]]) {
+//        Camp *camp = ((CampCardCell *)[collectionView cellForItemAtIndexPath:indexPath]).camp;
+//
+//        if (camp) {
+//            UIAction *shareViaAction = [UIAction actionWithTitle:@"Share Camp via..." image:[UIImage systemImageNamed:@"square.and.arrow.up"] identifier:@"share_via" handler:^(__kindof UIAction * _Nonnull action) {
+//                [Launcher shareCamp:camp];
+//            }];
+//
+//            UIMenu *menu = [UIMenu menuWithTitle:@"" children:@[shareViaAction]];
+//
+//            CampViewController *campVC = [Launcher campViewControllerForCamp:camp];
+//
+//            UIContextMenuConfiguration *configuration = [UIContextMenuConfiguration configurationWithIdentifier:indexPath previewProvider:^(){return campVC;} actionProvider:^(NSArray* suggestedAction){return menu;}];
+//            return configuration;
+//        }
+//    }
+//
+//    return nil;
+//}
+//
+//- (void)collectionView:(UICollectionView *)collectionView willPerformPreviewActionForMenuWithConfiguration:(UIContextMenuConfiguration *)configuration animator:(id<UIContextMenuInteractionCommitAnimating>)animator  API_AVAILABLE(ios(13.0)){
+//    void(^completionAction)(void);
+//
+//    if ([animator.previewViewController isKindOfClass:[CampViewController class]]) {
+//        CampViewController *c = (CampViewController *)animator.previewViewController;
+//        completionAction = ^{
+//            [Launcher openCamp:c.camp controller:c];
+//        };
+//    }
+//
+//    [animator addCompletion:^{
+//        wait(0, ^{
+//            if (completionAction) {
+//                completionAction();
+//            }
+//        });
+//    }];
+//}
 
 - (CGSize)collectionView:(UICollectionView *)collectionView
                   layout:(UICollectionViewLayout *)collectionViewLayout
@@ -229,10 +231,10 @@ static NSString * const errorCampCellReuseIdentifier = @"ErrorCampCell";
 
 - (CGFloat)cardWidth {
     if (self.size == CAMP_CARD_SIZE_SMALL_MEDIUM) {
-        return 148;
+        return 156;
     }
     
-    return 268;
+    return 240;
 }
 - (CGFloat)cardHeight {
     switch (self.size) {

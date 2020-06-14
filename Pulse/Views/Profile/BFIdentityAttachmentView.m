@@ -18,10 +18,10 @@
 #define USER_ATTACHMENT_AVATAR_SIZE 72
 #define USER_ATTACHMENT_AVATAR_BOTTOM_PADDING 10
 // display name macros
-#define USER_ATTACHMENT_DISPLAY_NAME_FONT [UIFont systemFontOfSize:20.f weight:UIFontWeightHeavy]
-#define USER_ATTACHMENT_DISPLAY_NAME_BOTTOM_PADDING 3
+#define USER_ATTACHMENT_DISPLAY_NAME_FONT [UIFont systemFontOfSize:22.f weight:UIFontWeightHeavy]
+#define USER_ATTACHMENT_DISPLAY_NAME_BOTTOM_PADDING 4
 // username macros
-#define USER_ATTACHMENT_USERNAME_FONT [UIFont systemFontOfSize:14.f weight:UIFontWeightBold]
+#define USER_ATTACHMENT_USERNAME_FONT [UIFont systemFontOfSize:16.f weight:UIFontWeightBold]
 #define USER_ATTACHMENT_USERNAME_BOTTOM_PADDING 8
 // bio macros
 #define USER_ATTACHMENT_BIO_FONT [UIFont systemFontOfSize:14.f weight:UIFontWeightMedium]
@@ -46,7 +46,7 @@
     self.headerBackdrop.backgroundColor = [UIColor bonfireOrange];
     [self.contentView addSubview:self.headerBackdrop];
     
-    self.avatarContainerView = [[UIView alloc] initWithFrame:CGRectMake(self.frame.size.width / 2 - USER_ATTACHMENT_AVATAR_SIZE / 2 - 4, USER_ATTACHMENT_EDGE_INSETS.top - 4, USER_ATTACHMENT_AVATAR_SIZE + 8, USER_ATTACHMENT_AVATAR_SIZE + 8)];
+    self.avatarContainerView = [[UIView alloc] initWithFrame:CGRectMake(self.frame.size.width / 2 - USER_ATTACHMENT_AVATAR_SIZE / 2 - 5, USER_ATTACHMENT_EDGE_INSETS.top - 5, USER_ATTACHMENT_AVATAR_SIZE + 10, USER_ATTACHMENT_AVATAR_SIZE + 10)];
     self.avatarContainerView.backgroundColor = [UIColor contentBackgroundColor];
     self.avatarContainerView.layer.cornerRadius = self.avatarContainerView.frame.size.width / 2;
     self.avatarContainerView.layer.shadowColor = [UIColor blackColor].CGColor;
@@ -55,7 +55,7 @@
     self.avatarContainerView.layer.shadowOpacity = 0.12;
     [self.contentView addSubview:self.avatarContainerView];
     
-    self.avatarView = [[BFAvatarView alloc] initWithFrame:CGRectMake(4, 4, USER_ATTACHMENT_AVATAR_SIZE, USER_ATTACHMENT_AVATAR_SIZE)];
+    self.avatarView = [[BFAvatarView alloc] initWithFrame:CGRectMake(5, 5, USER_ATTACHMENT_AVATAR_SIZE, USER_ATTACHMENT_AVATAR_SIZE)];
     self.avatarView.userInteractionEnabled = false;
     [self.avatarContainerView addSubview:self.avatarView];
     

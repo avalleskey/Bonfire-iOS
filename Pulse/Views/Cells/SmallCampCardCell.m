@@ -204,7 +204,7 @@
         
         if (self.camp.attributes.summaries.counts.members) {
             NSInteger members = self.camp.attributes.summaries.counts.members;
-            self.membersLabel.text = [NSString stringWithFormat:@"%ld %@", members, members == 1 ? @"member" : @"members"];
+            self.membersLabel.text = [NSString stringWithFormat:@"%ld %@", members, members == 1 ? @"camper" : @"campers"];
             
             if (members > 0) {
                 // setup the replies view
@@ -228,7 +228,7 @@
             }
         }
         else {
-            self.membersLabel.text = [NSString stringWithFormat:@"0 members"];
+            self.membersLabel.text = [NSString stringWithFormat:@"0 campers"];
         }
     }
 }

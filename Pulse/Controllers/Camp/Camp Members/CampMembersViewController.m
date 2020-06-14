@@ -160,7 +160,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
         [self updateNavigationTitle];
         self.theme = (camp.attributes.color.length == 0) ? [UIColor bonfireGrayWithLevel:800] : [UIColor fromHex:camp.attributes.color];
         
-        BOOL isMember = [self.camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_MEMBER];
+        BOOL isMember = [self.camp isMember];
         
         if (handler) {
             handler(isMember);
@@ -181,8 +181,8 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     
     if ([self.navigationController isKindOfClass:[SimpleNavigationController class]]) {
         self.navigationController.view.tintColor = [UIColor fromHex:[UIColor toHex:self.theme] adjustForOptimalContrast:true];
-        [(SimpleNavigationController *)self.navigationController updateBarColor:[UIColor clearColor] animated:YES];
-        [(SimpleNavigationController *)self.navigationController hideBottomHairline];
+//        [(SimpleNavigationController *)self.navigationController updateBarColor:theme animated:YES];
+//        [(SimpleNavigationController *)self.navigationController hideBottomHairline];
     }
 }
 
@@ -262,7 +262,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
         SmartList *list = self.tabs[i];
         UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
         button.tag = i;
-        [button.titleLabel setFont:[UIFont systemFontOfSize:16.f weight:UIFontWeightSemibold]];
+        [button.titleLabel setFont:[UIFont systemFontOfSize:16.f weight:UIFontWeightBold]];
         [button setTitle:list.title forState:UIControlStateNormal];
         
         if (buttonWidth == 0) {
@@ -295,7 +295,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
         
 //        if (i < self.tabs.count - 1) {
 //            // => not the last tab
-//            UIView *horizontalSeparator = [[UIView alloc] initWithFrame:CGRectMake(button.frame.size.width - (1 / [UIScreen mainScreen].scale), 14, (1 / [UIScreen mainScreen].scale), 24)];
+//            UIView *horizontalSeparator = [[UIView alloc] initWithFrame:CGRectMake(button.frame.size.width - HALF_PIXEL, 14, HALF_PIXEL, 24)];
 //            horizontalSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
 //            [button addSubview:horizontalSeparator];
 //        }
@@ -321,7 +321,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
     self.shareView.clipsToBounds = false;
     [self.view addSubview:self.shareView];
     
-    UIView *lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, -(1 / [UIScreen mainScreen].scale), self.view.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+    UIView *lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, -HALF_PIXEL, self.view.frame.size.width, HALF_PIXEL)];
     lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
     [self.shareView addSubview:lineSeparator];
     [self.view addSubview:self.segmentedControl];
@@ -527,7 +527,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
 }
 
 - (BOOL)isMember {
-    return [self.camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_MEMBER];
+    return [self.camp isMember];
 }
 - (BOOL)isAdmin {
     return [self.camp.attributes.context.camp.membership.role.type isEqualToString:CAMP_ROLE_ADMIN];
@@ -890,7 +890,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
         upsell.layer.masksToBounds = false;
         
         UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(8, 24, upsell.frame.size.width - 16, 21)];
-        title.text = @"No Member Requests";
+        title.text = @"No Camper Requests";
         title.textColor = [UIColor bonfirePrimaryColor];
         title.textAlignment = NSTextAlignmentCenter;
         title.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightSemibold];
@@ -917,7 +917,7 @@ static NSString * const addManagerCellIdentifier = @"AddManagerCell";
         
         // search view
         self.searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(12, 10, self.view.frame.size.width - (12 * 2), 36)];
-        self.searchView.placeholder = @"Search Members";
+        self.searchView.placeholder = @"Search Campers";
         [self.searchView updateSearchText:self.searchPhrase];
         self.searchView.textField.tintColor = self.theme;
         self.searchView.textField.delegate = self;

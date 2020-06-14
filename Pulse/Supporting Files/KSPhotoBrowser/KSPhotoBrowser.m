@@ -522,7 +522,7 @@ static Class ImageManagerClass = nil;
 }
 
 - (UIColor *)currentBackgroundColor {
-    return (self.viewingModeOn ? [UIColor blackColor] : [UIColor contentBackgroundColor]);
+    return (self.viewingModeOn ? [UIColor blackColor] : [[UIColor colorNamed:@"Navigation_ClearBackgroundColor"] colorWithAlphaComponent:0.96]);
 }
 
 - (void)performSlideWithPan:(UIPanGestureRecognizer *)pan {

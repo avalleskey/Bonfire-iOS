@@ -196,7 +196,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
 }
 
 - (void)setupErrorView {
-    BFVisualError *visualError = [BFVisualError visualErrorOfType:ErrorViewTypeGeneral title:@"No Members Available" description:[NSString stringWithFormat:@"Have others join the Camp before assigning them %@", [self.managerType isEqualToString:CAMP_ROLE_ADMIN] ? @"Directors" : @"Managers"] actionTitle:nil actionBlock:nil];
+    BFVisualError *visualError = [BFVisualError visualErrorOfType:ErrorViewTypeGeneral title:@"No Campers Available" description:[NSString stringWithFormat:@"Have others join the Camp before assigning them %@", [self.managerType isEqualToString:CAMP_ROLE_ADMIN] ? @"Directors" : @"Managers"] actionTitle:nil actionBlock:nil];
     
     self.errorView = [[BFVisualErrorView alloc] initWithVisualError:visualError];
     self.errorView.center = CGPointMake(self.view.frame.size.width / 2, (self.tableView.frame.size.height - self.tableView.safeAreaInsets.bottom) / 2);
@@ -233,7 +233,7 @@ static NSString * const memberCellIdentifier = @"MemberCell";
     
     // search view
     self.searchView = [[BFSearchView alloc] initWithFrame:CGRectMake(12, 10, self.view.frame.size.width - (12 * 2), 36)];
-    self.searchView.textField.placeholder = @"Search Members";
+    self.searchView.textField.placeholder = @"Search Campers";
     [self.searchView updateSearchText:self.searchPhrase];
     [self.searchView setPosition:BFSearchTextPositionCenter];
     self.searchView.textField.tintColor = self.view.tintColor;

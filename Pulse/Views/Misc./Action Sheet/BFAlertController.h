@@ -67,6 +67,8 @@ extern NSString * const BFAlertActionIconOther;
 
 @property (nonatomic, strong) AlertViewControllerPresenter *presenter;
 - (void)show;
+- (void)dismissWithCompletion:(void (^ _Nullable)(void))completion;
+- (void)dismissWithAnimation:(BOOL)animation completion:(void (^ _Nullable)(void))completion;
 
 - (void)addAction:(BFAlertAction *)action;
 @property (nonatomic, strong) NSMutableArray<BFAlertAction *> *actions;

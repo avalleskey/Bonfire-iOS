@@ -79,6 +79,10 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
     
     // Google Analytics
     [FIRAnalytics setScreenName:@"Profile" screenClass:nil];
+    
+    if (self.user.attributes.color.length > 0) {
+        [self updateTheme];
+    }
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -583,6 +587,8 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
         else {
             self.tableView.refreshControl.tintColor = [UIColor blackColor];
         }
+        
+//        self.view.backgroundColor = [UIColor backgroundColorFromHex:self.user.attributes.color];
     } completion:^(BOOL finished) {
     }];
 }
@@ -864,7 +870,7 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
         }
         
         // Configure the cell...
-        cell.buttonLabel.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightSemibold];
+        cell.buttonLabel.font = [UIFont systemFontOfSize:16.f weight:UIFontWeightBold];
         cell.detailTextLabel.font = [UIFont systemFontOfSize:cell.buttonLabel.font.pointSize weight:UIFontWeightMedium];
         if (row == 1) {
             cell.buttonLabel.text = @"Friends";

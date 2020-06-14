@@ -29,7 +29,7 @@
     
     self.selectionStyle = UITableViewCellSelectionStyleNone;
     
-    self.lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+    self.lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, HALF_PIXEL)];
     self.lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
     self.lineSeparator.hidden = true;
     [self addSubview:self.lineSeparator];

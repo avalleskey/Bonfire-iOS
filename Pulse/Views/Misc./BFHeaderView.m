@@ -56,17 +56,17 @@
     self.topBlock.backgroundColor = [UIColor tableViewBackgroundColor];
     [self addSubview:self.topBlock];
     
-    self.topBlockSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+    self.topBlockSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, HALF_PIXEL)];
     self.topBlockSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
     self.topBlockSeparator.hidden = true;
     [self.topBlock addSubview:self.topBlockSeparator];
     
-    self.topLineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, self.topBlock.frame.size.height, self.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+    self.topLineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, self.topBlock.frame.size.height, self.frame.size.width, HALF_PIXEL)];
     self.topLineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
     self.topLineSeparator.hidden = true;
     //[self addSubview:self.topLineSeparator];
     
-    self.bottomLineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, self.frame.size.height - (1 / [UIScreen mainScreen].scale), self.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+    self.bottomLineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, self.frame.size.height - HALF_PIXEL, self.frame.size.width, HALF_PIXEL)];
     self.bottomLineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
     self.bottomLineSeparator.hidden = true;
     [self addSubview:self.bottomLineSeparator];
@@ -78,13 +78,13 @@
     [super layoutSubviews];
     
     if ([self.topBlock isHidden]) {
-        self.topLineSeparator.frame = CGRectMake(0, 0, self.frame.size.width, (1 / [UIScreen mainScreen].scale));
+        self.topLineSeparator.frame = CGRectMake(0, 0, self.frame.size.width, HALF_PIXEL);
     }
     else {
         self.topBlock.frame = CGRectMake(0, 0, self.frame.size.width, self.topBlock.frame.size.height);
-        self.topBlockSeparator.frame = CGRectMake(0, 0, self.frame.size.width, (1 / [UIScreen mainScreen].scale));
+        self.topBlockSeparator.frame = CGRectMake(0, 0, self.frame.size.width, HALF_PIXEL);
         
-        self.topLineSeparator.frame = CGRectMake(0, self.topBlock.frame.size.height, self.frame.size.width, (1 / [UIScreen mainScreen].scale));
+        self.topLineSeparator.frame = CGRectMake(0, self.topBlock.frame.size.height, self.frame.size.width, HALF_PIXEL);
     }
     
     if ([self.subTitleLabel isHidden]) {

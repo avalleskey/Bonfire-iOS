@@ -52,6 +52,8 @@ extern NSString * const CAMP_ROLE_MEMBER;
 extern NSString * const CAMP_ROLE_MODERATOR;
 extern NSString * const CAMP_ROLE_ADMIN;
 
+@property (nonatomic) BOOL isFavorite; // derived from "favorite"
+
 @property (nonatomic) BFContextCampMembership <Optional> *membership;
 
 // camp status

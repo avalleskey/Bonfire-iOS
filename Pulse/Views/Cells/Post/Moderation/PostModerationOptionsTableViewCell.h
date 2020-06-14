@@ -25,7 +25,7 @@ typedef enum {
     PostModerationOptionSilenceUser,
     PostModerationOptionBlockUser
 } PostModerationOption;
-@property (nonatomic, copy) void (^optionTappedAction)(PostModerationOption option);
+@property (nonatomic, copy) void (^optionTappedAction)(NSInteger option);
 
 + (CGFloat)height;
 

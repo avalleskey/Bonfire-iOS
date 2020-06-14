@@ -19,18 +19,26 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic) NSString *scoreColor;
 
 // helper methods
+- (BOOL)isMember;
 - (BOOL)isVerified;
 - (BOOL)isDefaultCamp;
-- (BOOL)isChannel;
-- (BOOL)isFeed;
 - (BOOL)isPrivate;
 - (BOOL)isSupported; // ensure all walls are supported by the installed version
+- (BOOL)isFavorite;
+
+- (BOOL)isChannel;
+- (BOOL)isFeed;
 
 - (NSString *)mostDescriptiveIdentifier;
+- (NSString *)memberCountTieredRepresentation;
++ (NSString *)memberCountTieredRepresentationFromInteger:(NSInteger)memberCount;
 
 #pragma mark - API Methods
 - (void)subscribeToCamp;
 - (void)unsubscribeFromCamp;
+
+- (void)favorite;
+- (void)unFavorite;
 
 @end
 

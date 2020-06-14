@@ -25,7 +25,7 @@
 
 - (id)init {
     if (self = [super init]) {
-        self.currentTheme = [UIColor clearColor];
+
     }
     return self;
 }
@@ -114,7 +114,7 @@
     // setup items
     [self.navigationBar setTitleTextAttributes:
      @{NSForegroundColorAttributeName:[UIColor blackColor],
-       NSFontAttributeName:[UIFont systemFontOfSize:18.f weight:UIFontWeightBold]}];
+       NSFontAttributeName:[UIFont systemFontOfSize:19.f weight:UIFontWeightHeavy]}];
     
     // remove hairline
     [self.navigationBar setBackgroundImage:[UIImage new] forBarMetrics:UIBarMetricsDefault];
@@ -397,13 +397,13 @@
     UIColor *action;
     UIColor *progressBar;
     
-    if (background == [UIColor clearColor]) {
+    if (!background || background == [UIColor clearColor]) {
         [self setShadowVisibility:true withAnimation:false];
                 
         foreground = [UIColor bonfirePrimaryColor];
-        action = self.view.tintColor; //[UIColor fromHex:[Session sharedInstance].currentUser.attributes.color];
+        action = [UIColor bonfirePrimaryColor]; //[UIColor fromHex:[Session sharedInstance].currentUser.attributes.color];
         background = [UIColor colorNamed:@"Navigation_ClearBackgroundColor"];
-        progressBar = [[UIColor bonfirePrimaryColor] colorWithAlphaComponent:0.1];
+        progressBar = [[UIColor whiteColor] colorWithAlphaComponent:0.1];
         
         self.shadowOnScroll = false;
     }
@@ -431,7 +431,7 @@
     [UIView animateWithDuration:animated?0.5f:0 delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^{
         [self.navigationBar setTitleTextAttributes:
         @{NSForegroundColorAttributeName:foreground,
-          NSFontAttributeName:[UIFont systemFontOfSize:18.f weight:UIFontWeightBold]}];
+          NSFontAttributeName:[UIFont systemFontOfSize:19.f weight:UIFontWeightHeavy]}];
         self.navigationBackgroundView.backgroundColor = background;
         self.navigationBar.tintColor = action;
         self.leftActionView.tintColor = action;

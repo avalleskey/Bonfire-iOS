@@ -64,7 +64,7 @@
     // add subview to window
     [[[UIApplication sharedApplication] keyWindow] addSubview:notificationView];
     
-    [UIView animateWithDuration:1.0 delay:0 usingSpringWithDamping:0.9f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
+    [UIView animateWithDuration:1.2 delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
         notificationView.center = CGPointMake(notificationView.center.x, yTop + (notificaitonViewHeight / 2));
     } completion:^(BOOL finished) {
         if (completion) {

@@ -30,7 +30,7 @@
         self.contentView.clipsToBounds = NO;            //contentView
         self.contentView.superview.clipsToBounds = NO;  //scrollView
 
-        CGFloat profilePicBorderWidth = 6;
+        CGFloat profilePicBorderWidth = 8;
         self.profilePictureContainer = [[UIView alloc] initWithFrame:CGRectMake(0, 24 - profilePicBorderWidth, 128 + (profilePicBorderWidth * 2), 128 + (profilePicBorderWidth * 2))];
         self.profilePictureContainer.backgroundColor = [UIColor contentBackgroundColor];
         self.profilePictureContainer.layer.cornerRadius = self.profilePictureContainer.frame.size.height / 2;

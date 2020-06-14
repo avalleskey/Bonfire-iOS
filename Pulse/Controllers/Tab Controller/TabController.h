@@ -15,7 +15,6 @@
 #import "HomeTableViewController.h"
 #import "ProfileViewController.h"
 #import "NotificationsTableViewController.h"
-#import "BFAvatarView.h"
 
 @interface TabController : UITabBarController
 
@@ -23,16 +22,15 @@
 @property (nonatomic, strong) SimpleNavigationController *homeNavVC;
 
 @property (nonatomic, strong) SearchNavigationController *searchNavVC;
-@property (nonatomic, strong) SimpleNavigationController *discoverNavVC;
+@property (nonatomic, strong) SimpleNavigationController *campsNavVC;
 @property (nonatomic, strong) SimpleNavigationController *storeNavVC;
 @property (nonatomic, strong) SimpleNavigationController *notificationsNavVC;
 @property (nonatomic, strong) SimpleNavigationController *myProfileNavVC;
 
-@property (nonatomic, strong) BFAvatarView *navigationAvatarView;
-
 @property (nonatomic, strong) UIView *tabIndicator;
 //@property (nonatomic, strong) UIVisualEffectView *blurView;
-@property (nonatomic, strong) UIView *tabBackgroundView;
+@property (nonatomic, strong) UIView *alternateTabBar;
+@property (nonatomic, strong) CAShapeLayer *alternateTabBarShapeLayer;
 
 - (void)setBadgeValue:(NSString *)badgeValue forItem:(UITabBarItem *)tabBarItem;
 @property (nonatomic, strong) NSMutableDictionary *badges;

@@ -27,7 +27,7 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     
-    self.view.backgroundColor = [UIColor contentBackgroundColor];
+    self.view.backgroundColor = [UIColor colorNamed:@"Navigation_ClearBackgroundColor"];
     
     [self setup];
     
@@ -272,7 +272,6 @@
     
     NSInteger fontSize = MIN(156, MAX(80, ceilf(((self.infoView.frame.size.width * .8) / newLabel.text.length) * (10 / 7))));
     newLabel.font = [UIFont systemFontOfSize:fontSize weight:UIFontWeightHeavy];
-    DLog(@"New label font size: %lu", (long)fontSize);
     
     CGSize newLabelSize = [newLabel.text boundingRectWithSize:CGSizeMake(CGFLOAT_MAX, newLabel.font.lineHeight) options:(NSStringDrawingUsesFontLeading|NSStringDrawingUsesLineFragmentOrigin) attributes:@{NSFontAttributeName: newLabel.font} context:nil].size;
     CGFloat newWidth = ceilf(newLabelSize.width);

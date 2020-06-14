@@ -148,7 +148,7 @@
     [self addSubview:self.replyActionView];
     
     self.replyButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    self.replyButton.titleLabel.font = [UIFont systemFontOfSize:15.f weight:UIFontWeightSemibold];
+    self.replyButton.titleLabel.font = [UIFont systemFontOfSize:15.f weight:UIFontWeightBold];
     self.replyButton.adjustsImageWhenHighlighted = false;
     self.replyButton.adjustsImageWhenDisabled = false;
     [self.replyButton setTitleColor:[UIColor bonfireSecondaryColor] forState:UIControlStateNormal];

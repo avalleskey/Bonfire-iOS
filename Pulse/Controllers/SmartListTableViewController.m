@@ -34,7 +34,11 @@ static NSString * const toggleReuseIdentifier = @"ToggleCell";
 static NSString * const blankReuseIdentifier = @"BlankCell";
 
 - (id)init {
-    self = [super initWithStyle:UITableViewStyleGrouped];
+    if (@available(iOS 13.0, *)) {
+        self = [super initWithStyle:UITableViewStyleInsetGrouped];
+    } else {
+        self = [super initWithStyle:UITableViewStyleGrouped];
+    }
     
     if (self) {
         
@@ -181,9 +185,16 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
         if (row.radio) {
             cell.checkIcon.hidden = (indexPath.row != 0);
         }
+        else {
+            cell.checkIcon.hidden = true;
+        }
         
         if (row.detail) {
             cell.detailTextLabel.text = [self parse:row.detail];
+        }
+        
+        if (row.image) {
+            cell.iconImageView.image = [UIImage imageNamed:row.image];
         }
         
         return cell;
@@ -256,7 +267,7 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
     SmartListSection *s = section(section);
     
     if (s.footer) {
-        CGSize labelSize = [[self parse:s.footer] boundingRectWithSize:CGSizeMake(self.view.frame.size.width - 32, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:12.f weight:UIFontWeightRegular]} context:nil].size;
+        CGSize labelSize = [[self parse:s.footer] boundingRectWithSize:CGSizeMake(self.tableView.bounds.size.width - 32 - 24, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:12.f weight:UIFontWeightRegular]} context:nil].size;
         
         return labelSize.height + (12 * 2); // 24 padding on top and bottom
     }
@@ -274,7 +285,7 @@ static NSString * const blankReuseIdentifier = @"BlankCell";
     SmartListSection *s = section(section);
     
     if (s.footer) {
-        UIView *footer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 90)];
+        UIView *footer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.tableView.bounds.size.width - 32 - 24, 90)];
         
         UILabel *descriptionLabel = [[UILabel alloc] initWithFrame:CGRectMake(12, 12, footer.frame.size.width - 24, 42)];
         descriptionLabel.text = [self parse:s.footer];

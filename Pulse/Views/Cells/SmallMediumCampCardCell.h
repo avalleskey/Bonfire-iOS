@@ -13,11 +13,9 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-#define SMALL_MEDIUM_CARD_HEIGHT 140
+#define SMALL_MEDIUM_CARD_HEIGHT 158
 
 @interface SmallMediumCampCardCell : CampCardCell
-
-@property (nonatomic, strong) UIView *campHeaderView;
 
 @property (nonatomic, strong) UIView *campAvatarContainer;
 @property (nonatomic, strong) BFAvatarView *campAvatar;
@@ -28,9 +26,19 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) MarqueeLabel *campTitleLabel;
 @property (nonatomic, strong) MarqueeLabel *campTagLabel;
 
+@property (nonatomic, strong) UIView *membersSnaphotView;
+@property (nonatomic, strong) BFAvatarView *membersSnaphotViewAvatar1;
+@property (nonatomic, strong) BFAvatarView *membersSnaphotViewAvatar2;
+@property (nonatomic, strong) BFAvatarView *membersSnaphotViewAvatar3;
+@property (nonatomic, strong) UILabel *membersSnaphotViewLabel;
+
+@property (nonatomic, strong) UIButton *shareButton;
+
 @property (nonatomic) BOOL tapToJoin;
 @property (nonatomic) BOOL joined;
 - (void)setJoined:(BOOL)joined animated:(BOOL)animated;
+
+@property (nonatomic, strong) UIImageView *backgroundImageView;
 
 @end
 

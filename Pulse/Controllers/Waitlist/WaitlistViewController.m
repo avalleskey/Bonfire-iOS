@@ -241,7 +241,7 @@
     self.redeemButton.frame = CGRectMake(24, self.view.frame.size.height - 48 - safeAreaInsets.bottom - (HAS_ROUNDED_CORNERS ? 12 : 24), self.view.frame.size.width - (24 * 2), 48);
     self.redeemButton.backgroundColor = [UIColor bonfireBrand];
     [self.redeemButton setBackgroundImage:[self gradientImageForView:self.redeemButton topLeftColor:[UIColor colorWithDisplayP3Red:1 green:0.35 blue:0.93 alpha:1] bottomRightColor:[UIColor colorWithDisplayP3Red:0.90 green:0 blue:0 alpha:1]] forState:UIControlStateNormal];
-    self.redeemButton.titleLabel.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightSemibold];
+    self.redeemButton.titleLabel.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightBold];
     [self.redeemButton setTitleColor:[UIColor whiteColor] forState:UIControlStateDisabled];
     self.redeemButton.adjustsImageWhenHighlighted = false;
     [self continuityRadiusForView:self.redeemButton withRadius:14.f];
@@ -282,9 +282,10 @@
         [alert show];
     }];
     [self.redeemButton bk_addEventHandler:^(id sender) {
-        [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-            self.redeemButton.alpha = 0.8;
-            self.redeemButton.transform = CGAffineTransformMakeScale(0.92, 0.92);
+        [HapticHelper generateFeedback:FeedbackType_Selection];
+        
+        [UIView animateWithDuration:0.55f delay:0 usingSpringWithDamping:0.65f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+            self.redeemButton.transform = CGAffineTransformMakeScale(0.9, 0.9);
         } completion:nil];
     } forControlEvents:UIControlEventTouchDown];
     
@@ -668,7 +669,6 @@
     
     NSInteger fontSize = MIN(156, MAX(80, ceilf(((self.centerView.frame.size.width * .8) / newLabel.text.length) * (10 / 7))));
     newLabel.font = [UIFont systemFontOfSize:fontSize weight:UIFontWeightHeavy];
-    DLog(@"New label font size: %lu", (long)fontSize);
     
     CGSize newLabelSize = [newLabel.text boundingRectWithSize:CGSizeMake(CGFLOAT_MAX, newLabel.font.lineHeight) options:(NSStringDrawingUsesFontLeading|NSStringDrawingUsesLineFragmentOrigin) attributes:@{NSFontAttributeName: newLabel.font} context:nil].size;
     CGFloat newWidth = ceilf(newLabelSize.width);

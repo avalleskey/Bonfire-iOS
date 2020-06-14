@@ -43,6 +43,17 @@ NSString * const CAMP_STATUS_LOADING = @"loading";
 // Camp Wall Constants
 NSString * const CAMP_WALL_REQUEST = @"request";
 
++ (JSONKeyMapper *)keyMapper
+{
+    return [[JSONKeyMapper alloc] initWithModelToJSONDictionary:@{
+                                                                  @"isFavorite": @"favorite"
+                                                                  }];
+}
+
++ (BOOL)propertyIsOptional:(NSString *)propertyName {
+    return true;
+}
+
 @end
 
 @implementation BFContextCampMembership

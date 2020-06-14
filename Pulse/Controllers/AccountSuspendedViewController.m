@@ -23,7 +23,7 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     
-    self.view.backgroundColor = [UIColor contentBackgroundColor];
+    self.view.backgroundColor = [UIColor colorNamed:@"Navigation_ClearBackgroundColor"];
     [self setup];
 }
 
@@ -64,7 +64,7 @@
     self.nextButton = [UIButton buttonWithType:UIButtonTypeCustom];
     self.nextButton.frame = CGRectMake(24, self.view.frame.size.height - 48 - safeAreaInsets.bottom - (HAS_ROUNDED_CORNERS ? 12 : 24), self.view.frame.size.width - (24 * 2), 48);
     self.nextButton.backgroundColor = [UIColor bonfireBrand];
-    self.nextButton.titleLabel.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightSemibold];
+    self.nextButton.titleLabel.font = [UIFont systemFontOfSize:20.f weight:UIFontWeightBold];
     [self.nextButton setTitleColor:[UIColor bonfireSecondaryColor] forState:UIControlStateDisabled];
     [self continuityRadiusForView:self.nextButton withRadius:14.f];
     [self.nextButton setTitle:@"Community Rules" forState:UIControlStateNormal];
@@ -72,9 +72,10 @@
         [Launcher openURL:@"https://bonfire.camp/legal/community"];
     }];
     [self.nextButton bk_addEventHandler:^(id sender) {
-        [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
-            self.nextButton.alpha = 0.8;
-            self.nextButton.transform = CGAffineTransformMakeScale(0.92, 0.92);
+        [HapticHelper generateFeedback:FeedbackType_Selection];
+        
+        [UIView animateWithDuration:0.55f delay:0 usingSpringWithDamping:0.65f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
+            self.nextButton.transform = CGAffineTransformMakeScale(0.9, 0.9);
         } completion:nil];
     } forControlEvents:UIControlEventTouchDown];
     

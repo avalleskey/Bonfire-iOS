@@ -221,11 +221,16 @@ static NSString * const spacerCellReuseIdentifier = @"SpacerCell";
             }
             
             cell.tintColor = self.theme;
-            [cell setOptionTappedAction:^(PostModerationOption option) {
+            [cell setOptionTappedAction:^(NSInteger option) {
                 [HapticHelper generateFeedback:FeedbackType_Selection];
                 
                 switch (option) {
                     case PostModerationOptionIgnore: {
+                        [self.stream performEventType:PostStreamEventTypePostRemoved object:post];
+                        [self.tableView beginUpdates];
+                        [self.tableView deleteSections:[NSIndexSet indexSetWithIndex:indexPath.section] withRowAnimation:UITableViewRowAnimationLeft];
+                        [self.tableView endUpdates];
+                        
                         break;
                     }
                     case PostModerationOptionSpam: {
@@ -244,12 +249,6 @@ static NSString * const spacerCellReuseIdentifier = @"SpacerCell";
                     default:
                         break;
                 }
-                
-//                // remove from the stream
-//                [self.stream performEventType:PostStreamEventTypePostRemoved object:post];
-//                [self.tableView beginUpdates];
-//                [self.tableView deleteSections:[NSIndexSet indexSetWithIndex:indexPath.section] withRowAnimation:UITableViewRowAnimationLeft];
-//                [self.tableView endUpdates];
             }];
             
             return cell;
@@ -294,7 +293,7 @@ static NSString * const spacerCellReuseIdentifier = @"SpacerCell";
     return CGFLOAT_MIN;
 }
 - (BOOL)includeSpacerCellForSection:(NSInteger)section {
-    return (section < self.stream.components.count);
+    return (section < self.stream.components.count - 1);
 }
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     return self.stream.components.count;
@@ -312,9 +311,19 @@ static NSString * const spacerCellReuseIdentifier = @"SpacerCell";
 }
 
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
+    if (section == 0 && self.stream.components.count > 0) {
+        UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, tableView.frame.size.width, HALF_PIXEL)];
+        separator.backgroundColor = [UIColor tableViewSeparatorColor];
+        return separator;
+    }
+    
     return nil;
 }
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
+    if (section == 0 && self.stream.components.count > 0) {
+        return HALF_PIXEL;
+    }
+    
     return CGFLOAT_MIN;
 }
 

@@ -103,7 +103,7 @@
     self.navigationBackgroundView.layer.shadowOpacity = 0;
     [self.view insertSubview:self.navigationBackgroundView belowSubview:self.navigationBar];
     
-    self.bottomHairline = [[UIView alloc] initWithFrame:CGRectMake(0, self.navigationBar.frame.size.height, self.view.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+    self.bottomHairline = [[UIView alloc] initWithFrame:CGRectMake(0, self.navigationBar.frame.size.height, self.view.frame.size.width, HALF_PIXEL)];
     self.bottomHairline.backgroundColor = [UIColor tableViewSeparatorColor];
     [self.navigationBar addSubview:self.bottomHairline];
     
@@ -649,7 +649,7 @@
     }
     
     if (button.currentTitle.length > 0) {
-        [button.titleLabel setFont:[UIFont systemFontOfSize:18.f weight:UIFontWeightMedium]];
+        [button.titleLabel setFont:[UIFont systemFontOfSize:18.f weight:UIFontWeightBold]];
     }
     
     if (self.navigationBackgroundView.backgroundColor == [UIColor contentBackgroundColor]) {
@@ -760,9 +760,9 @@
                 if ([self.viewControllers[self.viewControllers.count-1] isKindOfClass:[CampViewController class]]) {
                     Camp *activeCamp = ((CampViewController *)self.viewControllers[self.viewControllers.count-1]).camp;
                     
-                    BFAlertController *actionSheet = [BFAlertController alertControllerWithTitle:@"Manager" message:@"You can accept new member requests, block members, remove posts, and more." preferredStyle:BFAlertControllerStyleActionSheet];
+                    BFAlertController *actionSheet = [BFAlertController alertControllerWithTitle:@"Manager" message:@"You can accept new camper requests, block campers, remove posts, and more." preferredStyle:BFAlertControllerStyleActionSheet];
                     
-                    BFAlertAction *cta = [BFAlertAction actionWithTitle:@"Manage Members" style:BFAlertActionStyleDefault handler:^{
+                    BFAlertAction *cta = [BFAlertAction actionWithTitle:@"Manage Campers" style:BFAlertActionStyleDefault handler:^{
                         [Launcher openCampMembersForCamp:activeCamp];
                     }];
                     [actionSheet addAction:cta];
@@ -782,22 +782,22 @@
                 if ([self.viewControllers[self.viewControllers.count-1] isKindOfClass:[CampViewController class]]) {
                     Camp *activeCamp = ((CampViewController *)self.viewControllers[self.viewControllers.count-1]).camp;
                     
-                    BFAlertController *actionSheet = [BFAlertController alertControllerWithTitle:@"Director" message:@"You can customize the Camp settings, accept new member requests, block members, remove posts, and more." preferredStyle:BFAlertControllerStyleActionSheet];
+                    BFAlertController *actionSheet = [BFAlertController alertControllerWithTitle:@"Director" message:@"You can customize the Camp settings, accept new camper requests, block campers, remove posts, and more." preferredStyle:BFAlertControllerStyleActionSheet];
                     
                     BFAlertAction *cta = [BFAlertAction actionWithTitle:@"Edit Camp" style:BFAlertActionStyleDefault handler:^{
                         [Launcher openEditCamp:activeCamp];
                     }];
                     [actionSheet addAction:cta];
                     
-                    BFAlertAction *cta2 = [BFAlertAction actionWithTitle:@"Manage Members" style:BFAlertActionStyleDefault handler:^{
+                    BFAlertAction *cta2 = [BFAlertAction actionWithTitle:@"Manage Campers" style:BFAlertActionStyleDefault handler:^{
                         [Launcher openCampMembersForCamp:activeCamp];
                     }];
                     [actionSheet addAction:cta2];
                     
-                    BFAlertAction *cta3 = [BFAlertAction actionWithTitle:@"Moderate Posts" style:BFAlertActionStyleDefault handler:^{
-                        [Launcher openCampModerateForCamp:activeCamp];
-                    }];
-                    [actionSheet addAction:cta3];
+//                    BFAlertAction *cta3 = [BFAlertAction actionWithTitle:@"Moderate Posts" style:BFAlertActionStyleDefault handler:^{
+//                        [Launcher openCampModerateForCamp:activeCamp];
+//                    }];
+//                    [actionSheet addAction:cta3];
                     
                     BFAlertAction *cancelActionSheet = [BFAlertAction actionWithTitle:@"Close" style:BFAlertActionStyleCancel handler:nil];
                     [actionSheet addAction:cancelActionSheet];

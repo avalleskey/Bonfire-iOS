@@ -15,6 +15,11 @@
                     "push": true
                 },
                 {
+                    "id": "app_icon",
+                    "title": "Change App Icon",
+                    "push": true
+                },
+                {
                     "id": "share_profile",
                     "title": "Share your Profile",
                     "push": true

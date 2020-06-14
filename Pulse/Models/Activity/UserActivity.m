@@ -65,7 +65,7 @@
                     NSInteger endSpot = range.location + range.length;
 
                     if (endSpot > range.location && endSpot <= title.length && range.location >= 0) {
-                        [attributedString addAttributes:@{NSFontAttributeName: [UIFont systemFontOfSize:fontSize weight:UIFontWeightSemibold], NSForegroundColorAttributeName: [UIColor bonfirePrimaryColor]} range:range];
+                        [attributedString addAttributes:@{NSFontAttributeName: [UIFont systemFontOfSize:fontSize weight:UIFontWeightBold], NSForegroundColorAttributeName: [UIColor bonfirePrimaryColor]} range:range];
                     }
                 }
             }

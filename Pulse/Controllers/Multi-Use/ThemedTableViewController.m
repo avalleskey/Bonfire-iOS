@@ -41,6 +41,7 @@ NSString * const rotationAnimationKey = @"rotationAnimation";
     
     self.view.backgroundColor = [UIColor contentBackgroundColor];
     self.tableView = [[UITableView alloc] initWithFrame:self.view.bounds style:UITableViewStyleGrouped];
+    self.tableView.tag = 1;
     self.tableView.backgroundColor = [UIColor contentBackgroundColor];
     [self.view addSubview:self.tableView];
     

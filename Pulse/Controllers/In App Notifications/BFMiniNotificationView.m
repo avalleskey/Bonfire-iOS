@@ -65,8 +65,8 @@
     self.textLabel.numberOfLines = 0;
     self.textLabel.lineBreakMode = NSLineBreakByWordWrapping;
     self.textLabel.textAlignment = NSTextAlignmentLeft;
-    self.textLabel.textColor = [UIColor bonfireSecondaryColor];
-    self.textLabel.tintColor = [UIColor bonfireSecondaryColor];
+    self.textLabel.textColor = [UIColor bonfirePrimaryColor];
+    self.textLabel.tintColor = [UIColor bonfirePrimaryColor];
     [self addSubview:self.textLabel];
             
     [self layoutSubviews];

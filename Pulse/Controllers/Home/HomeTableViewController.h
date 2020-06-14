@@ -19,7 +19,6 @@ enum {
     MAX_FEED_CACHED_PAGES = 2
 };
 
-@property (nonatomic) int previousScrollOffset;
 @property (nonatomic) CGFloat currentKeyboardHeight;
 
 @property (nonatomic, strong) UIButton *morePostsIndicator;

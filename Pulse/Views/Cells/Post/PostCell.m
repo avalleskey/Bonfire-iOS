@@ -60,6 +60,7 @@
         self.nameLabel.lineBreakMode = NSLineBreakByTruncatingMiddle;
         self.nameLabel.userInteractionEnabled = YES;
         self.nameLabel.textColor = [UIColor bonfirePrimaryColor];
+        self.nameLabel.clipsToBounds = false;
         [self.contentView addSubview:self.nameLabel];
         
         self.dateLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, self.nameLabel.frame.origin.y, 21, self.nameLabel.frame.size.height)];
@@ -96,7 +97,7 @@
         
         [self initImagesView];
         
-        self.lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+        self.lineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, HALF_PIXEL)];
         self.lineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
         [self addSubview:self.lineSeparator];
         
@@ -242,7 +243,7 @@
         [creatorString appendAttributedString:[[NSAttributedString alloc] initWithString:username]];
         [creatorString addAttribute:NSForegroundColorAttributeName value:primaryColor range:NSMakeRange(0, creatorString.length)];
         
-        [creatorString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:font.pointSize weight:UIFontWeightSemibold] range:NSMakeRange(0, creatorString.length)];
+        [creatorString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:font.pointSize weight:UIFontWeightBold] range:NSMakeRange(0, creatorString.length)];
         [creatorString addAttribute:RLHighlightedForegroundColorAttributeName value:[primaryColor colorWithAlphaComponent:0.5] range:NSMakeRange(0, creatorString.length)];
     }
     
@@ -299,8 +300,8 @@
             }
             
             NSMutableAttributedString *campTitleString = [[NSMutableAttributedString alloc] initWithString:identifier];
-            [campTitleString addAttribute:NSForegroundColorAttributeName value:primaryColor range:NSMakeRange(0, campTitleString.length)];
-            [campTitleString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:font.pointSize weight:UIFontWeightSemibold] range:NSMakeRange(0, campTitleString.length)];
+            [campTitleString addAttribute:NSForegroundColorAttributeName value:[UIColor fromHex:post.themeColor adjustForOptimalContrast:true] range:NSMakeRange(0, campTitleString.length)];
+            [campTitleString addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:font.pointSize weight:UIFontWeightBold] range:NSMakeRange(0, campTitleString.length)];
             
             [creatorString appendAttributedString:campTitleString];
             
@@ -309,7 +310,7 @@
                 [creatorString appendAttributedString:spacer];
                 
                 NSTextAttachment *lockAttachment = [[NSTextAttachment alloc] init];
-                lockAttachment.image = [self colorImage:[UIImage imageNamed:@"details_label_private"] color:[UIColor bonfirePrimaryColor]];
+                lockAttachment.image = [self colorImage:[UIImage imageNamed:@"details_label_private"] color:[UIColor fromHex:post.themeColor adjustForOptimalContrast:true]];
                 
                 CGFloat attachmentHeight = MIN(ceilf(font.lineHeight * 0.7), lockAttachment.image.size.height);
                 CGFloat attachmentWidth = attachmentHeight * (lockAttachment.image.size.width / lockAttachment.image.size.height);
@@ -324,7 +325,7 @@
                 [creatorString appendAttributedString:spacer];
                 
                 NSTextAttachment *sourceAttachment = [[NSTextAttachment alloc] init];
-                sourceAttachment.image = [self colorImage:[UIImage imageNamed:@"details_label_source"] color:[UIColor bonfirePrimaryColor]];
+                sourceAttachment.image = [self colorImage:[UIImage imageNamed:@"details_label_source"] color:[UIColor fromHex:post.themeColor adjustForOptimalContrast:true]];
                 
                 CGFloat attachmentHeight = MIN(ceilf(font.lineHeight * 0.7), sourceAttachment.image.size.height);
                 CGFloat attachmentWidth = attachmentHeight * (sourceAttachment.image.size.width / sourceAttachment.image.size.height);
@@ -339,7 +340,7 @@
                 [creatorString appendAttributedString:spacer];
                 
                 NSTextAttachment *sourceAttachment = [[NSTextAttachment alloc] init];
-                sourceAttachment.image = [self colorImage:[UIImage imageNamed:@"details_label_feed"] color:[UIColor bonfirePrimaryColor]];
+                sourceAttachment.image = [self colorImage:[UIImage imageNamed:@"details_label_feed"] color:[UIColor fromHex:post.themeColor adjustForOptimalContrast:true]];
                 
                 CGFloat attachmentHeight = MIN(ceilf(font.lineHeight * 0.7), sourceAttachment.image.size.height);
                 CGFloat attachmentWidth = attachmentHeight * (sourceAttachment.image.size.width / sourceAttachment.image.size.height);

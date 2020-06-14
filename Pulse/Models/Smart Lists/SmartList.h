@@ -69,6 +69,7 @@ extern NSString * const SmartListSectionDataTypePost;
 @property (nonatomic) NSString *identifier;
 @property (nonatomic) NSString <Optional> *title;
 @property (nonatomic) NSString <Optional> *detail;
+@property (nonatomic) NSString <Optional> *image;
 @property (nonatomic) BOOL destructive; // optional
 @property (nonatomic) SmartListSectionRowInput <Optional> *input;
 @property (nonatomic) BOOL push; // optional

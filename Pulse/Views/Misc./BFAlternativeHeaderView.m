@@ -42,13 +42,13 @@
     
     [self addSubview:self.titleLabel];
     
-    self.topLineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+    self.topLineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, HALF_PIXEL)];
     self.topLineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
     self.topLineSeparator.hidden = true;
     
     //[self addSubview:self.topLineSeparator];
     
-    self.bottomLineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, self.frame.size.height - (1 / [UIScreen mainScreen].scale), self.frame.size.width, (1 / [UIScreen mainScreen].scale))];
+    self.bottomLineSeparator = [[UIView alloc] initWithFrame:CGRectMake(0, self.frame.size.height - HALF_PIXEL, self.frame.size.width, HALF_PIXEL)];
     self.bottomLineSeparator.backgroundColor = [UIColor tableViewSeparatorColor];
     self.bottomLineSeparator.hidden = true;
     

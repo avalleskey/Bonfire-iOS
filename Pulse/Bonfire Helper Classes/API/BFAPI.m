@@ -264,7 +264,7 @@
                 if (!error) {
                     r.attributes.context.camp = campContextResponse;
                     
-                    if ([r.attributes.context.camp.status isEqualToString:CAMP_STATUS_MEMBER]) {
+                    if ([r isMember]) {
                         r.attributes.summaries.counts.members = r.attributes.summaries.counts.members + 1;
                         
                         if (r.attributes.summaries.members.count < 6) {
@@ -356,7 +356,7 @@
     }];
     
     // update it instantly
-    if ([r.attributes.context.camp.status isEqualToString:CAMP_STATUS_MEMBER]) {
+    if ([r isMember]) {
         r.attributes.summaries.counts.members = r.attributes.summaries.counts.members - 1;
         
         // remove the user from the summaries (if needed)
@@ -398,7 +398,7 @@
             }
             else if ([postingIn isKindOfClass:[Camp class]]) {
                 // post in Camp
-                Camp *camp = postingIn;
+                Camp *camp = (Camp *)postingIn;
                 url = [NSString stringWithFormat:@"camps/%@/posts", camp.identifier];
             }
             else {

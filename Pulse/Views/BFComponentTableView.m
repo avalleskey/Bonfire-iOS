@@ -449,6 +449,7 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
                     cell = [[LoadingCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:loadingCellIdentifier];
                 }
                 
+                cell.backgroundColor = self.backgroundColor;
                 NSInteger postType = (indexPath.row - 1 % 3);
                 cell.type = postType;
                 

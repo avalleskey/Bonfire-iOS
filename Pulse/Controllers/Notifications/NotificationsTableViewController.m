@@ -42,6 +42,7 @@
 @property (nonatomic) NSString *loadingPrevCursor;
 
 @property (nonatomic, strong) FBShimmeringView *titleView;
+@property (nonatomic, strong) UIButton *titleButton;
 
 @property (nonatomic, strong) NSTimer *markAsReadTimer;
 
@@ -167,6 +168,8 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
 }
 
 - (void)markAllAsRead {
+    [self.titleButton setTitle:@"Activity" forState:UIControlStateNormal];
+    
     [(TabController *)self.tabBarController setBadgeValue:nil forItem:self.navigationController.tabBarItem];
     
     if (self.markAsReadTimer) {
@@ -182,12 +185,12 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
 }
 
 - (void)setupTitleView {
-    UIButton *titleButton = [UIButton buttonWithType:UIButtonTypeSystem];
-    [titleButton setTitleColor:[UIColor bonfirePrimaryColor] forState:UIControlStateNormal];
-    titleButton.titleLabel.font = ([self.navigationController.navigationBar.titleTextAttributes objectForKey:NSFontAttributeName] ? self.navigationController.navigationBar.titleTextAttributes[NSFontAttributeName] : [UIFont systemFontOfSize:18.f weight:UIFontWeightBold]);
-    [titleButton setTitle:self.title forState:UIControlStateNormal];
-    titleButton.frame = CGRectMake(0, 0, [titleButton intrinsicContentSize].width, self.navigationController.navigationBar.frame.size.height);
-    [titleButton bk_whenTapped:^{
+    _titleButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    [_titleButton setTitleColor:[UIColor bonfirePrimaryColor] forState:UIControlStateNormal];
+    _titleButton.titleLabel.font = ([self.navigationController.navigationBar.titleTextAttributes objectForKey:NSFontAttributeName] ? self.navigationController.navigationBar.titleTextAttributes[NSFontAttributeName] : [UIFont systemFontOfSize:18.f weight:UIFontWeightBold]);
+    [_titleButton setTitle:self.title forState:UIControlStateNormal];
+    _titleButton.frame = CGRectMake(0, 0, [_titleButton intrinsicContentSize].width, self.navigationController.navigationBar.frame.size.height);
+    [_titleButton bk_whenTapped:^{
         [self.tableView reloadData];
         
         for (NSInteger s = 0; s < [self.tableView numberOfSections]; s++) {
@@ -205,11 +208,11 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
         }
     }];
     
-    self.titleView = [[FBShimmeringView alloc] initWithFrame:titleButton.frame];
-    [self.titleView addSubview:titleButton];
-    self.titleView.contentView = titleButton;
+    self.titleView = [[FBShimmeringView alloc] initWithFrame:_titleButton.frame];
+    [self.titleView addSubview:_titleButton];
+    self.titleView.contentView = _titleButton;
     
-    self.navigationItem.titleView = titleButton;
+    self.navigationItem.titleView = _titleView;
 }
 
 - (void)clearNotifications {
@@ -220,10 +223,12 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
 - (void)setupTableView {
     self.tableView.delegate = self;
     self.tableView.dataSource = self;
-    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 40 + 16 + 16, 0);
     self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
     self.tableView.backgroundColor = [UIColor tableViewBackgroundColor];
     [self.tableView.refreshControl addTarget:self action:@selector(refresh) forControlEvents:UIControlEventValueChanged];
+//    self.tableView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+//    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 40 + 16 + 16 + safeAreaInsets.bottom, 0);
+//    self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, 0, 0);
     
     self.cellHeightsDictionary = @{}.mutableCopy;
     
@@ -316,7 +321,7 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
         return;
     }
     
-    [self.sectionTableView.stream removeLoadedCursor:self.stream.prevCursor];
+    [self.stream removeLoadedCursor:self.stream.prevCursor];
     self.lastFetch = [NSDate new];
     [self getActivitiesWithCursor:StreamPagingCursorTypePrevious];
 }
@@ -384,6 +389,12 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
         // pop up the red dot above the notifications tab
         NSInteger unread = [self.stream unreadCount];
         if (unread > 0) {
+            [UIView performWithoutAnimation:^{
+                [self.titleButton setTitle:[NSString stringWithFormat:@"Activity (%ld)", (long)unread] forState:UIControlStateNormal];
+                self.titleButton.frame = CGRectMake(0, 0, [self.titleButton intrinsicContentSize].width, self.navigationController.navigationBar.frame.size.height);
+                self.titleView.frame = self.titleButton.bounds;
+            }];
+            
             if (self.viewIfLoaded.window != nil) {
                 // view is visible and unread count > 0
                 // unread timer
@@ -400,6 +411,13 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
             }
             
             [(TabController *)self.tabBarController setBadgeValue:[NSString stringWithFormat:@"%lu", (long)unread] forItem:self.navigationController.tabBarItem];
+        }
+        else {
+            [UIView performWithoutAnimation:^{
+                [self.titleButton setTitle:@"Activity" forState:UIControlStateNormal];
+                self.titleButton.frame = CGRectMake(0, 0, [self.titleButton intrinsicContentSize].width, self.navigationController.navigationBar.frame.size.height);
+                self.titleView.frame = self.titleButton.bounds;
+            }];
         }
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         NSLog(@"Notificaitons  / getMembers() - error: %@", error);
@@ -512,7 +530,7 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
                 cell.unread = !activity.attributes.read;
                 cell.post = post;
                 
-                cell.lineSeparator.hidden = false;//  (indexPath.section == [self numberOfSectionsInTableView:tableView] - 1);
+                cell.lineSeparator.hidden = false;//(indexPath.section == [self numberOfSectionsInTableView:tableView] - 1);
                 
                 return cell;
             }
@@ -529,7 +547,7 @@ static NSString * const blankCellReuseIdentifier = @"BlankCell";
             
             cell.unread = !cell.activity.attributes.read;
             
-            cell.lineSeparator.hidden = false; //(indexPath.section == [self numberOfSectionsInTableView:tableView] - 1);
+            cell.lineSeparator.hidden = false;//(indexPath.section == [self numberOfSectionsInTableView:tableView] - 1);
             
             return cell;
         }

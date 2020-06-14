@@ -322,11 +322,11 @@
      }
      
      default:
-     tipObject.creatorText = @"Notifications";
+     tipObject.creatorText = @"Activity";
      break;
      }
      */
-    tipObject.creatorText = @"Notifications";
+    tipObject.creatorText = @"Activity";
     
     tipObject.title = title;
     tipObject.text = text;

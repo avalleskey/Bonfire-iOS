@@ -13,7 +13,7 @@
 #import "BFAlertController.h"
 
 #define BFDetail_PADDING_INSETS UIEdgeInsetsMake(10, 10, 10, 10)
-#define BFDetail_FONT [UIFont systemFontOfSize:12.f weight:UIFontWeightRegular]
+#define BFDetail_FONT [UIFont systemFontOfSize:12.f weight:UIFontWeightMedium]
 
 @implementation BFDetailsCollectionView
 
@@ -46,6 +46,7 @@
     self.backgroundColor = [UIColor clearColor];
     self.delegate = self;
     self.dataSource = self;
+    self.clipsToBounds = false;
     [self registerClass:[UICollectionViewCell class] forCellWithReuseIdentifier:@"detailIdentifier"];
 }
 
@@ -81,9 +82,12 @@
     
     if (cell.tag != 1) {
         cell.tag = 1;
+        cell.clipsToBounds = false;
         cell.contentView.backgroundColor = [UIColor bonfireDetailColor];
         /*cell.contentView.layer.borderColor = [[UIColor separatorColor] colorWithAlphaComponent:0.5].CGColor;
         cell.contentView.layer.borderWidth = 1.f;*/
+        cell.contentView.clipsToBounds = false;
+//        [cell.contentView setElevation:1];
         cell.contentView.layer.cornerRadius = cell.frame.size.height / 2;
         
         UIImageView *iconView = [[UIImageView alloc] initWithFrame:CGRectMake(BFDetail_PADDING_INSETS.left, BFDetail_PADDING_INSETS.top, 16, 16)];
@@ -271,33 +275,10 @@
              self.type == BFDetailItemTypeSubscribers) {
         NSInteger memberCount = [(prettyValue?prettyValue:@"0") integerValue];
         
-        if (memberCount < 500) {
-            prettyValue = [[self decimalStyleNumberFormatter] stringFromNumber:[NSNumber numberWithInteger:[prettyValue integerValue]]];
-        }
-        else if (memberCount < 1000) {
-            prettyValue = @"500+";
-        }
-        else if (memberCount < 5000) {
-            prettyValue = @"1k+";
-        }
-        else if (memberCount < 10000) {
-            prettyValue = @"5k+";
-        }
-        else if (memberCount < 25000) {
-            prettyValue = @"1k+";
-        }
-        else if (memberCount < 100000) {
-            prettyValue = @"25k+";
-        }
-        else if (memberCount < 1000000) {
-            prettyValue = @"100k+";
-        }
-        else {
-            prettyValue = @"1m+";
-        }
+        prettyValue = [Camp memberCountTieredRepresentationFromInteger:memberCount];
         
         if (self.type == BFDetailItemTypeMembers) {
-            prettyValue = [prettyValue stringByAppendingString:[NSString stringWithFormat:@" %@", ([prettyValue isEqualToString:@"1"] ? @"member" : @"members")]];
+            prettyValue = [prettyValue stringByAppendingString:[NSString stringWithFormat:@" %@", ([prettyValue isEqualToString:@"1"] ? @"camper" : @"campers")]];
         }
         else if (self.type == BFDetailItemTypeSubscribers) {
             prettyValue = [prettyValue stringByAppendingString:[NSString stringWithFormat:@" %@", ([prettyValue isEqualToString:@"1"] ? @"subscriber" : @"subscribers")]];

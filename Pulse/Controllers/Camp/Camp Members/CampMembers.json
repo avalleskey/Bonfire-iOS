@@ -6,8 +6,8 @@
             "sections": [
                 {
                     "id": "members_requests",
-                    "title": "Member Requests",
-                    "footer": "Since your Camp is private, users who request to join your Camp will show up here.",
+                    "title": "Camper Requests",
+                    "footer": "Since your Camp is private, people who request to join your Camp will show up here.",
                     "url": "camps/{camp.id}/members/requests",
                     "state": 0
                 }
@@ -15,7 +15,7 @@
         },
         {
             "id": "members",
-            "title": "Members",
+            "title": "Campers",
             "sections": [
                 {
                     "id": "members_current",
@@ -39,7 +39,7 @@
                 {
                     "id": "members_moderator",
                     "title": "Managers",
-                    "footer": "Managers are like directors, but with limited permissions. They can accept new member requests, block members, remove posts and more.",
+                    "footer": "Managers are like directors, but with limited permissions. They can accept new camper requests, block campers, remove posts and more.",
                     "url": "camps/{camp.id}/members?filter_types=moderator",
                     "state": 0
                 }

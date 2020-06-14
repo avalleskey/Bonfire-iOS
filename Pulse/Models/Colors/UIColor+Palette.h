@@ -21,6 +21,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (UIColor * _Nonnull)fromHex:(NSString *)hex adjustForOptimalContrast:(BOOL)adjustForDarkMode;
 
++ (UIColor * _Nonnull)backgroundColorFromHex:(NSString *)hex;
+
 + (CGFloat)contrastRatioBetween:(UIColor *)color1 and:(UIColor *)color2;
 
 /**

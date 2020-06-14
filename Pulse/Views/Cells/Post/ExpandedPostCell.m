@@ -67,13 +67,15 @@
         [self.contentView addSubview:self.creatorView];
         
         self.creatorTitleLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 400, 16)];
-        self.creatorTitleLabel.font = [UIFont systemFontOfSize:15.f weight:UIFontWeightSemibold];
+        self.creatorTitleLabel.font = [UIFont systemFontOfSize:15.f weight:UIFontWeightBold];
         self.creatorTitleLabel.textColor = [UIColor bonfirePrimaryColor];
+        self.creatorTitleLabel.clipsToBounds = false;
         [self.creatorView addSubview:self.creatorTitleLabel];
         
         self.creatorTagLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, self.creatorTitleLabel.frame.origin.y + self.creatorTitleLabel.frame.size.height + 2, self.creatorTitleLabel.frame.size.width, 16)];
         self.creatorTagLabel.font = [UIFont systemFontOfSize:14.f weight:UIFontWeightMedium];
         self.creatorTagLabel.textColor = [UIColor bonfireSecondaryColor];
+        self.creatorTagLabel.clipsToBounds = false;
         [self.creatorView addSubview:self.creatorTagLabel];
         
         self.postedInArrow = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"postedInTriangleIcon"]];
@@ -180,7 +182,7 @@
     
     if (![self.replyingToButton isHidden]) {
         self.replyingToButton.frame = CGRectMake(expandedPostContentOffset.left, yBottom, self.frame.size.width - (expandedPostContentOffset.left + expandedPostContentOffset.right), self.replyingToButton.frame.size.height);
-        [self.replyingToButton viewWithTag:1].frame = CGRectMake(0, self.replyingToButton.frame.size.height - (1 / [UIScreen mainScreen].scale), self.replyingToButton.frame.size.width, (1 / [UIScreen mainScreen].scale));
+        [self.replyingToButton viewWithTag:1].frame = CGRectMake(0, self.replyingToButton.frame.size.height - HALF_PIXEL, self.replyingToButton.frame.size.width, HALF_PIXEL);
         yBottom = self.replyingToButton.frame.origin.y + self.replyingToButton.frame.size.height;
     }
     
@@ -539,7 +541,7 @@
         }
         
         if (creatorTitle) {
-            UIFont *creatorTitleFont = [UIFont systemFontOfSize:15.f weight:UIFontWeightSemibold];
+            UIFont *creatorTitleFont = [UIFont systemFontOfSize:15.f weight:UIFontWeightBold];
             NSMutableAttributedString *attributedCreatorTitle = [[NSMutableAttributedString alloc] initWithString:creatorTitle attributes:@{NSFontAttributeName:creatorTitleFont}];
             BOOL isVerified = [self.post.attributes.creator isVerified];
             if (isVerified) {

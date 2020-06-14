@@ -241,6 +241,38 @@ static NSString * const spacerCellIdentifier = @"SpacerCell";
         [self.presenter presentViewController:self animated:NO completion:nil];
     });
 }
+- (void)dismissWithCompletion:(void (^ _Nullable)(void))completion {
+    [self dismissWithAnimation:true completion:completion];
+}
+- (void)dismissWithAnimation:(BOOL)animation completion:(void (^ _Nullable)(void))completion {
+    self.view.userInteractionEnabled = false;
+    
+    BOOL isAlert = (self.preferredStyle == BFAlertControllerStyleAlert);
+    [UIView animateWithDuration:animation?(isAlert?0.25f:0.35f):0 delay:0 usingSpringWithDamping:1 initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        self.view.backgroundColor = [UIColor colorWithWhite:0 alpha:0];
+        if (isAlert) {
+            self.contentView.transform = CGAffineTransformMakeScale(0.94, 0.94);
+            self.contentView.alpha = 0;
+        }
+        else {
+            self.contentView.frame = CGRectMake(self.contentView.frame.origin.x, self.view.frame.size.height, self.contentView.frame.size.width, self.contentView.frame.size.height);
+        }
+    } completion:^(BOOL finished) {
+        [self.presenter dismissViewControllerAnimated:false completion:^{
+            if (completion) {
+                completion();
+            }
+            
+            if (self.previousFirstResponder) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    if ([self.previousFirstResponder respondsToSelector:@selector(becomeFirstResponder)]) {
+                        [self.previousFirstResponder becomeFirstResponder];
+                    }
+                });
+            }
+        }];
+    }];
+}
 
 - (id)currentFirstResponder
 {
@@ -441,7 +473,7 @@ static NSString * const spacerCellIdentifier = @"SpacerCell";
             titleLabel.textColor = [UIColor bonfirePrimaryColor];
             titleLabel.numberOfLines = 0;
             titleLabel.lineBreakMode = NSLineBreakByWordWrapping;
-            titleLabel.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightSemibold];
+            titleLabel.font = [UIFont systemFontOfSize:18.f weight:UIFontWeightBold];
             CGFloat height = ceilf([titleLabel.text boundingRectWithSize:CGSizeMake(titleLabel.frame.size.width, CGFLOAT_MAX) options:(NSStringDrawingUsesFontLeading|NSStringDrawingUsesLineFragmentOrigin) attributes:@{NSFontAttributeName: titleLabel.font} context:nil].size.height);
             SetHeight(titleLabel, height);
             [header addSubview:titleLabel];
@@ -591,6 +623,11 @@ static NSString * const spacerCellIdentifier = @"SpacerCell";
             
             if (action.icon) {
                 cell.iconImageView.image = action.icon;
+                cell.iconImageView.alpha = 0.5;
+            }
+            else {
+                cell.iconImageView.image = nil;
+                cell.iconImageView.alpha = 0;
             }
             
             return cell;
@@ -730,36 +767,6 @@ static NSString * const spacerCellIdentifier = @"SpacerCell";
     
     self.contentView.frame = CGRectMake(self.contentView.frame.origin.x, self.contentView.frame.origin.y, self.view.frame.size.width - (self.contentView.frame.origin.x * 2), height);
     [self continuityRadiusForView:self.contentView withRadius:HAS_ROUNDED_CORNERS?24:10];
-}
-
-- (void)dismissWithCompletion:(void (^ _Nullable)(void))handler {
-    self.view.userInteractionEnabled = false;
-    
-    BOOL isAlert = (self.preferredStyle == BFAlertControllerStyleAlert);
-    [UIView animateWithDuration:isAlert?0.25f:0.35f delay:0 usingSpringWithDamping:1 initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
-        self.view.backgroundColor = [UIColor colorWithWhite:0 alpha:0];
-        if (isAlert) {
-            self.contentView.transform = CGAffineTransformMakeScale(0.94, 0.94);
-            self.contentView.alpha = 0;
-        }
-        else {
-            self.contentView.frame = CGRectMake(self.contentView.frame.origin.x, self.view.frame.size.height, self.contentView.frame.size.width, self.contentView.frame.size.height);
-        }
-    } completion:^(BOOL finished) {
-        [self.presenter dismissViewControllerAnimated:false completion:^{
-            if (handler) {
-                handler();
-            }
-            
-            if (self.previousFirstResponder) {
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    if ([self.previousFirstResponder respondsToSelector:@selector(becomeFirstResponder)]) {
-                        [self.previousFirstResponder becomeFirstResponder];
-                    }
-                });
-            }
-        }];
-    }];
 }
 
 #pragma mark - Misc. methods

@@ -217,7 +217,9 @@ static HAWebService *manager;
             completionHandler(response, responseObject, error);
         }
         else {
-            if (error) {
+            if (error &&
+                !([request.HTTPMethod isEqualToString:@"PUT"] &&
+                  ((NSHTTPURLResponse *)error.userInfo[AFNetworkingOperationFailingURLResponseErrorKey]).statusCode == 304)) {
                 DSimpleLog(@"[🚩] (code: %lu) %@ → %@", code, request.HTTPMethod, request.URL.absoluteString);
                      
                 NSHTTPURLResponse *httpResponse = error.userInfo[AFNetworkingOperationFailingURLResponseErrorKey];

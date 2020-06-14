@@ -25,6 +25,7 @@
 #import "BFAlertController.h"
 #import "NSString+Validation.h"
 #import "BFCameraViewController.h"
+#import <SKInnerShadowLayer/SKInnerShadowLayer.h>
 
 #define headerHeight 58
 #define postButtonShrinkScale 0.9
@@ -76,8 +77,9 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     CGFloat screenWidth = screenRect.size.width;
     self.frame = CGRectMake(0, self.frame.origin.y, screenWidth, self.frame.size.height);
     
-    self.contentView = [[UIView alloc] initWithFrame:self.bounds];
-    self.contentView.backgroundColor = [UIColor contentBackgroundColor];
+    self.contentView = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleRegular]];
+    self.contentView.frame = self.bounds;
+    self.contentView.backgroundColor = [UIColor tableViewBackgroundColor];//[UIColor colorWithWhite:1 alpha:0.9];
     [self addSubview:self.contentView];
     
     self.layer.masksToBounds = false;
@@ -98,14 +100,15 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     _textView.textContainer.lineBreakMode = NSLineBreakByWordWrapping;
     _textView.textColor = [UIColor bonfirePrimaryColor];
     _textView.layer.cornerRadius = 22.f;
-    _textView.backgroundColor = [UIColor colorNamed:@"ComposeTextViewBackgroundColor"];
-    _textView.layer.borderWidth = HALF_PIXEL;
+    _textView.backgroundColor = [UIColor contentBackgroundColor];
+    _textView.layer.borderWidth = 1;
     _textView.placeholder = self.defaultPlaceholder;
     _textView.placeholderColor = [UIColor bonfireSecondaryColor];
 //    _textView.keyboardAppearance = UIKeyboardAppearanceLight;
     _textView.keyboardType = UIKeyboardTypeTwitter;
     _textView.keyboardDismissMode = UIScrollViewKeyboardDismissModeNone;
-    [self.contentView addSubview:_textView];
+//    [_textView setElevation:1];
+    [self.contentView.contentView addSubview:_textView];
     textViewMaxHeight = roundf([UIScreen mainScreen].bounds.size.height * 0.3);
     
     _mediaScrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 8, _textView.frame.size.width, 140 - 16)];
@@ -145,7 +148,8 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     self.takePictureButton.tintColor = [UIColor whiteColor];
     [self.takePictureButton setImageEdgeInsets:UIEdgeInsetsMake(-1, 0, 0, 0)];
     self.takePictureButton.backgroundColor = [UIColor bonfireBrand];
-    self.takePictureButton.layer.masksToBounds = true;
+    [self.takePictureButton setElevation:1];
+    self.takePictureButton.layer.borderWidth = 0;
     self.takePictureButton.layer.cornerRadius = self.takePictureButton.frame.size.height / 2;
     self.takePictureButton.imageView.layer.shadowColor = [UIColor colorWithWhite:0 alpha:0.16f].CGColor;
     self.takePictureButton.imageView.layer.masksToBounds = false;
@@ -155,6 +159,8 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     self.takePictureButton.contentMode = UIViewContentModeScaleAspectFill;
     self.takePictureButton.adjustsImageWhenHighlighted = false;
     [self.takePictureButton bk_addEventHandler:^(id sender) {
+        [HapticHelper generateFeedback:FeedbackType_Selection];
+        
         [UIView animateWithDuration:0.5f delay:0 usingSpringWithDamping:0.7f initialSpringVelocity:0.5f options:UIViewAnimationOptionCurveEaseOut animations:^{
             self.takePictureButton.transform = CGAffineTransformMakeScale(postButtonShrinkScale, postButtonShrinkScale);
         } completion:nil];
@@ -169,11 +175,11 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     [self.takePictureButton bk_whenTapped:^{        
         [self takePhotoToAttach:nil];
     }];
-    [self.contentView addSubview:self.takePictureButton];
+    [self.contentView.contentView addSubview:self.takePictureButton];
     
     self.expandButton = [UIButton buttonWithType:UIButtonTypeCustom];
     self.expandButton.adjustsImageWhenHighlighted = false;
-    self.expandButton.frame = CGRectMake(self.frame.size.width - 36 - 14, _textView.frame.origin.y, 36, 40);
+    self.expandButton.frame = CGRectMake(self.frame.size.width - 32 - 14, _textView.frame.origin.y, 32, 40);
     self.expandButton.contentMode = UIViewContentModeCenter;
     [self.expandButton setImage:[[UIImage imageNamed:@"expandComposeIcon"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
     self.expandButton.tintColor = [UIColor bonfireSecondaryColor];
@@ -195,10 +201,10 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         }
     } forControlEvents:(UIControlEventTouchCancel|UIControlEventTouchDragExit)];
     
-    [self.contentView addSubview:self.expandButton];
+    [self.contentView.contentView addSubview:self.expandButton];
     
     self.choosePictureButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    self.choosePictureButton.frame = CGRectMake(self.expandButton.frame.origin.x - 36 - 4, 10, 36, 36);
+    self.choosePictureButton.frame = CGRectMake(self.expandButton.frame.origin.x - 32 - 4, 10, 32, 36);
     [self.choosePictureButton setImage:[[UIImage imageNamed:@"quickComposeChoosePicture"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
     self.choosePictureButton.tintColor = [UIColor bonfireSecondaryColor];
     self.choosePictureButton.layer.masksToBounds = true;
@@ -220,10 +226,10 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     [self.choosePictureButton bk_whenTapped:^{
         [self chooseFromLibraryForProfilePicture:nil];
     }];
-    [self.contentView addSubview:self.choosePictureButton];
+    [self.contentView.contentView addSubview:self.choosePictureButton];
     
     self.chooseGIFButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    self.chooseGIFButton.frame = CGRectMake(self.choosePictureButton.frame.origin.x - 36 - 4, 10, 36, 36);
+    self.chooseGIFButton.frame = CGRectMake(self.choosePictureButton.frame.origin.x - 32 - 4, 10, 32, 36);
     [self.chooseGIFButton setImage:[[UIImage imageNamed:@"quickComposeGif"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
     self.chooseGIFButton.tintColor = [UIColor bonfireSecondaryColor];
     self.chooseGIFButton.layer.masksToBounds = true;
@@ -245,7 +251,7 @@ static NSString * const blankCellIdentifier = @"BlankCell";
     [self.chooseGIFButton bk_whenTapped:^{
         [Launcher openGIFSearch:self];
     }];
-    [self.contentView addSubview:self.chooseGIFButton];
+    [self.contentView.contentView addSubview:self.chooseGIFButton];
     
     self.postButton = [TappableButton buttonWithType:UIButtonTypeCustom];
     self.postButton.titleLabel.font = [UIFont systemFontOfSize:self.textView.font.pointSize+1 weight:UIFontWeightBold];
@@ -275,14 +281,14 @@ static NSString * const blankCellIdentifier = @"BlankCell";
         }
     } forControlEvents:(UIControlEventTouchCancel|UIControlEventTouchDragExit)];
     
-    [self.contentView addSubview:self.postButton];
+    [self.contentView.contentView addSubview:self.postButton];
     
     self.charRemainingLabel = [[UILabel alloc] initWithFrame:CGRectMake(self.frame.size.width - 12 - 32 - 4, self.postButton.frame.origin.y - self.postButton.frame.size.height, 32, 20)];
     self.charRemainingLabel.hidden = true;
     self.charRemainingLabel.textColor = [UIColor bonfireSecondaryColor];
     self.charRemainingLabel.textAlignment = NSTextAlignmentCenter;
     self.charRemainingLabel.font = [UIFont systemFontOfSize:11.f weight:UIFontWeightRegular];
-//    [self.contentView addSubview:self.charRemainingLabel];
+//    [self.contentView.contentView addSubview:self.charRemainingLabel];
     
     self.replyingToLabel = [UIButton buttonWithType:UIButtonTypeCustom];
     self.replyingToLabel.hidden = true;

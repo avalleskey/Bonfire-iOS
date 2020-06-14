@@ -579,7 +579,7 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
                 cell = [[PaginationCell alloc] initWithStyle:UITableViewCellStyleValue2 reuseIdentifier:paginationCellReuseIdentifier];
             }
             
-            cell.backgroundColor = [UIColor tableViewBackgroundColor];
+            cell.backgroundColor = self.backgroundColor;
             
             BOOL showSpinner = self.stream.nextCursor.length > 0;
             cell.spinner.hidden = !showSpinner;
@@ -740,7 +740,7 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
             (s.attributes.title.length > 0 ||
             s.attributes.text.length > 0)) {
             UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, [self heightForSection:s])];
-            header.backgroundColor = [UIColor contentBackgroundColor];
+            header.backgroundColor = [[UIColor contentBackgroundColor] colorWithAlphaComponent:0.95];
             
             UIEdgeInsets contentEdgeInsets = UIEdgeInsetsMake(12, 12, 12, 12);
             CGFloat bottomY = contentEdgeInsets.top;
@@ -827,7 +827,9 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
         if ([self.extendedDelegate respondsToSelector:@selector(heightForFirstSectionFooter)]) {
             return [self.extendedDelegate heightForFirstSectionFooter];
         }
-        else if (self.loading || self.visualError || (!self.loading && self.stream.sections.count > 0)) {
+        else if (self.loading ||
+                 self.visualError ||
+                 (!self.loading && self.stream.sections.count > 0 && [self.stream.sections firstObject].components.count > 0)) {
             return HALF_PIXEL;
         }
     }
@@ -839,7 +841,9 @@ static NSString * const loadingCellIdentifier = @"LoadingCell";
         if ([self.extendedDelegate respondsToSelector:@selector(viewForFirstSectionFooter)]) {
             return [self.extendedDelegate viewForFirstSectionFooter];
         }
-        else if (self.loading || self.visualError || (!self.loading && self.stream.sections.count > 0)) {
+        else if (self.loading ||
+                 self.visualError ||
+                 (!self.loading && self.stream.sections.count > 0 && [self.stream.sections firstObject].components.count > 0)) {
             UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, HALF_PIXEL)];
             separator.backgroundColor = [UIColor tableViewSeparatorColor];
             return separator;

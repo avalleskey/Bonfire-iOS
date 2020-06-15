@@ -151,46 +151,6 @@
 		D96920CC2489418E00592BB4 /* AlternativeAppIcon_skeuomorphic--preview@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = D96920CB2489418D00592BB4 /* AlternativeAppIcon_skeuomorphic--preview@3x.png */; };
 		D96920CF248941A400592BB4 /* AlternativeAppIcon_skeuomorphic@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = D96920CD248941A300592BB4 /* AlternativeAppIcon_skeuomorphic@2x.png */; };
 		D96920D0248941A400592BB4 /* AlternativeAppIcon_skeuomorphic@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = D96920CE248941A400592BB4 /* AlternativeAppIcon_skeuomorphic@3x.png */; };
-		D96920DC249278C000592BB4 /* EuclidCircularBTrial-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = D96920D52492780100592BB4 /* EuclidCircularBTrial-Bold.otf */; };
-		D96920DD249278C000592BB4 /* EuclidCircularBTrial-BoldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = D96920D42492780000592BB4 /* EuclidCircularBTrial-BoldItalic.otf */; };
-		D96920DE249278C000592BB4 /* EuclidCircularBTrial-Light.otf in Resources */ = {isa = PBXBuildFile; fileRef = D96920D32492780000592BB4 /* EuclidCircularBTrial-Light.otf */; };
-		D96920DF249278C000592BB4 /* EuclidCircularBTrial-LightItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = D96920D22492780000592BB4 /* EuclidCircularBTrial-LightItalic.otf */; };
-		D96920E0249278C000592BB4 /* EuclidCircularBTrial-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = D96920D62492780100592BB4 /* EuclidCircularBTrial-Medium.otf */; };
-		D96920E1249278C000592BB4 /* EuclidCircularBTrial-MediumItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = D96920D92492780200592BB4 /* EuclidCircularBTrial-MediumItalic.otf */; };
-		D96920E2249278C000592BB4 /* EuclidCircularBTrial-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = D96920D12492780000592BB4 /* EuclidCircularBTrial-Regular.otf */; };
-		D96920E3249278C000592BB4 /* EuclidCircularBTrial-RegularItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = D96920D82492780100592BB4 /* EuclidCircularBTrial-RegularItalic.otf */; };
-		D96920E4249278C000592BB4 /* EuclidCircularBTrial-Semibold.otf in Resources */ = {isa = PBXBuildFile; fileRef = D96920DA2492780200592BB4 /* EuclidCircularBTrial-Semibold.otf */; };
-		D96920E5249278C000592BB4 /* EuclidCircularBTrial-SemiboldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = D96920D72492780100592BB4 /* EuclidCircularBTrial-SemiboldItalic.otf */; };
-		D96920F22492886D00592BB4 /* RoobertTRIAL-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = D96920EE2492886600592BB4 /* RoobertTRIAL-Bold.otf */; };
-		D96920F32492886D00592BB4 /* RoobertTRIAL-BoldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = D96920E72492886500592BB4 /* RoobertTRIAL-BoldItalic.otf */; };
-		D96920F42492886D00592BB4 /* RoobertTRIAL-Heavy.otf in Resources */ = {isa = PBXBuildFile; fileRef = D96920E82492886500592BB4 /* RoobertTRIAL-Heavy.otf */; };
-		D96920F52492886D00592BB4 /* RoobertTRIAL-HeavyItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = D96920E62492886400592BB4 /* RoobertTRIAL-HeavyItalic.otf */; };
-		D96920F62492886D00592BB4 /* RoobertTRIAL-Light.otf in Resources */ = {isa = PBXBuildFile; fileRef = D96920EB2492886600592BB4 /* RoobertTRIAL-Light.otf */; };
-		D96920F72492886D00592BB4 /* RoobertTRIAL-LightItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = D96920EC2492886600592BB4 /* RoobertTRIAL-LightItalic.otf */; };
-		D96920F82492886D00592BB4 /* RoobertTRIAL-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = D96920F12492886700592BB4 /* RoobertTRIAL-Medium.otf */; };
-		D96920F92492886D00592BB4 /* RoobertTRIAL-MediumItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = D96920F02492886700592BB4 /* RoobertTRIAL-MediumItalic.otf */; };
-		D96920FA2492886D00592BB4 /* RoobertTRIAL-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = D96920E92492886500592BB4 /* RoobertTRIAL-Regular.otf */; };
-		D96920FB2492886D00592BB4 /* RoobertTRIAL-RegularItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = D96920EF2492886700592BB4 /* RoobertTRIAL-RegularItalic.otf */; };
-		D96920FC2492886D00592BB4 /* RoobertTRIAL-SemiBold.otf in Resources */ = {isa = PBXBuildFile; fileRef = D96920EA2492886500592BB4 /* RoobertTRIAL-SemiBold.otf */; };
-		D96920FD2492886D00592BB4 /* RoobertTRIAL-SemiBoldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = D96920ED2492886600592BB4 /* RoobertTRIAL-SemiBoldItalic.otf */; };
-		D969210E2492889F00592BB4 /* EuclidFlexTrial-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = D96921062492888B00592BB4 /* EuclidFlexTrial-Bold.otf */; };
-		D969210F2492889F00592BB4 /* EuclidFlexTrial-BoldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = D969210B2492888C00592BB4 /* EuclidFlexTrial-BoldItalic.otf */; };
-		D96921102492889F00592BB4 /* EuclidFlexTrial-Italic.otf in Resources */ = {isa = PBXBuildFile; fileRef = D96921032492888A00592BB4 /* EuclidFlexTrial-Italic.otf */; };
-		D96921112492889F00592BB4 /* EuclidFlexTrial-Light.otf in Resources */ = {isa = PBXBuildFile; fileRef = D96920FF2492888900592BB4 /* EuclidFlexTrial-Light.otf */; };
-		D96921122492889F00592BB4 /* EuclidFlexTrial-LightItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = D96921052492888A00592BB4 /* EuclidFlexTrial-LightItalic.otf */; };
-		D96921132492889F00592BB4 /* EuclidFlexTrial-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = D96921082492888B00592BB4 /* EuclidFlexTrial-Medium.otf */; };
-		D96921142492889F00592BB4 /* EuclidFlexTrial-MediumItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = D96921022492888A00592BB4 /* EuclidFlexTrial-MediumItalic.otf */; };
-		D96921152492889F00592BB4 /* EuclidFlexTrial-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = D969210C2492888D00592BB4 /* EuclidFlexTrial-Regular.otf */; };
-		D96921162492889F00592BB4 /* EuclidFlexTrial-Semibold.otf in Resources */ = {isa = PBXBuildFile; fileRef = D969210A2492888C00592BB4 /* EuclidFlexTrial-Semibold.otf */; };
-		D96921172492889F00592BB4 /* EuclidFlexTrial-SemiboldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = D96921072492888B00592BB4 /* EuclidFlexTrial-SemiboldItalic.otf */; };
-		D96921182492889F00592BB4 /* EuclidFlexTrial-Thin.otf in Resources */ = {isa = PBXBuildFile; fileRef = D96921002492888900592BB4 /* EuclidFlexTrial-Thin.otf */; };
-		D96921192492889F00592BB4 /* EuclidFlexTrial-ThinItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = D96921092492888C00592BB4 /* EuclidFlexTrial-ThinItalic.otf */; };
-		D969211A2492889F00592BB4 /* EuclidFlexTrial-Ultralight.otf in Resources */ = {isa = PBXBuildFile; fileRef = D96921042492888A00592BB4 /* EuclidFlexTrial-Ultralight.otf */; };
-		D969211B2492889F00592BB4 /* EuclidFlexTrial-UltralightItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = D96921012492888900592BB4 /* EuclidFlexTrial-UltralightItalic.otf */; };
-		D969212F2492997E00592BB4 /* TTNorms-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = D969212B2492997A00592BB4 /* TTNorms-Bold.otf */; };
-		D96921302492997E00592BB4 /* TTNorms-Black.otf in Resources */ = {isa = PBXBuildFile; fileRef = D969212D2492997B00592BB4 /* TTNorms-Black.otf */; };
-		D96921312492997E00592BB4 /* TTNorms-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = D969212E2492997B00592BB4 /* TTNorms-Medium.otf */; };
-		D96921322492997E00592BB4 /* TTNorms-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = D969212C2492997A00592BB4 /* TTNorms-Regular.otf */; };
 		D96A06EE223CBED100406C81 /* HelloViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D96A06ED223CBED100406C81 /* HelloViewController.m */; };
 		D96A06F12241E45E00406C81 /* ComposeTextViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D96A06F02241E45E00406C81 /* ComposeTextViewCell.m */; };
 		D96A50772344E844006D76C4 /* CampCardCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D96A50762344E844006D76C4 /* CampCardCell.m */; };
@@ -292,19 +252,6 @@
 		D9C03941215AD4AC00B30A41 /* ComposeInputView.m in Sources */ = {isa = PBXBuildFile; fileRef = D9C03940215AD4AC00B30A41 /* ComposeInputView.m */; };
 		D9C03944215D6F1900B30A41 /* ComplexNavigationController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9C03943215D6F1900B30A41 /* ComplexNavigationController.m */; };
 		D9C0394D215DF17000B30A41 /* HomeTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9C0394C215DF17000B30A41 /* HomeTableViewController.m */; };
-		D9C2AC902367913D00FB9623 /* UIFont+App.m in Sources */ = {isa = PBXBuildFile; fileRef = D9C2AC8F2367913D00FB9623 /* UIFont+App.m */; };
-		D9C2ACA4236796B200FB9623 /* Inter-Black.otf in Resources */ = {isa = PBXBuildFile; fileRef = D9C2ACA32367960C00FB9623 /* Inter-Black.otf */; };
-		D9C2ACA5236796B600FB9623 /* Inter-BlackItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = D9C2AC9B2367960900FB9623 /* Inter-BlackItalic.otf */; };
-		D9C2ACA6236796B600FB9623 /* Inter-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = D9C2ACA02367960B00FB9623 /* Inter-Bold.otf */; };
-		D9C2ACA7236796B600FB9623 /* Inter-BoldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = D9C2AC972367960800FB9623 /* Inter-BoldItalic.otf */; };
-		D9C2ACA8236796B600FB9623 /* Inter-ExtraBold.otf in Resources */ = {isa = PBXBuildFile; fileRef = D9C2ACA12367960B00FB9623 /* Inter-ExtraBold.otf */; };
-		D9C2ACA9236796B600FB9623 /* Inter-ExtraBoldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = D9C2AC9C2367960A00FB9623 /* Inter-ExtraBoldItalic.otf */; };
-		D9C2ACAA236796B600FB9623 /* Inter-Italic.otf in Resources */ = {isa = PBXBuildFile; fileRef = D9C2ACA22367960C00FB9623 /* Inter-Italic.otf */; };
-		D9C2ACAB236796B600FB9623 /* Inter-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = D9C2AC9D2367960A00FB9623 /* Inter-Medium.otf */; };
-		D9C2ACAC236796B600FB9623 /* Inter-MediumItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = D9C2AC992367960900FB9623 /* Inter-MediumItalic.otf */; };
-		D9C2ACAD236796B600FB9623 /* Inter-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = D9C2AC9A2367960900FB9623 /* Inter-Regular.otf */; };
-		D9C2ACAE236796B600FB9623 /* Inter-SemiBold.otf in Resources */ = {isa = PBXBuildFile; fileRef = D9C2AC9E2367960A00FB9623 /* Inter-SemiBold.otf */; };
-		D9C2ACAF236796B600FB9623 /* Inter-SemiBoldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = D9C2AC962367960800FB9623 /* Inter-SemiBoldItalic.otf */; };
 		D9C8B558219F5A3600A9A282 /* TabController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9C8B557219F5A3600A9A282 /* TabController.m */; };
 		D9C8B55B219F5BAB00A9A282 /* TabBar.m in Sources */ = {isa = PBXBuildFile; fileRef = D9C8B559219F5BAA00A9A282 /* TabBar.m */; };
 		D9C8B55E219F5D3300A9A282 /* Launcher.m in Sources */ = {isa = PBXBuildFile; fileRef = D9C8B55D219F5D3300A9A282 /* Launcher.m */; };
@@ -624,46 +571,6 @@
 		D96920CB2489418D00592BB4 /* AlternativeAppIcon_skeuomorphic--preview@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AlternativeAppIcon_skeuomorphic--preview@3x.png"; sourceTree = "<group>"; };
 		D96920CD248941A300592BB4 /* AlternativeAppIcon_skeuomorphic@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AlternativeAppIcon_skeuomorphic@2x.png"; sourceTree = "<group>"; };
 		D96920CE248941A400592BB4 /* AlternativeAppIcon_skeuomorphic@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AlternativeAppIcon_skeuomorphic@3x.png"; sourceTree = "<group>"; };
-		D96920D12492780000592BB4 /* EuclidCircularBTrial-Regular.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "EuclidCircularBTrial-Regular.otf"; sourceTree = "<group>"; };
-		D96920D22492780000592BB4 /* EuclidCircularBTrial-LightItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "EuclidCircularBTrial-LightItalic.otf"; sourceTree = "<group>"; };
-		D96920D32492780000592BB4 /* EuclidCircularBTrial-Light.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "EuclidCircularBTrial-Light.otf"; sourceTree = "<group>"; };
-		D96920D42492780000592BB4 /* EuclidCircularBTrial-BoldItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "EuclidCircularBTrial-BoldItalic.otf"; sourceTree = "<group>"; };
-		D96920D52492780100592BB4 /* EuclidCircularBTrial-Bold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "EuclidCircularBTrial-Bold.otf"; sourceTree = "<group>"; };
-		D96920D62492780100592BB4 /* EuclidCircularBTrial-Medium.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "EuclidCircularBTrial-Medium.otf"; sourceTree = "<group>"; };
-		D96920D72492780100592BB4 /* EuclidCircularBTrial-SemiboldItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "EuclidCircularBTrial-SemiboldItalic.otf"; sourceTree = "<group>"; };
-		D96920D82492780100592BB4 /* EuclidCircularBTrial-RegularItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "EuclidCircularBTrial-RegularItalic.otf"; sourceTree = "<group>"; };
-		D96920D92492780200592BB4 /* EuclidCircularBTrial-MediumItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "EuclidCircularBTrial-MediumItalic.otf"; sourceTree = "<group>"; };
-		D96920DA2492780200592BB4 /* EuclidCircularBTrial-Semibold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "EuclidCircularBTrial-Semibold.otf"; sourceTree = "<group>"; };
-		D96920E62492886400592BB4 /* RoobertTRIAL-HeavyItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "RoobertTRIAL-HeavyItalic.otf"; sourceTree = "<group>"; };
-		D96920E72492886500592BB4 /* RoobertTRIAL-BoldItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "RoobertTRIAL-BoldItalic.otf"; sourceTree = "<group>"; };
-		D96920E82492886500592BB4 /* RoobertTRIAL-Heavy.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "RoobertTRIAL-Heavy.otf"; sourceTree = "<group>"; };
-		D96920E92492886500592BB4 /* RoobertTRIAL-Regular.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "RoobertTRIAL-Regular.otf"; sourceTree = "<group>"; };
-		D96920EA2492886500592BB4 /* RoobertTRIAL-SemiBold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "RoobertTRIAL-SemiBold.otf"; sourceTree = "<group>"; };
-		D96920EB2492886600592BB4 /* RoobertTRIAL-Light.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "RoobertTRIAL-Light.otf"; sourceTree = "<group>"; };
-		D96920EC2492886600592BB4 /* RoobertTRIAL-LightItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "RoobertTRIAL-LightItalic.otf"; sourceTree = "<group>"; };
-		D96920ED2492886600592BB4 /* RoobertTRIAL-SemiBoldItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "RoobertTRIAL-SemiBoldItalic.otf"; sourceTree = "<group>"; };
-		D96920EE2492886600592BB4 /* RoobertTRIAL-Bold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "RoobertTRIAL-Bold.otf"; sourceTree = "<group>"; };
-		D96920EF2492886700592BB4 /* RoobertTRIAL-RegularItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "RoobertTRIAL-RegularItalic.otf"; sourceTree = "<group>"; };
-		D96920F02492886700592BB4 /* RoobertTRIAL-MediumItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "RoobertTRIAL-MediumItalic.otf"; sourceTree = "<group>"; };
-		D96920F12492886700592BB4 /* RoobertTRIAL-Medium.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "RoobertTRIAL-Medium.otf"; sourceTree = "<group>"; };
-		D96920FF2492888900592BB4 /* EuclidFlexTrial-Light.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "EuclidFlexTrial-Light.otf"; sourceTree = "<group>"; };
-		D96921002492888900592BB4 /* EuclidFlexTrial-Thin.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "EuclidFlexTrial-Thin.otf"; sourceTree = "<group>"; };
-		D96921012492888900592BB4 /* EuclidFlexTrial-UltralightItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "EuclidFlexTrial-UltralightItalic.otf"; sourceTree = "<group>"; };
-		D96921022492888A00592BB4 /* EuclidFlexTrial-MediumItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "EuclidFlexTrial-MediumItalic.otf"; sourceTree = "<group>"; };
-		D96921032492888A00592BB4 /* EuclidFlexTrial-Italic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "EuclidFlexTrial-Italic.otf"; sourceTree = "<group>"; };
-		D96921042492888A00592BB4 /* EuclidFlexTrial-Ultralight.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "EuclidFlexTrial-Ultralight.otf"; sourceTree = "<group>"; };
-		D96921052492888A00592BB4 /* EuclidFlexTrial-LightItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "EuclidFlexTrial-LightItalic.otf"; sourceTree = "<group>"; };
-		D96921062492888B00592BB4 /* EuclidFlexTrial-Bold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "EuclidFlexTrial-Bold.otf"; sourceTree = "<group>"; };
-		D96921072492888B00592BB4 /* EuclidFlexTrial-SemiboldItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "EuclidFlexTrial-SemiboldItalic.otf"; sourceTree = "<group>"; };
-		D96921082492888B00592BB4 /* EuclidFlexTrial-Medium.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "EuclidFlexTrial-Medium.otf"; sourceTree = "<group>"; };
-		D96921092492888C00592BB4 /* EuclidFlexTrial-ThinItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "EuclidFlexTrial-ThinItalic.otf"; sourceTree = "<group>"; };
-		D969210A2492888C00592BB4 /* EuclidFlexTrial-Semibold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "EuclidFlexTrial-Semibold.otf"; sourceTree = "<group>"; };
-		D969210B2492888C00592BB4 /* EuclidFlexTrial-BoldItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "EuclidFlexTrial-BoldItalic.otf"; sourceTree = "<group>"; };
-		D969210C2492888D00592BB4 /* EuclidFlexTrial-Regular.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "EuclidFlexTrial-Regular.otf"; sourceTree = "<group>"; };
-		D969212B2492997A00592BB4 /* TTNorms-Bold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "TTNorms-Bold.otf"; sourceTree = "<group>"; };
-		D969212C2492997A00592BB4 /* TTNorms-Regular.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "TTNorms-Regular.otf"; sourceTree = "<group>"; };
-		D969212D2492997B00592BB4 /* TTNorms-Black.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "TTNorms-Black.otf"; sourceTree = "<group>"; };
-		D969212E2492997B00592BB4 /* TTNorms-Medium.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "TTNorms-Medium.otf"; sourceTree = "<group>"; };
 		D96A06EC223CBED100406C81 /* HelloViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HelloViewController.h; sourceTree = "<group>"; };
 		D96A06ED223CBED100406C81 /* HelloViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HelloViewController.m; sourceTree = "<group>"; };
 		D96A06EF2241E45E00406C81 /* ComposeTextViewCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ComposeTextViewCell.h; sourceTree = "<group>"; };
@@ -862,20 +769,6 @@
 		D9C03943215D6F1900B30A41 /* ComplexNavigationController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ComplexNavigationController.m; sourceTree = "<group>"; };
 		D9C0394B215DF17000B30A41 /* HomeTableViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HomeTableViewController.h; sourceTree = "<group>"; };
 		D9C0394C215DF17000B30A41 /* HomeTableViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = HomeTableViewController.m; sourceTree = "<group>"; };
-		D9C2AC8E2367913D00FB9623 /* UIFont+App.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "UIFont+App.h"; sourceTree = "<group>"; };
-		D9C2AC8F2367913D00FB9623 /* UIFont+App.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "UIFont+App.m"; sourceTree = "<group>"; };
-		D9C2AC962367960800FB9623 /* Inter-SemiBoldItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Inter-SemiBoldItalic.otf"; sourceTree = "<group>"; };
-		D9C2AC972367960800FB9623 /* Inter-BoldItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Inter-BoldItalic.otf"; sourceTree = "<group>"; };
-		D9C2AC992367960900FB9623 /* Inter-MediumItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Inter-MediumItalic.otf"; sourceTree = "<group>"; };
-		D9C2AC9A2367960900FB9623 /* Inter-Regular.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Inter-Regular.otf"; sourceTree = "<group>"; };
-		D9C2AC9B2367960900FB9623 /* Inter-BlackItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Inter-BlackItalic.otf"; sourceTree = "<group>"; };
-		D9C2AC9C2367960A00FB9623 /* Inter-ExtraBoldItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Inter-ExtraBoldItalic.otf"; sourceTree = "<group>"; };
-		D9C2AC9D2367960A00FB9623 /* Inter-Medium.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Inter-Medium.otf"; sourceTree = "<group>"; };
-		D9C2AC9E2367960A00FB9623 /* Inter-SemiBold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Inter-SemiBold.otf"; sourceTree = "<group>"; };
-		D9C2ACA02367960B00FB9623 /* Inter-Bold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Inter-Bold.otf"; sourceTree = "<group>"; };
-		D9C2ACA12367960B00FB9623 /* Inter-ExtraBold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Inter-ExtraBold.otf"; sourceTree = "<group>"; };
-		D9C2ACA22367960C00FB9623 /* Inter-Italic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Inter-Italic.otf"; sourceTree = "<group>"; };
-		D9C2ACA32367960C00FB9623 /* Inter-Black.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Inter-Black.otf"; sourceTree = "<group>"; };
 		D9C8B556219F5A3600A9A282 /* TabController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TabController.h; sourceTree = "<group>"; };
 		D9C8B557219F5A3600A9A282 /* TabController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TabController.m; sourceTree = "<group>"; };
 		D9C8B559219F5BAA00A9A282 /* TabBar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TabBar.m; sourceTree = "<group>"; };
@@ -1506,74 +1399,6 @@
 			path = "App Icon";
 			sourceTree = "<group>";
 		};
-		D96920DB2492780900592BB4 /* Euclid Circular B */ = {
-			isa = PBXGroup;
-			children = (
-				D96920D52492780100592BB4 /* EuclidCircularBTrial-Bold.otf */,
-				D96920D42492780000592BB4 /* EuclidCircularBTrial-BoldItalic.otf */,
-				D96920D32492780000592BB4 /* EuclidCircularBTrial-Light.otf */,
-				D96920D22492780000592BB4 /* EuclidCircularBTrial-LightItalic.otf */,
-				D96920D62492780100592BB4 /* EuclidCircularBTrial-Medium.otf */,
-				D96920D92492780200592BB4 /* EuclidCircularBTrial-MediumItalic.otf */,
-				D96920D12492780000592BB4 /* EuclidCircularBTrial-Regular.otf */,
-				D96920D82492780100592BB4 /* EuclidCircularBTrial-RegularItalic.otf */,
-				D96920DA2492780200592BB4 /* EuclidCircularBTrial-Semibold.otf */,
-				D96920D72492780100592BB4 /* EuclidCircularBTrial-SemiboldItalic.otf */,
-			);
-			path = "Euclid Circular B";
-			sourceTree = "<group>";
-		};
-		D96920FE2492887000592BB4 /* Roobert */ = {
-			isa = PBXGroup;
-			children = (
-				D96920EE2492886600592BB4 /* RoobertTRIAL-Bold.otf */,
-				D96920E72492886500592BB4 /* RoobertTRIAL-BoldItalic.otf */,
-				D96920E82492886500592BB4 /* RoobertTRIAL-Heavy.otf */,
-				D96920E62492886400592BB4 /* RoobertTRIAL-HeavyItalic.otf */,
-				D96920EB2492886600592BB4 /* RoobertTRIAL-Light.otf */,
-				D96920EC2492886600592BB4 /* RoobertTRIAL-LightItalic.otf */,
-				D96920F12492886700592BB4 /* RoobertTRIAL-Medium.otf */,
-				D96920F02492886700592BB4 /* RoobertTRIAL-MediumItalic.otf */,
-				D96920E92492886500592BB4 /* RoobertTRIAL-Regular.otf */,
-				D96920EF2492886700592BB4 /* RoobertTRIAL-RegularItalic.otf */,
-				D96920EA2492886500592BB4 /* RoobertTRIAL-SemiBold.otf */,
-				D96920ED2492886600592BB4 /* RoobertTRIAL-SemiBoldItalic.otf */,
-			);
-			path = Roobert;
-			sourceTree = "<group>";
-		};
-		D969210D2492889300592BB4 /* Euclid Flex */ = {
-			isa = PBXGroup;
-			children = (
-				D96921062492888B00592BB4 /* EuclidFlexTrial-Bold.otf */,
-				D969210B2492888C00592BB4 /* EuclidFlexTrial-BoldItalic.otf */,
-				D96921032492888A00592BB4 /* EuclidFlexTrial-Italic.otf */,
-				D96920FF2492888900592BB4 /* EuclidFlexTrial-Light.otf */,
-				D96921052492888A00592BB4 /* EuclidFlexTrial-LightItalic.otf */,
-				D96921082492888B00592BB4 /* EuclidFlexTrial-Medium.otf */,
-				D96921022492888A00592BB4 /* EuclidFlexTrial-MediumItalic.otf */,
-				D969210C2492888D00592BB4 /* EuclidFlexTrial-Regular.otf */,
-				D969210A2492888C00592BB4 /* EuclidFlexTrial-Semibold.otf */,
-				D96921072492888B00592BB4 /* EuclidFlexTrial-SemiboldItalic.otf */,
-				D96921002492888900592BB4 /* EuclidFlexTrial-Thin.otf */,
-				D96921092492888C00592BB4 /* EuclidFlexTrial-ThinItalic.otf */,
-				D96921042492888A00592BB4 /* EuclidFlexTrial-Ultralight.otf */,
-				D96921012492888900592BB4 /* EuclidFlexTrial-UltralightItalic.otf */,
-			);
-			path = "Euclid Flex";
-			sourceTree = "<group>";
-		};
-		D96921232492915D00592BB4 /* TT Norms */ = {
-			isa = PBXGroup;
-			children = (
-				D969212B2492997A00592BB4 /* TTNorms-Bold.otf */,
-				D969212D2492997B00592BB4 /* TTNorms-Black.otf */,
-				D969212E2492997B00592BB4 /* TTNorms-Medium.otf */,
-				D969212C2492997A00592BB4 /* TTNorms-Regular.otf */,
-			);
-			path = "TT Norms";
-			sourceTree = "<group>";
-		};
 		D96A5078234647BF006D76C4 /* Bot */ = {
 			isa = PBXGroup;
 			children = (
@@ -1840,8 +1665,6 @@
 		D9A7A2B4226268CE0091B53C /* Bonfire Helper Classes */ = {
 			isa = PBXGroup;
 			children = (
-				D9C2AC8E2367913D00FB9623 /* UIFont+App.h */,
-				D9C2AC8F2367913D00FB9623 /* UIFont+App.m */,
 				D9A7A2B1225FC34E0091B53C /* Configuration */,
 				D9133B4B226650D800B5D65C /* API */,
 				D9133B4C226650DF00B5D65C /* Session */,
@@ -1927,12 +1750,7 @@
 		D9BD770F2172784F00DAB9BE /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				D96921232492915D00592BB4 /* TT Norms */,
-				D969210D2492889300592BB4 /* Euclid Flex */,
-				D96920FE2492887000592BB4 /* Roobert */,
-				D96920DB2492780900592BB4 /* Euclid Circular B */,
 				D91CA65423A55BE80055973A /* ICSDrawerController */,
-				D9C2AC912367960100FB9623 /* Inter */,
 				D9BD47AC23563D29001E027E /* JKRichTextView */,
 				D90047D422861012006B4B3D /* EFCircularSlider */,
 				D9FFFB64227E5E0E004E3779 /* KSPhotoBrowser */,
@@ -1943,25 +1761,6 @@
 				D9C8B57E21A5F3FC00A9A282 /* Emitters */,
 			);
 			path = "Supporting Files";
-			sourceTree = "<group>";
-		};
-		D9C2AC912367960100FB9623 /* Inter */ = {
-			isa = PBXGroup;
-			children = (
-				D9C2ACA32367960C00FB9623 /* Inter-Black.otf */,
-				D9C2AC9B2367960900FB9623 /* Inter-BlackItalic.otf */,
-				D9C2ACA02367960B00FB9623 /* Inter-Bold.otf */,
-				D9C2AC972367960800FB9623 /* Inter-BoldItalic.otf */,
-				D9C2ACA12367960B00FB9623 /* Inter-ExtraBold.otf */,
-				D9C2AC9C2367960A00FB9623 /* Inter-ExtraBoldItalic.otf */,
-				D9C2ACA22367960C00FB9623 /* Inter-Italic.otf */,
-				D9C2AC9D2367960A00FB9623 /* Inter-Medium.otf */,
-				D9C2AC992367960900FB9623 /* Inter-MediumItalic.otf */,
-				D9C2AC9A2367960900FB9623 /* Inter-Regular.otf */,
-				D9C2AC9E2367960A00FB9623 /* Inter-SemiBold.otf */,
-				D9C2AC962367960800FB9623 /* Inter-SemiBoldItalic.otf */,
-			);
-			path = Inter;
 			sourceTree = "<group>";
 		};
 		D9C8B57121A5F15E00A9A282 /* Controllers */ = {
@@ -2468,91 +2267,39 @@
 			files = (
 				D96920B42487FEB000592BB4 /* AlternativeAppIcon_default--preview@3x.png in Resources */,
 				D96920C32487FF4F00592BB4 /* AlternativeAppIcon_retro@2x.png in Resources */,
-				D96921132492889F00592BB4 /* EuclidFlexTrial-Medium.otf in Resources */,
-				D969210F2492889F00592BB4 /* EuclidFlexTrial-BoldItalic.otf in Resources */,
-				D96921142492889F00592BB4 /* EuclidFlexTrial-MediumItalic.otf in Resources */,
 				D9267C8321DAECED00E21862 /* OpenSource.json in Resources */,
-				D9C2ACAF236796B600FB9623 /* Inter-SemiBoldItalic.otf in Resources */,
-				D9C2ACAD236796B600FB9623 /* Inter-Regular.otf in Resources */,
-				D9C2ACAB236796B600FB9623 /* Inter-Medium.otf in Resources */,
-				D96920E2249278C000592BB4 /* EuclidCircularBTrial-Regular.otf in Resources */,
-				D96921312492997E00592BB4 /* TTNorms-Medium.otf in Resources */,
 				D907B08D214EEC5300A59712 /* LaunchScreen.storyboard in Resources */,
-				D969210E2492889F00592BB4 /* EuclidFlexTrial-Bold.otf in Resources */,
 				D96920C82487FF4F00592BB4 /* AlternativeAppIcon_campgrounds@2x.png in Resources */,
 				D96920D0248941A400592BB4 /* AlternativeAppIcon_skeuomorphic@3x.png in Resources */,
-				D96921122492889F00592BB4 /* EuclidFlexTrial-LightItalic.otf in Resources */,
-				D96920E0249278C000592BB4 /* EuclidCircularBTrial-Medium.otf in Resources */,
-				D96920E1249278C000592BB4 /* EuclidCircularBTrial-MediumItalic.otf in Resources */,
 				D9A7A2A4225E68620091B53C /* GoogleService-Info.plist in Resources */,
-				D969211B2492889F00592BB4 /* EuclidFlexTrial-UltralightItalic.otf in Resources */,
 				D96920CC2489418E00592BB4 /* AlternativeAppIcon_skeuomorphic--preview@3x.png in Resources */,
-				D96920F92492886D00592BB4 /* RoobertTRIAL-MediumItalic.otf in Resources */,
-				D96920DC249278C000592BB4 /* EuclidCircularBTrial-Bold.otf in Resources */,
-				D96920E4249278C000592BB4 /* EuclidCircularBTrial-Semibold.otf in Resources */,
-				D96921162492889F00592BB4 /* EuclidFlexTrial-Semibold.otf in Resources */,
 				D912BD70222C80B500F9F4EC /* CampMembers.json in Resources */,
 				D9A7A2B3225FC35E0091B53C /* Configurations.plist in Resources */,
 				D95CBC302177E7EA001E6D2D /* LocalDefaults.json in Resources */,
 				D96920C22487FF4F00592BB4 /* AlternativeAppIcon_blm@3x.png in Resources */,
 				D96920CA2487FF4F00592BB4 /* AlternativeAppIcon_retro@3x.png in Resources */,
 				D96920B62487FEB000592BB4 /* AlternativeAppIcon_retro--preview@3x.png in Resources */,
-				D96920E5249278C000592BB4 /* EuclidCircularBTrial-SemiboldItalic.otf in Resources */,
-				D9C2ACAE236796B600FB9623 /* Inter-SemiBold.otf in Resources */,
-				D96920F42492886D00592BB4 /* RoobertTRIAL-Heavy.otf in Resources */,
 				D9267C7921D7FB4700E21862 /* Notifications.json in Resources */,
-				D9C2ACA7236796B600FB9623 /* Inter-BoldItalic.otf in Resources */,
-				D96920E3249278C000592BB4 /* EuclidCircularBTrial-RegularItalic.otf in Resources */,
-				D969211A2492889F00592BB4 /* EuclidFlexTrial-Ultralight.otf in Resources */,
-				D96920DD249278C000592BB4 /* EuclidCircularBTrial-BoldItalic.otf in Resources */,
-				D9C2ACA8236796B600FB9623 /* Inter-ExtraBold.otf in Resources */,
 				D96920CF248941A400592BB4 /* AlternativeAppIcon_skeuomorphic@2x.png in Resources */,
 				D96920C62487FF4F00592BB4 /* AlternativeAppIcon_default@2x.png in Resources */,
-				D96920FC2492886D00592BB4 /* RoobertTRIAL-SemiBold.otf in Resources */,
-				D9C2ACA4236796B200FB9623 /* Inter-Black.otf in Resources */,
-				D96921172492889F00592BB4 /* EuclidFlexTrial-SemiboldItalic.otf in Resources */,
 				D96920C12487FF4F00592BB4 /* AlternativeAppIcon_sunrise@2x.png in Resources */,
 				D907B08A214EEC5300A59712 /* Assets.xcassets in Resources */,
 				D9267C7D21D7FBA400E21862 /* Legal.json in Resources */,
-				D9C2ACAA236796B600FB9623 /* Inter-Italic.otf in Resources */,
 				D96920B52487FEB000592BB4 /* AlternativeAppIcon_blm--preview@3x.png in Resources */,
-				D96920DE249278C000592BB4 /* EuclidCircularBTrial-Light.otf in Resources */,
-				D96921182492889F00592BB4 /* EuclidFlexTrial-Thin.otf in Resources */,
-				D9C2ACAC236796B600FB9623 /* Inter-MediumItalic.otf in Resources */,
 				D96920B22487FEB000592BB4 /* AlternativeAppIcon_campgrounds--preview@3x.png in Resources */,
-				D9C2ACA6236796B600FB9623 /* Inter-Bold.otf in Resources */,
-				D96920FA2492886D00592BB4 /* RoobertTRIAL-Regular.otf in Resources */,
-				D96921152492889F00592BB4 /* EuclidFlexTrial-Regular.otf in Resources */,
 				D969209C24875D3700592BB4 /* AppIcon.json in Resources */,
 				D9267C6621D6B74200E21862 /* SettingsModel.json in Resources */,
-				D969212F2492997E00592BB4 /* TTNorms-Bold.otf in Resources */,
-				D96920F52492886D00592BB4 /* RoobertTRIAL-HeavyItalic.otf in Resources */,
 				D9267C7B21D7FB7D00E21862 /* ChangePassword.json in Resources */,
 				D96920C92487FF4F00592BB4 /* AlternativeAppIcon_sunrise@3x.png in Resources */,
-				D96920FD2492886D00592BB4 /* RoobertTRIAL-SemiBoldItalic.otf in Resources */,
-				D96920F72492886D00592BB4 /* RoobertTRIAL-LightItalic.otf in Resources */,
-				D96920F62492886D00592BB4 /* RoobertTRIAL-Light.otf in Resources */,
-				D96921192492889F00592BB4 /* EuclidFlexTrial-ThinItalic.otf in Resources */,
-				D96920F32492886D00592BB4 /* RoobertTRIAL-BoldItalic.otf in Resources */,
-				D96920DF249278C000592BB4 /* EuclidCircularBTrial-LightItalic.otf in Resources */,
 				D96920C42487FF4F00592BB4 /* AlternativeAppIcon_blm@2x.png in Resources */,
 				D96920C72487FF4F00592BB4 /* AlternativeAppIcon_default@3x.png in Resources */,
-				D96920F82492886D00592BB4 /* RoobertTRIAL-Medium.otf in Resources */,
 				D9238028218273F100E01A34 /* SparkAnimation.sks in Resources */,
-				D96921112492889F00592BB4 /* EuclidFlexTrial-Light.otf in Resources */,
-				D96921102492889F00592BB4 /* EuclidFlexTrial-Italic.otf in Resources */,
 				D97CA4252422E3E800C09140 /* Onboarding Flow.rtf in Resources */,
 				D9E5EB7821FBBB1900B9F5FD /* favicon_filled.png in Resources */,
-				D96920F22492886D00592BB4 /* RoobertTRIAL-Bold.otf in Resources */,
-				D96920FB2492886D00592BB4 /* RoobertTRIAL-RegularItalic.otf in Resources */,
-				D9C2ACA5236796B600FB9623 /* Inter-BlackItalic.otf in Resources */,
 				D96920C52487FF4F00592BB4 /* AlternativeAppIcon_campgrounds@3x.png in Resources */,
-				D9C2ACA9236796B600FB9623 /* Inter-ExtraBoldItalic.otf in Resources */,
 				D96920B32487FEB000592BB4 /* AlternativeAppIcon_sunrise--preview@3x.png in Resources */,
 				D907B088214EEC5000A59712 /* Main.storyboard in Resources */,
 				D97CA42B2427C91D00C09140 /* ChangePhoneNumber.json in Resources */,
-				D96921322492997E00592BB4 /* TTNorms-Regular.otf in Resources */,
-				D96921302492997E00592BB4 /* TTNorms-Black.otf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2811,7 +2558,6 @@
 				D9C9DF1C22BC4C0000ADDC65 /* BFContext.m in Sources */,
 				D971623A21DBF91100138BF9 /* InsightsLogger.m in Sources */,
 				D9742E7A21C47B71002CBEFC /* TappableView.m in Sources */,
-				D9C2AC902367913D00FB9623 /* UIFont+App.m in Sources */,
 				D9BD47B923563D57001E027E /* JKRichTextViewLinkBlockDataHandler.m in Sources */,
 				D9C03944215D6F1900B30A41 /* ComplexNavigationController.m in Sources */,
 				D96AB134237DEF2200838D58 /* BFJSONModel.m in Sources */,

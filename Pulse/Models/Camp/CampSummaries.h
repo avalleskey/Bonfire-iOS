@@ -7,11 +7,12 @@
 #import "BFJSONModel.h"
 #import "CampCounts.h"
 #import "User.h"
+#import "Bonfire-Swift.h"
 
-@interface CampSummaries : BFJSONModel
-
-@property (nonatomic) NSArray <User *> <User, Optional> *members;
-@property (nonatomic) CampCounts <Optional> *counts;
-
-@end
+//@interface CampSummaries : BFJSONModel
+//
+//@property (nonatomic) NSArray <User *> <User, Optional> *members;
+//@property (nonatomic) CampCounts <Optional> *counts;
+//
+//@end
 

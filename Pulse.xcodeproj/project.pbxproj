@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1AA7937D24978F1A00FE5F60 /* BFHostedVersions.m in Sources */ = {isa = PBXBuildFile; fileRef = D9FFFB49227C9664004E3779 /* BFHostedVersions.m */; };
+		1AA793832497901600FE5F60 /* CampAttributes.m in Sources */ = {isa = PBXBuildFile; fileRef = D94FD1B9216D730300B84E45 /* CampAttributes.m */; };
+		1AA793872497973A00FE5F60 /* CampCounts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA793862497973A00FE5F60 /* CampCounts.swift */; };
+		1AA793892497A10900FE5F60 /* CampSummaries.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA793882497A10900FE5F60 /* CampSummaries.swift */; };
+		1AA7938B2497B74700FE5F60 /* CampMedia.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA7938A2497B74700FE5F60 /* CampMedia.swift */; };
 		41EB16E5236FCD5300116C90 /* ThemeSelectorInputCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 41EB16E3236FCD5300116C90 /* ThemeSelectorInputCell.m */; };
 		41FED4372369FC3A00CBAD26 /* BFLink.m in Sources */ = {isa = PBXBuildFile; fileRef = 41FED4362369FC3A00CBAD26 /* BFLink.m */; };
 		66750B19236AB886E9C26E96 /* libPods-PulseUITests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 20CE35AE05F596BB25083027 /* libPods-PulseUITests.a */; };
@@ -100,9 +105,6 @@
 		D94F3317221A247A00331ADC /* ExpandThreadCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D94F3316221A247A00331ADC /* ExpandThreadCell.m */; };
 		D94FD19821685D6000B84E45 /* CreateCampViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D94FD19721685D6000B84E45 /* CreateCampViewController.m */; };
 		D94FD1A4216C5B4400B84E45 /* OnboardingViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D94FD1A2216C5B4300B84E45 /* OnboardingViewController.m */; };
-		D94FD1EB216D730300B84E45 /* CampCounts.m in Sources */ = {isa = PBXBuildFile; fileRef = D94FD1B8216D730300B84E45 /* CampCounts.m */; };
-		D94FD1EC216D730300B84E45 /* CampAttributes.m in Sources */ = {isa = PBXBuildFile; fileRef = D94FD1B9216D730300B84E45 /* CampAttributes.m */; };
-		D94FD1F4216D730300B84E45 /* CampSummaries.m in Sources */ = {isa = PBXBuildFile; fileRef = D94FD1C3216D730300B84E45 /* CampSummaries.m */; };
 		D94FD1F5216D730300B84E45 /* Camp.m in Sources */ = {isa = PBXBuildFile; fileRef = D94FD1C4216D730300B84E45 /* Camp.m */; };
 		D94FD1FE216D730300B84E45 /* Post.m in Sources */ = {isa = PBXBuildFile; fileRef = D94FD1D3216D730300B84E45 /* Post.m */; };
 		D94FD202216D730300B84E45 /* User.m in Sources */ = {isa = PBXBuildFile; fileRef = D94FD1DA216D730300B84E45 /* User.m */; };
@@ -333,8 +335,6 @@
 		D9EDE5DA216FC76000A869F8 /* ErrorCodes.m in Sources */ = {isa = PBXBuildFile; fileRef = D9EDE5D9216FC76000A869F8 /* ErrorCodes.m */; };
 		D9FFFB43227B5A3F004E3779 /* BFTipsManager.m in Sources */ = {isa = PBXBuildFile; fileRef = D9FFFB42227B5A3F004E3779 /* BFTipsManager.m */; };
 		D9FFFB46227B63A0004E3779 /* BFTipView.m in Sources */ = {isa = PBXBuildFile; fileRef = D9FFFB45227B63A0004E3779 /* BFTipView.m */; };
-		D9FFFB4A227C9664004E3779 /* BFHostedVersions.m in Sources */ = {isa = PBXBuildFile; fileRef = D9FFFB49227C9664004E3779 /* BFHostedVersions.m */; };
-		D9FFFB4D227C9778004E3779 /* CampMedia.m in Sources */ = {isa = PBXBuildFile; fileRef = D9FFFB4C227C9778004E3779 /* CampMedia.m */; };
 		D9FFFB50227DFC4E004E3779 /* UIImage+WithColor.m in Sources */ = {isa = PBXBuildFile; fileRef = D9FFFB4F227DFC4E004E3779 /* UIImage+WithColor.m */; };
 		D9FFFB5E227E5E08004E3779 /* KSSDImageManager.m in Sources */ = {isa = PBXBuildFile; fileRef = D9FFFB53227E5E07004E3779 /* KSSDImageManager.m */; };
 		D9FFFB5F227E5E08004E3779 /* UIImage+KS.m in Sources */ = {isa = PBXBuildFile; fileRef = D9FFFB55227E5E07004E3779 /* UIImage+KS.m */; };
@@ -362,6 +362,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		1AA7938124978FF900FE5F60 /* Pulse-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Pulse-Bridging-Header.h"; sourceTree = "<group>"; };
+		1AA793862497973A00FE5F60 /* CampCounts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampCounts.swift; sourceTree = "<group>"; };
+		1AA793882497A10900FE5F60 /* CampSummaries.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampSummaries.swift; sourceTree = "<group>"; };
+		1AA7938A2497B74700FE5F60 /* CampMedia.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampMedia.swift; sourceTree = "<group>"; };
 		1D7D23CE65ED61B66F417CD9 /* Pods-Pulse.beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Pulse.beta.xcconfig"; path = "Target Support Files/Pods-Pulse/Pods-Pulse.beta.xcconfig"; sourceTree = "<group>"; };
 		20CE35AE05F596BB25083027 /* libPods-PulseUITests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-PulseUITests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		41EB16E3236FCD5300116C90 /* ThemeSelectorInputCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ThemeSelectorInputCell.m; path = "Pulse/Controllers/User/Edit Profile/ThemeSelectorInputCell.m"; sourceTree = SOURCE_ROOT; };
@@ -1074,6 +1078,7 @@
 				D9A7A2A3225E68610091B53C /* GoogleService-Info.plist */,
 				D9BD770F2172784F00DAB9BE /* Supporting Files */,
 				D97CA4242422E3E700C09140 /* Onboarding Flow.rtf */,
+				1AA7938124978FF900FE5F60 /* Pulse-Bridging-Header.h */,
 			);
 			path = Pulse;
 			sourceTree = "<group>";
@@ -1783,10 +1788,13 @@
 				D94FD1B9216D730300B84E45 /* CampAttributes.m */,
 				D94FD1B4216D730300B84E45 /* CampSummaries.h */,
 				D94FD1C3216D730300B84E45 /* CampSummaries.m */,
+				1AA793882497A10900FE5F60 /* CampSummaries.swift */,
 				D94FD1C1216D730300B84E45 /* CampCounts.h */,
 				D94FD1B8216D730300B84E45 /* CampCounts.m */,
+				1AA793862497973A00FE5F60 /* CampCounts.swift */,
 				D9FFFB4B227C9778004E3779 /* CampMedia.h */,
 				D9FFFB4C227C9778004E3779 /* CampMedia.m */,
+				1AA7938A2497B74700FE5F60 /* CampMedia.swift */,
 			);
 			path = Camp;
 			sourceTree = "<group>";
@@ -2731,7 +2739,6 @@
 				D94DE3322199203C00CA3E1F /* SSWDirectionalPanGestureRecognizer.m in Sources */,
 				D9145AB023CF76CD00BB9FFD /* BFMiniNotificationView.m in Sources */,
 				D924BE2D21542EE400EB7385 /* PostTextView.m in Sources */,
-				D94FD1F4216D730300B84E45 /* CampSummaries.m in Sources */,
 				D907B1042150697400A59712 /* NSArray+Clean.m in Sources */,
 				D955EA3E247EE99F00947D17 /* PostModerationInsightsTableViewCell.m in Sources */,
 				D9742E8021C5AB3E002CBEFC /* PrivacySelectorTableViewController.m in Sources */,
@@ -2759,6 +2766,7 @@
 				D96AD7922180DA3D00849F6B /* EditProfileViewController.m in Sources */,
 				D916430D2162C3A100523770 /* SearchResultCell.m in Sources */,
 				D9114F8321954D4F0033765A /* MemberRequestCell.m in Sources */,
+				1AA793832497901600FE5F60 /* CampAttributes.m in Sources */,
 				D91CA65323A55BE10055973A /* ICSDropShadowView.m in Sources */,
 				D90047D32286100D006B4B3D /* EFCircularSlider.m in Sources */,
 				41EB16E5236FCD5300116C90 /* ThemeSelectorInputCell.m in Sources */,
@@ -2778,7 +2786,9 @@
 				D9C8B558219F5A3600A9A282 /* TabController.m in Sources */,
 				D93F7F1B225938E300450D9E /* BFRefreshControl.m in Sources */,
 				D93C5E1022E53D2A00A9F827 /* MyCampsTableViewController.m in Sources */,
+				1AA7938B2497B74700FE5F60 /* CampMedia.swift in Sources */,
 				D97D3AB32410385A006A6BA1 /* GIFCollectionViewController.m in Sources */,
+				1AA7937D24978F1A00FE5F60 /* BFHostedVersions.m in Sources */,
 				D9BD47BE23563D57001E027E /* JKDelegateProxy.m in Sources */,
 				D91CA65223A55BE10055973A /* ICSDrawerController.m in Sources */,
 				D95EE38E229C47CE006E4D8E /* BFNotificationManager.m in Sources */,
@@ -2786,6 +2796,7 @@
 				D921171121A6162500853F3F /* InviteFriendHeaderCell.m in Sources */,
 				D9BD47C42358A4E1001E027E /* UITextView+Extras.m in Sources */,
 				D9679E4E22CBDD8000253CCA /* SetAnIcebreakerViewController.m in Sources */,
+				1AA793892497A10900FE5F60 /* CampSummaries.swift in Sources */,
 				D97D3AB92412DD17006A6BA1 /* BFActivityIndicatorView.m in Sources */,
 				D9D9B18E21CF1BE700B5003B /* LargeCampCardCell.m in Sources */,
 				D9BD77172177DD1F00DAB9BE /* Defaults.m in Sources */,
@@ -2799,7 +2810,6 @@
 				D9C2AC902367913D00FB9623 /* UIFont+App.m in Sources */,
 				D9BD47B923563D57001E027E /* JKRichTextViewLinkBlockDataHandler.m in Sources */,
 				D9C03944215D6F1900B30A41 /* ComplexNavigationController.m in Sources */,
-				D9FFFB4D227C9778004E3779 /* CampMedia.m in Sources */,
 				D96AB134237DEF2200838D58 /* BFJSONModel.m in Sources */,
 				D97E841624732A6F0048CFC5 /* UIView+Guides.m in Sources */,
 				D912BD80223314B900F9F4EC /* UserActivityStream.m in Sources */,
@@ -2831,7 +2841,6 @@
 				D9E94BB722DE6D9500238FDC /* InviteToCampViewController.m in Sources */,
 				D9E5EB8A2203D1DB00B9F5FD /* ReplyCell.m in Sources */,
 				D9267C6421D6B3A600E21862 /* SmartList.m in Sources */,
-				D94FD1EC216D730300B84E45 /* CampAttributes.m in Sources */,
 				D9D9B18521CECCA300B5003B /* MiniAvatarListCell.m in Sources */,
 				D9FFFB5F227E5E08004E3779 /* UIImage+KS.m in Sources */,
 				D9E5EB8121FF6AE000B9F5FD /* ThemedViewController.m in Sources */,
@@ -2859,7 +2868,6 @@
 				D9373E9122D90BF800EB18E9 /* GenericStream.m in Sources */,
 				D912BD73222DA86B00F9F4EC /* AddManagerCell.m in Sources */,
 				D9CB78E82166BAD700EEDBC9 /* ExpandedPostCell.m in Sources */,
-				D94FD1EB216D730300B84E45 /* CampCounts.m in Sources */,
 				D9A7A2B822626A0E0091B53C /* BFAPI.m in Sources */,
 				D98F194B235268A600635846 /* BFUpsellTableViewCell.m in Sources */,
 				D99314082301F2A2004C192B /* OutOfDateClientViewController.m in Sources */,
@@ -2905,7 +2913,6 @@
 				D9E5EB7E21FC199000B9F5FD /* ProfileFollowingListViewController.m in Sources */,
 				D9BF52AA21D45F84004E9F12 /* MiniToLargeViewInteractive.m in Sources */,
 				D971624121DC7D1F00138BF9 /* ExtendNSLogFunctionality.m in Sources */,
-				D9FFFB4A227C9664004E3779 /* BFHostedVersions.m in Sources */,
 				D971623D21DC3D3900138BF9 /* InsightsLoggerTimeframe.m in Sources */,
 				D95EE38D229C47CE006E4D8E /* BFNotificationView.m in Sources */,
 				D974B741216009F200C03269 /* CampStoreTableViewController.m in Sources */,
@@ -2913,6 +2920,7 @@
 				D96AD7962181029600849F6B /* ProfilePictureCell.m in Sources */,
 				D963024923D5134C0025D2CF /* BFComponentSectionTableView.m in Sources */,
 				D94FD1A4216C5B4400B84E45 /* OnboardingViewController.m in Sources */,
+				1AA793872497973A00FE5F60 /* CampCounts.swift in Sources */,
 				D9BD47BD23563D57001E027E /* JKRichTextView.m in Sources */,
 				D9267C6D21D7FAD300E21862 /* LegalTableViewController.m in Sources */,
 				D9BD47CB235A4797001E027E /* BotHeaderCell.m in Sources */,
@@ -3101,6 +3109,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 15;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = 4WLQG965T9;
 				EXCLUDED_SOURCE_FILE_NAMES = "*.value";
 				FRAMEWORK_SEARCH_PATHS = (
@@ -3139,6 +3148,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 15;
+				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = 4WLQG965T9;
 				EXCLUDED_SOURCE_FILE_NAMES = "*.value";
 				FRAMEWORK_SEARCH_PATHS = (
@@ -3146,6 +3156,7 @@
 					"$(PROJECT_DIR)",
 					"$(SRCROOT)",
 				);
+				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREFIX_HEADER = "$(SRCROOT)/Pulse/Pulse-Prefix.pch";
 				INFOPLIST_FILE = Pulse/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
@@ -3407,6 +3418,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 15;
+				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = 4WLQG965T9;
 				EXCLUDED_SOURCE_FILE_NAMES = "*.value";
 				FRAMEWORK_SEARCH_PATHS = (

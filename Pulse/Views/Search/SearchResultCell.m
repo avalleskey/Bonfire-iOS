@@ -337,7 +337,7 @@
             [self renderCampDetailLabel];
             
             NSInteger new = camp.attributes.summaries.counts.postsNewForyou;
-            float scoreIndex = camp.attributes.summaries.counts.scoreIndex;
+            NSInteger scoreIndex = camp.attributes.summaries.counts.scoreIndex;
                         
             self.actionButton.hidden = !self.showActionButton || !([camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_NO_RELATION] || [camp.attributes.context.camp.status isEqualToString:CAMP_STATUS_LEFT]);
             self.contextButton.hidden = ![self.actionButton isHidden] || (new == 0 && scoreIndex == 0);

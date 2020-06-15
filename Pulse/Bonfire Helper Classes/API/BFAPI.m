@@ -265,7 +265,7 @@
                     r.attributes.context.camp = campContextResponse;
                     
                     if ([r isMember]) {
-                        r.attributes.summaries.counts.members = r.attributes.summaries.counts.members + 1;
+                        r.attributes.summaries.counts.members = [NSNumber numberWithInt: r.attributes.summaries.counts.members.intValue + 1] ;
                         
                         if (r.attributes.summaries.members.count < 6) {
                             // add yourself as a user, so we can update the canvas pic!
@@ -357,7 +357,7 @@
     
     // update it instantly
     if ([r isMember]) {
-        r.attributes.summaries.counts.members = r.attributes.summaries.counts.members - 1;
+        r.attributes.summaries.counts.members = [NSNumber numberWithInt: r.attributes.summaries.counts.members.intValue - 1];
         
         // remove the user from the summaries (if needed)
         NSMutableArray <User *> *mutableSummariesMembersArray = [NSMutableArray array];

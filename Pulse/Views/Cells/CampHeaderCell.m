@@ -140,11 +140,11 @@
                 BFAlertAction *cta;
                 
                 if (self.campAvatarReasonView.tag == CAMP_CONTEXT_BUBBLE_TAG_ACTIVE) {
-                    if (self.camp.attributes.summaries.counts.scoreIndex >= .66) {
+                    if (self.camp.attributes.summaries.counts.scoreIndex.floatValue >= .66) {
                         title = @"On Fire";
                         message = @"Join conversations in this Camp to keep the fire alive!";
                     }
-                    else if (self.camp.attributes.summaries.counts.scoreIndex >= .33) {
+                    else if (self.camp.attributes.summaries.counts.scoreIndex.floatValue >= .33) {
                         title = @"Hot";
                         message = @"Join conversations in this Camp to help it become more popular!";
                     }
@@ -938,7 +938,7 @@
     BFAlertAction *leaveCamp = [BFAlertAction actionWithTitle:([self.camp isChannel] || [self.camp isFeed] ? @"Unsubscribe" : @"Leave Camp") style:BFAlertActionStyleDefault handler:^{
         // confirm action
         BOOL privateCamp = [self.camp isPrivate];
-        BOOL lastMember = self.camp.attributes.summaries.counts.members <= 1;
+        BOOL lastMember = self.camp.attributes.summaries.counts.members.integerValue <= 1;
         BOOL isMember = [self.camp isMember];
         
         void (^leave)(void) = ^(){

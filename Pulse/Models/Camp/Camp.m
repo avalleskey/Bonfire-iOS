@@ -19,9 +19,9 @@
     
     // generate score color
     if (instance.attributes.summaries.counts.scoreIndex > 0) {
-        CGFloat R = 0.96 - 0.05 * instance.attributes.summaries.counts.scoreIndex; // 0.96 (yellow) -> 0.91 (red)
-        CGFloat G = 0.80 - 0.77 * instance.attributes.summaries.counts.scoreIndex; // 0.80 (yellow) -> 0.03 (red)
-        CGFloat B = 0.14 - 0.14 * instance.attributes.summaries.counts.scoreIndex; // 0.14 (yellow) -> 0.00 (red)
+        CGFloat R = 0.96 - 0.05 * instance.attributes.summaries.counts.scoreIndex.floatValue; // 0.96 (yellow) -> 0.91 (red)
+        CGFloat G = 0.80 - 0.77 * instance.attributes.summaries.counts.scoreIndex.floatValue; // 0.80 (yellow) -> 0.03 (red)
+        CGFloat B = 0.14 - 0.14 * instance.attributes.summaries.counts.scoreIndex.floatValue; // 0.14 (yellow) -> 0.00 (red)
         self.scoreColor = [UIColor toHex:[UIColor colorWithRed:R green:G blue:B alpha:1]];
     }
     else {
@@ -94,7 +94,7 @@
 }
 
 - (NSString *)memberCountTieredRepresentation {
-    NSInteger memberCount = (self.attributes.summaries.counts.members ? self.attributes.summaries.counts.members : 0);
+    NSInteger memberCount = (self.attributes.summaries.counts.members.intValue ? self.attributes.summaries.counts.members.intValue : 0);
     
     return [Camp memberCountTieredRepresentationFromInteger:memberCount];
 }

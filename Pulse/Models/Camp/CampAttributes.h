@@ -9,6 +9,7 @@
 #import "BFContext.h"
 #import "CampMedia.h"
 #import "BFLink.h"
+#import "Bonfire-Swift.h"
 
 NS_ASSUME_NONNULL_BEGIN
 

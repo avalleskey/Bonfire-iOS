@@ -9,6 +9,7 @@
 #import "SmallCampCardCell.h"
 #import "UIColor+Palette.h"
 #import "Session.h"
+#import "Bonfire-Swift.h"
 
 #define padding 16
 
@@ -203,7 +204,7 @@
         self.profilePicture.camp = self.camp;
         
         if (self.camp.attributes.summaries.counts.members) {
-            NSInteger members = self.camp.attributes.summaries.counts.members;
+            NSInteger members = self.camp.attributes.summaries.counts.members.intValue;
             self.membersLabel.text = [NSString stringWithFormat:@"%ld %@", members, members == 1 ? @"camper" : @"campers"];
             
             if (members > 0) {

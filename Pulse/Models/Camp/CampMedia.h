@@ -11,11 +11,11 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface CampMedia : BFJSONModel
-
-@property (nonatomic) BFHostedVersions <Optional> *avatar;
-@property (nonatomic) BFHostedVersions <Optional> *cover;
-
-@end
+//@interface CampMedia : BFJSONModel
+//
+//@property (nonatomic) BFHostedVersions <Optional> *avatar;
+//@property (nonatomic) BFHostedVersions <Optional> *cover;
+//
+//@end
 
 NS_ASSUME_NONNULL_END

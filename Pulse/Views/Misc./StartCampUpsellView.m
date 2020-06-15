@@ -12,6 +12,7 @@
 #import <BlocksKit/BlocksKit+UIKit.h>
 #import <HapticHelper/HapticHelper.h>
 #import "Launcher.h"
+#import "Bonfire-Swift.h"
 
 @implementation StartCampUpsellView
 

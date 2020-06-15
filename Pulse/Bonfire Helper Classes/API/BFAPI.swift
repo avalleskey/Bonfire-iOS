@@ -32,6 +32,23 @@ class BFAPI_Swift: NSObject {
         }
     }
     
+    @objc func unblockIdentity(identity: Identity, handler: @escaping((Bool, Any) -> Void)) {
+        NSLog("[SwiftFire] %@", "Unblock User Started")
+        Analytics.logEvent("unblock_user", parameters: [:])
+        let url = "users/\(identity.identifier)/block"
+        
+        HAWebService.authenticatedManager().delete(url, parameters: nil, success: { (task, responseObject) in
+            NSLog("--------");
+            NSLog("success: unblockUser");
+            NSLog("--------");
+            //
+            handler(true, ["blocked": false])
+        }) { (task, error) in
+            NSLog("error: %@", error.localizedDescription)
+            handler(false, ["error": error])
+        }
+    }
+    
     @objc func getUser(handler: ((Bool, User) -> Void)?) {
         NSLog("[SwiftFire] %@", "Get User Started")
         let url = "users/me"

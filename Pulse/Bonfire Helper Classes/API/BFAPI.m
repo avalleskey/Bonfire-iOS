@@ -58,23 +58,8 @@
     }];
 }
 + (void)unblockIdentity:(Identity *)identity completion:(void (^ _Nullable)(BOOL success, id responseObject))handler {
-    [FIRAnalytics logEventWithName:@"unblock_user"
-                        parameters:@{}];
-    
-    NSString *url = [NSString stringWithFormat:@"users/%@/block", identity.identifier]; // sample data
-    
-    [[HAWebService authenticatedManager] DELETE:url parameters:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        NSLog(@"--------");
-        NSLog(@"success: unblockUser");
-        NSLog(@"--------");
-                
-        handler(true, @{@"blocked": @false});
-    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-        NSLog(@"error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);
-        NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-        NSLog(@"%@",ErrorResponse);
-        
-        handler(false, @{@"error": ErrorResponse});
+    [[BFAPI_Swift shared] unblockIdentityWithIdentity:identity handler:^(BOOL success, id _Nonnull responseObject) {
+        handler(success, responseObject);
     }];
 }
 

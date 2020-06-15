@@ -7,7 +7,6 @@
 #import "BFJSONModel.h"
 #import "CampCounts.h"
 #import "User.h"
-#import "Bonfire-Swift.h"
 
 //@interface CampSummaries : BFJSONModel
 //

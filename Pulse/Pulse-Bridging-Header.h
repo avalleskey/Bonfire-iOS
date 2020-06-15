@@ -14,5 +14,6 @@
 #import "BFJSONModel.h"
 #import "CampCounts.h"
 #import "User.h"
+#import "HAWebService.h"
 
 #endif /* Pulse_Bridging_Header_h */

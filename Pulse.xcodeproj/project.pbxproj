@@ -12,6 +12,7 @@
 		1AA793872497973A00FE5F60 /* CampCounts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA793862497973A00FE5F60 /* CampCounts.swift */; };
 		1AA793892497A10900FE5F60 /* CampSummaries.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA793882497A10900FE5F60 /* CampSummaries.swift */; };
 		1AA7938B2497B74700FE5F60 /* CampMedia.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA7938A2497B74700FE5F60 /* CampMedia.swift */; };
+		1AA7938D2497C79700FE5F60 /* BFAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA7938C2497C79700FE5F60 /* BFAPI.swift */; };
 		41EB16E5236FCD5300116C90 /* ThemeSelectorInputCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 41EB16E3236FCD5300116C90 /* ThemeSelectorInputCell.m */; };
 		41FED4372369FC3A00CBAD26 /* BFLink.m in Sources */ = {isa = PBXBuildFile; fileRef = 41FED4362369FC3A00CBAD26 /* BFLink.m */; };
 		66750B19236AB886E9C26E96 /* libPods-PulseUITests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 20CE35AE05F596BB25083027 /* libPods-PulseUITests.a */; };
@@ -366,6 +367,7 @@
 		1AA793862497973A00FE5F60 /* CampCounts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampCounts.swift; sourceTree = "<group>"; };
 		1AA793882497A10900FE5F60 /* CampSummaries.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampSummaries.swift; sourceTree = "<group>"; };
 		1AA7938A2497B74700FE5F60 /* CampMedia.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampMedia.swift; sourceTree = "<group>"; };
+		1AA7938C2497C79700FE5F60 /* BFAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFAPI.swift; sourceTree = "<group>"; };
 		1D7D23CE65ED61B66F417CD9 /* Pods-Pulse.beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Pulse.beta.xcconfig"; path = "Target Support Files/Pods-Pulse/Pods-Pulse.beta.xcconfig"; sourceTree = "<group>"; };
 		20CE35AE05F596BB25083027 /* libPods-PulseUITests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-PulseUITests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		41EB16E3236FCD5300116C90 /* ThemeSelectorInputCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ThemeSelectorInputCell.m; path = "Pulse/Controllers/User/Edit Profile/ThemeSelectorInputCell.m"; sourceTree = SOURCE_ROOT; };
@@ -1069,6 +1071,7 @@
 				D9BC7C1723A943F0005614A4 /* UIApplication+CFABackgroundTask.m */,
 				D907B086214EEC5000A59712 /* Main.storyboard */,
 				D907B08B214EEC5300A59712 /* LaunchScreen.storyboard */,
+				1AA7938124978FF900FE5F60 /* Pulse-Bridging-Header.h */,
 				D9A7A2B4226268CE0091B53C /* Bonfire Helper Classes */,
 				D983D72D216D80A500F9D201 /* Models */,
 				D9E8E87D21C2010000DDFEBA /* Utilities */,
@@ -1078,7 +1081,6 @@
 				D9A7A2A3225E68610091B53C /* GoogleService-Info.plist */,
 				D9BD770F2172784F00DAB9BE /* Supporting Files */,
 				D97CA4242422E3E700C09140 /* Onboarding Flow.rtf */,
-				1AA7938124978FF900FE5F60 /* Pulse-Bridging-Header.h */,
 			);
 			path = Pulse;
 			sourceTree = "<group>";
@@ -1132,6 +1134,7 @@
 			children = (
 				D9A7A2B622626A0E0091B53C /* BFAPI.h */,
 				D9A7A2B722626A0E0091B53C /* BFAPI.m */,
+				1AA7938C2497C79700FE5F60 /* BFAPI.swift */,
 			);
 			path = API;
 			sourceTree = "<group>";
@@ -2801,6 +2804,7 @@
 				D9D9B18E21CF1BE700B5003B /* LargeCampCardCell.m in Sources */,
 				D9BD77172177DD1F00DAB9BE /* Defaults.m in Sources */,
 				D912BD7D2232F3A100F9F4EC /* UserActivity.m in Sources */,
+				1AA7938D2497C79700FE5F60 /* BFAPI.swift in Sources */,
 				D9742E7D21C57CCE002CBEFC /* BFAvatarView.m in Sources */,
 				D97E8413247305040048CFC5 /* BFVideoPlayerViewController.m in Sources */,
 				D97D3AA72404ABD3006A6BA1 /* BFCameraSwiper.m in Sources */,

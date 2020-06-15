@@ -95,59 +95,22 @@
 
 #pragma mark - User
 + (void)getUser:(void (^ _Nullable)(BOOL success))handler {
-    NSString *url = @"users/me";
-        
-    [[HAWebService authenticatedManager] GET:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        NSError *error;
-        
-        User *user = [[User alloc] initWithDictionary:responseObject[@"data"] error:&error];
-        if (error) { NSLog(@"GET -> /users/me; User error: %@", error); }
-        
+    [[BFAPI_Swift shared] getUserWithHandler:^(BOOL status, User * _Nonnull user) {
         [[Session sharedInstance] updateUser:user];
-        
         if (handler) {
-            handler(TRUE);
-        }
-    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-        NSLog(@"❌ Failed to get User ID");
-        NSString *ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-        NSLog(@"%@", ErrorResponse);
-        
-        if (handler) {
-            handler(FALSE);
+            handler(status);
         }
     }];
 }
+
 + (void)followUser:(User *)user completion:(void (^ _Nullable)(BOOL success, id responseObject))handler {
-    [FIRAnalytics logEventWithName:@"follow_user"
-                        parameters:@{}];
-    
-    NSString *url = [NSString stringWithFormat:@"users/%@/follow", user.identifier]; // sample data
-        
-    [[HAWebService authenticatedManager] POST:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        NSLog(@"--------");
-        NSLog(@"success: followUser");
-        NSLog(@"--------");
-        
-        // refresh user object
-        // [[NSNotificationCenter defaultCenter] postNotificationName:@"refreshMyCamps" object:nil];
-        
-        //NSError *error;
-        //CampContext *campContextResponse = [[CampContext alloc] initWithDictionary:responseObject[@"data"] error:&error];
-        
-        //if (!error) { NSLog(@"camp context reponse:"); NSLog(@"%@", campContextResponse); };
-        
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"FetchNewTimelinePosts" object:nil];
-        
-        handler(true, @{@"following": @true});
-    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-        NSLog(@"error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);
-        NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-        NSLog(@"%@",ErrorResponse);
-        
-        handler(false, @{@"error": ErrorResponse});
+    [[BFAPI_Swift shared] followUserWithUser:user handler:^(BOOL status, id _Nullable responseObject) {
+        if(handler) {
+            handler(status, responseObject);
+        }
     }];
 }
+
 + (void)unfollowUser:(User *)user completion:(void (^ _Nullable)(BOOL success, id responseObject))handler {
     [FIRAnalytics logEventWithName:@"unfollow_user"
                         parameters:@{}];

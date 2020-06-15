@@ -53,23 +53,8 @@
 
 #pragma mark - Identity
 + (void)blockIdentity:(Identity *)identity completion:(void (^ _Nullable)(BOOL success, id responseObject))handler {
-    [FIRAnalytics logEventWithName:@"block_user"
-                        parameters:@{}];
-    
-    NSString *url = [NSString stringWithFormat:@"users/%@/block", identity.identifier]; // sample data
-    
-    [[HAWebService authenticatedManager] POST:url parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        NSLog(@"--------");
-        NSLog(@"success: blockUser");
-        NSLog(@"--------");
-        
-        handler(true, @{@"blocked": @true});
-    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-        NSLog(@"error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);
-        NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-        NSLog(@"%@",ErrorResponse);
-        
-        handler(false, @{@"error": ErrorResponse});
+    [[BFAPI_Swift shared] blockIdentityWithIdentity:identity handler:^(BOOL success, id _Nonnull responseObject) {
+        handler(success, responseObject);
     }];
 }
 + (void)unblockIdentity:(Identity *)identity completion:(void (^ _Nullable)(BOOL success, id responseObject))handler {

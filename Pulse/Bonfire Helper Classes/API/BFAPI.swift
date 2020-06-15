@@ -13,7 +13,24 @@ import FirebaseAnalytics
 class BFAPI_Swift: NSObject {
     
     @objc static let shared = BFAPI_Swift()
-    private override init() {} 
+    private override init() {}
+    
+    @objc func blockIdentity(identity: Identity, handler: @escaping((Bool, Any) -> Void)) {
+        NSLog("[SwiftFire] %@", "Block User Started")
+        Analytics.logEvent("block_user", parameters: [:])
+        let url = "users/\(identity.identifier)/block"
+        
+        HAWebService.authenticatedManager().post(url, parameters: nil, success: { (task, responseObject) in
+            NSLog("--------");
+            NSLog("success: blockUser");
+            NSLog("--------");
+            //
+            handler(true, ["blocked": true])
+        }) { (task, error) in
+            NSLog("error: %@", error.localizedDescription)
+            handler(false, ["error": error])
+        }
+    }
     
     @objc func getUser(handler: ((Bool, User) -> Void)?) {
         NSLog("[SwiftFire] %@", "Get User Started")

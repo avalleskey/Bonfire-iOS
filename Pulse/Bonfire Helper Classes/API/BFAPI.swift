@@ -56,4 +56,21 @@ class BFAPI_Swift: NSObject {
             handler(false, error)
         }
     }
+    
+    @objc func unfollowUser(user: User, handler: @escaping ((Bool, Any?) -> Void)) {
+        NSLog("[SwiftFire] %@", "Unfollow User Started")
+        Analytics.logEvent("unfollow_user", parameters: [:])
+        
+        let url = "users/\(user.identifier)/follow"
+        HAWebService.authenticatedManager().delete(url, parameters: nil, success: { (task, responseObject) in
+            NSLog("--------");
+            NSLog("success: unfollowUser");
+            NSLog("--------");
+            
+            handler(true, ["following": false])
+        }) { (task, error) in
+            NSLog("%@", error.localizedDescription)
+            handler(false, ["error": error])
+        }
+    }
 }

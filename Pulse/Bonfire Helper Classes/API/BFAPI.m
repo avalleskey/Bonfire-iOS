@@ -112,23 +112,10 @@
 }
 
 + (void)unfollowUser:(User *)user completion:(void (^ _Nullable)(BOOL success, id responseObject))handler {
-    [FIRAnalytics logEventWithName:@"unfollow_user"
-                        parameters:@{}];
-    
-    NSString *url = [NSString stringWithFormat:@"users/%@/follow", user.identifier]; // sample data
-    
-    [[HAWebService authenticatedManager] DELETE:url parameters:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        NSLog(@"--------");
-        NSLog(@"success: unfollowUser");
-        NSLog(@"--------");
-        
-        handler(true, @{@"following": @false});
-    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-        NSLog(@"error: %@", error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey]);
-        NSString* ErrorResponse = [[NSString alloc] initWithData:(NSData *)error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] encoding:NSUTF8StringEncoding];
-        NSLog(@"%@",ErrorResponse);
-        
-        handler(false, @{@"error": ErrorResponse});
+    [[BFAPI_Swift shared] unfollowUserWithUser:user handler:^(BOOL status, id _Nullable responseObject) {
+        if(handler) {
+            handler(status, responseObject);
+        }
     }];
 }
 + (void)subscribeToUser:(User *_Nonnull)user completion:(void (^_Nullable)(BOOL success, User *_Nullable user))handler {

@@ -967,6 +967,7 @@ static NSString * const paginationCellIdentifier = @"PaginationCell";
         }
         
         cell.topLine.hidden = ![self hasParentPost];
+        cell.userInteractionEnabled = true;
                 
         return cell;
     }

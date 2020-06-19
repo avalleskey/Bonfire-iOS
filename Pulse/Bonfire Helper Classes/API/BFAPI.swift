@@ -10,12 +10,12 @@ import Foundation
 import FirebaseAnalytics
 
 @objc(BFAPI_Swift)
-class BFAPI_Swift: NSObject {
+final class BFAPI_Swift: NSObject {
     
     @objc static let shared = BFAPI_Swift()
     private override init() {}
     
-    @objc func blockIdentity(identity: Identity, handler: @escaping((Bool, Any) -> Void)) {
+    @objc final func blockIdentity(identity: Identity, handler: @escaping((Bool, Any) -> Void)) {
         NSLog("[SwiftFire] %@", "Block User Started")
         Analytics.logEvent("block_user", parameters: [:])
         let url = "users/\(identity.identifier)/block"

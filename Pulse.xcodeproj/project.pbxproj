@@ -13,6 +13,7 @@
 		1AA793892497A10900FE5F60 /* CampSummaries.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA793882497A10900FE5F60 /* CampSummaries.swift */; };
 		1AA7938B2497B74700FE5F60 /* CampMedia.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA7938A2497B74700FE5F60 /* CampMedia.swift */; };
 		1AA7938D2497C79700FE5F60 /* BFAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA7938C2497C79700FE5F60 /* BFAPI.swift */; };
+		1AA793C42499D43700FE5F60 /* Post.m in Sources */ = {isa = PBXBuildFile; fileRef = D94FD1D3216D730300B84E45 /* Post.m */; };
 		41EB16E5236FCD5300116C90 /* ThemeSelectorInputCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 41EB16E3236FCD5300116C90 /* ThemeSelectorInputCell.m */; };
 		41FED4372369FC3A00CBAD26 /* BFLink.m in Sources */ = {isa = PBXBuildFile; fileRef = 41FED4362369FC3A00CBAD26 /* BFLink.m */; };
 		66750B19236AB886E9C26E96 /* libPods-PulseUITests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 20CE35AE05F596BB25083027 /* libPods-PulseUITests.a */; };
@@ -107,7 +108,6 @@
 		D94FD19821685D6000B84E45 /* CreateCampViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D94FD19721685D6000B84E45 /* CreateCampViewController.m */; };
 		D94FD1A4216C5B4400B84E45 /* OnboardingViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D94FD1A2216C5B4300B84E45 /* OnboardingViewController.m */; };
 		D94FD1F5216D730300B84E45 /* Camp.m in Sources */ = {isa = PBXBuildFile; fileRef = D94FD1C4216D730300B84E45 /* Camp.m */; };
-		D94FD1FE216D730300B84E45 /* Post.m in Sources */ = {isa = PBXBuildFile; fileRef = D94FD1D3216D730300B84E45 /* Post.m */; };
 		D94FD202216D730300B84E45 /* User.m in Sources */ = {isa = PBXBuildFile; fileRef = D94FD1DA216D730300B84E45 /* User.m */; };
 		D9504D32221F59AB00DD35B0 /* StreamPostCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D9504D30221F59AB00DD35B0 /* StreamPostCell.m */; };
 		D9504D382223328600DD35B0 /* QuickReplyViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D9504D372223328600DD35B0 /* QuickReplyViewController.m */; };
@@ -2568,7 +2568,6 @@
 				D9164321216678A200523770 /* ProfileHeaderCell.m in Sources */,
 				D9FFFB5E227E5E08004E3779 /* KSSDImageManager.m in Sources */,
 				D9C0394D215DF17000B30A41 /* HomeTableViewController.m in Sources */,
-				D94FD1FE216D730300B84E45 /* Post.m in Sources */,
 				D96AB137237DF8E100838D58 /* NSNull+JSON.m in Sources */,
 				D94F3317221A247A00331ADC /* ExpandThreadCell.m in Sources */,
 				D9164310216407C300523770 /* ProfileViewController.m in Sources */,
@@ -2676,6 +2675,7 @@
 				D9BD47CB235A4797001E027E /* BotHeaderCell.m in Sources */,
 				D9E8E87C21C1C9D600DDFEBA /* ToggleCell.m in Sources */,
 				D9E8E88021C2014000DDFEBA /* NSString+Validation.m in Sources */,
+				1AA793C42499D43700FE5F60 /* Post.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2876,6 +2876,7 @@
 				);
 				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "Ingenious.bonfire$(BUNDLE_ID_SUFFIX)";
+				PRODUCT_MODULE_NAME = Bonfire;
 				PRODUCT_NAME = "Bonfire b$(CURRENT_PROJECT_VERSION)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SCSDKClientId = "ab6bfe71-3708-45ec-bac6-30c6149a2a80";
@@ -2916,6 +2917,7 @@
 				);
 				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "Ingenious.bonfire$(BUNDLE_ID_SUFFIX)";
+				PRODUCT_MODULE_NAME = Bonfire;
 				PRODUCT_NAME = Bonfire;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SCSDKClientId = "b76c89e7-9879-4028-88ff-af7d707663b6";
@@ -3185,6 +3187,7 @@
 				);
 				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "Ingenious.bonfire$(BUNDLE_ID_SUFFIX)";
+				PRODUCT_MODULE_NAME = Bonfire;
 				PRODUCT_NAME = Bonfire;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SCSDKClientId = "b76c89e7-9879-4028-88ff-af7d707663b6";

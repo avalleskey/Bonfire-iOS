@@ -38,14 +38,16 @@
         _messageLabel = [[JKRichTextView alloc] initWithFrame:frame];
         _messageLabel.textAlignment = NSTextAlignmentCenter;
         _messageLabel.clipsToBounds = false;
+        _messageLabel.selectable = true;
         _messageLabel.layer.masksToBounds = false;
+        
         [self addSubview:_messageLabel];
         
         // [self initPatternDetections];
         UITapGestureRecognizer* doubleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(doubleTap:)];
         doubleTap.numberOfTapsRequired = 2;
         doubleTap.numberOfTouchesRequired = 1;
-        // [self addGestureRecognizer:doubleTap];
+//         [self addGestureRecognizer:doubleTap];
         
         UITapGestureRecognizer *singleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(singleTap:)];
         singleTap.numberOfTapsRequired = 1;

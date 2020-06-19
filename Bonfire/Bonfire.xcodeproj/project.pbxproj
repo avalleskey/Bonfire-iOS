@@ -9,21 +9,76 @@
 /* Begin PBXBuildFile section */
 		1A8446FE249C8652002813CB /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A8446FD249C8652002813CB /* AppDelegate.swift */; };
 		1A844700249C8652002813CB /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A8446FF249C8652002813CB /* SceneDelegate.swift */; };
-		1A844702249C8652002813CB /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A844701249C8652002813CB /* ViewController.swift */; };
+		1A844702249C8652002813CB /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A844701249C8652002813CB /* HomeViewController.swift */; };
 		1A844705249C8652002813CB /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1A844703249C8652002813CB /* Main.storyboard */; };
 		1A844707249C8655002813CB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1A844706249C8655002813CB /* Assets.xcassets */; };
 		1A84470A249C8655002813CB /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1A844708249C8655002813CB /* LaunchScreen.storyboard */; };
+		1A844728249D4B88002813CB /* BFNetworking.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A84471F249D4B88002813CB /* BFNetworking.framework */; };
+		1A84472F249D4B88002813CB /* BFNetworkingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A84472E249D4B88002813CB /* BFNetworkingTests.swift */; };
+		1A844731249D4B88002813CB /* BFNetworking.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A844721249D4B88002813CB /* BFNetworking.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1A844734249D4B88002813CB /* BFNetworking.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A84471F249D4B88002813CB /* BFNetworking.framework */; };
+		1A844735249D4B88002813CB /* BFNetworking.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 1A84471F249D4B88002813CB /* BFNetworking.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		1A84473D249D4B98002813CB /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A844714249D4AEF002813CB /* APIClient.swift */; };
+		1A84473E249D4B9B002813CB /* APIRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A844716249D4B0C002813CB /* APIRequest.swift */; };
+		1A84473F249D4B9B002813CB /* APIError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A844718249D4B1C002813CB /* APIError.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		1A844729249D4B88002813CB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1A8446F2249C8652002813CB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1A84471E249D4B88002813CB;
+			remoteInfo = BFNetworking;
+		};
+		1A84472B249D4B88002813CB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1A8446F2249C8652002813CB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1A8446F9249C8652002813CB;
+			remoteInfo = Bonfire;
+		};
+		1A844732249D4B88002813CB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1A8446F2249C8652002813CB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1A84471E249D4B88002813CB;
+			remoteInfo = BFNetworking;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		1A844739249D4B88002813CB /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				1A844735249D4B88002813CB /* BFNetworking.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		1A8446FA249C8652002813CB /* Bonfire.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Bonfire.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A8446FD249C8652002813CB /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		1A8446FF249C8652002813CB /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		1A844701249C8652002813CB /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		1A844701249C8652002813CB /* HomeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewController.swift; sourceTree = "<group>"; };
 		1A844704249C8652002813CB /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		1A844706249C8655002813CB /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		1A844709249C8655002813CB /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		1A84470B249C8655002813CB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		1A844714249D4AEF002813CB /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
+		1A844716249D4B0C002813CB /* APIRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIRequest.swift; sourceTree = "<group>"; };
+		1A844718249D4B1C002813CB /* APIError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIError.swift; sourceTree = "<group>"; };
+		1A84471F249D4B88002813CB /* BFNetworking.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = BFNetworking.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		1A844721249D4B88002813CB /* BFNetworking.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BFNetworking.h; sourceTree = "<group>"; };
+		1A844722249D4B88002813CB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		1A844727249D4B88002813CB /* BFNetworkingTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BFNetworkingTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		1A84472E249D4B88002813CB /* BFNetworkingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFNetworkingTests.swift; sourceTree = "<group>"; };
+		1A844730249D4B88002813CB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -31,6 +86,22 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1A844734249D4B88002813CB /* BFNetworking.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1A84471C249D4B88002813CB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1A844724249D4B88002813CB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1A844728249D4B88002813CB /* BFNetworking.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -41,6 +112,8 @@
 			isa = PBXGroup;
 			children = (
 				1A8446FC249C8652002813CB /* Bonfire */,
+				1A844720249D4B88002813CB /* BFNetworking */,
+				1A84472D249D4B88002813CB /* BFNetworkingTests */,
 				1A8446FB249C8652002813CB /* Products */,
 			);
 			sourceTree = "<group>";
@@ -49,6 +122,8 @@
 			isa = PBXGroup;
 			children = (
 				1A8446FA249C8652002813CB /* Bonfire.app */,
+				1A84471F249D4B88002813CB /* BFNetworking.framework */,
+				1A844727249D4B88002813CB /* BFNetworkingTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -56,9 +131,9 @@
 		1A8446FC249C8652002813CB /* Bonfire */ = {
 			isa = PBXGroup;
 			children = (
+				1A844740249D4BAD002813CB /* View Controllers */,
 				1A8446FD249C8652002813CB /* AppDelegate.swift */,
 				1A8446FF249C8652002813CB /* SceneDelegate.swift */,
-				1A844701249C8652002813CB /* ViewController.swift */,
 				1A844703249C8652002813CB /* Main.storyboard */,
 				1A844706249C8655002813CB /* Assets.xcassets */,
 				1A844708249C8655002813CB /* LaunchScreen.storyboard */,
@@ -67,7 +142,55 @@
 			path = Bonfire;
 			sourceTree = "<group>";
 		};
+		1A844713249D4AAA002813CB /* Networking */ = {
+			isa = PBXGroup;
+			children = (
+				1A844714249D4AEF002813CB /* APIClient.swift */,
+				1A844716249D4B0C002813CB /* APIRequest.swift */,
+				1A844718249D4B1C002813CB /* APIError.swift */,
+			);
+			path = Networking;
+			sourceTree = "<group>";
+		};
+		1A844720249D4B88002813CB /* BFNetworking */ = {
+			isa = PBXGroup;
+			children = (
+				1A844713249D4AAA002813CB /* Networking */,
+				1A844721249D4B88002813CB /* BFNetworking.h */,
+				1A844722249D4B88002813CB /* Info.plist */,
+			);
+			path = BFNetworking;
+			sourceTree = "<group>";
+		};
+		1A84472D249D4B88002813CB /* BFNetworkingTests */ = {
+			isa = PBXGroup;
+			children = (
+				1A84472E249D4B88002813CB /* BFNetworkingTests.swift */,
+				1A844730249D4B88002813CB /* Info.plist */,
+			);
+			path = BFNetworkingTests;
+			sourceTree = "<group>";
+		};
+		1A844740249D4BAD002813CB /* View Controllers */ = {
+			isa = PBXGroup;
+			children = (
+				1A844701249C8652002813CB /* HomeViewController.swift */,
+			);
+			path = "View Controllers";
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		1A84471A249D4B88002813CB /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1A844731249D4B88002813CB /* BFNetworking.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
 		1A8446F9249C8652002813CB /* Bonfire */ = {
@@ -77,15 +200,54 @@
 				1A8446F6249C8652002813CB /* Sources */,
 				1A8446F7249C8652002813CB /* Frameworks */,
 				1A8446F8249C8652002813CB /* Resources */,
+				1A844739249D4B88002813CB /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				1A844733249D4B88002813CB /* PBXTargetDependency */,
 			);
 			name = Bonfire;
 			productName = Bonfire;
 			productReference = 1A8446FA249C8652002813CB /* Bonfire.app */;
 			productType = "com.apple.product-type.application";
+		};
+		1A84471E249D4B88002813CB /* BFNetworking */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1A844736249D4B88002813CB /* Build configuration list for PBXNativeTarget "BFNetworking" */;
+			buildPhases = (
+				1A84471A249D4B88002813CB /* Headers */,
+				1A84471B249D4B88002813CB /* Sources */,
+				1A84471C249D4B88002813CB /* Frameworks */,
+				1A84471D249D4B88002813CB /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = BFNetworking;
+			productName = BFNetworking;
+			productReference = 1A84471F249D4B88002813CB /* BFNetworking.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		1A844726249D4B88002813CB /* BFNetworkingTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1A84473A249D4B88002813CB /* Build configuration list for PBXNativeTarget "BFNetworkingTests" */;
+			buildPhases = (
+				1A844723249D4B88002813CB /* Sources */,
+				1A844724249D4B88002813CB /* Frameworks */,
+				1A844725249D4B88002813CB /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1A84472A249D4B88002813CB /* PBXTargetDependency */,
+				1A84472C249D4B88002813CB /* PBXTargetDependency */,
+			);
+			name = BFNetworkingTests;
+			productName = BFNetworkingTests;
+			productReference = 1A844727249D4B88002813CB /* BFNetworkingTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
 
@@ -99,6 +261,13 @@
 				TargetAttributes = {
 					1A8446F9249C8652002813CB = {
 						CreatedOnToolsVersion = 11.4;
+					};
+					1A84471E249D4B88002813CB = {
+						CreatedOnToolsVersion = 11.4;
+					};
+					1A844726249D4B88002813CB = {
+						CreatedOnToolsVersion = 11.4;
+						TestTargetID = 1A8446F9249C8652002813CB;
 					};
 				};
 			};
@@ -116,6 +285,8 @@
 			projectRoot = "";
 			targets = (
 				1A8446F9249C8652002813CB /* Bonfire */,
+				1A84471E249D4B88002813CB /* BFNetworking */,
+				1A844726249D4B88002813CB /* BFNetworkingTests */,
 			);
 		};
 /* End PBXProject section */
@@ -131,6 +302,20 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		1A84471D249D4B88002813CB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1A844725249D4B88002813CB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -138,13 +323,49 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1A844702249C8652002813CB /* ViewController.swift in Sources */,
+				1A844702249C8652002813CB /* HomeViewController.swift in Sources */,
 				1A8446FE249C8652002813CB /* AppDelegate.swift in Sources */,
 				1A844700249C8652002813CB /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		1A84471B249D4B88002813CB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1A84473E249D4B9B002813CB /* APIRequest.swift in Sources */,
+				1A84473D249D4B98002813CB /* APIClient.swift in Sources */,
+				1A84473F249D4B9B002813CB /* APIError.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1A844723249D4B88002813CB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1A84472F249D4B88002813CB /* BFNetworkingTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		1A84472A249D4B88002813CB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1A84471E249D4B88002813CB /* BFNetworking */;
+			targetProxy = 1A844729249D4B88002813CB /* PBXContainerItemProxy */;
+		};
+		1A84472C249D4B88002813CB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1A8446F9249C8652002813CB /* Bonfire */;
+			targetProxy = 1A84472B249D4B88002813CB /* PBXContainerItemProxy */;
+		};
+		1A844733249D4B88002813CB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1A84471E249D4B88002813CB /* BFNetworking */;
+			targetProxy = 1A844732249D4B88002813CB /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		1A844703249C8652002813CB /* Main.storyboard */ = {
@@ -283,10 +504,12 @@
 		1A84470F249C8655002813CB /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = Y6722AVK8T;
+				DEVELOPMENT_TEAM = 4WLQG965T9;
 				INFOPLIST_FILE = Bonfire/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -301,10 +524,12 @@
 		1A844710249C8655002813CB /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = Y6722AVK8T;
+				DEVELOPMENT_TEAM = 4WLQG965T9;
 				INFOPLIST_FILE = Bonfire/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -313,6 +538,100 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		1A844737249D4B88002813CB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = 4WLQG965T9;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				INFOPLIST_FILE = BFNetworking/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = Ingenious.Bonfire.BFNetworking;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		1A844738249D4B88002813CB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = 4WLQG965T9;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				INFOPLIST_FILE = BFNetworking/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = Ingenious.Bonfire.BFNetworking;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+		1A84473B249D4B88002813CB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 4WLQG965T9;
+				INFOPLIST_FILE = BFNetworkingTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = Ingenious.Bonfire.BFNetworkingTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Bonfire.app/Bonfire";
+			};
+			name = Debug;
+		};
+		1A84473C249D4B88002813CB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 4WLQG965T9;
+				INFOPLIST_FILE = BFNetworkingTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = Ingenious.Bonfire.BFNetworkingTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Bonfire.app/Bonfire";
 			};
 			name = Release;
 		};
@@ -333,6 +652,24 @@
 			buildConfigurations = (
 				1A84470F249C8655002813CB /* Debug */,
 				1A844710249C8655002813CB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1A844736249D4B88002813CB /* Build configuration list for PBXNativeTarget "BFNetworking" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1A844737249D4B88002813CB /* Debug */,
+				1A844738249D4B88002813CB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1A84473A249D4B88002813CB /* Build configuration list for PBXNativeTarget "BFNetworkingTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1A84473B249D4B88002813CB /* Debug */,
+				1A84473C249D4B88002813CB /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

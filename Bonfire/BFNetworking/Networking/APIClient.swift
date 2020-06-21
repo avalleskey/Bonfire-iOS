@@ -30,15 +30,6 @@ public struct APIClient {
         urlRequest.httpBody = request.body
         urlRequest.httpMethod = request.method
         urlRequest.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        // TODO: You'll need to add the below if you want to do some kind of keychain-based auth.
-//        if request is RefreshToken {
-//            if let refreshToken = Vault.refreshToken {
-//                urlRequest.addValue("Bearer \(refreshToken)", forHTTPHeaderField: "Authorization")
-//            }
-//        } else if let token = Vault.authToken {
-//            urlRequest.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-//        }
 
         session.dataTask(with: urlRequest) { (data, response, error) in
             guard error == nil else {

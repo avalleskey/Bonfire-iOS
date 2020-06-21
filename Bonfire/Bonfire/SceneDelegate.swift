@@ -3,7 +3,7 @@
 //  Bonfire
 //
 //  Created by James Dale on 19/6/20.
-//  Copyright © 2020 James Dale. All rights reserved.
+//  Copyright © 2020 Ingenious. All rights reserved.
 //
 
 import UIKit
@@ -20,8 +20,20 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
         guard let scene = (scene as? UIWindowScene) else { return }
         
-        let tabVC = UITabBarController()
-        tabVC.setViewControllers([HomeViewController()], animated: false)
+        let tabVC = BFTabBarController()
+        
+        let friendsVC = FriendsViewController()
+        friendsVC.tabBarItem = FriendsViewController.defaultTabBarItem
+        
+        let homeVC = HomeViewController()
+        homeVC.tabBarItem = HomeViewController.defaultTabBarItem
+        
+        let campsVC = CampsViewController()
+        campsVC.tabBarItem = CampsViewController.defaultTabBarItem
+        
+        tabVC.setViewControllers([friendsVC, homeVC, campsVC], animated: false)
+        
+        tabVC.selectedViewController = homeVC
         
         let window = UIWindow(windowScene: scene)
         window.rootViewController = tabVC

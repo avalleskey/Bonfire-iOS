@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1A57FAE7249F5D3D00A407F9 /* BFTabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A57FAE6249F5D3D00A407F9 /* BFTabBarController.swift */; };
+		1A57FAEA249F5D8800A407F9 /* UIView+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A57FAE9249F5D8800A407F9 /* UIView+Extensions.swift */; };
+		1A6859BA249F61FB008DB6BC /* CreatePostViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A6859B9249F61FB008DB6BC /* CreatePostViewController.swift */; };
+		1A6859BD249F632A008DB6BC /* FriendsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A6859BC249F632A008DB6BC /* FriendsTableViewController.swift */; };
+		1A6859BF249F6376008DB6BC /* FriendTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A6859BE249F6376008DB6BC /* FriendTableViewCell.swift */; };
 		1A8446FE249C8652002813CB /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A8446FD249C8652002813CB /* AppDelegate.swift */; };
 		1A844700249C8652002813CB /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A8446FF249C8652002813CB /* SceneDelegate.swift */; };
 		1A844702249C8652002813CB /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A844701249C8652002813CB /* HomeViewController.swift */; };
@@ -22,6 +27,8 @@
 		1A84473F249D4B9B002813CB /* APIError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A844718249D4B1C002813CB /* APIError.swift */; };
 		1A844742249D4C70002813CB /* FriendsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A844741249D4C70002813CB /* FriendsViewController.swift */; };
 		1A844744249D4C78002813CB /* CampsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A844743249D4C78002813CB /* CampsViewController.swift */; };
+		1A94DECC249F70D600AB0200 /* RoundedImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A94DECB249F70D600AB0200 /* RoundedImageView.swift */; };
+		1AFFB1C6249D514900E67E89 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AFFB1C5249D514900E67E89 /* Constants.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -63,6 +70,11 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		1A57FAE6249F5D3D00A407F9 /* BFTabBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFTabBarController.swift; sourceTree = "<group>"; };
+		1A57FAE9249F5D8800A407F9 /* UIView+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIView+Extensions.swift"; sourceTree = "<group>"; };
+		1A6859B9249F61FB008DB6BC /* CreatePostViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatePostViewController.swift; sourceTree = "<group>"; };
+		1A6859BC249F632A008DB6BC /* FriendsTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsTableViewController.swift; sourceTree = "<group>"; };
+		1A6859BE249F6376008DB6BC /* FriendTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendTableViewCell.swift; sourceTree = "<group>"; };
 		1A8446FA249C8652002813CB /* Bonfire.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Bonfire.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A8446FD249C8652002813CB /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		1A8446FF249C8652002813CB /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -81,6 +93,8 @@
 		1A844730249D4B88002813CB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		1A844741249D4C70002813CB /* FriendsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsViewController.swift; sourceTree = "<group>"; };
 		1A844743249D4C78002813CB /* CampsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampsViewController.swift; sourceTree = "<group>"; };
+		1A94DECB249F70D600AB0200 /* RoundedImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundedImageView.swift; sourceTree = "<group>"; };
+		1AFFB1C5249D514900E67E89 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -110,6 +124,25 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		1A57FAE8249F5D7E00A407F9 /* Extensions and Helpers */ = {
+			isa = PBXGroup;
+			children = (
+				1A57FAE9249F5D8800A407F9 /* UIView+Extensions.swift */,
+				1A94DECB249F70D600AB0200 /* RoundedImageView.swift */,
+			);
+			path = "Extensions and Helpers";
+			sourceTree = "<group>";
+		};
+		1A6859BB249F631E008DB6BC /* Friends */ = {
+			isa = PBXGroup;
+			children = (
+				1A844741249D4C70002813CB /* FriendsViewController.swift */,
+				1A6859BC249F632A008DB6BC /* FriendsTableViewController.swift */,
+				1A6859BE249F6376008DB6BC /* FriendTableViewCell.swift */,
+			);
+			path = Friends;
+			sourceTree = "<group>";
+		};
 		1A8446F1249C8652002813CB = {
 			isa = PBXGroup;
 			children = (
@@ -133,6 +166,8 @@
 		1A8446FC249C8652002813CB /* Bonfire */ = {
 			isa = PBXGroup;
 			children = (
+				1A57FAE8249F5D7E00A407F9 /* Extensions and Helpers */,
+				1AFFB1C5249D514900E67E89 /* Constants.swift */,
 				1A844740249D4BAD002813CB /* View Controllers */,
 				1A8446FD249C8652002813CB /* AppDelegate.swift */,
 				1A8446FF249C8652002813CB /* SceneDelegate.swift */,
@@ -175,9 +210,11 @@
 		1A844740249D4BAD002813CB /* View Controllers */ = {
 			isa = PBXGroup;
 			children = (
+				1A6859BB249F631E008DB6BC /* Friends */,
+				1A57FAE6249F5D3D00A407F9 /* BFTabBarController.swift */,
 				1A844701249C8652002813CB /* HomeViewController.swift */,
-				1A844741249D4C70002813CB /* FriendsViewController.swift */,
 				1A844743249D4C78002813CB /* CampsViewController.swift */,
+				1A6859B9249F61FB008DB6BC /* CreatePostViewController.swift */,
 			);
 			path = "View Controllers";
 			sourceTree = "<group>";
@@ -260,7 +297,7 @@
 			attributes = {
 				LastSwiftUpdateCheck = 1140;
 				LastUpgradeCheck = 1140;
-				ORGANIZATIONNAME = "James Dale";
+				ORGANIZATIONNAME = Ingenious;
 				TargetAttributes = {
 					1A8446F9249C8652002813CB = {
 						CreatedOnToolsVersion = 11.4;
@@ -329,7 +366,14 @@
 				1A844742249D4C70002813CB /* FriendsViewController.swift in Sources */,
 				1A844702249C8652002813CB /* HomeViewController.swift in Sources */,
 				1A8446FE249C8652002813CB /* AppDelegate.swift in Sources */,
+				1A6859BF249F6376008DB6BC /* FriendTableViewCell.swift in Sources */,
+				1A6859BD249F632A008DB6BC /* FriendsTableViewController.swift in Sources */,
 				1A844700249C8652002813CB /* SceneDelegate.swift in Sources */,
+				1A57FAE7249F5D3D00A407F9 /* BFTabBarController.swift in Sources */,
+				1A94DECC249F70D600AB0200 /* RoundedImageView.swift in Sources */,
+				1A57FAEA249F5D8800A407F9 /* UIView+Extensions.swift in Sources */,
+				1A6859BA249F61FB008DB6BC /* CreatePostViewController.swift in Sources */,
+				1AFFB1C6249D514900E67E89 /* Constants.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

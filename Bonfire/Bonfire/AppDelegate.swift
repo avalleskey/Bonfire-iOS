@@ -3,7 +3,7 @@
 //  Bonfire
 //
 //  Created by James Dale on 19/6/20.
-//  Copyright © 2020 James Dale. All rights reserved.
+//  Copyright © 2020 Ingenious. All rights reserved.
 //
 
 import UIKit

@@ -20,7 +20,6 @@
 		1A7854CD249FBA6C00BA1589 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A7854CC249FBA6C00BA1589 /* User.swift */; };
 		1A7854CF249FBAE600BA1589 /* GetFriendsRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A7854CE249FBAE600BA1589 /* GetFriendsRequest.swift */; };
 		1A7854D2249FBB1300BA1589 /* BFCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A7854AF249FBA5400BA1589 /* BFCore.framework */; };
-		1A7854D3249FBB1300BA1589 /* BFCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 1A7854AF249FBA5400BA1589 /* BFCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		1A7854D8249FBBBA00BA1589 /* CampController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A7854D7249FBBBA00BA1589 /* CampController.swift */; };
 		1A7854DB249FBBC500BA1589 /* CampControllerProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A7854DA249FBBC500BA1589 /* CampControllerProtocol.swift */; };
 		1A7854DD249FBBF700BA1589 /* Camp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A7854DC249FBBF700BA1589 /* Camp.swift */; };
@@ -104,17 +103,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		1A7854D6249FBB1300BA1589 /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				1A7854D3249FBB1300BA1589 /* BFCore.framework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		1A844739249D4B88002813CB /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -493,7 +481,6 @@
 				1A84471B249D4B88002813CB /* Sources */,
 				1A84471C249D4B88002813CB /* Frameworks */,
 				1A84471D249D4B88002813CB /* Resources */,
-				1A7854D6249FBB1300BA1589 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -737,6 +724,7 @@
 		1A7854C7249FBA5400BA1589 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -767,6 +755,7 @@
 		1A7854C8249FBA5400BA1589 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -960,6 +949,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = Ingenious.Bonfire;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -980,6 +970,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = Ingenious.Bonfire;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -990,6 +981,7 @@
 		1A844737249D4B88002813CB /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
@@ -1018,6 +1010,7 @@
 		1A844738249D4B88002813CB /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;

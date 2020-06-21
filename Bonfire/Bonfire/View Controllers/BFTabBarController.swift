@@ -21,7 +21,7 @@ class BFTabBarController: UITabBarController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        tabBar.round(corners: [.layerMinXMinYCorner, .layerMaxXMinYCorner], radius: 20)
+        tabBar.round(corners: [.layerMinXMinYCorner, .layerMaxXMinYCorner], radius: 28)
         tabBar.clipsToBounds = true
         
         updateViewConstraints()

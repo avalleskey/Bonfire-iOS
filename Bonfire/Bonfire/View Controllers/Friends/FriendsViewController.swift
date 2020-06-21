@@ -22,6 +22,12 @@ final class FriendsViewController: UIViewController {
     let addFriendsBtn: UIButton = {
         let btn = UIButton()
         btn.setTitle("Add Friends", for: .normal)
+        btn.setTitleColor(.black, for: .normal)
+        btn.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .bold)
+        if #available(iOS 13.0, *), let roundedDescriptor = btn.titleLabel?.font.fontDescriptor.withDesign(.rounded) {
+            btn.titleLabel?.font = UIFont(descriptor: roundedDescriptor, size: 18)
+        }
+        btn.backgroundColor = .white
         return btn
     }()
 
@@ -31,12 +37,20 @@ final class FriendsViewController: UIViewController {
         
         view.addSubview(friendsTableView.view)
         view.addSubview(addFriendsBtn)
+        
+        updateViewConstraints()
     }
     
     override func updateViewConstraints() {
         super.updateViewConstraints()
         
+        addFriendsBtn.translatesAutoresizingMaskIntoConstraints = false
         
+        NSLayoutConstraint.activate([
+            addFriendsBtn.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            addFriendsBtn.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor,
+                                                  constant: -16),
+        ])
     }
 
 

@@ -11,9 +11,11 @@ import UIKit
 final class HomeViewController: UIViewController {
     
     static var defaultTabBarItem: UITabBarItem {
-        UITabBarItem(title: Constants.TabBar.homeDefaultText,
+        let item = UITabBarItem(title: Constants.TabBar.homeDefaultText,
                      image: Constants.TabBar.homeDefaultImage,
                      selectedImage: Constants.TabBar.createPostImage)
+        item.tag = 1
+        return item
     }
     
     override func viewDidLoad() {

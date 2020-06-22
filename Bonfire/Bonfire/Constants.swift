@@ -21,4 +21,14 @@ struct Constants {
         
         static let createPostImage = UIImage(named: "CreatePost")!
     }
+    
+    struct Color {
+        static let label: UIColor = {
+            if #available(iOS 13.0, *) {
+                return UIColor.label
+            } else {
+                return UIColor.black
+            }
+        }()
+    }
 }

@@ -23,17 +23,20 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let tabVC = BFTabBarController()
         
         let friendsVC = FriendsViewController()
+        let friendsNavVC = BFNavigationController(rootViewController: friendsVC)
         friendsVC.tabBarItem = FriendsViewController.defaultTabBarItem
         
         let homeVC = HomeViewController()
+        let homeNavVC = BFNavigationController(rootViewController: homeVC)
         homeVC.tabBarItem = HomeViewController.defaultTabBarItem
         
         let campsVC = CampsViewController()
+        let campsNavVC = BFNavigationController(rootViewController: campsVC)
         campsVC.tabBarItem = CampsViewController.defaultTabBarItem
         
-        tabVC.setViewControllers([friendsVC, homeVC, campsVC], animated: false)
+        tabVC.setViewControllers([friendsNavVC, homeNavVC, campsNavVC], animated: false)
         
-        tabVC.selectedViewController = homeVC
+        tabVC.selectedViewController = homeNavVC
         
         let window = UIWindow(windowScene: scene)
         window.rootViewController = tabVC

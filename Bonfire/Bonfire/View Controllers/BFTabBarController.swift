@@ -12,7 +12,7 @@ class BFTabBarController: UITabBarController {
     
     override var selectedViewController: UIViewController? {
         didSet {
-            if oldValue == selectedViewController && selectedViewController is HomeViewController {
+            if oldValue == selectedViewController && selectedViewController?.tabBarItem.tag == 1 {
                 present(CreatePostViewController(), animated: true)
             }
         }

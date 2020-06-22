@@ -23,9 +23,7 @@ final class FriendTableViewCell: UITableViewCell {
         let label = UILabel()
         label.text = "Lisandro Matos"
         label.font = UIFont.systemFont(ofSize: 17, weight: .bold)
-        if #available(iOS 13.0, *), let roundedDescriptor = label.font.fontDescriptor.withDesign(.rounded) {
-            label.font = UIFont(descriptor: roundedDescriptor, size: label.font.pointSize)
-        }
+        label.font = label.font.rounded()
         return label
     }()
     
@@ -33,9 +31,7 @@ final class FriendTableViewCell: UITableViewCell {
         let label = UILabel()
         label.text = "You: 1 Attachment · 5m"
         label.font = UIFont.systemFont(ofSize: 15, weight: .semibold)
-        if #available(iOS 13.0, *), let roundedDescriptor = label.font.fontDescriptor.withDesign(.rounded) {
-            label.font = UIFont(descriptor: roundedDescriptor, size: label.font.pointSize)
-        }
+        label.font = label.font.rounded()
         return label
     }()
     

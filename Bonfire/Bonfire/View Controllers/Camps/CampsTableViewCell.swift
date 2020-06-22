@@ -23,9 +23,7 @@ final class CampTableViewCell: UITableViewCell {
         let label = UILabel()
         label.text = "Illustration"
         label.font = UIFont.systemFont(ofSize: 17, weight: .bold)
-        if #available(iOS 13.0, *), let roundedDescriptor = label.font.fontDescriptor.withDesign(.rounded) {
-            label.font = UIFont(descriptor: roundedDescriptor, size: label.font.pointSize)
-        }
+        label.font = label.font.rounded()
         return label
     }()
     
@@ -33,9 +31,7 @@ final class CampTableViewCell: UITableViewCell {
         let label = UILabel()
         label.text = "#Illustration"
         label.font = UIFont.systemFont(ofSize: 15, weight: .semibold)
-        if #available(iOS 13.0, *), let roundedDescriptor = label.font.fontDescriptor.withDesign(.rounded) {
-            label.font = UIFont(descriptor: roundedDescriptor, size: label.font.pointSize)
-        }
+        label.font = label.font.rounded()
         return label
     }()
     
@@ -76,20 +72,20 @@ final class CampTableViewCell: UITableViewCell {
         
         NSLayoutConstraint.activate([
             campImageView.leadingAnchor.constraint(equalTo: leadingAnchor,
-                                                      constant: 12),
+                                                   constant: 12),
             campImageView.topAnchor.constraint(equalTo: topAnchor,
-                                                  constant: 12),
+                                               constant: 12),
             campImageView.bottomAnchor.constraint(equalTo: bottomAnchor,
-                                                     constant: -12),
+                                                  constant: -12),
             campImageView.centerYAnchor.constraint(equalTo: centerYAnchor),
             campImageView.widthAnchor.constraint(equalTo: campImageView.heightAnchor),
         ])
         
         NSLayoutConstraint.activate([
             campTextStackView.leadingAnchor.constraint(equalTo: campImageView.trailingAnchor,
-                                                          constant: 12),
+                                                       constant: 12),
             campTextStackView.trailingAnchor.constraint(equalTo: trailingAnchor,
-                                                           constant: -12),
+                                                        constant: -12),
             campTextStackView.centerYAnchor.constraint(equalTo: centerYAnchor),
         ])
     }

@@ -1,5 +1,5 @@
 //
-//  BFSegmentedControl.swift
+//  PostHeaderView.swift
 //  Bonfire
 //
 //  Created by James Dale on 22/6/20.
@@ -9,6 +9,6 @@
 import Foundation
 import UIKit
 
-final class BFSegmentedControl: UIView {
+final class PostHeaderView: UIView {
     
 }

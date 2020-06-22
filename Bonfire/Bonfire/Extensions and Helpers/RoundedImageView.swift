@@ -23,6 +23,6 @@ final class RoundedImageView: UIImageView {
     override func updateConstraints() {
         super.updateConstraints()
         translatesAutoresizingMaskIntoConstraints = false
-        heightAnchor.constraint(equalTo: widthAnchor).isActive = true
+        widthAnchor.constraint(equalTo: heightAnchor).isActive = true
     }
 }

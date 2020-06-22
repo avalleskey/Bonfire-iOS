@@ -24,9 +24,7 @@ final class FriendsViewController: UIViewController {
         btn.setTitle("Add Friends", for: .normal)
         btn.setTitleColor(.black, for: .normal)
         btn.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .bold)
-        if #available(iOS 13.0, *), let roundedDescriptor = btn.titleLabel?.font.fontDescriptor.withDesign(.rounded) {
-            btn.titleLabel?.font = UIFont(descriptor: roundedDescriptor, size: 18)
-        }
+        btn.titleLabel?.font = btn.titleLabel?.font.rounded()
         btn.backgroundColor = .white
         return btn
     }()

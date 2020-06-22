@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1A24430B24A0D2750039BAAB /* UIFont+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A24430A24A0D2750039BAAB /* UIFont+Extensions.swift */; };
+		1A24430E24A0D83E0039BAAB /* BFFeedTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A24430D24A0D83E0039BAAB /* BFFeedTableViewController.swift */; };
+		1A24431124A0DAFE0039BAAB /* PostHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A24431024A0DAFE0039BAAB /* PostHeaderView.swift */; };
 		1A57FAE7249F5D3D00A407F9 /* BFTabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A57FAE6249F5D3D00A407F9 /* BFTabBarController.swift */; };
 		1A57FAEA249F5D8800A407F9 /* UIView+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A57FAE9249F5D8800A407F9 /* UIView+Extensions.swift */; };
 		1A6859BA249F61FB008DB6BC /* CreatePostViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A6859B9249F61FB008DB6BC /* CreatePostViewController.swift */; };
@@ -27,6 +30,8 @@
 		1A7854E2249FBCEB00BA1589 /* BFSegmentedControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A7854E1249FBCEB00BA1589 /* BFSegmentedControl.swift */; };
 		1A7854E4249FC07600BA1589 /* Identity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A7854E3249FC07600BA1589 /* Identity.swift */; };
 		1A7854E6249FC09400BA1589 /* Bot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A7854E5249FC09400BA1589 /* Bot.swift */; };
+		1A7854E824A0B77800BA1589 /* BFNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A7854E724A0B77800BA1589 /* BFNavigationController.swift */; };
+		1A7854EB24A0CF2800BA1589 /* BFSegmentedControlItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A7854EA24A0CF2800BA1589 /* BFSegmentedControlItem.swift */; };
 		1A8446FE249C8652002813CB /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A8446FD249C8652002813CB /* AppDelegate.swift */; };
 		1A844700249C8652002813CB /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A8446FF249C8652002813CB /* SceneDelegate.swift */; };
 		1A844702249C8652002813CB /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A844701249C8652002813CB /* HomeViewController.swift */; };
@@ -118,6 +123,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		1A24430A24A0D2750039BAAB /* UIFont+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIFont+Extensions.swift"; sourceTree = "<group>"; };
+		1A24430D24A0D83E0039BAAB /* BFFeedTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFFeedTableViewController.swift; sourceTree = "<group>"; };
+		1A24431024A0DAFE0039BAAB /* PostHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostHeaderView.swift; sourceTree = "<group>"; };
 		1A57FAE6249F5D3D00A407F9 /* BFTabBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFTabBarController.swift; sourceTree = "<group>"; };
 		1A57FAE9249F5D8800A407F9 /* UIView+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIView+Extensions.swift"; sourceTree = "<group>"; };
 		1A6859B9249F61FB008DB6BC /* CreatePostViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatePostViewController.swift; sourceTree = "<group>"; };
@@ -138,6 +146,8 @@
 		1A7854E1249FBCEB00BA1589 /* BFSegmentedControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFSegmentedControl.swift; sourceTree = "<group>"; };
 		1A7854E3249FC07600BA1589 /* Identity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Identity.swift; sourceTree = "<group>"; };
 		1A7854E5249FC09400BA1589 /* Bot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bot.swift; sourceTree = "<group>"; };
+		1A7854E724A0B77800BA1589 /* BFNavigationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFNavigationController.swift; sourceTree = "<group>"; };
+		1A7854EA24A0CF2800BA1589 /* BFSegmentedControlItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFSegmentedControlItem.swift; sourceTree = "<group>"; };
 		1A8446FA249C8652002813CB /* Bonfire.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Bonfire.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A8446FD249C8652002813CB /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		1A8446FF249C8652002813CB /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -208,11 +218,29 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		1A24430C24A0D8340039BAAB /* Feed */ = {
+			isa = PBXGroup;
+			children = (
+				1A24430F24A0DACE0039BAAB /* Posts */,
+				1A24430D24A0D83E0039BAAB /* BFFeedTableViewController.swift */,
+			);
+			path = Feed;
+			sourceTree = "<group>";
+		};
+		1A24430F24A0DACE0039BAAB /* Posts */ = {
+			isa = PBXGroup;
+			children = (
+				1A24431024A0DAFE0039BAAB /* PostHeaderView.swift */,
+			);
+			path = Posts;
+			sourceTree = "<group>";
+		};
 		1A57FAE8249F5D7E00A407F9 /* Extensions and Helpers */ = {
 			isa = PBXGroup;
 			children = (
 				1A57FAE9249F5D8800A407F9 /* UIView+Extensions.swift */,
 				1A94DECB249F70D600AB0200 /* RoundedImageView.swift */,
+				1A24430A24A0D2750039BAAB /* UIFont+Extensions.swift */,
 			);
 			path = "Extensions and Helpers";
 			sourceTree = "<group>";
@@ -277,9 +305,18 @@
 		1A7854E0249FBCDF00BA1589 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				1A7854E1249FBCEB00BA1589 /* BFSegmentedControl.swift */,
+				1A7854E924A0CF1C00BA1589 /* Segmented Control */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		1A7854E924A0CF1C00BA1589 /* Segmented Control */ = {
+			isa = PBXGroup;
+			children = (
+				1A7854E1249FBCEB00BA1589 /* BFSegmentedControl.swift */,
+				1A7854EA24A0CF2800BA1589 /* BFSegmentedControlItem.swift */,
+			);
+			path = "Segmented Control";
 			sourceTree = "<group>";
 		};
 		1A8446F1249C8652002813CB = {
@@ -357,11 +394,13 @@
 		1A844740249D4BAD002813CB /* View Controllers */ = {
 			isa = PBXGroup;
 			children = (
+				1A24430C24A0D8340039BAAB /* Feed */,
 				1A94DECD249FB47300AB0200 /* Camps */,
 				1A6859BB249F631E008DB6BC /* Friends */,
 				1A57FAE6249F5D3D00A407F9 /* BFTabBarController.swift */,
 				1A844701249C8652002813CB /* HomeViewController.swift */,
 				1A6859B9249F61FB008DB6BC /* CreatePostViewController.swift */,
+				1A7854E724A0B77800BA1589 /* BFNavigationController.swift */,
 			);
 			path = "View Controllers";
 			sourceTree = "<group>";
@@ -632,17 +671,22 @@
 				1A844742249D4C70002813CB /* FriendsViewController.swift in Sources */,
 				1A7854E2249FBCEB00BA1589 /* BFSegmentedControl.swift in Sources */,
 				1A844702249C8652002813CB /* HomeViewController.swift in Sources */,
+				1A24430E24A0D83E0039BAAB /* BFFeedTableViewController.swift in Sources */,
 				1A8446FE249C8652002813CB /* AppDelegate.swift in Sources */,
 				1A6859BF249F6376008DB6BC /* FriendTableViewCell.swift in Sources */,
+				1A24430B24A0D2750039BAAB /* UIFont+Extensions.swift in Sources */,
 				1A6859BD249F632A008DB6BC /* FriendsTableViewController.swift in Sources */,
 				1A7854DB249FBBC500BA1589 /* CampControllerProtocol.swift in Sources */,
 				1A844700249C8652002813CB /* SceneDelegate.swift in Sources */,
 				1A94DED9249FB61500AB0200 /* FriendControllerProtocol.swift in Sources */,
 				1A94DED6249FB5FC00AB0200 /* FriendController.swift in Sources */,
+				1A7854EB24A0CF2800BA1589 /* BFSegmentedControlItem.swift in Sources */,
 				1A57FAE7249F5D3D00A407F9 /* BFTabBarController.swift in Sources */,
 				1A94DECC249F70D600AB0200 /* RoundedImageView.swift in Sources */,
 				1A7854D8249FBBBA00BA1589 /* CampController.swift in Sources */,
+				1A24431124A0DAFE0039BAAB /* PostHeaderView.swift in Sources */,
 				1A57FAEA249F5D8800A407F9 /* UIView+Extensions.swift in Sources */,
+				1A7854E824A0B77800BA1589 /* BFNavigationController.swift in Sources */,
 				1A6859BA249F61FB008DB6BC /* CreatePostViewController.swift in Sources */,
 				1A94DED3249FB49B00AB0200 /* CampsTableViewCell.swift in Sources */,
 				1AFFB1C6249D514900E67E89 /* Constants.swift in Sources */,

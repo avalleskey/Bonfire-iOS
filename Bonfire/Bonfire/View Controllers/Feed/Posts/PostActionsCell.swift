@@ -7,3 +7,8 @@
 //
 
 import Foundation
+import UIKit
+
+final class PostActionsCell: UITableViewCell {
+    static let reuseIdentifier = "PostActionsCellIdentifier"
+}

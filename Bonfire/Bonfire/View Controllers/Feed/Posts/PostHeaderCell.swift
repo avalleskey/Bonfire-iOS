@@ -9,6 +9,6 @@
 import Foundation
 import UIKit
 
-final class PostHeaderView: UIView {
-    
+final class PostHeaderCell: UITableViewCell {
+    static let reuseIdentifier = "PostHeaderCellIdentifier"
 }

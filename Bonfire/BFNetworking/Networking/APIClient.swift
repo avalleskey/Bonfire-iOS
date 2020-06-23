@@ -30,6 +30,10 @@ public struct APIClient {
         urlRequest.httpBody = request.body
         urlRequest.httpMethod = request.method
         urlRequest.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        if request.authenticationType == .appAuth {
+            urlRequest.addValue("Bearer c82f5645-8836-48d0-e4c2-4a2151317b97", forHTTPHeaderField: "Authorization")
+        }
 
         session.dataTask(with: urlRequest) { (data, response, error) in
             guard error == nil else {

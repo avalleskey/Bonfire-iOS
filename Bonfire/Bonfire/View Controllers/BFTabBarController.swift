@@ -14,6 +14,12 @@ class BFTabBarController: UITabBarController {
         didSet {
             if oldValue == selectedViewController && selectedViewController?.tabBarItem.tag == 1 {
                 present(CreatePostViewController(), animated: true)
+            } else if oldValue?.tabBarItem.tag == 1 {
+                selectedViewController?.tabBarItem.title = "Home"
+            }
+            
+            if selectedViewController?.tabBarItem.tag == 1 {
+                selectedViewController?.tabBarItem.title = ""
             }
         }
     }
@@ -23,6 +29,7 @@ class BFTabBarController: UITabBarController {
 
         tabBar.round(corners: [.layerMinXMinYCorner, .layerMaxXMinYCorner], radius: 28)
         tabBar.clipsToBounds = true
+        tabBar.tintColor = .black
         
         updateViewConstraints()
         

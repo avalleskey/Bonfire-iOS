@@ -16,4 +16,6 @@ public protocol APIRequest {
     var body: Data? { get }
 
     var method: String { get }
+    
+    var authenticationType: AuthenticationType { get }
 }

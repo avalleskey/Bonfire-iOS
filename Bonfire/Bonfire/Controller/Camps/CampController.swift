@@ -11,7 +11,17 @@ import BFCore
 import BFNetworking
 
 final class CampController: CampControllerProtocol {
+    
+    private let api = APIClient.shared
+    
     func getCamps(completion: @escaping ([Camp]) -> Void) {
-        completion([.init(name: "Steve")])
+        api.send(TrendingCampsRequest()) { (result) in
+            switch result {
+            case .success(let camps):
+                break
+            case .failure(let error):
+                break
+            }
+        }
     }
 }

@@ -8,4 +8,24 @@
 
 import Foundation
 
-public struct Post: Codable { }
+public struct Post: Codable {
+    
+    enum PostType {
+        case text
+        case image
+        case audio
+        case video
+        case link
+        case repost
+    }
+    
+    public init(title: String) {
+        self.title = title
+    }
+    
+    
+    let title: String
+    
+    
+    
+}

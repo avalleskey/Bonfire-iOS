@@ -9,7 +9,10 @@
 /* Begin PBXBuildFile section */
 		1A24430B24A0D2750039BAAB /* UIFont+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A24430A24A0D2750039BAAB /* UIFont+Extensions.swift */; };
 		1A24430E24A0D83E0039BAAB /* BFFeedTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A24430D24A0D83E0039BAAB /* BFFeedTableViewController.swift */; };
-		1A24431124A0DAFE0039BAAB /* PostHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A24431024A0DAFE0039BAAB /* PostHeaderView.swift */; };
+		1A24431124A0DAFE0039BAAB /* PostHeaderCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A24431024A0DAFE0039BAAB /* PostHeaderCell.swift */; };
+		1A24431324A0DB750039BAAB /* PostActionsCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A24431224A0DB750039BAAB /* PostActionsCell.swift */; };
+		1A24431524A0E7930039BAAB /* UIViewController+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A24431424A0E7930039BAAB /* UIViewController+Extensions.swift */; };
+		1A24431724A0E7BF0039BAAB /* AuthenticationType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A24431624A0E7BF0039BAAB /* AuthenticationType.swift */; };
 		1A57FAE7249F5D3D00A407F9 /* BFTabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A57FAE6249F5D3D00A407F9 /* BFTabBarController.swift */; };
 		1A57FAEA249F5D8800A407F9 /* UIView+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A57FAE9249F5D8800A407F9 /* UIView+Extensions.swift */; };
 		1A6859BA249F61FB008DB6BC /* CreatePostViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A6859B9249F61FB008DB6BC /* CreatePostViewController.swift */; };
@@ -21,7 +24,7 @@
 		1A7854C4249FBA5400BA1589 /* BFCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A7854AF249FBA5400BA1589 /* BFCore.framework */; };
 		1A7854C5249FBA5400BA1589 /* BFCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 1A7854AF249FBA5400BA1589 /* BFCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		1A7854CD249FBA6C00BA1589 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A7854CC249FBA6C00BA1589 /* User.swift */; };
-		1A7854CF249FBAE600BA1589 /* GetFriendsRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A7854CE249FBAE600BA1589 /* GetFriendsRequest.swift */; };
+		1A7854CF249FBAE600BA1589 /* TrendingCampsRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A7854CE249FBAE600BA1589 /* TrendingCampsRequest.swift */; };
 		1A7854D2249FBB1300BA1589 /* BFCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A7854AF249FBA5400BA1589 /* BFCore.framework */; };
 		1A7854D8249FBBBA00BA1589 /* CampController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A7854D7249FBBBA00BA1589 /* CampController.swift */; };
 		1A7854DB249FBBC500BA1589 /* CampControllerProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A7854DA249FBBC500BA1589 /* CampControllerProtocol.swift */; };
@@ -125,7 +128,10 @@
 /* Begin PBXFileReference section */
 		1A24430A24A0D2750039BAAB /* UIFont+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIFont+Extensions.swift"; sourceTree = "<group>"; };
 		1A24430D24A0D83E0039BAAB /* BFFeedTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFFeedTableViewController.swift; sourceTree = "<group>"; };
-		1A24431024A0DAFE0039BAAB /* PostHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostHeaderView.swift; sourceTree = "<group>"; };
+		1A24431024A0DAFE0039BAAB /* PostHeaderCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostHeaderCell.swift; sourceTree = "<group>"; };
+		1A24431224A0DB750039BAAB /* PostActionsCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostActionsCell.swift; sourceTree = "<group>"; };
+		1A24431424A0E7930039BAAB /* UIViewController+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIViewController+Extensions.swift"; sourceTree = "<group>"; };
+		1A24431624A0E7BF0039BAAB /* AuthenticationType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationType.swift; sourceTree = "<group>"; };
 		1A57FAE6249F5D3D00A407F9 /* BFTabBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFTabBarController.swift; sourceTree = "<group>"; };
 		1A57FAE9249F5D8800A407F9 /* UIView+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIView+Extensions.swift"; sourceTree = "<group>"; };
 		1A6859B9249F61FB008DB6BC /* CreatePostViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatePostViewController.swift; sourceTree = "<group>"; };
@@ -138,7 +144,7 @@
 		1A7854BE249FBA5400BA1589 /* BFCoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFCoreTests.swift; sourceTree = "<group>"; };
 		1A7854C0249FBA5400BA1589 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		1A7854CC249FBA6C00BA1589 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
-		1A7854CE249FBAE600BA1589 /* GetFriendsRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GetFriendsRequest.swift; sourceTree = "<group>"; };
+		1A7854CE249FBAE600BA1589 /* TrendingCampsRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendingCampsRequest.swift; sourceTree = "<group>"; };
 		1A7854D7249FBBBA00BA1589 /* CampController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampController.swift; sourceTree = "<group>"; };
 		1A7854DA249FBBC500BA1589 /* CampControllerProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampControllerProtocol.swift; sourceTree = "<group>"; };
 		1A7854DC249FBBF700BA1589 /* Camp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Camp.swift; sourceTree = "<group>"; };
@@ -230,7 +236,8 @@
 		1A24430F24A0DACE0039BAAB /* Posts */ = {
 			isa = PBXGroup;
 			children = (
-				1A24431024A0DAFE0039BAAB /* PostHeaderView.swift */,
+				1A24431024A0DAFE0039BAAB /* PostHeaderCell.swift */,
+				1A24431224A0DB750039BAAB /* PostActionsCell.swift */,
 			);
 			path = Posts;
 			sourceTree = "<group>";
@@ -241,6 +248,7 @@
 				1A57FAE9249F5D8800A407F9 /* UIView+Extensions.swift */,
 				1A94DECB249F70D600AB0200 /* RoundedImageView.swift */,
 				1A24430A24A0D2750039BAAB /* UIFont+Extensions.swift */,
+				1A24431424A0E7930039BAAB /* UIViewController+Extensions.swift */,
 			);
 			path = "Extensions and Helpers";
 			sourceTree = "<group>";
@@ -281,7 +289,7 @@
 		1A7854D0249FBAE900BA1589 /* Endpoints */ = {
 			isa = PBXGroup;
 			children = (
-				1A7854CE249FBAE600BA1589 /* GetFriendsRequest.swift */,
+				1A7854CE249FBAE600BA1589 /* TrendingCampsRequest.swift */,
 			);
 			path = Endpoints;
 			sourceTree = "<group>";
@@ -367,6 +375,7 @@
 				1A844714249D4AEF002813CB /* APIClient.swift */,
 				1A844716249D4B0C002813CB /* APIRequest.swift */,
 				1A844718249D4B1C002813CB /* APIError.swift */,
+				1A24431624A0E7BF0039BAAB /* AuthenticationType.swift */,
 			);
 			path = Networking;
 			sourceTree = "<group>";
@@ -669,9 +678,11 @@
 			files = (
 				1A844744249D4C78002813CB /* CampsViewController.swift in Sources */,
 				1A844742249D4C70002813CB /* FriendsViewController.swift in Sources */,
+				1A24431524A0E7930039BAAB /* UIViewController+Extensions.swift in Sources */,
 				1A7854E2249FBCEB00BA1589 /* BFSegmentedControl.swift in Sources */,
 				1A844702249C8652002813CB /* HomeViewController.swift in Sources */,
 				1A24430E24A0D83E0039BAAB /* BFFeedTableViewController.swift in Sources */,
+				1A24431324A0DB750039BAAB /* PostActionsCell.swift in Sources */,
 				1A8446FE249C8652002813CB /* AppDelegate.swift in Sources */,
 				1A6859BF249F6376008DB6BC /* FriendTableViewCell.swift in Sources */,
 				1A24430B24A0D2750039BAAB /* UIFont+Extensions.swift in Sources */,
@@ -684,7 +695,7 @@
 				1A57FAE7249F5D3D00A407F9 /* BFTabBarController.swift in Sources */,
 				1A94DECC249F70D600AB0200 /* RoundedImageView.swift in Sources */,
 				1A7854D8249FBBBA00BA1589 /* CampController.swift in Sources */,
-				1A24431124A0DAFE0039BAAB /* PostHeaderView.swift in Sources */,
+				1A24431124A0DAFE0039BAAB /* PostHeaderCell.swift in Sources */,
 				1A57FAEA249F5D8800A407F9 /* UIView+Extensions.swift in Sources */,
 				1A7854E824A0B77800BA1589 /* BFNavigationController.swift in Sources */,
 				1A6859BA249F61FB008DB6BC /* CreatePostViewController.swift in Sources */,
@@ -700,7 +711,8 @@
 			files = (
 				1A84473E249D4B9B002813CB /* APIRequest.swift in Sources */,
 				1A84473D249D4B98002813CB /* APIClient.swift in Sources */,
-				1A7854CF249FBAE600BA1589 /* GetFriendsRequest.swift in Sources */,
+				1A7854CF249FBAE600BA1589 /* TrendingCampsRequest.swift in Sources */,
+				1A24431724A0E7BF0039BAAB /* AuthenticationType.swift in Sources */,
 				1A84473F249D4B9B002813CB /* APIError.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -984,7 +996,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconDebug;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 4WLQG965T9;
 				INFOPLIST_FILE = Bonfire/Info.plist;
@@ -1005,7 +1017,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconDebug;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 4WLQG965T9;
 				INFOPLIST_FILE = Bonfire/Info.plist;

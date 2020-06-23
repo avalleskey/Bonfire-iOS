@@ -43,6 +43,14 @@ final class FriendsViewController: UIViewController {
         super.updateViewConstraints()
         
         addFriendsBtn.translatesAutoresizingMaskIntoConstraints = false
+        friendsTableView.view.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            friendsTableView.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            friendsTableView.view.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            friendsTableView.view.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+            friendsTableView.view.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
+        ])
         
         NSLayoutConstraint.activate([
             addFriendsBtn.centerXAnchor.constraint(equalTo: view.centerXAnchor),

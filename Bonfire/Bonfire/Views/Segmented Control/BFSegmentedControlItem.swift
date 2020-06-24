@@ -13,3 +13,14 @@ struct BFSegmentedControlItem {
     let target: AnyObject?
     let action: Selector?
 }
+
+extension BFSegmentedControlItem: Hashable {
+    static func == (lhs: BFSegmentedControlItem, rhs: BFSegmentedControlItem) -> Bool {
+        lhs.hashValue == rhs.hashValue
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(title)
+        hasher.combine(action)
+    }
+}

@@ -55,6 +55,8 @@
 		1A94DED3249FB49B00AB0200 /* CampsTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A94DED2249FB49B00AB0200 /* CampsTableViewCell.swift */; };
 		1A94DED6249FB5FC00AB0200 /* FriendController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A94DED5249FB5FC00AB0200 /* FriendController.swift */; };
 		1A94DED9249FB61500AB0200 /* FriendControllerProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A94DED8249FB61500AB0200 /* FriendControllerProtocol.swift */; };
+		1ABDB17524A35EE100D05140 /* PostMessageCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ABDB17424A35EE100D05140 /* PostMessageCell.swift */; };
+		1AF7FCEC24A2700B003FCF9F /* BFSegmentedControlButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AF7FCEB24A2700B003FCF9F /* BFSegmentedControlButton.swift */; };
 		1AFFB1C6249D514900E67E89 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AFFB1C5249D514900E67E89 /* Constants.swift */; };
 /* End PBXBuildFile section */
 
@@ -177,6 +179,8 @@
 		1A94DED2249FB49B00AB0200 /* CampsTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampsTableViewCell.swift; sourceTree = "<group>"; };
 		1A94DED5249FB5FC00AB0200 /* FriendController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendController.swift; sourceTree = "<group>"; };
 		1A94DED8249FB61500AB0200 /* FriendControllerProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendControllerProtocol.swift; sourceTree = "<group>"; };
+		1ABDB17424A35EE100D05140 /* PostMessageCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostMessageCell.swift; sourceTree = "<group>"; };
+		1AF7FCEB24A2700B003FCF9F /* BFSegmentedControlButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFSegmentedControlButton.swift; sourceTree = "<group>"; };
 		1AFFB1C5249D514900E67E89 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -238,6 +242,7 @@
 			children = (
 				1A24431024A0DAFE0039BAAB /* PostHeaderCell.swift */,
 				1A24431224A0DB750039BAAB /* PostActionsCell.swift */,
+				1ABDB17424A35EE100D05140 /* PostMessageCell.swift */,
 			);
 			path = Posts;
 			sourceTree = "<group>";
@@ -323,6 +328,7 @@
 			children = (
 				1A7854E1249FBCEB00BA1589 /* BFSegmentedControl.swift */,
 				1A7854EA24A0CF2800BA1589 /* BFSegmentedControlItem.swift */,
+				1AF7FCEB24A2700B003FCF9F /* BFSegmentedControlButton.swift */,
 			);
 			path = "Segmented Control";
 			sourceTree = "<group>";
@@ -680,12 +686,14 @@
 				1A844742249D4C70002813CB /* FriendsViewController.swift in Sources */,
 				1A24431524A0E7930039BAAB /* UIViewController+Extensions.swift in Sources */,
 				1A7854E2249FBCEB00BA1589 /* BFSegmentedControl.swift in Sources */,
+				1AF7FCEC24A2700B003FCF9F /* BFSegmentedControlButton.swift in Sources */,
 				1A844702249C8652002813CB /* HomeViewController.swift in Sources */,
 				1A24430E24A0D83E0039BAAB /* BFFeedTableViewController.swift in Sources */,
 				1A24431324A0DB750039BAAB /* PostActionsCell.swift in Sources */,
 				1A8446FE249C8652002813CB /* AppDelegate.swift in Sources */,
 				1A6859BF249F6376008DB6BC /* FriendTableViewCell.swift in Sources */,
 				1A24430B24A0D2750039BAAB /* UIFont+Extensions.swift in Sources */,
+				1ABDB17524A35EE100D05140 /* PostMessageCell.swift in Sources */,
 				1A6859BD249F632A008DB6BC /* FriendsTableViewController.swift in Sources */,
 				1A7854DB249FBBC500BA1589 /* CampControllerProtocol.swift in Sources */,
 				1A844700249C8652002813CB /* SceneDelegate.swift in Sources */,

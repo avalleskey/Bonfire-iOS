@@ -18,8 +18,12 @@ final class BFFeedTableViewController: UITableViewController {
         super.init(nibName: nil, bundle: nil)
         tableView.register(PostHeaderCell.self,
                            forCellReuseIdentifier: PostHeaderCell.reuseIdentifier)
+        tableView.register(PostMessageCell.self,
+                           forCellReuseIdentifier: PostMessageCell.reuseIdentifier)
         tableView.register(PostActionsCell.self,
                            forCellReuseIdentifier: PostActionsCell.reuseIdentifier)
+        
+        tableView.separatorStyle = .none
     }
     
     required init?(coder: NSCoder) {
@@ -27,7 +31,16 @@ final class BFFeedTableViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 44
+        switch indexPath.row {
+        case 0:
+            return 29
+        case 1:
+            return 44
+        case 3:
+            return 48
+        default:
+            return 0
+        }
     }
     
     override func numberOfSections(in tableView: UITableView) -> Int {
@@ -36,7 +49,7 @@ final class BFFeedTableViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         let post = posts[section]
-        return 2
+        return 3
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -46,13 +59,15 @@ final class BFFeedTableViewController: UITableViewController {
         case 0:
             cell = tableView.dequeueReusableCell(withIdentifier: PostHeaderCell.reuseIdentifier,
                                                  for: indexPath)
-            cell.backgroundColor = .green
         case 1:
-            fallthrough
-        default:
+            cell = tableView.dequeueReusableCell(withIdentifier: PostMessageCell.reuseIdentifier,
+                                                 for: indexPath)
+        case 2:
             cell = tableView.dequeueReusableCell(withIdentifier: PostActionsCell.reuseIdentifier,
                                                  for: indexPath)
             cell.backgroundColor = .red
+        default:
+            fatalError("Unknown row requested in BFFeedView")
         }
         
         return cell

@@ -18,12 +18,17 @@ final class CampsViewController: UIViewController {
     }
     
     let campsTableView = CampsTableViewController()
+    let controller = CampController()
 
     override func viewDidLoad() {
         super.viewDidLoad()
         if #available(iOS 13.0, *) { view.backgroundColor = .systemBackground }
         
         view.addSubview(campsTableView.view)
+        
+        controller.getCamps { (camps) in
+            print(camps)
+        }
         
         updateViewConstraints()
     }

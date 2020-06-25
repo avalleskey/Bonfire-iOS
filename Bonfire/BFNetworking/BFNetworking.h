@@ -3,7 +3,7 @@
 //  BFNetworking
 //
 //  Created by James Dale on 20/6/20.
-//  Copyright © 2020 James Dale. All rights reserved.
+//  Copyright © 2020 Ingenious. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>

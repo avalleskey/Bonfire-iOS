@@ -13,7 +13,7 @@ final class BFSegmentedControl: UIView {
     
     let selectionView: UIView = {
         let view = UIView()
-        view.backgroundColor = .green
+        view.backgroundColor = .gray
         view.layer.cornerRadius = 18
         return view
     }()

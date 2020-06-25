@@ -36,7 +36,7 @@ final class BFFeedTableViewController: UITableViewController {
             return 29
         case 1:
             return 44
-        case 3:
+        case 2:
             return 48
         default:
             return 0
@@ -65,7 +65,6 @@ final class BFFeedTableViewController: UITableViewController {
         case 2:
             cell = tableView.dequeueReusableCell(withIdentifier: PostActionsCell.reuseIdentifier,
                                                  for: indexPath)
-            cell.backgroundColor = .red
         default:
             fatalError("Unknown row requested in BFFeedView")
         }

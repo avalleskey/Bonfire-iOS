@@ -3,7 +3,7 @@
 //  Bonfire
 //
 //  Created by James Dale on 20/6/20.
-//  Copyright © 2020 James Dale. All rights reserved.
+//  Copyright © 2020 Ingenious. All rights reserved.
 //
 
 import Foundation
@@ -14,7 +14,7 @@ public struct APIClient {
     
     public static let shared = APIClient()
     
-    private let baseURL = URL(string: "https://api.bonfire.camp")
+    private let baseURL = URL(string: "https://api.bonfire.camp/v1/")
     
     private let session = URLSession(configuration: .default)
     
@@ -30,6 +30,7 @@ public struct APIClient {
         urlRequest.httpBody = request.body
         urlRequest.httpMethod = request.method
         urlRequest.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        urlRequest.addValue("iosClient/1.1 b10/release", forHTTPHeaderField: "X-Bonfire-Client")
         
         if request.authenticationType == .appAuth {
             urlRequest.addValue("Bearer c82f5645-8836-48d0-e4c2-4a2151317b97", forHTTPHeaderField: "Authorization")

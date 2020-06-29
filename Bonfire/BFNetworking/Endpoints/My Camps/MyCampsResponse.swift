@@ -9,6 +9,6 @@
 import Foundation
 import BFCore
 
-struct TrendingCampsResponse: Codable {
-    let data: [Camp]
+public struct MyCampsResponse: Codable {
+    public let data: [Camp]
 }

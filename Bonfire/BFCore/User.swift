@@ -9,9 +9,15 @@
 import Foundation
 
 public struct User: Identity {
-    public let displayName: String
+    public let id: String
+    public let attributes: Attributes
     
-    public init(name: String) {
-        self.displayName = name
+    public struct Attributes: Codable {
+        public let identifier: String
+        public let display_name: String
+        public let color: String
+        public let createdAt: Date?
+        public let suspended: Bool
+        public let verified: Bool
     }
 }

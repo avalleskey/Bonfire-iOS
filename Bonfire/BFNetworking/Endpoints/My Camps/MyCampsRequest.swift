@@ -9,16 +9,16 @@
 import Foundation
 import BFCore
 
-final public class TrendingCampsRequest: APIRequest {
-    public typealias Response = [Camp]
+final public class MyCampsRequest: APIRequest {
+    public typealias Response = MyCampsResponse
     
-    public let resource = "users/me/camps/lists/trending"
+    public let resource = "users/me/camps"
     
     public let body: Data? = nil
 
     public let method = "GET"
     
-    public let authenticationType: AuthenticationType = .appAuth
+    public let authenticationType: AuthenticationType = .userAuth
     
     public init() {}
 }

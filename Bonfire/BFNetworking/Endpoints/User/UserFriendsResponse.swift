@@ -7,3 +7,8 @@
 //
 
 import Foundation
+import BFCore
+
+public struct UserFriendsResponse: Codable {
+    public let data: [User]
+}

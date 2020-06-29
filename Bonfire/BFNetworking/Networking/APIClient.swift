@@ -29,11 +29,17 @@ public struct APIClient {
         var urlRequest = URLRequest(url: endpointURL)
         urlRequest.httpBody = request.body
         urlRequest.httpMethod = request.method
-        urlRequest.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        urlRequest.addValue("iosClient/1.1 b10/release", forHTTPHeaderField: "X-Bonfire-Client")
+        urlRequest.addValue("application/json",
+                            forHTTPHeaderField: "Content-Type")
+        urlRequest.addValue("iosClient/1.1 b10/release",
+                            forHTTPHeaderField: "X-Bonfire-Client")
         
         if request.authenticationType == .appAuth {
-            urlRequest.addValue("Bearer c82f5645-8836-48d0-e4c2-4a2151317b97", forHTTPHeaderField: "Authorization")
+            urlRequest.addValue("Bearer c82f5645-8836-48d0-e4c2-4a2151317b97",
+                                forHTTPHeaderField: "Authorization")
+        } else if request.authenticationType == .userAuth {
+            urlRequest.addValue("Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImp0aSI6IjAtNjE2LTQ0Nzk3LTE1OTM0NDQxMDAxNDUzMDAzNjk2Mjc1NTI2MjIzIn0.eyJpc3MiOiJSb29tcy1BUEktSW50ZXJuYWwtQWNjZXNzIiwiYXVkIjoiYzgyZjU2NDUtODgzNi00OGQwLWU0YzItNGEyMTUxMzE3Yjk3IiwiaWF0IjoxNTkzNDQ0MTAwLCJqdGkiOiIwLTYxNi00NDc5Ny0xNTkzNDQ0MTAwMTQ1MzAwMzY5NjI3NTUyNjIyMyIsImV4cCI6MTU5MzUzMDUwMCwidWlkIjo2MTYsImxpZCI6MjM3MjcsImF0aWQiOjQ0Nzk3LCJ0eXBlIjoiYWNjZXNzIiwic2NvcGUiOiJ1c2Vycyxwb3N0cyxjYW1wcyIsInYiOjF9.lmu2l3EqX0_E9085Agh8L2J3UmXXHRKfXkNQCxD_EPI",
+                                forHTTPHeaderField: "Authorization")
         }
 
         session.dataTask(with: urlRequest) { (data, response, error) in

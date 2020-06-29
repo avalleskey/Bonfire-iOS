@@ -46,6 +46,27 @@ extension BFNavigationController: UINavigationControllerDelegate {
             viewController.navigationItem.titleView = segmentedControl
             segmentedControl.addItem(.init(title: "My Feed", target: nil, action: nil))
             segmentedControl.addItem(.init(title: "Trending", target: nil, action: nil))
+            let icon = UIImage(named: "HomeNavIcon")
+            viewController.navigationItem.rightBarButtonItem = .init(image: icon,
+                                                                     style: .plain,
+                                                                     target: nil,
+                                                                     action: nil)
+            viewController.navigationItem.rightBarButtonItem?.tintColor = .black
+        case is FriendsViewController:
+            let icon = UIImage(named: "FriendsNavIcon")
+            viewController.navigationItem.rightBarButtonItem = .init(image: icon,
+                                                                     style: .plain,
+                                                                     target: nil,
+                                                                     action: nil)
+            viewController.navigationItem.rightBarButtonItem?.tintColor = .black
+            
+        case is CampsViewController:
+            let icon = UIImage(named: "MoreNavIcon")
+            viewController.navigationItem.rightBarButtonItem = .init(image: icon,
+                                                                     style: .plain,
+                                                                     target: nil,
+                                                                     action: nil)
+            viewController.navigationItem.rightBarButtonItem?.tintColor = .black
         default:
             break
         }

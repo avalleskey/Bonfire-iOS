@@ -33,7 +33,7 @@ final class BFFeedTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         switch indexPath.row {
         case 0:
-            return 29
+            return 58
         case 1:
             return 44
         case 2:

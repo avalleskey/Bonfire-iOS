@@ -26,7 +26,15 @@ final class FriendsViewController: UIViewController {
         btn.setTitleColor(.black, for: .normal)
         btn.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .bold)
         btn.titleLabel?.font = btn.titleLabel?.font.rounded()
+        btn.setImage(UIImage(named: "AddFriends"), for: .normal)
+        btn.titleEdgeInsets = .init(top: 0, left: 8, bottom: 0, right: -8)
+        btn.contentEdgeInsets = .init(top: 12, left: 16, bottom: 12, right: 16)
         btn.backgroundColor = .white
+        btn.layer.shadowColor = UIColor.black.cgColor
+        btn.layer.shadowOpacity = 0.12
+        btn.layer.shadowOffset = .init(width: 0, height: 2)
+        btn.layer.cornerRadius = 20
+        btn.layer.shadowRadius = 6
         return btn
     }()
 

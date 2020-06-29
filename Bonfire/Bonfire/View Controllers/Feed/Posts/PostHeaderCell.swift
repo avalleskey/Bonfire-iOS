@@ -12,10 +12,16 @@ import UIKit
 final class PostHeaderCell: UITableViewCell {
     static let reuseIdentifier = "PostHeaderCellIdentifier"
     
+    let profileImageView: UIImageView = {
+        let imageView = RoundedImageView()
+        imageView.image = UIImage(named: "Austin")!
+        return imageView
+    }()
+    
     let profileLabel: UILabel = {
         let label = UILabel()
         label.text = "@hugo"
-        label.textColor = Constants.Color.label
+        label.textColor = .systemBlue
         label.font = UIFont.systemFont(ofSize: 16, weight: .bold)
         label.font = label.font.rounded()
         return label
@@ -24,6 +30,7 @@ final class PostHeaderCell: UITableViewCell {
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         
+        contentView.addSubview(profileImageView)
         contentView.addSubview(profileLabel)
         
         updateConstraints()
@@ -36,12 +43,16 @@ final class PostHeaderCell: UITableViewCell {
     override func updateConstraints() {
         super.updateConstraints()
         
+        profileImageView.translatesAutoresizingMaskIntoConstraints = false
         profileLabel.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
-            profileLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            profileLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor,
-                                                  constant: 12)
+            profileImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12),
+            profileImageView.centerYAnchor.constraint(equalTo: centerYAnchor),
+            profileImageView.topAnchor.constraint(equalTo: topAnchor, constant: 8),
+            profileLabel.centerYAnchor.constraint(equalTo: profileImageView.centerYAnchor),
+            profileLabel.leadingAnchor.constraint(equalTo: profileImageView.trailingAnchor,
+                                                  constant: 8)
         ])
     }
     

@@ -25,10 +25,24 @@ final class PostActionsCell: UITableViewCell {
         return btn
     }()
     
+    let reactionsBtn: UIButton = {
+        let btn = UIButton()
+        btn.setImage(UIImage(named: "Reactions"), for: .normal)
+        return btn
+    }()
+    
+    let shareBtn: UIButton = {
+        let btn = UIButton()
+        btn.setImage(UIImage(named: "Share"), for: .normal)
+        return btn
+    }()
+    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         
         contentView.addSubview(repliesBtn)
+        contentView.addSubview(reactionsBtn)
+        contentView.addSubview(shareBtn)
         
         updateConstraints()
     }
@@ -41,11 +55,23 @@ final class PostActionsCell: UITableViewCell {
         super.updateConstraints()
         
         repliesBtn.translatesAutoresizingMaskIntoConstraints = false
+        reactionsBtn.translatesAutoresizingMaskIntoConstraints = false
+        shareBtn.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
             repliesBtn.leadingAnchor.constraint(equalTo: contentView.leadingAnchor,
                                                 constant: 17),
             repliesBtn.centerYAnchor.constraint(equalTo: contentView.centerYAnchor)
+        ])
+        
+        NSLayoutConstraint.activate([
+            shareBtn.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            shareBtn.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+        ])
+        
+        NSLayoutConstraint.activate([
+            reactionsBtn.trailingAnchor.constraint(equalTo: shareBtn.leadingAnchor, constant: -20),
+            reactionsBtn.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
         ])
     }
 }

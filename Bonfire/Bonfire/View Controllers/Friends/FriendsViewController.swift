@@ -18,6 +18,7 @@ final class FriendsViewController: UIViewController {
     }
     
     let friendsTableView = FriendsTableViewController()
+    let controller = UserController()
     
     let addFriendsBtn: UIButton = {
         let btn = UIButton()
@@ -35,6 +36,13 @@ final class FriendsViewController: UIViewController {
         
         view.addSubview(friendsTableView.view)
         view.addSubview(addFriendsBtn)
+        
+        controller.getFriends { (friends) in
+            DispatchQueue.main.async {
+                self.campsTableView.use = camps
+                self.campsTableView.tableView.reloadData()
+            }
+        }
         
         updateViewConstraints()
     }

@@ -10,7 +10,7 @@ import Foundation
 import BFCore
 import BFNetworking
 
-final class FriendController: FriendControllerProtocol {
+final class UserController: FriendControllerProtocol {
     func getFriends(completion: @escaping ([Result<User, Error>]) -> Void) {
         completion([])
     }

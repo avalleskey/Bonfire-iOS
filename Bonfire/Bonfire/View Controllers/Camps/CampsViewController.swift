@@ -27,7 +27,10 @@ final class CampsViewController: UIViewController {
         view.addSubview(campsTableView.view)
         
         controller.getCamps { (camps) in
-            print(camps)
+            DispatchQueue.main.async {
+                self.campsTableView.camps = camps
+                self.campsTableView.tableView.reloadData()
+            }
         }
         
         updateViewConstraints()

@@ -15,10 +15,10 @@ final class CampController: CampControllerProtocol {
     private let api = APIClient.shared
     
     func getCamps(completion: @escaping ([Camp]) -> Void) {
-        api.send(TrendingCampsRequest()) { (result) in
+        api.send(MyCampsRequest()) { (result) in
             switch result {
-            case .success(let camps):
-                break
+            case .success(let response):
+                completion(response.data)
             case .failure(let error):
                 break
             }

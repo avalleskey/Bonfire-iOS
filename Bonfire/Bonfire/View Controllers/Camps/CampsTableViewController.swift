@@ -8,8 +8,11 @@
 
 import Foundation
 import UIKit
+import BFCore
 
 final class CampsTableViewController: UITableViewController {
+    
+    var camps: [Camp] = []
     
     init() {
         super.init(nibName: nil, bundle: nil)
@@ -26,7 +29,7 @@ final class CampsTableViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 9
+        return camps.count
     }
     
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -35,8 +38,11 @@ final class CampsTableViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: CampTableViewCell.reuseIdentifier,
-                                                 for: indexPath)
+                                                 for: indexPath) as! CampTableViewCell
         
+        let camp = camps[indexPath.row]
+        cell.campNameLabel.text = camp.attributes.title
+        cell.campSublineLabel.text = camp.attributes.description
         return cell
     }
 }

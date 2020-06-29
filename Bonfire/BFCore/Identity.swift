@@ -8,4 +8,4 @@
 
 import Foundation
 
-protocol Identity: Codable { }
+protocol Identity: BFResource { }

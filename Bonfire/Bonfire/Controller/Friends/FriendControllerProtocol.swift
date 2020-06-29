@@ -10,5 +10,5 @@ import Foundation
 import BFCore
 
 protocol FriendControllerProtocol {
-    func getFriends(completion: @escaping ([Result<User, Error>]) -> Void)
+    func getFriends(completion: @escaping (Result<[User], Error>) -> Void)
 }

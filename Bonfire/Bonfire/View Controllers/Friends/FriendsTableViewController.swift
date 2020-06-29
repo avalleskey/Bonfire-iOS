@@ -6,10 +6,12 @@
 //  Copyright © 2020 Ingenious. All rights reserved.
 //
 
-import Foundation
 import UIKit
+import BFCore
 
 final class FriendsTableViewController: UITableViewController {
+    
+    var friends: [User] = []
     
     init() {
         super.init(nibName: nil, bundle: nil)
@@ -26,7 +28,7 @@ final class FriendsTableViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 9
+        return friends.count
     }
     
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -35,8 +37,10 @@ final class FriendsTableViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: FriendTableViewCell.reuseIdentifier,
-                                                 for: indexPath)
+                                                 for: indexPath) as! FriendTableViewCell
         
+        let friend = friends[indexPath.row]
+        cell.profileNameLabel.text = friend.attributes.display_name
         return cell
     }
 }

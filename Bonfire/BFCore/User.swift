@@ -9,8 +9,11 @@
 import Foundation
 
 public struct User: Identity {
-    public let id: String
     public let attributes: Attributes
+    
+    public let type: BFResourceType
+    
+    public let id: String?
     
     public struct Attributes: Codable {
         public let identifier: String

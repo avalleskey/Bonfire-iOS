@@ -21,6 +21,7 @@ public struct Camp: Codable {
         public let verified: Bool
         public let `private`: Bool
         public let nsfw: Bool
+        public let media: BFMedia?
     }
     
     //media

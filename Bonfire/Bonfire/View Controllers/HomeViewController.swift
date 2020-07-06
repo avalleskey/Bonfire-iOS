@@ -10,6 +10,8 @@ import UIKit
 
 final class HomeViewController: UIViewController {
     
+    let segmentedControl = BFSegmentedControl()
+    
     static var defaultTabBarItem: UITabBarItem {
         let item = UITabBarItem(title: Constants.TabBar.homeDefaultText,
                      image: Constants.TabBar.homeDefaultImage,
@@ -19,12 +21,25 @@ final class HomeViewController: UIViewController {
     }
     
     let homeFeedTableView = BFFeedTableViewController()
+    let controller = StreamController()
 
     override func viewDidLoad() {
         super.viewDidLoad()
         if #available(iOS 13.0, *) { view.backgroundColor = .systemBackground }
         
         view.addSubview(homeFeedTableView.view)
+        
+        segmentedControl.addItem(.init(title: "My Feed", target: nil, action: nil))
+        segmentedControl.addItem(.init(title: "Trending", target: nil, action: nil))
+        
+        navigationItem.titleView = segmentedControl
+        
+        controller.getStream { (posts) in
+            DispatchQueue.main.async {
+                self.homeFeedTableView.posts = posts
+                self.homeFeedTableView.tableView.reloadData()
+            }
+        }
         
         updateViewConstraints()
     }

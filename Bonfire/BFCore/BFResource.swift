@@ -11,6 +11,8 @@ import Foundation
 public enum BFResourceType: String, Codable {
     case camp
     case user
+    case section
+    case post
 }
 
 public protocol BFResource: Codable {

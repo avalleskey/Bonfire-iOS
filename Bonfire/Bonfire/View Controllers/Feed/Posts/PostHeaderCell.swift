@@ -12,6 +12,17 @@ import UIKit
 final class PostHeaderCell: UITableViewCell {
     static let reuseIdentifier = "PostHeaderCellIdentifier"
     
+    enum Style {
+        case profile
+        case camp
+    }
+    
+    var headerStyle: Style = .camp {
+        didSet {
+            campLabel.isHidden = headerStyle != .camp
+        }
+    }
+    
     let profileImageView: UIImageView = {
         let imageView = RoundedImageView()
         imageView.image = UIImage(named: "Austin")!
@@ -27,11 +38,28 @@ final class PostHeaderCell: UITableViewCell {
         return label
     }()
     
+    let campLabel: UILabel = {
+        let label = UILabel()
+        label.text = "in YEETVILLE"
+        label.font = UIFont.systemFont(ofSize: 14, weight: .bold)
+        label.font = label.font.rounded()
+        return label
+    }()
+    
+    let headerLabelStack: UIStackView = {
+        let stackView = UIStackView()
+        stackView.axis = .vertical
+        return stackView
+    }()
+    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         
+        headerLabelStack.addArrangedSubview(profileLabel)
+        headerLabelStack.addArrangedSubview(campLabel)
+        
         contentView.addSubview(profileImageView)
-        contentView.addSubview(profileLabel)
+        contentView.addSubview(headerLabelStack)
         
         updateConstraints()
     }
@@ -44,14 +72,14 @@ final class PostHeaderCell: UITableViewCell {
         super.updateConstraints()
         
         profileImageView.translatesAutoresizingMaskIntoConstraints = false
-        profileLabel.translatesAutoresizingMaskIntoConstraints = false
+        headerLabelStack.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
             profileImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12),
             profileImageView.centerYAnchor.constraint(equalTo: centerYAnchor),
             profileImageView.topAnchor.constraint(equalTo: topAnchor, constant: 8),
-            profileLabel.centerYAnchor.constraint(equalTo: profileImageView.centerYAnchor),
-            profileLabel.leadingAnchor.constraint(equalTo: profileImageView.trailingAnchor,
+            headerLabelStack.centerYAnchor.constraint(equalTo: profileImageView.centerYAnchor),
+            headerLabelStack.leadingAnchor.constraint(equalTo: profileImageView.trailingAnchor,
                                                   constant: 8)
         ])
     }

@@ -13,9 +13,9 @@ final class PostMessageCell: UITableViewCell {
     
     static let reuseIdentifier = "PostMessageCellIdentifier"
     
-    private let messageLabel: UILabel = {
+    let messageLabel: UILabel = {
         let label = UILabel()
-        label.text = "hey hey hey, who else loves Bonfire 2.0!?"
+        label.text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
         label.font = UIFont.systemFont(ofSize: 18, weight: .semibold)
         label.font = label.font.rounded()
         label.numberOfLines = 0
@@ -45,6 +45,7 @@ final class PostMessageCell: UITableViewCell {
                                                   constant: 12),
             messageLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor,
                                                   constant: -12),
+            contentView.bottomAnchor.constraint(equalTo: messageLabel.bottomAnchor)
         ])
     }
     

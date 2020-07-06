@@ -7,8 +7,9 @@
 //
 
 import UIKit
+import Hero
 
-class BFTabBarController: UITabBarController {
+final class BFTabBarController: UITabBarController {
     
     override var selectedViewController: UIViewController? {
         didSet {
@@ -32,6 +33,7 @@ class BFTabBarController: UITabBarController {
         tabBar.tintColor = .black
         
         updateViewConstraints()
+        hero.isEnabled = true
         
         delegate = self
     }

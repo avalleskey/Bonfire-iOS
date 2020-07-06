@@ -8,6 +8,7 @@
 
 import Foundation
 import UIKit
+import Hero
 
 final class BFNavigationController: UINavigationController {
     
@@ -26,6 +27,7 @@ final class BFNavigationController: UINavigationController {
     override init(rootViewController: UIViewController) {
         super.init(rootViewController: rootViewController)
         delegate = self
+        hero.isEnabled = true
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -42,10 +44,6 @@ extension BFNavigationController: UINavigationControllerDelegate {
         
         switch viewController {
         case is HomeViewController:
-            let segmentedControl = BFSegmentedControl()
-            viewController.navigationItem.titleView = segmentedControl
-            segmentedControl.addItem(.init(title: "My Feed", target: nil, action: nil))
-            segmentedControl.addItem(.init(title: "Trending", target: nil, action: nil))
             let icon = UIImage(named: "HomeNavIcon")
             viewController.navigationItem.rightBarButtonItem = .init(image: icon,
                                                                      style: .plain,

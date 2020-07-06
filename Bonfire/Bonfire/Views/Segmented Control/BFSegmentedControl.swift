@@ -62,6 +62,11 @@ final class BFSegmentedControl: UIView {
                 self.selectionView.widthAnchor.constraint(equalTo: button.widthAnchor),
                 self.selectionView.heightAnchor.constraint(equalTo: button.heightAnchor)
             ]
+            self.buttonStackView.subviews
+                .compactMap { $0 as? BFSegmentedControlButton }
+                .forEach { $0.setTitleColor(Constants.Color.label, for: .normal) }
+            
+            button.setTitleColor(.white, for: .normal)
             NSLayoutConstraint.activate(self.selectionConstraints)
             self.selectionView.layoutIfNeeded()
         }
@@ -77,7 +82,7 @@ final class BFSegmentedControl: UIView {
             buttonStackView.centerYAnchor.constraint(equalTo: centerYAnchor),
             buttonStackView.centerXAnchor.constraint(equalTo: centerXAnchor),
             
-            selectionView.centerYAnchor.constraint(equalTo: centerYAnchor)
+            selectionView.centerYAnchor.constraint(equalTo: buttonStackView.centerYAnchor)
         ])
     }
     

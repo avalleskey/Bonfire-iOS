@@ -31,14 +31,14 @@ public struct APIClient {
         urlRequest.httpMethod = request.method
         urlRequest.addValue("application/json",
                             forHTTPHeaderField: "Content-Type")
-        urlRequest.addValue("iosClient/1.1 b10/release",
+        urlRequest.addValue("iosClient/2.0 b3/release",
                             forHTTPHeaderField: "X-Bonfire-Client")
         
         if request.authenticationType == .appAuth {
             urlRequest.addValue("Bearer c82f5645-8836-48d0-e4c2-4a2151317b97",
                                 forHTTPHeaderField: "Authorization")
         } else if request.authenticationType == .userAuth {
-            urlRequest.addValue("Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImp0aSI6IjAtNjE2LTQ0Nzk3LTE1OTM0NDQxMDAxNDUzMDAzNjk2Mjc1NTI2MjIzIn0.eyJpc3MiOiJSb29tcy1BUEktSW50ZXJuYWwtQWNjZXNzIiwiYXVkIjoiYzgyZjU2NDUtODgzNi00OGQwLWU0YzItNGEyMTUxMzE3Yjk3IiwiaWF0IjoxNTkzNDQ0MTAwLCJqdGkiOiIwLTYxNi00NDc5Ny0xNTkzNDQ0MTAwMTQ1MzAwMzY5NjI3NTUyNjIyMyIsImV4cCI6MTU5MzUzMDUwMCwidWlkIjo2MTYsImxpZCI6MjM3MjcsImF0aWQiOjQ0Nzk3LCJ0eXBlIjoiYWNjZXNzIiwic2NvcGUiOiJ1c2Vycyxwb3N0cyxjYW1wcyIsInYiOjF9.lmu2l3EqX0_E9085Agh8L2J3UmXXHRKfXkNQCxD_EPI",
+            urlRequest.addValue("Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImp0aSI6IjAtNjE2LTQ1NjQyLTE1OTQwNTMyNTc1OTAxODY2MDc2NjQxMTU2NjYwIn0.eyJpc3MiOiJSb29tcy1BUEktSW50ZXJuYWwtQWNjZXNzIiwiYXVkIjoiYzgyZjU2NDUtODgzNi00OGQwLWU0YzItNGEyMTUxMzE3Yjk3IiwiaWF0IjoxNTk0MDUzMjU3LCJqdGkiOiIwLTYxNi00NTY0Mi0xNTk0MDUzMjU3NTkwMTg2NjA3NjY0MTE1NjY2MCIsImV4cCI6MTU5NDEzOTY1NywidWlkIjo2MTYsImxpZCI6MjM5ODUsImF0aWQiOjQ1NjQyLCJ0eXBlIjoiYWNjZXNzIiwic2NvcGUiOiJ1c2Vycyxwb3N0cyxjYW1wcyIsInYiOjF9.6oZHkdfz1AuzyQIYUw0Y6qXlgb6rOcmMObwRpU-UPPA",
                                 forHTTPHeaderField: "Authorization")
         }
 
@@ -62,8 +62,10 @@ public struct APIClient {
             let decoder = JSONDecoder()
             do {
                 let decoded = try decoder.decode(T.Response.self, from: data)
+                print("[Decoder]", "Success:", decoded)
                 completion(.success(decoded))
             } catch {
+                print("[Decoder] [Error]", T.Response.self, error.localizedDescription)
                 completion(.failure(error))
             }
         }.resume()
@@ -74,4 +76,3 @@ public struct APIClient {
     }
     
 }
-

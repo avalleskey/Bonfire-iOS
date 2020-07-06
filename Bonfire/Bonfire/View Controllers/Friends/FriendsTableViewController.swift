@@ -41,6 +41,11 @@ final class FriendsTableViewController: UITableViewController {
         
         let friend = friends[indexPath.row]
         cell.profileNameLabel.text = friend.attributes.display_name
+        
+        if let url = friend.attributes.media?.avatar?.full?.url {
+            cell.profileImageView.kf.setImage(with: url)
+        }
+        
         return cell
     }
 }

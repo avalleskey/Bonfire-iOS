@@ -22,5 +22,6 @@ public struct User: Identity {
         public let createdAt: Date?
         public let suspended: Bool
         public let verified: Bool
+        public let media: BFMedia?
     }
 }

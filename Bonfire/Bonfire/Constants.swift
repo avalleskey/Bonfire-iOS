@@ -31,4 +31,6 @@ struct Constants {
             }
         }()
     }
+    
+    static let bfAttachmentCornerRadius = 14
 }

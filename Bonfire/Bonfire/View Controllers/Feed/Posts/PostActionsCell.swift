@@ -17,7 +17,7 @@ final class PostActionsCell: UITableViewCell {
         let btn = UIButton()
         btn.setImage(UIImage(named: "ReplyThreshold0"), for: .normal)
         btn.setTitle("11 notes", for: .normal)
-        btn.setTitleColor(Constants.Color.label, for: .normal)
+        btn.setTitleColor(.gray, for: .normal)
         btn.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
         btn.titleLabel?.font = btn.titleLabel?.font.rounded()
         btn.titleEdgeInsets = .init(top: 0, left: 13, bottom: 0, right: -13)

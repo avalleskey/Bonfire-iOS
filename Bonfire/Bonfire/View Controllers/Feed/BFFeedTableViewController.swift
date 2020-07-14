@@ -23,6 +23,8 @@ final class BFFeedTableViewController: UITableViewController {
                            forCellReuseIdentifier: PostMessageCell.reuseIdentifier)
         tableView.register(PostActionsCell.self,
                            forCellReuseIdentifier: PostActionsCell.reuseIdentifier)
+        tableView.register(AddReplyCell.self,
+                           forCellReuseIdentifier: AddReplyCell.reuseIdentifier)
         
         tableView.estimatedRowHeight = UITableView.automaticDimension
         tableView.allowsSelection = false
@@ -41,6 +43,8 @@ final class BFFeedTableViewController: UITableViewController {
             return UITableView.automaticDimension
         case 2:
             return 48
+        case 3:
+            return 56
         default:
             return 0
         }
@@ -52,7 +56,7 @@ final class BFFeedTableViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         let post = posts[section]
-        return 3
+        return 4
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -109,11 +113,18 @@ final class BFFeedTableViewController: UITableViewController {
                 actionsCell.repliesBtn.setImage(UIImage(named: "ReplyThreshold0"),
                                                 for: .normal)
             }
+        case 3:
+            cell = tableView.dequeueReusableCell(withIdentifier: AddReplyCell.reuseIdentifier,
+                                                 for: indexPath)
         default:
             fatalError("Unknown row requested in BFFeedView")
         }
         
         return cell
+    }
+    
+    override func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
+        return 16
     }
     
 }

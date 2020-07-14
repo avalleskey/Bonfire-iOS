@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import BFNetworking
 
 @available(iOS 13.0, *)
 final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
@@ -19,6 +20,8 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // If using a storyboard, the `window` property will automatically be initialized and attached to the scene.
         // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
         guard let scene = (scene as? UIWindowScene) else { return }
+        
+        KeychainVault.accessToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImp0aSI6IjAtNjE2LTQ2NTUwLTE1OTQ2NDIwNzk0OTkxOTM2MTM2Nzk3NTcyNiJ9.eyJpc3MiOiJSb29tcy1BUEktSW50ZXJuYWwtQWNjZXNzIiwiYXVkIjoiYzgyZjU2NDUtODgzNi00OGQwLWU0YzItNGEyMTUxMzE3Yjk3IiwiaWF0IjoxNTk0NjQyMDc5LCJqdGkiOiIwLTYxNi00NjU1MC0xNTk0NjQyMDc5NDk5MTkzNjEzNjc5NzU3MjYiLCJleHAiOjE1OTQ3Mjg0NzksInVpZCI6NjE2LCJsaWQiOjI0MzE2LCJhdGlkIjo0NjU1MCwidHlwZSI6ImFjY2VzcyIsInNjb3BlIjoidXNlcnMscG9zdHMsY2FtcHMiLCJ2IjoxfQ.FFWkpM67Oy3j9O9s62QhM8D88Qq-z_lnV2yUmEHDygg"
         
         let tabVC = BFTabBarController()
         

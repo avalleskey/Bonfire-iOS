@@ -30,6 +30,13 @@ struct Constants {
                 return UIColor.black
             }
         }()
+        
+        static let bfOrange = UIColor(red: 255/255, green: 81/255, blue: 60/255, alpha: 1)
+        
+        static let textBorder: UIColor = .init(red: 225/255,
+                                               green: 227/255,
+                                               blue: 230/255,
+                                               alpha: 0.3)
     }
     
     static let bfAttachmentCornerRadius = 14

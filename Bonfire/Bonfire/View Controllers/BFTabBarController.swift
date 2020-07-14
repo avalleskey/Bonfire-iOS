@@ -8,8 +8,9 @@
 
 import UIKit
 import Hero
+import SwipeableTabBarController
 
-final class BFTabBarController: UITabBarController {
+final class BFTabBarController: SwipeableTabBarController {
     
     override var selectedViewController: UIViewController? {
         didSet {
@@ -28,9 +29,13 @@ final class BFTabBarController: UITabBarController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        tabBar.round(corners: [.layerMinXMinYCorner, .layerMaxXMinYCorner], radius: 28)
         tabBar.clipsToBounds = true
         tabBar.tintColor = .black
+        tabBar.backgroundColor = .white
+        tabBar.layer.shadowColor = UIColor.black.cgColor
+        tabBar.layer.shadowOpacity = 0.16
+        tabBar.layer.shadowOffset = .init(width: 0, height: -1)
+        tabBar.layer.shadowRadius = 6
         
         updateViewConstraints()
         hero.isEnabled = true
@@ -43,10 +48,11 @@ final class BFTabBarController: UITabBarController {
         
         tabBar.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
     }
-
-}
-
-// MARK: - UITabBarControllerDelegate
-extension BFTabBarController: UITabBarControllerDelegate {
     
+    override func viewDidLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+        tabBar.frame.size.height = 92
+        tabBar.frame.origin.y = view.frame.height - 92
+    }
+
 }

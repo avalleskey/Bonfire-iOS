@@ -13,6 +13,7 @@ public enum APIError: Error {
     case invalidEndpoint
     case unknown
     case noData
+    case unauthenticated
     
     var localizedDescription: String {
         switch self {

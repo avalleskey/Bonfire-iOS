@@ -38,8 +38,12 @@ public struct APIClient {
             urlRequest.addValue("Bearer c82f5645-8836-48d0-e4c2-4a2151317b97",
                                 forHTTPHeaderField: "Authorization")
         } else if request.authenticationType == .userAuth {
-            urlRequest.addValue("Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImp0aSI6IjAtNjE2LTQ1NjQyLTE1OTQwNTMyNTc1OTAxODY2MDc2NjQxMTU2NjYwIn0.eyJpc3MiOiJSb29tcy1BUEktSW50ZXJuYWwtQWNjZXNzIiwiYXVkIjoiYzgyZjU2NDUtODgzNi00OGQwLWU0YzItNGEyMTUxMzE3Yjk3IiwiaWF0IjoxNTk0MDUzMjU3LCJqdGkiOiIwLTYxNi00NTY0Mi0xNTk0MDUzMjU3NTkwMTg2NjA3NjY0MTE1NjY2MCIsImV4cCI6MTU5NDEzOTY1NywidWlkIjo2MTYsImxpZCI6MjM5ODUsImF0aWQiOjQ1NjQyLCJ0eXBlIjoiYWNjZXNzIiwic2NvcGUiOiJ1c2Vycyxwb3N0cyxjYW1wcyIsInYiOjF9.6oZHkdfz1AuzyQIYUw0Y6qXlgb6rOcmMObwRpU-UPPA",
-                                forHTTPHeaderField: "Authorization")
+            if let token = KeychainVault.accessToken {
+                urlRequest.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            } else {
+                completion(.failure(APIError.unauthenticated))
+                return
+            }
         }
 
         session.dataTask(with: urlRequest) { (data, response, error) in

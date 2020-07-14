@@ -17,5 +17,7 @@ public protocol APIRequest {
 
     var method: String { get }
     
+    var queryItems: [URLQueryItem]? { get }
+    
     var authenticationType: AuthenticationType { get }
 }

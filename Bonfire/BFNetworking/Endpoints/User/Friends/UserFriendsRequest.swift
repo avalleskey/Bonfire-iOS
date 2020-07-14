@@ -15,6 +15,8 @@ final public class UserFriendsRequest: APIRequest {
     public let resource = "users/me/friends"
     
     public let body: Data? = nil
+    
+    public let queryItems: [URLQueryItem]? = nil
 
     public let method = "GET"
     

@@ -15,6 +15,8 @@ final public class MyCampsRequest: APIRequest {
     public let resource = "users/me/camps"
     
     public let body: Data? = nil
+    
+    public let queryItems: [URLQueryItem]? = nil
 
     public let method = "GET"
     

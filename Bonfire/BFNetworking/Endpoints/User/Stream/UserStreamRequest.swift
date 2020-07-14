@@ -13,6 +13,8 @@ public struct UserStreamRequest: APIRequest {
     
     public let body: Data? = nil
     
+    public let queryItems: [URLQueryItem]? = nil
+    
     public let method: String = "GET"
     
     public let authenticationType: AuthenticationType = .userAuth

@@ -53,7 +53,15 @@ final class FriendsViewController: UIViewController {
                     self.friendsTableView.tableView.reloadData()
                 }
             case .failure(let error):
-                print(error)
+                DispatchQueue.main.async {
+                    switch BFAppError.from(error: error) {
+                    case .unauthenticated:
+                        let authController = GetStartedViewController()
+                        self.present(authController, animated: true)
+                    default:
+                        print(error)
+                    }
+                }
             }
             
         }

@@ -23,10 +23,16 @@ final class CampsViewController: UIViewController {
     let addCampBtn: UIButton = {
         let btn = UIButton()
         btn.setTitle("Add Camp", for: .normal)
-        btn.setTitleColor(.black, for: .normal)
         btn.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .bold)
         btn.titleLabel?.font = btn.titleLabel?.font.rounded()
-        btn.setImage(UIImage(named: "AddFriends"), for: .normal)
+        btn.setImage(UIImage(named: "Plus"), for: .normal)
+        if #available(iOS 13.0, *) {
+            btn.tintColor = .black
+            btn.setTitleColor(.black, for: .normal)
+        } else {
+            btn.tintColor = .gray
+            btn.setTitleColor(.gray, for: .normal)
+        }
         btn.titleEdgeInsets = .init(top: 0, left: 8, bottom: 0, right: -8)
         btn.contentEdgeInsets = .init(top: 12, left: 16, bottom: 12, right: 16)
         btn.backgroundColor = .white

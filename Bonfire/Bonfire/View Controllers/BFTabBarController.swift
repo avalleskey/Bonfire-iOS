@@ -8,19 +8,17 @@
 
 import UIKit
 import Hero
-import SwipeableTabBarController
 
-final class BFTabBarController: SwipeableTabBarController {
+final class BFTabBarController: UITabBarController {
     
     override var selectedViewController: UIViewController? {
         didSet {
             if oldValue == selectedViewController && selectedViewController?.tabBarItem.tag == 1 {
                 present(CreatePostViewController(), animated: true)
             } else if oldValue?.tabBarItem.tag == 1 {
-                selectedViewController?.tabBarItem.title = "Home"
+                oldValue?.tabBarItem.title = "Home"
             }
-            
-            if selectedViewController?.tabBarItem.tag == 1 {
+            else if selectedViewController?.tabBarItem.tag == 1 {
                 selectedViewController?.tabBarItem.title = ""
             }
         }
@@ -29,18 +27,20 @@ final class BFTabBarController: SwipeableTabBarController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        tabBar.clipsToBounds = true
-        tabBar.tintColor = .black
-        tabBar.backgroundColor = .white
-        tabBar.layer.shadowColor = UIColor.black.cgColor
-        tabBar.layer.shadowOpacity = 0.16
-        tabBar.layer.shadowOffset = .init(width: 0, height: -1)
-        tabBar.layer.shadowRadius = 6
+        tabBar.tintColor = Constants.Color.primary
+        tabBar.backgroundColor = Constants.Color.tabBar
+        tabBar.isTranslucent = false
+        tabBar.backgroundImage = UIImage()
+        tabBar.shadowImage = UIImage(named: "TabBarShadow")
+        
+        let tabBarItemFont = UIFont.systemFont(ofSize: 12, weight: .bold).rounded()
+        let appearance = UITabBarItem.appearance()
+        let attributes = [NSAttributedString.Key.font:tabBarItemFont]
+        appearance.setTitleTextAttributes(attributes, for: .normal)
+        appearance.titlePositionAdjustment = .init(horizontal: 0, vertical: -5)
         
         updateViewConstraints()
-        hero.isEnabled = true
-        
-        delegate = self
+        hero.isEnabled = false
     }
     
     override func updateViewConstraints() {

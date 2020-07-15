@@ -24,6 +24,7 @@ final class CampTableViewCell: UITableViewCell {
         label.text = "Illustration"
         label.font = UIFont.systemFont(ofSize: 17, weight: .bold)
         label.font = label.font.rounded()
+        label.textColor = Constants.Color.primary
         return label
     }()
     
@@ -32,6 +33,7 @@ final class CampTableViewCell: UITableViewCell {
         label.text = "#Illustration"
         label.font = UIFont.systemFont(ofSize: 15, weight: .semibold)
         label.font = label.font.rounded()
+        label.textColor = Constants.Color.secondaryLabel
         return label
     }()
     

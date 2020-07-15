@@ -20,7 +20,7 @@ final class CampsTableViewController: UITableViewController {
         tableView.register(CampTableViewCell.self,
                            forCellReuseIdentifier: CampTableViewCell.reuseIdentifier)
         tableView.separatorStyle = .none
-        tableView.delegate = self
+        tableView.contentInset.bottom = 16 + 42 + 16
     }
     
     required init?(coder: NSCoder) {

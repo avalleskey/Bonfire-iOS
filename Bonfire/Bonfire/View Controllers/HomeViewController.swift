@@ -29,8 +29,8 @@ final class HomeViewController: UIViewController {
         
         view.addSubview(homeFeedTableView.view)
         
-        segmentedControl.addItem(.init(title: "My Feed", target: nil, action: nil))
-        segmentedControl.addItem(.init(title: "Trending", target: nil, action: nil))
+        segmentedControl.addItem(.init(title: "Following", target: nil, action: nil))
+        segmentedControl.addItem(.init(title: "For You", target: nil, action: nil))
         
         navigationItem.titleView = segmentedControl
         

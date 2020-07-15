@@ -16,15 +16,21 @@ final class PostMessageCell: UITableViewCell {
     let messageLabel: UILabel = {
         let label = UILabel()
         label.text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-        label.font = UIFont.systemFont(ofSize: 18, weight: .semibold)
+        label.font = UIFont.systemFont(ofSize: 24, weight: .semibold)
         label.font = label.font.rounded()
         label.numberOfLines = 0
+        label.textAlignment = .center
         return label
     }()
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         
+        if #available(iOS 13.0, *) {
+            contentView.backgroundColor = .systemGroupedBackground
+        } else {
+            // Fallback on earlier versions
+        }
         contentView.addSubview(messageLabel)
         updateConstraints()
     }
@@ -40,12 +46,13 @@ final class PostMessageCell: UITableViewCell {
         
         NSLayoutConstraint.activate([
             messageLabel.topAnchor.constraint(equalTo: contentView.topAnchor,
-                                              constant: 10),
+                                              constant: 56),
             messageLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor,
                                                   constant: 12),
             messageLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor,
                                                   constant: -12),
-            contentView.bottomAnchor.constraint(equalTo: messageLabel.bottomAnchor)
+            contentView.bottomAnchor.constraint(equalTo: messageLabel.bottomAnchor,
+                                                  constant: 56),
         ])
     }
     

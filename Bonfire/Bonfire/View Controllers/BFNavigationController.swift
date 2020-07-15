@@ -28,6 +28,12 @@ final class BFNavigationController: UINavigationController {
         super.init(rootViewController: rootViewController)
         delegate = self
         hero.isEnabled = true
+        
+        // style
+        navigationBar.barTintColor = Constants.Color.navigationBar
+        navigationBar.isTranslucent = false
+        navigationBar.setBackgroundImage(UIImage(), for: .default)
+        navigationBar.shadowImage = UIImage()
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -44,27 +50,27 @@ extension BFNavigationController: UINavigationControllerDelegate {
         
         switch viewController {
         case is HomeViewController:
-            let icon = UIImage(named: "HomeNavIcon")
+            let icon = UIImage(named: "HomeNavIcon")?.withRenderingMode(UIImage.RenderingMode.alwaysTemplate)
             viewController.navigationItem.rightBarButtonItem = .init(image: icon,
                                                                      style: .plain,
                                                                      target: nil,
                                                                      action: nil)
-            viewController.navigationItem.rightBarButtonItem?.tintColor = .black
+            viewController.navigationItem.rightBarButtonItem?.tintColor = Constants.Color.primary
         case is FriendsViewController:
-            let icon = UIImage(named: "FriendsNavIcon")
+            let icon = UIImage(named: "FriendsNavIcon")?.withRenderingMode(UIImage.RenderingMode.alwaysTemplate)
             viewController.navigationItem.rightBarButtonItem = .init(image: icon,
                                                                      style: .plain,
                                                                      target: nil,
                                                                      action: nil)
-            viewController.navigationItem.rightBarButtonItem?.tintColor = .black
+            viewController.navigationItem.rightBarButtonItem?.tintColor = Constants.Color.primary
             
         case is CampsViewController:
-            let icon = UIImage(named: "MoreNavIcon")
+            let icon = UIImage(named: "MoreNavIcon")?.withRenderingMode(UIImage.RenderingMode.alwaysTemplate)
             viewController.navigationItem.rightBarButtonItem = .init(image: icon,
                                                                      style: .plain,
                                                                      target: nil,
                                                                      action: nil)
-            viewController.navigationItem.rightBarButtonItem?.tintColor = .black
+            viewController.navigationItem.rightBarButtonItem?.tintColor = Constants.Color.primary
         default:
             break
         }

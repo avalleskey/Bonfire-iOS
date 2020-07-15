@@ -29,6 +29,7 @@ final class BFFeedTableViewController: UITableViewController {
         tableView.estimatedRowHeight = UITableView.automaticDimension
         tableView.allowsSelection = false
         tableView.separatorStyle = .none
+        tableView.keyboardDismissMode = .onDrag
     }
     
     required init?(coder: NSCoder) {
@@ -38,11 +39,11 @@ final class BFFeedTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         switch indexPath.row {
         case 0:
-            return 58
+            return 64
         case 1:
             return UITableView.automaticDimension
         case 2:
-            return 48
+            return 56
         case 3:
             return 56
         default:
@@ -70,7 +71,8 @@ final class BFFeedTableViewController: UITableViewController {
                                                  for: indexPath) as! PostHeaderCell
             cell = headerCell
             
-            headerCell.profileLabel.text = "@" + post.attributes.creator.attributes.identifier
+            headerCell.profileLabel.text = post.attributes.creator.attributes.display_name
+//            headerCell.profileLabel.textColor = UIColor.init(hex: post.attributes.creator.attributes.color)
             
             if let camp = post.attributes.postedIn {
                 headerCell.campLabel.text = "in " + camp.attributes.title
@@ -86,8 +88,10 @@ final class BFFeedTableViewController: UITableViewController {
             let messageCell = tableView.dequeueReusableCell(withIdentifier: PostMessageCell.reuseIdentifier,
                                                             for: indexPath) as! PostMessageCell
             cell = messageCell
+            cell.contentView.backgroundColor = UIColor.init(hex: post.attributes.creator.attributes.color)
             
-            messageCell.messageLabel.text = post.attributes.message
+            messageCell.messageLabel.textColor = cell.contentView.backgroundColor?.isDarkColor == true ? .white : .black
+            messageCell.messageLabel.text = String(htmlEncodedString: post.attributes.message)
         case 2:
             let actionsCell = tableView.dequeueReusableCell(withIdentifier: PostActionsCell.reuseIdentifier,
                                                             for: indexPath) as! PostActionsCell
@@ -123,8 +127,18 @@ final class BFFeedTableViewController: UITableViewController {
         return cell
     }
     
+    override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        return section == 0 ? UIView() : nil
+    }
+    override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        return section == 0 ? 12 : 0
+    }
+    
+    override func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
+        return UIView()
+    }
     override func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
-        return 16
+        return 48
     }
     
 }

@@ -23,18 +23,19 @@ final class FriendsViewController: UIViewController {
     let addFriendsBtn: UIButton = {
         let btn = UIButton()
         btn.setTitle("Add Friends", for: .normal)
-        btn.setTitleColor(.black, for: .normal)
+        btn.backgroundColor = Constants.Color.pillBackground
+        btn.setTitleColor(Constants.Color.primary, for: .normal)
+        btn.tintColor = Constants.Color.primary
         btn.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .bold)
         btn.titleLabel?.font = btn.titleLabel?.font.rounded()
-        btn.setImage(UIImage(named: "AddFriends"), for: .normal)
+        btn.setImage(UIImage(named: "AddFriends")?.withRenderingMode(UIImage.RenderingMode.alwaysTemplate), for: .normal)
         btn.titleEdgeInsets = .init(top: 0, left: 8, bottom: 0, right: -8)
-        btn.contentEdgeInsets = .init(top: 12, left: 16, bottom: 12, right: 16)
-        btn.backgroundColor = .white
+        btn.contentEdgeInsets = .init(top: 0, left: 16, bottom: 0, right: 16+8)
         btn.layer.shadowColor = UIColor.black.cgColor
-        btn.layer.shadowOpacity = 0.12
+        btn.layer.shadowOpacity = 0.1
         btn.layer.shadowOffset = .init(width: 0, height: 2)
         btn.layer.cornerRadius = 20
-        btn.layer.shadowRadius = 6
+        btn.layer.shadowRadius = 4
         return btn
     }()
 
@@ -86,9 +87,9 @@ final class FriendsViewController: UIViewController {
             addFriendsBtn.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             addFriendsBtn.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor,
                                                   constant: -16),
+            addFriendsBtn.heightAnchor.constraint(equalToConstant: 42)
         ])
     }
 
 
 }
-

@@ -21,7 +21,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
         guard let scene = (scene as? UIWindowScene) else { return }
         
-        KeychainVault.accessToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImp0aSI6IjAtNjE2LTQ2NTUwLTE1OTQ2NDIwNzk0OTkxOTM2MTM2Nzk3NTcyNiJ9.eyJpc3MiOiJSb29tcy1BUEktSW50ZXJuYWwtQWNjZXNzIiwiYXVkIjoiYzgyZjU2NDUtODgzNi00OGQwLWU0YzItNGEyMTUxMzE3Yjk3IiwiaWF0IjoxNTk0NjQyMDc5LCJqdGkiOiIwLTYxNi00NjU1MC0xNTk0NjQyMDc5NDk5MTkzNjEzNjc5NzU3MjYiLCJleHAiOjE1OTQ3Mjg0NzksInVpZCI6NjE2LCJsaWQiOjI0MzE2LCJhdGlkIjo0NjU1MCwidHlwZSI6ImFjY2VzcyIsInNjb3BlIjoidXNlcnMscG9zdHMsY2FtcHMiLCJ2IjoxfQ.FFWkpM67Oy3j9O9s62QhM8D88Qq-z_lnV2yUmEHDygg"
+        KeychainVault.accessToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImp0aSI6IjAtMS00NjcyOC0xNTk0NzcxNjc1NDU0MDc0NjExNjEzNjA2NjI0NSJ9.eyJpc3MiOiJSb29tcy1BUEktSW50ZXJuYWwtQWNjZXNzIiwiYXVkIjoiYzgyZjU2NDUtODgzNi00OGQwLWU0YzItNGEyMTUxMzE3Yjk3IiwiaWF0IjoxNTk0NzcxNjc1LCJqdGkiOiIwLTEtNDY3MjgtMTU5NDc3MTY3NTQ1NDA3NDYxMTYxMzYwNjYyNDUiLCJleHAiOjE1OTQ4NTgwNzUsInVpZCI6MSwibGlkIjoyNDM2NywiYXRpZCI6NDY3MjgsInR5cGUiOiJhY2Nlc3MiLCJzY29wZSI6InVzZXJzLHBvc3RzLGNhbXBzIiwidiI6MX0.oZ0opCYxvUeAHzK5O_yQrLDFYBikLBTDaP3T0WF9_qI"
         
         let tabVC = BFTabBarController()
         

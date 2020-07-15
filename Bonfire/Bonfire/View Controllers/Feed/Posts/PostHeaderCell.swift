@@ -32,7 +32,7 @@ final class PostHeaderCell: UITableViewCell {
     let profileLabel: UILabel = {
         let label = UILabel()
         label.text = "@hugo"
-        label.textColor = .systemBlue
+        label.textColor = Constants.Color.primary
         label.font = UIFont.systemFont(ofSize: 16, weight: .bold)
         label.font = label.font.rounded()
         return label
@@ -43,6 +43,7 @@ final class PostHeaderCell: UITableViewCell {
         label.text = "in YEETVILLE"
         label.font = UIFont.systemFont(ofSize: 14, weight: .bold)
         label.font = label.font.rounded()
+        label.textColor = Constants.Color.secondaryLabel
         return label
     }()
     
@@ -77,10 +78,10 @@ final class PostHeaderCell: UITableViewCell {
         NSLayoutConstraint.activate([
             profileImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12),
             profileImageView.centerYAnchor.constraint(equalTo: centerYAnchor),
-            profileImageView.topAnchor.constraint(equalTo: topAnchor, constant: 8),
+            profileImageView.topAnchor.constraint(equalTo: topAnchor, constant: 12),
             headerLabelStack.centerYAnchor.constraint(equalTo: profileImageView.centerYAnchor),
             headerLabelStack.leadingAnchor.constraint(equalTo: profileImageView.trailingAnchor,
-                                                  constant: 8)
+                                                  constant: 12)
         ])
     }
     

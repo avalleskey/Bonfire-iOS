@@ -21,13 +21,16 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
         guard let scene = (scene as? UIWindowScene) else { return }
         
-        KeychainVault.accessToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImp0aSI6IjAtMS00NjcyOC0xNTk0NzcxNjc1NDU0MDc0NjExNjEzNjA2NjI0NSJ9.eyJpc3MiOiJSb29tcy1BUEktSW50ZXJuYWwtQWNjZXNzIiwiYXVkIjoiYzgyZjU2NDUtODgzNi00OGQwLWU0YzItNGEyMTUxMzE3Yjk3IiwiaWF0IjoxNTk0NzcxNjc1LCJqdGkiOiIwLTEtNDY3MjgtMTU5NDc3MTY3NTQ1NDA3NDYxMTYxMzYwNjYyNDUiLCJleHAiOjE1OTQ4NTgwNzUsInVpZCI6MSwibGlkIjoyNDM2NywiYXRpZCI6NDY3MjgsInR5cGUiOiJhY2Nlc3MiLCJzY29wZSI6InVzZXJzLHBvc3RzLGNhbXBzIiwidiI6MX0.oZ0opCYxvUeAHzK5O_yQrLDFYBikLBTDaP3T0WF9_qI"
+        KeychainVault.accessToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImp0aSI6IjAtMS00Njk0NC0xNTk0OTM1ODM4NDU3OTgzNzY0NzM4MTMzODYwNiJ9.eyJpc3MiOiJSb29tcy1BUEktSW50ZXJuYWwtQWNjZXNzIiwiYXVkIjoiYzgyZjU2NDUtODgzNi00OGQwLWU0YzItNGEyMTUxMzE3Yjk3IiwiaWF0IjoxNTk0OTM1ODM4LCJqdGkiOiIwLTEtNDY5NDQtMTU5NDkzNTgzODQ1Nzk4Mzc2NDczODEzMzg2MDYiLCJleHAiOjE1OTUwMjIyMzgsInVpZCI6MSwibGlkIjoyNDQyMywiYXRpZCI6NDY5NDQsInR5cGUiOiJhY2Nlc3MiLCJzY29wZSI6InVzZXJzLHBvc3RzLGNhbXBzIiwidiI6MX0.Wy_536AnWIN2DFtC2CZw8CZQ79I_eOeIp8ZJN5GIYfg"
         
         let tabVC = BFTabBarController()
         
         let friendsVC = FriendsViewController()
         let friendsNavVC = BFNavigationController(rootViewController: friendsVC)
         friendsVC.tabBarItem = FriendsViewController.defaultTabBarItem
+        let friendsPillButton = BFPillButton(title: "Add Friends", icon: "AddFriends", target: tabVC, action: #selector(tabVC.addCamps))
+        friendsPillButton.tag = friendsVC.tabBarItem.tag
+        tabVC.addPillButton(friendsPillButton, viewController: friendsNavVC)
         
         let homeVC = HomeViewController()
         let homeNavVC = BFNavigationController(rootViewController: homeVC)
@@ -36,6 +39,9 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let campsVC = CampsViewController()
         let campsNavVC = BFNavigationController(rootViewController: campsVC)
         campsVC.tabBarItem = CampsViewController.defaultTabBarItem
+        let campsPillButton = BFPillButton(title: "Add Camps", icon: "Plus", target: tabVC, action: #selector(tabVC.addCamps))
+        campsPillButton.tag = campsVC.tabBarItem.tag
+        tabVC.addPillButton(campsPillButton, viewController: campsNavVC)
         
         tabVC.setViewControllers([friendsNavVC, homeNavVC, campsNavVC], animated: false)
         

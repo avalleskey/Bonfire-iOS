@@ -87,10 +87,7 @@ final class BFFeedTableViewController: UITableViewController {
         case 1:
             let messageCell = tableView.dequeueReusableCell(withIdentifier: PostMessageCell.reuseIdentifier,
                                                             for: indexPath) as! PostMessageCell
-            cell = messageCell
-            cell.contentView.backgroundColor = UIColor.init(hex: post.attributes.creator.attributes.color)
-            
-            messageCell.messageLabel.textColor = cell.contentView.backgroundColor?.isDarkColor == true ? .white : .black
+            cell = messageCell            
             messageCell.messageLabel.text = String(htmlEncodedString: post.attributes.message)
         case 2:
             let actionsCell = tableView.dequeueReusableCell(withIdentifier: PostActionsCell.reuseIdentifier,

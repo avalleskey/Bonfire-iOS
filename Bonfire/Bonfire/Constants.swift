@@ -83,10 +83,7 @@ struct Constants {
         
         static let bfOrange = UIColor(displayP3Red: 255/255, green: 81/255, blue: 60/255, alpha: 1)
         
-        static let textBorder: UIColor = .init(red: 225/255,
-                                               green: 227/255,
-                                               blue: 230/255,
-                                               alpha: 0.3)
+        static let textBorder: UIColor = secondaryLabel.withAlphaComponent(0.08)
     }
     
     static let bfAttachmentCornerRadius = 14

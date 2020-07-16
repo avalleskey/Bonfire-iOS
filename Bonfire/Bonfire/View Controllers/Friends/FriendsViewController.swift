@@ -19,32 +19,12 @@ final class FriendsViewController: UIViewController {
     
     let friendsTableView = FriendsTableViewController()
     let controller = UserController()
-    
-    let addFriendsBtn: UIButton = {
-        let btn = UIButton()
-        btn.setTitle("Add Friends", for: .normal)
-        btn.backgroundColor = Constants.Color.pillBackground
-        btn.setTitleColor(Constants.Color.primary, for: .normal)
-        btn.tintColor = Constants.Color.primary
-        btn.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .bold)
-        btn.titleLabel?.font = btn.titleLabel?.font.rounded()
-        btn.setImage(UIImage(named: "AddFriends")?.withRenderingMode(UIImage.RenderingMode.alwaysTemplate), for: .normal)
-        btn.titleEdgeInsets = .init(top: 0, left: 8, bottom: 0, right: -8)
-        btn.contentEdgeInsets = .init(top: 0, left: 16, bottom: 0, right: 16+8)
-        btn.layer.shadowColor = UIColor.black.cgColor
-        btn.layer.shadowOpacity = 0.1
-        btn.layer.shadowOffset = .init(width: 0, height: 2)
-        btn.layer.cornerRadius = 20
-        btn.layer.shadowRadius = 4
-        return btn
-    }()
 
     override func viewDidLoad() {
         super.viewDidLoad()
         if #available(iOS 13.0, *) { view.backgroundColor = .systemBackground }
         
         view.addSubview(friendsTableView.view)
-        view.addSubview(addFriendsBtn)
         
         controller.getFriends { (result) in
             switch result {
@@ -73,7 +53,6 @@ final class FriendsViewController: UIViewController {
     override func updateViewConstraints() {
         super.updateViewConstraints()
         
-        addFriendsBtn.translatesAutoresizingMaskIntoConstraints = false
         friendsTableView.view.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
@@ -81,13 +60,6 @@ final class FriendsViewController: UIViewController {
             friendsTableView.view.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
             friendsTableView.view.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
             friendsTableView.view.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
-        ])
-        
-        NSLayoutConstraint.activate([
-            addFriendsBtn.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            addFriendsBtn.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor,
-                                                  constant: -16),
-            addFriendsBtn.heightAnchor.constraint(equalToConstant: 42)
         ])
     }
 

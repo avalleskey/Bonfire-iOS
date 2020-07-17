@@ -108,6 +108,7 @@
 		1AF7FCEC24A2700B003FCF9F /* BFSegmentedControlButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AF7FCEB24A2700B003FCF9F /* BFSegmentedControlButton.swift */; };
 		1AFFB1C6249D514900E67E89 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AFFB1C5249D514900E67E89 /* Constants.swift */; };
 		D9872AB824C0D76A0048622F /* BFPillButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9872AB724C0D76A0048622F /* BFPillButton.swift */; };
+		D9A2EEC324C165DC00EECE8A /* BFBouncyButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9A2EEC224C165DC00EECE8A /* BFBouncyButton.swift */; };
 		D9EB895D24BE83ED00BC6F6D /* UIColor+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9EB895C24BE83ED00BC6F6D /* UIColor+Extensions.swift */; };
 		D9EB895F24BE911B00BC6F6D /* String+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9EB895E24BE911B00BC6F6D /* String+Extensions.swift */; };
 /* End PBXBuildFile section */
@@ -280,6 +281,7 @@
 		1AF7FCEB24A2700B003FCF9F /* BFSegmentedControlButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFSegmentedControlButton.swift; sourceTree = "<group>"; };
 		1AFFB1C5249D514900E67E89 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		D9872AB724C0D76A0048622F /* BFPillButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFPillButton.swift; sourceTree = "<group>"; };
+		D9A2EEC224C165DC00EECE8A /* BFBouncyButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFBouncyButton.swift; sourceTree = "<group>"; };
 		D9EB895C24BE83ED00BC6F6D /* UIColor+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+Extensions.swift"; sourceTree = "<group>"; };
 		D9EB895E24BE911B00BC6F6D /* String+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Extensions.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -551,7 +553,7 @@
 		1A7854E0249FBCDF00BA1589 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				D9872AB624C0D6F60048622F /* Pill */,
+				D9A2EEC124C165CF00EECE8A /* Button */,
 				1A15AB5C24B3B1E3007722A4 /* Text */,
 				1A7854E924A0CF1C00BA1589 /* Segmented Control */,
 			);
@@ -808,12 +810,13 @@
 			path = Replies;
 			sourceTree = "<group>";
 		};
-		D9872AB624C0D6F60048622F /* Pill */ = {
+		D9A2EEC124C165CF00EECE8A /* Button */ = {
 			isa = PBXGroup;
 			children = (
 				D9872AB724C0D76A0048622F /* BFPillButton.swift */,
+				D9A2EEC224C165DC00EECE8A /* BFBouncyButton.swift */,
 			);
-			path = Pill;
+			path = Button;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -1095,6 +1098,7 @@
 				D9EB895D24BE83ED00BC6F6D /* UIColor+Extensions.swift in Sources */,
 				1A6F958624B8E0C4004A20F4 /* GetStartedViewController.swift in Sources */,
 				1A212A0924BC869100A0DCD3 /* BFFormCollectionViewController.swift in Sources */,
+				D9A2EEC324C165DC00EECE8A /* BFBouncyButton.swift in Sources */,
 				1AAC6F0F24B3A5C400EFD803 /* AddReplyCell.swift in Sources */,
 				1A847D3924B1B65800530614 /* PostImageAttachmentCell.swift in Sources */,
 				1A6859BD249F632A008DB6BC /* FriendsTableViewController.swift in Sources */,

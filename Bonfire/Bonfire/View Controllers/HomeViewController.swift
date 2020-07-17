@@ -15,7 +15,7 @@ final class HomeViewController: UIViewController {
     static var defaultTabBarItem: UITabBarItem {
         let item = UITabBarItem(title: Constants.TabBar.homeDefaultText,
                      image: Constants.TabBar.homeDefaultImage,
-                     selectedImage: Constants.TabBar.createPostImage)
+                     selectedImage: Constants.TabBar.homeDefaultImage)
         item.tag = 1
         return item
     }

@@ -11,6 +11,7 @@ import UIKit
 import Hero
 
 final class BFNavigationController: UINavigationController {
+    var navigationBarHeight : CGFloat = 52
     
     private let bfNavigationItem: UINavigationItem = {
         let item = UINavigationItem()
@@ -21,6 +22,7 @@ final class BFNavigationController: UINavigationController {
         item.rightBarButtonItem = .init(barButtonSystemItem: .bookmarks,
                                                                  target: self,
                                                                  action: nil)
+        
         return item
     }()
     
@@ -30,10 +32,20 @@ final class BFNavigationController: UINavigationController {
         hero.isEnabled = true
         
         // style
+//        if #available(iOS 11.0, *) {
+//            additionalSafeAreaInsets.top = navigationBarHeight - navigationBar.frame.size.height
+//        }
+        
         navigationBar.barTintColor = Constants.Color.navigationBar
         navigationBar.isTranslucent = false
         navigationBar.setBackgroundImage(UIImage(), for: .default)
         navigationBar.shadowImage = UIImage()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        
     }
     
     required init?(coder aDecoder: NSCoder) {

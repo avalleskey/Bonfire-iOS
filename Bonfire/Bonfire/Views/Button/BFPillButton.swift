@@ -9,7 +9,7 @@
 import Foundation
 import UIKit
 
-final class BFPillButton: UIButton {
+final class BFPillButton: BFBouncyButton {
     init(title: String, icon: String?, target: AnyObject?, action: Selector?) {
         super.init(frame: .zero)
                 
@@ -25,12 +25,8 @@ final class BFPillButton: UIButton {
         }
         if (target != nil) {
             addTarget(target, action: action!, for: .touchUpInside)
-            
-            addTarget(self, action: #selector(animateDown), for: [.touchDown, .touchDragEnter])
-            addTarget(self, action: #selector(animateUp), for: [.touchDragExit, .touchCancel, .touchUpInside, .touchUpOutside])
         }
         
-        adjustsImageWhenHighlighted = false
         backgroundColor = Constants.Color.pillBackground
         setTitleColor(Constants.Color.primary, for: .normal)
         tintColor = Constants.Color.primary
@@ -43,28 +39,6 @@ final class BFPillButton: UIButton {
         layer.shadowRadius = 3
         
         frame = CGRect(x: 0, y: 0, width: intrinsicContentSize.width + titleImageSpacing, height: 40)
-    }
-    
-    @objc private func animateDown(sender: UIButton) {
-        let generator = UISelectionFeedbackGenerator()
-        generator.selectionChanged()
-        
-        animate(sender, transform: CGAffineTransform.identity.scaledBy(x: 0.95, y: 0.95))
-    }
-    
-    @objc private func animateUp(sender: UIButton) {
-        animate(sender, transform: .identity)
-    }
-    
-    private func animate(_ button: UIButton, transform: CGAffineTransform) {
-        UIView.animate(withDuration: 0.4,
-                       delay: 0,
-                       usingSpringWithDamping: 0.5,
-                       initialSpringVelocity: 3,
-                       options: [.curveEaseInOut],
-                       animations: {
-                        button.transform = transform
-            }, completion: nil)
     }
     
     required init?(coder: NSCoder) {

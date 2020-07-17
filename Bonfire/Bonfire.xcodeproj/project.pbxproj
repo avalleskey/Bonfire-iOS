@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		1A15AB5E24B3B1F1007722A4 /* BFTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A15AB5D24B3B1F1007722A4 /* BFTextField.swift */; };
-		1A1B56DE24B396CA00294F22 /* SwipeableTabBarController in Frameworks */ = {isa = PBXBuildFile; productRef = 1A1B56DD24B396CA00294F22 /* SwipeableTabBarController */; };
 		1A212A0924BC869100A0DCD3 /* BFFormCollectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A212A0824BC869100A0DCD3 /* BFFormCollectionViewController.swift */; };
 		1A212A0C24BC86C500A0DCD3 /* BFFormItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A212A0B24BC86C500A0DCD3 /* BFFormItem.swift */; };
 		1A212A0E24BC86F800A0DCD3 /* BFFormItemType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A212A0D24BC86F800A0DCD3 /* BFFormItemType.swift */; };
@@ -278,6 +277,7 @@
 		1A9ECBE124AA471100391279 /* BFResource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFResource.swift; sourceTree = "<group>"; };
 		1AAC6F0E24B3A5C400EFD803 /* AddReplyCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddReplyCell.swift; sourceTree = "<group>"; };
 		1ABDB17424A35EE100D05140 /* PostMessageCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostMessageCell.swift; sourceTree = "<group>"; };
+		1AE84B8C24C07AE400553D72 /* Bonfire.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Bonfire.entitlements; sourceTree = "<group>"; };
 		1AF7FCEB24A2700B003FCF9F /* BFSegmentedControlButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFSegmentedControlButton.swift; sourceTree = "<group>"; };
 		1AFFB1C5249D514900E67E89 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		D9872AB724C0D76A0048622F /* BFPillButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFPillButton.swift; sourceTree = "<group>"; };
@@ -306,7 +306,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1A1B56DE24B396CA00294F22 /* SwipeableTabBarController in Frameworks */,
 				1A847D5524B1EDDB00530614 /* Kingfisher in Frameworks */,
 				1A844734249D4B88002813CB /* BFNetworking.framework in Frameworks */,
 				1A847D5824B2426200530614 /* Hero in Frameworks */,
@@ -598,6 +597,7 @@
 		1A8446FC249C8652002813CB /* Bonfire */ = {
 			isa = PBXGroup;
 			children = (
+				1AE84B8C24C07AE400553D72 /* Bonfire.entitlements */,
 				1A7854E0249FBCDF00BA1589 /* Views */,
 				1A94DED4249FB5EE00AB0200 /* Controller */,
 				1A57FAE8249F5D7E00A407F9 /* Extensions and Helpers */,
@@ -897,7 +897,6 @@
 			packageProductDependencies = (
 				1A847D5424B1EDDB00530614 /* Kingfisher */,
 				1A847D5724B2426200530614 /* Hero */,
-				1A1B56DD24B396CA00294F22 /* SwipeableTabBarController */,
 			);
 			productName = Bonfire;
 			productReference = 1A8446FA249C8652002813CB /* Bonfire.app */;
@@ -986,7 +985,6 @@
 			packageReferences = (
 				1A847D5324B1EDDB00530614 /* XCRemoteSwiftPackageReference "Kingfisher" */,
 				1A847D5624B2426200530614 /* XCRemoteSwiftPackageReference "Hero" */,
-				1A1B56DC24B396CA00294F22 /* XCRemoteSwiftPackageReference "SwipeableTabBarController" */,
 				1A6F958724B8E6AC004A20F4 /* XCRemoteSwiftPackageReference "keychain-swift" */,
 			);
 			productRefGroup = 1A8446FB249C8652002813CB /* Products */;
@@ -1439,6 +1437,7 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Bonfire/Bonfire.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 3;
@@ -1453,6 +1452,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = Ingenious.Bonfire;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				SUPPORTS_MACCATALYST = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -1463,6 +1463,7 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Bonfire/Bonfire.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 3;
@@ -1477,6 +1478,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = Ingenious.Bonfire;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				SUPPORTS_MACCATALYST = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -1640,14 +1642,6 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		1A1B56DC24B396CA00294F22 /* XCRemoteSwiftPackageReference "SwipeableTabBarController" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/marcosgriselli/SwipeableTabBarController";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 3.2.1;
-			};
-		};
 		1A6F958724B8E6AC004A20F4 /* XCRemoteSwiftPackageReference "keychain-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/evgenyneu/keychain-swift";
@@ -1675,11 +1669,6 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		1A1B56DD24B396CA00294F22 /* SwipeableTabBarController */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 1A1B56DC24B396CA00294F22 /* XCRemoteSwiftPackageReference "SwipeableTabBarController" */;
-			productName = SwipeableTabBarController;
-		};
 		1A6F958824B8E6AC004A20F4 /* KeychainSwift */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 1A6F958724B8E6AC004A20F4 /* XCRemoteSwiftPackageReference "keychain-swift" */;

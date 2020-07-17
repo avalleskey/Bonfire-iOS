@@ -33,16 +33,14 @@ final class PostHeaderCell: UITableViewCell {
         let label = UILabel()
         label.text = "@hugo"
         label.textColor = Constants.Color.primary
-        label.font = UIFont.systemFont(ofSize: 16, weight: .bold)
-        label.font = label.font.rounded()
+        label.font = UIFont.systemFont(ofSize: 16, weight: .bold).rounded()
         return label
     }()
     
     let campLabel: UILabel = {
         let label = UILabel()
         label.text = "in YEETVILLE"
-        label.font = UIFont.systemFont(ofSize: 14, weight: .bold)
-        label.font = label.font.rounded()
+        label.font = UIFont.systemFont(ofSize: 14, weight: .bold).rounded()
         label.textColor = Constants.Color.secondaryLabel
         return label
     }()

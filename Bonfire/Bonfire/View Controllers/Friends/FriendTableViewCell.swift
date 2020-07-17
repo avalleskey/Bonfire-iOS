@@ -22,8 +22,7 @@ final class FriendTableViewCell: UITableViewCell {
     let profileNameLabel: UILabel = {
         let label = UILabel()
         label.text = "Lisandro Matos"
-        label.font = UIFont.systemFont(ofSize: 17, weight: .bold)
-        label.font = label.font.rounded()
+        label.font = UIFont.systemFont(ofSize: 17, weight: .bold).rounded()
         label.textColor = Constants.Color.primary
         return label
     }()
@@ -31,8 +30,7 @@ final class FriendTableViewCell: UITableViewCell {
     let profileSublineLabel: UILabel = {
         let label = UILabel()
         label.text = "You: 1 Attachment · 5m"
-        label.font = UIFont.systemFont(ofSize: 15, weight: .semibold)
-        label.font = label.font.rounded()
+        label.font = UIFont.systemFont(ofSize: 15, weight: .semibold).rounded()
         label.textColor = Constants.Color.secondaryLabel
         return label
     }()

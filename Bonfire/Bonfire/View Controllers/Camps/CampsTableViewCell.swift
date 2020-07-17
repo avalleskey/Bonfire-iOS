@@ -22,8 +22,7 @@ final class CampTableViewCell: UITableViewCell {
     let campNameLabel: UILabel = {
         let label = UILabel()
         label.text = "Illustration"
-        label.font = UIFont.systemFont(ofSize: 17, weight: .bold)
-        label.font = label.font.rounded()
+        label.font = UIFont.systemFont(ofSize: 17, weight: .bold).rounded()
         label.textColor = Constants.Color.primary
         return label
     }()
@@ -31,8 +30,7 @@ final class CampTableViewCell: UITableViewCell {
     let campSublineLabel: UILabel = {
         let label = UILabel()
         label.text = "#Illustration"
-        label.font = UIFont.systemFont(ofSize: 15, weight: .semibold)
-        label.font = label.font.rounded()
+        label.font = UIFont.systemFont(ofSize: 15, weight: .semibold).rounded()
         label.textColor = Constants.Color.secondaryLabel
         return label
     }()

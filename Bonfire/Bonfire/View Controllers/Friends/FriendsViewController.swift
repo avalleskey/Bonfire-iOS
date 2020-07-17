@@ -26,6 +26,18 @@ final class FriendsViewController: UIViewController {
         
         view.addSubview(friendsTableView.view)
         
+        refresh()
+        
+        updateViewConstraints()
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        refresh()
+    }
+    
+    func refresh() {
         controller.getFriends { (result) in
             switch result {
             case .success(let friends):
@@ -46,8 +58,6 @@ final class FriendsViewController: UIViewController {
             }
             
         }
-        
-        updateViewConstraints()
     }
     
     override func updateViewConstraints() {

@@ -36,6 +36,8 @@ public struct KeychainProperty<Value: Keychainable> {
                 keychain.set(bool, forKey: key.rawValue)
             } else if let data = newValue as? Data {
                 keychain.set(data, forKey: key.rawValue)
+            } else if newValue == nil {
+                keychain.delete(key.rawValue)
             }
         }
     }

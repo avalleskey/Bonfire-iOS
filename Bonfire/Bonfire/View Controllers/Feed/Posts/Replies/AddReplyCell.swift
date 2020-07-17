@@ -24,8 +24,7 @@ final class AddReplyCell: UITableViewCell {
         textField.layer.borderWidth = 2
         textField.layer.cornerRadius = 22
         textField.placeholder = "Add a reply..."
-        textField.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
-        textField.font = textField.font?.rounded()
+        textField.font = UIFont.systemFont(ofSize: 16, weight: .semibold).rounded()
         return textField
     }()
     

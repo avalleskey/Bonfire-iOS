@@ -16,8 +16,7 @@ final class GetStartedViewController: UIViewController {
         label.text = "By continuing, you agree to Bonfire’s Terms of Use and confirm that you have read Bonfire’s Privacy Policy."
         label.numberOfLines = 0
         label.textAlignment = .center
-        label.font = UIFont.systemFont(ofSize: 12, weight: .regular)
-        label.font = label.font.rounded()
+        label.font = UIFont.systemFont(ofSize: 12, weight: .regular).rounded()
         return label
     }()
     
@@ -48,6 +47,32 @@ final class GetStartedViewController: UIViewController {
         return btn
     }()
     
+    let heroAlignmentView: UIView = {
+        return UIView()
+    }()
+    
+    let heroStackView: UIStackView = {
+        let stackView = UIStackView()
+        stackView.axis = .vertical
+        stackView.distribution = .equalSpacing
+        return stackView
+    }()
+    
+    let primaryLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Find your people"
+        label.textAlignment = .center
+        return label
+    }()
+    
+    let secondaryLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Join Camps, make new friends, go viral in For You and more"
+        label.numberOfLines = 2
+        label.textAlignment = .center
+        return label
+    }()
+    
     init() {
         super.init(nibName: nil, bundle: nil)
         
@@ -56,6 +81,11 @@ final class GetStartedViewController: UIViewController {
         view.addSubview(signInBtn)
         view.addSubview(continueWithAppleBtn)
         view.addSubview(signUpBtn)
+        view.addSubview(heroStackView)
+        view.addSubview(heroAlignmentView)
+        
+        heroStackView.addArrangedSubview(primaryLabel)
+        heroStackView.addArrangedSubview(secondaryLabel)
     }
     
     required init?(coder: NSCoder) {
@@ -69,6 +99,8 @@ final class GetStartedViewController: UIViewController {
         signInBtn.translatesAutoresizingMaskIntoConstraints = false
         continueWithAppleBtn.translatesAutoresizingMaskIntoConstraints = false
         signUpBtn.translatesAutoresizingMaskIntoConstraints = false
+        heroAlignmentView.translatesAutoresizingMaskIntoConstraints = false
+        heroStackView.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
             legalText.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor,
@@ -100,7 +132,16 @@ final class GetStartedViewController: UIViewController {
                                                constant: 24),
             signUpBtn.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor,
                                                 constant: -24),
-            signUpBtn.heightAnchor.constraint(equalToConstant: 48)
+            signUpBtn.heightAnchor.constraint(equalToConstant: 48),
+            
+            heroAlignmentView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            heroAlignmentView.bottomAnchor.constraint(equalTo: signUpBtn.topAnchor),
+            heroAlignmentView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            heroAlignmentView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            
+            heroStackView.leadingAnchor.constraint(equalTo: heroAlignmentView.leadingAnchor),
+            heroStackView.trailingAnchor.constraint(equalTo: heroAlignmentView.trailingAnchor),
+            heroStackView.centerYAnchor.constraint(equalTo: heroAlignmentView.centerYAnchor),
             
             
         ])

@@ -15,25 +15,31 @@ struct BFSignInForm<FormData: BFSignInData>: BFForm {
     var data: FormData = .init()
 
     var items: [BFFormItem<FormData>] = [
-        .init(path: \.phoneEmailUsername, type: .text,
-            onCompletion: {
-
-            },
-            validate: { input -> Bool? in
+        .init(path: \.phoneEmailUsername,
+              type: .text,
+              instructionText: "Hi again! 👋\nPlease sign in below",
+              placeholderText: "Phone, email, username",
+              onCompletion: {
+                
+              },
+              validate: { input -> Bool? in
                 switch input {
                 case .string(_):
                     return true
                 default:
                     return false
                 }
-            }),
-        .init(path: \.password, type: .password,
-            onCompletion: {
-
-            },
-            validate: { input -> Bool? in
+              }),
+        .init(path: \.password,
+              type: .password,
+              instructionText: "Let's get you signed in!\nPlease enter your password",
+              placeholderText: "Password",
+              onCompletion: {
+                
+              },
+              validate: { input -> Bool? in
                 return true
-            }),
+              }),
     ]
 
 

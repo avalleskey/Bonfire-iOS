@@ -9,7 +9,7 @@
 import Foundation
 import UIKit
 
-final class BFFormTextView: UIViewController, BFFormCell {
+final class BFFormTextView<FormData: BFFormData>: UIViewController, BFFormCell {
 
     let instructionLabel: UILabel = {
         let label = UILabel()
@@ -26,11 +26,14 @@ final class BFFormTextView: UIViewController, BFFormCell {
         return textField
     }()
 
-    init() {
+    init(item: BFFormItem<FormData>) {
         super.init(nibName: nil, bundle: nil)
 
         view.addSubview(instructionLabel)
         view.addSubview(textField)
+        
+        instructionLabel.text = item.instructionText
+        textField.placeholder = item.placeholderText
     }
 
     required init?(coder: NSCoder) {

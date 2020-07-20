@@ -29,7 +29,7 @@ final class BFFormViewController<Form: BFForm>: UIViewController {
         self.form = form
         self.currentItem = form.items.first
         let initialVC = Self.viewControllerForInput(input: self.currentItem)
-        pageViewController = BFFormPageViewController(initialVC: initialVC)
+        pageViewController = BFFormPageViewController(initialVC: initialVC!)
         currentCell = initialVC
         super.init(nibName: nil, bundle: nil)
         view.backgroundColor = .white
@@ -68,6 +68,10 @@ final class BFFormViewController<Form: BFForm>: UIViewController {
         guard let currentIdx = form.items.firstIndex(where: { $0 == currentItem }),
               let currentCell = currentCell else { return }
         let nextIdx = form.items.index(after: currentIdx)
+        guard nextIdx < form.items.endIndex else {
+            dismiss(animated: true)
+            return
+        }
         let nextItem = form.items[nextIdx]
 
         let value = currentCell.value()
@@ -75,20 +79,24 @@ final class BFFormViewController<Form: BFForm>: UIViewController {
             if let updatePath = currentItem?.path {
                 form.data.set(value: value, forKeyPath: updatePath)
             }
+            currentItem = nextItem
+            guard let nextVC = Self.viewControllerForInput(input: nextItem) else { return }
+            self.currentCell = nextVC
             pageViewController.segue(
-                to: Self.viewControllerForInput(input: nextItem),
+                to: nextVC,
                 direction: .right)
         }
     }
 
     private static func viewControllerForInput(input: BFFormItem<Form.DataType>?)
-        -> BFFormCell
+        -> BFFormCell?
     {
-        switch input?.type {
+        guard let input = input else { return nil }
+        switch input.type {
         case .text, .password, .email, .otp:
-            return BFFormTextView()
+            return BFFormTextView<Form.DataType>(item: input)
         default:
-            fatalError("Unsupported form type \(input?.type)")
+            fatalError("Unsupported form type \(input.type)")
         }
     }
 

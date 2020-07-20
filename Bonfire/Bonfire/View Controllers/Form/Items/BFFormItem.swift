@@ -15,10 +15,12 @@ enum BFFormItemValue {
 
 struct BFFormItem<FormData: BFFormData> {
     let id = UUID()
-    var path: ReferenceWritableKeyPath<FormData, BFFormItemValue?>?
-    var type: BFFormItemType
-    var onCompletion: () -> Void
-    var validate: (BFFormItemValue) -> Bool?
+    let path: ReferenceWritableKeyPath<FormData, BFFormItemValue?>?
+    let type: BFFormItemType
+    let instructionText: String?
+    let placeholderText: String?
+    let onCompletion: () -> Void
+    let validate: (BFFormItemValue) -> Bool?
 }
 
 extension BFFormItem: Identifiable {}

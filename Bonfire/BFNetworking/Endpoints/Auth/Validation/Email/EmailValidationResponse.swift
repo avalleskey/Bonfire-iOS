@@ -10,11 +10,11 @@ import Foundation
 
 public struct EmailValidationResponse: Decodable {
 
-    let data: EmailValidationData
+    public let data: EmailValidationData
 
-    struct EmailValidationData: Decodable {
-        let valid: Bool
-        let occupied: Bool
+    public struct EmailValidationData: Decodable {
+        public let valid: Bool
+        public let occupied: Bool
     }
 
 }

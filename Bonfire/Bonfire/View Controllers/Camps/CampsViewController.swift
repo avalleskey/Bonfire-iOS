@@ -27,14 +27,23 @@ final class CampsViewController: UIViewController {
 
         view.addSubview(campsTableView.view)
 
+        refresh()
+
+        updateViewConstraints()
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        refresh()
+    }
+    
+    private func refresh() {
         controller.getCamps { (camps) in
             DispatchQueue.main.async {
                 self.campsTableView.camps = camps
                 self.campsTableView.tableView.reloadData()
             }
         }
-
-        updateViewConstraints()
     }
 
     override func updateViewConstraints() {

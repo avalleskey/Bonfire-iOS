@@ -11,6 +11,15 @@ import Foundation
 enum BFFormItemValue {
     case string(String)
     case int(Int)
+    
+    var stringValue: String? {
+        switch self {
+        case .string(let str):
+            return str
+        default:
+            return nil
+        }
+    }
 }
 
 struct BFFormItem<FormData: BFFormData> {

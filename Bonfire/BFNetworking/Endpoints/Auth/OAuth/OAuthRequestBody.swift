@@ -9,11 +9,27 @@
 import Foundation
 
 public struct OAuthRequestBody: Encodable {
+    
     let grantType = "password"
 
-    let username: String?
-    let password: String?
+    public let username: String?
+    public let password: String?
 
-    let phone: String?
-    let code: String?
+    public let phone: String?
+    public let code: String?
+    
+    public init(username: String?, password: String?, phone: String?, code: String?) {
+        self.username = username
+        self.password = password
+        self.phone = phone
+        self.code = code
+    }
+    
+    enum CodingKeys: String, CodingKey {
+        case grantType = "grant_type"
+        case username
+        case password
+        case phone
+        case code
+    }
 }

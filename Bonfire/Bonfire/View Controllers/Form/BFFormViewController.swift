@@ -70,15 +70,19 @@ final class BFFormViewController<Form: BFForm>: UIViewController {
 
         let value = currentCell.value()
         if currentItem?.validate(value) ?? false {
-            let nextIdx = form.items.index(after: currentIdx)
-            guard nextIdx < form.items.endIndex else {
-                dismiss(animated: true)
-                return
-            }
-            let nextItem = form.items[nextIdx]
             if let updatePath = currentItem?.path {
                 form.data.set(value: value, forKeyPath: updatePath)
             }
+            let nextIdx = form.items.index(after: currentIdx)
+            guard nextIdx < form.items.endIndex else {
+                form.finalize { (success) in
+                    if success {
+                        self.dismiss(animated: true)
+                    }
+                }
+                return
+            }
+            let nextItem = form.items[nextIdx]
             currentItem = nextItem
             guard let nextVC = Self.viewControllerForInput(input: nextItem) else { return }
             self.currentCell = nextVC

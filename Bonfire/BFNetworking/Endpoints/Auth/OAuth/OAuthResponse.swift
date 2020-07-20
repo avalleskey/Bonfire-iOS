@@ -10,13 +10,13 @@ import Foundation
 
 public final class OAuthResponse: Decodable {
 
-    let data: OAuthResponseData
+    public let data: OAuthResponseData
 
-    struct OAuthResponseData: Decodable {
-        let accessToken: KeychainVault.Token
-        let refreshToken: KeychainVault.Token
-        let expiresAt: Date
-        let scope: String
+    public struct OAuthResponseData: Decodable {
+        public let accessToken: KeychainVault.Token
+        public let refreshToken: KeychainVault.Token
+        public let expiresAt: String // TODO: Add date decoding support
+        public let scope: String
 
         enum CodingKeys: String, CodingKey {
             case accessToken = "access_token"

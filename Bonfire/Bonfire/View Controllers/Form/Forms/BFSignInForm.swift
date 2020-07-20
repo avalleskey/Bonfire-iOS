@@ -10,11 +10,10 @@ import BFNetworking
 import Foundation
 
 struct BFSignInForm<FormData: BFSignInData>: BFForm {
-
     typealias DataType = FormData
-    var data: FormData = .init()
+    let data: FormData = .init()
 
-    var items: [BFFormItem<FormData>] = [
+    let items: [BFFormItem<FormData>] = [
         .init(path: \.phoneEmailUsername,
               type: .text,
               instructionText: "Hi again! 👋\nPlease sign in below",
@@ -38,31 +37,28 @@ struct BFSignInForm<FormData: BFSignInData>: BFForm {
                 
               },
               validate: { input -> Bool? in
+                
                 return true
               }),
     ]
-
-
-    //    let items: [BFFormItem<FormData>] = {
-    ////        let phoneUsername = BFFormItem(path: \BFSignInData.phoneEmailUsername,
-    ////                              type: .text) {
-    ////
-    ////        } validate: {
-    ////            return true
-    ////        }
-    ////
-    ////        let password = BFFormItem(path: \BFSignInData.password,
-    ////                                  type: .password) {
-    ////            APIClient.shared.send(EmailValidationRequest()) { (result) in
-    ////
-    ////            }
-    ////        } validate: {
-    ////            return true
-    ////        }
-    ////
-    ////
-    ////        return [phoneUsername, password]
-    //        return []
-    //    }()
+    
+    func finalize(completion: @escaping (Bool) -> ()) {
+        let requestBody = OAuthRequestBody(username: data.phoneEmailUsername?.stringValue,
+                                           password: data.password?.stringValue,
+                                           phone: nil,
+                                           code: nil)
+        APIClient.shared.send(OAuthRequest(body: requestBody)) { (result) in
+            switch result {
+            case .success(let response):
+                DispatchQueue.main.async {
+                    KeychainVault.accessToken = response.data.accessToken
+                    KeychainVault.refreshToken = response.data.refreshToken
+                    completion(true)
+                }
+            case .failure(let error):
+                completion(false)
+            }
+        }
+    }
 
 }

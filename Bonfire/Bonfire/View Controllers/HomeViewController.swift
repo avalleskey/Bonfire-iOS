@@ -34,15 +34,24 @@ final class HomeViewController: UIViewController {
         segmentedControl.addItem(.init(title: "For You", target: nil, action: nil))
 
         navigationItem.titleView = segmentedControl
+        
+        refresh()
 
+        updateViewConstraints()
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        refresh()
+    }
+    
+    private func refresh() {
         controller.getStream { (posts) in
             DispatchQueue.main.async {
                 self.homeFeedTableView.posts = posts
                 self.homeFeedTableView.tableView.reloadData()
             }
         }
-
-        updateViewConstraints()
     }
 
     override func updateViewConstraints() {

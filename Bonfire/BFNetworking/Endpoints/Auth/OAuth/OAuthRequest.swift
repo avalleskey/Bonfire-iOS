@@ -12,7 +12,7 @@ import Foundation
 final public class OAuthRequest: APIRequest {
     public typealias Response = OAuthResponse
 
-    public let resource = "accounts/validate/username"
+    public let resource = "oauth"
 
     public let body: Data?
 

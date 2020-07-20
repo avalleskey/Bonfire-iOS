@@ -34,6 +34,8 @@ final class BFFormTextView<FormData: BFFormData>: UIViewController, BFFormCell {
         
         instructionLabel.text = item.instructionText
         textField.placeholder = item.placeholderText
+        
+        textField.isSecureTextEntry = item.type == .password
     }
 
     required init?(coder: NSCoder) {

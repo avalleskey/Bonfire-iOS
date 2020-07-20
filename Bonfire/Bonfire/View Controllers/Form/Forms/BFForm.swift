@@ -13,4 +13,6 @@ protocol BFForm {
 
     var data: DataType { get }
     var items: [BFFormItem<DataType>] { get }
+    
+    func finalize(completion: @escaping (Bool) -> ())
 }

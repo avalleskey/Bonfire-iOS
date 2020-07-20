@@ -19,7 +19,7 @@ final class AddReplyCell: UITableViewCell {
     }()
     
     let replyTextField: UITextField = {
-        let textField = BFTextField()
+        let textField = BFReplyTextField()
         textField.layer.borderColor = Constants.Color.textBorder.cgColor
         textField.layer.borderWidth = 2
         textField.layer.cornerRadius = 22

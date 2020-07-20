@@ -22,6 +22,7 @@ struct BFFormItem<FormData: BFFormData> {
 }
 
 extension BFFormItem: Identifiable {}
+
 extension BFFormItem: Equatable {
     static func == (lhs: BFFormItem, rhs: BFFormItem) -> Bool {
         lhs.id == rhs.id && lhs.type == rhs.type

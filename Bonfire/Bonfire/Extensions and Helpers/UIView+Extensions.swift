@@ -13,4 +13,11 @@ extension UIView {
         layer.cornerRadius = radius
         layer.maskedCorners = corners
     }
+    
+    func smoothRound(radius: CGFloat) {
+        let mask = CAShapeLayer()
+        mask.frame = bounds
+        mask.path = UIBezierPath(roundedRect: bounds, cornerRadius: radius).cgPath
+        layer.mask = mask
+    }
 }

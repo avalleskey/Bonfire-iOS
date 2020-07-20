@@ -55,7 +55,9 @@ final class BFFormViewController<Form: BFForm>: UIViewController {
             
             nextBtn.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor,
                                             constant: -20),
-            nextBtn.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+            nextBtn.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
+            nextBtn.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24),
+            nextBtn.heightAnchor.constraint(equalToConstant: 48)
         ])
     }
     
@@ -73,7 +75,7 @@ final class BFFormViewController<Form: BFForm>: UIViewController {
         }
     }
     
-    static func viewControllerForInput(input: BFFormItem<Form.DataType>?) -> UIViewController {
+    private static func viewControllerForInput(input: BFFormItem<Form.DataType>?) -> UIViewController {
         switch input?.type {
         case .text, .password, .email, .otp:
             return BFFormTextView()

@@ -15,6 +15,7 @@ final class BFFormTextView: UIViewController, BFFormCell {
         let label = UILabel()
         label.text = "Enter text..."
         label.numberOfLines = 2
+        label.font = UIFont.systemFont(ofSize: 18, weight: .medium).rounded()
         label.textAlignment = .center
         return label
     }()
@@ -43,11 +44,20 @@ final class BFFormTextView: UIViewController, BFFormCell {
         instructionLabel.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
-            textField.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             textField.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            textField.leadingAnchor.constraint(equalTo: view.leadingAnchor,
+                                               constant: 24),
+            textField.trailingAnchor.constraint(equalTo: view.trailingAnchor,
+                                               constant: -24),
             
             instructionLabel.bottomAnchor.constraint(equalTo: textField.topAnchor,
-                                                     constant: -80)
+                                                     constant: -80),
+            
+            instructionLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor,
+                                                      constant: 67),
+            
+            instructionLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor,
+                                                      constant: -67),
         ])
     }
 }

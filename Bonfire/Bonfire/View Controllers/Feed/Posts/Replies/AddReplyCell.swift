@@ -28,6 +28,10 @@ final class AddReplyCell: UITableViewCell {
         return textField
     }()
     
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        replyTextField.layer.borderColor = Constants.Color.textBorder.cgColor
+    }
+    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         

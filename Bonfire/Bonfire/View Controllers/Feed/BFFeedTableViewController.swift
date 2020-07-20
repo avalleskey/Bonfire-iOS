@@ -135,7 +135,7 @@ final class BFFeedTableViewController: UITableViewController {
         return UIView()
     }
     override func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
-        return 48
+        return 32
     }
     
 }

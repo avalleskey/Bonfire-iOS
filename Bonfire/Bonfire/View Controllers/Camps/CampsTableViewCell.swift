@@ -31,7 +31,7 @@ final class CampTableViewCell: UITableViewCell {
         let label = UILabel()
         label.text = "#Illustration"
         label.font = UIFont.systemFont(ofSize: 15, weight: .semibold).rounded()
-        label.textColor = Constants.Color.secondaryLabel
+        label.textColor = Constants.Color.secondary
         return label
     }()
     
@@ -49,6 +49,7 @@ final class CampTableViewCell: UITableViewCell {
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
+        selectionStyle = .none
         configureUI()
     }
     
@@ -88,6 +89,19 @@ final class CampTableViewCell: UITableViewCell {
                                                         constant: -12),
             campTextStackView.centerYAnchor.constraint(equalTo: centerYAnchor),
         ])
+    }
+    
+    
+    override func setHighlighted(_ highlighted: Bool, animated: Bool) {
+        super.setHighlighted(highlighted, animated: animated)
+        
+        UIView.animate(withDuration: 0.185, delay: 0, options: [.curveEaseOut], animations: {
+            if highlighted {
+                self.backgroundColor = Constants.Color.cellHighlightedBackground
+            } else {
+                self.backgroundColor = nil
+            }
+        }, completion: nil)
     }
     
 }

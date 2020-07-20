@@ -41,7 +41,7 @@ final class PostHeaderCell: UITableViewCell {
         let label = UILabel()
         label.text = "in YEETVILLE"
         label.font = UIFont.systemFont(ofSize: 14, weight: .bold).rounded()
-        label.textColor = Constants.Color.secondaryLabel
+        label.textColor = Constants.Color.secondary
         return label
     }()
     

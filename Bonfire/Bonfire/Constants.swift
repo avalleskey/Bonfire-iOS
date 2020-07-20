@@ -59,7 +59,7 @@ struct Constants {
             }
         }()
         
-        static let secondaryLabel: UIColor = {
+        static let secondary: UIColor = {
             if #available(iOS 13.0, *) {
                 return UIColor.secondaryLabel
             } else {
@@ -83,7 +83,31 @@ struct Constants {
         
         static let bfOrange = UIColor(displayP3Red: 255/255, green: 81/255, blue: 60/255, alpha: 1)
         
-        static let textBorder: UIColor = secondaryLabel.withAlphaComponent(0.08)
+        static let textBorder: UIColor = {
+            let light: UIColor = UIColor(white: 0, alpha: 0.08)
+            let dark: UIColor = UIColor(white: 1, alpha: 0.16)
+            
+            if #available(iOS 13.0, *) {
+                return UIColor { (traits) -> UIColor in
+                    return traits.userInterfaceStyle == .dark ? dark : light
+                }
+            } else {
+                return light
+            }
+        }()
+        
+        static let cellHighlightedBackground: UIColor = {
+            let light: UIColor = UIColor(white: 0, alpha: 0.08)
+            let dark: UIColor = UIColor(white: 1, alpha: 0.16)
+            
+            if #available(iOS 13.0, *) {
+                return UIColor { (traits) -> UIColor in
+                    return traits.userInterfaceStyle == .dark ? dark : light
+                }
+            } else {
+                return light
+            }
+        }()
     }
     
     static let bfAttachmentCornerRadius = 14

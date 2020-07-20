@@ -67,15 +67,15 @@ final class BFFormViewController<Form: BFForm>: UIViewController {
     @objc private func nextBtnTap(sender: UIButton) {
         guard let currentIdx = form.items.firstIndex(where: { $0 == currentItem }),
               let currentCell = currentCell else { return }
-        let nextIdx = form.items.index(after: currentIdx)
-        guard nextIdx < form.items.endIndex else {
-            dismiss(animated: true)
-            return
-        }
-        let nextItem = form.items[nextIdx]
 
         let value = currentCell.value()
         if currentItem?.validate(value) ?? false {
+            let nextIdx = form.items.index(after: currentIdx)
+            guard nextIdx < form.items.endIndex else {
+                dismiss(animated: true)
+                return
+            }
+            let nextItem = form.items[nextIdx]
             if let updatePath = currentItem?.path {
                 form.data.set(value: value, forKeyPath: updatePath)
             }

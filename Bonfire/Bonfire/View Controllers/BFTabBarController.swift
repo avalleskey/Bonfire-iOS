@@ -16,7 +16,7 @@ final class BFTabBarController: UITabBarController {
         button.setImage(UIImage(named: "CreatePost")?.withRenderingMode(.alwaysTemplate), for: .normal)
         button.frame = CGRect(x: 0, y: 0, width: (UIScreen.main.bounds.size.width-24)/3, height: 46)
         button.layer.cornerRadius = button.frame.size.height/2
-        button.backgroundColor = Constants.Color.secondaryLabel.withAlphaComponent(0.08)
+        button.backgroundColor = Constants.Color.secondary.withAlphaComponent(0.08)
         button.layer.cornerRadius = 23
         button.tintColor = Constants.Color.primary
         button.addTarget(self, action: #selector(compose), for: .touchUpInside)
@@ -34,7 +34,7 @@ final class BFTabBarController: UITabBarController {
                 hideCompose()
             }
             else if selectedViewController?.tabBarItem.tag == 1 {
-                tabBar.tintColor = Constants.Color.secondaryLabel
+                tabBar.tintColor = Constants.Color.secondary
                 
                 showCompose()
             }
@@ -61,7 +61,7 @@ final class BFTabBarController: UITabBarController {
         tabBar.backgroundImage = UIImage()
         tabBar.shadowImage = UIImage(named: "TabBarShadow")
         tabBar.tintColor = Constants.Color.primary
-        tabBar.unselectedItemTintColor = Constants.Color.secondaryLabel
+        tabBar.unselectedItemTintColor = Constants.Color.secondary
         
         let tabBarItemFont = UIFont.systemFont(ofSize: 12, weight: .bold).rounded()
         let appearance = UITabBarItem.appearance()
@@ -139,8 +139,33 @@ final class BFTabBarController: UITabBarController {
         pillButton.center = CGPoint(x: view.frame.size.width / 2, y: tabBar.frame.origin.y + tabBar.frame.size.height / 2)
     }
     
+    @objc func addFriends() {
+        let items: [Any] = ["Add me on Bonfire! 🔥", URL(string: "https://www.bonfire.camp/u/austin")!]
+        let ac = UIActivityViewController(activityItems: items, applicationActivities: nil)
+        present(ac, animated: true)
+    }
     @objc func addCamps() {
-        print("add camps")
+        let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        alert.view.tintColor = Constants.Color.primary
+        
+        let createCampAction = UIAlertAction(title: "Create Camp", style: .default, handler: { (action) in
+            print("create camp!")
+        })
+        if #available(iOS 13.0, *) {
+            createCampAction.setValue(UIImage(systemName: "plus"), forKey: "image")
+        }
+        alert.addAction(createCampAction)
+        
+        let discoverCampsAction = UIAlertAction(title: "Discover Camps", style: .default, handler: { (action) in
+            print("discover camps!")
+        })
+        if #available(iOS 13.0, *) {
+            discoverCampsAction.setValue(UIImage(systemName: "safari"), forKey: "image")
+        }
+        alert.addAction(discoverCampsAction)
+        
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        present(alert, animated: true, completion: nil)
     }
     @objc func compose() {
         present(CreatePostViewController(), animated: true)

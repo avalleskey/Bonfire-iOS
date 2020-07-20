@@ -18,7 +18,7 @@ struct BFFormItem<FormData: BFFormData> {
     var path: ReferenceWritableKeyPath<FormData, BFFormItemValue?>?
     var type: BFFormItemType
     var onCompletion: () -> Void
-    var validate: () -> Bool?
+    var validate: (BFFormItemValue) -> Bool?
 }
 
 extension BFFormItem: Identifiable {}

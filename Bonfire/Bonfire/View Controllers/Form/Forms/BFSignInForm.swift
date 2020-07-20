@@ -19,14 +19,19 @@ struct BFSignInForm<FormData: BFSignInData>: BFForm {
             onCompletion: {
 
             },
-            validate: { () -> Bool? in
-                return true
+            validate: { input -> Bool? in
+                switch input {
+                case .string(_):
+                    return true
+                default:
+                    return false
+                }
             }),
         .init(path: \.password, type: .password,
             onCompletion: {
 
             },
-            validate: { () -> Bool? in
+            validate: { input -> Bool? in
                 return true
             }),
     ]

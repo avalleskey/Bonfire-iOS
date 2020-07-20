@@ -36,6 +36,10 @@ final class BFFormTextView: UIViewController, BFFormCell {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    
+    func value() -> BFFormItemValue {
+        .string(textField.text ?? "")
+    }
 
     override func updateViewConstraints() {
         super.updateViewConstraints()

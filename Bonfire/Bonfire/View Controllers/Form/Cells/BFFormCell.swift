@@ -10,5 +10,5 @@ import Foundation
 import UIKit
 
 protocol BFFormCell: UIViewController {
-
+    func value() -> BFFormItemValue
 }

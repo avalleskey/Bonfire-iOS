@@ -16,6 +16,7 @@ final class BFFormViewController<Form: BFForm>: UIViewController {
     private let form: Form
 
     private var currentItem: BFFormItem<Form.DataType>?
+    private var currentCell: BFFormCell?
 
     private let nextBtn: UIButton = {
         let btn = BFSegueButton()
@@ -29,6 +30,7 @@ final class BFFormViewController<Form: BFForm>: UIViewController {
         self.currentItem = form.items.first
         let initialVC = Self.viewControllerForInput(input: self.currentItem)
         pageViewController = BFFormPageViewController(initialVC: initialVC)
+        currentCell = initialVC
         super.init(nibName: nil, bundle: nil)
         view.backgroundColor = .white
         view.addSubview(pageViewController.view)
@@ -63,13 +65,15 @@ final class BFFormViewController<Form: BFForm>: UIViewController {
     }
 
     @objc private func nextBtnTap(sender: UIButton) {
-        guard let currentIdx = form.items.firstIndex(where: { $0 == currentItem }) else { return }
+        guard let currentIdx = form.items.firstIndex(where: { $0 == currentItem }),
+              let currentCell = currentCell else { return }
         let nextIdx = form.items.index(after: currentIdx)
         let nextItem = form.items[nextIdx]
 
-        if currentItem?.validate() ?? false {
+        let value = currentCell.value()
+        if currentItem?.validate(value) ?? false {
             if let updatePath = currentItem?.path {
-                form.data.set(value: BFFormItemValue.string("apple"), forKeyPath: updatePath)
+                form.data.set(value: value, forKeyPath: updatePath)
             }
             pageViewController.segue(
                 to: Self.viewControllerForInput(input: nextItem),
@@ -78,7 +82,7 @@ final class BFFormViewController<Form: BFForm>: UIViewController {
     }
 
     private static func viewControllerForInput(input: BFFormItem<Form.DataType>?)
-        -> UIViewController
+        -> BFFormCell
     {
         switch input?.type {
         case .text, .password, .email, .otp:

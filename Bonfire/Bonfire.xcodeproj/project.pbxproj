@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		1A15AB5E24B3B1F1007722A4 /* BFTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A15AB5D24B3B1F1007722A4 /* BFTextField.swift */; };
-		1A212A0924BC869100A0DCD3 /* BFFormCollectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A212A0824BC869100A0DCD3 /* BFFormCollectionViewController.swift */; };
+		1A212A0924BC869100A0DCD3 /* BFFormPageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A212A0824BC869100A0DCD3 /* BFFormPageViewController.swift */; };
 		1A212A0C24BC86C500A0DCD3 /* BFFormItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A212A0B24BC86C500A0DCD3 /* BFFormItem.swift */; };
 		1A212A0E24BC86F800A0DCD3 /* BFFormItemType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A212A0D24BC86F800A0DCD3 /* BFFormItemType.swift */; };
 		1A212A1124BC87B000A0DCD3 /* BFSignInForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A212A1024BC87B000A0DCD3 /* BFSignInForm.swift */; };
@@ -105,6 +105,8 @@
 		1A9ECBDE24AA443F00391279 /* UserFriendsRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A9ECBDD24AA443F00391279 /* UserFriendsRequest.swift */; };
 		1A9ECBE024AA44D400391279 /* UserFriendsResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A9ECBDF24AA44D400391279 /* UserFriendsResponse.swift */; };
 		1A9ECBE224AA471100391279 /* BFResource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A9ECBE124AA471100391279 /* BFResource.swift */; };
+		1AABE1FD24C5CA9700D8E674 /* BFFormData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AABE1FC24C5CA9700D8E674 /* BFFormData.swift */; };
+		1AABE1FF24C5CCC000D8E674 /* BFSegueButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AABE1FE24C5CCC000D8E674 /* BFSegueButton.swift */; };
 		1AAC6F0F24B3A5C400EFD803 /* AddReplyCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AAC6F0E24B3A5C400EFD803 /* AddReplyCell.swift */; };
 		1ABDB17524A35EE100D05140 /* PostMessageCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ABDB17424A35EE100D05140 /* PostMessageCell.swift */; };
 		1AF7FCEC24A2700B003FCF9F /* BFSegmentedControlButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AF7FCEB24A2700B003FCF9F /* BFSegmentedControlButton.swift */; };
@@ -184,7 +186,7 @@
 
 /* Begin PBXFileReference section */
 		1A15AB5D24B3B1F1007722A4 /* BFTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFTextField.swift; sourceTree = "<group>"; };
-		1A212A0824BC869100A0DCD3 /* BFFormCollectionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFFormCollectionViewController.swift; sourceTree = "<group>"; };
+		1A212A0824BC869100A0DCD3 /* BFFormPageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFFormPageViewController.swift; sourceTree = "<group>"; };
 		1A212A0B24BC86C500A0DCD3 /* BFFormItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFFormItem.swift; sourceTree = "<group>"; };
 		1A212A0D24BC86F800A0DCD3 /* BFFormItemType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFFormItemType.swift; sourceTree = "<group>"; };
 		1A212A1024BC87B000A0DCD3 /* BFSignInForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFSignInForm.swift; sourceTree = "<group>"; };
@@ -281,6 +283,8 @@
 		1A9ECBDD24AA443F00391279 /* UserFriendsRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserFriendsRequest.swift; sourceTree = "<group>"; };
 		1A9ECBDF24AA44D400391279 /* UserFriendsResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserFriendsResponse.swift; sourceTree = "<group>"; };
 		1A9ECBE124AA471100391279 /* BFResource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFResource.swift; sourceTree = "<group>"; };
+		1AABE1FC24C5CA9700D8E674 /* BFFormData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFFormData.swift; sourceTree = "<group>"; };
+		1AABE1FE24C5CCC000D8E674 /* BFSegueButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFSegueButton.swift; sourceTree = "<group>"; };
 		1AAC6F0E24B3A5C400EFD803 /* AddReplyCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddReplyCell.swift; sourceTree = "<group>"; };
 		1ABDB17424A35EE100D05140 /* PostMessageCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostMessageCell.swift; sourceTree = "<group>"; };
 		1AE84B8C24C07AE400553D72 /* Bonfire.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Bonfire.entitlements; sourceTree = "<group>"; };
@@ -353,7 +357,7 @@
 				1A212A1424BC88F900A0DCD3 /* Data */,
 				1A212A0F24BC87A100A0DCD3 /* Forms */,
 				1A212A0A24BC869400A0DCD3 /* Cells */,
-				1A212A0824BC869100A0DCD3 /* BFFormCollectionViewController.swift */,
+				1A212A0824BC869100A0DCD3 /* BFFormPageViewController.swift */,
 				1A212A0B24BC86C500A0DCD3 /* BFFormItem.swift */,
 				1A212A0D24BC86F800A0DCD3 /* BFFormItemType.swift */,
 				1A212A1224BC87FE00A0DCD3 /* BFForm.swift */,
@@ -383,6 +387,7 @@
 			isa = PBXGroup;
 			children = (
 				1A212A1524BC890000A0DCD3 /* BFSignInData.swift */,
+				1AABE1FC24C5CA9700D8E674 /* BFFormData.swift */,
 			);
 			path = Data;
 			sourceTree = "<group>";
@@ -824,6 +829,7 @@
 			children = (
 				D9872AB724C0D76A0048622F /* BFPillButton.swift */,
 				D9A2EEC224C165DC00EECE8A /* BFBouncyButton.swift */,
+				1AABE1FE24C5CCC000D8E674 /* BFSegueButton.swift */,
 			);
 			path = Button;
 			sourceTree = "<group>";
@@ -1090,6 +1096,7 @@
 				1AF7FCEC24A2700B003FCF9F /* BFSegmentedControlButton.swift in Sources */,
 				1A212A1124BC87B000A0DCD3 /* BFSignInForm.swift in Sources */,
 				1A212A1624BC890000A0DCD3 /* BFSignInData.swift in Sources */,
+				1AABE1FF24C5CCC000D8E674 /* BFSegueButton.swift in Sources */,
 				1A844702249C8652002813CB /* HomeViewController.swift in Sources */,
 				1A24430E24A0D83E0039BAAB /* BFFeedTableViewController.swift in Sources */,
 				1A24431324A0DB750039BAAB /* PostActionsCell.swift in Sources */,
@@ -1106,13 +1113,14 @@
 				1ABDB17524A35EE100D05140 /* PostMessageCell.swift in Sources */,
 				D9EB895D24BE83ED00BC6F6D /* UIColor+Extensions.swift in Sources */,
 				1A6F958624B8E0C4004A20F4 /* GetStartedViewController.swift in Sources */,
-				1A212A0924BC869100A0DCD3 /* BFFormCollectionViewController.swift in Sources */,
+				1A212A0924BC869100A0DCD3 /* BFFormPageViewController.swift in Sources */,
 				D9A2EEC324C165DC00EECE8A /* BFBouncyButton.swift in Sources */,
 				1AAC6F0F24B3A5C400EFD803 /* AddReplyCell.swift in Sources */,
 				1A847D3924B1B65800530614 /* PostImageAttachmentCell.swift in Sources */,
 				1A6859BD249F632A008DB6BC /* FriendsTableViewController.swift in Sources */,
 				1A7854DB249FBBC500BA1589 /* CampControllerProtocol.swift in Sources */,
 				1A844700249C8652002813CB /* SceneDelegate.swift in Sources */,
+				1AABE1FD24C5CA9700D8E674 /* BFFormData.swift in Sources */,
 				1A847D5D24B247C900530614 /* BFViewController.swift in Sources */,
 				1A94DED9249FB61500AB0200 /* FriendControllerProtocol.swift in Sources */,
 				1A94DED6249FB5FC00AB0200 /* FriendController.swift in Sources */,

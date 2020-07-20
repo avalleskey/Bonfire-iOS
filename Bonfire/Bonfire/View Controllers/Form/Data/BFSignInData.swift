@@ -8,7 +8,9 @@
 
 import Foundation
 
-class BFSignInData {
-    var phoneEmailUsername: String?
-    var password: String?
+final class BFSignInData: BFFormData {
+    var phoneEmailUsername: BFFormItemValue?
+    var password: BFFormItemValue?
+    
+    init() {}
 }

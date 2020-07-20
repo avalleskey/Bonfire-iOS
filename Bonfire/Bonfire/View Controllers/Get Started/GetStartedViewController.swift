@@ -73,7 +73,7 @@ final class GetStartedViewController: UIViewController {
         label.numberOfLines = 2
         label.textAlignment = .center
         label.font = UIFont.systemFont(ofSize: 16, weight: .regular).rounded()
-        label.textColor = Constants.Color.secondaryLabel
+        label.textColor = Constants.Color.secondary
         return label
     }()
     

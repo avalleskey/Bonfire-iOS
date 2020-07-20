@@ -9,5 +9,8 @@
 import Foundation
 
 protocol BFForm {
-    var items: [BFFormItem] { get }
+    associatedtype DataType: BFFormData
+    
+    var data: DataType { get }
+    var items: [BFFormItem<DataType>] { get }
 }

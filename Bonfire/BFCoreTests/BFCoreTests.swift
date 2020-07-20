@@ -7,6 +7,7 @@
 //
 
 import XCTest
+
 @testable import BFCore
 
 class BFCoreTests: XCTestCase {

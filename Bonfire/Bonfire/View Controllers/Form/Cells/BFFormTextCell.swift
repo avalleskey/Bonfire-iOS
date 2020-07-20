@@ -10,7 +10,7 @@ import Foundation
 import UIKit
 
 final class BFFormTextView: UIViewController, BFFormCell {
-    
+
     let instructionLabel: UILabel = {
         let label = UILabel()
         label.text = "Enter text..."
@@ -19,45 +19,50 @@ final class BFFormTextView: UIViewController, BFFormCell {
         label.textAlignment = .center
         return label
     }()
-    
+
     let textField: BFTextField = {
         let textField = BFTextField()
         textField.placeholder = "Enter Value..."
         return textField
     }()
-    
+
     init() {
         super.init(nibName: nil, bundle: nil)
-        
+
         view.addSubview(instructionLabel)
         view.addSubview(textField)
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     override func updateViewConstraints() {
         super.updateViewConstraints()
-        
+
         textField.translatesAutoresizingMaskIntoConstraints = false
         instructionLabel.translatesAutoresizingMaskIntoConstraints = false
-        
+
         NSLayoutConstraint.activate([
             textField.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            textField.leadingAnchor.constraint(equalTo: view.leadingAnchor,
-                                               constant: 24),
-            textField.trailingAnchor.constraint(equalTo: view.trailingAnchor,
-                                               constant: -24),
-            
-            instructionLabel.bottomAnchor.constraint(equalTo: textField.topAnchor,
-                                                     constant: -80),
-            
-            instructionLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor,
-                                                      constant: 67),
-            
-            instructionLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor,
-                                                      constant: -67),
+            textField.leadingAnchor.constraint(
+                equalTo: view.leadingAnchor,
+                constant: 24),
+            textField.trailingAnchor.constraint(
+                equalTo: view.trailingAnchor,
+                constant: -24),
+
+            instructionLabel.bottomAnchor.constraint(
+                equalTo: textField.topAnchor,
+                constant: -80),
+
+            instructionLabel.leadingAnchor.constraint(
+                equalTo: view.leadingAnchor,
+                constant: 67),
+
+            instructionLabel.trailingAnchor.constraint(
+                equalTo: view.trailingAnchor,
+                constant: -67),
         ])
     }
 }

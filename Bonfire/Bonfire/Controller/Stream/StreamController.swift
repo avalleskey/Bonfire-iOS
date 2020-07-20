@@ -6,19 +6,19 @@
 //  Copyright © 2020 Ingenious. All rights reserved.
 //
 
-import Foundation
 import BFCore
 import BFNetworking
+import Foundation
 
 final class StreamController: StreamControllerProtocol {
-    
+
     private let api = APIClient.shared
-    
+
     func getStream(completion: @escaping ([Post]) -> Void) {
         api.send(UserStreamRequest()) { (result) in
             switch result {
             case .success(let response):
-                completion(response.data.map{ $0.attributes.posts }.reduce([], +))
+                completion(response.data.map { $0.attributes.posts }.reduce([], +))
             case .failure(let error):
                 break
             }

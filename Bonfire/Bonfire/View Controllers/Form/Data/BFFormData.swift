@@ -9,11 +9,13 @@
 import Foundation
 
 protocol BFFormData: class {
-    
+
 }
 
 extension BFFormData {
-    func set(value: BFFormItemValue, forKeyPath path: ReferenceWritableKeyPath<Self, BFFormItemValue?>) {
+    func set(
+        value: BFFormItemValue, forKeyPath path: ReferenceWritableKeyPath<Self, BFFormItemValue?>
+    ) {
         self[keyPath: path] = value
     }
 }

@@ -6,8 +6,8 @@
 //  Copyright © 2020 Ingenious. All rights reserved.
 //
 
-import Foundation
 import BFCore
+import Foundation
 
 protocol StreamControllerProtocol {
     func getStream(completion: @escaping ([Post]) -> Void)

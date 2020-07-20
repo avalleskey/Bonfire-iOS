@@ -10,13 +10,13 @@ import Foundation
 
 public struct Section: BFResource {
     public let id: String?
-    
+
     public let type: BFResourceType
-    
+
     public let attributes: Attributes
-    
+
     public struct Attributes: Codable {
         public let posts: [Post]
     }
-    
+
 }

@@ -10,16 +10,16 @@ import Foundation
 
 public struct UserStreamRequest: APIRequest {
     public let resource: String = "streams/me"
-    
+
     public let body: Data? = nil
-    
+
     public let queryItems: [URLQueryItem]? = nil
-    
+
     public let method: String = "GET"
-    
+
     public let authenticationType: AuthenticationType = .userAuth
-    
+
     public typealias Response = UserStreamResponse
-    
+
     public init() {}
 }

@@ -10,10 +10,10 @@ import Foundation
 
 public struct OAuthRequestBody: Encodable {
     let grantType = "password"
-    
+
     let username: String?
     let password: String?
-    
+
     let phone: String?
     let code: String?
 }

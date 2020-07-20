@@ -9,15 +9,15 @@
 import Foundation
 
 public final class UsernameValidationResponse: Decodable {
-    
+
     let data: UsernameValidationData
-    
+
     struct UsernameValidationData: Decodable {
         let valid: Bool
         let occupied: Bool
         let authMethods: [String]
         let suggestions: [String]
-        
+
         enum CodingKeys: String, CodingKey {
             case valid
             case occupied

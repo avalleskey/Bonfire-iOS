@@ -17,10 +17,13 @@ extension String {
 
         let options: [NSAttributedString.DocumentReadingOptionKey: Any] = [
             .documentType: NSAttributedString.DocumentType.html,
-            .characterEncoding: String.Encoding.utf8.rawValue
+            .characterEncoding: String.Encoding.utf8.rawValue,
         ]
 
-        guard let attributedString = try? NSAttributedString(data: data, options: options, documentAttributes: nil) else {
+        guard
+            let attributedString = try? NSAttributedString(
+                data: data, options: options, documentAttributes: nil)
+        else {
             return nil
         }
 

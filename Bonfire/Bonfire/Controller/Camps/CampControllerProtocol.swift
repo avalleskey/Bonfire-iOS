@@ -6,8 +6,8 @@
 //  Copyright © 2020 Ingenious. All rights reserved.
 //
 
-import Foundation
 import BFCore
+import Foundation
 
 protocol CampControllerProtocol {
     func getCamps(completion: @escaping ([Camp]) -> Void)

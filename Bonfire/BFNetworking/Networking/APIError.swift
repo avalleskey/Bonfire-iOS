@@ -9,12 +9,12 @@
 import Foundation
 
 public enum APIError: Error {
-    
+
     case invalidEndpoint
     case unknown
     case noData
     case unauthenticated
-    
+
     var localizedDescription: String {
         switch self {
         case .invalidEndpoint:
@@ -25,5 +25,5 @@ public enum APIError: Error {
             return "Unknown Error"
         }
     }
-    
+
 }

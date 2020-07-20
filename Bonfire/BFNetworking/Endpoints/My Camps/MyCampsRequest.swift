@@ -6,21 +6,21 @@
 //  Copyright © 2020 Ingenious. All rights reserved.
 //
 
-import Foundation
 import BFCore
+import Foundation
 
 final public class MyCampsRequest: APIRequest {
     public typealias Response = MyCampsResponse
-    
+
     public let resource = "users/me/camps"
-    
+
     public let body: Data? = nil
-    
+
     public let queryItems: [URLQueryItem]? = nil
 
     public let method = "GET"
-    
+
     public let authenticationType: AuthenticationType = .userAuth
-    
+
     public init() {}
 }

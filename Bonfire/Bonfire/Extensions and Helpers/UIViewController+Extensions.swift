@@ -17,7 +17,8 @@ extension UIViewController {
             switch view {
             case let scrollView as UIScrollView:
                 if scrollView.scrollsToTop == true {
-                    scrollView.setContentOffset(CGPoint(x: 0.0, y: -scrollView.contentInset.top), animated: true)
+                    scrollView.setContentOffset(
+                        CGPoint(x: 0.0, y: -scrollView.contentInset.top), animated: true)
                     return
                 }
             default:

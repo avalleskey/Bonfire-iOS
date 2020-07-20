@@ -11,7 +11,7 @@ import Foundation
 public struct Camp: Codable {
     public let id: String
     public let attributes: Attributes
-    
+
     public struct Attributes: Codable {
         public let title: String
         public let description: String
@@ -23,7 +23,7 @@ public struct Camp: Codable {
         public let nsfw: Bool
         public let media: BFMedia?
     }
-    
+
     //media
-    
+
 }

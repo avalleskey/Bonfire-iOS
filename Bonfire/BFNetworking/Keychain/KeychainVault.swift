@@ -15,10 +15,10 @@ public struct KeychainVault {
 
     static private let keychain = KeychainSwift()
 
-    @KeychainProperty(key: .accessToken, keychain: keychain)
+    @KeychainProperty(key:.accessToken,keychain:keychain)
     public static var accessToken: Token?
 
-    @KeychainProperty(key: .refreshToken, keychain: keychain)
+    @KeychainProperty(key:.refreshToken,keychain:keychain)
     public static var refreshToken: Token?
 
 }

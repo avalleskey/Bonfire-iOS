@@ -6,22 +6,22 @@
 //  Copyright © 2020 Ingenious. All rights reserved.
 //
 
-import Foundation
 import BFCore
+import Foundation
 
 final public class EmailValidationRequest: APIRequest {
-    
+
     public typealias Response = EmailValidationResponse
-    
+
     public let resource = "accounts/validate/email"
-    
+
     public let body: Data? = nil
-    
+
     public let queryItems: [URLQueryItem]? = nil
 
     public let method = "GET"
-    
+
     public let authenticationType: AuthenticationType = .appAuth
-    
+
     public init() {}
 }

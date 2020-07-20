@@ -10,11 +10,11 @@ import Foundation
 
 public struct User: Identity {
     public let attributes: Attributes
-    
+
     public let type: BFResourceType
-    
+
     public let id: String?
-    
+
     public struct Attributes: Codable {
         public let identifier: String
         public let display_name: String

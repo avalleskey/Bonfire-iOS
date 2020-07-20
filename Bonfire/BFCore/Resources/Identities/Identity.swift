@@ -8,4 +8,4 @@
 
 import Foundation
 
-protocol Identity: BFResource { }
+protocol Identity: BFResource {}

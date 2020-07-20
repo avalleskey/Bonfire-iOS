@@ -10,11 +10,11 @@ import Foundation
 
 public struct Post: BFResource {
     public let id: String?
-    
+
     public let type: BFResourceType
-    
+
     public let attributes: Attributes
-    
+
     enum PostType {
         case text
         case image
@@ -23,14 +23,14 @@ public struct Post: BFResource {
         case link
         case repost
     }
-    
+
     public class Attributes: Codable {
         public let message: String
         public let creator: User
         public let postedIn: Camp?
         public let parent: Post?
         public let summaries: BFSummaries?
-        
+
         enum CodingKeys: String, CodingKey {
             case message
             case creator
@@ -39,5 +39,5 @@ public struct Post: BFResource {
             case summaries
         }
     }
-    
+
 }

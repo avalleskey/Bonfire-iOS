@@ -6,14 +6,14 @@
 //  Copyright © 2020 Ingenious. All rights reserved.
 //
 
-import Foundation
 import BFCore
 import BFNetworking
+import Foundation
 
 final class CampController: CampControllerProtocol {
-    
+
     private let api = APIClient.shared
-    
+
     func getCamps(completion: @escaping ([Camp]) -> Void) {
         api.send(MyCampsRequest()) { (result) in
             switch result {

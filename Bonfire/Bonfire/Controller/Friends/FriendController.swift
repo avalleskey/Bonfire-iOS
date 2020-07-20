@@ -6,9 +6,9 @@
 //  Copyright © 2020 Ingenious. All rights reserved.
 //
 
-import Foundation
 import BFCore
 import BFNetworking
+import Foundation
 
 final class UserController: FriendControllerProtocol {
     func getFriends(completion: @escaping (Result<[User], Error>) -> Void) {

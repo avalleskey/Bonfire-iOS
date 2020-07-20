@@ -9,11 +9,11 @@
 import UIKit
 
 extension UIView {
-   func round(corners: CACornerMask, radius: CGFloat) {
+    func round(corners: CACornerMask, radius: CGFloat) {
         layer.cornerRadius = radius
         layer.maskedCorners = corners
     }
-    
+
     func smoothRound(radius: CGFloat) {
         let mask = CAShapeLayer()
         mask.frame = bounds

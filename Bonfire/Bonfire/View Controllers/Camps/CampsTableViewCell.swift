@@ -10,15 +10,15 @@ import Foundation
 import UIKit
 
 final class CampTableViewCell: UITableViewCell {
-    
+
     static let reuseIdentifier = "CampTableViewCellReuseIdentifier"
-    
+
     let campImageView: UIImageView = {
         let imageView = RoundedImageView()
         imageView.image = UIImage(named: "Austin")!
         return imageView
     }()
-    
+
     let campNameLabel: UILabel = {
         let label = UILabel()
         label.text = "Illustration"
@@ -26,7 +26,7 @@ final class CampTableViewCell: UITableViewCell {
         label.textColor = Constants.Color.primary
         return label
     }()
-    
+
     let campSublineLabel: UILabel = {
         let label = UILabel()
         label.text = "#Illustration"
@@ -34,74 +34,79 @@ final class CampTableViewCell: UITableViewCell {
         label.textColor = Constants.Color.secondary
         return label
     }()
-    
+
     let campTextStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .vertical
         return stackView
     }()
-    
+
     let campStreakLabel: UILabel = {
         let label = UILabel()
         label.text = "🔥🔥"
         return label
     }()
-    
+
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         selectionStyle = .none
         configureUI()
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     private func configureUI() {
         addSubview(campImageView)
         campTextStackView.addArrangedSubview(campNameLabel)
         campTextStackView.addArrangedSubview(campSublineLabel)
         addSubview(campTextStackView)
     }
-    
+
     override func updateConstraints() {
         super.updateConstraints()
-        
-        
+
         campImageView.translatesAutoresizingMaskIntoConstraints = false
         campTextStackView.translatesAutoresizingMaskIntoConstraints = false
-        
+
         NSLayoutConstraint.activate([
-            campImageView.leadingAnchor.constraint(equalTo: leadingAnchor,
-                                                   constant: 12),
-            campImageView.topAnchor.constraint(equalTo: topAnchor,
-                                               constant: 12),
-            campImageView.bottomAnchor.constraint(equalTo: bottomAnchor,
-                                                  constant: -12),
+            campImageView.leadingAnchor.constraint(
+                equalTo: leadingAnchor,
+                constant: 12),
+            campImageView.topAnchor.constraint(
+                equalTo: topAnchor,
+                constant: 12),
+            campImageView.bottomAnchor.constraint(
+                equalTo: bottomAnchor,
+                constant: -12),
             campImageView.centerYAnchor.constraint(equalTo: centerYAnchor),
             campImageView.widthAnchor.constraint(equalTo: campImageView.heightAnchor),
         ])
-        
+
         NSLayoutConstraint.activate([
-            campTextStackView.leadingAnchor.constraint(equalTo: campImageView.trailingAnchor,
-                                                       constant: 12),
-            campTextStackView.trailingAnchor.constraint(equalTo: trailingAnchor,
-                                                        constant: -12),
+            campTextStackView.leadingAnchor.constraint(
+                equalTo: campImageView.trailingAnchor,
+                constant: 12),
+            campTextStackView.trailingAnchor.constraint(
+                equalTo: trailingAnchor,
+                constant: -12),
             campTextStackView.centerYAnchor.constraint(equalTo: centerYAnchor),
         ])
     }
-    
-    
+
     override func setHighlighted(_ highlighted: Bool, animated: Bool) {
         super.setHighlighted(highlighted, animated: animated)
-        
-        UIView.animate(withDuration: 0.185, delay: 0, options: [.curveEaseOut], animations: {
-            if highlighted {
-                self.backgroundColor = Constants.Color.cellHighlightedBackground
-            } else {
-                self.backgroundColor = nil
-            }
-        }, completion: nil)
+
+        UIView.animate(
+            withDuration: 0.185, delay: 0, options: [.curveEaseOut],
+            animations: {
+                if highlighted {
+                    self.backgroundColor = Constants.Color.cellHighlightedBackground
+                } else {
+                    self.backgroundColor = nil
+                }
+            }, completion: nil)
     }
-    
+
 }

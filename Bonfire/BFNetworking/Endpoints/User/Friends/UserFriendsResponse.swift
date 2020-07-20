@@ -6,8 +6,8 @@
 //  Copyright © 2020 Ingenious. All rights reserved.
 //
 
-import Foundation
 import BFCore
+import Foundation
 
 public struct UserFriendsResponse: Codable {
     public let data: [User]

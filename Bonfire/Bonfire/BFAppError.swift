@@ -6,12 +6,12 @@
 //  Copyright © 2020 Ingenious. All rights reserved.
 //
 
-import Foundation
 import BFNetworking
+import Foundation
 
 enum BFAppError: Error {
     case unauthenticated
-    
+
     static func from(error: Error) -> Self? {
         switch error {
         case APIError.unauthenticated:

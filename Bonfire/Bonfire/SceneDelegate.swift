@@ -6,47 +6,52 @@
 //  Copyright © 2020 Ingenious. All rights reserved.
 //
 
-import UIKit
 import BFNetworking
+import UIKit
 
 @available(iOS 13.0, *)
 final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
 
-
-    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
+    func scene(
+        _ scene: UIScene, willConnectTo session: UISceneSession,
+        options connectionOptions: UIScene.ConnectionOptions
+    ) {
         // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
         // If using a storyboard, the `window` property will automatically be initialized and attached to the scene.
         // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
         guard let scene = (scene as? UIWindowScene) else { return }
-        
+
         KeychainVault.accessToken = nil
-        
+
         let tabVC = BFTabBarController()
-        
+
         let friendsVC = FriendsViewController()
         let friendsNavVC = BFNavigationController(rootViewController: friendsVC)
         friendsVC.tabBarItem = FriendsViewController.defaultTabBarItem
-        let friendsPillButton = BFPillButton(title: "Add Friends", icon: "AddFriends", target: tabVC, action: #selector(tabVC.addFriends))
+        let friendsPillButton = BFPillButton(
+            title: "Add Friends", icon: "AddFriends", target: tabVC,
+            action: #selector(tabVC.addFriends))
         friendsPillButton.tag = friendsVC.tabBarItem.tag
         tabVC.addPillButton(friendsPillButton, viewController: friendsNavVC)
-        
+
         let homeVC = HomeViewController()
         let homeNavVC = BFNavigationController(rootViewController: homeVC)
         homeVC.tabBarItem = HomeViewController.defaultTabBarItem
-        
+
         let campsVC = CampsViewController()
         let campsNavVC = BFNavigationController(rootViewController: campsVC)
         campsVC.tabBarItem = CampsViewController.defaultTabBarItem
-        let campsPillButton = BFPillButton(title: "Add Camps", icon: "Plus", target: tabVC, action: #selector(tabVC.addCamps))
+        let campsPillButton = BFPillButton(
+            title: "Add Camps", icon: "Plus", target: tabVC, action: #selector(tabVC.addCamps))
         campsPillButton.tag = campsVC.tabBarItem.tag
         tabVC.addPillButton(campsPillButton, viewController: campsNavVC)
-        
+
         tabVC.setViewControllers([friendsNavVC, homeNavVC, campsNavVC], animated: false)
-        
+
         tabVC.selectedViewController = homeNavVC
-        
+
         let window = UIWindow(windowScene: scene)
         window.rootViewController = tabVC
         window.makeKeyAndVisible()
@@ -81,6 +86,4 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // to restore the scene back to its current state.
     }
 
-
 }
-

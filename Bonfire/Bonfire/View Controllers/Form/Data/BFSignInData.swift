@@ -11,6 +11,6 @@ import Foundation
 final class BFSignInData: BFFormData {
     var phoneEmailUsername: BFFormItemValue?
     var password: BFFormItemValue?
-    
+
     init() {}
 }

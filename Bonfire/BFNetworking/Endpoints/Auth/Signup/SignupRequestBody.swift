@@ -14,7 +14,7 @@ public struct SignupRequestBody: Encodable {
     let username: String
     let displayName: String
     let dateOfBirth: String
-    
+
     enum CodingKeys: String, CodingKey {
         case email
         case password

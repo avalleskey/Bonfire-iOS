@@ -6,11 +6,11 @@
 //  Copyright © 2020 Ingenious. All rights reserved.
 //
 
-import Foundation
 import BFCore
+import Foundation
 
 public final class SignupResponse: Decodable {
-    
+
     let data: User
-    
+
 }

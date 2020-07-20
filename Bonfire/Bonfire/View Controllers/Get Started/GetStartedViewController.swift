@@ -11,7 +11,7 @@ import UIKit
 
 final class GetStartedViewController: UIViewController {
     
-    let legalText: UILabel = {
+    private let legalText: UILabel = {
         let label = UILabel()
         label.text = "By continuing, you agree to Bonfire’s Terms of Use and confirm that you have read Bonfire’s Privacy Policy."
         label.numberOfLines = 0
@@ -20,16 +20,17 @@ final class GetStartedViewController: UIViewController {
         return label
     }()
     
-    let signInBtn: UIButton = {
+    private let signInBtn: UIButton = {
         let btn = UIButton()
         btn.setTitle("Sign In", for: .normal)
         btn.setTitleColor(.black, for: .normal)
         btn.backgroundColor = .lightGray
         btn.layer.cornerRadius = 14
+        btn.addTarget(self, action: #selector(signInTapped), for: .touchUpInside)
         return btn
     }()
     
-    let continueWithAppleBtn: UIButton = {
+    private let continueWithAppleBtn: UIButton = {
         let btn = UIButton()
         btn.setTitle("Continue with Apple", for: .normal)
         btn.setTitleColor(.white, for: .normal)
@@ -38,7 +39,7 @@ final class GetStartedViewController: UIViewController {
         return btn
     }()
     
-    let signUpBtn: UIButton = {
+    private let signUpBtn: UIButton = {
         let btn = UIButton()
         btn.setTitle("Sign Up", for: .normal)
         btn.setTitleColor(.white, for: .normal)
@@ -47,29 +48,32 @@ final class GetStartedViewController: UIViewController {
         return btn
     }()
     
-    let heroAlignmentView: UIView = {
+    private let heroAlignmentView: UIView = {
         return UIView()
     }()
     
-    let heroStackView: UIStackView = {
+    private let heroStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .vertical
         stackView.distribution = .equalSpacing
         return stackView
     }()
     
-    let primaryLabel: UILabel = {
+    private let primaryLabel: UILabel = {
         let label = UILabel()
         label.text = "Find your people"
         label.textAlignment = .center
+        label.font = UIFont.systemFont(ofSize: 24, weight: .bold).rounded()
         return label
     }()
     
-    let secondaryLabel: UILabel = {
+    private let secondaryLabel: UILabel = {
         let label = UILabel()
         label.text = "Join Camps, make new friends, go viral in For You and more"
         label.numberOfLines = 2
         label.textAlignment = .center
+        label.font = UIFont.systemFont(ofSize: 16, weight: .regular).rounded()
+        label.textColor = Constants.Color.secondaryLabel
         return label
     }()
     
@@ -90,6 +94,11 @@ final class GetStartedViewController: UIViewController {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    @objc private func signInTapped(sender: UIButton) {
+        let signInForm = BFFormViewController(form: BFSignInForm())
+        present(signInForm, animated: true)
     }
     
     override func updateViewConstraints() {
@@ -142,8 +151,6 @@ final class GetStartedViewController: UIViewController {
             heroStackView.leadingAnchor.constraint(equalTo: heroAlignmentView.leadingAnchor),
             heroStackView.trailingAnchor.constraint(equalTo: heroAlignmentView.trailingAnchor),
             heroStackView.centerYAnchor.constraint(equalTo: heroAlignmentView.centerYAnchor),
-            
-            
         ])
     }
     

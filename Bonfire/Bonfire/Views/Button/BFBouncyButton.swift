@@ -15,8 +15,12 @@ class BFBouncyButton: UIButton {
                 
         adjustsImageWhenHighlighted = false
         
-        addTarget(self, action: #selector(animateDown), for: [.touchDown, .touchDragEnter])
-        addTarget(self, action: #selector(animateUp), for: [.touchDragExit, .touchCancel, .touchUpInside, .touchUpOutside])
+        addTarget(self,
+                  action: #selector(animateDown),
+                  for: [.touchDown, .touchDragEnter])
+        addTarget(self,
+                  action: #selector(animateUp),
+                  for: [.touchDragExit, .touchCancel, .touchUpInside, .touchUpOutside])
     }
     
     @objc private func animateDown(sender: UIButton) {
@@ -38,7 +42,7 @@ class BFBouncyButton: UIButton {
                        options: [.curveEaseInOut],
                        animations: {
                         button.transform = transform
-            }, completion: nil)
+            })
     }
     
     required init?(coder: NSCoder) {

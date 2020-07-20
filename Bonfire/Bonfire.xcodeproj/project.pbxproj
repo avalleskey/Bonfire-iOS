@@ -32,6 +32,9 @@
 		1A24431324A0DB750039BAAB /* PostActionsCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A24431224A0DB750039BAAB /* PostActionsCell.swift */; };
 		1A24431524A0E7930039BAAB /* UIViewController+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A24431424A0E7930039BAAB /* UIViewController+Extensions.swift */; };
 		1A24431724A0E7BF0039BAAB /* AuthenticationType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A24431624A0E7BF0039BAAB /* AuthenticationType.swift */; };
+		1A3E012524C1F8C200C75F50 /* BFFormViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A3E012424C1F8C200C75F50 /* BFFormViewController.swift */; };
+		1A3E012724C2055B00C75F50 /* BFFormTextCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A3E012624C2055B00C75F50 /* BFFormTextCell.swift */; };
+		1A3E012924C2067800C75F50 /* BFFormCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A3E012824C2067800C75F50 /* BFFormCell.swift */; };
 		1A57FAE7249F5D3D00A407F9 /* BFTabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A57FAE6249F5D3D00A407F9 /* BFTabBarController.swift */; };
 		1A57FAEA249F5D8800A407F9 /* UIView+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A57FAE9249F5D8800A407F9 /* UIView+Extensions.swift */; };
 		1A6859BA249F61FB008DB6BC /* CreatePostViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A6859B9249F61FB008DB6BC /* CreatePostViewController.swift */; };
@@ -205,6 +208,9 @@
 		1A24431224A0DB750039BAAB /* PostActionsCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostActionsCell.swift; sourceTree = "<group>"; };
 		1A24431424A0E7930039BAAB /* UIViewController+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIViewController+Extensions.swift"; sourceTree = "<group>"; };
 		1A24431624A0E7BF0039BAAB /* AuthenticationType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationType.swift; sourceTree = "<group>"; };
+		1A3E012424C1F8C200C75F50 /* BFFormViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFFormViewController.swift; sourceTree = "<group>"; };
+		1A3E012624C2055B00C75F50 /* BFFormTextCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFFormTextCell.swift; sourceTree = "<group>"; };
+		1A3E012824C2067800C75F50 /* BFFormCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFFormCell.swift; sourceTree = "<group>"; };
 		1A57FAE6249F5D3D00A407F9 /* BFTabBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFTabBarController.swift; sourceTree = "<group>"; };
 		1A57FAE9249F5D8800A407F9 /* UIView+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIView+Extensions.swift"; sourceTree = "<group>"; };
 		1A6859B9249F61FB008DB6BC /* CreatePostViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatePostViewController.swift; sourceTree = "<group>"; };
@@ -351,6 +357,7 @@
 				1A212A0B24BC86C500A0DCD3 /* BFFormItem.swift */,
 				1A212A0D24BC86F800A0DCD3 /* BFFormItemType.swift */,
 				1A212A1224BC87FE00A0DCD3 /* BFForm.swift */,
+				1A3E012424C1F8C200C75F50 /* BFFormViewController.swift */,
 			);
 			path = Form;
 			sourceTree = "<group>";
@@ -358,6 +365,8 @@
 		1A212A0A24BC869400A0DCD3 /* Cells */ = {
 			isa = PBXGroup;
 			children = (
+				1A3E012624C2055B00C75F50 /* BFFormTextCell.swift */,
+				1A3E012824C2067800C75F50 /* BFFormCell.swift */,
 			);
 			path = Cells;
 			sourceTree = "<group>";
@@ -1090,6 +1099,8 @@
 				1A6859BF249F6376008DB6BC /* FriendTableViewCell.swift in Sources */,
 				1A24430B24A0D2750039BAAB /* UIFont+Extensions.swift in Sources */,
 				1A847D5A24B2432800530614 /* CampDetailViewController.swift in Sources */,
+				1A3E012524C1F8C200C75F50 /* BFFormViewController.swift in Sources */,
+				1A3E012924C2067800C75F50 /* BFFormCell.swift in Sources */,
 				1A15AB5E24B3B1F1007722A4 /* BFTextField.swift in Sources */,
 				1A212A0C24BC86C500A0DCD3 /* BFFormItem.swift in Sources */,
 				1ABDB17524A35EE100D05140 /* PostMessageCell.swift in Sources */,
@@ -1115,6 +1126,7 @@
 				1A57FAEA249F5D8800A407F9 /* UIView+Extensions.swift in Sources */,
 				1A7854E824A0B77800BA1589 /* BFNavigationController.swift in Sources */,
 				1A6859BA249F61FB008DB6BC /* CreatePostViewController.swift in Sources */,
+				1A3E012724C2055B00C75F50 /* BFFormTextCell.swift in Sources */,
 				D9EB895F24BE911B00BC6F6D /* String+Extensions.swift in Sources */,
 				1A212A0E24BC86F800A0DCD3 /* BFFormItemType.swift in Sources */,
 				D9872AB824C0D76A0048622F /* BFPillButton.swift in Sources */,

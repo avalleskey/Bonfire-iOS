@@ -16,15 +16,16 @@ final class BFPillButton: BFBouncyButton {
         setTitle(title, for: .normal)
         
         var titleImageSpacing: CGFloat = 0
-        if (icon != nil) {
-            setImage(UIImage(named: icon!)?.withRenderingMode(.alwaysTemplate), for: .normal)
+        if let icon = icon {
+            setImage(UIImage(named: icon)?.withRenderingMode(.alwaysTemplate),
+                     for: .normal)
             
             titleImageSpacing = 8
             titleEdgeInsets = .init(top: 0, left: titleImageSpacing, bottom: 0, right: 0)
             imageEdgeInsets = .init(top: 0, left: 0, bottom: 0, right: titleImageSpacing)
         }
-        if (target != nil) {
-            addTarget(target, action: action!, for: .touchUpInside)
+        if let target = target, let action = action {
+            addTarget(target, action: action, for: .touchUpInside)
         }
         
         backgroundColor = Constants.Color.pillBackground

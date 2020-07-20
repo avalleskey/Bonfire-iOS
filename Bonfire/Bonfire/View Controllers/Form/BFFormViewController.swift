@@ -66,7 +66,7 @@ final class BFFormViewController<Form: BFForm>: UIViewController {
         
         if currentItem?.validate() ?? false {
             if let updatePath = currentItem?.path {
-//                form.data.set(value: "", forKeyPath: updatePath)
+                form.data.set(value: BFFormItemValue.string("apple"), forKeyPath: updatePath)
             }
             pageViewController.segue(to: Self.viewControllerForInput(input: nextItem),
                                      direction: .right)

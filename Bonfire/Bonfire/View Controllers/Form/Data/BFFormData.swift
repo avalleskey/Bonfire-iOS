@@ -13,7 +13,7 @@ protocol BFFormData: class {
 }
 
 extension BFFormData {
-    func set<Value: Any>(value: Value, forKeyPath path: ReferenceWritableKeyPath<BFFormData, Value>) {
+    func set(value: BFFormItemValue, forKeyPath path: ReferenceWritableKeyPath<Self, BFFormItemValue?>) {
         self[keyPath: path] = value
     }
 }

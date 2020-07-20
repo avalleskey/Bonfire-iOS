@@ -15,6 +15,7 @@ final class BFFormTextView: UIViewController, BFFormCell {
         let label = UILabel()
         label.text = "Enter text..."
         label.numberOfLines = 2
+        label.textAlignment = .center
         return label
     }()
     
@@ -45,7 +46,8 @@ final class BFFormTextView: UIViewController, BFFormCell {
             textField.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             textField.centerYAnchor.constraint(equalTo: view.centerYAnchor),
             
-            instructionLabel.bottomAnchor.constraint(equalTo: textField.topAnchor, constant: 80)
+            instructionLabel.bottomAnchor.constraint(equalTo: textField.topAnchor,
+                                                     constant: -80)
         ])
     }
 }

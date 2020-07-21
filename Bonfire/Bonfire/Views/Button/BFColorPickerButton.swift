@@ -17,6 +17,9 @@ final class BFColorPickerButton: UIButton {
     init(color: UIColor) {
         self.color = color
         super.init(frame: .zero)
+        backgroundColor = color
+        
+        widthAnchor.constraint(equalTo: heightAnchor).isActive = true
     }
     
     required init?(coder: NSCoder) {

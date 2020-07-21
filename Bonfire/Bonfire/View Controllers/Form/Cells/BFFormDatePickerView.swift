@@ -9,7 +9,7 @@
 import Foundation
 import UIKit
 
-final class BFFormDateView<FormData: BFFormData>: UIViewController, BFFormCell {
+final class BFFormDatePickerView<FormData: BFFormData>: UIViewController, BFFormCell {
 
     let instructionLabel: UILabel = {
         let label = UILabel()

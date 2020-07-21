@@ -10,7 +10,7 @@ import UIKit
 
 final class HomeViewController: UIViewController {
 
-    let segmentedControl = BFSegmentedControl()
+    private let segmentedControl = BFSegmentedControl()
 
     static var defaultTabBarItem: UITabBarItem {
         let item = UITabBarItem(
@@ -21,14 +21,16 @@ final class HomeViewController: UIViewController {
         return item
     }
 
-    let homeFeedTableView = BFFeedTableViewController()
-    let controller = StreamController()
+    private let activityIndicator = UIActivityIndicatorView(style: .gray)
+    private let homeFeedTableView = BFFeedTableViewController()
+    private let controller = StreamController()
 
     override func viewDidLoad() {
         super.viewDidLoad()
         if #available(iOS 13.0, *) { view.backgroundColor = .systemBackground }
 
         view.addSubview(homeFeedTableView.view)
+        view.addSubview(activityIndicator)
 
         segmentedControl.addItem(.init(title: "Following", target: nil, action: nil))
         segmentedControl.addItem(.init(title: "For You", target: nil, action: nil))
@@ -57,9 +59,12 @@ final class HomeViewController: UIViewController {
     override func updateViewConstraints() {
         super.updateViewConstraints()
 
+        activityIndicator.translatesAutoresizingMaskIntoConstraints = false
         homeFeedTableView.view.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
+            activityIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            activityIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor),
             homeFeedTableView.view.topAnchor.constraint(
                 equalTo: view.safeAreaLayoutGuide.topAnchor),
             homeFeedTableView.view.bottomAnchor.constraint(

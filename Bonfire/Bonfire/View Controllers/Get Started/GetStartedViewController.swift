@@ -8,6 +8,7 @@
 
 import Foundation
 import UIKit
+import AuthenticationServices
 
 final class GetStartedViewController: UIViewController {
 
@@ -29,9 +30,7 @@ final class GetStartedViewController: UIViewController {
         btn.backgroundColor = Constants.Color.primary.withAlphaComponent(0.06)
         btn.layer.cornerRadius = 14
         btn.addTarget(self, action: #selector(signInTapped), for: .touchUpInside)
-        if let titleLabel = btn.titleLabel {
-            titleLabel.font = UIFont.systemFont(ofSize: 20, weight: .bold).rounded()
-        }
+        btn.titleLabel?.font = UIFont.systemFont(ofSize: 20, weight: .bold).rounded()
         return btn
     }()
 
@@ -41,9 +40,12 @@ final class GetStartedViewController: UIViewController {
         btn.setTitleColor(.white, for: .normal)
         btn.backgroundColor = .black
         btn.layer.cornerRadius = 14
-        if let titleLabel = btn.titleLabel {
-            titleLabel.font = UIFont.systemFont(ofSize: 20, weight: .bold).rounded()
+        if #available(iOS 13.0, *) {
+            btn.addTarget(self, action: #selector(continueWithAppleTapped(sender:)), for: .touchUpInside)
+        } else {
+            btn.isEnabled = false
         }
+        btn.titleLabel?.font = UIFont.systemFont(ofSize: 20, weight: .bold).rounded()
         return btn
     }()
 
@@ -53,9 +55,8 @@ final class GetStartedViewController: UIViewController {
         btn.setTitleColor(.white, for: .normal)
         btn.backgroundColor = Constants.Color.brand
         btn.layer.cornerRadius = 14
-        if let titleLabel = btn.titleLabel {
-            titleLabel.font = UIFont.systemFont(ofSize: 20, weight: .bold).rounded()
-        }
+        btn.addTarget(self, action: #selector(signUpTapped), for: .touchUpInside)
+        btn.titleLabel?.font = UIFont.systemFont(ofSize: 20, weight: .bold).rounded()
         return btn
     }()
 
@@ -123,10 +124,26 @@ final class GetStartedViewController: UIViewController {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    
+    @objc private func signUpTapped(sender: UIButton) {
+        let signUpForm = BFFormViewController(form: BFSignUpForm())
+        navigationController?.pushViewController(signUpForm, animated: true)
+    }
 
     @objc private func signInTapped(sender: UIButton) {
         let signInForm = BFFormViewController(form: BFSignInForm())
-        present(signInForm, animated: true)
+        navigationController?.pushViewController(signInForm, animated: true)
+    }
+    
+    @available(iOS 13.0, *)
+    @objc private func continueWithAppleTapped(sender: UIButton) {
+        let provider = ASAuthorizationAppleIDProvider()
+        let request = provider.createRequest()
+        request.requestedScopes = [.fullName, .email]
+        
+        let authController = ASAuthorizationController(authorizationRequests: [request])
+        authController.presentationContextProvider = self
+        authController.performRequests()
     }
 
     override func updateViewConstraints() {
@@ -198,4 +215,11 @@ final class GetStartedViewController: UIViewController {
         ])
     }
 
+}
+
+@available(iOS 13.0, *)
+extension GetStartedViewController: ASAuthorizationControllerPresentationContextProviding {
+    func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
+        self.view.window!
+    }
 }

@@ -18,14 +18,16 @@ final class FriendsViewController: UIViewController {
             tag: 0)
     }
 
-    let friendsTableView = FriendsTableViewController()
-    let controller = UserController()
+    private let activityIndicator = UIActivityIndicatorView(style: .gray)
+    private let friendsTableView = FriendsTableViewController()
+    private let controller = UserController()
 
     override func viewDidLoad() {
         super.viewDidLoad()
         if #available(iOS 13.0, *) { view.backgroundColor = .systemBackground }
 
         view.addSubview(friendsTableView.view)
+        view.addSubview(activityIndicator)
 
         refresh()
 
@@ -38,35 +40,40 @@ final class FriendsViewController: UIViewController {
         refresh()
     }
 
-    func refresh() {
+    private func refresh() {
+        activityIndicator.startAnimating()
         controller.getFriends { (result) in
-            switch result {
-            case .success(let friends):
-                DispatchQueue.main.async {
+            DispatchQueue.main.async {
+                self.activityIndicator.stopAnimating()
+                switch result {
+                case .success(let friends):
                     self.friendsTableView.friends = friends
                     self.friendsTableView.tableView.reloadData()
-                }
-            case .failure(let error):
-                DispatchQueue.main.async {
+                case .failure(let error):
                     switch BFAppError.from(error: error) {
                     case .unauthenticated:
                         let authController = GetStartedViewController()
-                        self.present(authController, animated: true)
+                        let authNavcontroller = UINavigationController(rootViewController: authController)
+                        self.present(authNavcontroller, animated: true)
                     default:
                         print(error)
                     }
+                    
                 }
             }
-
         }
     }
 
     override func updateViewConstraints() {
         super.updateViewConstraints()
 
+        activityIndicator.translatesAutoresizingMaskIntoConstraints = false
         friendsTableView.view.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
+            activityIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            activityIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            
             friendsTableView.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             friendsTableView.view.bottomAnchor.constraint(
                 equalTo: view.safeAreaLayoutGuide.bottomAnchor),

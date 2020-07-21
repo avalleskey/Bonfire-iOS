@@ -48,6 +48,14 @@ struct Constants {
                 return UIColor.white
             }
         }()
+        
+        static let systemBackground: UIColor = {
+            if #available(iOS 13.0, *) {
+                return UIColor.systemBackground
+            } else {
+                return UIColor.white
+            }
+        }()
 
         static let primary: UIColor = {
             if #available(iOS 13.0, *) {

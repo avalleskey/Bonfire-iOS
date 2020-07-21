@@ -28,13 +28,15 @@ final class BFFormViewController<Form: BFForm>: UIViewController {
     init(form: Form) {
         self.form = form
         self.currentItem = form.items.first
-        let initialVC = Self.viewControllerForInput(input: self.currentItem)
-        pageViewController = BFFormPageViewController(initialVC: initialVC!)
-        currentCell = initialVC
+        pageViewController = BFFormPageViewController()
+        
         super.init(nibName: nil, bundle: nil)
         view.backgroundColor = Constants.Color.systemBackground
         view.addSubview(pageViewController.view)
-
+        if let item = self.currentItem, let initialVC = viewControllerForInput(input: item) {
+            pageViewController.setInitialViewController(initialVC)
+            currentCell = initialVC
+        }
         view.addSubview(nextBtn)
         updateViewConstraints()
     }
@@ -84,7 +86,7 @@ final class BFFormViewController<Form: BFForm>: UIViewController {
             }
             let nextItem = form.items[nextIdx]
             currentItem = nextItem
-            guard let nextVC = Self.viewControllerForInput(input: nextItem) else { return }
+            guard let nextVC = viewControllerForInput(input: nextItem) else { return }
             self.currentCell = nextVC
             pageViewController.segue(
                 to: nextVC,
@@ -92,16 +94,30 @@ final class BFFormViewController<Form: BFForm>: UIViewController {
         }
     }
 
-    private static func viewControllerForInput(input: BFFormItem<Form.DataType>?)
+    private func viewControllerForInput(input: BFFormItem<Form.DataType>?)
         -> BFFormCell?
     {
         guard let input = input else { return nil }
         switch input.type {
         case .text, .password, .email, .otp:
-            return BFFormTextView<Form.DataType>(item: input)
+            let textView = BFFormTextView<Form.DataType>(item: input)
+            textView.delegate = self
+            return textView
+        case .date:
+            return BFFormDatePickerView<Form.DataType>(item: input)
+        case .image:
+            return BFFormImagePickerView<Form.DataType>(item: input)
+        case .color:
+            return BFFormColorPickerView<Form.DataType>(item: input)
         default:
             fatalError("Unsupported form type \(input.type)")
         }
     }
 
+}
+
+extension BFFormViewController: BFFormTextViewDelegate {
+    func next() {
+        nextBtnTap(sender: nextBtn)
+    }
 }

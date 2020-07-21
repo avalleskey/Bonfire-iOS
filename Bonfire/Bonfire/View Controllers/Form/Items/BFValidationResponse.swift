@@ -7,3 +7,7 @@
 //
 
 import Foundation
+
+enum BFValidationResponse {
+    case valid(Bool)
+}

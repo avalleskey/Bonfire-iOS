@@ -7,3 +7,13 @@
 //
 
 import Foundation
+
+final class BFSignUpData: BFFormData {
+    var phoneEmailUsername: BFFormItemValue?
+    var password: BFFormItemValue?
+    var birthDate: BFFormItemValue?
+    var imageData: BFFormItemValue?
+    var color: BFFormItemValue?
+
+    init() {}
+}

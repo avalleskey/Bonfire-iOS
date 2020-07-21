@@ -11,6 +11,8 @@ import Foundation
 enum BFFormItemValue {
     case string(String)
     case int(Int)
+    case date(Date)
+    case data(Data)
     
     var stringValue: String? {
         switch self {

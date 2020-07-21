@@ -21,8 +21,6 @@ final class BFFormPageViewController: UIViewController {
         navigationOrientation: .vertical,
         options: [:])
 
-    private let initialViewController: UIViewController
-
     enum Direction {
         case up
         case down
@@ -30,8 +28,7 @@ final class BFFormPageViewController: UIViewController {
         case right
     }
 
-    init(initialVC: UIViewController) {
-        initialViewController = initialVC
+    init() {
         super.init(nibName: nil, bundle: nil)
         view.addSubview(horizontalPageVC.view)
     }
@@ -39,10 +36,10 @@ final class BFFormPageViewController: UIViewController {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-
-    override func viewDidLoad() {
+    
+    func setInitialViewController(_ viewController: UIViewController) {
         verticalPageVC.setViewControllers(
-            [initialViewController],
+            [viewController],
             direction: .forward,
             animated: false)
         horizontalPageVC.setViewControllers(

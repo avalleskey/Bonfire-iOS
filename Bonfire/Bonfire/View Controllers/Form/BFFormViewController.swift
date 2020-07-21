@@ -32,7 +32,7 @@ final class BFFormViewController<Form: BFForm>: UIViewController {
         pageViewController = BFFormPageViewController(initialVC: initialVC!)
         currentCell = initialVC
         super.init(nibName: nil, bundle: nil)
-        view.backgroundColor = .white
+        view.backgroundColor = Constants.Color.systemBackground
         view.addSubview(pageViewController.view)
 
         view.addSubview(nextBtn)

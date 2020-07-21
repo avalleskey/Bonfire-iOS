@@ -13,23 +13,18 @@ final class BFTextField: UITextField {
     init() {
         super.init(frame: .zero)
 
-        backgroundColor = .white
-
-        let shadowLayer1 = CALayer()
-        shadowLayer1.shadowColor = UIColor.black.cgColor
-        shadowLayer1.shadowOpacity = 0.12
-        shadowLayer1.shadowOffset = .init(width: 0, height: 2)
-        shadowLayer1.shadowRadius = 0
-
-        let shadowLayer2 = CALayer()
-        shadowLayer2.shadowColor = UIColor.black.cgColor
-        shadowLayer2.shadowOpacity = 0.06
-        shadowLayer2.shadowOffset = .init(width: 0, height: 0)
-        shadowLayer2.shadowRadius = 1
-
+        backgroundColor = Constants.Color.pillBackground
+        textColor = Constants.Color.primary
+        font = UIFont.systemFont(ofSize: 20, weight: .semibold).rounded()
+        
+        layer.shadowColor = UIColor.black.cgColor
+        layer.shadowOpacity = 0.12
+        layer.shadowOffset = .init(width: 0, height: 1)
+        layer.shadowRadius = 2
+        layer.cornerRadius = 14
+        layer.shouldRasterize = true
+        layer.rasterizationScale = UIScreen.main.scale
         layer.masksToBounds = false
-        layer.insertSublayer(shadowLayer1, at: 0)
-        layer.insertSublayer(shadowLayer2, at: 1)
     }
 
     required init?(coder: NSCoder) {

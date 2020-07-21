@@ -51,7 +51,7 @@ final class BFFormTextView<FormData: BFFormData>: UIViewController, BFFormCell {
 
         textField.translatesAutoresizingMaskIntoConstraints = false
         instructionLabel.translatesAutoresizingMaskIntoConstraints = false
-
+        
         NSLayoutConstraint.activate([
             textField.centerYAnchor.constraint(equalTo: view.centerYAnchor),
             textField.leadingAnchor.constraint(
@@ -61,9 +61,7 @@ final class BFFormTextView<FormData: BFFormData>: UIViewController, BFFormCell {
                 equalTo: view.trailingAnchor,
                 constant: -24),
 
-            instructionLabel.bottomAnchor.constraint(
-                equalTo: textField.topAnchor,
-                constant: -80),
+            instructionLabel.centerYAnchor.constraint(equalTo: textField.centerYAnchor, constant: -(view.frame.size.height * 0.25)),
 
             instructionLabel.leadingAnchor.constraint(
                 equalTo: view.leadingAnchor,

@@ -1,15 +1,15 @@
 //
-//  BFFormTextCell.swift
+//  BFFormDateView.swift
 //  Bonfire
 //
-//  Created by James Dale on 18/7/20.
+//  Created by James Dale on 21/7/20.
 //  Copyright © 2020 Ingenious. All rights reserved.
 //
 
 import Foundation
 import UIKit
 
-final class BFFormTextView<FormData: BFFormData>: UIViewController, BFFormCell {
+final class BFFormDateView<FormData: BFFormData>: UIViewController, BFFormCell {
 
     let instructionLabel: UILabel = {
         let label = UILabel()
@@ -20,22 +20,25 @@ final class BFFormTextView<FormData: BFFormData>: UIViewController, BFFormCell {
         return label
     }()
 
-    let textField: BFTextField = {
-        let textField = BFTextField()
-        textField.placeholder = "Enter Value..."
-        return textField
+    let datePicker: UIDatePicker = {
+        let datePicker = UIDatePicker()
+        datePicker.datePickerMode = .date
+        datePicker.backgroundColor = .white
+        if #available(iOS 13.4, *) {
+            datePicker.preferredDatePickerStyle = .wheels
+        }
+        return datePicker
     }()
+    
+    weak var delegate: BFFormTextViewDelegate?
 
     init(item: BFFormItem<FormData>) {
         super.init(nibName: nil, bundle: nil)
 
         view.addSubview(instructionLabel)
-        view.addSubview(textField)
+        view.addSubview(datePicker)
         
         instructionLabel.text = item.instructionText
-        textField.placeholder = item.placeholderText
-        
-        textField.isSecureTextEntry = item.type == .password
     }
 
     required init?(coder: NSCoder) {
@@ -43,25 +46,25 @@ final class BFFormTextView<FormData: BFFormData>: UIViewController, BFFormCell {
     }
     
     func value() -> BFFormItemValue {
-        .string(textField.text ?? "")
+        .date(datePicker.date)
     }
 
     override func updateViewConstraints() {
         super.updateViewConstraints()
 
-        textField.translatesAutoresizingMaskIntoConstraints = false
+        datePicker.translatesAutoresizingMaskIntoConstraints = false
         instructionLabel.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
-            textField.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            textField.leadingAnchor.constraint(
+            datePicker.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            datePicker.leadingAnchor.constraint(
                 equalTo: view.leadingAnchor,
                 constant: 24),
-            textField.trailingAnchor.constraint(
+            datePicker.trailingAnchor.constraint(
                 equalTo: view.trailingAnchor,
                 constant: -24),
 
-            instructionLabel.centerYAnchor.constraint(equalTo: textField.centerYAnchor, constant: -(view.frame.size.height * 0.25)),
+            instructionLabel.centerYAnchor.constraint(equalTo: datePicker.centerYAnchor, constant: -(view.frame.size.height * 0.25)),
 
             instructionLabel.leadingAnchor.constraint(
                 equalTo: view.leadingAnchor,

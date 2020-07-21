@@ -65,7 +65,7 @@ final class PostActionsCell: UITableViewCell {
         ])
 
         NSLayoutConstraint.activate([
-            shareBtn.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            shareBtn.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -12),
             shareBtn.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
         ])
 

@@ -78,8 +78,7 @@ struct Constants {
             }
         }()
 
-        static let bfOrange = UIColor(
-            displayP3Red: 255 / 255, green: 81 / 255, blue: 60 / 255, alpha: 1)
+        static let brand = UIColor(named: "BrandColor")
 
         static let textBorder: UIColor = {
             let light: UIColor = UIColor(white: 0, alpha: 0.08)

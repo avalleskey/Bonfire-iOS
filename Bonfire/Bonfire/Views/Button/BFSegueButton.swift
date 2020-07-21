@@ -12,7 +12,7 @@ final class BFSegueButton: UIButton {
 
     init() {
         super.init(frame: .zero)
-        backgroundColor = Constants.Color.bfOrange
+        backgroundColor = Constants.Color.brand
         layer.cornerRadius = 14
         titleLabel?.font = UIFont.systemFont(ofSize: 20, weight: .bold).rounded()
     }

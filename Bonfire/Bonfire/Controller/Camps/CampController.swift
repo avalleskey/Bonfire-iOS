@@ -19,7 +19,7 @@ final class CampController: CampControllerProtocol {
             switch result {
             case .success(let response):
                 completion(response.data)
-            case .failure(let error):
+            case .failure(_):
                 break
             }
         }

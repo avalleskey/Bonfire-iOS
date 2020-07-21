@@ -55,7 +55,7 @@ struct BFSignInForm<FormData: BFSignInData>: BFForm {
                     KeychainVault.refreshToken = response.data.refreshToken
                     completion(true)
                 }
-            case .failure(let error):
+            case .failure(_):
                 completion(false)
             }
         }

@@ -42,7 +42,7 @@
 		1A6859BF249F6376008DB6BC /* FriendTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A6859BE249F6376008DB6BC /* FriendTableViewCell.swift */; };
 		1A6C8F8324C5E16500CD7A3E /* BFTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A6C8F8224C5E16500CD7A3E /* BFTextField.swift */; };
 		1A6F958624B8E0C4004A20F4 /* GetStartedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A6F958524B8E0C4004A20F4 /* GetStartedViewController.swift */; };
-		1A6F958924B8E6AC004A20F4 /* KeychainSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 1A6F958824B8E6AC004A20F4 /* KeychainSwift */; };
+		1A6F958924B8E6AC004A20F4 /* BuildFile in Frameworks */ = {isa = PBXBuildFile; productRef = 1A6F958824B8E6AC004A20F4 /* SwiftPackageProductDependency */; };
 		1A6F958C24B8E6C8004A20F4 /* Keychainable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A6F958B24B8E6C8004A20F4 /* Keychainable.swift */; };
 		1A6F958E24B8E6DA004A20F4 /* KeychainKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A6F958D24B8E6DA004A20F4 /* KeychainKey.swift */; };
 		1A6F959024B8E6FD004A20F4 /* KeychainProperty.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A6F958F24B8E6FD004A20F4 /* KeychainProperty.swift */; };
@@ -93,8 +93,8 @@
 		1A847D4D24B1E48E00530614 /* BFPostContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A847D4C24B1E48E00530614 /* BFPostContext.swift */; };
 		1A847D5024B1E4C700530614 /* BFSummaries.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A847D4F24B1E4C700530614 /* BFSummaries.swift */; };
 		1A847D5224B1E4E000530614 /* BFCountSummaries.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A847D5124B1E4E000530614 /* BFCountSummaries.swift */; };
-		1A847D5524B1EDDB00530614 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 1A847D5424B1EDDB00530614 /* Kingfisher */; };
-		1A847D5824B2426200530614 /* Hero in Frameworks */ = {isa = PBXBuildFile; productRef = 1A847D5724B2426200530614 /* Hero */; };
+		1A847D5524B1EDDB00530614 /* BuildFile in Frameworks */ = {isa = PBXBuildFile; productRef = 1A847D5424B1EDDB00530614 /* SwiftPackageProductDependency */; };
+		1A847D5824B2426200530614 /* BuildFile in Frameworks */ = {isa = PBXBuildFile; productRef = 1A847D5724B2426200530614 /* SwiftPackageProductDependency */; };
 		1A847D5A24B2432800530614 /* CampDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A847D5924B2432800530614 /* CampDetailViewController.swift */; };
 		1A847D5D24B247C900530614 /* BFViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A847D5C24B247C900530614 /* BFViewController.swift */; };
 		1A8FD29924A4E73D00F9EC5F /* MyCampsResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A8FD29824A4E73D00F9EC5F /* MyCampsResponse.swift */; };
@@ -318,9 +318,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1A847D5524B1EDDB00530614 /* Kingfisher in Frameworks */,
+				1A847D5524B1EDDB00530614 /* BuildFile in Frameworks */,
 				1A844734249D4B88002813CB /* BFNetworking.framework in Frameworks */,
-				1A847D5824B2426200530614 /* Hero in Frameworks */,
+				1A847D5824B2426200530614 /* BuildFile in Frameworks */,
 				1A7854C4249FBA5400BA1589 /* BFCore.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -329,7 +329,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1A6F958924B8E6AC004A20F4 /* KeychainSwift in Frameworks */,
+				1A6F958924B8E6AC004A20F4 /* BuildFile in Frameworks */,
 				1A7854D2249FBB1300BA1589 /* BFCore.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -549,13 +549,6 @@
 			path = Endpoints;
 			sourceTree = "<group>";
 		};
-		1A7854D1249FBB1300BA1589 /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Frameworks;
-			sourceTree = "<group>";
-		};
 		1A7854D9249FBBBD00BA1589 /* Camps */ = {
 			isa = PBXGroup;
 			children = (
@@ -594,7 +587,6 @@
 				1A7854B0249FBA5400BA1589 /* BFCore */,
 				1A7854BD249FBA5400BA1589 /* BFCoreTests */,
 				1A8446FB249C8652002813CB /* Products */,
-				1A7854D1249FBB1300BA1589 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -921,8 +913,8 @@
 			);
 			name = Bonfire;
 			packageProductDependencies = (
-				1A847D5424B1EDDB00530614 /* Kingfisher */,
-				1A847D5724B2426200530614 /* Hero */,
+				1A847D5424B1EDDB00530614 /* SwiftPackageProductDependency */,
+				1A847D5724B2426200530614 /* SwiftPackageProductDependency */,
 			);
 			productName = Bonfire;
 			productReference = 1A8446FA249C8652002813CB /* Bonfire.app */;
@@ -944,7 +936,7 @@
 			);
 			name = BFNetworking;
 			packageProductDependencies = (
-				1A6F958824B8E6AC004A20F4 /* KeychainSwift */,
+				1A6F958824B8E6AC004A20F4 /* SwiftPackageProductDependency */,
 			);
 			productName = BFNetworking;
 			productReference = 1A84471F249D4B88002813CB /* BFNetworking.framework */;
@@ -1009,9 +1001,9 @@
 			);
 			mainGroup = 1A8446F1249C8652002813CB;
 			packageReferences = (
-				1A847D5324B1EDDB00530614 /* XCRemoteSwiftPackageReference "Kingfisher" */,
-				1A847D5624B2426200530614 /* XCRemoteSwiftPackageReference "Hero" */,
-				1A6F958724B8E6AC004A20F4 /* XCRemoteSwiftPackageReference "keychain-swift" */,
+				1A847D5324B1EDDB00530614 /* RemoteSwiftPackageReference */,
+				1A847D5624B2426200530614 /* RemoteSwiftPackageReference */,
+				1A6F958724B8E6AC004A20F4 /* RemoteSwiftPackageReference */,
 			);
 			productRefGroup = 1A8446FB249C8652002813CB /* Products */;
 			projectDirPath = "";
@@ -1676,7 +1668,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		1A6F958724B8E6AC004A20F4 /* XCRemoteSwiftPackageReference "keychain-swift" */ = {
+		1A6F958724B8E6AC004A20F4 /* RemoteSwiftPackageReference */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/evgenyneu/keychain-swift";
 			requirement = {
@@ -1684,7 +1676,7 @@
 				minimumVersion = 19.0.0;
 			};
 		};
-		1A847D5324B1EDDB00530614 /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
+		1A847D5324B1EDDB00530614 /* RemoteSwiftPackageReference */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/onevcat/Kingfisher.git";
 			requirement = {
@@ -1692,7 +1684,7 @@
 				minimumVersion = 5.14.0;
 			};
 		};
-		1A847D5624B2426200530614 /* XCRemoteSwiftPackageReference "Hero" */ = {
+		1A847D5624B2426200530614 /* RemoteSwiftPackageReference */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/HeroTransitions/Hero.git";
 			requirement = {
@@ -1703,19 +1695,19 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		1A6F958824B8E6AC004A20F4 /* KeychainSwift */ = {
+		1A6F958824B8E6AC004A20F4 /* SwiftPackageProductDependency */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 1A6F958724B8E6AC004A20F4 /* XCRemoteSwiftPackageReference "keychain-swift" */;
+			package = 1A6F958724B8E6AC004A20F4 /* RemoteSwiftPackageReference */;
 			productName = KeychainSwift;
 		};
-		1A847D5424B1EDDB00530614 /* Kingfisher */ = {
+		1A847D5424B1EDDB00530614 /* SwiftPackageProductDependency */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 1A847D5324B1EDDB00530614 /* XCRemoteSwiftPackageReference "Kingfisher" */;
+			package = 1A847D5324B1EDDB00530614 /* RemoteSwiftPackageReference */;
 			productName = Kingfisher;
 		};
-		1A847D5724B2426200530614 /* Hero */ = {
+		1A847D5724B2426200530614 /* SwiftPackageProductDependency */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 1A847D5624B2426200530614 /* XCRemoteSwiftPackageReference "Hero" */;
+			package = 1A847D5624B2426200530614 /* RemoteSwiftPackageReference */;
 			productName = Hero;
 		};
 /* End XCSwiftPackageProductDependency section */

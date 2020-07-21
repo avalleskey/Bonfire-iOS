@@ -24,7 +24,6 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let scene = (scene as? UIWindowScene) else { return }
 
         KeychainVault.accessToken = nil
-
         let tabVC = BFTabBarController()
 
         let friendsVC = FriendsViewController()

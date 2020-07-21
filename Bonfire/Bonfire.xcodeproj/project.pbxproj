@@ -7,6 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1A0CB45A24C71B7B00BD2A50 /* BFValidationResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0CB45924C71B7B00BD2A50 /* BFValidationResponse.swift */; };
+		1A0CB45C24C71CE100BD2A50 /* BFSignUpForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0CB45B24C71CE100BD2A50 /* BFSignUpForm.swift */; };
+		1A0CB45E24C71CFB00BD2A50 /* BFSignUpData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0CB45D24C71CFB00BD2A50 /* BFSignUpData.swift */; };
+		1A0CB46024C71F7500BD2A50 /* BFFormDatePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0CB45F24C71F7500BD2A50 /* BFFormDatePickerView.swift */; };
+		1A0CB46224C7228700BD2A50 /* BFFormImagePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0CB46124C7228700BD2A50 /* BFFormImagePickerView.swift */; };
+		1A0CB46424C7230D00BD2A50 /* BFFormColorPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0CB46324C7230D00BD2A50 /* BFFormColorPickerView.swift */; };
+		1A0CB46624C7231A00BD2A50 /* BFFormCampPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0CB46524C7231A00BD2A50 /* BFFormCampPickerView.swift */; };
 		1A15AB5E24B3B1F1007722A4 /* BFReplyTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A15AB5D24B3B1F1007722A4 /* BFReplyTextField.swift */; };
 		1A212A0924BC869100A0DCD3 /* BFFormPageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A212A0824BC869100A0DCD3 /* BFFormPageViewController.swift */; };
 		1A212A0C24BC86C500A0DCD3 /* BFFormItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A212A0B24BC86C500A0DCD3 /* BFFormItem.swift */; };
@@ -33,7 +40,7 @@
 		1A24431524A0E7930039BAAB /* UIViewController+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A24431424A0E7930039BAAB /* UIViewController+Extensions.swift */; };
 		1A24431724A0E7BF0039BAAB /* AuthenticationType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A24431624A0E7BF0039BAAB /* AuthenticationType.swift */; };
 		1A3E012524C1F8C200C75F50 /* BFFormViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A3E012424C1F8C200C75F50 /* BFFormViewController.swift */; };
-		1A3E012724C2055B00C75F50 /* BFFormTextCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A3E012624C2055B00C75F50 /* BFFormTextCell.swift */; };
+		1A3E012724C2055B00C75F50 /* BFFormTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A3E012624C2055B00C75F50 /* BFFormTextView.swift */; };
 		1A3E012924C2067800C75F50 /* BFFormCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A3E012824C2067800C75F50 /* BFFormCell.swift */; };
 		1A57FAE7249F5D3D00A407F9 /* BFTabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A57FAE6249F5D3D00A407F9 /* BFTabBarController.swift */; };
 		1A57FAEA249F5D8800A407F9 /* UIView+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A57FAE9249F5D8800A407F9 /* UIView+Extensions.swift */; };
@@ -42,7 +49,7 @@
 		1A6859BF249F6376008DB6BC /* FriendTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A6859BE249F6376008DB6BC /* FriendTableViewCell.swift */; };
 		1A6C8F8324C5E16500CD7A3E /* BFTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A6C8F8224C5E16500CD7A3E /* BFTextField.swift */; };
 		1A6F958624B8E0C4004A20F4 /* GetStartedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A6F958524B8E0C4004A20F4 /* GetStartedViewController.swift */; };
-		1A6F958924B8E6AC004A20F4 /* BuildFile in Frameworks */ = {isa = PBXBuildFile; productRef = 1A6F958824B8E6AC004A20F4 /* SwiftPackageProductDependency */; };
+		1A6F958924B8E6AC004A20F4 /* KeychainSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 1A6F958824B8E6AC004A20F4 /* KeychainSwift */; };
 		1A6F958C24B8E6C8004A20F4 /* Keychainable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A6F958B24B8E6C8004A20F4 /* Keychainable.swift */; };
 		1A6F958E24B8E6DA004A20F4 /* KeychainKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A6F958D24B8E6DA004A20F4 /* KeychainKey.swift */; };
 		1A6F959024B8E6FD004A20F4 /* KeychainProperty.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A6F958F24B8E6FD004A20F4 /* KeychainProperty.swift */; };
@@ -93,8 +100,8 @@
 		1A847D4D24B1E48E00530614 /* BFPostContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A847D4C24B1E48E00530614 /* BFPostContext.swift */; };
 		1A847D5024B1E4C700530614 /* BFSummaries.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A847D4F24B1E4C700530614 /* BFSummaries.swift */; };
 		1A847D5224B1E4E000530614 /* BFCountSummaries.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A847D5124B1E4E000530614 /* BFCountSummaries.swift */; };
-		1A847D5524B1EDDB00530614 /* BuildFile in Frameworks */ = {isa = PBXBuildFile; productRef = 1A847D5424B1EDDB00530614 /* SwiftPackageProductDependency */; };
-		1A847D5824B2426200530614 /* BuildFile in Frameworks */ = {isa = PBXBuildFile; productRef = 1A847D5724B2426200530614 /* SwiftPackageProductDependency */; };
+		1A847D5524B1EDDB00530614 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 1A847D5424B1EDDB00530614 /* Kingfisher */; };
+		1A847D5824B2426200530614 /* Hero in Frameworks */ = {isa = PBXBuildFile; productRef = 1A847D5724B2426200530614 /* Hero */; };
 		1A847D5A24B2432800530614 /* CampDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A847D5924B2432800530614 /* CampDetailViewController.swift */; };
 		1A847D5D24B247C900530614 /* BFViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A847D5C24B247C900530614 /* BFViewController.swift */; };
 		1A8FD29924A4E73D00F9EC5F /* MyCampsResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A8FD29824A4E73D00F9EC5F /* MyCampsResponse.swift */; };
@@ -111,6 +118,7 @@
 		1AAC6F0F24B3A5C400EFD803 /* AddReplyCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AAC6F0E24B3A5C400EFD803 /* AddReplyCell.swift */; };
 		1ABDB17524A35EE100D05140 /* PostMessageCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ABDB17424A35EE100D05140 /* PostMessageCell.swift */; };
 		1AF7FCEC24A2700B003FCF9F /* BFSegmentedControlButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AF7FCEB24A2700B003FCF9F /* BFSegmentedControlButton.swift */; };
+		1AF92AD324C73E8D00D253AC /* BFColorPickerButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AF92AD224C73E8D00D253AC /* BFColorPickerButton.swift */; };
 		1AFFB1C6249D514900E67E89 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AFFB1C5249D514900E67E89 /* Constants.swift */; };
 		D9872AB824C0D76A0048622F /* BFPillButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9872AB724C0D76A0048622F /* BFPillButton.swift */; };
 		D9A2EEC324C165DC00EECE8A /* BFBouncyButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9A2EEC224C165DC00EECE8A /* BFBouncyButton.swift */; };
@@ -186,6 +194,13 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		1A0CB45924C71B7B00BD2A50 /* BFValidationResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFValidationResponse.swift; sourceTree = "<group>"; };
+		1A0CB45B24C71CE100BD2A50 /* BFSignUpForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFSignUpForm.swift; sourceTree = "<group>"; };
+		1A0CB45D24C71CFB00BD2A50 /* BFSignUpData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFSignUpData.swift; sourceTree = "<group>"; };
+		1A0CB45F24C71F7500BD2A50 /* BFFormDatePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFFormDatePickerView.swift; sourceTree = "<group>"; };
+		1A0CB46124C7228700BD2A50 /* BFFormImagePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFFormImagePickerView.swift; sourceTree = "<group>"; };
+		1A0CB46324C7230D00BD2A50 /* BFFormColorPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFFormColorPickerView.swift; sourceTree = "<group>"; };
+		1A0CB46524C7231A00BD2A50 /* BFFormCampPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFFormCampPickerView.swift; sourceTree = "<group>"; };
 		1A15AB5D24B3B1F1007722A4 /* BFReplyTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFReplyTextField.swift; sourceTree = "<group>"; };
 		1A212A0824BC869100A0DCD3 /* BFFormPageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFFormPageViewController.swift; sourceTree = "<group>"; };
 		1A212A0B24BC86C500A0DCD3 /* BFFormItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFFormItem.swift; sourceTree = "<group>"; };
@@ -212,7 +227,7 @@
 		1A24431424A0E7930039BAAB /* UIViewController+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIViewController+Extensions.swift"; sourceTree = "<group>"; };
 		1A24431624A0E7BF0039BAAB /* AuthenticationType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationType.swift; sourceTree = "<group>"; };
 		1A3E012424C1F8C200C75F50 /* BFFormViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFFormViewController.swift; sourceTree = "<group>"; };
-		1A3E012624C2055B00C75F50 /* BFFormTextCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFFormTextCell.swift; sourceTree = "<group>"; };
+		1A3E012624C2055B00C75F50 /* BFFormTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFFormTextView.swift; sourceTree = "<group>"; };
 		1A3E012824C2067800C75F50 /* BFFormCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFFormCell.swift; sourceTree = "<group>"; };
 		1A57FAE6249F5D3D00A407F9 /* BFTabBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFTabBarController.swift; sourceTree = "<group>"; };
 		1A57FAE9249F5D8800A407F9 /* UIView+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIView+Extensions.swift"; sourceTree = "<group>"; };
@@ -291,6 +306,7 @@
 		1ABDB17424A35EE100D05140 /* PostMessageCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostMessageCell.swift; sourceTree = "<group>"; };
 		1AE84B8C24C07AE400553D72 /* Bonfire.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Bonfire.entitlements; sourceTree = "<group>"; };
 		1AF7FCEB24A2700B003FCF9F /* BFSegmentedControlButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFSegmentedControlButton.swift; sourceTree = "<group>"; };
+		1AF92AD224C73E8D00D253AC /* BFColorPickerButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFColorPickerButton.swift; sourceTree = "<group>"; };
 		1AFFB1C5249D514900E67E89 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		D9872AB724C0D76A0048622F /* BFPillButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFPillButton.swift; sourceTree = "<group>"; };
 		D9A2EEC224C165DC00EECE8A /* BFBouncyButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFBouncyButton.swift; sourceTree = "<group>"; };
@@ -318,9 +334,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1A847D5524B1EDDB00530614 /* BuildFile in Frameworks */,
+				1A847D5524B1EDDB00530614 /* Kingfisher in Frameworks */,
 				1A844734249D4B88002813CB /* BFNetworking.framework in Frameworks */,
-				1A847D5824B2426200530614 /* BuildFile in Frameworks */,
+				1A847D5824B2426200530614 /* Hero in Frameworks */,
 				1A7854C4249FBA5400BA1589 /* BFCore.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -329,7 +345,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1A6F958924B8E6AC004A20F4 /* BuildFile in Frameworks */,
+				1A6F958924B8E6AC004A20F4 /* KeychainSwift in Frameworks */,
 				1A7854D2249FBB1300BA1589 /* BFCore.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -370,8 +386,12 @@
 		1A212A0A24BC869400A0DCD3 /* Cells */ = {
 			isa = PBXGroup;
 			children = (
-				1A3E012624C2055B00C75F50 /* BFFormTextCell.swift */,
 				1A3E012824C2067800C75F50 /* BFFormCell.swift */,
+				1A3E012624C2055B00C75F50 /* BFFormTextView.swift */,
+				1A0CB45F24C71F7500BD2A50 /* BFFormDatePickerView.swift */,
+				1A0CB46124C7228700BD2A50 /* BFFormImagePickerView.swift */,
+				1A0CB46324C7230D00BD2A50 /* BFFormColorPickerView.swift */,
+				1A0CB46524C7231A00BD2A50 /* BFFormCampPickerView.swift */,
 			);
 			path = Cells;
 			sourceTree = "<group>";
@@ -381,6 +401,7 @@
 			children = (
 				1A212A1224BC87FE00A0DCD3 /* BFForm.swift */,
 				1A212A1024BC87B000A0DCD3 /* BFSignInForm.swift */,
+				1A0CB45B24C71CE100BD2A50 /* BFSignUpForm.swift */,
 			);
 			path = Forms;
 			sourceTree = "<group>";
@@ -388,8 +409,9 @@
 		1A212A1424BC88F900A0DCD3 /* Data */ = {
 			isa = PBXGroup;
 			children = (
-				1A212A1524BC890000A0DCD3 /* BFSignInData.swift */,
 				1AABE1FC24C5CA9700D8E674 /* BFFormData.swift */,
+				1A212A1524BC890000A0DCD3 /* BFSignInData.swift */,
+				1A0CB45D24C71CFB00BD2A50 /* BFSignUpData.swift */,
 			);
 			path = Data;
 			sourceTree = "<group>";
@@ -815,6 +837,7 @@
 			children = (
 				1A212A0D24BC86F800A0DCD3 /* BFFormItemType.swift */,
 				1A212A0B24BC86C500A0DCD3 /* BFFormItem.swift */,
+				1A0CB45924C71B7B00BD2A50 /* BFValidationResponse.swift */,
 			);
 			path = Items;
 			sourceTree = "<group>";
@@ -833,6 +856,7 @@
 				D9872AB724C0D76A0048622F /* BFPillButton.swift */,
 				D9A2EEC224C165DC00EECE8A /* BFBouncyButton.swift */,
 				1AABE1FE24C5CCC000D8E674 /* BFSegueButton.swift */,
+				1AF92AD224C73E8D00D253AC /* BFColorPickerButton.swift */,
 			);
 			path = Button;
 			sourceTree = "<group>";
@@ -913,8 +937,8 @@
 			);
 			name = Bonfire;
 			packageProductDependencies = (
-				1A847D5424B1EDDB00530614 /* SwiftPackageProductDependency */,
-				1A847D5724B2426200530614 /* SwiftPackageProductDependency */,
+				1A847D5424B1EDDB00530614 /* Kingfisher */,
+				1A847D5724B2426200530614 /* Hero */,
 			);
 			productName = Bonfire;
 			productReference = 1A8446FA249C8652002813CB /* Bonfire.app */;
@@ -936,7 +960,7 @@
 			);
 			name = BFNetworking;
 			packageProductDependencies = (
-				1A6F958824B8E6AC004A20F4 /* SwiftPackageProductDependency */,
+				1A6F958824B8E6AC004A20F4 /* KeychainSwift */,
 			);
 			productName = BFNetworking;
 			productReference = 1A84471F249D4B88002813CB /* BFNetworking.framework */;
@@ -1001,9 +1025,9 @@
 			);
 			mainGroup = 1A8446F1249C8652002813CB;
 			packageReferences = (
-				1A847D5324B1EDDB00530614 /* RemoteSwiftPackageReference */,
-				1A847D5624B2426200530614 /* RemoteSwiftPackageReference */,
-				1A6F958724B8E6AC004A20F4 /* RemoteSwiftPackageReference */,
+				1A847D5324B1EDDB00530614 /* XCRemoteSwiftPackageReference "Kingfisher" */,
+				1A847D5624B2426200530614 /* XCRemoteSwiftPackageReference "Hero" */,
+				1A6F958724B8E6AC004A20F4 /* XCRemoteSwiftPackageReference "keychain-swift" */,
 			);
 			productRefGroup = 1A8446FB249C8652002813CB /* Products */;
 			projectDirPath = "";
@@ -1093,6 +1117,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				1A6C8F8324C5E16500CD7A3E /* BFTextField.swift in Sources */,
+				1A0CB46424C7230D00BD2A50 /* BFFormColorPickerView.swift in Sources */,
 				1A844744249D4C78002813CB /* CampsViewController.swift in Sources */,
 				1A844742249D4C70002813CB /* FriendsViewController.swift in Sources */,
 				1A24431524A0E7930039BAAB /* UIViewController+Extensions.swift in Sources */,
@@ -1101,9 +1126,11 @@
 				1A212A1124BC87B000A0DCD3 /* BFSignInForm.swift in Sources */,
 				1A212A1624BC890000A0DCD3 /* BFSignInData.swift in Sources */,
 				1AABE1FF24C5CCC000D8E674 /* BFSegueButton.swift in Sources */,
+				1AF92AD324C73E8D00D253AC /* BFColorPickerButton.swift in Sources */,
 				1A844702249C8652002813CB /* HomeViewController.swift in Sources */,
 				1A24430E24A0D83E0039BAAB /* BFFeedTableViewController.swift in Sources */,
 				1A24431324A0DB750039BAAB /* PostActionsCell.swift in Sources */,
+				1A0CB45C24C71CE100BD2A50 /* BFSignUpForm.swift in Sources */,
 				1A8446FE249C8652002813CB /* AppDelegate.swift in Sources */,
 				1A847D4624B1BC1900530614 /* StreamControllerProtocol.swift in Sources */,
 				1A212A1324BC87FE00A0DCD3 /* BFForm.swift in Sources */,
@@ -1112,12 +1139,16 @@
 				1A847D5A24B2432800530614 /* CampDetailViewController.swift in Sources */,
 				1A3E012524C1F8C200C75F50 /* BFFormViewController.swift in Sources */,
 				1A3E012924C2067800C75F50 /* BFFormCell.swift in Sources */,
+				1A0CB45E24C71CFB00BD2A50 /* BFSignUpData.swift in Sources */,
+				1A0CB46024C71F7500BD2A50 /* BFFormDatePickerView.swift in Sources */,
 				1A15AB5E24B3B1F1007722A4 /* BFReplyTextField.swift in Sources */,
 				1A212A0C24BC86C500A0DCD3 /* BFFormItem.swift in Sources */,
 				1ABDB17524A35EE100D05140 /* PostMessageCell.swift in Sources */,
 				D9EB895D24BE83ED00BC6F6D /* UIColor+Extensions.swift in Sources */,
 				1A6F958624B8E0C4004A20F4 /* GetStartedViewController.swift in Sources */,
+				1A0CB45A24C71B7B00BD2A50 /* BFValidationResponse.swift in Sources */,
 				1A212A0924BC869100A0DCD3 /* BFFormPageViewController.swift in Sources */,
+				1A0CB46624C7231A00BD2A50 /* BFFormCampPickerView.swift in Sources */,
 				D9A2EEC324C165DC00EECE8A /* BFBouncyButton.swift in Sources */,
 				1AAC6F0F24B3A5C400EFD803 /* AddReplyCell.swift in Sources */,
 				1A847D3924B1B65800530614 /* PostImageAttachmentCell.swift in Sources */,
@@ -1126,6 +1157,7 @@
 				1A844700249C8652002813CB /* SceneDelegate.swift in Sources */,
 				1AABE1FD24C5CA9700D8E674 /* BFFormData.swift in Sources */,
 				1A847D5D24B247C900530614 /* BFViewController.swift in Sources */,
+				1A0CB46224C7228700BD2A50 /* BFFormImagePickerView.swift in Sources */,
 				1A94DED9249FB61500AB0200 /* FriendControllerProtocol.swift in Sources */,
 				1A94DED6249FB5FC00AB0200 /* FriendController.swift in Sources */,
 				1A847D4824B1BC2000530614 /* StreamController.swift in Sources */,
@@ -1138,7 +1170,7 @@
 				1A57FAEA249F5D8800A407F9 /* UIView+Extensions.swift in Sources */,
 				1A7854E824A0B77800BA1589 /* BFNavigationController.swift in Sources */,
 				1A6859BA249F61FB008DB6BC /* CreatePostViewController.swift in Sources */,
-				1A3E012724C2055B00C75F50 /* BFFormTextCell.swift in Sources */,
+				1A3E012724C2055B00C75F50 /* BFFormTextView.swift in Sources */,
 				D9EB895F24BE911B00BC6F6D /* String+Extensions.swift in Sources */,
 				1A212A0E24BC86F800A0DCD3 /* BFFormItemType.swift in Sources */,
 				D9872AB824C0D76A0048622F /* BFPillButton.swift in Sources */,
@@ -1465,6 +1497,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Bonfire/Bonfire.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 4WLQG965T9;
@@ -1475,9 +1508,10 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 2.0;
-				PRODUCT_BUNDLE_IDENTIFIER = Ingenious.Bonfire;
+				PRODUCT_BUNDLE_IDENTIFIER = Ingenious.bonfire;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
 				SUPPORTS_MACCATALYST = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1491,6 +1525,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Bonfire/Bonfire.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 4WLQG965T9;
@@ -1501,9 +1536,10 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 2.0;
-				PRODUCT_BUNDLE_IDENTIFIER = Ingenious.Bonfire;
+				PRODUCT_BUNDLE_IDENTIFIER = Ingenious.bonfire;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
 				SUPPORTS_MACCATALYST = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1668,7 +1704,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		1A6F958724B8E6AC004A20F4 /* RemoteSwiftPackageReference */ = {
+		1A6F958724B8E6AC004A20F4 /* XCRemoteSwiftPackageReference "keychain-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/evgenyneu/keychain-swift";
 			requirement = {
@@ -1676,7 +1712,7 @@
 				minimumVersion = 19.0.0;
 			};
 		};
-		1A847D5324B1EDDB00530614 /* RemoteSwiftPackageReference */ = {
+		1A847D5324B1EDDB00530614 /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/onevcat/Kingfisher.git";
 			requirement = {
@@ -1684,7 +1720,7 @@
 				minimumVersion = 5.14.0;
 			};
 		};
-		1A847D5624B2426200530614 /* RemoteSwiftPackageReference */ = {
+		1A847D5624B2426200530614 /* XCRemoteSwiftPackageReference "Hero" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/HeroTransitions/Hero.git";
 			requirement = {
@@ -1695,19 +1731,19 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		1A6F958824B8E6AC004A20F4 /* SwiftPackageProductDependency */ = {
+		1A6F958824B8E6AC004A20F4 /* KeychainSwift */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 1A6F958724B8E6AC004A20F4 /* RemoteSwiftPackageReference */;
+			package = 1A6F958724B8E6AC004A20F4 /* XCRemoteSwiftPackageReference "keychain-swift" */;
 			productName = KeychainSwift;
 		};
-		1A847D5424B1EDDB00530614 /* SwiftPackageProductDependency */ = {
+		1A847D5424B1EDDB00530614 /* Kingfisher */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 1A847D5324B1EDDB00530614 /* RemoteSwiftPackageReference */;
+			package = 1A847D5324B1EDDB00530614 /* XCRemoteSwiftPackageReference "Kingfisher" */;
 			productName = Kingfisher;
 		};
-		1A847D5724B2426200530614 /* SwiftPackageProductDependency */ = {
+		1A847D5724B2426200530614 /* Hero */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 1A847D5624B2426200530614 /* RemoteSwiftPackageReference */;
+			package = 1A847D5624B2426200530614 /* XCRemoteSwiftPackageReference "Hero" */;
 			productName = Hero;
 		};
 /* End XCSwiftPackageProductDependency section */

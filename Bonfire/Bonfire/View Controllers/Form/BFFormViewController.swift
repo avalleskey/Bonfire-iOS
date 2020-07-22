@@ -104,7 +104,9 @@ final class BFFormViewController<Form: BFForm>: UIViewController {
             textView.delegate = self
             return textView
         case .date:
-            return BFFormDatePickerView<Form.DataType>(item: input)
+            let datePickerView = BFFormDatePickerView<Form.DataType>(item: input)
+            datePickerView.datePicker.datePickerMode = .date
+            return datePickerView
         case .image:
             return BFFormImagePickerView<Form.DataType>(item: input)
         case .color:

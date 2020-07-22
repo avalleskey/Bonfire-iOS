@@ -20,13 +20,29 @@ final class BFFormDatePickerView<FormData: BFFormData>: UIViewController, BFForm
         return label
     }()
 
+    let datePickerContainerView: UIView = {
+        let view = UIView()
+        view.backgroundColor = Constants.Color.pillBackground
+        
+        view.layer.shadowColor = UIColor.black.cgColor
+        view.layer.shadowOpacity = 0.12
+        view.layer.shadowOffset = .init(width: 0, height: 1)
+        view.layer.shadowRadius = 2
+        view.layer.cornerRadius = 14
+        view.layer.shouldRasterize = true
+        view.layer.rasterizationScale = UIScreen.main.scale
+        view.layer.masksToBounds = false
+        
+        return view
+    }()
     let datePicker: UIDatePicker = {
         let datePicker = UIDatePicker()
-        datePicker.datePickerMode = .date
-        datePicker.backgroundColor = .white
         if #available(iOS 13.4, *) {
             datePicker.preferredDatePickerStyle = .wheels
         }
+        datePicker.datePickerMode = .date
+        datePicker.backgroundColor = .clear
+        
         return datePicker
     }()
     
@@ -36,7 +52,8 @@ final class BFFormDatePickerView<FormData: BFFormData>: UIViewController, BFForm
         super.init(nibName: nil, bundle: nil)
 
         view.addSubview(instructionLabel)
-        view.addSubview(datePicker)
+        datePickerContainerView.addSubview(datePicker)
+        view.addSubview(datePickerContainerView)
         
         instructionLabel.text = item.instructionText
     }
@@ -52,17 +69,28 @@ final class BFFormDatePickerView<FormData: BFFormData>: UIViewController, BFForm
     override func updateViewConstraints() {
         super.updateViewConstraints()
 
-        datePicker.translatesAutoresizingMaskIntoConstraints = false
         instructionLabel.translatesAutoresizingMaskIntoConstraints = false
+        datePickerContainerView.translatesAutoresizingMaskIntoConstraints = false
+        datePicker.translatesAutoresizingMaskIntoConstraints = false
+        
+        var datePickerGutter: CGFloat = 0
+        if #available(iOS 14.0, *) {
+            datePickerGutter = 16
+        }
         
         NSLayoutConstraint.activate([
-            datePicker.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            datePicker.leadingAnchor.constraint(
+            datePickerContainerView.heightAnchor.constraint(equalToConstant: 228),
+            datePickerContainerView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            datePickerContainerView.leadingAnchor.constraint(
                 equalTo: view.leadingAnchor,
                 constant: 24),
-            datePicker.trailingAnchor.constraint(
+            datePickerContainerView.trailingAnchor.constraint(
                 equalTo: view.trailingAnchor,
                 constant: -24),
+            
+            datePicker.leadingAnchor.constraint(equalTo: datePickerContainerView.leadingAnchor, constant: datePickerGutter),
+            datePicker.trailingAnchor.constraint(equalTo: datePickerContainerView.trailingAnchor, constant: -datePickerGutter),
+            datePicker.heightAnchor.constraint(equalTo: datePickerContainerView.heightAnchor),
 
             instructionLabel.centerYAnchor.constraint(equalTo: datePicker.centerYAnchor, constant: -(view.frame.size.height * 0.25)),
 

@@ -42,7 +42,7 @@ struct BFSignUpForm<FormData: BFSignUpData>: BFForm {
               }),
         .init(path: \.birthDate,
               type: .date,
-              instructionText: "What's your birthday?",
+              instructionText: "When's your birthday?",
               placeholderText: nil,
               onCompletion: {
                  

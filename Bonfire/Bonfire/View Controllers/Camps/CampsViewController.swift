@@ -18,7 +18,11 @@ final class CampsViewController: UIViewController {
             tag: 2)
     }
 
-    private let activityIndicator = UIActivityIndicatorView(style: .gray)
+    private let activityIndicator: UIActivityIndicatorView = {
+        var indicator = UIActivityIndicatorView(style: .whiteLarge)
+        indicator.color = Constants.Color.secondary
+        return indicator
+    }()
     private let campsTableView = CampsTableViewController()
     private let controller = CampController()
 

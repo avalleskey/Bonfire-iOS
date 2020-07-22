@@ -18,7 +18,11 @@ final class FriendsViewController: UIViewController {
             tag: 0)
     }
 
-    private let activityIndicator = UIActivityIndicatorView(style: .gray)
+    private let activityIndicator: UIActivityIndicatorView = {
+        var indicator = UIActivityIndicatorView(style: .whiteLarge)
+        indicator.color = Constants.Color.secondary
+        return indicator
+    }()
     private let friendsTableView = FriendsTableViewController()
     private let controller = UserController()
 

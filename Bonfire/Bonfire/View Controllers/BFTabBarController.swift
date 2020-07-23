@@ -14,13 +14,14 @@ final class BFTabBarController: UITabBarController {
     let composeButton: UIButton = {
         let button = BFBouncyButton()
         button.setImage(
-            UIImage(named: "CreatePost")?.withRenderingMode(.alwaysTemplate), for: .normal)
+            UIImage(named: "CreatePost"), for: .normal)
         button.frame = CGRect(
             x: 0, y: 0, width: (UIScreen.main.bounds.size.width - 24) / 3, height: 46)
         button.layer.cornerRadius = button.frame.size.height / 2
         button.backgroundColor = Constants.Color.secondary.withAlphaComponent(0.08)
         button.layer.cornerRadius = 23
         button.tintColor = Constants.Color.primary
+        button.imageEdgeInsets = .init(top: -2, left: 0, bottom: 0, right: 0)
         button.addTarget(self, action: #selector(compose), for: .touchUpInside)
         return button
     }()

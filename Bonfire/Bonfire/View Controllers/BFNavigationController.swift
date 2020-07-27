@@ -71,7 +71,7 @@ extension BFNavigationController: UINavigationControllerDelegate {
                 image: icon,
                 style: .plain,
                 target: nil,
-                action: nil)
+                action: #selector(openNotifications))
             viewController.navigationItem.rightBarButtonItem?.tintColor = Constants.Color.primary
         case is FriendsViewController:
             let icon = UIImage(named: "FriendsNavIcon")?.withRenderingMode(
@@ -95,5 +95,11 @@ extension BFNavigationController: UINavigationControllerDelegate {
         default:
             break
         }
+    }
+    
+    @objc private func openNotifications() {
+        let notificationsViewController = NotificationsViewController()
+        let notificationsNavController = UINavigationController(rootViewController: notificationsViewController)
+        self.present(notificationsNavController, animated: true)
     }
 }

@@ -21,7 +21,7 @@ final class BFTabBarController: UITabBarController {
         button.backgroundColor = Constants.Color.secondary.withAlphaComponent(0.08)
         button.layer.cornerRadius = 23
         button.tintColor = Constants.Color.primary
-        button.imageEdgeInsets = .init(top: -2, left: 0, bottom: 0, right: 0)
+        button.imageEdgeInsets = .init(top: -2, left: 0, bottom: 0, right: -2)
         button.addTarget(self, action: #selector(compose), for: .touchUpInside)
         return button
     }()

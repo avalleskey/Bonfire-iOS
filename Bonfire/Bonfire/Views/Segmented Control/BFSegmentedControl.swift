@@ -46,8 +46,6 @@ final class BFSegmentedControl: UIView {
         itemBtn.contentEdgeInsets = .init(top: 0, left: 16, bottom: 0, right: 16)
         itemBtn.addTarget(self, action: #selector(selected(button:)), for: .touchUpInside)
         buttonStackView.addArrangedSubview(itemBtn)
-
-        selected(button: itemBtn)
     }
 
     func addItems(_ items: [BFSegmentedControlItem]) {

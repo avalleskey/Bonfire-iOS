@@ -21,7 +21,6 @@ final class PostMessageCell: UITableViewCell {
             ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize, weight: .semibold)
         label.font = label.font.rounded()
         label.numberOfLines = 0
-        label.textAlignment = .left
         return label
     }()
 

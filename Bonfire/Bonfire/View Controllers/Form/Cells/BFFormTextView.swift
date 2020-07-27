@@ -42,6 +42,8 @@ final class BFFormTextView<FormData: BFFormData>: UIViewController, BFFormCell, 
         textField.placeholder = item.placeholderText
         textField.delegate = self
         textField.isSecureTextEntry = item.type == .password
+        
+        updateViewConstraints()
     }
 
     required init?(coder: NSCoder) {
@@ -67,7 +69,7 @@ final class BFFormTextView<FormData: BFFormData>: UIViewController, BFFormCell, 
                 equalTo: view.trailingAnchor,
                 constant: -24),
 
-            instructionLabel.centerYAnchor.constraint(equalTo: textField.centerYAnchor, constant: -(view.frame.size.height * 0.25)),
+            instructionLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 52),
 
             instructionLabel.leadingAnchor.constraint(
                 equalTo: view.leadingAnchor,

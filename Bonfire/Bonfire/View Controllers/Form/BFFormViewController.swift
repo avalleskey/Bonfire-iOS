@@ -9,7 +9,7 @@
 import Foundation
 import UIKit
 
-final class BFFormViewController<Form: BFForm>: UIViewController {
+final class BFFormViewController<Form: BFForm>: UIKeyboardSubscribedViewController {
 
     private let pageViewController: BFFormPageViewController
 
@@ -39,6 +39,8 @@ final class BFFormViewController<Form: BFForm>: UIViewController {
         }
         view.addSubview(nextBtn)
         updateViewConstraints()
+        
+        subscribeToKeyboard()
     }
 
     required init?(coder: NSCoder) {
@@ -50,16 +52,20 @@ final class BFFormViewController<Form: BFForm>: UIViewController {
 
         pageViewController.view.translatesAutoresizingMaskIntoConstraints = false
         nextBtn.translatesAutoresizingMaskIntoConstraints = false
+        
+        keyboardConstraints.append( pageViewController.view.bottomAnchor.constraint(equalTo: view.bottomAnchor))
+        
+        keyboardConstraints.append(nextBtn.bottomAnchor.constraint(
+                                    equalTo: view.safeAreaLayoutGuide.bottomAnchor,
+                                    constant: -20))
+        
+        keyboardConstraints.forEach { $0.isActive = true }
 
         NSLayoutConstraint.activate([
             pageViewController.view.topAnchor.constraint(equalTo: view.topAnchor),
-            pageViewController.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             pageViewController.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             pageViewController.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
 
-            nextBtn.bottomAnchor.constraint(
-                equalTo: view.safeAreaLayoutGuide.bottomAnchor,
-                constant: -20),
             nextBtn.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
             nextBtn.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24),
             nextBtn.heightAnchor.constraint(equalToConstant: 48),
@@ -70,27 +76,38 @@ final class BFFormViewController<Form: BFForm>: UIViewController {
         guard let currentIdx = form.items.firstIndex(where: { $0 == currentItem }),
               let currentCell = currentCell else { return }
 
+        nextBtn.isEnabled = false
         let value = currentCell.value()
-        if currentItem?.validate(value) ?? false {
-            if let updatePath = currentItem?.path {
-                form.data.set(value: value, forKeyPath: updatePath)
-            }
-            let nextIdx = form.items.index(after: currentIdx)
-            guard nextIdx < form.items.endIndex else {
-                form.finalize { (success) in
-                    if success {
-                        self.dismiss(animated: true)
+        currentItem?.validate(value) { validated in
+            nextBtn.isEnabled = true
+            switch validated {
+            case .success(let validated):
+                if validated {
+                    if let updatePath = currentItem?.path {
+                        form.data.set(value: value, forKeyPath: updatePath)
                     }
+                    let nextIdx = form.items.index(after: currentIdx)
+                    guard nextIdx < form.items.endIndex else {
+                        form.finalize { (success) in
+                            if success {
+                                self.dismiss(animated: true)
+                            }
+                        }
+                        return
+                    }
+                    let nextItem = form.items[nextIdx]
+                    currentItem = nextItem
+                    guard let nextVC = viewControllerForInput(input: nextItem) else { return }
+                    self.currentCell = nextVC
+                    pageViewController.segue(
+                        to: nextVC,
+                        direction: .right)
+                } else {
+                    currentCell.view.shake()
                 }
-                return
+            case .failure(let error):
+                currentCell.view.shake()
             }
-            let nextItem = form.items[nextIdx]
-            currentItem = nextItem
-            guard let nextVC = viewControllerForInput(input: nextItem) else { return }
-            self.currentCell = nextVC
-            pageViewController.segue(
-                to: nextVC,
-                direction: .right)
         }
     }
 

@@ -18,11 +18,25 @@ final class BFColorPickerButton: UIButton {
         self.color = color
         super.init(frame: .zero)
         backgroundColor = color
-        
-        widthAnchor.constraint(equalTo: heightAnchor).isActive = true
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    private func updateRadius() {
+        layer.cornerRadius = frame.width / 2
+        layer.masksToBounds = true
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        updateRadius()
+    }
+
+    override func updateConstraints() {
+        super.updateConstraints()
+        translatesAutoresizingMaskIntoConstraints = false
+        widthAnchor.constraint(equalTo: heightAnchor).isActive = true
     }
 }

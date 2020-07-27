@@ -21,12 +21,12 @@ struct BFSignInForm<FormData: BFSignInData>: BFForm {
               onCompletion: {
                 
               },
-              validate: { input -> Bool? in
+              validate: { (input, completion) in
                 switch input {
                 case .string(_):
-                    return true
+                    completion(.success(true))
                 default:
-                    return false
+                    completion(.success(false))
                 }
               }),
         .init(path: \.password,
@@ -36,9 +36,8 @@ struct BFSignInForm<FormData: BFSignInData>: BFForm {
               onCompletion: {
                 
               },
-              validate: { input -> Bool? in
-                
-                return true
+              validate: { (input, completion) in
+                completion(.success(true))
               }),
     ]
     

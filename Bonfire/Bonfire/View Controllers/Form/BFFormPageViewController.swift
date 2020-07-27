@@ -67,7 +67,7 @@ final class BFFormPageViewController: UIViewController {
                 animated: true
             ) { (success) in
                 self.verticalPageVC = newVerticalPageVC
-                if success { viewController.updateViewConstraints() }
+                if success { viewController.view.layoutSubviews() }
             }
         case .left:
             let newVerticalPageVC = UIPageViewController(

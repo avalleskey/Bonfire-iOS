@@ -57,7 +57,7 @@ final class FriendsViewController: UIViewController {
                     switch BFAppError.from(error: error) {
                     case .unauthenticated:
                         let authController = GetStartedViewController()
-                        let authNavcontroller = UINavigationController(rootViewController: authController)
+                        let authNavcontroller = GetStartedNavigationController(rootViewController: authController)
                         self.present(authNavcontroller, animated: true)
                     default:
                         print(error)

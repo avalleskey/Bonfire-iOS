@@ -8,6 +8,7 @@
 
 import Hero
 import UIKit
+import BFNetworking
 
 final class BFTabBarController: UITabBarController {
 
@@ -75,6 +76,8 @@ final class BFTabBarController: UITabBarController {
 
         updateViewConstraints()
         hero.isEnabled = false
+        
+        delegate = self
     }
 
     override func updateViewConstraints() {
@@ -212,5 +215,22 @@ final class BFTabBarController: UITabBarController {
             }
         }
         return allItems[index]
+    }
+}
+
+extension BFTabBarController: UITabBarControllerDelegate {
+    func tabBarController(_ tabBarController: UITabBarController, shouldSelect viewController: UIViewController) -> Bool {
+        let child = (viewController as? UINavigationController)?.topViewController
+        
+        if child is CampsViewController || child is FriendsViewController {
+            if KeychainVault.accessToken == nil {
+                let authController = GetStartedViewController()
+                let authNavcontroller = GetStartedNavigationController(rootViewController: authController)
+                self.present(authNavcontroller, animated: true)
+                return false
+            }
+        }
+        
+        return true
     }
 }

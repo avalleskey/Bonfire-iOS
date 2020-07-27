@@ -18,6 +18,8 @@ final class BFFormColorPickerView<FormData: BFFormData>: UIViewController, BFFor
         label.textAlignment = .center
         return label
     }()
+    
+    private var selectedColor: UIColor?
 
     let colorPickerView: UIStackView = {
         let stackView = UIStackView()

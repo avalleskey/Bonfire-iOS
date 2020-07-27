@@ -20,14 +20,13 @@ struct BFSignUpForm<FormData: BFSignUpData>: BFForm {
               placeholderText: "Phone, email, username",
               onCompletion: {
                 
-              },
-              validate: { input -> Bool? in
-                switch input {
-                case .string(_):
-                    return true
-                default:
-                    return false
-                }
+              }, validate: { (input, completion) in
+                  switch input {
+                  case .string(let str):
+                    completion(.success(str.replacingOccurrences(of: " ", with: "").count > 0))
+                  default:
+                      return
+                  }
               }),
         .init(path: \.password,
               type: .password,
@@ -36,9 +35,8 @@ struct BFSignUpForm<FormData: BFSignUpData>: BFForm {
               onCompletion: {
                 
               },
-              validate: { input -> Bool? in
-                
-                return true
+              validate: { (input, completion) in
+                completion(.success(true))
               }),
         .init(path: \.birthDate,
               type: .date,
@@ -47,12 +45,12 @@ struct BFSignUpForm<FormData: BFSignUpData>: BFForm {
               onCompletion: {
                  
               },
-              validate: { input -> Bool? in
+              validate: { (input, completion) in
                 switch input {
                 case .date(_):
-                    return true
+                    completion(.success(true))
                 default:
-                    return false
+                    completion(.success(false))
                 }
               }),
         .init(path: \.imageData,
@@ -62,8 +60,8 @@ struct BFSignUpForm<FormData: BFSignUpData>: BFForm {
               onCompletion: {
                 
               },
-              validate: { input -> Bool? in
-                return true
+              validate: { (input, completion) in
+                completion(.success(true))
               }),
         .init(path: \.color,
               type: .color,
@@ -72,12 +70,12 @@ struct BFSignUpForm<FormData: BFSignUpData>: BFForm {
               onCompletion: {
                 
               },
-              validate: { input -> Bool? in
+              validate: { (input, completion) in
                 switch input {
                 case .date(_):
-                    return true
+                    completion(.success(false))
                 default:
-                    return false
+                    completion(.success(false))
                 }
               }),
     ]

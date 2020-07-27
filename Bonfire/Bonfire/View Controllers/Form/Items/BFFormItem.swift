@@ -7,12 +7,14 @@
 //
 
 import Foundation
+import CoreGraphics
 
 enum BFFormItemValue {
     case string(String)
     case int(Int)
     case date(Date)
     case data(Data)
+    case color(CGColor)
     
     var stringValue: String? {
         switch self {
@@ -31,7 +33,7 @@ struct BFFormItem<FormData: BFFormData> {
     let instructionText: String?
     let placeholderText: String?
     let onCompletion: () -> Void
-    let validate: (BFFormItemValue) -> Bool?
+    let validate: ((BFFormItemValue, ((Result<Bool, Error>) -> ())) -> ())
 }
 
 extension BFFormItem: Identifiable {}

@@ -45,10 +45,10 @@ final class BFTabBarController: UITabBarController {
     }
 
     override func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
-        let generator = UISelectionFeedbackGenerator()
-        generator.selectionChanged()
-
-        showPillIfNeeded(item: item)
+//        let generator = UISelectionFeedbackGenerator()
+//        generator.selectionChanged()
+//
+//        showPillIfNeeded(item: item)
     }
 
     private var pills = [BFPillButton]()
@@ -232,5 +232,11 @@ extension BFTabBarController: UITabBarControllerDelegate {
         }
         
         return true
+    }
+    func tabBarController(_ tabBarController: UITabBarController, didSelect viewController: UIViewController) {
+        let generator = UISelectionFeedbackGenerator()
+        generator.selectionChanged()
+
+        showPillIfNeeded(item: viewController.tabBarItem)
     }
 }

@@ -9,7 +9,7 @@
 import BFCore
 import Foundation
 
-final public class UserNotificationsRequest: APIRequest {
+public struct UserNotificationsRequest: APIRequest {
     public typealias Response = UserNotificationsResponse
 
     public let resource = "users/me/notifications"

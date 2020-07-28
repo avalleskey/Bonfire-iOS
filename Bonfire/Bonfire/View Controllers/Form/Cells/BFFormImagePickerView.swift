@@ -72,11 +72,11 @@ final class BFFormImagePickerView<FormData: BFFormData>: UIViewController, BFFor
 
             instructionLabel.leadingAnchor.constraint(
                 equalTo: view.leadingAnchor,
-                constant: 67),
+                constant: 24),
 
             instructionLabel.trailingAnchor.constraint(
                 equalTo: view.trailingAnchor,
-                constant: -67),
+                constant: -24),
         ])
     }
 }

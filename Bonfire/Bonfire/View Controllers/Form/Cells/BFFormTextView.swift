@@ -69,15 +69,16 @@ final class BFFormTextView<FormData: BFFormData>: UIViewController, BFFormCell, 
                 equalTo: view.trailingAnchor,
                 constant: -24),
 
-            instructionLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 52),
+            instructionLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 76),
+            instructionLabel.bottomAnchor.constraint(equalTo: textField.topAnchor),
 
             instructionLabel.leadingAnchor.constraint(
                 equalTo: view.leadingAnchor,
-                constant: 67),
+                constant: 24),
 
             instructionLabel.trailingAnchor.constraint(
                 equalTo: view.trailingAnchor,
-                constant: -67),
+                constant: -24),
         ])
     }
     

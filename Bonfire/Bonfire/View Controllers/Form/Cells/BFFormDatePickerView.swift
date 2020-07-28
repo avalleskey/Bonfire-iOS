@@ -96,11 +96,11 @@ final class BFFormDatePickerView<FormData: BFFormData>: UIViewController, BFForm
 
             instructionLabel.leadingAnchor.constraint(
                 equalTo: view.leadingAnchor,
-                constant: 67),
+                constant: 24),
 
             instructionLabel.trailingAnchor.constraint(
                 equalTo: view.trailingAnchor,
-                constant: -67),
+                constant: -24),
         ])
     }
 }

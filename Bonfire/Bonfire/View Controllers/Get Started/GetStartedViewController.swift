@@ -9,18 +9,34 @@
 import Foundation
 import UIKit
 import AuthenticationServices
+import SafariServices
 
 final class GetStartedViewController: UIViewController {
-
-    private let legalText: UILabel = {
-        let label = UILabel()
-        label.text =
-            "By continuing, you agree to Bonfire’s Terms of Use and confirm that you have read Bonfire’s Privacy Policy."
-        label.numberOfLines = 0
-        label.textAlignment = .center
-        label.font = UIFont.systemFont(ofSize: 12, weight: .regular).rounded()
-        label.textColor = Constants.Color.secondary
-        return label
+    
+    private let legalButton: UIButton = {
+        let button = UIButton(type: .custom)
+        button.addTarget(self, action: #selector(legalOptions), for: .touchUpInside)
+        
+        let string = "By continuing, you agree to Bonfire’s Terms of Use and confirm that you have read Bonfire’s Privacy Policy." as NSString
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: UIFont.systemFont(ofSize: 12, weight: .regular).rounded(),
+            .foregroundColor: Constants.Color.secondary,
+        ]
+        let mutableAttributedString = NSMutableAttributedString(string: string as String, attributes: attributes)
+        
+        let highlightedAttributes: [NSAttributedString.Key: Any] = [
+            .foregroundColor: Constants.Color.primary,
+        ]
+        mutableAttributedString.addAttributes(highlightedAttributes, range: string.range(of: "Terms of Use") as NSRange)
+        mutableAttributedString.addAttributes(highlightedAttributes, range: string.range(of: "Privacy Policy") as NSRange)
+        
+        button.setAttributedTitle(mutableAttributedString, for: .normal)
+        if let title = button.titleLabel {
+            title.lineBreakMode = .byWordWrapping
+            title.textAlignment = .center
+        }
+        
+        return button
     }()
 
     private let signInBtn: UIButton = {
@@ -107,7 +123,7 @@ final class GetStartedViewController: UIViewController {
         super.init(nibName: nil, bundle: nil)
 
         view.backgroundColor = Constants.Color.systemBackground
-        view.addSubview(legalText)
+        view.addSubview(legalButton)
         view.addSubview(signInBtn)
         view.addSubview(continueWithAppleBtn)
         view.addSubview(signUpBtn)
@@ -149,7 +165,7 @@ final class GetStartedViewController: UIViewController {
     override func updateViewConstraints() {
         super.updateViewConstraints()
 
-        legalText.translatesAutoresizingMaskIntoConstraints = false
+        legalButton.translatesAutoresizingMaskIntoConstraints = false
         signInBtn.translatesAutoresizingMaskIntoConstraints = false
         continueWithAppleBtn.translatesAutoresizingMaskIntoConstraints = false
         signUpBtn.translatesAutoresizingMaskIntoConstraints = false
@@ -158,18 +174,18 @@ final class GetStartedViewController: UIViewController {
         heroStackView.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
-            legalText.bottomAnchor.constraint(
+            legalButton.bottomAnchor.constraint(
                 equalTo: view.safeAreaLayoutGuide.bottomAnchor,
                 constant: -24),
-            legalText.leadingAnchor.constraint(
+            legalButton.leadingAnchor.constraint(
                 equalTo: view.safeAreaLayoutGuide.leadingAnchor,
                 constant: 24),
-            legalText.trailingAnchor.constraint(
+            legalButton.trailingAnchor.constraint(
                 equalTo: view.safeAreaLayoutGuide.trailingAnchor,
                 constant: -24),
 
             signInBtn.bottomAnchor.constraint(
-                equalTo: legalText.topAnchor,
+                equalTo: legalButton.topAnchor,
                 constant: -40),
             signInBtn.leadingAnchor.constraint(
                 equalTo: view.safeAreaLayoutGuide.leadingAnchor,
@@ -215,6 +231,33 @@ final class GetStartedViewController: UIViewController {
         ])
     }
 
+    @objc func legalOptions() {
+        let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        alert.view.tintColor = Constants.Color.primary
+
+        let termsOfUseAction = UIAlertAction(
+            title: "Terms of Use", style: .default,
+            handler: { (action) in
+                guard let url = URL(string: "https://bonfire.camp/legal/terms") else { return }
+                let svc = SFSafariViewController(url: url)
+                svc.modalPresentationStyle = .popover
+                self.present(svc, animated: true, completion: nil)
+            })
+        alert.addAction(termsOfUseAction)
+
+        let privacyPolicyAction = UIAlertAction(
+            title: "Privacy Policy", style: .default,
+            handler: { (action) in
+                guard let url = URL(string: "https://bonfire.camp/legal/privacy") else { return }
+                let svc = SFSafariViewController(url: url)
+                svc.modalPresentationStyle = .popover
+                self.present(svc, animated: true, completion: nil)
+            })
+        alert.addAction(privacyPolicyAction)
+
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        present(alert, animated: true, completion: nil)
+    }
 }
 
 @available(iOS 13.0, *)

@@ -23,6 +23,10 @@ public struct Post: BFResource {
         case link
         case repost
     }
+    
+    public struct Attachments: Codable {
+        public let media: [BFMediaAttachment]?
+    }
 
     public class Attributes: Codable {
         public let message: String
@@ -30,6 +34,7 @@ public struct Post: BFResource {
         public let postedIn: Camp?
         public let parent: Post?
         public let summaries: BFSummaries?
+        public let attachments: Attachments?
 
         enum CodingKeys: String, CodingKey {
             case message
@@ -37,6 +42,7 @@ public struct Post: BFResource {
             case postedIn = "posted_in"
             case parent
             case summaries
+            case attachments
         }
     }
 

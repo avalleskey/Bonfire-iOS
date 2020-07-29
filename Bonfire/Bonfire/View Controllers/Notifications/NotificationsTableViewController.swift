@@ -49,14 +49,17 @@ final class NotificationsTableViewController: UITableViewController {
         let notification = notifications[indexPath.row]
         cell.type = UserActivityType(rawValue: notification.attributes.type) ?? .unknown
         cell.read = notification.attributes.read
-        
+
         if let title = notification.attributes.title {
-            cell.titleLabel.attributedText = .entityString(string: title.title, entities: title.entities)
+            cell.titleLabel.attributedText = .entityString(
+                string: title.title, entities: title.entities)
         }
-        
+
         cell.dateLabel.text = notification.attributes.createdAt.timeAgoDisplay()
 
-        if let actioner = notification.attributes.actioner, let url = actioner.attributes.media?.avatar?.full?.url {
+        if let actioner = notification.attributes.actioner,
+            let url = actioner.attributes.media?.avatar?.full?.url
+        {
             cell.profileImageView.kf.setImage(with: url)
         }
 

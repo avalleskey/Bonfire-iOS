@@ -13,7 +13,8 @@ protocol BFFormTextViewDelegate: class {
     func next()
 }
 
-final class BFFormTextView<FormData: BFFormData>: UIViewController, BFFormCell, UITextFieldDelegate {
+final class BFFormTextView<FormData: BFFormData>: UIViewController, BFFormCell, UITextFieldDelegate
+{
 
     let instructionLabel: UILabel = {
         let label = UILabel()
@@ -29,7 +30,7 @@ final class BFFormTextView<FormData: BFFormData>: UIViewController, BFFormCell, 
         textField.placeholder = "Enter Value..."
         return textField
     }()
-    
+
     weak var delegate: BFFormTextViewDelegate?
 
     init(item: BFFormItem<FormData>) {
@@ -37,19 +38,19 @@ final class BFFormTextView<FormData: BFFormData>: UIViewController, BFFormCell, 
 
         view.addSubview(instructionLabel)
         view.addSubview(textField)
-        
+
         instructionLabel.text = item.instructionText
         textField.placeholder = item.placeholderText
         textField.delegate = self
         textField.isSecureTextEntry = item.type == .password
-        
+
         updateViewConstraints()
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     func value() -> BFFormItemValue {
         .string(textField.text ?? "")
     }
@@ -59,7 +60,7 @@ final class BFFormTextView<FormData: BFFormData>: UIViewController, BFFormCell, 
 
         textField.translatesAutoresizingMaskIntoConstraints = false
         instructionLabel.translatesAutoresizingMaskIntoConstraints = false
-        
+
         NSLayoutConstraint.activate([
             textField.centerYAnchor.constraint(equalTo: view.centerYAnchor),
             textField.leadingAnchor.constraint(
@@ -81,7 +82,7 @@ final class BFFormTextView<FormData: BFFormData>: UIViewController, BFFormCell, 
                 constant: -24),
         ])
     }
-    
+
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         textField.resignFirstResponder()
         delegate?.next()

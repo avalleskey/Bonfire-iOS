@@ -96,10 +96,11 @@ extension BFNavigationController: UINavigationControllerDelegate {
             break
         }
     }
-    
+
     @objc private func openNotifications() {
         let notificationsViewController = NotificationsViewController()
-        let notificationsNavController = UINavigationController(rootViewController: notificationsViewController)
+        let notificationsNavController = UINavigationController(
+            rootViewController: notificationsViewController)
         self.present(notificationsNavController, animated: true)
     }
 }

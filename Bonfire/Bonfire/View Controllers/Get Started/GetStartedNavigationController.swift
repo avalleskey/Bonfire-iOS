@@ -11,10 +11,10 @@
 import UIKit
 
 final class GetStartedNavigationController: UINavigationController {
-    
+
     override init(rootViewController: UIViewController) {
         super.init(rootViewController: rootViewController)
-        
+
         navigationBar.isTranslucent = true
         navigationBar.backgroundColor = .clear
         view.backgroundColor = .clear
@@ -22,14 +22,14 @@ final class GetStartedNavigationController: UINavigationController {
         navigationBar.shadowImage = UIImage()
         delegate = self
     }
-    
+
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     override func updateViewConstraints() {
         super.updateViewConstraints()
-        
+
         NSLayoutConstraint.activate([
             navigationBar.heightAnchor.constraint(equalToConstant: 76)
         ])
@@ -37,13 +37,19 @@ final class GetStartedNavigationController: UINavigationController {
 }
 
 extension GetStartedNavigationController: UINavigationControllerDelegate {
-    func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {
+    func navigationController(
+        _ navigationController: UINavigationController, willShow viewController: UIViewController,
+        animated: Bool
+    ) {
         let backImage = UIImage(named: "LeftNavIcon")
         navigationBar.backIndicatorImage = backImage
         navigationBar.backIndicatorTransitionMaskImage = backImage
     }
-    
-    func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated: Bool) {
+
+    func navigationController(
+        _ navigationController: UINavigationController, didShow viewController: UIViewController,
+        animated: Bool
+    ) {
         navigationBar.backItem?.title = ""
     }
 }

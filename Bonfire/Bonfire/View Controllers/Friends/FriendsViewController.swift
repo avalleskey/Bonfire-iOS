@@ -57,12 +57,13 @@ final class FriendsViewController: UIViewController {
                     switch BFAppError.from(error: error) {
                     case .unauthenticated:
                         let authController = GetStartedViewController()
-                        let authNavcontroller = GetStartedNavigationController(rootViewController: authController)
+                        let authNavcontroller = GetStartedNavigationController(
+                            rootViewController: authController)
                         self.present(authNavcontroller, animated: true)
                     default:
                         print(error)
                     }
-                    
+
                 }
             }
         }
@@ -77,7 +78,7 @@ final class FriendsViewController: UIViewController {
         NSLayoutConstraint.activate([
             activityIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             activityIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            
+
             friendsTableView.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             friendsTableView.view.bottomAnchor.constraint(
                 equalTo: view.safeAreaLayoutGuide.bottomAnchor),

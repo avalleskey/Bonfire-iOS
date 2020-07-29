@@ -51,12 +51,17 @@ final class BFFeedTableViewController: UITableViewController {
         let type = postCellTypes(post: post)[indexPath.row]
         return type.rowHeight
     }
-    
+
     func postCellTypes(post: Post) -> [BFPostCell.Type] {
         if post.attributes.attachments == nil {
-            return [PostHeaderCell.self, PostMessageCell.self, PostActionsCell.self, AddReplyCell.self]
+            return [
+                PostHeaderCell.self, PostMessageCell.self, PostActionsCell.self, AddReplyCell.self,
+            ]
         } else {
-            return [PostHeaderCell.self, PostMessageCell.self, PostImageAttachmentCell.self, PostActionsCell.self, AddReplyCell.self]
+            return [
+                PostHeaderCell.self, PostMessageCell.self, PostImageAttachmentCell.self,
+                PostActionsCell.self, AddReplyCell.self,
+            ]
         }
     }
 
@@ -138,16 +143,20 @@ final class BFFeedTableViewController: UITableViewController {
                     for: .normal)
             }
         case is AddReplyCell.Type:
-            let replyCell = tableView.dequeueReusableCell(
-                withIdentifier: AddReplyCell.reuseIdentifier,
-                for: indexPath) as! AddReplyCell
+            let replyCell =
+                tableView.dequeueReusableCell(
+                    withIdentifier: AddReplyCell.reuseIdentifier,
+                    for: indexPath) as! AddReplyCell
             cell = replyCell
         case is PostImageAttachmentCell.Type:
-            let imageCell = tableView.dequeueReusableCell(
-                withIdentifier: type.reuseIdentifier,
-                for: indexPath) as! PostImageAttachmentCell
+            let imageCell =
+                tableView.dequeueReusableCell(
+                    withIdentifier: type.reuseIdentifier,
+                    for: indexPath) as! PostImageAttachmentCell
             cell = imageCell
-            if let url = post.attributes.attachments?.media?.first?.attributes.hostedVersions.full?.url {
+            if let url = post.attributes.attachments?.media?.first?.attributes.hostedVersions.full?
+                .url
+            {
                 imageCell.attachmentImageView.kf.setImage(with: url, options: [.cacheOriginalImage])
             }
         default:

@@ -12,7 +12,7 @@ class BFBouncyButton: UIButton {
 
     var haptics: Bool = true
     var touchDownScale: CGFloat = 0.96
-    
+
     override init(frame: CGRect) {
         super.init(frame: .zero)
 
@@ -41,7 +41,9 @@ class BFBouncyButton: UIButton {
         animateDown(sender: sender)
     }
     @objc private func animateDown(sender: UIButton) {
-        animate(sender, transform: CGAffineTransform.identity.scaledBy(x: touchDownScale, y: touchDownScale))
+        animate(
+            sender,
+            transform: CGAffineTransform.identity.scaledBy(x: touchDownScale, y: touchDownScale))
     }
 
     @objc private func animateUp(sender: UIButton) {

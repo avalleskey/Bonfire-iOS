@@ -22,12 +22,13 @@ final class BFFormImagePickerView<FormData: BFFormData>: UIViewController, BFFor
     let imagePickerBtn: UIButton = {
         let btn = UIButton()
         btn.setImage(UIImage(named: "UploadImage"), for: .normal)
-        btn.addTarget(self,
-                      action: #selector(imageBtnTap(sender:)),
-                      for: .touchUpInside)
+        btn.addTarget(
+            self,
+            action: #selector(imageBtnTap(sender:)),
+            for: .touchUpInside)
         return btn
     }()
-    
+
     weak var delegate: BFFormTextViewDelegate?
 
     init(item: BFFormItem<FormData>) {
@@ -35,18 +36,18 @@ final class BFFormImagePickerView<FormData: BFFormData>: UIViewController, BFFor
 
         view.addSubview(instructionLabel)
         view.addSubview(imagePickerBtn)
-        
+
         instructionLabel.text = item.instructionText
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     func value() -> BFFormItemValue {
         .data(Data())
     }
-    
+
     @objc private func imageBtnTap(sender: UIButton) {
         let imagePicker = UIImagePickerController()
         imagePicker.sourceType = .photoLibrary
@@ -58,7 +59,7 @@ final class BFFormImagePickerView<FormData: BFFormData>: UIViewController, BFFor
 
         imagePickerBtn.translatesAutoresizingMaskIntoConstraints = false
         instructionLabel.translatesAutoresizingMaskIntoConstraints = false
-        
+
         NSLayoutConstraint.activate([
             imagePickerBtn.centerYAnchor.constraint(equalTo: view.centerYAnchor),
             imagePickerBtn.leadingAnchor.constraint(
@@ -68,7 +69,8 @@ final class BFFormImagePickerView<FormData: BFFormData>: UIViewController, BFFor
                 equalTo: view.trailingAnchor,
                 constant: -24),
 
-            instructionLabel.centerYAnchor.constraint(equalTo: imagePickerBtn.centerYAnchor, constant: -(view.frame.size.height * 0.25)),
+            instructionLabel.centerYAnchor.constraint(
+                equalTo: imagePickerBtn.centerYAnchor, constant: -(view.frame.size.height * 0.25)),
 
             instructionLabel.leadingAnchor.constraint(
                 equalTo: view.leadingAnchor,

@@ -52,7 +52,7 @@ final class CampsTableViewController: UITableViewController {
 
         let camp = camps[indexPath.row]
         cell.updateWithCamp(camp: camp)
-        
+
         return cell
     }
 

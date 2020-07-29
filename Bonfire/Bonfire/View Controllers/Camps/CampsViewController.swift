@@ -37,12 +37,12 @@ final class CampsViewController: UIViewController {
 
         updateViewConstraints()
     }
-    
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         refresh()
     }
-    
+
     private func refresh() {
         activityIndicator.startAnimating()
         controller.getCamps { (camps) in
@@ -63,7 +63,7 @@ final class CampsViewController: UIViewController {
         NSLayoutConstraint.activate([
             activityIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             activityIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            
+
             campsTableView.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             campsTableView.view.bottomAnchor.constraint(
                 equalTo: view.safeAreaLayoutGuide.bottomAnchor),

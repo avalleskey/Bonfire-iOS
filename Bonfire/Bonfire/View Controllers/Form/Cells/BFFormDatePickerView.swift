@@ -23,7 +23,7 @@ final class BFFormDatePickerView<FormData: BFFormData>: UIViewController, BFForm
     let datePickerContainerView: UIView = {
         let view = UIView()
         view.backgroundColor = Constants.Color.pillBackground
-        
+
         view.layer.shadowColor = UIColor.black.cgColor
         view.layer.shadowOpacity = 0.12
         view.layer.shadowOffset = .init(width: 0, height: 1)
@@ -32,7 +32,7 @@ final class BFFormDatePickerView<FormData: BFFormData>: UIViewController, BFForm
         view.layer.shouldRasterize = true
         view.layer.rasterizationScale = UIScreen.main.scale
         view.layer.masksToBounds = false
-        
+
         return view
     }()
     let datePicker: UIDatePicker = {
@@ -42,10 +42,10 @@ final class BFFormDatePickerView<FormData: BFFormData>: UIViewController, BFForm
         }
         datePicker.datePickerMode = .date
         datePicker.backgroundColor = .clear
-        
+
         return datePicker
     }()
-    
+
     weak var delegate: BFFormTextViewDelegate?
 
     init(item: BFFormItem<FormData>) {
@@ -54,14 +54,14 @@ final class BFFormDatePickerView<FormData: BFFormData>: UIViewController, BFForm
         view.addSubview(instructionLabel)
         datePickerContainerView.addSubview(datePicker)
         view.addSubview(datePickerContainerView)
-        
+
         instructionLabel.text = item.instructionText
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     func value() -> BFFormItemValue {
         .date(datePicker.date)
     }
@@ -72,12 +72,12 @@ final class BFFormDatePickerView<FormData: BFFormData>: UIViewController, BFForm
         instructionLabel.translatesAutoresizingMaskIntoConstraints = false
         datePickerContainerView.translatesAutoresizingMaskIntoConstraints = false
         datePicker.translatesAutoresizingMaskIntoConstraints = false
-        
+
         var datePickerGutter: CGFloat = 0
         if #available(iOS 14.0, *) {
             datePickerGutter = 16
         }
-        
+
         NSLayoutConstraint.activate([
             datePickerContainerView.heightAnchor.constraint(equalToConstant: 228),
             datePickerContainerView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
@@ -87,12 +87,15 @@ final class BFFormDatePickerView<FormData: BFFormData>: UIViewController, BFForm
             datePickerContainerView.trailingAnchor.constraint(
                 equalTo: view.trailingAnchor,
                 constant: -24),
-            
-            datePicker.leadingAnchor.constraint(equalTo: datePickerContainerView.leadingAnchor, constant: datePickerGutter),
-            datePicker.trailingAnchor.constraint(equalTo: datePickerContainerView.trailingAnchor, constant: -datePickerGutter),
+
+            datePicker.leadingAnchor.constraint(
+                equalTo: datePickerContainerView.leadingAnchor, constant: datePickerGutter),
+            datePicker.trailingAnchor.constraint(
+                equalTo: datePickerContainerView.trailingAnchor, constant: -datePickerGutter),
             datePicker.heightAnchor.constraint(equalTo: datePickerContainerView.heightAnchor),
 
-            instructionLabel.centerYAnchor.constraint(equalTo: datePicker.centerYAnchor, constant: -(view.frame.size.height * 0.25)),
+            instructionLabel.centerYAnchor.constraint(
+                equalTo: datePicker.centerYAnchor, constant: -(view.frame.size.height * 0.25)),
 
             instructionLabel.leadingAnchor.constraint(
                 equalTo: view.leadingAnchor,

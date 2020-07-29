@@ -36,18 +36,18 @@ final class HomeViewController: UIKeyboardSubscribedViewController {
         segmentedControl.addItem(.init(title: "For You", target: nil, action: nil))
 
         navigationItem.titleView = segmentedControl
-        
+
         refresh()
         subscribeToKeyboard()
 
         updateViewConstraints()
     }
-    
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         refresh()
     }
-    
+
     private func refresh() {
         controller.getStream { (posts) in
             DispatchQueue.main.async {
@@ -62,10 +62,11 @@ final class HomeViewController: UIKeyboardSubscribedViewController {
 
         activityIndicator.translatesAutoresizingMaskIntoConstraints = false
         homeFeedTableView.view.translatesAutoresizingMaskIntoConstraints = false
-        
-        keyboardConstraints.append(homeFeedTableView.view.bottomAnchor.constraint(
-                                    equalTo: view.safeAreaLayoutGuide.bottomAnchor))
-        
+
+        keyboardConstraints.append(
+            homeFeedTableView.view.bottomAnchor.constraint(
+                equalTo: view.safeAreaLayoutGuide.bottomAnchor))
+
         keyboardConstraints.forEach { $0.isActive = true }
 
         NSLayoutConstraint.activate([

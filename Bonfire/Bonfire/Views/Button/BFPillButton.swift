@@ -39,13 +39,14 @@ final class BFPillButton: BFBouncyButton {
         layer.shadowOffset = .init(width: 0, height: 2)
         layer.cornerRadius = 20
         layer.shadowRadius = 3
-        
+
         touchDownScale = 0.9
 
-        frame = CGRect(x: 0,
-                       y: 0,
-                       width: intrinsicContentSize.width + titleImageSpacing,
-                       height: 40)
+        frame = CGRect(
+            x: 0,
+            y: 0,
+            width: intrinsicContentSize.width + titleImageSpacing,
+            height: 40)
     }
 
     required init?(coder: NSCoder) {

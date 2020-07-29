@@ -6,9 +6,9 @@
 //  Copyright © 2020 Ingenious. All rights reserved.
 //
 
+import BFNetworking
 import Hero
 import UIKit
-import BFNetworking
 
 final class BFTabBarController: UITabBarController {
 
@@ -45,10 +45,10 @@ final class BFTabBarController: UITabBarController {
     }
 
     override func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
-//        let generator = UISelectionFeedbackGenerator()
-//        generator.selectionChanged()
-//
-//        showPillIfNeeded(item: item)
+        //        let generator = UISelectionFeedbackGenerator()
+        //        generator.selectionChanged()
+        //
+        //        showPillIfNeeded(item: item)
     }
 
     private var pills = [BFPillButton]()
@@ -76,7 +76,7 @@ final class BFTabBarController: UITabBarController {
 
         updateViewConstraints()
         hero.isEnabled = false
-        
+
         delegate = self
     }
 
@@ -219,21 +219,26 @@ final class BFTabBarController: UITabBarController {
 }
 
 extension BFTabBarController: UITabBarControllerDelegate {
-    func tabBarController(_ tabBarController: UITabBarController, shouldSelect viewController: UIViewController) -> Bool {
+    func tabBarController(
+        _ tabBarController: UITabBarController, shouldSelect viewController: UIViewController
+    ) -> Bool {
         let child = (viewController as? UINavigationController)?.topViewController
-        
+
         if child is CampsViewController || child is FriendsViewController {
             if KeychainVault.accessToken == nil {
                 let authController = GetStartedViewController()
-                let authNavcontroller = GetStartedNavigationController(rootViewController: authController)
+                let authNavcontroller = GetStartedNavigationController(
+                    rootViewController: authController)
                 self.present(authNavcontroller, animated: true)
                 return false
             }
         }
-        
+
         return true
     }
-    func tabBarController(_ tabBarController: UITabBarController, didSelect viewController: UIViewController) {
+    func tabBarController(
+        _ tabBarController: UITabBarController, didSelect viewController: UIViewController
+    ) {
         let generator = UISelectionFeedbackGenerator()
         generator.selectionChanged()
 

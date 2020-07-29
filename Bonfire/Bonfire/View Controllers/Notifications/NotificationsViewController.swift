@@ -52,7 +52,7 @@ final class NotificationsViewController: UIViewController {
                     default:
                         print(error)
                     }
-                    
+
                 }
             }
         }
@@ -67,8 +67,9 @@ final class NotificationsViewController: UIViewController {
         NSLayoutConstraint.activate([
             activityIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             activityIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            
-            notificationsTableView.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+
+            notificationsTableView.view.topAnchor.constraint(
+                equalTo: view.safeAreaLayoutGuide.topAnchor),
             notificationsTableView.view.bottomAnchor.constraint(
                 equalTo: view.safeAreaLayoutGuide.bottomAnchor),
             notificationsTableView.view.leadingAnchor.constraint(

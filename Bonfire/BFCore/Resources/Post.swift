@@ -23,7 +23,7 @@ public struct Post: BFResource {
         case link
         case repost
     }
-    
+
     public struct Attachments: Codable {
         public let media: [BFMediaAttachment]?
     }

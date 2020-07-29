@@ -6,8 +6,8 @@
 //  Copyright © 2020 Ingenious. All rights reserved.
 //
 
-import Foundation
 import CoreGraphics
+import Foundation
 
 enum BFFormItemValue {
     case string(String)
@@ -15,7 +15,7 @@ enum BFFormItemValue {
     case date(Date)
     case data(Data)
     case color(CGColor)
-    
+
     var stringValue: String? {
         switch self {
         case .string(let str):
@@ -33,7 +33,7 @@ struct BFFormItem<FormData: BFFormData> {
     let instructionText: String?
     let placeholderText: String?
     let onCompletion: () -> Void
-    let validate: ((BFFormItemValue, ((Result<Bool, Error>) -> ())) -> ())
+    let validate: ((BFFormItemValue, ((Result<Bool, Error>) -> ())) -> Void)
 }
 
 extension BFFormItem: Identifiable {}

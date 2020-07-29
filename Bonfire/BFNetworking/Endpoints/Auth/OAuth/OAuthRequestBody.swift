@@ -9,7 +9,7 @@
 import Foundation
 
 public struct OAuthRequestBody: Encodable {
-    
+
     let grantType = "password"
 
     public let username: String?
@@ -17,14 +17,14 @@ public struct OAuthRequestBody: Encodable {
 
     public let phone: String?
     public let code: String?
-    
+
     public init(username: String?, password: String?, phone: String?, code: String?) {
         self.username = username
         self.password = password
         self.phone = phone
         self.code = code
     }
-    
+
     enum CodingKeys: String, CodingKey {
         case grantType = "grant_type"
         case username

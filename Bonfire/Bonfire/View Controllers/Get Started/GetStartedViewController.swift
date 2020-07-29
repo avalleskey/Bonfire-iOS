@@ -6,36 +6,41 @@
 //  Copyright © 2020 Ingenious. All rights reserved.
 //
 
-import Foundation
-import UIKit
 import AuthenticationServices
+import Foundation
 import SafariServices
+import UIKit
 
 final class GetStartedViewController: UIViewController {
-    
+
     private let legalButton: UIButton = {
         let button = UIButton(type: .custom)
         button.addTarget(self, action: #selector(legalOptions), for: .touchUpInside)
-        
-        let string = "By continuing, you agree to Bonfire’s Terms of Use and confirm that you have read Bonfire’s Privacy Policy." as NSString
+
+        let string =
+            "By continuing, you agree to Bonfire’s Terms of Use and confirm that you have read Bonfire’s Privacy Policy."
+            as NSString
         let attributes: [NSAttributedString.Key: Any] = [
             .font: UIFont.systemFont(ofSize: 12, weight: .regular).rounded(),
             .foregroundColor: Constants.Color.secondary,
         ]
-        let mutableAttributedString = NSMutableAttributedString(string: string as String, attributes: attributes)
-        
+        let mutableAttributedString = NSMutableAttributedString(
+            string: string as String, attributes: attributes)
+
         let highlightedAttributes: [NSAttributedString.Key: Any] = [
             .foregroundColor: Constants.Color.primary,
         ]
-        mutableAttributedString.addAttributes(highlightedAttributes, range: string.range(of: "Terms of Use") as NSRange)
-        mutableAttributedString.addAttributes(highlightedAttributes, range: string.range(of: "Privacy Policy") as NSRange)
-        
+        mutableAttributedString.addAttributes(
+            highlightedAttributes, range: string.range(of: "Terms of Use") as NSRange)
+        mutableAttributedString.addAttributes(
+            highlightedAttributes, range: string.range(of: "Privacy Policy") as NSRange)
+
         button.setAttributedTitle(mutableAttributedString, for: .normal)
         if let title = button.titleLabel {
             title.lineBreakMode = .byWordWrapping
             title.textAlignment = .center
         }
-        
+
         return button
     }()
 
@@ -57,7 +62,8 @@ final class GetStartedViewController: UIViewController {
         btn.backgroundColor = .black
         btn.layer.cornerRadius = 14
         if #available(iOS 13.0, *) {
-            btn.addTarget(self, action: #selector(continueWithAppleTapped(sender:)), for: .touchUpInside)
+            btn.addTarget(
+                self, action: #selector(continueWithAppleTapped(sender:)), for: .touchUpInside)
         } else {
             btn.isEnabled = false
         }
@@ -100,7 +106,7 @@ final class GetStartedViewController: UIViewController {
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
-    
+
     private let primaryLabel: UILabel = {
         let label = UILabel()
         label.text = "Find your people"
@@ -140,7 +146,7 @@ final class GetStartedViewController: UIViewController {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     @objc private func signUpTapped(sender: UIButton) {
         let signUpForm = BFFormViewController(form: BFSignUpForm())
         navigationController?.pushViewController(signUpForm, animated: true)
@@ -150,13 +156,13 @@ final class GetStartedViewController: UIViewController {
         let signInForm = BFFormViewController(form: BFSignInForm())
         navigationController?.pushViewController(signInForm, animated: true)
     }
-    
+
     @available(iOS 13.0, *)
     @objc private func continueWithAppleTapped(sender: UIButton) {
         let provider = ASAuthorizationAppleIDProvider()
         let request = provider.createRequest()
         request.requestedScopes = [.fullName, .email]
-        
+
         let authController = ASAuthorizationController(authorizationRequests: [request])
         authController.presentationContextProvider = self
         authController.performRequests()
@@ -222,10 +228,12 @@ final class GetStartedViewController: UIViewController {
             heroAlignmentView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             heroAlignmentView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
 
-            heroStackView.leadingAnchor.constraint(equalTo: heroAlignmentView.leadingAnchor, constant:24),
-            heroStackView.trailingAnchor.constraint(equalTo: heroAlignmentView.trailingAnchor, constant:-24),
+            heroStackView.leadingAnchor.constraint(
+                equalTo: heroAlignmentView.leadingAnchor, constant: 24),
+            heroStackView.trailingAnchor.constraint(
+                equalTo: heroAlignmentView.trailingAnchor, constant: -24),
             heroStackView.centerYAnchor.constraint(equalTo: heroAlignmentView.centerYAnchor),
-            
+
             logoImageView.widthAnchor.constraint(equalToConstant: 96),
             logoImageView.heightAnchor.constraint(equalToConstant: 96),
         ])

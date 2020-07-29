@@ -29,7 +29,7 @@ final class BFFormViewController<Form: BFForm>: UIKeyboardSubscribedViewControll
         self.form = form
         self.currentItem = form.items.first
         pageViewController = BFFormPageViewController()
-        
+
         super.init(nibName: nil, bundle: nil)
         view.backgroundColor = Constants.Color.systemBackground
         view.addSubview(pageViewController.view)
@@ -39,7 +39,7 @@ final class BFFormViewController<Form: BFForm>: UIKeyboardSubscribedViewControll
         }
         view.addSubview(nextBtn)
         updateViewConstraints()
-        
+
         subscribeToKeyboard()
     }
 
@@ -52,13 +52,15 @@ final class BFFormViewController<Form: BFForm>: UIKeyboardSubscribedViewControll
 
         pageViewController.view.translatesAutoresizingMaskIntoConstraints = false
         nextBtn.translatesAutoresizingMaskIntoConstraints = false
-        
-        keyboardConstraints.append( pageViewController.view.bottomAnchor.constraint(equalTo: view.bottomAnchor))
-        
-        keyboardConstraints.append(nextBtn.bottomAnchor.constraint(
-                                    equalTo: view.safeAreaLayoutGuide.bottomAnchor,
-                                    constant: -20))
-        
+
+        keyboardConstraints.append(
+            pageViewController.view.bottomAnchor.constraint(equalTo: view.bottomAnchor))
+
+        keyboardConstraints.append(
+            nextBtn.bottomAnchor.constraint(
+                equalTo: view.safeAreaLayoutGuide.bottomAnchor,
+                constant: -20))
+
         keyboardConstraints.forEach { $0.isActive = true }
 
         NSLayoutConstraint.activate([
@@ -74,7 +76,8 @@ final class BFFormViewController<Form: BFForm>: UIKeyboardSubscribedViewControll
 
     @objc private func nextBtnTap(sender: UIButton) {
         guard let currentIdx = form.items.firstIndex(where: { $0 == currentItem }),
-              let currentCell = currentCell else { return }
+            let currentCell = currentCell
+        else { return }
 
         nextBtn.isEnabled = false
         let value = currentCell.value()

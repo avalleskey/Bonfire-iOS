@@ -6,9 +6,9 @@
 //  Copyright © 2020 Ingenious. All rights reserved.
 //
 
+import BFCore
 import Foundation
 import UIKit
-import BFCore
 
 final class CampTableViewCell: UITableViewCell {
 
@@ -23,19 +23,21 @@ final class CampTableViewCell: UITableViewCell {
             campImageView.tintColor = Constants.Color.systemBackground
             campImageView.kf.setImage(
                 with: url,
-                placeholder: UIImage(named: "DefaultCampAvatar_light")?.withRenderingMode(.alwaysTemplate),
+                placeholder: UIImage(named: "DefaultCampAvatar_light")?.withRenderingMode(
+                    .alwaysTemplate),
                 options: [
                     .scaleFactor(UIScreen.main.scale),
                     .transition(.fade(1)),
-                    .cacheOriginalImage
-                ])
+                    .cacheOriginalImage,
+                ]
+            )
             {
                 result in
                 switch result {
-                    case .success(_):
-                        self.campImageView.backgroundColor = .clear
-                    case .failure(_):
-                        break
+                case .success(_):
+                    self.campImageView.backgroundColor = .clear
+                case .failure(_):
+                    break
                 }
             }
 
@@ -49,7 +51,7 @@ final class CampTableViewCell: UITableViewCell {
             }
         }
     }
-    
+
     let campImageView: UIImageView = {
         let imageView = RoundedImageView()
         imageView.image = UIImage(named: "Austin")!

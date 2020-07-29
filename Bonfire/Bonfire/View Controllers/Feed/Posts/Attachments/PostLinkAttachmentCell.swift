@@ -10,8 +10,6 @@ import UIKit
 
 final class PostLinkAttachmentCell: UITableViewCell, BFPostCell {
     static var reuseIdentifier = "PostLinkAttachmentCellIdentifier"
-    
+
     static var rowHeight: CGFloat = 290
 }
-
-

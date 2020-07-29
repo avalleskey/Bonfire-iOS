@@ -16,7 +16,7 @@ final class BFTextField: UITextField {
         backgroundColor = Constants.Color.pillBackground
         textColor = Constants.Color.primary
         font = UIFont.systemFont(ofSize: 20, weight: .semibold).rounded()
-        
+
         layer.shadowColor = UIColor.black.cgColor
         layer.shadowOpacity = 0.12
         layer.shadowOffset = .init(width: 0, height: 1)

@@ -6,66 +6,66 @@
 //  Copyright © 2020 Ingenious. All rights reserved.
 //
 
+import BFCore
 import Foundation
 import UIKit
-import BFCore
 
 final class NotificationTableViewCell: UITableViewCell {
 
     static let reuseIdentifier = "NotificationTableViewCellReuseIdentifier"
-    
+
     var type: UserActivityType = .unknown {
         didSet {
             var typeImage: UIImage? = nil
             switch type {
-                case .follow:
-                    typeImageView.backgroundColor = .systemBlue
-                    typeImage = UIImage(named: "UserActivity_Follow")
-                case .userAcceptedAccess:
-                    typeImageView.backgroundColor = .systemGreen
-                    typeImage = UIImage(named: "UserActivity_UserAcceptedAccess")
-                case .userPosted:
-                    typeImageView.backgroundColor = .systemOrange
-                    typeImage = UIImage(named: "UserActivity_UserPosted")
-                case .userPostedCamp:
-                    typeImageView.backgroundColor = .systemOrange
-                    typeImage = UIImage(named: "UserActivity_UserPosted")
-                case .campAccessRequest:
-                    typeImageView.backgroundColor = .systemGray
-                    typeImage = UIImage(named: "UserActivity_CampAccessRequest")
-                case .campInvite:
-                    typeImageView.backgroundColor = .systemGreen
-                    typeImage = UIImage(named: "UserActivity_CampInvite")
-                case .postReply:
-                    typeImageView.backgroundColor = .systemPink
-                    typeImage = UIImage(named: "UserActivity_PostReply")
-                case .postDefaultReaction:
-                    typeImageView.backgroundColor = .clear
-                    typeImage = UIImage(named: "UserActivity_PostReaction_Default")
-                
-                default:
-                    typeImageView.backgroundColor = .systemGray
-                    typeImage = UIImage(named: "UserActivity_Misc")
+            case .follow:
+                typeImageView.backgroundColor = .systemBlue
+                typeImage = UIImage(named: "UserActivity_Follow")
+            case .userAcceptedAccess:
+                typeImageView.backgroundColor = .systemGreen
+                typeImage = UIImage(named: "UserActivity_UserAcceptedAccess")
+            case .userPosted:
+                typeImageView.backgroundColor = .systemOrange
+                typeImage = UIImage(named: "UserActivity_UserPosted")
+            case .userPostedCamp:
+                typeImageView.backgroundColor = .systemOrange
+                typeImage = UIImage(named: "UserActivity_UserPosted")
+            case .campAccessRequest:
+                typeImageView.backgroundColor = .systemGray
+                typeImage = UIImage(named: "UserActivity_CampAccessRequest")
+            case .campInvite:
+                typeImageView.backgroundColor = .systemGreen
+                typeImage = UIImage(named: "UserActivity_CampInvite")
+            case .postReply:
+                typeImageView.backgroundColor = .systemPink
+                typeImage = UIImage(named: "UserActivity_PostReply")
+            case .postDefaultReaction:
+                typeImageView.backgroundColor = .clear
+                typeImage = UIImage(named: "UserActivity_PostReaction_Default")
+
+            default:
+                typeImageView.backgroundColor = .systemGray
+                typeImage = UIImage(named: "UserActivity_Misc")
             }
-            
+
             if typeImage != nil {
                 typeImageView.image = typeImage
             }
         }
     }
-    
+
     var read: Bool = false {
         didSet {
             unreadDotView.isHidden = read
         }
     }
-    
+
     let profileImageView: UIImageView = {
         let imageView = RoundedImageView()
         imageView.image = UIImage(named: "Austin")!
         return imageView
     }()
-    
+
     let typeImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFill
@@ -77,7 +77,7 @@ final class NotificationTableViewCell: UITableViewCell {
         imageView.layer.shadowOpacity = 0.16
         return imageView
     }()
-    
+
     let unreadDotView: UIView = {
         let view = RoundedView()
         view.backgroundColor = .systemBlue
@@ -122,11 +122,11 @@ final class NotificationTableViewCell: UITableViewCell {
         contentView.addSubview(profileImageView)
         contentView.addSubview(typeImageView)
         contentView.addSubview(unreadDotView)
-        
+
         textStackView.addArrangedSubview(titleLabel)
         textStackView.addArrangedSubview(dateLabel)
         contentView.addSubview(textStackView)
-        
+
         updateConstraints()
     }
 
@@ -145,7 +145,7 @@ final class NotificationTableViewCell: UITableViewCell {
             profileImageView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 12),
             profileImageView.widthAnchor.constraint(equalToConstant: 48),
             profileImageView.heightAnchor.constraint(equalTo: profileImageView.widthAnchor),
-            
+
             textStackView.leadingAnchor.constraint(
                 equalTo: profileImageView.trailingAnchor,
                 constant: 12),
@@ -153,14 +153,14 @@ final class NotificationTableViewCell: UITableViewCell {
                 equalTo: contentView.trailingAnchor,
                 constant: -12),
             textStackView.topAnchor.constraint(equalTo: profileImageView.topAnchor),
-            
+
             typeImageView.trailingAnchor.constraint(
                 equalTo: profileImageView.trailingAnchor),
             typeImageView.bottomAnchor.constraint(
                 equalTo: profileImageView.bottomAnchor),
             typeImageView.widthAnchor.constraint(equalToConstant: 24),
             typeImageView.heightAnchor.constraint(equalTo: typeImageView.widthAnchor),
-            
+
             unreadDotView.leadingAnchor.constraint(
                 equalTo: contentView.leadingAnchor,
                 constant: 3),
@@ -168,14 +168,15 @@ final class NotificationTableViewCell: UITableViewCell {
                 equalTo: profileImageView.centerYAnchor),
             unreadDotView.widthAnchor.constraint(equalToConstant: 6),
             unreadDotView.heightAnchor.constraint(equalTo: unreadDotView.widthAnchor),
-            
+
             contentView.bottomAnchor.constraint(
                 greaterThanOrEqualTo: textStackView.bottomAnchor,
                 constant: 12),
-            contentView.heightAnchor.constraint(greaterThanOrEqualTo: profileImageView.heightAnchor, multiplier: 1, constant: 24)
+            contentView.heightAnchor.constraint(
+                greaterThanOrEqualTo: profileImageView.heightAnchor, multiplier: 1, constant: 24),
         ])
     }
-    
+
     override func setHighlighted(_ highlighted: Bool, animated: Bool) {
         super.setHighlighted(highlighted, animated: animated)
 
@@ -194,19 +195,25 @@ final class NotificationTableViewCell: UITableViewCell {
 extension NSAttributedString {
     static func entityString(string: String, entities: [BFEntity]?) -> NSAttributedString {
         let font: UIFont = UIFont.systemFont(ofSize: 17, weight: .medium)
-        
+
         let attributes: [NSAttributedString.Key: Any] = [
             .font: font.rounded(),
             .foregroundColor: Constants.Color.primary,
         ]
-        let mutableAttributedString = NSMutableAttributedString(string: string, attributes: attributes)
-        
+        let mutableAttributedString = NSMutableAttributedString(
+            string: string, attributes: attributes)
+
         if entities != nil {
             entities?.forEach { (e) in
-                mutableAttributedString.addAttributes([NSAttributedString.Key.font: UIFont.systemFont(ofSize: font.pointSize, weight: .bold).rounded()], range: NSMakeRange(e.indices[0], e.indices[1]-e.indices[0]))
+                mutableAttributedString.addAttributes(
+                    [
+                        NSAttributedString.Key.font: UIFont.systemFont(
+                            ofSize: font.pointSize, weight: .bold
+                        ).rounded()
+                    ], range: NSMakeRange(e.indices[0], e.indices[1] - e.indices[0]))
             }
         }
-        
+
         return mutableAttributedString
     }
 }

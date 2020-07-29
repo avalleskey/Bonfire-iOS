@@ -10,9 +10,9 @@ import Foundation
 import UIKit
 
 final class AddReplyCell: UITableViewCell, BFPostCell {
-    
+
     static let reuseIdentifier = "AddReplyCellIdentifier"
-    
+
     static let rowHeight: CGFloat = 56
 
     let profileImageView: UIImageView = {
@@ -47,7 +47,7 @@ final class AddReplyCell: UITableViewCell, BFPostCell {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     override func prepareForReuse() {
         super.prepareForReuse()
         replyTextField.text = ""

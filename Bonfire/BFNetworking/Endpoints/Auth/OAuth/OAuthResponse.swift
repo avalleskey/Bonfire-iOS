@@ -15,7 +15,7 @@ public struct OAuthResponse: Decodable {
     public struct OAuthResponseData: Decodable {
         public let accessToken: KeychainVault.Token
         public let refreshToken: KeychainVault.Token
-        public let expiresAt: String // TODO: Add date decoding support
+        public let expiresAt: String  // TODO: Add date decoding support
         public let scope: String
 
         enum CodingKeys: String, CodingKey {

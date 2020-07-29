@@ -9,15 +9,15 @@
 import Foundation
 
 public struct BFMediaAttachment: Codable {
-    
+
     public let attributes: Attributes
-    
+
     public struct Attributes: Codable {
         public let hostedVersions: BFMediaType
-        
+
         enum CodingKeys: String, CodingKey {
             case hostedVersions = "hosted_versions"
         }
     }
-    
+
 }

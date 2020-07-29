@@ -138,9 +138,10 @@ final class BFFeedTableViewController: UITableViewController {
                     for: .normal)
             }
         case is AddReplyCell.Type:
-            cell = tableView.dequeueReusableCell(
+            let replyCell = tableView.dequeueReusableCell(
                 withIdentifier: AddReplyCell.reuseIdentifier,
-                for: indexPath)
+                for: indexPath) as! AddReplyCell
+            cell = replyCell
         case is PostImageAttachmentCell.Type:
             let imageCell = tableView.dequeueReusableCell(
                 withIdentifier: type.reuseIdentifier,

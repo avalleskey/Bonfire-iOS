@@ -116,6 +116,12 @@
 		1A9ECBE224AA471100391279 /* BFResource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A9ECBE124AA471100391279 /* BFResource.swift */; };
 		1AA86BC624D1C563009BFE07 /* BFPostCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA86BC524D1C563009BFE07 /* BFPostCell.swift */; };
 		1AA86BC824D1D8C8009BFE07 /* BFMediaAttachment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA86BC724D1D8C8009BFE07 /* BFMediaAttachment.swift */; };
+		1AA86BCA24D1E54A009BFE07 /* PostVideoAttachmentCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA86BC924D1E54A009BFE07 /* PostVideoAttachmentCell.swift */; };
+		1AA86BCC24D1E551009BFE07 /* PostAudioAttachmentCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA86BCB24D1E551009BFE07 /* PostAudioAttachmentCell.swift */; };
+		1AA86BCE24D1E560009BFE07 /* PostLinkAttachmentCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA86BCD24D1E560009BFE07 /* PostLinkAttachmentCell.swift */; };
+		1AA86BD024D1E585009BFE07 /* PostPostAttachmentCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA86BCF24D1E585009BFE07 /* PostPostAttachmentCell.swift */; };
+		1AA86BD324D1E6AC009BFE07 /* UserProfileRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA86BD224D1E6AC009BFE07 /* UserProfileRequest.swift */; };
+		1AA86BD524D1E6B3009BFE07 /* UserProfileResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA86BD424D1E6B3009BFE07 /* UserProfileResponse.swift */; };
 		1AABE1FD24C5CA9700D8E674 /* BFFormData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AABE1FC24C5CA9700D8E674 /* BFFormData.swift */; };
 		1AABE1FF24C5CCC000D8E674 /* BFSegueButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AABE1FE24C5CCC000D8E674 /* BFSegueButton.swift */; };
 		1AAC6F0F24B3A5C400EFD803 /* AddReplyCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AAC6F0E24B3A5C400EFD803 /* AddReplyCell.swift */; };
@@ -320,6 +326,12 @@
 		1A9ECBE124AA471100391279 /* BFResource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFResource.swift; sourceTree = "<group>"; };
 		1AA86BC524D1C563009BFE07 /* BFPostCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFPostCell.swift; sourceTree = "<group>"; };
 		1AA86BC724D1D8C8009BFE07 /* BFMediaAttachment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFMediaAttachment.swift; sourceTree = "<group>"; };
+		1AA86BC924D1E54A009BFE07 /* PostVideoAttachmentCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostVideoAttachmentCell.swift; sourceTree = "<group>"; };
+		1AA86BCB24D1E551009BFE07 /* PostAudioAttachmentCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostAudioAttachmentCell.swift; sourceTree = "<group>"; };
+		1AA86BCD24D1E560009BFE07 /* PostLinkAttachmentCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostLinkAttachmentCell.swift; sourceTree = "<group>"; };
+		1AA86BCF24D1E585009BFE07 /* PostPostAttachmentCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostPostAttachmentCell.swift; sourceTree = "<group>"; };
+		1AA86BD224D1E6AC009BFE07 /* UserProfileRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfileRequest.swift; sourceTree = "<group>"; };
+		1AA86BD424D1E6B3009BFE07 /* UserProfileResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfileResponse.swift; sourceTree = "<group>"; };
 		1AABE1FC24C5CA9700D8E674 /* BFFormData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFFormData.swift; sourceTree = "<group>"; };
 		1AABE1FE24C5CCC000D8E674 /* BFSegueButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFSegueButton.swift; sourceTree = "<group>"; };
 		1AAC6F0E24B3A5C400EFD803 /* AddReplyCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddReplyCell.swift; sourceTree = "<group>"; };
@@ -748,6 +760,10 @@
 			isa = PBXGroup;
 			children = (
 				1A847D3824B1B65800530614 /* PostImageAttachmentCell.swift */,
+				1AA86BC924D1E54A009BFE07 /* PostVideoAttachmentCell.swift */,
+				1AA86BCB24D1E551009BFE07 /* PostAudioAttachmentCell.swift */,
+				1AA86BCD24D1E560009BFE07 /* PostLinkAttachmentCell.swift */,
+				1AA86BCF24D1E585009BFE07 /* PostPostAttachmentCell.swift */,
 			);
 			path = Attachments;
 			sourceTree = "<group>";
@@ -878,11 +894,21 @@
 		1A9ECBDC24AA441900391279 /* User */ = {
 			isa = PBXGroup;
 			children = (
+				1AA86BD124D1E6A2009BFE07 /* Profile */,
 				1A847D3F24B1BB6000530614 /* Stream */,
 				1A847D3E24B1BB5A00530614 /* Friends */,
 				D943EEE424CB6FE000C30F8B /* Notifications */,
 			);
 			path = User;
+			sourceTree = "<group>";
+		};
+		1AA86BD124D1E6A2009BFE07 /* Profile */ = {
+			isa = PBXGroup;
+			children = (
+				1AA86BD224D1E6AC009BFE07 /* UserProfileRequest.swift */,
+				1AA86BD424D1E6B3009BFE07 /* UserProfileResponse.swift */,
+			);
+			path = Profile;
 			sourceTree = "<group>";
 		};
 		1AABE20024C5D9BE00D8E674 /* Items */ = {
@@ -1238,6 +1264,7 @@
 				1A24430E24A0D83E0039BAAB /* BFFeedTableViewController.swift in Sources */,
 				1A24431324A0DB750039BAAB /* PostActionsCell.swift in Sources */,
 				1A0CB45C24C71CE100BD2A50 /* BFSignUpForm.swift in Sources */,
+				1AA86BCE24D1E560009BFE07 /* PostLinkAttachmentCell.swift in Sources */,
 				1A8446FE249C8652002813CB /* AppDelegate.swift in Sources */,
 				1A847D4624B1BC1900530614 /* StreamControllerProtocol.swift in Sources */,
 				1A212A1324BC87FE00A0DCD3 /* BFForm.swift in Sources */,
@@ -1267,6 +1294,7 @@
 				1A6859BD249F632A008DB6BC /* FriendsTableViewController.swift in Sources */,
 				1A7854DB249FBBC500BA1589 /* CampControllerProtocol.swift in Sources */,
 				D943EEDC24CB6DFB00C30F8B /* NotificationsTableViewController.swift in Sources */,
+				1AA86BCC24D1E551009BFE07 /* PostAudioAttachmentCell.swift in Sources */,
 				1A844700249C8652002813CB /* SceneDelegate.swift in Sources */,
 				1AABE1FD24C5CA9700D8E674 /* BFFormData.swift in Sources */,
 				1A847D5D24B247C900530614 /* BFViewController.swift in Sources */,
@@ -1274,6 +1302,7 @@
 				1A94DED9249FB61500AB0200 /* FriendControllerProtocol.swift in Sources */,
 				1A94DED6249FB5FC00AB0200 /* FriendController.swift in Sources */,
 				1A847D4824B1BC2000530614 /* StreamController.swift in Sources */,
+				1AA86BCA24D1E54A009BFE07 /* PostVideoAttachmentCell.swift in Sources */,
 				1A6F959424B8E88E004A20F4 /* BFAppError.swift in Sources */,
 				1A7854EB24A0CF2800BA1589 /* BFSegmentedControlItem.swift in Sources */,
 				1A57FAE7249F5D3D00A407F9 /* BFTabBarController.swift in Sources */,
@@ -1285,6 +1314,7 @@
 				1A6859BA249F61FB008DB6BC /* CreatePostViewController.swift in Sources */,
 				1A3E012724C2055B00C75F50 /* BFFormTextView.swift in Sources */,
 				D9EB895F24BE911B00BC6F6D /* String+Extensions.swift in Sources */,
+				1AA86BD024D1E585009BFE07 /* PostPostAttachmentCell.swift in Sources */,
 				1A212A0E24BC86F800A0DCD3 /* BFFormItemType.swift in Sources */,
 				D9872AB824C0D76A0048622F /* BFPillButton.swift in Sources */,
 				1A94DED3249FB49B00AB0200 /* CampsTableViewCell.swift in Sources */,
@@ -1306,6 +1336,7 @@
 				1A212A2824BC8C3500A0DCD3 /* UsernameValidationQueryParams.swift in Sources */,
 				1A9ECBDE24AA443F00391279 /* UserFriendsRequest.swift in Sources */,
 				1A212A3024BC8EF600A0DCD3 /* SignupRequestBody.swift in Sources */,
+				1AA86BD324D1E6AC009BFE07 /* UserProfileRequest.swift in Sources */,
 				1A212A3224BC8EFD00A0DCD3 /* SignupRequest.swift in Sources */,
 				1A84473E249D4B9B002813CB /* APIRequest.swift in Sources */,
 				D943EEE824CB701400C30F8B /* UserNotificationsResponse.swift in Sources */,
@@ -1318,6 +1349,7 @@
 				1A7854CF249FBAE600BA1589 /* MyCampsRequest.swift in Sources */,
 				1A212A2324BC8B3D00A0DCD3 /* EmailValidationQueryParams.swift in Sources */,
 				1A9ECBE024AA44D400391279 /* UserFriendsResponse.swift in Sources */,
+				1AA86BD524D1E6B3009BFE07 /* UserProfileResponse.swift in Sources */,
 				1A24431724A0E7BF0039BAAB /* AuthenticationType.swift in Sources */,
 				1A6F959024B8E6FD004A20F4 /* KeychainProperty.swift in Sources */,
 				1A212A2D24BC8CF700A0DCD3 /* OAuthRequestBody.swift in Sources */,

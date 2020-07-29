@@ -8,7 +8,7 @@
 
 import UIKit
 
-final class HomeViewController: UIViewController {
+final class HomeViewController: UIKeyboardSubscribedViewController {
 
     private let segmentedControl = BFSegmentedControl()
 
@@ -38,6 +38,7 @@ final class HomeViewController: UIViewController {
         navigationItem.titleView = segmentedControl
         
         refresh()
+        subscribeToKeyboard()
 
         updateViewConstraints()
     }
@@ -61,14 +62,17 @@ final class HomeViewController: UIViewController {
 
         activityIndicator.translatesAutoresizingMaskIntoConstraints = false
         homeFeedTableView.view.translatesAutoresizingMaskIntoConstraints = false
+        
+        keyboardConstraints.append(homeFeedTableView.view.bottomAnchor.constraint(
+                                    equalTo: view.safeAreaLayoutGuide.bottomAnchor))
+        
+        keyboardConstraints.forEach { $0.isActive = true }
 
         NSLayoutConstraint.activate([
             activityIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             activityIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor),
             homeFeedTableView.view.topAnchor.constraint(
                 equalTo: view.safeAreaLayoutGuide.topAnchor),
-            homeFeedTableView.view.bottomAnchor.constraint(
-                equalTo: view.safeAreaLayoutGuide.bottomAnchor),
             homeFeedTableView.view.leadingAnchor.constraint(
                 equalTo: view.safeAreaLayoutGuide.leadingAnchor),
             homeFeedTableView.view.trailingAnchor.constraint(

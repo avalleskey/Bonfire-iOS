@@ -8,7 +8,7 @@
 
 import Foundation
 
-public final class OAuthResponse: Decodable {
+public struct OAuthResponse: Decodable {
 
     public let data: OAuthResponseData
 

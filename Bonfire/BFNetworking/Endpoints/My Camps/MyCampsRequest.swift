@@ -9,7 +9,7 @@
 import BFCore
 import Foundation
 
-final public class MyCampsRequest: APIRequest {
+public struct MyCampsRequest: APIRequest {
     public typealias Response = MyCampsResponse
 
     public let resource = "users/me/camps"

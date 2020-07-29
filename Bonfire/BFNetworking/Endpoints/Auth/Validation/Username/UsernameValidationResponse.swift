@@ -8,7 +8,7 @@
 
 import Foundation
 
-public final class UsernameValidationResponse: Decodable {
+public struct UsernameValidationResponse: Decodable {
 
     let data: UsernameValidationData
 

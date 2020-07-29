@@ -9,7 +9,7 @@
 import BFCore
 import Foundation
 
-final public class EmailValidationRequest: APIRequest {
+public struct EmailValidationRequest: APIRequest {
 
     public typealias Response = EmailValidationResponse
 

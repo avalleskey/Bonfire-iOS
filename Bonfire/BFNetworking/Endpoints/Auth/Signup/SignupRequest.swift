@@ -9,7 +9,7 @@
 import BFCore
 import Foundation
 
-final public class SignupRequest: APIRequest {
+public struct SignupRequest: APIRequest {
 
     public typealias Response = OAuthResponse
 

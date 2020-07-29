@@ -9,7 +9,7 @@
 import BFCore
 import Foundation
 
-final public class OAuthRequest: APIRequest {
+public struct OAuthRequest: APIRequest {
     public typealias Response = OAuthResponse
 
     public let resource = "oauth"

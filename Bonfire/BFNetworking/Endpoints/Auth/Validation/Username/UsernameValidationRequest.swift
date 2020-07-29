@@ -9,7 +9,7 @@
 import BFCore
 import Foundation
 
-final public class UsernameValidationRequest: APIRequest {
+public struct UsernameValidationRequest: APIRequest {
     public typealias Response = UsernameValidationResponse
 
     public let resource = "accounts/validate/username"

@@ -8,11 +8,48 @@
 
 import Foundation
 import UIKit
+import BFCore
 
 final class CampTableViewCell: UITableViewCell {
 
     static let reuseIdentifier = "CampTableViewCellReuseIdentifier"
 
+    func updateWithCamp(camp: Camp) {
+        campNameLabel.text = String(htmlEncodedString: camp.attributes.title)
+        campSublineLabel.text = String(htmlEncodedString: camp.attributes.description)
+
+        if let url = camp.attributes.media?.avatar?.full?.url {
+            campImageView.backgroundColor = .systemGray
+            campImageView.tintColor = Constants.Color.systemBackground
+            campImageView.kf.setImage(
+                with: url,
+                placeholder: UIImage(named: "DefaultCampAvatar_light")?.withRenderingMode(.alwaysTemplate),
+                options: [
+                    .scaleFactor(UIScreen.main.scale),
+                    .transition(.fade(1)),
+                    .cacheOriginalImage
+                ])
+            {
+                result in
+                switch result {
+                    case .success(_):
+                        self.campImageView.backgroundColor = .clear
+                    case .failure(_):
+                        break
+                }
+            }
+
+        } else {
+            let campColor = UIColor(hex: camp.attributes.color)
+            campImageView.backgroundColor = campColor
+            if campColor?.isDarkColor == true {
+                campImageView.image = UIImage(named: "DefaultCampAvatar_light")
+            } else {
+                campImageView.image = UIImage(named: "DefaultCampAvatar_dark")
+            }
+        }
+    }
+    
     let campImageView: UIImageView = {
         let imageView = RoundedImageView()
         imageView.image = UIImage(named: "Austin")!
@@ -108,5 +145,4 @@ final class CampTableViewCell: UITableViewCell {
                 }
             }, completion: nil)
     }
-
 }

@@ -51,12 +51,8 @@ final class CampsTableViewController: UITableViewController {
                 for: indexPath) as! CampTableViewCell
 
         let camp = camps[indexPath.row]
-        cell.campNameLabel.text = camp.attributes.title
-        cell.campSublineLabel.text = camp.attributes.description
-
-        if let url = camp.attributes.media?.avatar?.full?.url {
-            cell.campImageView.kf.setImage(with: url, options: [.cacheOriginalImage])
-        }
+        cell.updateWithCamp(camp: camp)
+        
         return cell
     }
 

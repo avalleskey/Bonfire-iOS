@@ -8,11 +8,48 @@
 
 import Foundation
 import UIKit
+import BFCore
 
 final class FriendTableViewCell: UITableViewCell {
 
     static let reuseIdentifier = "FriendTableViewCellReuseIdentifier"
 
+    func updateWithUser(user: User) {
+        profileNameLabel.text = String(htmlEncodedString: user.attributes.display_name)
+        profileSublineLabel.text = "Start a chat!"
+
+        if let url = user.attributes.media?.avatar?.full?.url {
+            profileImageView.backgroundColor = .systemGray
+            profileImageView.tintColor = Constants.Color.systemBackground
+            profileImageView.kf.setImage(
+                with: url,
+                placeholder: UIImage(named: "DefaultUserAvatar_light")?.withRenderingMode(.alwaysTemplate),
+                options: [
+                    .scaleFactor(UIScreen.main.scale),
+                    .transition(.fade(1)),
+                    .cacheOriginalImage
+                ])
+            {
+                result in
+                switch result {
+                    case .success(_):
+                        self.profileImageView.backgroundColor = .clear
+                    case .failure(_):
+                        break
+                }
+            }
+
+        } else {
+            let campColor = UIColor(hex: user.attributes.color)
+            profileImageView.backgroundColor = campColor
+            if campColor?.isDarkColor == true {
+                profileImageView.image = UIImage(named: "DefaultUserAvatar_light")
+            } else {
+                profileImageView.image = UIImage(named: "DefaultUserAvatar_dark")
+            }
+        }
+    }
+    
     let profileImageView: UIImageView = {
         let imageView = RoundedImageView()
         imageView.image = UIImage(named: "Austin")!

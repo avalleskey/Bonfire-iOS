@@ -8,7 +8,7 @@
 
 import UIKit
 
-final class BFSegueButton: UIButton {
+final class BFSegueButton: BFBouncyButton {
 
     init() {
         super.init(frame: .zero)

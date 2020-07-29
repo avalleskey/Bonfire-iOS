@@ -11,6 +11,7 @@ import UIKit
 class BFBouncyButton: UIButton {
 
     var haptics: Bool = true
+    var touchDownScale: CGFloat = 0.96
     
     override init(frame: CGRect) {
         super.init(frame: .zero)
@@ -19,21 +20,28 @@ class BFBouncyButton: UIButton {
 
         addTarget(
             self,
+            action: #selector(touchDown),
+            for: [.touchDown])
+        addTarget(
+            self,
             action: #selector(animateDown),
-            for: [.touchDown, .touchDragEnter])
+            for: [.touchDragEnter])
         addTarget(
             self,
             action: #selector(animateUp),
             for: [.touchDragExit, .touchCancel, .touchUpInside, .touchUpOutside])
     }
 
-    @objc private func animateDown(sender: UIButton) {
+    @objc private func touchDown(sender: UIButton) {
         if haptics {
             let generator = UISelectionFeedbackGenerator()
             generator.selectionChanged()
         }
 
-        animate(sender, transform: CGAffineTransform.identity.scaledBy(x: 0.9, y: 0.9))
+        animateDown(sender: sender)
+    }
+    @objc private func animateDown(sender: UIButton) {
+        animate(sender, transform: CGAffineTransform.identity.scaledBy(x: touchDownScale, y: touchDownScale))
     }
 
     @objc private func animateUp(sender: UIButton) {

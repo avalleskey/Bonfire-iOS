@@ -9,8 +9,11 @@
 import Foundation
 import UIKit
 
-final class AddReplyCell: UITableViewCell {
+final class AddReplyCell: UITableViewCell, BFPostCell {
+    
     static let reuseIdentifier = "AddReplyCellIdentifier"
+    
+    static let rowHeight: CGFloat = 56
 
     let profileImageView: UIImageView = {
         let imageView = RoundedImageView()

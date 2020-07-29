@@ -9,9 +9,11 @@
 import Foundation
 import UIKit
 
-final class PostActionsCell: UITableViewCell {
-
+final class PostActionsCell: UITableViewCell, BFPostCell {
+    
     static let reuseIdentifier = "PostActionsCellIdentifier"
+    
+    static let rowHeight: CGFloat = 56
 
     let repliesBtn: UIButton = {
         let btn = UIButton()

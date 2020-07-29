@@ -8,10 +8,16 @@
 
 import UIKit
 
-final class PostImageAttachmentCell: UITableViewCell {
+final class PostImageAttachmentCell: UITableViewCell, BFPostCell {
+    
+    static let reuseIdentifier: String = "PostImageAttachmentCellIdentifier"
+    
+    static let rowHeight: CGFloat = 234
 
     let attachmentImageView: UIImageView = {
-        return UIImageView()
+        let imageView = UIImageView()
+        imageView.contentMode = .scaleAspectFit
+        return imageView
     }()
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {

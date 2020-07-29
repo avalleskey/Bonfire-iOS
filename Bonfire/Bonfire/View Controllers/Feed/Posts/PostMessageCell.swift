@@ -9,9 +9,11 @@
 import Foundation
 import UIKit
 
-final class PostMessageCell: UITableViewCell {
-
+final class PostMessageCell: UITableViewCell, BFPostCell {
+    
     static let reuseIdentifier = "PostMessageCellIdentifier"
+    
+    static let rowHeight: CGFloat = UITableView.automaticDimension
 
     let messageLabel: UILabel = {
         let label = UILabel()

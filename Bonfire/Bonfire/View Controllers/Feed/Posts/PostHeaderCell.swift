@@ -9,8 +9,11 @@
 import Foundation
 import UIKit
 
-final class PostHeaderCell: UITableViewCell {
+final class PostHeaderCell: UITableViewCell, BFPostCell {
+    
     static let reuseIdentifier = "PostHeaderCellIdentifier"
+    
+    static let rowHeight: CGFloat = 64
 
     enum Style {
         case profile

@@ -29,11 +29,15 @@ final class BFFeedTableViewController: UITableViewController {
         tableView.register(
             AddReplyCell.self,
             forCellReuseIdentifier: AddReplyCell.reuseIdentifier)
+        tableView.register(
+            PostImageAttachmentCell.self,
+            forCellReuseIdentifier: PostImageAttachmentCell.reuseIdentifier)
 
         tableView.estimatedRowHeight = UITableView.automaticDimension
         tableView.allowsSelection = false
         tableView.separatorStyle = .none
         tableView.keyboardDismissMode = .onDrag
+        tableView.delegate = self
     }
 
     required init?(coder: NSCoder) {
@@ -43,17 +47,16 @@ final class BFFeedTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath)
         -> CGFloat
     {
-        switch indexPath.row {
-        case 0:
-            return 64
-        case 1:
-            return UITableView.automaticDimension
-        case 2:
-            return 56
-        case 3:
-            return 56
-        default:
-            return 0
+        let post = posts[indexPath.section]
+        let type = postCellTypes(post: post)[indexPath.row]
+        return type.rowHeight
+    }
+    
+    func postCellTypes(post: Post) -> [BFPostCell.Type] {
+        if post.attributes.attachments == nil {
+            return [PostHeaderCell.self, PostMessageCell.self, PostActionsCell.self, AddReplyCell.self]
+        } else {
+            return [PostHeaderCell.self, PostMessageCell.self, PostImageAttachmentCell.self, PostActionsCell.self, AddReplyCell.self]
         }
     }
 
@@ -63,7 +66,7 @@ final class BFFeedTableViewController: UITableViewController {
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         let post = posts[section]
-        return 4
+        return postCellTypes(post: post).count
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath)
@@ -72,9 +75,10 @@ final class BFFeedTableViewController: UITableViewController {
         let cell: UITableViewCell
 
         let post = posts[indexPath.section]
+        let type = postCellTypes(post: post)[indexPath.row]
 
-        switch indexPath.row {
-        case 0:
+        switch type {
+        case is PostHeaderCell.Type:
             let headerCell =
                 tableView.dequeueReusableCell(
                     withIdentifier: PostHeaderCell.reuseIdentifier,
@@ -94,14 +98,14 @@ final class BFFeedTableViewController: UITableViewController {
             if let url = post.attributes.creator.attributes.media?.avatar?.full?.url {
                 headerCell.profileImageView.kf.setImage(with: url, options: [.cacheOriginalImage])
             }
-        case 1:
+        case is PostMessageCell.Type:
             let messageCell =
                 tableView.dequeueReusableCell(
                     withIdentifier: PostMessageCell.reuseIdentifier,
                     for: indexPath) as! PostMessageCell
             cell = messageCell
             messageCell.messageLabel.text = String(htmlEncodedString: post.attributes.message)
-        case 2:
+        case is PostActionsCell.Type:
             let actionsCell =
                 tableView.dequeueReusableCell(
                     withIdentifier: PostActionsCell.reuseIdentifier,
@@ -133,12 +137,22 @@ final class BFFeedTableViewController: UITableViewController {
                     UIImage(named: "ReplyThreshold0"),
                     for: .normal)
             }
-        case 3:
+        case is AddReplyCell.Type:
             cell = tableView.dequeueReusableCell(
                 withIdentifier: AddReplyCell.reuseIdentifier,
                 for: indexPath)
+        case is PostImageAttachmentCell.Type:
+            let imageCell = tableView.dequeueReusableCell(
+                withIdentifier: type.reuseIdentifier,
+                for: indexPath) as! PostImageAttachmentCell
+            cell = imageCell
+            if let url = post.attributes.attachments?.media?.first?.attributes.hostedVersions.full?.url {
+                imageCell.attachmentImageView.kf.setImage(with: url, options: [.cacheOriginalImage])
+            }
         default:
-            fatalError("Unknown row requested in BFFeedView")
+            cell = tableView.dequeueReusableCell(
+                withIdentifier: type.reuseIdentifier,
+                for: indexPath)
         }
 
         return cell

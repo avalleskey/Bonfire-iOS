@@ -42,6 +42,16 @@
 		1A3E012524C1F8C200C75F50 /* BFFormViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A3E012424C1F8C200C75F50 /* BFFormViewController.swift */; };
 		1A3E012724C2055B00C75F50 /* BFFormTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A3E012624C2055B00C75F50 /* BFFormTextView.swift */; };
 		1A3E012924C2067800C75F50 /* BFFormCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A3E012824C2067800C75F50 /* BFFormCell.swift */; };
+		1A3ED12A24D37793001DA453 /* BFCircularButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A3ED12924D37793001DA453 /* BFCircularButton.swift */; };
+		1A3ED12C24D37D5C001DA453 /* ProfileHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A3ED12B24D37D5C001DA453 /* ProfileHeaderView.swift */; };
+		1A3ED12E24D37E34001DA453 /* ProfileCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A3ED12D24D37E34001DA453 /* ProfileCardView.swift */; };
+		1A3ED13224D37EC5001DA453 /* ProfileSummaryPageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A3ED13124D37EC5001DA453 /* ProfileSummaryPageViewController.swift */; };
+		1A3ED13424D38798001DA453 /* FeedPostCountCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A3ED13324D38798001DA453 /* FeedPostCountCell.swift */; };
+		1A3ED13724D38D20001DA453 /* CampViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A3ED13624D38D20001DA453 /* CampViewController.swift */; };
+		1A3ED13924D38E52001DA453 /* CampHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A3ED13824D38E52001DA453 /* CampHeaderView.swift */; };
+		1A3ED13B24D38F4B001DA453 /* CampSummaryPageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A3ED13A24D38F4B001DA453 /* CampSummaryPageViewController.swift */; };
+		1A3ED13D24D38FC4001DA453 /* CampMembersViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A3ED13C24D38FC4001DA453 /* CampMembersViewController.swift */; };
+		1A3ED14024D38FE6001DA453 /* CampMemberCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A3ED13F24D38FE6001DA453 /* CampMemberCell.swift */; };
 		1A57FAE7249F5D3D00A407F9 /* BFTabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A57FAE6249F5D3D00A407F9 /* BFTabBarController.swift */; };
 		1A57FAEA249F5D8800A407F9 /* UIView+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A57FAE9249F5D8800A407F9 /* UIView+Extensions.swift */; };
 		1A6859BA249F61FB008DB6BC /* CreatePostViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A6859B9249F61FB008DB6BC /* CreatePostViewController.swift */; };
@@ -252,6 +262,16 @@
 		1A3E012424C1F8C200C75F50 /* BFFormViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFFormViewController.swift; sourceTree = "<group>"; };
 		1A3E012624C2055B00C75F50 /* BFFormTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFFormTextView.swift; sourceTree = "<group>"; };
 		1A3E012824C2067800C75F50 /* BFFormCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFFormCell.swift; sourceTree = "<group>"; };
+		1A3ED12924D37793001DA453 /* BFCircularButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFCircularButton.swift; sourceTree = "<group>"; };
+		1A3ED12B24D37D5C001DA453 /* ProfileHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileHeaderView.swift; sourceTree = "<group>"; };
+		1A3ED12D24D37E34001DA453 /* ProfileCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileCardView.swift; sourceTree = "<group>"; };
+		1A3ED13124D37EC5001DA453 /* ProfileSummaryPageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSummaryPageViewController.swift; sourceTree = "<group>"; };
+		1A3ED13324D38798001DA453 /* FeedPostCountCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPostCountCell.swift; sourceTree = "<group>"; };
+		1A3ED13624D38D20001DA453 /* CampViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampViewController.swift; sourceTree = "<group>"; };
+		1A3ED13824D38E52001DA453 /* CampHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampHeaderView.swift; sourceTree = "<group>"; };
+		1A3ED13A24D38F4B001DA453 /* CampSummaryPageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampSummaryPageViewController.swift; sourceTree = "<group>"; };
+		1A3ED13C24D38FC4001DA453 /* CampMembersViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampMembersViewController.swift; sourceTree = "<group>"; };
+		1A3ED13F24D38FE6001DA453 /* CampMemberCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampMemberCell.swift; sourceTree = "<group>"; };
 		1A57FAE6249F5D3D00A407F9 /* BFTabBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFTabBarController.swift; sourceTree = "<group>"; };
 		1A57FAE9249F5D8800A407F9 /* UIView+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIView+Extensions.swift"; sourceTree = "<group>"; };
 		1A6859B9249F61FB008DB6BC /* CreatePostViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatePostViewController.swift; sourceTree = "<group>"; };
@@ -526,6 +546,7 @@
 			children = (
 				1A24430F24A0DACE0039BAAB /* Posts */,
 				1A24430D24A0D83E0039BAAB /* BFFeedTableViewController.swift */,
+				1A3ED13324D38798001DA453 /* FeedPostCountCell.swift */,
 			);
 			path = Feed;
 			sourceTree = "<group>";
@@ -541,6 +562,26 @@
 				1AA86BC524D1C563009BFE07 /* BFPostCell.swift */,
 			);
 			path = Posts;
+			sourceTree = "<group>";
+		};
+		1A3ED13524D38D16001DA453 /* Camp */ = {
+			isa = PBXGroup;
+			children = (
+				1A3ED13E24D38FD6001DA453 /* Members */,
+				1A3ED13624D38D20001DA453 /* CampViewController.swift */,
+				1A3ED13824D38E52001DA453 /* CampHeaderView.swift */,
+				1A3ED13A24D38F4B001DA453 /* CampSummaryPageViewController.swift */,
+			);
+			path = Camp;
+			sourceTree = "<group>";
+		};
+		1A3ED13E24D38FD6001DA453 /* Members */ = {
+			isa = PBXGroup;
+			children = (
+				1A3ED13C24D38FC4001DA453 /* CampMembersViewController.swift */,
+				1A3ED13F24D38FE6001DA453 /* CampMemberCell.swift */,
+			);
+			path = Members;
 			sourceTree = "<group>";
 		};
 		1A57FAE8249F5D7E00A407F9 /* Extensions and Helpers */ = {
@@ -729,6 +770,7 @@
 		1A844740249D4BAD002813CB /* View Controllers */ = {
 			isa = PBXGroup;
 			children = (
+				1A3ED13524D38D16001DA453 /* Camp */,
 				1A92C77F24D181310015E993 /* Profile */,
 				1A212A0724BC868300A0DCD3 /* Form */,
 				1A6F958424B8E0B8004A20F4 /* Get Started */,
@@ -847,6 +889,9 @@
 			isa = PBXGroup;
 			children = (
 				1A92C78024D181450015E993 /* ProfileViewController.swift */,
+				1A3ED12B24D37D5C001DA453 /* ProfileHeaderView.swift */,
+				1A3ED12D24D37E34001DA453 /* ProfileCardView.swift */,
+				1A3ED13124D37EC5001DA453 /* ProfileSummaryPageViewController.swift */,
 			);
 			path = Profile;
 			sourceTree = "<group>";
@@ -964,6 +1009,7 @@
 				D9A2EEC224C165DC00EECE8A /* BFBouncyButton.swift */,
 				1AABE1FE24C5CCC000D8E674 /* BFSegueButton.swift */,
 				1AF92AD224C73E8D00D253AC /* BFColorPickerButton.swift */,
+				1A3ED12924D37793001DA453 /* BFCircularButton.swift */,
 			);
 			path = Button;
 			sourceTree = "<group>";
@@ -1262,6 +1308,7 @@
 				1AA86BC624D1C563009BFE07 /* BFPostCell.swift in Sources */,
 				1A844702249C8652002813CB /* HomeViewController.swift in Sources */,
 				1A24430E24A0D83E0039BAAB /* BFFeedTableViewController.swift in Sources */,
+				1A3ED13224D37EC5001DA453 /* ProfileSummaryPageViewController.swift in Sources */,
 				1A24431324A0DB750039BAAB /* PostActionsCell.swift in Sources */,
 				1A0CB45C24C71CE100BD2A50 /* BFSignUpForm.swift in Sources */,
 				1AA86BCE24D1E560009BFE07 /* PostLinkAttachmentCell.swift in Sources */,
@@ -1275,26 +1322,33 @@
 				1A3E012524C1F8C200C75F50 /* BFFormViewController.swift in Sources */,
 				1AF92AD524C9D0E900D253AC /* GetStartedNavigationController.swift in Sources */,
 				1A3E012924C2067800C75F50 /* BFFormCell.swift in Sources */,
+				1A3ED13724D38D20001DA453 /* CampViewController.swift in Sources */,
 				1A0CB45E24C71CFB00BD2A50 /* BFSignUpData.swift in Sources */,
 				1A0CB46024C71F7500BD2A50 /* BFFormDatePickerView.swift in Sources */,
 				1AF92AD724C9F81400D253AC /* KeyboardSubscriber.swift in Sources */,
 				1A15AB5E24B3B1F1007722A4 /* BFReplyTextField.swift in Sources */,
 				1A212A0C24BC86C500A0DCD3 /* BFFormItem.swift in Sources */,
+				1A3ED13924D38E52001DA453 /* CampHeaderView.swift in Sources */,
 				1A92C78124D181450015E993 /* ProfileViewController.swift in Sources */,
 				1ABDB17524A35EE100D05140 /* PostMessageCell.swift in Sources */,
 				D9EB895D24BE83ED00BC6F6D /* UIColor+Extensions.swift in Sources */,
 				1A6F958624B8E0C4004A20F4 /* GetStartedViewController.swift in Sources */,
 				1A0CB45A24C71B7B00BD2A50 /* BFValidationResponse.swift in Sources */,
 				1A212A0924BC869100A0DCD3 /* BFFormPageViewController.swift in Sources */,
+				1A3ED12E24D37E34001DA453 /* ProfileCardView.swift in Sources */,
 				1A0CB46624C7231A00BD2A50 /* BFFormCampPickerView.swift in Sources */,
+				1A3ED13D24D38FC4001DA453 /* CampMembersViewController.swift in Sources */,
 				D9A2EEC324C165DC00EECE8A /* BFBouncyButton.swift in Sources */,
 				D943EEE324CB6F8400C30F8B /* NotificationController.swift in Sources */,
 				1AAC6F0F24B3A5C400EFD803 /* AddReplyCell.swift in Sources */,
 				1A847D3924B1B65800530614 /* PostImageAttachmentCell.swift in Sources */,
 				1A6859BD249F632A008DB6BC /* FriendsTableViewController.swift in Sources */,
+				1A3ED12C24D37D5C001DA453 /* ProfileHeaderView.swift in Sources */,
+				1A3ED12A24D37793001DA453 /* BFCircularButton.swift in Sources */,
 				1A7854DB249FBBC500BA1589 /* CampControllerProtocol.swift in Sources */,
 				D943EEDC24CB6DFB00C30F8B /* NotificationsTableViewController.swift in Sources */,
 				1AA86BCC24D1E551009BFE07 /* PostAudioAttachmentCell.swift in Sources */,
+				1A3ED13424D38798001DA453 /* FeedPostCountCell.swift in Sources */,
 				1A844700249C8652002813CB /* SceneDelegate.swift in Sources */,
 				1AABE1FD24C5CA9700D8E674 /* BFFormData.swift in Sources */,
 				1A847D5D24B247C900530614 /* BFViewController.swift in Sources */,
@@ -1309,6 +1363,8 @@
 				1A94DECC249F70D600AB0200 /* RoundedImageView.swift in Sources */,
 				1A7854D8249FBBBA00BA1589 /* CampController.swift in Sources */,
 				1A24431124A0DAFE0039BAAB /* PostHeaderCell.swift in Sources */,
+				1A3ED14024D38FE6001DA453 /* CampMemberCell.swift in Sources */,
+				1A3ED13B24D38F4B001DA453 /* CampSummaryPageViewController.swift in Sources */,
 				1A57FAEA249F5D8800A407F9 /* UIView+Extensions.swift in Sources */,
 				1A7854E824A0B77800BA1589 /* BFNavigationController.swift in Sources */,
 				1A6859BA249F61FB008DB6BC /* CreatePostViewController.swift in Sources */,

@@ -27,4 +27,16 @@ final class ProfileSummaryPageViewController: UIViewController {
         return label
     }()
     
+    init() {
+        super.init(nibName: nil, bundle: nil)
+        
+        view.addSubview(imageView)
+        view.addSubview(primaryLabel)
+        view.addSubview(secondaryLabel)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
 }

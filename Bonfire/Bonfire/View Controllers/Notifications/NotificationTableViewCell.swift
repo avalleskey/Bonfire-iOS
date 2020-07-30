@@ -44,7 +44,7 @@ final class NotificationTableViewCell: UITableViewCell {
                 typeImage = UIImage(named: "UserActivity_PostReaction_Default")
 
             default:
-                typeImageView.backgroundColor = .systemGray
+                typeImageView.backgroundColor = UIColor(white: 0.24, alpha: 1)
                 typeImage = UIImage(named: "UserActivity_Misc")
             }
 

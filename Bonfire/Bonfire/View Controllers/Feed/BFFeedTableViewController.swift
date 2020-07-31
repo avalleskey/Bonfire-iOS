@@ -89,7 +89,8 @@ final class BFFeedTableViewController: UITableViewController {
                     withIdentifier: PostHeaderCell.reuseIdentifier,
                     for: indexPath) as! PostHeaderCell
             cell = headerCell
-
+            headerCell.delegate = self
+            headerCell.profileImageView.addTarget(headerCell, action: #selector(PostHeaderCell.profileImageTap(sender:)), for: .touchUpInside)
             headerCell.profileLabel.text = post.attributes.creator.attributes.display_name
             //            headerCell.profileLabel.textColor = UIColor.init(hex: post.attributes.creator.attributes.color)
 
@@ -101,7 +102,7 @@ final class BFFeedTableViewController: UITableViewController {
             }
 
             if let url = post.attributes.creator.attributes.media?.avatar?.full?.url {
-                headerCell.profileImageView.kf.setImage(with: url, options: [.cacheOriginalImage])
+                headerCell.profileImageView.kf.setImage(with: url, for: .normal, options: [.cacheOriginalImage])
             }
         case is PostMessageCell.Type:
             let messageCell =
@@ -190,4 +191,15 @@ final class BFFeedTableViewController: UITableViewController {
         return 32
     }
 
+}
+
+extension BFFeedTableViewController: PostHeaderCellDelegate {
+    func profileBtnTap(cell: UITableViewCell) {
+        guard let indexPath = tableView.indexPath(for: cell) else { return }
+        let post = posts[indexPath.section]
+        
+        let profileView = ProfileViewController()
+        profileView.hidesBottomBarWhenPushed = true
+        navigationController?.pushViewController(profileView, animated: true)
+    }
 }

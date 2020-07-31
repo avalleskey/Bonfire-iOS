@@ -9,11 +9,17 @@
 import Foundation
 import UIKit
 
+protocol PostHeaderCellDelegate: class {
+    func profileBtnTap(cell: UITableViewCell)
+}
+
 final class PostHeaderCell: UITableViewCell, BFPostCell {
 
     static let reuseIdentifier = "PostHeaderCellIdentifier"
 
     static let rowHeight: CGFloat = 64
+    
+    weak var delegate: PostHeaderCellDelegate?
 
     enum Style {
         case profile
@@ -26,9 +32,9 @@ final class PostHeaderCell: UITableViewCell, BFPostCell {
         }
     }
 
-    let profileImageView: UIImageView = {
-        let imageView = RoundedImageView()
-        imageView.image = UIImage(named: "Austin")!
+    let profileImageView: BFCircularButton = {
+        let imageView = BFCircularButton()
+        imageView.setImage(UIImage(named: "Austin")!, for: .normal)
         return imageView
     }()
 
@@ -62,6 +68,8 @@ final class PostHeaderCell: UITableViewCell, BFPostCell {
 
         contentView.addSubview(profileImageView)
         contentView.addSubview(headerLabelStack)
+        
+        isUserInteractionEnabled = true
 
         updateConstraints()
     }
@@ -85,6 +93,14 @@ final class PostHeaderCell: UITableViewCell, BFPostCell {
                 equalTo: profileImageView.trailingAnchor,
                 constant: 12),
         ])
+    }
+    
+    override func prepareForReuse() {
+        profileImageView.removeTarget(self, action: #selector(profileImageTap), for: .touchUpInside)
+    }
+    
+    @objc func profileImageTap(sender: UIButton) {
+        delegate?.profileBtnTap(cell: self)
     }
 
 }

@@ -1,14 +1,14 @@
 //
-//  ProfileViewController.swift
+//  CampViewController.swift
 //  Bonfire
 //
-//  Created by James Dale on 29/7/20.
+//  Created by James Dale on 31/7/20.
 //  Copyright © 2020 Ingenious. All rights reserved.
 //
 
 import UIKit
 
-final class ProfileViewController: UIViewController {
+final class CampViewController: UIViewController {
 
     private let feedTableView = BFFeedTableViewController()
     
@@ -16,7 +16,7 @@ final class ProfileViewController: UIViewController {
         super.init(nibName: nil, bundle: nil)
         
         view.backgroundColor = Constants.Color.brand
-        navigationItem.title = "John Smith"
+        navigationItem.title = "Camp Test"
         
         addChild(feedTableView)
         view.addSubview(feedTableView.view)
@@ -35,9 +35,9 @@ final class ProfileViewController: UIViewController {
     
 }
 
-// We need this to fix a nasty issue with tab bar controller and navigation controller together
-extension ProfileViewController: UIGestureRecognizerDelegate {
+extension CampViewController: UIGestureRecognizerDelegate {
     func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
         true
     }
 }
+

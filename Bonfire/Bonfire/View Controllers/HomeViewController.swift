@@ -29,6 +29,7 @@ final class HomeViewController: UIKeyboardSubscribedViewController {
         super.viewDidLoad()
         if #available(iOS 13.0, *) { view.backgroundColor = .systemBackground }
 
+        addChild(homeFeedTableView)
         view.addSubview(homeFeedTableView.view)
         view.addSubview(activityIndicator)
 

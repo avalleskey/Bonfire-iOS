@@ -11,9 +11,23 @@ import Foundation
 import Kingfisher
 import UIKit
 
+protocol BFFeedTableViewControllerDelegate: class {
+    
+}
+
 final class BFFeedTableViewController: UITableViewController {
 
     public var posts: [Post] = []
+    
+    public var enableConversationView: Bool = false {
+        didSet {
+            tableView.allowsSelection = enableConversationView
+        }
+    }
+    
+    public var showsReplyCell = true { didSet { tableView.reloadData() }}
+    
+    private var transitionDelegate: BFModalTransitioningDelegate?
 
     init() {
         super.init(nibName: nil, bundle: nil)
@@ -55,13 +69,13 @@ final class BFFeedTableViewController: UITableViewController {
     func postCellTypes(post: Post) -> [BFPostCell.Type] {
         if post.attributes.attachments == nil {
             return [
-                PostHeaderCell.self, PostMessageCell.self, PostActionsCell.self, AddReplyCell.self,
-            ]
+                PostHeaderCell.self, PostMessageCell.self, PostActionsCell.self, { showsReplyCell ? AddReplyCell.self : nil }(),
+            ].compactMap { $0 }
         } else {
             return [
                 PostHeaderCell.self, PostMessageCell.self, PostImageAttachmentCell.self,
-                PostActionsCell.self, AddReplyCell.self,
-            ]
+                PostActionsCell.self, { showsReplyCell ? AddReplyCell.self : nil }()
+            ].compactMap { $0 }
         }
     }
 
@@ -166,6 +180,7 @@ final class BFFeedTableViewController: UITableViewController {
                 for: indexPath)
         }
 
+        cell.selectionStyle = .none
         return cell
     }
 
@@ -185,10 +200,21 @@ final class BFFeedTableViewController: UITableViewController {
     {
         return UIView()
     }
+    
     override func tableView(_ tableView: UITableView, heightForFooterInSection section: Int)
         -> CGFloat
     {
         return 32
+    }
+    
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let post = posts[indexPath.section]
+        let conversationVC = ConversationViewController(post: post)
+        let navVC = BFModalNavigationController(root: conversationVC)
+        navVC.modalPresentationStyle = .custom
+        transitionDelegate = BFModalTransitioningDelegate(from: self, to: navVC)
+        navVC.transitioningDelegate = transitionDelegate
+        present(navVC, animated: true)
     }
 
 }

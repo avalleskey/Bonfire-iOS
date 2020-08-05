@@ -124,6 +124,7 @@
 		1A9ECBDE24AA443F00391279 /* UserFriendsRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A9ECBDD24AA443F00391279 /* UserFriendsRequest.swift */; };
 		1A9ECBE024AA44D400391279 /* UserFriendsResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A9ECBDF24AA44D400391279 /* UserFriendsResponse.swift */; };
 		1A9ECBE224AA471100391279 /* BFResource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A9ECBE124AA471100391279 /* BFResource.swift */; };
+		1AA327E624DB310000FC3A51 /* UserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA327E524DB310000FC3A51 /* UserTests.swift */; };
 		1AA410D224D9C0350083363B /* PostViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA410D124D9C0350083363B /* PostViewController.swift */; };
 		1AA410D524D9F04D0083363B /* BFModalTransitioningDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA410D424D9F04D0083363B /* BFModalTransitioningDelegate.swift */; };
 		1AA410D724D9F1650083363B /* BFModalPresentationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA410D624D9F1650083363B /* BFModalPresentationController.swift */; };
@@ -350,6 +351,7 @@
 		1A9ECBDD24AA443F00391279 /* UserFriendsRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserFriendsRequest.swift; sourceTree = "<group>"; };
 		1A9ECBDF24AA44D400391279 /* UserFriendsResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserFriendsResponse.swift; sourceTree = "<group>"; };
 		1A9ECBE124AA471100391279 /* BFResource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFResource.swift; sourceTree = "<group>"; };
+		1AA327E524DB310000FC3A51 /* UserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserTests.swift; sourceTree = "<group>"; };
 		1AA410D124D9C0350083363B /* PostViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostViewController.swift; sourceTree = "<group>"; };
 		1AA410D424D9F04D0083363B /* BFModalTransitioningDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFModalTransitioningDelegate.swift; sourceTree = "<group>"; };
 		1AA410D624D9F1650083363B /* BFModalPresentationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFModalPresentationController.swift; sourceTree = "<group>"; };
@@ -773,6 +775,7 @@
 		1A84472D249D4B88002813CB /* BFNetworkingTests */ = {
 			isa = PBXGroup;
 			children = (
+				1AA327E524DB310000FC3A51 /* UserTests.swift */,
 				1A84472E249D4B88002813CB /* BFNetworkingTests.swift */,
 				1A844730249D4B88002813CB /* Info.plist */,
 			);
@@ -1461,6 +1464,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1AA327E624DB310000FC3A51 /* UserTests.swift in Sources */,
 				1A84472F249D4B88002813CB /* BFNetworkingTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

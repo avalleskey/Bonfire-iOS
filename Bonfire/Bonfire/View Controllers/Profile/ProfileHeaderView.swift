@@ -35,14 +35,34 @@ final class ProfileHeaderView: UIView {
     init() {
         super.init(frame: .zero)
         
+        backgroundColor = .red
         pageViewController.dataSource = self
         pageViewController.setViewControllers([ProfileSummaryPageViewController()],
                                               direction: .forward,
                                               animated: false)
+        
+        actionsStackView.addArrangedSubview(addFriendBtn)
+        actionsStackView.addArrangedSubview(messageBtn)
+        
+        addSubview(pageViewController.view)
+        addSubview(actionsStackView)
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    override func updateConstraints() {
+        super.updateConstraints()
+        
+        pageViewController.view.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            pageViewController.view.topAnchor.constraint(equalTo: topAnchor),
+            pageViewController.view.bottomAnchor.constraint(equalTo: centerYAnchor),
+            pageViewController.view.leadingAnchor.constraint(equalTo: leadingAnchor),
+            pageViewController.view.trailingAnchor.constraint(equalTo: trailingAnchor),
+        ])
     }
     
 }

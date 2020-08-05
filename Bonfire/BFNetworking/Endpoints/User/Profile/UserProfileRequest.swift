@@ -9,7 +9,7 @@
 import Foundation
 
 public struct UserProfileRequest: APIRequest {
-    public let resource: String = "users/me"
+    public let resource: String
 
     public let body: Data? = nil
 
@@ -20,6 +20,18 @@ public struct UserProfileRequest: APIRequest {
     public let authenticationType: AuthenticationType = .userAuth
 
     public typealias Response = UserProfileResponse
+    
+    public enum ProfileType {
+        case me
+        case otherUser(String)
+    }
 
-    public init() {}
+    public init(type: ProfileType) {
+        switch type {
+        case .me:
+            self.resource = "users/me"
+        case .otherUser(let userId):
+            self.resource = "users/\(userId)"
+        }
+    }
 }

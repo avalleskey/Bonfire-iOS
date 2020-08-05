@@ -62,21 +62,24 @@ final class BFFeedTableViewController: UITableViewController {
         -> CGFloat
     {
         let post = posts[indexPath.section]
-        let type = postCellTypes(post: post)[indexPath.row]
+        let type = postCellTypes(for: post)[indexPath.row]
         return type.rowHeight
     }
 
-    func postCellTypes(post: Post) -> [BFPostCell.Type] {
-        if post.attributes.attachments == nil {
-            return [
-                PostHeaderCell.self, PostMessageCell.self, PostActionsCell.self, { showsReplyCell ? AddReplyCell.self : nil }(),
-            ].compactMap { $0 }
-        } else {
-            return [
-                PostHeaderCell.self, PostMessageCell.self, PostImageAttachmentCell.self,
-                PostActionsCell.self, { showsReplyCell ? AddReplyCell.self : nil }()
-            ].compactMap { $0 }
+    func postCellTypes(for post: Post) -> [BFPostCell.Type] {
+        var types: [BFPostCell.Type] = [PostHeaderCell.self, PostMessageCell.self]
+        
+        post.attributes
+            .attachments?
+            .media?
+            .forEach { _ in types.append(PostImageAttachmentCell.self) }
+        
+        if showsReplyCell {
+            types.append(AddReplyCell.self)
         }
+        
+        types.append(PostActionsCell.self)
+        return types
     }
 
     override func numberOfSections(in tableView: UITableView) -> Int {
@@ -85,7 +88,7 @@ final class BFFeedTableViewController: UITableViewController {
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         let post = posts[section]
-        return postCellTypes(post: post).count
+        return postCellTypes(for: post).count
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath)
@@ -94,7 +97,7 @@ final class BFFeedTableViewController: UITableViewController {
         let cell: UITableViewCell
 
         let post = posts[indexPath.section]
-        let type = postCellTypes(post: post)[indexPath.row]
+        let type = postCellTypes(for: post)[indexPath.row]
 
         switch type {
         case is PostHeaderCell.Type:
@@ -225,6 +228,7 @@ extension BFFeedTableViewController: PostHeaderCellDelegate {
         let post = posts[indexPath.section]
         
         let profileView = ProfileViewController()
+        profileView.__tempUpdatePost(post: post)
         profileView.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(profileView, animated: true)
     }

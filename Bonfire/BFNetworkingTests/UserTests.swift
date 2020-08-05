@@ -11,11 +11,36 @@ import XCTest
 
 @testable import BFNetworking
 
-class UserProfileTests: XCTestCase {
+final class UserProfileTests: XCTestCase {
+    
+    private let client = APIClient()
 
     func testUserProfile() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
+        let expectation = XCTestExpectation(description: "User profile loads")
+        client.send(UserProfileRequest(type: .me)) { (result) in
+            switch result {
+            case .success(_):
+                expectation.fulfill()
+            case .failure(let error):
+                XCTFail(error.localizedDescription)
+            }
+        }
+        
+        wait(for: [expectation], timeout: 10)
+    }
+    
+    func testOtherUserProfile() throws {
+        let expectation = XCTestExpectation(description: "User profile loads")
+        client.send(UserProfileRequest(type: .otherUser("-rbVMBo75ADawYXOGRA"))) { (result) in
+            switch result {
+            case .success(_):
+                expectation.fulfill()
+            case .failure(let error):
+                XCTFail(error.localizedDescription)
+            }
+        }
+        
+        wait(for: [expectation], timeout: 10)
     }
 
 }

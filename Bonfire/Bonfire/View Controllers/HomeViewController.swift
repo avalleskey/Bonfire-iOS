@@ -37,6 +37,7 @@ final class HomeViewController: UIKeyboardSubscribedViewController {
         segmentedControl.addItem(.init(title: "For You", target: nil, action: nil))
 
         navigationItem.titleView = segmentedControl
+        homeFeedTableView.enableConversationView = true
 
         refresh()
         subscribeToKeyboard()

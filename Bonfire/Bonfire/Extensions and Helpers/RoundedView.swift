@@ -9,7 +9,7 @@
 import Foundation
 import UIKit
 
-final class RoundedView: UIView {
+class RoundedView: UIView {
     private func updateRadius() {
         layer.cornerRadius = frame.width / 2
         layer.masksToBounds = true

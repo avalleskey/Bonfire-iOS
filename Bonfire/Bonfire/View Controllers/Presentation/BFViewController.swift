@@ -9,19 +9,19 @@
 import Foundation
 import UIKit
 
-class BFModalPresentationController: UIPresentationController {
-
-    override init(
-        presentedViewController: UIViewController,
-        presenting presentingViewController: UIViewController?
-    ) {
-        super.init(
-            presentedViewController: presentedViewController, presenting: presentingViewController)
-
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-}
+//class BFModalPresentationController: UIPresentationController {
+//
+//    override init(
+//        presentedViewController: UIViewController,
+//        presenting presentingViewController: UIViewController?
+//    ) {
+//        super.init(
+//            presentedViewController: presentedViewController, presenting: presentingViewController)
+//
+//    }
+//
+//    required init?(coder: NSCoder) {
+//        fatalError("init(coder:) has not been implemented")
+//    }
+//
+//}

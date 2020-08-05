@@ -124,6 +124,10 @@
 		1A9ECBDE24AA443F00391279 /* UserFriendsRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A9ECBDD24AA443F00391279 /* UserFriendsRequest.swift */; };
 		1A9ECBE024AA44D400391279 /* UserFriendsResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A9ECBDF24AA44D400391279 /* UserFriendsResponse.swift */; };
 		1A9ECBE224AA471100391279 /* BFResource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A9ECBE124AA471100391279 /* BFResource.swift */; };
+		1AA410D224D9C0350083363B /* PostViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA410D124D9C0350083363B /* PostViewController.swift */; };
+		1AA410D524D9F04D0083363B /* BFModalTransitioningDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA410D424D9F04D0083363B /* BFModalTransitioningDelegate.swift */; };
+		1AA410D724D9F1650083363B /* BFModalPresentationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA410D624D9F1650083363B /* BFModalPresentationController.swift */; };
+		1AA410D924D9F7AC0083363B /* BFModalAnimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA410D824D9F7AC0083363B /* BFModalAnimator.swift */; };
 		1AA86BC624D1C563009BFE07 /* BFPostCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA86BC524D1C563009BFE07 /* BFPostCell.swift */; };
 		1AA86BC824D1D8C8009BFE07 /* BFMediaAttachment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA86BC724D1D8C8009BFE07 /* BFMediaAttachment.swift */; };
 		1AA86BCA24D1E54A009BFE07 /* PostVideoAttachmentCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA86BC924D1E54A009BFE07 /* PostVideoAttachmentCell.swift */; };
@@ -136,6 +140,8 @@
 		1AABE1FF24C5CCC000D8E674 /* BFSegueButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AABE1FE24C5CCC000D8E674 /* BFSegueButton.swift */; };
 		1AAC6F0F24B3A5C400EFD803 /* AddReplyCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AAC6F0E24B3A5C400EFD803 /* AddReplyCell.swift */; };
 		1ABDB17524A35EE100D05140 /* PostMessageCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ABDB17424A35EE100D05140 /* PostMessageCell.swift */; };
+		1ABF83C524D9FF24007E2E8B /* BFModalNavigationBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ABF83C424D9FF24007E2E8B /* BFModalNavigationBar.swift */; };
+		1ABF83C724DA0050007E2E8B /* BFModalNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ABF83C624DA0050007E2E8B /* BFModalNavigationController.swift */; };
 		1AF7FCEC24A2700B003FCF9F /* BFSegmentedControlButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AF7FCEB24A2700B003FCF9F /* BFSegmentedControlButton.swift */; };
 		1AF92AD324C73E8D00D253AC /* BFColorPickerButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AF92AD224C73E8D00D253AC /* BFColorPickerButton.swift */; };
 		1AF92AD524C9D0E900D253AC /* GetStartedNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AF92AD424C9D0E900D253AC /* GetStartedNavigationController.swift */; };
@@ -344,6 +350,10 @@
 		1A9ECBDD24AA443F00391279 /* UserFriendsRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserFriendsRequest.swift; sourceTree = "<group>"; };
 		1A9ECBDF24AA44D400391279 /* UserFriendsResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserFriendsResponse.swift; sourceTree = "<group>"; };
 		1A9ECBE124AA471100391279 /* BFResource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFResource.swift; sourceTree = "<group>"; };
+		1AA410D124D9C0350083363B /* PostViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostViewController.swift; sourceTree = "<group>"; };
+		1AA410D424D9F04D0083363B /* BFModalTransitioningDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFModalTransitioningDelegate.swift; sourceTree = "<group>"; };
+		1AA410D624D9F1650083363B /* BFModalPresentationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFModalPresentationController.swift; sourceTree = "<group>"; };
+		1AA410D824D9F7AC0083363B /* BFModalAnimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFModalAnimator.swift; sourceTree = "<group>"; };
 		1AA86BC524D1C563009BFE07 /* BFPostCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFPostCell.swift; sourceTree = "<group>"; };
 		1AA86BC724D1D8C8009BFE07 /* BFMediaAttachment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFMediaAttachment.swift; sourceTree = "<group>"; };
 		1AA86BC924D1E54A009BFE07 /* PostVideoAttachmentCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostVideoAttachmentCell.swift; sourceTree = "<group>"; };
@@ -356,6 +366,8 @@
 		1AABE1FE24C5CCC000D8E674 /* BFSegueButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFSegueButton.swift; sourceTree = "<group>"; };
 		1AAC6F0E24B3A5C400EFD803 /* AddReplyCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddReplyCell.swift; sourceTree = "<group>"; };
 		1ABDB17424A35EE100D05140 /* PostMessageCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostMessageCell.swift; sourceTree = "<group>"; };
+		1ABF83C424D9FF24007E2E8B /* BFModalNavigationBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFModalNavigationBar.swift; sourceTree = "<group>"; };
+		1ABF83C624DA0050007E2E8B /* BFModalNavigationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFModalNavigationController.swift; sourceTree = "<group>"; };
 		1AE84B8C24C07AE400553D72 /* Bonfire.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Bonfire.entitlements; sourceTree = "<group>"; };
 		1AF7FCEB24A2700B003FCF9F /* BFSegmentedControlButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFSegmentedControlButton.swift; sourceTree = "<group>"; };
 		1AF92AD224C73E8D00D253AC /* BFColorPickerButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFColorPickerButton.swift; sourceTree = "<group>"; };
@@ -770,6 +782,8 @@
 		1A844740249D4BAD002813CB /* View Controllers */ = {
 			isa = PBXGroup;
 			children = (
+				1AA410D324D9EFF60083363B /* Modals */,
+				1AA410D024D9C0210083363B /* Post */,
 				1A3ED13524D38D16001DA453 /* Camp */,
 				1A92C77F24D181310015E993 /* Profile */,
 				1A212A0724BC868300A0DCD3 /* Form */,
@@ -945,6 +959,26 @@
 				D943EEE424CB6FE000C30F8B /* Notifications */,
 			);
 			path = User;
+			sourceTree = "<group>";
+		};
+		1AA410D024D9C0210083363B /* Post */ = {
+			isa = PBXGroup;
+			children = (
+				1AA410D124D9C0350083363B /* PostViewController.swift */,
+			);
+			path = Post;
+			sourceTree = "<group>";
+		};
+		1AA410D324D9EFF60083363B /* Modals */ = {
+			isa = PBXGroup;
+			children = (
+				1AA410D424D9F04D0083363B /* BFModalTransitioningDelegate.swift */,
+				1AA410D624D9F1650083363B /* BFModalPresentationController.swift */,
+				1AA410D824D9F7AC0083363B /* BFModalAnimator.swift */,
+				1ABF83C424D9FF24007E2E8B /* BFModalNavigationBar.swift */,
+				1ABF83C624DA0050007E2E8B /* BFModalNavigationController.swift */,
+			);
+			path = Modals;
 			sourceTree = "<group>";
 		};
 		1AA86BD124D1E6A2009BFE07 /* Profile */ = {
@@ -1296,12 +1330,15 @@
 				1A6C8F8324C5E16500CD7A3E /* BFTextField.swift in Sources */,
 				1A0CB46424C7230D00BD2A50 /* BFFormColorPickerView.swift in Sources */,
 				1A844744249D4C78002813CB /* CampsViewController.swift in Sources */,
+				1AA410D524D9F04D0083363B /* BFModalTransitioningDelegate.swift in Sources */,
 				1A844742249D4C70002813CB /* FriendsViewController.swift in Sources */,
 				1A24431524A0E7930039BAAB /* UIViewController+Extensions.swift in Sources */,
 				1A7854E2249FBCEB00BA1589 /* BFSegmentedControl.swift in Sources */,
 				1AF7FCEC24A2700B003FCF9F /* BFSegmentedControlButton.swift in Sources */,
+				1AA410D924D9F7AC0083363B /* BFModalAnimator.swift in Sources */,
 				1A212A1124BC87B000A0DCD3 /* BFSignInForm.swift in Sources */,
 				D943EEEC24CB945600C30F8B /* RoundedView.swift in Sources */,
+				1AA410D224D9C0350083363B /* PostViewController.swift in Sources */,
 				1A212A1624BC890000A0DCD3 /* BFSignInData.swift in Sources */,
 				1AABE1FF24C5CCC000D8E674 /* BFSegueButton.swift in Sources */,
 				1AF92AD324C73E8D00D253AC /* BFColorPickerButton.swift in Sources */,
@@ -1309,6 +1346,7 @@
 				1A844702249C8652002813CB /* HomeViewController.swift in Sources */,
 				1A24430E24A0D83E0039BAAB /* BFFeedTableViewController.swift in Sources */,
 				1A3ED13224D37EC5001DA453 /* ProfileSummaryPageViewController.swift in Sources */,
+				1AA410D724D9F1650083363B /* BFModalPresentationController.swift in Sources */,
 				1A24431324A0DB750039BAAB /* PostActionsCell.swift in Sources */,
 				1A0CB45C24C71CE100BD2A50 /* BFSignUpForm.swift in Sources */,
 				1AA86BCE24D1E560009BFE07 /* PostLinkAttachmentCell.swift in Sources */,
@@ -1335,6 +1373,7 @@
 				1A6F958624B8E0C4004A20F4 /* GetStartedViewController.swift in Sources */,
 				1A0CB45A24C71B7B00BD2A50 /* BFValidationResponse.swift in Sources */,
 				1A212A0924BC869100A0DCD3 /* BFFormPageViewController.swift in Sources */,
+				1ABF83C524D9FF24007E2E8B /* BFModalNavigationBar.swift in Sources */,
 				1A3ED12E24D37E34001DA453 /* ProfileCardView.swift in Sources */,
 				1A0CB46624C7231A00BD2A50 /* BFFormCampPickerView.swift in Sources */,
 				1A3ED13D24D38FC4001DA453 /* CampMembersViewController.swift in Sources */,
@@ -1343,6 +1382,7 @@
 				1AAC6F0F24B3A5C400EFD803 /* AddReplyCell.swift in Sources */,
 				1A847D3924B1B65800530614 /* PostImageAttachmentCell.swift in Sources */,
 				1A6859BD249F632A008DB6BC /* FriendsTableViewController.swift in Sources */,
+				1ABF83C724DA0050007E2E8B /* BFModalNavigationController.swift in Sources */,
 				1A3ED12C24D37D5C001DA453 /* ProfileHeaderView.swift in Sources */,
 				1A3ED12A24D37793001DA453 /* BFCircularButton.swift in Sources */,
 				1A7854DB249FBBC500BA1589 /* CampControllerProtocol.swift in Sources */,

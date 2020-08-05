@@ -7,19 +7,27 @@
 //
 
 import UIKit
+import BFCore
 
 final class ProfileViewController: UIViewController {
 
+    private let headerView = ProfileHeaderView()
     private let feedTableView = BFFeedTableViewController()
     
     init() {
         super.init(nibName: nil, bundle: nil)
-        
-        view.backgroundColor = Constants.Color.brand
         navigationItem.title = "John Smith"
         
         addChild(feedTableView)
         view.addSubview(feedTableView.view)
+        feedTableView.tableView.tableHeaderView = headerView
+        
+        updateViewConstraints()
+    }
+    
+    func __tempUpdatePost(post: Post) {
+        feedTableView.posts = [post]
+        feedTableView.tableView.reloadData()
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -30,6 +38,23 @@ final class ProfileViewController: UIViewController {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    override func updateViewConstraints() {
+        super.updateViewConstraints()
+        
+        headerView.translatesAutoresizingMaskIntoConstraints = false
+        feedTableView.view.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            feedTableView.view.topAnchor.constraint(equalTo: view.topAnchor),
+            feedTableView.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            feedTableView.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            feedTableView.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            
+            headerView.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.8),
+            headerView.widthAnchor.constraint(equalTo: feedTableView.tableView.widthAnchor)
+        ])
     }
     
     

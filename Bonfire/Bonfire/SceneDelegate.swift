@@ -23,7 +23,6 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
         guard let scene = (scene as? UIWindowScene) else { return }
 
-        KeychainVault.accessToken = nil
         let tabVC = BFTabBarController()
 
         let friendsVC = FriendsViewController()
@@ -54,7 +53,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let window = UIWindow(windowScene: scene)
         window.rootViewController = tabVC
         window.makeKeyAndVisible()
-        
+
         window.tintColor = Constants.Color.brand
         self.window = window
     }

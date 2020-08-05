@@ -14,7 +14,7 @@ public struct KeychainProperty<Value: Keychainable> {
 
     public let key: KeychainKey
 
-    public var keychain = KeychainSwift()
+    public var keychain: KeychainSwift
 
     public var wrappedValue: Value? {
         get {

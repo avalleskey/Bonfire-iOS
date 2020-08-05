@@ -10,5 +10,5 @@ import BFCore
 import Foundation
 
 public struct UserProfileResponse: Decodable {
-    public let data: [User]
+    public let data: User
 }

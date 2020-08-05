@@ -61,6 +61,13 @@ public struct APIClient {
             if let httpResp = response as? HTTPURLResponse {
                 let code = httpResp.statusCode
                 print("[HTTP]", code, String(data: data ?? Data(), encoding: .utf8) ?? "--")
+                
+                if code == 401 {
+                    KeychainVault.accessToken = nil
+                    //TODO: Refresh
+                    send(request, completion: completion)
+                    return
+                }
             }
 
             guard let data = data else {

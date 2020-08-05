@@ -58,6 +58,8 @@
 		1A6859BD249F632A008DB6BC /* FriendsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A6859BC249F632A008DB6BC /* FriendsTableViewController.swift */; };
 		1A6859BF249F6376008DB6BC /* FriendTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A6859BE249F6376008DB6BC /* FriendTableViewCell.swift */; };
 		1A6C8F8324C5E16500CD7A3E /* BFTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A6C8F8224C5E16500CD7A3E /* BFTextField.swift */; };
+		1A6E0C3524DB40040052EAAF /* AuthTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A6E0C3424DB40040052EAAF /* AuthTests.swift */; };
+		1A6E0C3724DB40CC0052EAAF /* KeychainTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A6E0C3624DB40CC0052EAAF /* KeychainTests.swift */; };
 		1A6F958624B8E0C4004A20F4 /* GetStartedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A6F958524B8E0C4004A20F4 /* GetStartedViewController.swift */; };
 		1A6F958924B8E6AC004A20F4 /* KeychainSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 1A6F958824B8E6AC004A20F4 /* KeychainSwift */; };
 		1A6F958C24B8E6C8004A20F4 /* Keychainable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A6F958B24B8E6C8004A20F4 /* Keychainable.swift */; };
@@ -88,7 +90,6 @@
 		1A844707249C8655002813CB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1A844706249C8655002813CB /* Assets.xcassets */; };
 		1A84470A249C8655002813CB /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1A844708249C8655002813CB /* LaunchScreen.storyboard */; };
 		1A844728249D4B88002813CB /* BFNetworking.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A84471F249D4B88002813CB /* BFNetworking.framework */; };
-		1A84472F249D4B88002813CB /* BFNetworkingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A84472E249D4B88002813CB /* BFNetworkingTests.swift */; };
 		1A844731249D4B88002813CB /* BFNetworking.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A844721249D4B88002813CB /* BFNetworking.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A844734249D4B88002813CB /* BFNetworking.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A84471F249D4B88002813CB /* BFNetworking.framework */; };
 		1A844735249D4B88002813CB /* BFNetworking.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 1A84471F249D4B88002813CB /* BFNetworking.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -126,6 +127,8 @@
 		1A9ECBE224AA471100391279 /* BFResource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A9ECBE124AA471100391279 /* BFResource.swift */; };
 		1AA327E624DB310000FC3A51 /* UserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA327E524DB310000FC3A51 /* UserTests.swift */; };
 		1AA327E824DB357200FC3A51 /* BFActionButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA327E724DB357200FC3A51 /* BFActionButton.swift */; };
+		1AA327EA24DB3D0900FC3A51 /* BFNetworkingTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA327E924DB3D0900FC3A51 /* BFNetworkingTestCase.swift */; };
+		1AA327EC24DB3FAF00FC3A51 /* CampTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA327EB24DB3FAF00FC3A51 /* CampTests.swift */; };
 		1AA410D224D9C0350083363B /* PostViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA410D124D9C0350083363B /* PostViewController.swift */; };
 		1AA410D524D9F04D0083363B /* BFModalTransitioningDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA410D424D9F04D0083363B /* BFModalTransitioningDelegate.swift */; };
 		1AA410D724D9F1650083363B /* BFModalPresentationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA410D624D9F1650083363B /* BFModalPresentationController.swift */; };
@@ -286,6 +289,8 @@
 		1A6859BC249F632A008DB6BC /* FriendsTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsTableViewController.swift; sourceTree = "<group>"; };
 		1A6859BE249F6376008DB6BC /* FriendTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendTableViewCell.swift; sourceTree = "<group>"; };
 		1A6C8F8224C5E16500CD7A3E /* BFTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFTextField.swift; sourceTree = "<group>"; };
+		1A6E0C3424DB40040052EAAF /* AuthTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthTests.swift; sourceTree = "<group>"; };
+		1A6E0C3624DB40CC0052EAAF /* KeychainTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainTests.swift; sourceTree = "<group>"; };
 		1A6F958524B8E0C4004A20F4 /* GetStartedViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GetStartedViewController.swift; sourceTree = "<group>"; };
 		1A6F958B24B8E6C8004A20F4 /* Keychainable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keychainable.swift; sourceTree = "<group>"; };
 		1A6F958D24B8E6DA004A20F4 /* KeychainKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainKey.swift; sourceTree = "<group>"; };
@@ -323,7 +328,6 @@
 		1A844721249D4B88002813CB /* BFNetworking.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BFNetworking.h; sourceTree = "<group>"; };
 		1A844722249D4B88002813CB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		1A844727249D4B88002813CB /* BFNetworkingTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BFNetworkingTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		1A84472E249D4B88002813CB /* BFNetworkingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFNetworkingTests.swift; sourceTree = "<group>"; };
 		1A844730249D4B88002813CB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		1A844741249D4C70002813CB /* FriendsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsViewController.swift; sourceTree = "<group>"; };
 		1A844743249D4C78002813CB /* CampsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampsViewController.swift; sourceTree = "<group>"; };
@@ -354,6 +358,8 @@
 		1A9ECBE124AA471100391279 /* BFResource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFResource.swift; sourceTree = "<group>"; };
 		1AA327E524DB310000FC3A51 /* UserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserTests.swift; sourceTree = "<group>"; };
 		1AA327E724DB357200FC3A51 /* BFActionButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFActionButton.swift; sourceTree = "<group>"; };
+		1AA327E924DB3D0900FC3A51 /* BFNetworkingTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFNetworkingTestCase.swift; sourceTree = "<group>"; };
+		1AA327EB24DB3FAF00FC3A51 /* CampTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampTests.swift; sourceTree = "<group>"; };
 		1AA410D124D9C0350083363B /* PostViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostViewController.swift; sourceTree = "<group>"; };
 		1AA410D424D9F04D0083363B /* BFModalTransitioningDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFModalTransitioningDelegate.swift; sourceTree = "<group>"; };
 		1AA410D624D9F1650083363B /* BFModalPresentationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFModalPresentationController.swift; sourceTree = "<group>"; };
@@ -625,6 +631,17 @@
 			path = Friends;
 			sourceTree = "<group>";
 		};
+		1A6E0C3324DB3FE70052EAAF /* Test Cases */ = {
+			isa = PBXGroup;
+			children = (
+				1AA327E524DB310000FC3A51 /* UserTests.swift */,
+				1AA327EB24DB3FAF00FC3A51 /* CampTests.swift */,
+				1A6E0C3424DB40040052EAAF /* AuthTests.swift */,
+				1A6E0C3624DB40CC0052EAAF /* KeychainTests.swift */,
+			);
+			path = "Test Cases";
+			sourceTree = "<group>";
+		};
 		1A6F958424B8E0B8004A20F4 /* Get Started */ = {
 			isa = PBXGroup;
 			children = (
@@ -777,8 +794,8 @@
 		1A84472D249D4B88002813CB /* BFNetworkingTests */ = {
 			isa = PBXGroup;
 			children = (
-				1AA327E524DB310000FC3A51 /* UserTests.swift */,
-				1A84472E249D4B88002813CB /* BFNetworkingTests.swift */,
+				1A6E0C3324DB3FE70052EAAF /* Test Cases */,
+				1AA327E924DB3D0900FC3A51 /* BFNetworkingTestCase.swift */,
 				1A844730249D4B88002813CB /* Info.plist */,
 			);
 			path = BFNetworkingTests;
@@ -1469,7 +1486,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				1AA327E624DB310000FC3A51 /* UserTests.swift in Sources */,
-				1A84472F249D4B88002813CB /* BFNetworkingTests.swift in Sources */,
+				1AA327EA24DB3D0900FC3A51 /* BFNetworkingTestCase.swift in Sources */,
+				1AA327EC24DB3FAF00FC3A51 /* CampTests.swift in Sources */,
+				1A6E0C3524DB40040052EAAF /* AuthTests.swift in Sources */,
+				1A6E0C3724DB40CC0052EAAF /* KeychainTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

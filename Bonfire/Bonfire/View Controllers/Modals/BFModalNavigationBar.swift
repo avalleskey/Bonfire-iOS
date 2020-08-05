@@ -10,29 +10,32 @@ import UIKit
 
 final class BFModalNavigationBar: UINavigationBar {
     
-    let closeBtn: UIButton = {
-        let btn = UIButton()
-        btn.setImage(UIImage(named: "Close"), for: .normal)
+    let closeBtn: BFCircularButton = {
+        let btn = BFCircularButton()
+        btn.setImage(UIImage(named: "Close")?.withRenderingMode(.alwaysTemplate), for: .normal)
+        btn.tintColor = Constants.Color.primary
+        btn.backgroundColor = Constants.Color.secondaryFill
         return btn
     }()
     
     override init(frame: CGRect) {
         super.init(frame: .zero)
+        
         let font = UIFont.systemFont(ofSize: 20, weight: .bold).rounded()
         titleTextAttributes = [NSAttributedString.Key.font: font]
         isTranslucent = true
         backgroundColor = .clear
         barTintColor = .clear
-        
         shadowImage = nil
         
         if #available(iOS 13.0, *) {
             let navBarAppearance = UINavigationBarAppearance()
             navBarAppearance.configureWithOpaqueBackground()
             navBarAppearance.shadowColor = nil
+            navBarAppearance.titleTextAttributes = [NSAttributedString.Key.font: font]
             standardAppearance = navBarAppearance
         }
-        
+                
         addSubview(closeBtn)
         
         updateConstraints()
@@ -48,8 +51,10 @@ final class BFModalNavigationBar: UINavigationBar {
         closeBtn.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
-            closeBtn.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -26),
-            closeBtn.centerYAnchor.constraint(equalTo: centerYAnchor)
+            closeBtn.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -18),
+            closeBtn.centerYAnchor.constraint(equalTo: centerYAnchor),
+            closeBtn.widthAnchor.constraint(equalToConstant: 40),
+            closeBtn.heightAnchor.constraint(equalTo: closeBtn.widthAnchor),
         ])
     }
 }

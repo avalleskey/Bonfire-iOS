@@ -29,7 +29,7 @@ public struct Post: BFResource {
     }
 
     public class Attributes: Codable {
-        public let message: String
+        public let message: String?
         public let creator: User
         public let postedIn: Camp?
         public let parent: Post?

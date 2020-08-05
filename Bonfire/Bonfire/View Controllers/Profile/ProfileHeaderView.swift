@@ -29,6 +29,7 @@ final class ProfileHeaderView: UIView {
     let actionsStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.spacing = 12
+        stackView.distribution = .fillEqually
         return stackView
     }()
     
@@ -65,8 +66,10 @@ final class ProfileHeaderView: UIView {
             pageViewController.view.trailingAnchor.constraint(equalTo: trailingAnchor),
             
             actionsStackView.topAnchor.constraint(equalTo: pageViewController.view.bottomAnchor, constant: 24),
-            actionsStackView.leadingAnchor.constraint(equalTo: leadingAnchor),
-            actionsStackView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            actionsStackView.leadingAnchor.constraint(equalTo: leadingAnchor,
+                                                      constant: 12),
+            actionsStackView.trailingAnchor.constraint(equalTo: trailingAnchor,
+                                                       constant: -12),
         ])
     }
     

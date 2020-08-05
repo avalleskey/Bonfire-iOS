@@ -92,26 +92,14 @@ struct Constants {
             let light: UIColor = UIColor(white: 0, alpha: 0.08)
             let dark: UIColor = UIColor(white: 1, alpha: 0.16)
 
-            if #available(iOS 13.0, *) {
-                return UIColor { (traits) -> UIColor in
-                    return traits.userInterfaceStyle == .dark ? dark : light
-                }
-            } else {
-                return light
-            }
+            return UIColor.dynamicColor(light: light, dark: dark)
         }()
 
         static let cellHighlightedBackground: UIColor = {
             let light: UIColor = UIColor(white: 0, alpha: 0.08)
             let dark: UIColor = UIColor(white: 1, alpha: 0.16)
 
-            if #available(iOS 13.0, *) {
-                return UIColor { (traits) -> UIColor in
-                    return traits.userInterfaceStyle == .dark ? dark : light
-                }
-            } else {
-                return light
-            }
+            return UIColor.dynamicColor(light: light, dark: dark)
         }()
     }
 

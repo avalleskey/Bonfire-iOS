@@ -13,14 +13,14 @@ final class ProfileHeaderView: UIView {
     let pageViewController = UIPageViewController()
     
     let addFriendBtn: UIButton = {
-        let btn = UIButton()
+        let btn = BFActionButton(style: .primary)
         btn.setTitle("Add Friend", for: .normal)
         btn.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .bold).rounded()
         return btn
     }()
     
     let messageBtn: UIButton = {
-        let btn = UIButton()
+        let btn = BFActionButton(style: .secondary)
         btn.setTitle("Message", for: .normal)
         btn.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .bold).rounded()
         return btn
@@ -56,12 +56,17 @@ final class ProfileHeaderView: UIView {
         super.updateConstraints()
         
         pageViewController.view.translatesAutoresizingMaskIntoConstraints = false
+        actionsStackView.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
             pageViewController.view.topAnchor.constraint(equalTo: topAnchor),
             pageViewController.view.bottomAnchor.constraint(equalTo: centerYAnchor),
             pageViewController.view.leadingAnchor.constraint(equalTo: leadingAnchor),
             pageViewController.view.trailingAnchor.constraint(equalTo: trailingAnchor),
+            
+            actionsStackView.topAnchor.constraint(equalTo: pageViewController.view.bottomAnchor, constant: 24),
+            actionsStackView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            actionsStackView.trailingAnchor.constraint(equalTo: trailingAnchor),
         ])
     }
     
@@ -69,10 +74,10 @@ final class ProfileHeaderView: UIView {
 
 extension ProfileHeaderView: UIPageViewControllerDataSource {
     func pageViewController(_ pageViewController: UIPageViewController, viewControllerBefore viewController: UIViewController) -> UIViewController? {
-        nil
+        ProfileSummaryPageViewController()
     }
     
     func pageViewController(_ pageViewController: UIPageViewController, viewControllerAfter viewController: UIViewController) -> UIViewController? {
-        nil
+        ProfileSummaryPageViewController()
     }
 }

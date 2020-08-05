@@ -124,7 +124,7 @@ final class BFFeedTableViewController: UITableViewController {
                     withIdentifier: PostMessageCell.reuseIdentifier,
                     for: indexPath) as! PostMessageCell
             cell = messageCell
-            messageCell.messageLabel.text = String(htmlEncodedString: post.attributes.message)
+            messageCell.messageLabel.text = String(htmlEncodedString: post.attributes.message ?? "")
         case is PostActionsCell.Type:
             let actionsCell =
                 tableView.dequeueReusableCell(

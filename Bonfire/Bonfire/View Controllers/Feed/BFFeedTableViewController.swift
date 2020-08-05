@@ -187,24 +187,24 @@ final class BFFeedTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int)
         -> UIView?
     {
-        return section == 0 ? UIView() : nil
+        return UIView()
     }
     override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int)
         -> CGFloat
     {
-        return section == 0 ? 12 : 0
+        return section == 0 ? 24 : 16
     }
 
     override func tableView(_ tableView: UITableView, viewForFooterInSection section: Int)
         -> UIView?
     {
-        return UIView()
+        return nil
     }
     
     override func tableView(_ tableView: UITableView, heightForFooterInSection section: Int)
         -> CGFloat
     {
-        return 32
+        return 0
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -225,7 +225,7 @@ extension BFFeedTableViewController: PostHeaderCellDelegate {
         let post = posts[indexPath.section]
         
         let profileView = ProfileViewController()
-        profileView.hidesBottomBarWhenPushed = true
+        profileView.hidesBottomBarWhenPushed = false
         navigationController?.pushViewController(profileView, animated: true)
     }
 }

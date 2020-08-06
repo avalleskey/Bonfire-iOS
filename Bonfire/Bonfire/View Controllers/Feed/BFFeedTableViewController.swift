@@ -108,11 +108,11 @@ final class BFFeedTableViewController: UITableViewController {
             cell = headerCell
             headerCell.delegate = self
             headerCell.profileImageView.addTarget(headerCell, action: #selector(PostHeaderCell.profileImageTap(sender:)), for: .touchUpInside)
-            headerCell.profileLabel.text = post.attributes.creator.attributes.display_name
+            headerCell.profileLabel.text = String(htmlEncodedString: post.attributes.creator.attributes.display_name)
             //            headerCell.profileLabel.textColor = UIColor.init(hex: post.attributes.creator.attributes.color)
 
             if let camp = post.attributes.postedIn {
-                headerCell.campLabel.text = "in " + camp.attributes.title
+                headerCell.campLabel.text = String(htmlEncodedString: "in " + camp.attributes.title)
                 headerCell.headerStyle = .camp
             } else {
                 headerCell.headerStyle = .profile

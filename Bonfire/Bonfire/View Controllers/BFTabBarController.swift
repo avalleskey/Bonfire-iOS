@@ -17,13 +17,15 @@ final class BFTabBarController: UITabBarController {
         button.setImage(
             UIImage(named: "CreatePost"), for: .normal)
         button.frame = CGRect(
-            x: 0, y: 0, width: (UIScreen.main.bounds.size.width - 24) / 3, height: 46)
-        button.layer.cornerRadius = button.frame.size.height / 2
-        button.backgroundColor = Constants.Color.secondary.withAlphaComponent(0.08)
-        button.layer.cornerRadius = 23
-        button.tintColor = Constants.Color.primary
-        button.imageEdgeInsets = .init(top: -2, left: 0, bottom: 0, right: -2)
+            x: 0, y: 0, width: 64, height: 64)
+        button.backgroundColor = Constants.Color.primary
+        button.layer.cornerRadius = button.frame.size.width / 2
+//        button.layer.shadowColor = UIColor.black.cgColor
+//        button.layer.shadowOffset = CGSize(width: 0, height: 3)
+//        button.layer.shadowRadius = 8
+//        button.layer.shadowOpacity = 0.12
         button.addTarget(self, action: #selector(compose), for: .touchUpInside)
+        button.tintColor = Constants.Color.systemBackground
         return button
     }()
 
@@ -58,12 +60,16 @@ final class BFTabBarController: UITabBarController {
 
         composeButton.center = CGPoint(
             x: tabBar.frame.size.width / 2,
-            y: tabBar.frame.origin.y - 44 + (tabBar.frame.size.height / 2) + 5)
+            y: tabBar.frame.origin.y - 44 + 24)
         view.insertSubview(composeButton, aboveSubview: tabBar)
 
-        tabBar.backgroundColor = Constants.Color.tabBar
+//        tabBar.backgroundColor = Constants.Color.tabBar
+        tabBar.itemPositioning = .centered
+        tabBar.itemWidth = 106
+        tabBar.itemSpacing = 2
         tabBar.isTranslucent = false
-        tabBar.backgroundImage = UIImage()
+        tabBar.barTintColor = Constants.Color.tabBar
+//        tabBar.backgroundImage = UIImage()
         tabBar.shadowImage = UIImage(named: "TabBarShadow")
         tabBar.tintColor = Constants.Color.primary
         tabBar.unselectedItemTintColor = Constants.Color.secondary
@@ -121,28 +127,21 @@ final class BFTabBarController: UITabBarController {
 
     func hideCompose() {
         let homeTabItemView: UIView = viewForTab(index: 1)
+        homeTabItemView.alpha = 1
 
         UIView.animate(
             withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.5,
             options: [.curveEaseInOut],
             animations: {
-                self.composeButton.transform = CGAffineTransform.identity.scaledBy(x: 0.4, y: 0.6)
+                self.composeButton.transform = CGAffineTransform.identity.scaledBy(x: 0.2, y: 0.2)
                 self.composeButton.alpha = 0
-            }, completion: nil)
-
-        UIView.animate(
-            withDuration: 0.3, delay: 0.2, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.5,
-            options: [.curveEaseInOut],
-            animations: {
-                homeTabItemView.alpha = 1
-                homeTabItemView.transform = CGAffineTransform.init(translationX: 0, y: 0)
             }, completion: nil)
     }
     func showCompose() {
         let homeTabItemView: UIView = self.viewForTab(index: 1)
 
         UIView.animate(
-            withDuration: 0.4, delay: 0.1, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.5,
+            withDuration: 0.4, delay: 0.1, usingSpringWithDamping: 0.65, initialSpringVelocity: 0.5,
             options: [.curveEaseInOut],
             animations: {
                 self.composeButton.transform = CGAffineTransform.identity.scaledBy(x: 1, y: 1)
@@ -150,13 +149,13 @@ final class BFTabBarController: UITabBarController {
             }, completion: nil)
 
         UIView.animate(
-            withDuration: 0.4, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.5,
+            withDuration: 0.3, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0.5,
             options: [.curveEaseInOut],
             animations: {
                 homeTabItemView.alpha = 0
             },
             completion: { finished in
-                homeTabItemView.transform = CGAffineTransform.init(translationX: 0, y: 6)
+
             })
     }
 

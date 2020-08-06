@@ -19,7 +19,6 @@ final class FriendsTableViewController: UITableViewController {
             FriendTableViewCell.self,
             forCellReuseIdentifier: FriendTableViewCell.reuseIdentifier)
         tableView.separatorStyle = .none
-        tableView.contentInset.bottom = 16 + 42 + 16
     }
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")

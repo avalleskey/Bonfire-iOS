@@ -21,7 +21,6 @@ final class CampsTableViewController: UITableViewController {
             CampTableViewCell.self,
             forCellReuseIdentifier: CampTableViewCell.reuseIdentifier)
         tableView.separatorStyle = .none
-        tableView.contentInset.bottom = 16 + 42 + 16
     }
 
     required init?(coder: NSCoder) {

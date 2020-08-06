@@ -20,10 +20,6 @@ final class BFTabBarController: UITabBarController {
             x: 0, y: 0, width: 64, height: 64)
         button.backgroundColor = Constants.Color.primary
         button.layer.cornerRadius = button.frame.size.width / 2
-//        button.layer.shadowColor = UIColor.black.cgColor
-//        button.layer.shadowOffset = CGSize(width: 0, height: 3)
-//        button.layer.shadowRadius = 8
-//        button.layer.shadowOpacity = 0.12
         button.addTarget(self, action: #selector(compose), for: .touchUpInside)
         button.tintColor = Constants.Color.systemBackground
         return button

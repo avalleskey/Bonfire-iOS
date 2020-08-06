@@ -21,7 +21,11 @@ final class HomeViewController: UIKeyboardSubscribedViewController {
         return item
     }
 
-    private let activityIndicator = UIActivityIndicatorView(style: .gray)
+    private let activityIndicator: UIActivityIndicatorView = {
+        var indicator = UIActivityIndicatorView(style: .whiteLarge)
+        indicator.color = Constants.Color.secondary
+        return indicator
+    }()
     private let homeFeedTableView = BFFeedTableViewController()
     private let controller = StreamController()
 
@@ -51,8 +55,14 @@ final class HomeViewController: UIKeyboardSubscribedViewController {
     }
 
     private func refresh() {
+        if self.homeFeedTableView.posts.count == 0 {
+            activityIndicator.startAnimating()
+        }
+        
         controller.getStream { (posts) in
             DispatchQueue.main.async {
+                self.activityIndicator.stopAnimating()
+                
                 self.homeFeedTableView.posts = posts
                 self.homeFeedTableView.tableView.reloadData()
             }

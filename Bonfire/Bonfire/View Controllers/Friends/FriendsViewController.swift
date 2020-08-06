@@ -45,7 +45,10 @@ final class FriendsViewController: UIViewController {
     }
 
     private func refresh() {
-        activityIndicator.startAnimating()
+        if self.friendsTableView.friends.count == 0 {
+            activityIndicator.startAnimating()
+        }
+        
         controller.getFriends { (result) in
             DispatchQueue.main.async {
                 self.activityIndicator.stopAnimating()

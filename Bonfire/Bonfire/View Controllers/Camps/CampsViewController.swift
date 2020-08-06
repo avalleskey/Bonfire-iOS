@@ -44,7 +44,10 @@ final class CampsViewController: UIViewController {
     }
 
     private func refresh() {
-        activityIndicator.startAnimating()
+        if self.campsTableView.camps.count == 0 {
+            activityIndicator.startAnimating()
+        }
+        
         controller.getCamps { (camps) in
             DispatchQueue.main.async {
                 self.activityIndicator.stopAnimating()

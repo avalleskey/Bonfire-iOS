@@ -31,6 +31,9 @@ final class HomeViewController: UIKeyboardSubscribedViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        title = "Activity"
+        
         if #available(iOS 13.0, *) { view.backgroundColor = .systemBackground }
 
         addChild(homeFeedTableView)
@@ -40,7 +43,6 @@ final class HomeViewController: UIKeyboardSubscribedViewController {
         segmentedControl.addItem(.init(title: "Following", target: nil, action: nil))
         segmentedControl.addItem(.init(title: "For You", target: nil, action: nil))
 
-        navigationItem.titleView = segmentedControl
         homeFeedTableView.enableConversationView = true
 
         refresh()

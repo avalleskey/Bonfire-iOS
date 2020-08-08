@@ -28,6 +28,9 @@ final class CampsViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        title = "Camps"
+                
         if #available(iOS 13.0, *) { view.backgroundColor = .systemBackground }
 
         view.addSubview(campsTableView.view)

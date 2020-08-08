@@ -28,11 +28,6 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let friendsVC = FriendsViewController()
         let friendsNavVC = BFNavigationController(rootViewController: friendsVC)
         friendsVC.tabBarItem = FriendsViewController.defaultTabBarItem
-        let friendsPillButton = BFPillButton(
-            title: "Add Friends", icon: "AddFriends", target: tabVC,
-            action: #selector(tabVC.addFriends))
-        friendsPillButton.tag = friendsVC.tabBarItem.tag
-//        tabVC.addPillButton(friendsPillButton, viewController: friendsNavVC)
 
         let homeVC = HomeViewController()
         let homeNavVC = BFNavigationController(rootViewController: homeVC)
@@ -41,10 +36,6 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let campsVC = CampsViewController()
         let campsNavVC = BFNavigationController(rootViewController: campsVC)
         campsVC.tabBarItem = CampsViewController.defaultTabBarItem
-        let campsPillButton = BFPillButton(
-            title: "Add Camps", icon: "Plus", target: tabVC, action: #selector(tabVC.addCamps))
-        campsPillButton.tag = campsVC.tabBarItem.tag
-//        tabVC.addPillButton(campsPillButton, viewController: campsNavVC)
 
         tabVC.setViewControllers([friendsNavVC, homeNavVC, campsNavVC], animated: false)
 

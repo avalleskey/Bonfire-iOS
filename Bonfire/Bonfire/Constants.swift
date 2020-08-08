@@ -11,15 +11,13 @@ import UIKit
 
 struct Constants {
     struct TabBar {
-        static let homeDefaultText = "Home"
+        static let homeDefaultText = "Activity"
         static let campsDefaultText = "Camps"
         static let friendsDefaultText = "Friends"
 
-        static let homeDefaultImage = UIImage(named: "Home")!
-        static let campsDefaultImage = UIImage(named: "Camps")!
-        static let friendsDefaultImage = UIImage(named: "Friends")!
-
-        static let createPostImage = UIImage(named: "CreatePost")!
+        static let homeDefaultImage = UIImage(named: "ActivityTabIcon")!
+        static let campsDefaultImage = UIImage(named: "CampsTabIcon")!
+        static let friendsDefaultImage = UIImage(named: "FriendsTabIcon")!
     }
 
     struct Color {

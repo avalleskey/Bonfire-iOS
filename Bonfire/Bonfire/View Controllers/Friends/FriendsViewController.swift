@@ -28,6 +28,9 @@ final class FriendsViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        title = "Friends"
+        
         if #available(iOS 13.0, *) { view.backgroundColor = .systemBackground }
 
         view.addSubview(friendsTableView.view)

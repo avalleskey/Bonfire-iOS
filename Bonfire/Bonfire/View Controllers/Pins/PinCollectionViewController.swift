@@ -14,8 +14,6 @@ final class PinCollectionViewController: UICollectionViewController {
     
     private let flow = UICollectionViewFlowLayout()
     
-    private var height: NSLayoutConstraint?
-    
     var pins: [Pin] = [] {
         didSet {
             collectionView.reloadData()
@@ -32,8 +30,6 @@ final class PinCollectionViewController: UICollectionViewController {
                                 forCellWithReuseIdentifier: PinCollectionViewCell.reuseIdentifier)
         collectionView.backgroundColor = .clear
         flow.itemSize = CGSize(width: 96, height: 120)
-        height = view.heightAnchor.constraint(equalToConstant: collectionView.contentSize.height)
-        updateViewConstraints()
     }
     
     required init?(coder: NSCoder) {
@@ -53,6 +49,13 @@ final class PinCollectionViewController: UICollectionViewController {
             imageView.kf.setImage(with: imageURL, options: [.cacheOriginalImage])
             cell.pinTitleLabel.text = user.attributes.shortDisplayName
             cell.pinView = imageView
+        case is Camp:
+            guard let camp = pin.object as? Camp,
+                  let imageURL = camp.attributes.media?.avatar?.full?.url else { return cell }
+            let imageView = RoundedImageView(image: nil)
+            imageView.kf.setImage(with: imageURL, options: [.cacheOriginalImage])
+            cell.pinTitleLabel.text = camp.attributes.title
+            cell.pinView = imageView
         default:
             fatalError("Unknown pin object type")
         }
@@ -66,22 +69,6 @@ final class PinCollectionViewController: UICollectionViewController {
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         pins.count
     }
-    
-    override func updateViewConstraints() {
-        super.updateViewConstraints()
-        height?.constant = collectionView.contentSize.height
-        
-        view.translatesAutoresizingMaskIntoConstraints = false
-        
-        height?.isActive = true
-    }
-    
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        
-        updateViewConstraints()
-    }
-    
     
 }
 

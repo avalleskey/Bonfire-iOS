@@ -28,6 +28,7 @@ final class FriendsTableViewController: UITableViewController {
             forCellReuseIdentifier: FriendTableViewCell.reuseIdentifier)
         tableView.separatorStyle = .none
         tableView.tableHeaderView = pinCollectionView.view
+        addChild(pinCollectionView)
         updateViewConstraints()
     }
     required init?(coder: NSCoder) {
@@ -60,15 +61,5 @@ final class FriendsTableViewController: UITableViewController {
         cell.updateWithUser(user: friend)
 
         return cell
-    }
-    
-    override func updateViewConstraints() {
-        super.updateViewConstraints()
-        
-        NSLayoutConstraint.activate([
-            pinCollectionView.view.leadingAnchor.constraint(equalTo: tableView.leadingAnchor),
-            pinCollectionView.view.trailingAnchor.constraint(equalTo: tableView.trailingAnchor),
-            
-        ])
     }
 }

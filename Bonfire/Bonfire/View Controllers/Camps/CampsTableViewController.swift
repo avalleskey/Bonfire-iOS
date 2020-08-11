@@ -14,6 +14,14 @@ import UIKit
 final class CampsTableViewController: UITableViewController {
 
     var camps: [Camp] = []
+    
+    var pinned: [Camp] = [] {
+        didSet {
+            pinCollectionView.pins = pinned.map { Pin($0) }
+        }
+    }
+    
+    private let pinCollectionView = PinCollectionViewController()
 
     init() {
         super.init(nibName: nil, bundle: nil)
@@ -21,6 +29,8 @@ final class CampsTableViewController: UITableViewController {
             CampTableViewCell.self,
             forCellReuseIdentifier: CampTableViewCell.reuseIdentifier)
         tableView.separatorStyle = .none
+        tableView.tableHeaderView = pinCollectionView.view
+        addChild(pinCollectionView)
     }
 
     required init?(coder: NSCoder) {

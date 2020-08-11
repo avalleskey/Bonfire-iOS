@@ -10,9 +10,11 @@ import Foundation
 
 public typealias APICompletionHandler<APIResponse> = (Result<APIResponse, Error>) -> Void
 
-public struct APIClient {
+public final class APIClient {
 
     public static let shared = APIClient()
+    
+    private var retryCount = 0
 
     private let baseURL = URL(string: "https://api.bonfire.camp/v1/")
 
@@ -51,7 +53,7 @@ public struct APIClient {
             }
         }
 
-        session.dataTask(with: urlRequest) { (data, response, error) in
+        session.dataTask(with: urlRequest) { [self] (data, response, error) in
             guard error == nil else {
                 let error = error ?? APIError.unknown
                 completion(.failure(error))
@@ -62,11 +64,14 @@ public struct APIClient {
                 let code = httpResp.statusCode
                 print("[HTTP]", code, String(data: data ?? Data(), encoding: .utf8) ?? "--")
                 
-                if code == 401 {
+                if code == 401 && retryCount < 3 {
                     KeychainVault.accessToken = nil
                     //TODO: Refresh
+                    retryCount += 1
                     send(request, completion: completion)
                     return
+                } else if code == 200 {
+                    self.retryCount = 0
                 }
             }
 

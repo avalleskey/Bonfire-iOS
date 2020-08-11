@@ -39,6 +39,14 @@
 		1A24431324A0DB750039BAAB /* PostActionsCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A24431224A0DB750039BAAB /* PostActionsCell.swift */; };
 		1A24431524A0E7930039BAAB /* UIViewController+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A24431424A0E7930039BAAB /* UIViewController+Extensions.swift */; };
 		1A24431724A0E7BF0039BAAB /* AuthenticationType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A24431624A0E7BF0039BAAB /* AuthenticationType.swift */; };
+		1A315F9A24E18EFD00C8AC6C /* CampsTableHeaderViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A315F9924E18EFD00C8AC6C /* CampsTableHeaderViewController.swift */; };
+		1A315F9D24E1916B00C8AC6C /* FollowUserRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A315F9C24E1916B00C8AC6C /* FollowUserRequest.swift */; };
+		1A315F9F24E1917B00C8AC6C /* UnfollowUserRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A315F9E24E1917B00C8AC6C /* UnfollowUserRequest.swift */; };
+		1A315FA124E191A500C8AC6C /* BFAPIError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A315FA024E191A500C8AC6C /* BFAPIError.swift */; };
+		1A315FA424E30E6600C8AC6C /* PinCollectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A315FA324E30E6600C8AC6C /* PinCollectionViewController.swift */; };
+		1A315FA624E329A200C8AC6C /* PinCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A315FA524E329A200C8AC6C /* PinCollectionViewCell.swift */; };
+		1A315FA824E32DF100C8AC6C /* Pinnable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A315FA724E32DF100C8AC6C /* Pinnable.swift */; };
+		1A315FAA24E32E0B00C8AC6C /* Pin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A315FA924E32E0B00C8AC6C /* Pin.swift */; };
 		1A3E012524C1F8C200C75F50 /* BFFormViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A3E012424C1F8C200C75F50 /* BFFormViewController.swift */; };
 		1A3E012724C2055B00C75F50 /* BFFormTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A3E012624C2055B00C75F50 /* BFFormTextView.swift */; };
 		1A3E012924C2067800C75F50 /* BFFormCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A3E012824C2067800C75F50 /* BFFormCell.swift */; };
@@ -270,6 +278,14 @@
 		1A24431224A0DB750039BAAB /* PostActionsCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostActionsCell.swift; sourceTree = "<group>"; };
 		1A24431424A0E7930039BAAB /* UIViewController+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIViewController+Extensions.swift"; sourceTree = "<group>"; };
 		1A24431624A0E7BF0039BAAB /* AuthenticationType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationType.swift; sourceTree = "<group>"; };
+		1A315F9924E18EFD00C8AC6C /* CampsTableHeaderViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampsTableHeaderViewController.swift; sourceTree = "<group>"; };
+		1A315F9C24E1916B00C8AC6C /* FollowUserRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FollowUserRequest.swift; sourceTree = "<group>"; };
+		1A315F9E24E1917B00C8AC6C /* UnfollowUserRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnfollowUserRequest.swift; sourceTree = "<group>"; };
+		1A315FA024E191A500C8AC6C /* BFAPIError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFAPIError.swift; sourceTree = "<group>"; };
+		1A315FA324E30E6600C8AC6C /* PinCollectionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinCollectionViewController.swift; sourceTree = "<group>"; };
+		1A315FA524E329A200C8AC6C /* PinCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinCollectionViewCell.swift; sourceTree = "<group>"; };
+		1A315FA724E32DF100C8AC6C /* Pinnable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pinnable.swift; sourceTree = "<group>"; };
+		1A315FA924E32E0B00C8AC6C /* Pin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pin.swift; sourceTree = "<group>"; };
 		1A3E012424C1F8C200C75F50 /* BFFormViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFFormViewController.swift; sourceTree = "<group>"; };
 		1A3E012624C2055B00C75F50 /* BFFormTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFFormTextView.swift; sourceTree = "<group>"; };
 		1A3E012824C2067800C75F50 /* BFFormCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFFormCell.swift; sourceTree = "<group>"; };
@@ -586,6 +602,26 @@
 			path = Posts;
 			sourceTree = "<group>";
 		};
+		1A315F9B24E1914F00C8AC6C /* Following */ = {
+			isa = PBXGroup;
+			children = (
+				1A315F9C24E1916B00C8AC6C /* FollowUserRequest.swift */,
+				1A315F9E24E1917B00C8AC6C /* UnfollowUserRequest.swift */,
+			);
+			path = Following;
+			sourceTree = "<group>";
+		};
+		1A315FA224E30E4400C8AC6C /* Pins */ = {
+			isa = PBXGroup;
+			children = (
+				1A315FA324E30E6600C8AC6C /* PinCollectionViewController.swift */,
+				1A315FA524E329A200C8AC6C /* PinCollectionViewCell.swift */,
+				1A315FA724E32DF100C8AC6C /* Pinnable.swift */,
+				1A315FA924E32E0B00C8AC6C /* Pin.swift */,
+			);
+			path = Pins;
+			sourceTree = "<group>";
+		};
 		1A3ED13524D38D16001DA453 /* Camp */ = {
 			isa = PBXGroup;
 			children = (
@@ -787,6 +823,7 @@
 				1A844713249D4AAA002813CB /* Networking */,
 				1A844721249D4B88002813CB /* BFNetworking.h */,
 				1A844722249D4B88002813CB /* Info.plist */,
+				1A315FA024E191A500C8AC6C /* BFAPIError.swift */,
 			);
 			path = BFNetworking;
 			sourceTree = "<group>";
@@ -804,6 +841,7 @@
 		1A844740249D4BAD002813CB /* View Controllers */ = {
 			isa = PBXGroup;
 			children = (
+				1A315FA224E30E4400C8AC6C /* Pins */,
 				1AA410D324D9EFF60083363B /* Modals */,
 				1AA410D024D9C0210083363B /* Post */,
 				1A3ED13524D38D16001DA453 /* Camp */,
@@ -939,6 +977,7 @@
 				1A844743249D4C78002813CB /* CampsViewController.swift */,
 				1A94DED2249FB49B00AB0200 /* CampsTableViewCell.swift */,
 				1A847D5924B2432800530614 /* CampDetailViewController.swift */,
+				1A315F9924E18EFD00C8AC6C /* CampsTableHeaderViewController.swift */,
 			);
 			path = Camps;
 			sourceTree = "<group>";
@@ -975,6 +1014,7 @@
 		1A9ECBDC24AA441900391279 /* User */ = {
 			isa = PBXGroup;
 			children = (
+				1A315F9B24E1914F00C8AC6C /* Following */,
 				1AA86BD124D1E6A2009BFE07 /* Profile */,
 				1A847D3F24B1BB6000530614 /* Stream */,
 				1A847D3E24B1BB5A00530614 /* Friends */,
@@ -1355,8 +1395,10 @@
 				1A844744249D4C78002813CB /* CampsViewController.swift in Sources */,
 				1AA410D524D9F04D0083363B /* BFModalTransitioningDelegate.swift in Sources */,
 				1A844742249D4C70002813CB /* FriendsViewController.swift in Sources */,
+				1A315FAA24E32E0B00C8AC6C /* Pin.swift in Sources */,
 				1A24431524A0E7930039BAAB /* UIViewController+Extensions.swift in Sources */,
 				1A7854E2249FBCEB00BA1589 /* BFSegmentedControl.swift in Sources */,
+				1A315FA624E329A200C8AC6C /* PinCollectionViewCell.swift in Sources */,
 				1AF7FCEC24A2700B003FCF9F /* BFSegmentedControlButton.swift in Sources */,
 				1AA410D924D9F7AC0083363B /* BFModalAnimator.swift in Sources */,
 				1A212A1124BC87B000A0DCD3 /* BFSignInForm.swift in Sources */,
@@ -1390,6 +1432,7 @@
 				1A15AB5E24B3B1F1007722A4 /* BFReplyTextField.swift in Sources */,
 				1A212A0C24BC86C500A0DCD3 /* BFFormItem.swift in Sources */,
 				1A3ED13924D38E52001DA453 /* CampHeaderView.swift in Sources */,
+				1A315F9A24E18EFD00C8AC6C /* CampsTableHeaderViewController.swift in Sources */,
 				1A92C78124D181450015E993 /* ProfileViewController.swift in Sources */,
 				1ABDB17524A35EE100D05140 /* PostMessageCell.swift in Sources */,
 				D9EB895D24BE83ED00BC6F6D /* UIColor+Extensions.swift in Sources */,
@@ -1410,6 +1453,7 @@
 				1A3ED12C24D37D5C001DA453 /* ProfileHeaderView.swift in Sources */,
 				1A3ED12A24D37793001DA453 /* BFCircularButton.swift in Sources */,
 				1A7854DB249FBBC500BA1589 /* CampControllerProtocol.swift in Sources */,
+				1A315FA424E30E6600C8AC6C /* PinCollectionViewController.swift in Sources */,
 				D943EEDC24CB6DFB00C30F8B /* NotificationsTableViewController.swift in Sources */,
 				1AA86BCC24D1E551009BFE07 /* PostAudioAttachmentCell.swift in Sources */,
 				1A3ED13424D38798001DA453 /* FeedPostCountCell.swift in Sources */,
@@ -1428,6 +1472,7 @@
 				1A7854D8249FBBBA00BA1589 /* CampController.swift in Sources */,
 				1A24431124A0DAFE0039BAAB /* PostHeaderCell.swift in Sources */,
 				1A3ED14024D38FE6001DA453 /* CampMemberCell.swift in Sources */,
+				1A315FA824E32DF100C8AC6C /* Pinnable.swift in Sources */,
 				1A3ED13B24D38F4B001DA453 /* CampSummaryPageViewController.swift in Sources */,
 				1A57FAEA249F5D8800A407F9 /* UIView+Extensions.swift in Sources */,
 				1A7854E824A0B77800BA1589 /* BFNavigationController.swift in Sources */,
@@ -1450,10 +1495,12 @@
 			files = (
 				1A212A1924BC8A4D00A0DCD3 /* EmailValidationRequest.swift in Sources */,
 				1A8FD29924A4E73D00F9EC5F /* MyCampsResponse.swift in Sources */,
+				1A315FA124E191A500C8AC6C /* BFAPIError.swift in Sources */,
 				1A212A2624BC8C1900A0DCD3 /* UsernameValidationResponse.swift in Sources */,
 				1A6F958C24B8E6C8004A20F4 /* Keychainable.swift in Sources */,
 				1A212A1D24BC8A6100A0DCD3 /* OAuthRequest.swift in Sources */,
 				1A212A2824BC8C3500A0DCD3 /* UsernameValidationQueryParams.swift in Sources */,
+				1A315F9D24E1916B00C8AC6C /* FollowUserRequest.swift in Sources */,
 				1A9ECBDE24AA443F00391279 /* UserFriendsRequest.swift in Sources */,
 				1A212A3024BC8EF600A0DCD3 /* SignupRequestBody.swift in Sources */,
 				1AA86BD324D1E6AC009BFE07 /* UserProfileRequest.swift in Sources */,
@@ -1465,6 +1512,7 @@
 				1A6F958E24B8E6DA004A20F4 /* KeychainKey.swift in Sources */,
 				1A6F959224B8E712004A20F4 /* KeychainVault.swift in Sources */,
 				1A212A2B24BC8CEF00A0DCD3 /* OAuthResponse.swift in Sources */,
+				1A315F9F24E1917B00C8AC6C /* UnfollowUserRequest.swift in Sources */,
 				1A84473D249D4B98002813CB /* APIClient.swift in Sources */,
 				1A7854CF249FBAE600BA1589 /* MyCampsRequest.swift in Sources */,
 				1A212A2324BC8B3D00A0DCD3 /* EmailValidationQueryParams.swift in Sources */,

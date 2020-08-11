@@ -18,6 +18,7 @@ public struct User: Identity {
     public struct Attributes: Codable {
         public let identifier: String
         public let display_name: String
+        public var shortDisplayName: String { String(display_name.split(separator: " ").first ?? "") }
         public let color: String
         public let createdAt: Date?
         public let suspended: Bool?

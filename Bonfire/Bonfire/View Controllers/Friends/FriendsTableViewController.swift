@@ -12,6 +12,14 @@ import UIKit
 final class FriendsTableViewController: UITableViewController {
 
     var friends: [User] = []
+    
+    var pinned: [User] = [] {
+        didSet {
+            pinCollectionView.pins = pinned.map { Pin($0)}
+        }
+    }
+    
+    private let pinCollectionView = PinCollectionViewController()
 
     init() {
         super.init(nibName: nil, bundle: nil)
@@ -19,6 +27,8 @@ final class FriendsTableViewController: UITableViewController {
             FriendTableViewCell.self,
             forCellReuseIdentifier: FriendTableViewCell.reuseIdentifier)
         tableView.separatorStyle = .none
+        tableView.tableHeaderView = pinCollectionView.view
+        updateViewConstraints()
     }
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -50,5 +60,15 @@ final class FriendsTableViewController: UITableViewController {
         cell.updateWithUser(user: friend)
 
         return cell
+    }
+    
+    override func updateViewConstraints() {
+        super.updateViewConstraints()
+        
+        NSLayoutConstraint.activate([
+            pinCollectionView.view.leadingAnchor.constraint(equalTo: tableView.leadingAnchor),
+            pinCollectionView.view.trailingAnchor.constraint(equalTo: tableView.trailingAnchor),
+            
+        ])
     }
 }

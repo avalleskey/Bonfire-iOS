@@ -13,6 +13,7 @@ final class ProfileViewController: UIViewController {
 
     private let headerView = ProfileHeaderView()
     private let feedTableView = BFFeedTableViewController()
+    private let controller = StreamController()
     
     init() {
         super.init(nibName: nil, bundle: nil)
@@ -55,6 +56,16 @@ final class ProfileViewController: UIViewController {
             headerView.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.8),
             headerView.widthAnchor.constraint(equalTo: feedTableView.tableView.widthAnchor)
         ])
+    }
+    
+    private func refresh(user: User) {
+        guard let id = user.id else { return }
+        controller.getStream(user: id) { (posts) in
+            DispatchQueue.main.async {
+                self.feedTableView.posts = posts
+                self.feedTableView.tableView.reloadData()
+            }
+        }
     }
     
     

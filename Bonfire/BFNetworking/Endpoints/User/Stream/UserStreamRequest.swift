@@ -9,7 +9,7 @@
 import Foundation
 
 public struct UserStreamRequest: APIRequest {
-    public let resource: String = "streams/me"
+    public let resource: String
 
     public let body: Data? = nil
 
@@ -18,8 +18,20 @@ public struct UserStreamRequest: APIRequest {
     public let method: String = "GET"
 
     public let authenticationType: AuthenticationType = .userAuth
+    
+    public enum ProfileType {
+        case me
+        case otherUser(String)
+    }
 
     public typealias Response = UserStreamResponse
 
-    public init() {}
+    public init(type: ProfileType) {
+        switch type {
+        case .me:
+            self.resource = "streams/me"
+        case .otherUser(let userId):
+            self.resource = "streams/\(userId)"
+        }
+    }
 }

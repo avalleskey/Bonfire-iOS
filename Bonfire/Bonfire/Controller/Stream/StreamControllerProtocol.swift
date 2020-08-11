@@ -11,4 +11,5 @@ import Foundation
 
 protocol StreamControllerProtocol {
     func getStream(completion: @escaping ([Post]) -> Void)
+    func getStream(user: String, completion: @escaping ([Post]) -> Void)
 }

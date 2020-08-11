@@ -58,6 +58,7 @@ final class FriendsViewController: UIViewController {
                 switch result {
                 case .success(let friends):
                     self.friendsTableView.friends = friends
+                    self.friendsTableView.pinned = Array(friends.prefix(3))
                     self.friendsTableView.tableView.reloadData()
                 case .failure(let error):
                     switch BFAppError.from(error: error) {

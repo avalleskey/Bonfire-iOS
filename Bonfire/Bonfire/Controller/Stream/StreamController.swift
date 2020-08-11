@@ -15,7 +15,18 @@ final class StreamController: StreamControllerProtocol {
     private let api = APIClient.shared
 
     func getStream(completion: @escaping ([Post]) -> Void) {
-        api.send(UserStreamRequest()) { (result) in
+        api.send(UserStreamRequest(type: .me)) { (result) in
+            switch result {
+            case .success(let response):
+                completion(response.data.map { $0.attributes.posts }.reduce([], +))
+            case .failure(let error):
+                break
+            }
+        }
+    }
+    
+    func getStream(user: String, completion: @escaping ([Post]) -> Void) {
+        api.send(UserStreamRequest(type: .otherUser(user))) { (result) in
             switch result {
             case .success(let response):
                 completion(response.data.map { $0.attributes.posts }.reduce([], +))

@@ -35,6 +35,12 @@ final class CampsViewController: UIViewController {
 
         view.addSubview(campsTableView.view)
         view.addSubview(activityIndicator)
+        
+        let searchController = BFSearchController(searchResultsController: nil)
+        searchController.searchBar.placeholder = "Camps & People"
+        self.navigationItem.searchController = searchController
+        searchController.isActive = true
+        navigationItem.hidesSearchBarWhenScrolling = false
 
         refresh()
 
@@ -55,6 +61,7 @@ final class CampsViewController: UIViewController {
             DispatchQueue.main.async {
                 self.activityIndicator.stopAnimating()
                 self.campsTableView.camps = camps
+                self.campsTableView.pinned = Array(camps.prefix(3))
                 self.campsTableView.tableView.reloadData()
             }
         }

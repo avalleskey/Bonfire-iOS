@@ -35,6 +35,12 @@ final class FriendsViewController: UIViewController {
 
         view.addSubview(friendsTableView.view)
         view.addSubview(activityIndicator)
+        
+        let searchController = BFSearchController(searchResultsController: nil)
+        searchController.searchBar.placeholder = "Camps & People"
+        self.navigationItem.searchController = searchController
+        searchController.isActive = true
+        navigationItem.hidesSearchBarWhenScrolling = false
 
         refresh()
 

@@ -47,7 +47,10 @@ final class NotificationsViewController: UIViewController {
     }
 
     private func refresh() {
-        activityIndicator.startAnimating()
+        if self.notificationsTableView.notifications.count == 0 {
+            activityIndicator.startAnimating()
+        }
+        
         controller.getNotifications { (result) in
             DispatchQueue.main.async {
                 self.activityIndicator.stopAnimating()

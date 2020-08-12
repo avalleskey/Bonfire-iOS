@@ -13,7 +13,7 @@ final class FriendsViewController: UIViewController {
 
     static var defaultTabBarItem: UITabBarItem {
         UITabBarItem(
-            title: Constants.TabBar.friendsDefaultText,
+            title: "",
             image: Constants.TabBar.friendsDefaultImage,
             tag: 0)
     }
@@ -29,7 +29,7 @@ final class FriendsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        title = "Friends"
+        navigationItem.title = Constants.TabBar.friendsDefaultText
         
         if #available(iOS 13.0, *) { view.backgroundColor = .systemBackground }
 

@@ -11,13 +11,25 @@ import BFCore
 
 final class ProfileViewController: UIViewController {
 
+    static var defaultTabBarItem: UITabBarItem {
+        UITabBarItem(
+            title: "",
+            image: Constants.TabBar.meDefaultImage,
+            tag: 0)
+    }
+    
     private let headerView = ProfileHeaderView()
     private let feedTableView = BFFeedTableViewController()
     private let controller = StreamController()
     
     init() {
         super.init(nibName: nil, bundle: nil)
-        navigationItem.title = "John Smith"
+        
+        if navigationController?.tabBarController != nil {
+            navigationItem.title = Constants.TabBar.meDefaultText
+        } else {
+            navigationItem.title = "John Smith"
+        }
         
         addChild(feedTableView)
         view.addSubview(feedTableView.view)

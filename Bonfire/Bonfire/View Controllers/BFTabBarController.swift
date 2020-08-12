@@ -28,32 +28,26 @@ final class BFTabBarController: UITabBarController {
         tabBar.isTranslucent = false
         tabBar.barTintColor = Constants.Color.tabBar
         tabBar.backgroundImage = UIImage()
-        tabBar.shadowImage = UIImage()
+        tabBar.shadowImage = UIImage(named: "TabBarShadow")
         tabBar.tintColor = Constants.Color.primary
         tabBar.unselectedItemTintColor = Constants.Color.secondary
-
+        
         let tabBarItemFont = UIFont.systemFont(ofSize: 12, weight: .bold).rounded()
         let appearance = UITabBarItem.appearance()
         let attributes = [NSAttributedString.Key.font: tabBarItemFont]
         appearance.setTitleTextAttributes(attributes, for: .normal)
         appearance.titlePositionAdjustment = .init(horizontal: 0, vertical: -5)
 
-        updateViewConstraints()
         hero.isEnabled = false
 
         delegate = self
     }
-
-    override func updateViewConstraints() {
-        super.updateViewConstraints()
-
-        tabBar.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
-    }
-
+    
     override func viewDidLayoutSubviews() {
         super.viewWillLayoutSubviews()
-        tabBar.frame.size.height = 92
-        tabBar.frame.origin.y = view.frame.height - 92
+//        custom tab bar height
+//        tabBar.frame.size.height = 58
+//        tabBar.frame.origin.y = view.frame.height - 58
     }
 }
 

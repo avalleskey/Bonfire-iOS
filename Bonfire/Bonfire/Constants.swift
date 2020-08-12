@@ -13,11 +13,15 @@ struct Constants {
     struct TabBar {
         static let homeDefaultText = "Activity"
         static let campsDefaultText = "Camps"
-        static let friendsDefaultText = "Friends"
+        static let friendsDefaultText = "Chats"
+        static let notificationsDefaultText = "Notifications"
+        static let meDefaultText = "Me"
 
         static let homeDefaultImage = UIImage(named: "ActivityTabIcon")!
         static let campsDefaultImage = UIImage(named: "CampsTabIcon")!
         static let friendsDefaultImage = UIImage(named: "FriendsTabIcon")!
+        static let notificationsDefaultImage = UIImage(named: "NotificationsTabIcon")!
+        static let meDefaultImage = UIImage(named: "MeTabIcon")!
     }
 
     struct Color {
@@ -52,6 +56,14 @@ struct Constants {
                 return UIColor.systemBackground
             } else {
                 return UIColor.white
+            }
+        }()
+        
+        static let groupedBackground: UIColor = {
+            if #available(iOS 13.0, *) {
+                return UIColor.systemGroupedBackground
+            } else {
+                return UIColor(red: 0.95, green: 0.95, blue: 0.96, alpha: 1.00)
             }
         }()
 

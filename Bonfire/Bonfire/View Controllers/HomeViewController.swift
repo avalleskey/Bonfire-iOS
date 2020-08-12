@@ -14,7 +14,7 @@ final class HomeViewController: UIKeyboardSubscribedViewController {
 
     static var defaultTabBarItem: UITabBarItem {
         let item = UITabBarItem(
-            title: Constants.TabBar.homeDefaultText,
+            title: "",
             image: Constants.TabBar.homeDefaultImage,
             selectedImage: Constants.TabBar.homeDefaultImage)
         item.tag = 1
@@ -32,9 +32,12 @@ final class HomeViewController: UIKeyboardSubscribedViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        title = "Activity"
+        navigationItem.title = Constants.TabBar.homeDefaultText
         
-        if #available(iOS 13.0, *) { view.backgroundColor = .systemBackground }
+        navigationController?.view.backgroundColor = Constants.Color.groupedBackground
+        homeFeedTableView.view.backgroundColor = navigationController?.view.backgroundColor
+        navigationController?.navigationBar.barTintColor = homeFeedTableView.view.backgroundColor
+        navigationController?.navigationBar.prefersLargeTitles = true
 
         addChild(homeFeedTableView)
         view.addSubview(homeFeedTableView.view)

@@ -11,6 +11,13 @@ import UIKit
 
 final class NotificationsViewController: UIViewController {
 
+    static var defaultTabBarItem: UITabBarItem {
+        UITabBarItem(
+            title: "",
+            image: Constants.TabBar.notificationsDefaultImage,
+            tag: 0)
+    }
+    
     private let activityIndicator: UIActivityIndicatorView = {
         var indicator = UIActivityIndicatorView(style: .whiteLarge)
         indicator.color = Constants.Color.secondary
@@ -23,7 +30,8 @@ final class NotificationsViewController: UIViewController {
         super.viewDidLoad()
         if #available(iOS 13.0, *) { view.backgroundColor = .systemBackground }
 
-        title = "Notifications"
+        navigationItem.title = Constants.TabBar.notificationsDefaultText
+        
         view.addSubview(notificationsTableView.view)
         view.addSubview(activityIndicator)
 

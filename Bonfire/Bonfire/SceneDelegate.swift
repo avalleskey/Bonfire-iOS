@@ -24,22 +24,30 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let scene = (scene as? UIWindowScene) else { return }
 
         let tabVC = BFTabBarController()
-
-        let friendsVC = FriendsViewController()
-        let friendsNavVC = BFNavigationController(rootViewController: friendsVC)
-        friendsVC.tabBarItem = FriendsViewController.defaultTabBarItem
-
-        let homeVC = HomeViewController()
-        let homeNavVC = BFNavigationController(rootViewController: homeVC)
-        homeVC.tabBarItem = HomeViewController.defaultTabBarItem
+        
+        let forYouVC = HomeViewController()
+        let forYouNavVC = BFNavigationController(rootViewController: forYouVC)
+        forYouVC.tabBarItem = HomeViewController.defaultTabBarItem
 
         let campsVC = CampsViewController()
         let campsNavVC = BFNavigationController(rootViewController: campsVC)
         campsVC.tabBarItem = CampsViewController.defaultTabBarItem
+        
+        let friendsVC = FriendsViewController()
+        let friendsNavVC = BFNavigationController(rootViewController: friendsVC)
+        friendsVC.tabBarItem = FriendsViewController.defaultTabBarItem
+        
+        let notificationsVC = NotificationsViewController()
+        let notificationsNavVC = BFNavigationController(rootViewController: notificationsVC)
+        notificationsVC.tabBarItem = NotificationsViewController.defaultTabBarItem
+        
+        let meVC = ProfileViewController()
+        let meNavVC = BFNavigationController(rootViewController: meVC)
+        meVC.tabBarItem = ProfileViewController.defaultTabBarItem
 
-        tabVC.setViewControllers([friendsNavVC, homeNavVC, campsNavVC], animated: false)
+        tabVC.setViewControllers([forYouNavVC, campsNavVC, friendsNavVC, notificationsNavVC, meNavVC], animated: false)
 
-        tabVC.selectedViewController = homeNavVC
+        tabVC.selectedViewController = forYouNavVC
 
         let window = UIWindow(windowScene: scene)
         window.rootViewController = tabVC

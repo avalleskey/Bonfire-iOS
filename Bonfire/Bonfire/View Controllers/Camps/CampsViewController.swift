@@ -13,7 +13,7 @@ final class CampsViewController: UIViewController {
 
     static var defaultTabBarItem: UITabBarItem {
         UITabBarItem(
-            title: Constants.TabBar.campsDefaultText,
+            title: "",
             image: Constants.TabBar.campsDefaultImage,
             tag: 2)
     }
@@ -29,7 +29,7 @@ final class CampsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        title = "Camps"
+        navigationItem.title = Constants.TabBar.campsDefaultText
                 
         if #available(iOS 13.0, *) { view.backgroundColor = .systemBackground }
 

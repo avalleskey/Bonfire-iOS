@@ -115,7 +115,7 @@ final class NotificationTableViewCell: UITableViewCell {
         label.font = UIFont.systemFont(ofSize: 17, weight: .bold).rounded()
         label.textColor = Constants.Color.primary
         label.numberOfLines = 0
-        label.backgroundColor = UIColor(white: 0.8, alpha: 0.3)
+//        label.backgroundColor = UIColor(white: 0.8, alpha: 0.3)
         label.setContentHuggingPriority(UILayoutPriority(250), for: .vertical)
         return label
     }()
@@ -125,7 +125,7 @@ final class NotificationTableViewCell: UITableViewCell {
         label.text = "2h ago"
         label.font = UIFont.systemFont(ofSize: 15, weight: .semibold).rounded()
         label.textColor = Constants.Color.secondary
-        label.backgroundColor = UIColor(white: 0.8, alpha: 0.3)
+//        label.backgroundColor = UIColor(white: 0.8, alpha: 0.3)
         label.setContentHuggingPriority(UILayoutPriority(250), for: .vertical)
         return label
     }()
@@ -183,7 +183,7 @@ final class NotificationTableViewCell: UITableViewCell {
         let stackView = UIStackView()
         stackView.axis = .horizontal
         stackView.spacing = 8
-        stackView.backgroundColor = UIColor(white: 0.2, alpha: 0.1)
+//        stackView.backgroundColor = UIColor(white: 0.2, alpha: 0.1)
         stackView.alignment = .top
         stackView.distribution = .fill
         return stackView
@@ -192,7 +192,7 @@ final class NotificationTableViewCell: UITableViewCell {
     let containerStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .vertical
-        stackView.backgroundColor = .red
+//        stackView.backgroundColor = .red
         stackView.alignment = .top
         stackView.distribution = .fill
         return stackView

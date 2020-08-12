@@ -35,6 +35,9 @@ final class BFNavigationController: UINavigationController {
         
         let titleFont = UIFont.systemFont(ofSize: 20, weight: .bold).rounded()
         navigationBar.titleTextAttributes = [NSAttributedString.Key.font: titleFont]
+        
+        let largeTitleFont = UIFont.systemFont(ofSize: 32, weight: .heavy).rounded()
+        navigationBar.largeTitleTextAttributes = [NSAttributedString.Key.font: largeTitleFont]
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -56,8 +59,6 @@ extension BFNavigationController: UINavigationControllerDelegate {
         
         switch viewController {
         case is HomeViewController:
-            viewController.navigationItem.leftBarButtonItem = currentUserNavigationItem.leftBarButtonItem
-            
             let rightIcon = UIImage(named: "ComposeNavIcon")?.withRenderingMode(
                 UIImage.RenderingMode.alwaysTemplate)
             viewController.navigationItem.rightBarButtonItem = .init(
@@ -68,8 +69,6 @@ extension BFNavigationController: UINavigationControllerDelegate {
             
             viewController.navigationItem.rightBarButtonItem?.tintColor = Constants.Color.primary
         case is FriendsViewController:
-            viewController.navigationItem.leftBarButtonItem = currentUserNavigationItem.leftBarButtonItem
-            
             let rightIcon = UIImage(named: "PlusNavIcon")?.withRenderingMode(
                 UIImage.RenderingMode.alwaysTemplate)
             viewController.navigationItem.rightBarButtonItem = .init(
@@ -80,8 +79,6 @@ extension BFNavigationController: UINavigationControllerDelegate {
             viewController.navigationItem.rightBarButtonItem?.tintColor = Constants.Color.primary
 
         case is CampsViewController:
-            viewController.navigationItem.leftBarButtonItem = currentUserNavigationItem.leftBarButtonItem
-            
             let rightIcon = UIImage(named: "PlusNavIcon")?.withRenderingMode(
                 UIImage.RenderingMode.alwaysTemplate)
             viewController.navigationItem.rightBarButtonItem = .init(
@@ -90,6 +87,15 @@ extension BFNavigationController: UINavigationControllerDelegate {
                 target: nil,
                 action: #selector(openAddCamps))
             viewController.navigationItem.rightBarButtonItem?.tintColor = Constants.Color.primary
+            
+        case is ProfileViewController:
+            let rightIcon = UIImage(named: "SettingsNavIcon")?.withRenderingMode(
+                UIImage.RenderingMode.alwaysTemplate)
+            viewController.navigationItem.rightBarButtonItem = .init(
+                image: rightIcon,
+                style: .plain,
+                target: nil,
+                action: #selector(openSettings))
         default:
             break
         }
@@ -135,6 +141,9 @@ extension BFNavigationController: UINavigationControllerDelegate {
 
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
         present(alert, animated: true, completion: nil)
+    }
+    @objc func openSettings() {
+        
     }
     @objc func compose() {
         present(CreatePostViewController(), animated: true)

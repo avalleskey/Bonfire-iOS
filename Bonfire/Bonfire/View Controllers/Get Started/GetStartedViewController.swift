@@ -127,6 +127,8 @@ final class GetStartedViewController: UIViewController {
 
     init() {
         super.init(nibName: nil, bundle: nil)
+        
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Cancel", style: .plain, target: self, action: #selector(dismissViewController))
 
         view.backgroundColor = Constants.Color.systemBackground
         view.addSubview(legalButton)
@@ -141,6 +143,10 @@ final class GetStartedViewController: UIViewController {
         heroStackView.addArrangedSubview(primaryLabel)
         heroStackView.setCustomSpacing(8, after: primaryLabel)
         heroStackView.addArrangedSubview(secondaryLabel)
+    }
+    
+    @objc func dismissViewController() {
+        dismiss(animated: true, completion: nil)
     }
 
     required init?(coder: NSCoder) {

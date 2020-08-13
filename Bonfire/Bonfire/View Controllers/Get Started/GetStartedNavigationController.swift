@@ -11,7 +11,7 @@
 import UIKit
 
 final class GetStartedNavigationController: UINavigationController {
-
+    
     override init(rootViewController: UIViewController) {
         super.init(rootViewController: rootViewController)
 
@@ -20,7 +20,6 @@ final class GetStartedNavigationController: UINavigationController {
         view.backgroundColor = .clear
         navigationBar.setBackgroundImage(UIImage(), for: .default)
         navigationBar.shadowImage = UIImage()
-        delegate = self
     }
 
     required init?(coder aDecoder: NSCoder) {
@@ -36,20 +35,20 @@ final class GetStartedNavigationController: UINavigationController {
     }
 }
 
-extension GetStartedNavigationController: UINavigationControllerDelegate {
-    func navigationController(
-        _ navigationController: UINavigationController, willShow viewController: UIViewController,
-        animated: Bool
-    ) {
-        let backImage = UIImage(named: "LeftNavIcon")
-        navigationBar.backIndicatorImage = backImage
-        navigationBar.backIndicatorTransitionMaskImage = backImage
-    }
-
-    func navigationController(
-        _ navigationController: UINavigationController, didShow viewController: UIViewController,
-        animated: Bool
-    ) {
-        navigationBar.backItem?.title = ""
-    }
-}
+//extension GetStartedNavigationController: UINavigationControllerDelegate {
+//    func navigationController(
+//        _ navigationController: UINavigationController, willShow viewController: UIViewController,
+//        animated: Bool
+//    ) {
+//        let backImage = UIImage(named: "LeftNavIcon")
+//        navigationBar.backIndicatorImage = backImage
+//        navigationBar.backIndicatorTransitionMaskImage = backImage
+//    }
+//
+//    func navigationController(
+//        _ navigationController: UINavigationController, didShow viewController: UIViewController,
+//        animated: Bool
+//    ) {
+//        navigationBar.backItem?.title = ""
+//    }
+//}

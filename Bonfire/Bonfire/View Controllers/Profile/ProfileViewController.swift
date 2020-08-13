@@ -11,13 +11,6 @@ import UIKit
 
 final class ProfileViewController: UIViewController {
 
-    static var defaultTabBarItem: UITabBarItem {
-        UITabBarItem(
-            title: "",
-            image: Constants.TabBar.meDefaultImage,
-            tag: 0)
-    }
-
     private let headerView = ProfileHeaderView()
     private let feedTableView = BFFeedTableViewController()
     private let streams = StreamController()
@@ -26,12 +19,7 @@ final class ProfileViewController: UIViewController {
     init() {
         super.init(nibName: nil, bundle: nil)
 
-        navigationItem.largeTitleDisplayMode = .never
-        if navigationController?.tabBarController != nil {
-            navigationItem.title = Constants.TabBar.meDefaultText
-        } else {
-            navigationItem.title = "Loading..."
-        }
+        navigationItem.title = "Profile"
 
         addChild(feedTableView)
         view.addSubview(feedTableView.view)

@@ -33,6 +33,9 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let campsNavVC = BFNavigationController(rootViewController: campsVC)
         campsVC.tabBarItem = CampsViewController.defaultTabBarItem
 
+        let createPostVC = CreatePostViewController()
+        createPostVC.tabBarItem = CreatePostViewController.defaultTabBarItem
+        
         let friendsVC = FriendsViewController()
         let friendsNavVC = BFNavigationController(rootViewController: friendsVC)
         friendsVC.tabBarItem = FriendsViewController.defaultTabBarItem
@@ -41,12 +44,8 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let notificationsNavVC = BFNavigationController(rootViewController: notificationsVC)
         notificationsVC.tabBarItem = NotificationsViewController.defaultTabBarItem
 
-        let meVC = ProfileViewController()
-        let meNavVC = BFNavigationController(rootViewController: meVC)
-        meVC.tabBarItem = ProfileViewController.defaultTabBarItem
-
         tabVC.setViewControllers(
-            [forYouNavVC, campsNavVC, friendsNavVC, notificationsNavVC, meNavVC], animated: false)
+            [forYouNavVC, campsNavVC, createPostVC, friendsNavVC, notificationsNavVC], animated: false)
 
         tabVC.selectedViewController = forYouNavVC
 

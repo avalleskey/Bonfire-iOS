@@ -57,7 +57,7 @@ extension BFTabBarController: UITabBarControllerDelegate {
     ) -> Bool {
         let child = (viewController as? UINavigationController)?.topViewController
 
-        if child is CampsViewController || child is FriendsViewController {
+        if !(child is HomeViewController) {
             if KeychainVault.accessToken == nil {
                 let authController = GetStartedViewController()
                 let authNavcontroller = GetStartedNavigationController(
@@ -65,6 +65,12 @@ extension BFTabBarController: UITabBarControllerDelegate {
                 self.present(authNavcontroller, animated: true)
                 return false
             }
+        }
+        
+        if viewController is CreatePostViewController {
+            let createPostVC = CreatePostViewController()
+            self.present(createPostVC, animated: true)
+            return false
         }
 
         return true

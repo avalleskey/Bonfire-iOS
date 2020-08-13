@@ -17,41 +17,10 @@ final class NotificationTableViewCell: UITableViewCell {
 
     private var type: UserActivityType = .unknown {
         didSet {
-            var typeImage: UIImage? = nil
-            switch type {
-            case .follow:
-                typeImageView.backgroundColor = .systemBlue
-                typeImage = UIImage(named: "UserActivity_Follow")
-            case .userAcceptedAccess:
-                typeImageView.backgroundColor = .systemGreen
-                typeImage = UIImage(named: "UserActivity_UserAcceptedAccess")
-            case .userPosted:
-                typeImageView.backgroundColor = .systemOrange
-                typeImage = UIImage(named: "UserActivity_UserPosted")
-            case .userPostedCamp:
-                typeImageView.backgroundColor = .systemOrange
-                typeImage = UIImage(named: "UserActivity_UserPosted")
-            case .campAccessRequest:
-                typeImageView.backgroundColor = .systemGray
-                typeImage = UIImage(named: "UserActivity_CampAccessRequest")
-            case .campInvite:
-                typeImageView.backgroundColor = .systemGreen
-                typeImage = UIImage(named: "UserActivity_CampInvite")
-            case .postReply:
-                typeImageView.backgroundColor = .systemPink
-                typeImage = UIImage(named: "UserActivity_PostReply")
-            case .postDefaultReaction:
-                typeImageView.backgroundColor = .clear
-                typeImage = UIImage(named: "UserActivity_PostReaction_Default")
-
-            default:
-                typeImageView.backgroundColor = UIColor(white: 0.24, alpha: 1)
-                typeImage = UIImage(named: "UserActivity_Misc")
-            }
-
-            if typeImage != nil {
-                typeImageView.image = typeImage
-            }
+            guard let image = type.background.image else { return }
+            
+            typeImageView.backgroundColor = type.background.color
+            typeImageView.image = image
         }
     }
 

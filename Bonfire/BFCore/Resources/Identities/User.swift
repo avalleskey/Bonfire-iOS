@@ -26,5 +26,16 @@ public struct User: Identity {
         public let suspended: Bool?
         public let verified: Bool?
         public let media: BFMedia?
+        public let summaries: Summaries?
+        
+        public struct Summaries: Codable {
+            public let counts: Counts?
+            
+            public struct Counts: Codable {
+                public let posts: Int?
+                public let following: Int?
+                public let camps: Int?
+            }
+        }
     }
 }

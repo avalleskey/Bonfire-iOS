@@ -40,7 +40,6 @@ final class ProfileHeaderView: UIView {
     init() {
         super.init(frame: .zero)
 
-        backgroundColor = .red
         pageViewController.dataSource = self
         pageViewController.setViewControllers(
             [summaryPage],
@@ -66,7 +65,7 @@ final class ProfileHeaderView: UIView {
 
         NSLayoutConstraint.activate([
             pageViewController.view.topAnchor.constraint(equalTo: topAnchor),
-            pageViewController.view.bottomAnchor.constraint(equalTo: centerYAnchor),
+            pageViewController.view.heightAnchor.constraint(equalToConstant: 220),
             pageViewController.view.leadingAnchor.constraint(equalTo: leadingAnchor),
             pageViewController.view.trailingAnchor.constraint(equalTo: trailingAnchor),
 

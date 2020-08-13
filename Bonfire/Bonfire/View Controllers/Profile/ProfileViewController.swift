@@ -26,6 +26,7 @@ final class ProfileViewController: UIViewController {
     init() {
         super.init(nibName: nil, bundle: nil)
 
+        navigationItem.largeTitleDisplayMode = .never
         if navigationController?.tabBarController != nil {
             navigationItem.title = Constants.TabBar.meDefaultText
         } else {
@@ -74,6 +75,10 @@ final class ProfileViewController: UIViewController {
     func update(user: User) {
         self.headerView.summaryPage.imageView.kf.setImage(with: user.attributes.media?.avatar?.full?.url)
         navigationItem.title = user.attributes.display_name
+        let campCount = user.attributes.summaries?.counts?.camps ?? 0
+        let friendCount = user.attributes.summaries?.counts?.following ?? 0
+        headerView.summaryPage.primaryLabel.text = "\(campCount) camps  \(friendCount) friends"
+        headerView.backgroundColor = user.attributes.uiColor
     }
     
     func load(id: String) {

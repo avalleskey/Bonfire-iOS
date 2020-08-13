@@ -66,6 +66,7 @@
 		1A3ED14024D38FE6001DA453 /* CampMemberCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A3ED13F24D38FE6001DA453 /* CampMemberCell.swift */; };
 		1A57FAE7249F5D3D00A407F9 /* BFTabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A57FAE6249F5D3D00A407F9 /* BFTabBarController.swift */; };
 		1A57FAEA249F5D8800A407F9 /* UIView+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A57FAE9249F5D8800A407F9 /* UIView+Extensions.swift */; };
+		1A5D6CED24E5D14B00BA84FD /* User+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A5D6CEC24E5D14B00BA84FD /* User+Extensions.swift */; };
 		1A6859BA249F61FB008DB6BC /* CreatePostViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A6859B9249F61FB008DB6BC /* CreatePostViewController.swift */; };
 		1A6859BD249F632A008DB6BC /* FriendsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A6859BC249F632A008DB6BC /* FriendsTableViewController.swift */; };
 		1A6859BF249F6376008DB6BC /* FriendTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A6859BE249F6376008DB6BC /* FriendTableViewCell.swift */; };
@@ -309,6 +310,7 @@
 		1A3ED13F24D38FE6001DA453 /* CampMemberCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampMemberCell.swift; sourceTree = "<group>"; };
 		1A57FAE6249F5D3D00A407F9 /* BFTabBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFTabBarController.swift; sourceTree = "<group>"; };
 		1A57FAE9249F5D8800A407F9 /* UIView+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIView+Extensions.swift"; sourceTree = "<group>"; };
+		1A5D6CEC24E5D14B00BA84FD /* User+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "User+Extensions.swift"; sourceTree = "<group>"; };
 		1A6859B9249F61FB008DB6BC /* CreatePostViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatePostViewController.swift; sourceTree = "<group>"; };
 		1A6859BC249F632A008DB6BC /* FriendsTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsTableViewController.swift; sourceTree = "<group>"; };
 		1A6859BE249F6376008DB6BC /* FriendTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendTableViewCell.swift; sourceTree = "<group>"; };
@@ -679,6 +681,7 @@
 				D9EB895E24BE911B00BC6F6D /* String+Extensions.swift */,
 				1AF92AD624C9F81400D253AC /* KeyboardSubscriber.swift */,
 				1A31605624E5493800C8AC6C /* UserActivityType+Extensions.swift */,
+				1A5D6CEC24E5D14B00BA84FD /* User+Extensions.swift */,
 			);
 			path = "Extensions and Helpers";
 			sourceTree = "<group>";
@@ -1435,6 +1438,7 @@
 				1AA410D224D9C0350083363B /* PostViewController.swift in Sources */,
 				1A31605724E5493800C8AC6C /* UserActivityType+Extensions.swift in Sources */,
 				1A212A1624BC890000A0DCD3 /* BFSignInData.swift in Sources */,
+				1A5D6CED24E5D14B00BA84FD /* User+Extensions.swift in Sources */,
 				1AABE1FF24C5CCC000D8E674 /* BFSegueButton.swift in Sources */,
 				1AF92AD324C73E8D00D253AC /* BFColorPickerButton.swift in Sources */,
 				1AA86BC624D1C563009BFE07 /* BFPostCell.swift in Sources */,

@@ -16,7 +16,7 @@ public struct Section: BFResource {
     public let attributes: Attributes
 
     public struct Attributes: Codable {
-        public let posts: [Post]
+        public let posts: [Post]?
     }
 
 }

@@ -31,7 +31,7 @@ public struct UserStreamRequest: APIRequest {
         case .me:
             self.resource = "streams/me"
         case .otherUser(let userId):
-            self.resource = "streams/\(userId)"
+            self.resource = "users/\(userId)/stream"
         }
     }
 }

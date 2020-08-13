@@ -49,6 +49,8 @@
 		1A315FAA24E32E0B00C8AC6C /* Pin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A315FA924E32E0B00C8AC6C /* Pin.swift */; };
 		1A315FAD24E33E7300C8AC6C /* SearchViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A315FAC24E33E7300C8AC6C /* SearchViewController.swift */; };
 		1A31605724E5493800C8AC6C /* UserActivityType+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A31605624E5493800C8AC6C /* UserActivityType+Extensions.swift */; };
+		1A31605A24E54D1300C8AC6C /* ProfileControllerProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A31605924E54D1300C8AC6C /* ProfileControllerProtocol.swift */; };
+		1A31605C24E54D1A00C8AC6C /* ProfileController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A31605B24E54D1A00C8AC6C /* ProfileController.swift */; };
 		1A3E012524C1F8C200C75F50 /* BFFormViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A3E012424C1F8C200C75F50 /* BFFormViewController.swift */; };
 		1A3E012724C2055B00C75F50 /* BFFormTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A3E012624C2055B00C75F50 /* BFFormTextView.swift */; };
 		1A3E012924C2067800C75F50 /* BFFormCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A3E012824C2067800C75F50 /* BFFormCell.swift */; };
@@ -290,6 +292,8 @@
 		1A315FA924E32E0B00C8AC6C /* Pin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pin.swift; sourceTree = "<group>"; };
 		1A315FAC24E33E7300C8AC6C /* SearchViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchViewController.swift; sourceTree = "<group>"; };
 		1A31605624E5493800C8AC6C /* UserActivityType+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UserActivityType+Extensions.swift"; sourceTree = "<group>"; };
+		1A31605924E54D1300C8AC6C /* ProfileControllerProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileControllerProtocol.swift; sourceTree = "<group>"; };
+		1A31605B24E54D1A00C8AC6C /* ProfileController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileController.swift; sourceTree = "<group>"; };
 		1A3E012424C1F8C200C75F50 /* BFFormViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFFormViewController.swift; sourceTree = "<group>"; };
 		1A3E012624C2055B00C75F50 /* BFFormTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFFormTextView.swift; sourceTree = "<group>"; };
 		1A3E012824C2067800C75F50 /* BFFormCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BFFormCell.swift; sourceTree = "<group>"; };
@@ -632,6 +636,15 @@
 				1A315FAC24E33E7300C8AC6C /* SearchViewController.swift */,
 			);
 			path = Search;
+			sourceTree = "<group>";
+		};
+		1A31605824E54D0B00C8AC6C /* Profile */ = {
+			isa = PBXGroup;
+			children = (
+				1A31605924E54D1300C8AC6C /* ProfileControllerProtocol.swift */,
+				1A31605B24E54D1A00C8AC6C /* ProfileController.swift */,
+			);
+			path = Profile;
 			sourceTree = "<group>";
 		};
 		1A3ED13524D38D16001DA453 /* Camp */ = {
@@ -999,6 +1012,7 @@
 		1A94DED4249FB5EE00AB0200 /* Controller */ = {
 			isa = PBXGroup;
 			children = (
+				1A31605824E54D0B00C8AC6C /* Profile */,
 				1A847D4424B1BC1000530614 /* Stream */,
 				1A7854D9249FBBBD00BA1589 /* Camps */,
 				1A94DED7249FB60A00AB0200 /* Friends */,
@@ -1412,6 +1426,7 @@
 				1A315FAA24E32E0B00C8AC6C /* Pin.swift in Sources */,
 				1A24431524A0E7930039BAAB /* UIViewController+Extensions.swift in Sources */,
 				1A7854E2249FBCEB00BA1589 /* BFSegmentedControl.swift in Sources */,
+				1A31605A24E54D1300C8AC6C /* ProfileControllerProtocol.swift in Sources */,
 				1A315FA624E329A200C8AC6C /* PinCollectionViewCell.swift in Sources */,
 				1AF7FCEC24A2700B003FCF9F /* BFSegmentedControlButton.swift in Sources */,
 				1AA410D924D9F7AC0083363B /* BFModalAnimator.swift in Sources */,
@@ -1501,6 +1516,7 @@
 				1A94DED3249FB49B00AB0200 /* CampsTableViewCell.swift in Sources */,
 				1AFFB1C6249D514900E67E89 /* Constants.swift in Sources */,
 				1A94DECF249FB47D00AB0200 /* CampsTableViewController.swift in Sources */,
+				1A31605C24E54D1A00C8AC6C /* ProfileController.swift in Sources */,
 				D943EEDE24CB6DFB00C30F8B /* NotificationsViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

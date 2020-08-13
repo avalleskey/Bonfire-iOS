@@ -18,7 +18,7 @@ final class StreamController: StreamControllerProtocol {
         api.send(UserStreamRequest(type: .me)) { (result) in
             switch result {
             case .success(let response):
-                completion(response.data.map { $0.attributes.posts }.reduce([], +))
+                completion(response.data.compactMap { $0.attributes.posts }.reduce([], +))
             case .failure(let error):
                 break
             }
@@ -29,7 +29,7 @@ final class StreamController: StreamControllerProtocol {
         api.send(UserStreamRequest(type: .otherUser(user))) { (result) in
             switch result {
             case .success(let response):
-                completion(response.data.map { $0.attributes.posts }.reduce([], +))
+                completion(response.data.compactMap { $0.attributes.posts }.reduce([], +))
             case .failure(let error):
                 break
             }

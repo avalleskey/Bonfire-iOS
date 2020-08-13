@@ -10,7 +10,9 @@ import UIKit
 
 final class ProfileHeaderView: UIView {
 
-    let pageViewController = UIPageViewController()
+    let pageViewController = UIPageViewController(transitionStyle: .scroll,
+                                                  navigationOrientation: .horizontal,
+                                                  options: [:])
 
     let addFriendBtn: UIButton = {
         let btn = BFActionButton(style: .primary)
@@ -32,6 +34,8 @@ final class ProfileHeaderView: UIView {
         stackView.distribution = .fillEqually
         return stackView
     }()
+    
+    let summaryPage = ProfileSummaryPageViewController()
 
     init() {
         super.init(frame: .zero)
@@ -39,7 +43,7 @@ final class ProfileHeaderView: UIView {
         backgroundColor = .red
         pageViewController.dataSource = self
         pageViewController.setViewControllers(
-            [ProfileSummaryPageViewController()],
+            [summaryPage],
             direction: .forward,
             animated: false)
 
@@ -84,13 +88,13 @@ extension ProfileHeaderView: UIPageViewControllerDataSource {
         _ pageViewController: UIPageViewController,
         viewControllerBefore viewController: UIViewController
     ) -> UIViewController? {
-        ProfileSummaryPageViewController()
+        nil
     }
 
     func pageViewController(
         _ pageViewController: UIPageViewController,
         viewControllerAfter viewController: UIViewController
     ) -> UIViewController? {
-        ProfileSummaryPageViewController()
+        nil
     }
 }

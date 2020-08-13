@@ -232,7 +232,8 @@ extension BFFeedTableViewController: PostHeaderCellDelegate {
         let post = posts[indexPath.section]
 
         let profileView = ProfileViewController()
-        profileView.__tempUpdatePost(post: post)
+        profileView.update(user: post.attributes.creator)
+        profileView.load(id: post.attributes.creator.id!)
         profileView.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(profileView, animated: true)
     }

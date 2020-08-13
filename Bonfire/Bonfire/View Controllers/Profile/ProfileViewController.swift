@@ -20,7 +20,8 @@ final class ProfileViewController: UIViewController {
 
     private let headerView = ProfileHeaderView()
     private let feedTableView = BFFeedTableViewController()
-    private let controller = StreamController()
+    private let streams = StreamController()
+    private let profiles = ProfileController()
 
     init() {
         super.init(nibName: nil, bundle: nil)
@@ -28,7 +29,7 @@ final class ProfileViewController: UIViewController {
         if navigationController?.tabBarController != nil {
             navigationItem.title = Constants.TabBar.meDefaultText
         } else {
-            navigationItem.title = "John Smith"
+            navigationItem.title = "Loading..."
         }
 
         addChild(feedTableView)
@@ -70,12 +71,23 @@ final class ProfileViewController: UIViewController {
         ])
     }
 
-    private func refresh(user: User) {
-        guard let id = user.id else { return }
-        controller.getStream(user: id) { (posts) in
+    func update(user: User) {
+        self.headerView.summaryPage.imageView.kf.setImage(with: user.attributes.media?.avatar?.full?.url)
+        navigationItem.title = user.attributes.display_name
+    }
+    
+    func load(id: String) {
+        streams.getStream(user: id) { (posts) in
             DispatchQueue.main.async {
                 self.feedTableView.posts = posts
                 self.feedTableView.tableView.reloadData()
+                
+            }
+        }
+        
+        profiles.getUser(user: id) { (user) in
+            DispatchQueue.main.async {
+                self.update(user: user)
             }
         }
     }

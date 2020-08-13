@@ -9,15 +9,15 @@
 import UIKit
 
 final class BFActionButton: UIButton {
-    
+
     enum Style {
         case primary
         case secondary
     }
-    
+
     init(style: Style) {
         super.init(frame: .zero)
-        
+
         switch style {
         case .primary:
             backgroundColor = .white
@@ -25,7 +25,7 @@ final class BFActionButton: UIButton {
             backgroundColor = UIColor(displayP3Red: 1, green: 1, blue: 1, alpha: 0.2)
         }
         tintColor = Constants.Color.primary
-        
+
         titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .bold).rounded()
         layer.cornerRadius = 14
         layer.shadowColor = UIColor.black.cgColor
@@ -34,7 +34,7 @@ final class BFActionButton: UIButton {
         layer.cornerRadius = 20
         layer.shadowRadius = 3
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }

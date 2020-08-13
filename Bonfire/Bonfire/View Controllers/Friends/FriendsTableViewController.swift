@@ -12,13 +12,13 @@ import UIKit
 final class FriendsTableViewController: UITableViewController {
 
     var friends: [User] = []
-    
+
     var pinned: [User] = [] {
         didSet {
-            pinCollectionView.pins = pinned.map { Pin($0)}
+            pinCollectionView.pins = pinned.map { Pin($0) }
         }
     }
-    
+
     private let pinCollectionView = PinCollectionViewController()
 
     init() {

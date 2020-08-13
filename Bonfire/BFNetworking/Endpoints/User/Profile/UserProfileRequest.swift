@@ -20,7 +20,7 @@ public struct UserProfileRequest: APIRequest {
     public let authenticationType: AuthenticationType = .userAuth
 
     public typealias Response = UserProfileResponse
-    
+
     public enum ProfileType {
         case me
         case otherUser(String)

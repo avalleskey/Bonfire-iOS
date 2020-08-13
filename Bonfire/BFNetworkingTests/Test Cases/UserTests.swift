@@ -12,29 +12,29 @@ import XCTest
 @testable import BFNetworking
 
 final class UserProfileTests: BFNetworkingTestCase {
-    
+
     private let client = APIClient()
 
     func testUserProfile() throws {
         apiTest(client: client, request: UserProfileRequest(type: .me))
     }
-    
+
     func testOtherUserProfile() throws {
-        apiTest(client: client,
-                request: UserProfileRequest(type: .otherUser("-rbVMBo75ADawYXOGRA")))
+        apiTest(
+            client: client,
+            request: UserProfileRequest(type: .otherUser("-rbVMBo75ADawYXOGRA")))
     }
-    
+
     func testNotifications() throws {
         apiTest(client: client, request: UserNotificationsRequest())
     }
-    
+
     func testStream() throws {
         apiTest(client: client, request: UserStreamRequest())
     }
-    
+
     func testFriends() throws {
         apiTest(client: client, request: UserFriendsRequest())
     }
 
 }
-

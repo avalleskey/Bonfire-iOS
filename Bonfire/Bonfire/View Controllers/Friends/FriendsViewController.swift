@@ -28,14 +28,14 @@ final class FriendsViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         navigationItem.title = Constants.TabBar.friendsDefaultText
-        
+
         if #available(iOS 13.0, *) { view.backgroundColor = .systemBackground }
 
         view.addSubview(friendsTableView.view)
         view.addSubview(activityIndicator)
-        
+
         let searchController = BFSearchController(searchResultsController: nil)
         searchController.searchBar.placeholder = "Camps & People"
         self.navigationItem.searchController = searchController
@@ -57,7 +57,7 @@ final class FriendsViewController: UIViewController {
         if self.friendsTableView.friends.count == 0 {
             activityIndicator.startAnimating()
         }
-        
+
         controller.getFriends { (result) in
             DispatchQueue.main.async {
                 self.activityIndicator.stopAnimating()

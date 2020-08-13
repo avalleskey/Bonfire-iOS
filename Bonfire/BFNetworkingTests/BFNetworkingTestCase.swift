@@ -11,7 +11,7 @@ import XCTest
 @testable import BFNetworking
 
 open class BFNetworkingTestCase: XCTestCase {
-    
+
     func apiTest<R: APIRequest>(client: APIClient, request: R) {
         let expectation = XCTestExpectation(description: "\(R.self) loads")
         client.send(request) { (result) in
@@ -22,7 +22,7 @@ open class BFNetworkingTestCase: XCTestCase {
                 XCTFail(error.localizedDescription)
             }
         }
-        
+
         wait(for: [expectation], timeout: 10)
     }
 }

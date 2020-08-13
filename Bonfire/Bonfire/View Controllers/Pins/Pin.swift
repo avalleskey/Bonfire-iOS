@@ -9,11 +9,11 @@
 import Foundation
 
 struct Pin {
-    
+
     let object: Pinnable
-    
+
     init(_ object: Pinnable) {
         self.object = object
     }
-    
+
 }

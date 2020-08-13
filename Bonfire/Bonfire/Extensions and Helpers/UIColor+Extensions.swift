@@ -27,17 +27,17 @@ extension UIColor {
         if #available(iOS 13.0, *) {
             return UIColor {
                 switch $0.userInterfaceStyle {
-                    case .dark:
-                        return dark
-                    default:
-                        return light
+                case .dark:
+                    return dark
+                default:
+                    return light
                 }
             }
         } else {
             return light
         }
     }
-    
+
     convenience init?(hex: String) {
         var hexSanitized = hex.trimmingCharacters(in: .whitespacesAndNewlines)
         hexSanitized = hexSanitized.replacingOccurrences(of: "#", with: "")

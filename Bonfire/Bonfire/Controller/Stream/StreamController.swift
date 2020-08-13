@@ -24,7 +24,7 @@ final class StreamController: StreamControllerProtocol {
             }
         }
     }
-    
+
     func getStream(user: String, completion: @escaping ([Post]) -> Void) {
         api.send(UserStreamRequest(type: .otherUser(user))) { (result) in
             switch result {

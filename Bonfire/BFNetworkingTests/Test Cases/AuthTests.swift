@@ -14,6 +14,4 @@ final class AuthTests: BFNetworkingTestCase {
 
     private let client = APIClient()
 
-    
-
 }

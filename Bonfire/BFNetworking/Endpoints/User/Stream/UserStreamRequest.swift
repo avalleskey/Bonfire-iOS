@@ -18,7 +18,7 @@ public struct UserStreamRequest: APIRequest {
     public let method: String = "GET"
 
     public let authenticationType: AuthenticationType = .userAuth
-    
+
     public enum ProfileType {
         case me
         case otherUser(String)

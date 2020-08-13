@@ -6,27 +6,27 @@
 //  Copyright © 2020 Ingenious. All rights reserved.
 //
 
-import XCTest
 import KeychainSwift
+import XCTest
 
 @testable import BFNetworking
 
 extension UIColor: Keychainable {}
 
 final class KeychainTests: XCTestCase {
-    
+
     private static let keychain = KeychainSwift(keyPrefix: "unit_test_")
 
-    @KeychainProperty(key: .accessToken, keychain: keychain)
+    @KeychainProperty(key:.accessToken,keychain:keychain)
     private var str: String?
-    
-    @KeychainProperty(key: .accessToken, keychain: keychain)
+
+    @KeychainProperty(key:.accessToken,keychain:keychain)
     private var data: Data?
-    
-    @KeychainProperty(key: .accessToken, keychain: keychain)
+
+    @KeychainProperty(key:.accessToken,keychain:keychain)
     private var bool: Bool?
-    
-    @KeychainProperty(key: .accessToken, keychain: keychain)
+
+    @KeychainProperty(key:.accessToken,keychain:keychain)
     private var unsupported: UIColor?
 
     func testString() throws {
@@ -35,14 +35,14 @@ final class KeychainTests: XCTestCase {
         str = nil
         XCTAssertNil(str)
     }
-    
+
     func testData() throws {
         data = Data(count: 8)
         XCTAssertEqual(data, Data(count: 8))
         data = nil
         XCTAssertNil(data)
     }
-    
+
     func testBool() throws {
         bool = true
         XCTAssertEqual(bool, true)
@@ -51,7 +51,7 @@ final class KeychainTests: XCTestCase {
         bool = nil
         XCTAssertNil(bool)
     }
-    
+
     func testUnsupported() throws {
         unsupported = UIColor.blue
         XCTAssertNil(unsupported)

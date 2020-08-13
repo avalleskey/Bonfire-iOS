@@ -11,28 +11,27 @@ import UIKit
 final class CampViewController: UIViewController {
 
     private let feedTableView = BFFeedTableViewController()
-    
+
     init() {
         super.init(nibName: nil, bundle: nil)
-        
+
         view.backgroundColor = Constants.Color.brand
         navigationItem.title = "Camp Test"
-        
+
         addChild(feedTableView)
         view.addSubview(feedTableView.view)
     }
-    
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         navigationController?.interactivePopGestureRecognizer?.delegate = self
         navigationController?.interactivePopGestureRecognizer?.isEnabled = true
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
-    
+
 }
 
 extension CampViewController: UIGestureRecognizerDelegate {
@@ -40,4 +39,3 @@ extension CampViewController: UIGestureRecognizerDelegate {
         true
     }
 }
-

@@ -14,13 +14,13 @@ import UIKit
 final class CampsTableViewController: UITableViewController {
 
     var camps: [Camp] = []
-    
+
     var pinned: [Camp] = [] {
         didSet {
             pinCollectionView.pins = pinned.map { Pin($0) }
         }
     }
-    
+
     private let pinCollectionView = PinCollectionViewController()
 
     init() {

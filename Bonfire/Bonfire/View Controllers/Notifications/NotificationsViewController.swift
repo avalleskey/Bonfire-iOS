@@ -17,7 +17,7 @@ final class NotificationsViewController: UIViewController {
             image: Constants.TabBar.notificationsDefaultImage,
             tag: 0)
     }
-    
+
     private let activityIndicator: UIActivityIndicatorView = {
         var indicator = UIActivityIndicatorView(style: .whiteLarge)
         indicator.color = Constants.Color.secondary
@@ -31,7 +31,7 @@ final class NotificationsViewController: UIViewController {
         if #available(iOS 13.0, *) { view.backgroundColor = .systemBackground }
 
         navigationItem.title = Constants.TabBar.notificationsDefaultText
-        
+
         view.addSubview(notificationsTableView.view)
         view.addSubview(activityIndicator)
 
@@ -50,7 +50,7 @@ final class NotificationsViewController: UIViewController {
         if self.notificationsTableView.notifications.count == 0 {
             activityIndicator.startAnimating()
         }
-        
+
         controller.getNotifications { (result) in
             DispatchQueue.main.async {
                 self.activityIndicator.stopAnimating()

@@ -12,21 +12,21 @@ import Kingfisher
 import UIKit
 
 protocol BFFeedTableViewControllerDelegate: class {
-    
+
 }
 
 final class BFFeedTableViewController: UITableViewController {
 
     public var posts: [Post] = []
-    
+
     public var enableConversationView: Bool = false {
         didSet {
             tableView.allowsSelection = enableConversationView
         }
     }
-    
-    public var showsReplyCell = true { didSet { tableView.reloadData() }}
-    
+
+    public var showsReplyCell = true { didSet { tableView.reloadData() } }
+
     private var transitionDelegate: BFModalTransitioningDelegate?
 
     init() {
@@ -68,16 +68,16 @@ final class BFFeedTableViewController: UITableViewController {
 
     func postCellTypes(for post: Post) -> [BFPostCell.Type] {
         var types: [BFPostCell.Type] = [PostHeaderCell.self, PostMessageCell.self]
-        
+
         post.attributes
             .attachments?
             .media?
             .forEach { _ in types.append(PostImageAttachmentCell.self) }
-        
+
         if showsReplyCell {
             types.append(AddReplyCell.self)
         }
-        
+
         types.append(PostActionsCell.self)
         return types
     }
@@ -107,8 +107,11 @@ final class BFFeedTableViewController: UITableViewController {
                     for: indexPath) as! PostHeaderCell
             cell = headerCell
             headerCell.delegate = self
-            headerCell.profileImageView.addTarget(headerCell, action: #selector(PostHeaderCell.profileImageTap(sender:)), for: .touchUpInside)
-            headerCell.profileLabel.text = String(htmlEncodedString: post.attributes.creator.attributes.display_name)
+            headerCell.profileImageView.addTarget(
+                headerCell, action: #selector(PostHeaderCell.profileImageTap(sender:)),
+                for: .touchUpInside)
+            headerCell.profileLabel.text = String(
+                htmlEncodedString: post.attributes.creator.attributes.display_name)
             //            headerCell.profileLabel.textColor = UIColor.init(hex: post.attributes.creator.attributes.color)
 
             if let camp = post.attributes.postedIn {
@@ -119,7 +122,8 @@ final class BFFeedTableViewController: UITableViewController {
             }
 
             if let url = post.attributes.creator.attributes.media?.avatar?.full?.url {
-                headerCell.profileImageView.kf.setImage(with: url, for: .normal, options: [.cacheOriginalImage])
+                headerCell.profileImageView.kf.setImage(
+                    with: url, for: .normal, options: [.cacheOriginalImage])
             }
         case is PostMessageCell.Type:
             let messageCell =
@@ -203,13 +207,13 @@ final class BFFeedTableViewController: UITableViewController {
     {
         return nil
     }
-    
+
     override func tableView(_ tableView: UITableView, heightForFooterInSection section: Int)
         -> CGFloat
     {
         return 0
     }
-    
+
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let post = posts[indexPath.section]
         let conversationVC = ConversationViewController(post: post)
@@ -226,7 +230,7 @@ extension BFFeedTableViewController: PostHeaderCellDelegate {
     func profileBtnTap(cell: UITableViewCell) {
         guard let indexPath = tableView.indexPath(for: cell) else { return }
         let post = posts[indexPath.section]
-        
+
         let profileView = ProfileViewController()
         profileView.__tempUpdatePost(post: post)
         profileView.hidesBottomBarWhenPushed = true

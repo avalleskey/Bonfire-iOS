@@ -31,9 +31,9 @@ final class HomeViewController: UIKeyboardSubscribedViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         navigationItem.title = Constants.TabBar.homeDefaultText
-        
+
         navigationController?.view.backgroundColor = Constants.Color.groupedBackground
         homeFeedTableView.view.backgroundColor = navigationController?.view.backgroundColor
         navigationController?.navigationBar.barTintColor = homeFeedTableView.view.backgroundColor
@@ -63,11 +63,11 @@ final class HomeViewController: UIKeyboardSubscribedViewController {
         if self.homeFeedTableView.posts.count == 0 {
             activityIndicator.startAnimating()
         }
-        
+
         controller.getStream { (posts) in
             DispatchQueue.main.async {
                 self.activityIndicator.stopAnimating()
-                
+
                 self.homeFeedTableView.posts = posts
                 self.homeFeedTableView.tableView.reloadData()
             }

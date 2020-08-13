@@ -58,7 +58,7 @@ struct Constants {
                 return UIColor.white
             }
         }()
-        
+
         static let groupedBackground: UIColor = {
             if #available(iOS 13.0, *) {
                 return UIColor.systemGroupedBackground
@@ -97,7 +97,7 @@ struct Constants {
         }()
 
         static let brand = UIColor(named: "BrandColor")
-        
+
         static let secondaryFill: UIColor = {
             let light: UIColor = UIColor(red: 0.97, green: 0.97, blue: 0.98, alpha: 1.00)
             let dark: UIColor = UIColor(red: 0.24, green: 0.25, blue: 0.25, alpha: 1.00)

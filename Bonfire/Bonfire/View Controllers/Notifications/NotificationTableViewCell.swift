@@ -8,8 +8,8 @@
 
 import BFCore
 import Foundation
-import UIKit
 import Kingfisher
+import UIKit
 
 final class NotificationTableViewCell: UITableViewCell {
 
@@ -18,7 +18,7 @@ final class NotificationTableViewCell: UITableViewCell {
     private var type: UserActivityType = .unknown {
         didSet {
             guard let image = type.background.image else { return }
-            
+
             typeImageView.backgroundColor = type.background.color
             typeImageView.image = image
         }
@@ -38,14 +38,17 @@ final class NotificationTableViewCell: UITableViewCell {
         dateLabel.text = notification.attributes.createdAt.timeAgoDisplay()
 
         if let actioner = notification.attributes.actioner,
-           let url = actioner.attributes.media?.avatar?.full?.url {
+            let url = actioner.attributes.media?.avatar?.full?.url
+        {
             profileImageView.kf.setImage(with: url)
         } else {
             profileImageView.image = nil
             profileImageView.backgroundColor = .gray
         }
-        
-        if let post = notification.attributes.post, let postMedia = post.attributes.attachments?.media, postMedia.count > 0 {
+
+        if let post = notification.attributes.post,
+            let postMedia = post.attributes.attachments?.media, postMedia.count > 0
+        {
             previewPostImageContainerView.isHidden = false
             previewPostImageView.kf.setImage(with: postMedia[0].attributes.hostedVersions.full?.url)
         } else {
@@ -53,10 +56,10 @@ final class NotificationTableViewCell: UITableViewCell {
             previewPostImageView.image = nil
         }
     }
-    
+
     var read: Bool = false {
         didSet {
-            unreadDotContainerView.isHidden = false//read
+            unreadDotContainerView.isHidden = false  //read
         }
     }
 
@@ -84,7 +87,7 @@ final class NotificationTableViewCell: UITableViewCell {
         label.font = UIFont.systemFont(ofSize: 17, weight: .bold).rounded()
         label.textColor = Constants.Color.primary
         label.numberOfLines = 0
-//        label.backgroundColor = UIColor(white: 0.8, alpha: 0.3)
+        //        label.backgroundColor = UIColor(white: 0.8, alpha: 0.3)
         label.setContentHuggingPriority(UILayoutPriority(250), for: .vertical)
         return label
     }()
@@ -94,11 +97,11 @@ final class NotificationTableViewCell: UITableViewCell {
         label.text = "2h ago"
         label.font = UIFont.systemFont(ofSize: 15, weight: .semibold).rounded()
         label.textColor = Constants.Color.secondary
-//        label.backgroundColor = UIColor(white: 0.8, alpha: 0.3)
+        //        label.backgroundColor = UIColor(white: 0.8, alpha: 0.3)
         label.setContentHuggingPriority(UILayoutPriority(250), for: .vertical)
         return label
     }()
-    
+
     let textStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .vertical
@@ -108,7 +111,7 @@ final class NotificationTableViewCell: UITableViewCell {
         stackView.alignment = .fill
         return stackView
     }()
-    
+
     let topSpacerView: UIView = {
         let view = UIView()
         view.setContentHuggingPriority(UILayoutPriority(rawValue: 249), for: .vertical)
@@ -123,7 +126,7 @@ final class NotificationTableViewCell: UITableViewCell {
         view.frame = CGRect(x: 0, y: 0, width: 1, height: 0)
         return view
     }()
-    
+
     let previewPostImageContainerView: UIView = {
         let view = UIView()
         return view
@@ -137,7 +140,7 @@ final class NotificationTableViewCell: UITableViewCell {
         imageView.backgroundColor = UIColor(white: 0.2, alpha: 0.1)
         return imageView
     }()
-    
+
     let unreadDotContainerView: UIView = {
         let view = UIView()
         return view
@@ -152,16 +155,16 @@ final class NotificationTableViewCell: UITableViewCell {
         let stackView = UIStackView()
         stackView.axis = .horizontal
         stackView.spacing = 8
-//        stackView.backgroundColor = UIColor(white: 0.2, alpha: 0.1)
+        //        stackView.backgroundColor = UIColor(white: 0.2, alpha: 0.1)
         stackView.alignment = .top
         stackView.distribution = .fill
         return stackView
     }()
-    
+
     let containerStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .vertical
-//        stackView.backgroundColor = .red
+        //        stackView.backgroundColor = .red
         stackView.alignment = .top
         stackView.distribution = .fill
         return stackView
@@ -181,21 +184,21 @@ final class NotificationTableViewCell: UITableViewCell {
         contentView.addSubview(profileImageView)
         contentView.addSubview(typeImageView)
 
-//        textStackView.addArrangedSubview(topSpacerView)
+        //        textStackView.addArrangedSubview(topSpacerView)
         textStackView.addArrangedSubview(titleLabel)
         textStackView.addArrangedSubview(dateLabel)
         textStackView.setContentHuggingPriority(UILayoutPriority(750), for: .vertical)
-        
+
         containerStackView.addArrangedSubview(textStackView)
         containerStackView.addArrangedSubview(bottomSpacerView)
         detailsStackView.addArrangedSubview(containerStackView)
-        
+
         previewPostImageContainerView.addSubview(previewPostImageView)
         detailsStackView.addArrangedSubview(previewPostImageContainerView)
-        
+
         unreadDotContainerView.addSubview(unreadDotView)
         detailsStackView.addArrangedSubview(unreadDotContainerView)
-        
+
         contentView.addSubview(detailsStackView)
 
         updateConstraints()
@@ -215,7 +218,7 @@ final class NotificationTableViewCell: UITableViewCell {
         bottomSpacerView.translatesAutoresizingMaskIntoConstraints = false
         previewPostImageView.translatesAutoresizingMaskIntoConstraints = false
         unreadDotView.translatesAutoresizingMaskIntoConstraints = false
-        
+
         NSLayoutConstraint.activate([
             profileImageView.leadingAnchor.constraint(
                 equalTo: contentView.leadingAnchor,
@@ -230,7 +233,7 @@ final class NotificationTableViewCell: UITableViewCell {
                 equalTo: profileImageView.bottomAnchor),
             typeImageView.widthAnchor.constraint(equalToConstant: 24),
             typeImageView.heightAnchor.constraint(equalTo: typeImageView.widthAnchor),
-            
+
             detailsStackView.leadingAnchor.constraint(
                 equalTo: profileImageView.trailingAnchor,
                 constant: 12),
@@ -239,11 +242,14 @@ final class NotificationTableViewCell: UITableViewCell {
                 constant: -12),
             detailsStackView.topAnchor.constraint(equalTo: profileImageView.topAnchor),
             detailsStackView.heightAnchor.constraint(equalTo: textStackView.heightAnchor),
-                        
+
             previewPostImageContainerView.widthAnchor.constraint(equalToConstant: 44),
-            previewPostImageContainerView.heightAnchor.constraint(equalTo: profileImageView.heightAnchor),
-            previewPostImageView.centerYAnchor.constraint(equalTo: previewPostImageContainerView.centerYAnchor),
-            previewPostImageView.widthAnchor.constraint(equalTo: previewPostImageContainerView.widthAnchor),
+            previewPostImageContainerView.heightAnchor.constraint(
+                equalTo: profileImageView.heightAnchor),
+            previewPostImageView.centerYAnchor.constraint(
+                equalTo: previewPostImageContainerView.centerYAnchor),
+            previewPostImageView.widthAnchor.constraint(
+                equalTo: previewPostImageContainerView.widthAnchor),
             previewPostImageView.heightAnchor.constraint(equalTo: previewPostImageView.widthAnchor),
 
             unreadDotContainerView.widthAnchor.constraint(equalToConstant: 12),

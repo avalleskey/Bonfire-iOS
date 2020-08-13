@@ -12,11 +12,11 @@ import XCTest
 @testable import BFNetworking
 
 final class CampTests: BFNetworkingTestCase {
-    
+
     private let client = APIClient()
 
     func testMyCamps() throws {
         apiTest(client: client, request: MyCampsRequest())
     }
-    
+
 }

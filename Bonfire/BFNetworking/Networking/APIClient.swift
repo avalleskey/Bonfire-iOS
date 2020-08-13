@@ -13,7 +13,7 @@ public typealias APICompletionHandler<APIResponse> = (Result<APIResponse, Error>
 public final class APIClient {
 
     public static let shared = APIClient()
-    
+
     private var retryCount = 0
 
     private let baseURL = URL(string: "https://api.bonfire.camp/v1/")
@@ -63,7 +63,7 @@ public final class APIClient {
             if let httpResp = response as? HTTPURLResponse {
                 let code = httpResp.statusCode
                 print("[HTTP]", code, String(data: data ?? Data(), encoding: .utf8) ?? "--")
-                
+
                 if code == 401 && retryCount < 3 {
                     KeychainVault.accessToken = nil
                     //TODO: Refresh

@@ -31,7 +31,7 @@ final class BFTabBarController: UITabBarController {
         tabBar.shadowImage = UIImage(named: "TabBarShadow")
         tabBar.tintColor = Constants.Color.primary
         tabBar.unselectedItemTintColor = Constants.Color.secondary
-        
+
         let tabBarItemFont = UIFont.systemFont(ofSize: 12, weight: .bold).rounded()
         let appearance = UITabBarItem.appearance()
         let attributes = [NSAttributedString.Key.font: tabBarItemFont]
@@ -42,12 +42,12 @@ final class BFTabBarController: UITabBarController {
 
         delegate = self
     }
-    
+
     override func viewDidLayoutSubviews() {
         super.viewWillLayoutSubviews()
-//        custom tab bar height
-//        tabBar.frame.size.height = 58
-//        tabBar.frame.origin.y = view.frame.height - 58
+        //        custom tab bar height
+        //        tabBar.frame.size.height = 58
+        //        tabBar.frame.origin.y = view.frame.height - 58
     }
 }
 

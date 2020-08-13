@@ -18,7 +18,7 @@ final class PostHeaderCell: UITableViewCell, BFPostCell {
     static let reuseIdentifier = "PostHeaderCellIdentifier"
 
     static let rowHeight: CGFloat = 64
-    
+
     weak var delegate: PostHeaderCellDelegate?
 
     enum Style {
@@ -68,7 +68,7 @@ final class PostHeaderCell: UITableViewCell, BFPostCell {
 
         contentView.addSubview(profileImageView)
         contentView.addSubview(headerLabelStack)
-        
+
         isUserInteractionEnabled = true
 
         updateConstraints()
@@ -94,11 +94,11 @@ final class PostHeaderCell: UITableViewCell, BFPostCell {
                 constant: 12),
         ])
     }
-    
+
     override func prepareForReuse() {
         profileImageView.removeTarget(self, action: #selector(profileImageTap), for: .touchUpInside)
     }
-    
+
     @objc func profileImageTap(sender: UIButton) {
         delegate?.profileBtnTap(cell: self)
     }

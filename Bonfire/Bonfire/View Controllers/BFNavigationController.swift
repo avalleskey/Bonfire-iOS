@@ -32,10 +32,10 @@ final class BFNavigationController: UINavigationController {
         navigationBar.isTranslucent = false
         navigationBar.setBackgroundImage(UIImage(), for: .default)
         navigationBar.shadowImage = UIImage()
-        
+
         let titleFont = UIFont.systemFont(ofSize: 20, weight: .bold).rounded()
         navigationBar.titleTextAttributes = [NSAttributedString.Key.font: titleFont]
-        
+
         let largeTitleFont = UIFont.systemFont(ofSize: 32, weight: .heavy).rounded()
         navigationBar.largeTitleTextAttributes = [NSAttributedString.Key.font: largeTitleFont]
     }
@@ -56,7 +56,7 @@ extension BFNavigationController: UINavigationControllerDelegate {
         _ navigationController: UINavigationController, willShow viewController: UIViewController,
         animated: Bool
     ) {
-        
+
         switch viewController {
         case is HomeViewController:
             let rightIcon = UIImage(named: "ComposeNavIcon")?.withRenderingMode(
@@ -66,7 +66,7 @@ extension BFNavigationController: UINavigationControllerDelegate {
                 style: .plain,
                 target: nil,
                 action: #selector(compose))
-            
+
             viewController.navigationItem.rightBarButtonItem?.tintColor = Constants.Color.primary
         case is FriendsViewController:
             let rightIcon = UIImage(named: "PlusNavIcon")?.withRenderingMode(
@@ -87,7 +87,7 @@ extension BFNavigationController: UINavigationControllerDelegate {
                 target: nil,
                 action: #selector(openAddCamps))
             viewController.navigationItem.rightBarButtonItem?.tintColor = Constants.Color.primary
-            
+
         case is ProfileViewController:
             let rightIcon = UIImage(named: "SettingsNavIcon")?.withRenderingMode(
                 UIImage.RenderingMode.alwaysTemplate)
@@ -107,7 +107,7 @@ extension BFNavigationController: UINavigationControllerDelegate {
             rootViewController: notificationsViewController)
         self.present(notificationsNavController, animated: true)
     }
-    
+
     @objc func openAddFriends() {
         let items: [Any] = [
             "Add me on Bonfire! 🔥", URL(string: "https://www.bonfire.camp/u/austin")!,
@@ -143,7 +143,7 @@ extension BFNavigationController: UINavigationControllerDelegate {
         present(alert, animated: true, completion: nil)
     }
     @objc func openSettings() {
-        
+
     }
     @objc func compose() {
         present(CreatePostViewController(), animated: true)

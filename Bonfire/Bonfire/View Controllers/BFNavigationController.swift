@@ -33,11 +33,18 @@ final class BFNavigationController: UINavigationController {
         navigationBar.setBackgroundImage(UIImage(), for: .default)
         navigationBar.shadowImage = UIImage()
 
-        let titleFont = UIFont.systemFont(ofSize: 20, weight: .bold).rounded()
+        let titlePointSize: CGFloat = 18
+        
+        let titleFont = UIFont.systemFont(ofSize: titlePointSize, weight: .bold).rounded()
         navigationBar.titleTextAttributes = [NSAttributedString.Key.font: titleFont]
 
         let largeTitleFont = UIFont.systemFont(ofSize: 32, weight: .heavy).rounded()
         navigationBar.largeTitleTextAttributes = [NSAttributedString.Key.font: largeTitleFont]
+        
+        let buttonFont = UIFont.systemFont(ofSize: titlePointSize, weight: .medium).rounded()
+        let appearance = UIBarButtonItem.appearance()
+        let attributes = [NSAttributedString.Key.font: buttonFont]
+        appearance.setTitleTextAttributes(attributes, for: .normal)
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -59,15 +66,16 @@ extension BFNavigationController: UINavigationControllerDelegate {
 
         switch viewController {
         case is HomeViewController:
-            let rightIcon = UIImage(named: "ComposeNavIcon")?.withRenderingMode(
-                UIImage.RenderingMode.alwaysTemplate)
-            viewController.navigationItem.rightBarButtonItem = .init(
-                image: rightIcon,
-                style: .plain,
-                target: nil,
-                action: #selector(compose))
-
-            viewController.navigationItem.rightBarButtonItem?.tintColor = Constants.Color.primary
+//            let rightIcon = UIImage(named: "ComposeNavIcon")?.withRenderingMode(
+//                UIImage.RenderingMode.alwaysTemplate)
+//            viewController.navigationItem.rightBarButtonItem = .init(
+//                image: rightIcon,
+//                style: .plain,
+//                target: nil,
+//                action: #selector(compose))
+//
+//            viewController.navigationItem.rightBarButtonItem?.tintColor = Constants.Color.primary
+            break
         case is FriendsViewController:
             let rightIcon = UIImage(named: "PlusNavIcon")?.withRenderingMode(
                 UIImage.RenderingMode.alwaysTemplate)

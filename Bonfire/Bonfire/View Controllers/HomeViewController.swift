@@ -37,7 +37,10 @@ final class HomeViewController: UIKeyboardSubscribedViewController {
         navigationController?.view.backgroundColor = Constants.Color.groupedBackground
         homeFeedTableView.view.backgroundColor = navigationController?.view.backgroundColor
         navigationController?.navigationBar.barTintColor = homeFeedTableView.view.backgroundColor
+        
         navigationController?.navigationBar.prefersLargeTitles = true
+        navigationController?.navigationBar.layoutMargins.left = 28
+        navigationController?.navigationBar.layoutMargins.right = 28
 
         addChild(homeFeedTableView)
         view.addSubview(homeFeedTableView.view)
@@ -61,11 +64,13 @@ final class HomeViewController: UIKeyboardSubscribedViewController {
 
     private func refresh() {
         if self.homeFeedTableView.posts.count == 0 {
+            homeFeedTableView.tableView.isScrollEnabled = false
             activityIndicator.startAnimating()
         }
 
         controller.getStream { (posts) in
             DispatchQueue.main.async {
+                self.homeFeedTableView.tableView.isScrollEnabled = true
                 self.activityIndicator.stopAnimating()
 
                 self.homeFeedTableView.posts = posts
@@ -88,7 +93,7 @@ final class HomeViewController: UIKeyboardSubscribedViewController {
 
         NSLayoutConstraint.activate([
             activityIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            activityIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            activityIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: -48),
             homeFeedTableView.view.topAnchor.constraint(
                 equalTo: view.safeAreaLayoutGuide.topAnchor),
             homeFeedTableView.view.leadingAnchor.constraint(

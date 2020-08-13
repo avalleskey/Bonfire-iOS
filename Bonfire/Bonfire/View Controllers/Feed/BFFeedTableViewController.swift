@@ -110,16 +110,9 @@ final class BFFeedTableViewController: UITableViewController {
             headerCell.profileImageView.addTarget(
                 headerCell, action: #selector(PostHeaderCell.profileImageTap(sender:)),
                 for: .touchUpInside)
-            headerCell.profileLabel.text = String(
+            headerCell.primaryLabel.text = String(
                 htmlEncodedString: post.attributes.creator.attributes.display_name)
-            //            headerCell.profileLabel.textColor = UIColor.init(hex: post.attributes.creator.attributes.color)
-
-            if let camp = post.attributes.postedIn {
-                headerCell.campLabel.text = String(htmlEncodedString: "in " + camp.attributes.title)
-                headerCell.headerStyle = .camp
-            } else {
-                headerCell.headerStyle = .profile
-            }
+            headerCell.primaryLabel.textColor = UIColor.init(hex: post.attributes.creator.attributes.color)
 
             if let url = post.attributes.creator.attributes.media?.avatar?.full?.url {
                 headerCell.profileImageView.kf.setImage(
@@ -187,6 +180,7 @@ final class BFFeedTableViewController: UITableViewController {
                 for: indexPath)
         }
 
+        cell.tintColor = UIColor(hex: post.attributes.creator.attributes.color)
         cell.selectionStyle = .none
         return cell
     }
@@ -194,24 +188,24 @@ final class BFFeedTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int)
         -> UIView?
     {
-        return UIView()
+        return nil
     }
     override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int)
         -> CGFloat
     {
-        return section == 0 ? 24 : 16
+        return 0
     }
 
     override func tableView(_ tableView: UITableView, viewForFooterInSection section: Int)
         -> UIView?
     {
-        return nil
+        return UIView()
     }
 
     override func tableView(_ tableView: UITableView, heightForFooterInSection section: Int)
         -> CGFloat
     {
-        return 0
+        return 12
     }
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {

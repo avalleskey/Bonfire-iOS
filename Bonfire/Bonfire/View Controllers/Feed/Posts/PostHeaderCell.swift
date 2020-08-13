@@ -17,18 +17,21 @@ final class PostHeaderCell: UITableViewCell, BFPostCell {
 
     static let reuseIdentifier = "PostHeaderCellIdentifier"
 
-    static let rowHeight: CGFloat = 64
+    static let rowHeight: CGFloat = 50
 
     weak var delegate: PostHeaderCellDelegate?
 
     enum Style {
-        case profile
-        case camp
+        case fire
+        case live
+        case statusUpdate
+        case mention
+        case friendSuggestion
     }
 
-    var headerStyle: Style = .camp {
+    var headerStyle: Style = .fire {
         didSet {
-            campLabel.isHidden = headerStyle != .camp
+
         }
     }
 
@@ -38,7 +41,7 @@ final class PostHeaderCell: UITableViewCell, BFPostCell {
         return imageView
     }()
 
-    let profileLabel: UILabel = {
+    let primaryLabel: UILabel = {
         let label = UILabel()
         label.text = "@hugo"
         label.textColor = Constants.Color.primary
@@ -54,20 +57,19 @@ final class PostHeaderCell: UITableViewCell, BFPostCell {
         return label
     }()
 
-    let headerLabelStack: UIStackView = {
+    let headerStack: UIStackView = {
         let stackView = UIStackView()
-        stackView.axis = .vertical
+        stackView.axis = .horizontal
         return stackView
     }()
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
 
-        headerLabelStack.addArrangedSubview(profileLabel)
-        headerLabelStack.addArrangedSubview(campLabel)
+        headerStack.addArrangedSubview(profileImageView)
+        headerStack.addArrangedSubview(primaryLabel)
 
-        contentView.addSubview(profileImageView)
-        contentView.addSubview(headerLabelStack)
+        contentView.addSubview(headerStack)
 
         isUserInteractionEnabled = true
 
@@ -81,17 +83,16 @@ final class PostHeaderCell: UITableViewCell, BFPostCell {
     override func updateConstraints() {
         super.updateConstraints()
 
+        headerStack.translatesAutoresizingMaskIntoConstraints = false
         profileImageView.translatesAutoresizingMaskIntoConstraints = false
-        headerLabelStack.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
-            profileImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12),
-            profileImageView.centerYAnchor.constraint(equalTo: centerYAnchor),
-            profileImageView.topAnchor.constraint(equalTo: topAnchor, constant: 12),
-            headerLabelStack.centerYAnchor.constraint(equalTo: profileImageView.centerYAnchor),
-            headerLabelStack.leadingAnchor.constraint(
-                equalTo: profileImageView.trailingAnchor,
-                constant: 12),
+            headerStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            headerStack.topAnchor.constraint(equalTo: topAnchor, constant: 16),
+            headerStack.heightAnchor.constraint(equalToConstant: 24),
+            
+            profileImageView.widthAnchor.constraint(equalTo: headerStack.heightAnchor),
+            profileImageView.heightAnchor.constraint(equalTo: profileImageView.widthAnchor),
         ])
     }
 

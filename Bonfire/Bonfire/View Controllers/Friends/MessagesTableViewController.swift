@@ -1,5 +1,5 @@
 //
-//  FriendsTableViewController.swift
+//  MessagesTableViewController.swift
 //  Bonfire
 //
 //  Created by James Dale on 21/6/20.
@@ -9,7 +9,7 @@
 import BFCore
 import UIKit
 
-final class FriendsTableViewController: UITableViewController {
+final class MessagesTableViewController: UITableViewController {
 
     var friends: [User] = []
 
@@ -24,8 +24,8 @@ final class FriendsTableViewController: UITableViewController {
     init() {
         super.init(nibName: nil, bundle: nil)
         tableView.register(
-            FriendTableViewCell.self,
-            forCellReuseIdentifier: FriendTableViewCell.reuseIdentifier)
+            ConversationTableViewCell.self,
+            forCellReuseIdentifier: ConversationTableViewCell.reuseIdentifier)
         tableView.separatorStyle = .none
         tableView.tableHeaderView = pinCollectionView.view
         addChild(pinCollectionView)
@@ -54,8 +54,8 @@ final class FriendsTableViewController: UITableViewController {
     {
         let cell =
             tableView.dequeueReusableCell(
-                withIdentifier: FriendTableViewCell.reuseIdentifier,
-                for: indexPath) as! FriendTableViewCell
+                withIdentifier: ConversationTableViewCell.reuseIdentifier,
+                for: indexPath) as! ConversationTableViewCell
 
         let friend = friends[indexPath.row]
         cell.updateWithUser(user: friend)

@@ -11,7 +11,7 @@ import UIKit
 
 final class PostMessageCell: UITableViewCell, BFPostCell {
 
-    static let reuseIdentifier = "PostMessageCellIdentifier"
+    //static let reuseIdentifier = "PostMessageCellIdentifier"
 
     static let rowHeight: CGFloat = UITableView.automaticDimension
 

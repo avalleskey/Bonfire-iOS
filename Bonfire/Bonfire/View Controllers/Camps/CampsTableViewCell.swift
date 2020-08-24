@@ -12,7 +12,7 @@ import UIKit
 
 final class CampTableViewCell: UITableViewCell {
 
-    static let reuseIdentifier = "CampTableViewCellReuseIdentifier"
+    //static let reuseIdentifier = "CampTableViewCellReuseIdentifier"
 
     func updateWithCamp(camp: Camp) {
         campNameLabel.text = String(htmlEncodedString: camp.attributes.title)

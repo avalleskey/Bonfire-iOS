@@ -15,7 +15,7 @@ protocol PostHeaderCellDelegate: class {
 
 final class PostHeaderCell: UITableViewCell, BFPostCell {
 
-    static let reuseIdentifier = "PostHeaderCellIdentifier"
+    //static let reuseIdentifier = "PostHeaderCellIdentifier"
 
     static let rowHeight: CGFloat = 50
 

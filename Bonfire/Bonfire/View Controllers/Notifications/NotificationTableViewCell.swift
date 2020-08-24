@@ -13,7 +13,7 @@ import UIKit
 
 final class NotificationTableViewCell: UITableViewCell {
 
-    static let reuseIdentifier = "NotificationTableViewCellReuseIdentifier"
+    //static let reuseIdentifier = "NotificationTableViewCellReuseIdentifier"
 
     private var type: UserActivityType = .unknown {
         didSet {

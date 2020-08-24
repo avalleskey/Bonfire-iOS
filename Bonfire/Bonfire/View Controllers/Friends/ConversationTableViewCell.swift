@@ -12,7 +12,7 @@ import UIKit
 
 final class ConversationTableViewCell: UITableViewCell {
 
-    static let reuseIdentifier = "ConversationTableViewCellReuseIdentifier"
+    //static let reuseIdentifier = "ConversationTableViewCellReuseIdentifier"
 
     func updateWithUser(user: User) {
         profileNameLabel.text = String(htmlEncodedString: user.attributes.display_name)

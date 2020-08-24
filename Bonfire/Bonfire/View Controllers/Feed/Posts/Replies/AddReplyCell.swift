@@ -11,7 +11,7 @@ import UIKit
 
 final class AddReplyCell: UITableViewCell, BFPostCell {
 
-    static let reuseIdentifier = "AddReplyCellIdentifier"
+    //static let reuseIdentifier = "AddReplyCellIdentifier"
 
     static let rowHeight: CGFloat = 56
 

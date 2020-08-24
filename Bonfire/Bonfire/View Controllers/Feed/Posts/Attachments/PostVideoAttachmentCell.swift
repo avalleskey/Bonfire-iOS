@@ -9,7 +9,7 @@
 import UIKit
 
 final class PostVideoAttachmentCell: UITableViewCell, BFPostCell {
-    static var reuseIdentifier = "PostVideoAttachmentCellIdentifier"
+    //static var reuseIdentifier = "PostVideoAttachmentCellIdentifier"
 
     static var rowHeight: CGFloat = 198
 }

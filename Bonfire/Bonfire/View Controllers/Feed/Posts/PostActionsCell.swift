@@ -11,7 +11,7 @@ import UIKit
 
 final class PostActionsCell: UITableViewCell, BFPostCell {
 
-    static let reuseIdentifier = "PostActionsCellIdentifier"
+    //static let reuseIdentifier = "PostActionsCellIdentifier"
     
     static let baseHeight: CGFloat = 36
     static let edgeInsets: UIEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 16, right: 0)

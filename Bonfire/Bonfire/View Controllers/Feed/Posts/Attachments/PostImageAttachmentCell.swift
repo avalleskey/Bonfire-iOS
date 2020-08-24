@@ -10,7 +10,7 @@ import UIKit
 
 final class PostImageAttachmentCell: UITableViewCell, BFPostCell {
 
-    static let reuseIdentifier: String = "PostImageAttachmentCellIdentifier"
+    //static let reuseIdentifier: String = "PostImageAttachmentCellIdentifier"
 
     static let rowHeight: CGFloat = 234
 

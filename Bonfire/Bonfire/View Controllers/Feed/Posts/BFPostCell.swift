@@ -9,6 +9,6 @@
 import UIKit
 
 protocol BFPostCell: UITableViewCell {
-    static var reuseIdentifier: String { get }
+    //static var reuseIdentifier: String { get }
     static var rowHeight: CGFloat { get }
 }

@@ -9,7 +9,7 @@
 import UIKit
 
 final class PostAudioAttachmentCell: UITableViewCell, BFPostCell {
-    static var reuseIdentifier = "PostAudioAttachmentCellIdentifier"
+    //static var reuseIdentifier = "PostAudioAttachmentCellIdentifier"
 
     static var rowHeight: CGFloat = 256
 }

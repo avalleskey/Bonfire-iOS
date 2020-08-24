@@ -14,12 +14,19 @@ public enum ShadowIntensity {
     case medium
     case heavy
     case diffuse
+    case sketch(color: UIColor, alpha: Float, x: CGFloat, y: CGFloat, blur: CGFloat, spread: CGFloat)
 }
 
 public extension UIView {
     func applyShadow(explicitPath: Bool = true, intensity: ShadowIntensity = .medium) {
         layer.shadowColor = UIColor.black.cgColor
         layer.shadowOffset = CGSize(width: 0.5, height: 1.0)
+        layer.shouldRasterize = true
+        layer.rasterizationScale = UIScreen.main.scale
+        if explicitPath {
+            layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: layer.cornerRadius).cgPath
+        }
+
         switch intensity {
         case .none:
             layer.shadowOpacity = 0
@@ -36,18 +43,26 @@ public extension UIView {
         case .diffuse:
             layer.shadowOpacity = 0.07
             layer.shadowRadius = 8.0
-        }
-
-        layer.shouldRasterize = true
-        layer.rasterizationScale = UIScreen.main.scale
-        if explicitPath {
-            layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: layer.cornerRadius).cgPath
+        case let .sketch(color, alpha, x, y, blur, spread):
+            layer.shadowColor = color.cgColor
+            layer.shadowOpacity = alpha
+            layer.shadowOffset = CGSize(width: x, height: y)
+            layer.shadowRadius = blur / 2.0
+            if spread == 0 {
+                layer.shadowPath = nil
+            } else {
+                let pathRect = bounds.insetBy(dx: -spread, dy: -spread)
+                layer.shadowPath = UIBezierPath(rect: pathRect).cgPath
+            }
         }
     }
 
     func applyCustomShadow(path: UIBezierPath, intensity: ShadowIntensity = .medium) {
         layer.shadowColor = UIColor.black.cgColor
         layer.shadowOffset = CGSize(width: 0.5, height: 1.0)
+        layer.shouldRasterize = true
+        layer.rasterizationScale = UIScreen.main.scale
+        layer.shadowPath = path.cgPath
         switch intensity {
         case .none:
             layer.shadowOpacity = 0
@@ -64,11 +79,18 @@ public extension UIView {
         case .diffuse:
             layer.shadowOpacity = 0.07
             layer.shadowRadius = 8.0
+        case let .sketch(color, alpha, x, y, blur, spread):
+            layer.shadowColor = color.cgColor
+            layer.shadowOpacity = alpha
+            layer.shadowOffset = CGSize(width: x, height: y)
+            layer.shadowRadius = blur / 2.0
+            if spread == 0 {
+                layer.shadowPath = nil
+            } else {
+                let pathRect = bounds.insetBy(dx: -spread, dy: -spread)
+                layer.shadowPath = UIBezierPath(rect: pathRect).cgPath
+            }
         }
-
-        layer.shouldRasterize = true
-        layer.rasterizationScale = UIScreen.main.scale
-        layer.shadowPath = path.cgPath
     }
 
     func removeShadow() {

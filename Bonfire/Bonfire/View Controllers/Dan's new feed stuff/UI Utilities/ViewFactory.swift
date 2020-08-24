@@ -155,7 +155,10 @@ extension UIView {
             if let height = height { $0.height == height }
         }
 
-        if shadowIntensity != .none { applyShadow(explicitPath: false, intensity: shadowIntensity) }
+        switch shadowIntensity {
+        case .none: break
+        default: applyShadow(explicitPath: false, intensity: shadowIntensity)
+        }
     }
 }
 

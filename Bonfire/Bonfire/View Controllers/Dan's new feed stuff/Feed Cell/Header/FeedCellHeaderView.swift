@@ -12,36 +12,40 @@ import Cartography
 class FeedCellHeaderView: UIView {
     var post: DummyPost! {
         didSet {
-
             switch post.type {
             case .liveRightNow:
-                primaryImageView.image = nil
-                primaryImageView.backgroundColor = .systemPink
+                layoutIfNeeded()
+                primaryImageBackingView.applyGradient(colors: [.liveTop, .liveBottom], startPoint: CGPoint(x: 0.5, y: 0), endPoint: CGPoint(x: 0.5, y: 1))
+                primaryImageView.image = UIImage(named: "PostLiveIcon")
                 primaryTitleLabel.text = "Live Right Now"
 
                 [primaryImageView, primaryTitleLabel].forEach { $0.isHidden = false }
                 [primaryDescriptionLabel, disclosureImageView, secondaryImageView, secondaryTitleLabel].forEach { $0.isHidden = true }
 
             case .post:
-                primaryImageView.image = post.creator?.image
-                primaryTitleLabel.text = post.creator?.name
-                secondaryImageView.image = post.camp?.image
-                secondaryTitleLabel.text = post.camp?.name
+                guard let creator = post.people.first else { break }
+                guard let camp = post.camps.first else { break }
+                primaryImageView.image = creator.image
+                primaryTitleLabel.text = creator.name
+                secondaryImageView.image = camp.image
+                secondaryTitleLabel.text = camp.name
 
                 [primaryImageView, primaryTitleLabel, disclosureImageView, secondaryImageView, secondaryTitleLabel].forEach { $0.isHidden = false }
                 primaryDescriptionLabel.isHidden = true
 
             case .statusUpdate:
-                primaryImageView.image = post.creator?.image
-                primaryTitleLabel.text = post.creator?.name
+                guard let creator = post.people.first else { break }
+                primaryImageView.image = creator.image
+                primaryTitleLabel.text = creator.name
                 primaryDescriptionLabel.text = "updated their status"
 
                 [primaryImageView, primaryTitleLabel, primaryDescriptionLabel].forEach { $0.isHidden = false }
                 [disclosureImageView, secondaryImageView, secondaryTitleLabel].forEach { $0.isHidden = true }
 
             case .suggestedFriend:
-                primaryImageView.image = nil
-                primaryImageView.backgroundColor = .systemIndigo
+                layoutIfNeeded()
+                primaryImageBackingView.applyGradient(colors: [.suggestedTop, .suggestedBottom], startPoint: CGPoint(x: 0.5, y: 0), endPoint: CGPoint(x: 0.5, y: 1))
+                primaryImageView.image = UIImage(named: "PostSuggestionIcon")
                 primaryTitleLabel.text = "Suggested Friend"
 
                 [primaryImageView, primaryTitleLabel].forEach { $0.isHidden = false }
@@ -70,6 +74,7 @@ class FeedCellHeaderView: UIView {
     }
 
     private var titleStackView: UIStackView = .init(axis: .horizontal, alignment: .center, spacing: 8)
+    private var primaryImageBackingView: UIView = .init(height: 24, width: 24, cornerRadius: 12)
     private var primaryImageView: UIImageView = .init(width: 24, height: 24, cornerRadius: 12, contentMode: .scaleAspectFill)
     private var primaryTitleLabel: UILabel = .init(size: 16, weight: .bold, color: .label, multiline: false)
     private var primaryDescriptionLabel: UILabel = .init(size: 16, weight: .medium, color: .secondaryLabel, multiline: false)
@@ -102,7 +107,10 @@ class FeedCellHeaderView: UIView {
             $0.trailing == $0.superview!.trailing - 16
         }
 
-        [primaryImageView, primaryTitleLabel, primaryDescriptionLabel, disclosureImageView, secondaryImageView, secondaryTitleLabel].forEach {
+        primaryImageBackingView.addSubview(primaryImageView)
+        constrain(primaryImageView) { $0.edges == $0.superview!.edges }
+
+        [primaryImageBackingView, primaryTitleLabel, primaryDescriptionLabel, disclosureImageView, secondaryImageView, secondaryTitleLabel].forEach {
             titleStackView.addArrangedSubview($0)
         }
 

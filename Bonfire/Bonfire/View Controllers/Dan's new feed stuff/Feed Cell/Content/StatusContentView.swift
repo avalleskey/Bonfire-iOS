@@ -11,28 +11,67 @@ import Cartography
 
 class StatusContentView: UIView {
 
-    private let rectangleView = UIView(backgroundColor: UIColor(hex: "8E8E93")!.withAlphaComponent(0.1), height: 64, cornerRadius: 14)
-    private let label = UILabel(size: 16, weight: .bold, color: .tertiaryLabel, text: "🥳 Ready to party.")
+    private let containerView = UIView(backgroundColor: .contentGray, cornerRadius: 30)
+    private let emojiLabel = UILabel(size: 32, weight: .bold, multiline: false)
+    private let statusLabel = UILabel(size: 24, weight: .bold)
+    private let bigBubbleView = UIView(backgroundColor: .contentGray, height: 16, width: 16, cornerRadius: 8)
+    private let littleBubbleView = UIView(backgroundColor: .contentGray, height: 6, width: 6, cornerRadius: 3)
 
     init() {
         super.init(frame: .zero)
-        setUpRectangleView()
+        setUpContainerView()
+        setUpEmojiLabel()
+        setUpStatusLabel()
+        setUpBubbleViews()
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
-    private func setUpRectangleView() {
-        addSubview(rectangleView)
-        constrain(rectangleView) {
-            $0.edges == inset($0.superview!.edges, horizontally: 16)
-        }
-
-        rectangleView.addSubview(label)
-        constrain(label) {
-            $0.center == $0.superview!.center
+    private func setUpContainerView() {
+        addSubview(containerView)
+        constrain(containerView) {
+            $0.top == $0.superview!.top + 4
+            $0.leading == $0.superview!.leading + 16
+            $0.trailing <= $0.superview!.trailing - 16
+            $0.bottom == $0.superview!.bottom
         }
     }
 
+    private func setUpEmojiLabel() {
+        containerView.addSubview(emojiLabel)
+        constrain(emojiLabel) {
+            $0.leading == $0.superview!.leading + 16
+            $0.centerY == $0.superview!.centerY
+        }
+
+        emojiLabel.text = "🥳"
+    }
+
+    private func setUpStatusLabel() {
+        containerView.addSubview(statusLabel)
+        constrain(statusLabel, emojiLabel) {
+            $0.leading == $1.trailing + 8
+            $0.top == $0.superview!.top + 16
+            $0.bottom == $0.superview!.bottom - 16
+            $0.trailing == $0.superview!.trailing - 16
+        }
+
+        statusLabel.text = "Ready to party."
+    }
+
+    private func setUpBubbleViews() {
+        addSubview(bigBubbleView)
+        constrain(bigBubbleView, containerView) {
+            $0.leading == $1.leading
+            $0.top == $1.top
+        }
+
+        addSubview(littleBubbleView)
+        constrain(littleBubbleView, bigBubbleView) {
+            $0.leading == $1.leading
+            $0.bottom == $1.top - 3
+        }
+    }
 }

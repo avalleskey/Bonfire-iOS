@@ -10,7 +10,7 @@ import UIKit
 
 final class PinCollectionViewCell: UICollectionViewCell {
 
-    static let reuseIdentifier = "PinCollectionViewCell"
+    //static let reuseIdentifier = "PinCollectionViewCell"
 
     var pinView: UIView? {
         didSet {

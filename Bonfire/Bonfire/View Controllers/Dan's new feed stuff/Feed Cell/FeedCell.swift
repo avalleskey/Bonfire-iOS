@@ -18,7 +18,7 @@ class FeedCell: UITableViewCell {
 
             switch post.type {
             case .liveRightNow:
-                insertContent(LiveContentView())
+                insertContent(LiveContentView(camps: post.camps))
                 actionView.isHidden = true
             case .post:
                 insertContent(PostContentView())
@@ -27,8 +27,11 @@ class FeedCell: UITableViewCell {
                 insertContent(StatusContentView())
                 actionView.isHidden = false
             case .suggestedFriend:
-                insertContent(SuggestionContentView())
-                actionView.isHidden = false
+                if let friend = post.people.first {
+                    insertContent(SuggestionContentView(suggestion: friend))
+                    actionView.isHidden = false
+                }
+
             }
         }
     }
@@ -81,8 +84,4 @@ class FeedCell: UITableViewCell {
             $0.edges == $0.superview!.edges
         }
     }
-}
-
-extension UITableViewCell {
-    static var reuseIdentifier: String { String(describing: self) }
 }

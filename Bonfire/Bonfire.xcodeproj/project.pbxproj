@@ -168,6 +168,11 @@
 		1AF92AD724C9F81400D253AC /* KeyboardSubscriber.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AF92AD624C9F81400D253AC /* KeyboardSubscriber.swift */; };
 		1AFFB1C6249D514900E67E89 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AFFB1C5249D514900E67E89 /* Constants.swift */; };
 		6547932E24F016C9003A008A /* FeedCellHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6547932D24F016C9003A008A /* FeedCellHeaderView.swift */; };
+		65A169A524F45463005F80CB /* BorderedAvatarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A169A424F45463005F80CB /* BorderedAvatarView.swift */; };
+		65C2730E24F4078B00ADA995 /* LiveContentCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65C2730D24F4078B00ADA995 /* LiveContentCell.swift */; };
+		65C2731024F40D3500ADA995 /* Cells.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65C2730F24F40D3500ADA995 /* Cells.swift */; };
+		65C2731224F4295300ADA995 /* Gradients.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65C2731124F4295300ADA995 /* Gradients.swift */; };
+		65C2731424F4298A00ADA995 /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65C2731324F4298A00ADA995 /* Colors.swift */; };
 		65D05BEE24F04D7F00E314DB /* TimerButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65D05BED24F04D7F00E314DB /* TimerButton.swift */; };
 		65D05BF124F07C8A00E314DB /* FeedCellActionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65D05BF024F07C8A00E314DB /* FeedCellActionView.swift */; };
 		65D05BF424F0801F00E314DB /* DummyContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65D05BF324F0801F00E314DB /* DummyContentView.swift */; };
@@ -433,6 +438,11 @@
 		1AF92AD624C9F81400D253AC /* KeyboardSubscriber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardSubscriber.swift; sourceTree = "<group>"; };
 		1AFFB1C5249D514900E67E89 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		6547932D24F016C9003A008A /* FeedCellHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedCellHeaderView.swift; sourceTree = "<group>"; };
+		65A169A424F45463005F80CB /* BorderedAvatarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BorderedAvatarView.swift; sourceTree = "<group>"; };
+		65C2730D24F4078B00ADA995 /* LiveContentCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveContentCell.swift; sourceTree = "<group>"; };
+		65C2730F24F40D3500ADA995 /* Cells.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cells.swift; sourceTree = "<group>"; };
+		65C2731124F4295300ADA995 /* Gradients.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Gradients.swift; sourceTree = "<group>"; };
+		65C2731324F4298A00ADA995 /* Colors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Colors.swift; sourceTree = "<group>"; };
 		65D05BED24F04D7F00E314DB /* TimerButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerButton.swift; sourceTree = "<group>"; };
 		65D05BF024F07C8A00E314DB /* FeedCellActionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedCellActionView.swift; sourceTree = "<group>"; };
 		65D05BF324F0801F00E314DB /* DummyContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DummyContentView.swift; sourceTree = "<group>"; };
@@ -1160,6 +1170,15 @@
 			path = AppLinks;
 			sourceTree = "<group>";
 		};
+		65C2730C24F4076500ADA995 /* Live */ = {
+			isa = PBXGroup;
+			children = (
+				65D05BF624F0819E00E314DB /* LiveContentView.swift */,
+				65C2730D24F4078B00ADA995 /* LiveContentCell.swift */,
+			);
+			path = Live;
+			sourceTree = "<group>";
+		};
 		65D05BEF24F07C4F00E314DB /* Header */ = {
 			isa = PBXGroup;
 			children = (
@@ -1182,10 +1201,10 @@
 			isa = PBXGroup;
 			children = (
 				65D05BF324F0801F00E314DB /* DummyContentView.swift */,
-				65D05BF624F0819E00E314DB /* LiveContentView.swift */,
+				65C2730C24F4076500ADA995 /* Live */,
 				65D05BF824F0821500E314DB /* SuggestionContentView.swift */,
-				65D05BFA24F0825300E314DB /* PostContentView.swift */,
 				65D05BFC24F082AB00E314DB /* StatusContentView.swift */,
+				65D05BFA24F0825300E314DB /* PostContentView.swift */,
 			);
 			path = Content;
 			sourceTree = "<group>";
@@ -1204,7 +1223,11 @@
 		65E42E7024EDB37300354393 /* UI Utilities */ = {
 			isa = PBXGroup;
 			children = (
+				65A169A424F45463005F80CB /* BorderedAvatarView.swift */,
+				65C2730F24F40D3500ADA995 /* Cells.swift */,
 				65E42E6824EDAB6900354393 /* Shadows.swift */,
+				65C2731124F4295300ADA995 /* Gradients.swift */,
+				65C2731324F4298A00ADA995 /* Colors.swift */,
 				65E42E6624EDA83700354393 /* ViewFactory.swift */,
 				65E42E6A24EDB08D00354393 /* IntrinsicallySizedScrollView.swift */,
 				65E42E6C24EDB0AD00354393 /* IntrinsicallySizedTableView.swift */,
@@ -1620,10 +1643,14 @@
 				1A3ED12C24D37D5C001DA453 /* ProfileHeaderView.swift in Sources */,
 				65D05BFB24F0825300E314DB /* PostContentView.swift in Sources */,
 				1A3ED12A24D37793001DA453 /* BFCircularButton.swift in Sources */,
+				65C2730E24F4078B00ADA995 /* LiveContentCell.swift in Sources */,
 				65D05BEE24F04D7F00E314DB /* TimerButton.swift in Sources */,
 				1A7854DB249FBBC500BA1589 /* CampControllerProtocol.swift in Sources */,
+				65A169A524F45463005F80CB /* BorderedAvatarView.swift in Sources */,
 				65D05BF124F07C8A00E314DB /* FeedCellActionView.swift in Sources */,
+				65C2731224F4295300ADA995 /* Gradients.swift in Sources */,
 				1A315FA424E30E6600C8AC6C /* PinCollectionViewController.swift in Sources */,
+				65C2731424F4298A00ADA995 /* Colors.swift in Sources */,
 				D943EEDC24CB6DFB00C30F8B /* NotificationsTableViewController.swift in Sources */,
 				1AA86BCC24D1E551009BFE07 /* PostAudioAttachmentCell.swift in Sources */,
 				1A3ED13424D38798001DA453 /* FeedPostCountCell.swift in Sources */,
@@ -1647,6 +1674,7 @@
 				1A3ED14024D38FE6001DA453 /* CampMemberCell.swift in Sources */,
 				65E42E6924EDAB6900354393 /* Shadows.swift in Sources */,
 				1A315FA824E32DF100C8AC6C /* Pinnable.swift in Sources */,
+				65C2731024F40D3500ADA995 /* Cells.swift in Sources */,
 				1A3ED13B24D38F4B001DA453 /* CampSummaryPageViewController.swift in Sources */,
 				65E42E6D24EDB0AD00354393 /* IntrinsicallySizedTableView.swift in Sources */,
 				1A57FAEA249F5D8800A407F9 /* UIView+Extensions.swift in Sources */,

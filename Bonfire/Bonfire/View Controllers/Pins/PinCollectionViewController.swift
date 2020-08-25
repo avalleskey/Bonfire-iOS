@@ -53,6 +53,10 @@ final class PinCollectionViewController: UICollectionViewController {
                 let imageURL = user.attributes.media?.avatar?.full?.url
             else { return cell }
             let imageView = RoundedImageView(image: nil)
+            imageView.layer.shadowColor = UIColor.black.cgColor
+            imageView.layer.shadowOpacity = 0.8
+            imageView.layer.shadowOffset = .init(width: 0, height: 6)
+            imageView.layer.shadowRadius = 14
             imageView.kf.setImage(with: imageURL, options: [.cacheOriginalImage])
             cell.pinTitleLabel.text = user.attributes.shortDisplayName
             cell.pinView = imageView
@@ -61,6 +65,10 @@ final class PinCollectionViewController: UICollectionViewController {
                 let imageURL = camp.attributes.media?.avatar?.full?.url
             else { return cell }
             let imageView = RoundedImageView(image: nil)
+            imageView.layer.shadowColor = UIColor.black.cgColor
+            imageView.layer.shadowOpacity = 0.8
+            imageView.layer.shadowOffset = .init(width: 0, height: 6)
+            imageView.layer.shadowRadius = 14
             imageView.kf.setImage(with: imageURL, options: [.cacheOriginalImage])
             cell.pinTitleLabel.text = camp.attributes.title
             cell.pinView = imageView

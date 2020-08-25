@@ -1,5 +1,5 @@
 //
-//  FriendsViewController.swift
+//  MessagesViewController.swift
 //  Bonfire
 //
 //  Created by James Dale on 20/6/20.
@@ -9,7 +9,7 @@
 import Foundation
 import UIKit
 
-final class FriendsViewController: UIViewController {
+final class MessagesViewController: UIViewController {
 
     static var defaultTabBarItem: UITabBarItem {
         UITabBarItem(
@@ -23,13 +23,13 @@ final class FriendsViewController: UIViewController {
         indicator.color = Constants.Color.secondary
         return indicator
     }()
-    private let friendsTableView = FriendsTableViewController()
+    private let friendsTableView = MessagesTableViewController()
     private let controller = UserController()
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        navigationItem.title = Constants.TabBar.friendsDefaultText
+        navigationItem.title = Constants.TabBar.messagesDefaultText
 
         if #available(iOS 13.0, *) { view.backgroundColor = .systemBackground }
 

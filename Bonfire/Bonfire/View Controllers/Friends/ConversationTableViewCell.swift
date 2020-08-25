@@ -1,5 +1,5 @@
 //
-//  FriendTableViewCell.swift
+//  ConversationTableViewCell.swift
 //  Bonfire
 //
 //  Created by James Dale on 21/6/20.
@@ -10,9 +10,9 @@ import BFCore
 import Foundation
 import UIKit
 
-final class FriendTableViewCell: UITableViewCell {
+final class ConversationTableViewCell: UITableViewCell {
 
-    static let reuseIdentifier = "FriendTableViewCellReuseIdentifier"
+    static let reuseIdentifier = "ConversationTableViewCellReuseIdentifier"
 
     func updateWithUser(user: User) {
         profileNameLabel.text = String(htmlEncodedString: user.attributes.display_name)

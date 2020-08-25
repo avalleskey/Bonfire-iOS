@@ -76,7 +76,7 @@ extension BFNavigationController: UINavigationControllerDelegate {
 //
 //            viewController.navigationItem.rightBarButtonItem?.tintColor = Constants.Color.primary
             break
-        case is FriendsViewController:
+        case is MessagesViewController:
             let rightIcon = UIImage(named: "PlusNavIcon")?.withRenderingMode(
                 UIImage.RenderingMode.alwaysTemplate)
             viewController.navigationItem.rightBarButtonItem = .init(

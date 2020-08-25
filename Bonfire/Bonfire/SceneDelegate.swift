@@ -36,9 +36,9 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let createPostVC = CreatePostViewController()
         createPostVC.tabBarItem = CreatePostViewController.defaultTabBarItem
         
-        let friendsVC = FriendsViewController()
+        let friendsVC = MessagesViewController()
         let friendsNavVC = BFNavigationController(rootViewController: friendsVC)
-        friendsVC.tabBarItem = FriendsViewController.defaultTabBarItem
+        friendsVC.tabBarItem = MessagesViewController.defaultTabBarItem
 
         let notificationsVC = NotificationsViewController()
         let notificationsNavVC = BFNavigationController(rootViewController: notificationsVC)
@@ -55,6 +55,12 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         window.tintColor = Constants.Color.brand
         self.window = window
+        
+        if let url = connectionOptions.urlContexts.first?.url {
+            guard let sourceApp = connectionOptions.sourceApplication,
+                  validateURLWhitelist(bundleID: sourceApp) else { return }
+            handleURL(url: url)
+        }
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {
@@ -83,6 +89,28 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Called as the scene transitions from the foreground to the background.
         // Use this method to save data, release shared resources, and store enough scene-specific state information
         // to restore the scene back to its current state.
+    }
+    
+    func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
+        if let urlContext = URLContexts.first {
+//            guard let sourceApp = urlContext.options.sourceApplication,
+//                  validateURLWhitelist(bundleID: sourceApp) else { return }
+            let url = urlContext.url
+            handleURL(url: url)
+        }
+    }
+    
+    private func validateURLWhitelist(bundleID: String) -> Bool {
+        return true
+    }
+    
+    private func handleURL(url: URL) {
+        if let link = AppLink.from(url: url) {
+            let vc = link.viewController
+            window?.rootViewController?.present(vc, animated: true)
+            
+            
+        }
     }
 
 }

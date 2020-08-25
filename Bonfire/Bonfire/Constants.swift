@@ -13,7 +13,7 @@ struct Constants {
     struct TabBar {
         static let homeDefaultText = "Home"
         static let campsDefaultText = "Camps"
-        static let friendsDefaultText = "Chats"
+        static let messagesDefaultText = "Messages"
         static let notificationsDefaultText = "Notifications"
 
         static let homeDefaultImage = UIImage(named: "HomeTabIcon")!
@@ -80,6 +80,13 @@ struct Constants {
             } else {
                 return UIColor(red: 142 / 255, green: 142 / 255, blue: 147 / 255, alpha: 1)
             }
+        }()
+        
+        static let gray2: UIColor = {
+            if #available(iOS 13, *) {
+                return UIColor.systemGray2
+            }
+            return UIColor(red: 99 / 255, green: 99 / 255, blue: 102 / 255, alpha: 1)
         }()
 
         static let pillBackground: UIColor = {

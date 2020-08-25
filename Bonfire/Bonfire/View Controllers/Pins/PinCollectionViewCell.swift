@@ -23,7 +23,7 @@ final class PinCollectionViewCell: UICollectionViewCell {
     let pinTitleLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 15, weight: .bold).rounded()
-        label.tintColor = Constants.Color.secondary
+        label.tintColor = Constants.Color.gray2
         return label
     }()
 

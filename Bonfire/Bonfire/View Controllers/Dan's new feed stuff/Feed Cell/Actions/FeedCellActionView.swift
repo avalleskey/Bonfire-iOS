@@ -13,40 +13,42 @@ class FeedCellActionView: UIView {
     var post: DummyPost! {
         didSet {
             switch post.type {
-            case .liveRightNow:
+            case .post:
                 primaryActionButton.title = "Like"
                 primaryActionButton.image = UIImage(named: "PostLikeIcon")
 
                 secondaryActionButton.isHidden = false
                 secondaryActionButton.title = "Reply"
                 secondaryActionButton.image = UIImage(named: "PostReplyIcon")
-            case .post:
+            case .statusUpdate:
                 primaryActionButton.title = "Like"
                 primaryActionButton.image = UIImage(named: "PostLikeIcon")
 
                 secondaryActionButton.isHidden = false
                 secondaryActionButton.title = "Message"
                 secondaryActionButton.image = UIImage(named: "PostChatIcon")
-            case .statusUpdate:
-                primaryActionButton.title = "Message"
-                primaryActionButton.image = UIImage(named: "PostChatIcon")
-
-                secondaryActionButton.isHidden = true
-            case .suggestedFriend:
-                primaryActionButton.title = "Add Friend"
-                primaryActionButton.image = UIImage(named: "PostAddFriendIcon")
+            case .suggestion:
+                if post.people.isEmpty {
+                    primaryActionButton.title = "Join Camp"
+                    primaryActionButton.image = UIImage(named: "PostAddFriendIcon")
+                } else {
+                    primaryActionButton.title = "Add Friend"
+                    primaryActionButton.image = UIImage(named: "PostAddFriendIcon")
+                }
 
                 secondaryActionButton.isHidden = false
                 secondaryActionButton.title = "Ignore"
                 secondaryActionButton.image = UIImage(named: "PostIgnoreIcon")
+            default:
+                break
             }
         }
     }
 
-    private var primaryActionButton = ActionButton(title: "Test", image: UIImage(named: "PostChatIcon"), color: .systemPink)
-    private var secondaryActionButton = ActionButton(title: "Test", image: UIImage(named: "PostChatIcon"), color: .systemPink)
+    private var primaryActionButton = ActionButton(title: "Test", image: UIImage(named: "PostChatIcon"), color: .liveAudioTop)
+    private var secondaryActionButton = ActionButton(title: "Test", image: UIImage(named: "PostChatIcon"), color: .liveAudioTop)
     private var actionStackView = UIStackView(axis: .horizontal, spacing: 8)
-    private var detailsButton = UIButton(image: UIImage(named: "PostMoreIcon"), contentColor: .systemPink, width: 36, height: 36)
+    private var detailsButton = UIButton(image: UIImage(named: "PostMoreIcon"), contentColor: .liveAudioTop, width: 36, height: 36)
 
     init() {
         super.init(frame: .zero)

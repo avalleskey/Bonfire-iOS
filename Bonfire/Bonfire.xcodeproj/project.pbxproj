@@ -173,6 +173,8 @@
 		65C2731024F40D3500ADA995 /* Cells.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65C2730F24F40D3500ADA995 /* Cells.swift */; };
 		65C2731224F4295300ADA995 /* Gradients.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65C2731124F4295300ADA995 /* Gradients.swift */; };
 		65C2731424F4298A00ADA995 /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65C2731324F4298A00ADA995 /* Colors.swift */; };
+		65C3E29C24F6DED50033D164 /* FeedCellReplyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65C3E29B24F6DED50033D164 /* FeedCellReplyView.swift */; };
+		65C3E29F24F6DF270033D164 /* ReplyCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65C3E29E24F6DF270033D164 /* ReplyCell.swift */; };
 		65D05BEE24F04D7F00E314DB /* TimerButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65D05BED24F04D7F00E314DB /* TimerButton.swift */; };
 		65D05BF124F07C8A00E314DB /* FeedCellActionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65D05BF024F07C8A00E314DB /* FeedCellActionView.swift */; };
 		65D05BF424F0801F00E314DB /* DummyContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65D05BF324F0801F00E314DB /* DummyContentView.swift */; };
@@ -443,6 +445,8 @@
 		65C2730F24F40D3500ADA995 /* Cells.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cells.swift; sourceTree = "<group>"; };
 		65C2731124F4295300ADA995 /* Gradients.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Gradients.swift; sourceTree = "<group>"; };
 		65C2731324F4298A00ADA995 /* Colors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Colors.swift; sourceTree = "<group>"; };
+		65C3E29B24F6DED50033D164 /* FeedCellReplyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedCellReplyView.swift; sourceTree = "<group>"; };
+		65C3E29E24F6DF270033D164 /* ReplyCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplyCell.swift; sourceTree = "<group>"; };
 		65D05BED24F04D7F00E314DB /* TimerButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerButton.swift; sourceTree = "<group>"; };
 		65D05BF024F07C8A00E314DB /* FeedCellActionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedCellActionView.swift; sourceTree = "<group>"; };
 		65D05BF324F0801F00E314DB /* DummyContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DummyContentView.swift; sourceTree = "<group>"; };
@@ -1179,6 +1183,15 @@
 			path = Live;
 			sourceTree = "<group>";
 		};
+		65C3E29D24F6DEE70033D164 /* Replies */ = {
+			isa = PBXGroup;
+			children = (
+				65C3E29B24F6DED50033D164 /* FeedCellReplyView.swift */,
+				65C3E29E24F6DF270033D164 /* ReplyCell.swift */,
+			);
+			path = Replies;
+			sourceTree = "<group>";
+		};
 		65D05BEF24F07C4F00E314DB /* Header */ = {
 			isa = PBXGroup;
 			children = (
@@ -1243,6 +1256,7 @@
 				65D05BEF24F07C4F00E314DB /* Header */,
 				65D05BF524F0818300E314DB /* Content */,
 				65D05BF224F07C9400E314DB /* Actions */,
+				65C3E29D24F6DEE70033D164 /* Replies */,
 			);
 			path = "Feed Cell";
 			sourceTree = "<group>";
@@ -1615,6 +1629,7 @@
 				1A0CB46024C71F7500BD2A50 /* BFFormDatePickerView.swift in Sources */,
 				65E42E6F24EDB0EF00354393 /* IntrinsicallySizedCollectionView.swift in Sources */,
 				65D05BFD24F082AB00E314DB /* StatusContentView.swift in Sources */,
+				65C3E29C24F6DED50033D164 /* FeedCellReplyView.swift in Sources */,
 				1AF92AD724C9F81400D253AC /* KeyboardSubscriber.swift in Sources */,
 				1A15AB5E24B3B1F1007722A4 /* BFReplyTextField.swift in Sources */,
 				1A212A0C24BC86C500A0DCD3 /* BFFormItem.swift in Sources */,
@@ -1685,6 +1700,7 @@
 				1AA86BD024D1E585009BFE07 /* PostPostAttachmentCell.swift in Sources */,
 				1A212A0E24BC86F800A0DCD3 /* BFFormItemType.swift in Sources */,
 				1A315FAD24E33E7300C8AC6C /* SearchViewController.swift in Sources */,
+				65C3E29F24F6DF270033D164 /* ReplyCell.swift in Sources */,
 				D9872AB824C0D76A0048622F /* BFPillButton.swift in Sources */,
 				1A94DED3249FB49B00AB0200 /* CampsTableViewCell.swift in Sources */,
 				65D05BF924F0821500E314DB /* SuggestionContentView.swift in Sources */,

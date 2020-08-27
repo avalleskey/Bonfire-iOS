@@ -42,11 +42,11 @@ class FeedCellHeaderView: UIView {
                 [primaryImageView, primaryTitleLabel, primaryDescriptionLabel].forEach { $0.isHidden = false }
                 [disclosureImageView, secondaryImageView, secondaryTitleLabel].forEach { $0.isHidden = true }
 
-            case .suggestedFriend:
+            case .suggestion:
                 layoutIfNeeded()
                 primaryImageBackingView.applyGradient(colors: [.suggestedTop, .suggestedBottom], startPoint: CGPoint(x: 0.5, y: 0), endPoint: CGPoint(x: 0.5, y: 1))
                 primaryImageView.image = UIImage(named: "PostSuggestionIcon")
-                primaryTitleLabel.text = "Suggested Friend"
+                primaryTitleLabel.text = post.people.isEmpty ? "Suggested Camp" : "Suggested Friend"
 
                 [primaryImageView, primaryTitleLabel].forEach { $0.isHidden = false }
                 [primaryDescriptionLabel, disclosureImageView, secondaryImageView, secondaryTitleLabel].forEach { $0.isHidden = true }

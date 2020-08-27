@@ -90,5 +90,7 @@ class PostContentView: UIView {
                 }
             }
         }
+
+        attachmentContainerView.layer.cornerCurve = .continuous
     }
 }

@@ -66,6 +66,7 @@ class FeedCell: UITableViewCell {
     override func layoutSubviews() {
         super.layoutSubviews()
         containerView.applyShadow(intensity: .sketch(color: .black, alpha: 0.04, x: 0, y: 1, blur: 3, spread: 0))
+        containerView.layer.cornerCurve = .continuous
         containerView.layer.borderWidth = 1
         containerView.layer.borderColor = UIColor.black.withAlphaComponent(0.02).cgColor
     }

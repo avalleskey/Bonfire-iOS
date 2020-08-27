@@ -100,9 +100,9 @@ struct DummyPost: Hashable {
             Reply(id: "1", user: User.dummyUser, message: "This is a reply!"),
             Reply(id: "2", user: User.dummyUser, message: "Here is another slightly longer, more verbose reply.")
         ]),
-        DummyPost(id: "5", type: .post, expiry: Date().advanced(by: 3800), people: [User.dummyUser], camps: [Camp(name: "Camera Gear", image: .dummyAvatar)], message: "I like turtles", attachments: [.dummyAvatar], replies: [
+        DummyPost(id: "5", type: .post, expiry: Date().advanced(by: 3800), people: [User(name: "Daniel Gauthier", image: .dummyAvatar)], camps: [Camp(name: "Wes Anderson Fans", image: .dummyAvatar)], message: "\"Vámanos, amigos,\" he whispered, and threw the busted leather flintcraw over the loose weave of the saddlecock. And they rode on in the friscalating dusklight.", attachments: [.dummyAvatar], replies: [
             Reply(id: "1", user: User.dummyUser, message: "Why a fox? Why not a horse, or a bald eagle? I'm saying this more as, like, existentialism, you know? Who am I?"),
-            Reply(id: "2", user: User.dummyUser, message: "Look at that horse. The big teeth. The bushy tail. The hooves.")
+            Reply(id: "2", user: User.dummyUser, message: "I’m supposed to be juggling 10 bowling pins engulfed in flames over my tail at this point, but you just have to imagine that part.")
         ]),
         DummyPost(id: "6", type: .post, expiry: Date().advanced(by: 3600 * 4), people: [User.dummyUser], camps: [Camp(name: "Lacroix Lovers", image: .dummyAvatar)], attachments: [.dummyAvatar, .dummyAvatar, .dummyAvatar, .dummyAvatar])
     ]

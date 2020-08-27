@@ -13,8 +13,8 @@ class PostContentView: UIView {
 
     private var post: DummyPost
 
-    private var stackView = UIStackView(axis: .vertical, spacing: 10)
-    private let postLabel = UILabel(size: 18, weight: .semibold, multiline: true)
+    private var stackView = UIStackView(axis: .vertical, spacing: 12)
+    private let postLabel = UILabel(size: 18, weight: .medium, multiline: true)
     private let attachmentContainerView = UIView(height: 200, cornerRadius: 14)
 
     init(post: DummyPost) {

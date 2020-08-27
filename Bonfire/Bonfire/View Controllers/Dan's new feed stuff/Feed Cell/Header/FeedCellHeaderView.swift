@@ -14,80 +14,84 @@ class FeedCellHeaderView: UIView {
         didSet {
             switch post.type {
             case .liveRightNow:
-                layoutIfNeeded()
-                primaryImageBackingView.applyGradient(colors: [.liveTop, .liveBottom], startPoint: CGPoint(x: 0.5, y: 0), endPoint: CGPoint(x: 0.5, y: 1))
+                activateBasicLayout()
+                DispatchQueue.main.async {
+                    self.primaryImageBackingView.applyGradient(colors: [.liveTop, .liveBottom], startPoint: CGPoint(x: 0.5, y: 0), endPoint: CGPoint(x: 0.5, y: 1))
+                }
                 primaryImageView.image = UIImage(named: "PostLiveIcon")
-                primaryTitleLabel.text = "Live Right Now"
+                titleLabel.text = "Live Right Now"
 
-                [primaryImageView, primaryTitleLabel].forEach { $0.isHidden = false }
-                [primaryDescriptionLabel, disclosureImageView, secondaryImageView, secondaryTitleLabel].forEach { $0.isHidden = true }
+                descriptionLabel.isHidden = true
+                titleLabel.textColor = .label
 
             case .post:
                 guard let creator = post.people.first else { break }
                 guard let camp = post.camps.first else { break }
+                activatePostLayout()
                 primaryImageView.image = creator.image
-                primaryTitleLabel.text = creator.name
+                titleLabel.text = creator.name
                 secondaryImageView.image = camp.image
-                secondaryTitleLabel.text = camp.name
-
-                [primaryImageView, primaryTitleLabel, disclosureImageView, secondaryImageView, secondaryTitleLabel].forEach { $0.isHidden = false }
-                primaryDescriptionLabel.isHidden = true
+                secondaryLabel.text = camp.name
+                descriptionLabel.isHidden = true
+                titleLabel.textColor = creator.color
 
             case .statusUpdate:
                 guard let creator = post.people.first else { break }
+                activateBasicLayout()
                 primaryImageView.image = creator.image
-                primaryTitleLabel.text = creator.name
-                primaryDescriptionLabel.text = "updated their status"
+                titleLabel.text = creator.name
+                descriptionLabel.text = "updated their status"
 
-                [primaryImageView, primaryTitleLabel, primaryDescriptionLabel].forEach { $0.isHidden = false }
-                [disclosureImageView, secondaryImageView, secondaryTitleLabel].forEach { $0.isHidden = true }
+                descriptionLabel.isHidden = false
+                titleLabel.textColor = creator.color
 
             case .suggestion:
-                layoutIfNeeded()
-                primaryImageBackingView.applyGradient(colors: [.suggestedTop, .suggestedBottom], startPoint: CGPoint(x: 0.5, y: 0), endPoint: CGPoint(x: 0.5, y: 1))
+                activateBasicLayout()
+                DispatchQueue.main.async {
+                    self.primaryImageBackingView.applyGradient(colors: [.suggestedTop, .suggestedBottom], startPoint: CGPoint(x: 0.5, y: 0), endPoint: CGPoint(x: 0.5, y: 1))
+                }
                 primaryImageView.image = UIImage(named: "PostSuggestionIcon")
-                primaryTitleLabel.text = post.people.isEmpty ? "Suggested Camp" : "Suggested Friend"
+                titleLabel.text = post.people.isEmpty ? "Suggested Camp" : "Suggested Friend"
 
-                [primaryImageView, primaryTitleLabel].forEach { $0.isHidden = false }
-                [primaryDescriptionLabel, disclosureImageView, secondaryImageView, secondaryTitleLabel].forEach { $0.isHidden = true }
+                descriptionLabel.isHidden = true
+                titleLabel.textColor = .label
             }
 
             if let expiry = post.expiry {
                 timerButton.isHidden = false
                 timerButton.expiryDate = expiry
-                constrain(titleStackView, timerButton, replace: variableConstraints) {
+                constrain(verticalStackView, timerButton, replace: timerConstraints) {
                     $0.trailing <= $1.leading - 16
                 }
             } else {
                 timerButton.isHidden = true
-                constrain(titleStackView, replace: variableConstraints) {
+                constrain(titleStackView, replace: timerConstraints) {
                     $0.trailing <= $0.superview!.trailing - 16
                 }
-            }
-
-            if primaryDescriptionLabel.isHidden {
-                titleStackView.setCustomSpacing(8, after: primaryTitleLabel)
-            } else {
-                titleStackView.setCustomSpacing(3, after: primaryTitleLabel)
             }
         }
     }
 
-    private var titleStackView: UIStackView = .init(axis: .horizontal, alignment: .center, spacing: 8)
-    private var primaryImageBackingView: UIView = .init(height: 24, width: 24, cornerRadius: 12)
-    private var primaryImageView: UIImageView = .init(width: 24, height: 24, cornerRadius: 12, contentMode: .scaleAspectFill)
-    private var primaryTitleLabel: UILabel = .init(size: 16, weight: .bold, color: .label, multiline: false)
-    private var primaryDescriptionLabel: UILabel = .init(size: 16, weight: .medium, color: .secondaryLabel, multiline: false)
-    private var disclosureImageView: UIImageView = .init(image: UIImage(named: "PostChevronIcon"), tintColor: .secondaryLabel, width: 5, height: 8)
-    private var secondaryImageView: UIImageView = .init(width: 24, height: 24, cornerRadius: 12, contentMode: .scaleAspectFill)
-    private var secondaryTitleLabel: UILabel = .init(size: 16, weight: .bold, color: .label, multiline: false)
+    private var primaryImageBackingView: UIView = .init()
+    private var primaryImageView: UIImageView = .init(contentMode: .scaleAspectFill)
+    private var verticalStackView: UIStackView = .init(axis: .vertical, spacing: 2)
+    private var titleStackView: UIStackView = .init(axis: .horizontal, spacing: 3)
+    private var detailStackView: UIStackView = .init(axis: .horizontal, spacing: 4)
+    private var titleLabel: UILabel = .init(size: 14, weight: .heavy, multiline: false)
+    private var descriptionLabel: UILabel = .init(size: 14, weight: .semibold, color: .secondaryLabel, multiline: false)
+    private var secondaryImageView: UIImageView = .init(width: 14, height: 14, cornerRadius: 7, contentMode: .scaleAspectFill)
+    private var secondaryLabel: UILabel = .init(size: 14, weight: .heavy, color: .secondaryGray, multiline: false)
+
     private var timerButton = TimerButton()
 
-    private var variableConstraints = ConstraintGroup()
+    private var timerConstraints = ConstraintGroup()
+    private var imageSizeConstraints = ConstraintGroup()
 
     init() {
         super.init(frame: .zero)
-        setUpTitleStackView()
+
+        setUpPrimaryImageView()
+        setUpStackView()
         setUpTimerButton()
     }
 
@@ -95,28 +99,43 @@ class FeedCellHeaderView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
 
-    private func setUpTitleStackView() {
-        addSubview(titleStackView)
-        constrain(titleStackView) {
-            $0.top == $0.superview!.top + 16
+    private func setUpPrimaryImageView() {
+        primaryImageBackingView.addSubview(primaryImageView)
+        primaryImageBackingView.clipsToBounds = true
+        constrain(primaryImageView) { $0.edges == $0.superview!.edges }
+
+        addSubview(primaryImageBackingView)
+        constrain(primaryImageBackingView) {
             $0.leading == $0.superview!.leading + 16
-            $0.bottom == $0.superview!.bottom - 10
+            $0.top == $0.superview!.top + 16
+            $0.bottom == $0.superview!.bottom - 12
         }
 
-        constrain(titleStackView, replace: variableConstraints) {
+        constrain(primaryImageBackingView, replace: imageSizeConstraints) {
+            $0.width == 40
+            $0.height == 40
+        }
+    }
+
+    private func setUpStackView() {
+        addSubview(verticalStackView)
+        constrain(verticalStackView, primaryImageBackingView) {
+            $0.leading == $1.trailing + 8
+            $0.centerY == $1.centerY
+        }
+
+        constrain(verticalStackView, replace: timerConstraints) {
             $0.trailing == $0.superview!.trailing - 16
         }
 
-        primaryImageBackingView.addSubview(primaryImageView)
-        constrain(primaryImageView) { $0.edges == $0.superview!.edges }
+        verticalStackView.addArrangedSubview(titleStackView)
+        verticalStackView.addArrangedSubview(detailStackView)
 
-        [primaryImageBackingView, primaryTitleLabel, primaryDescriptionLabel, disclosureImageView, secondaryImageView, secondaryTitleLabel].forEach {
-            titleStackView.addArrangedSubview($0)
-        }
+        titleStackView.addArrangedSubview(titleLabel)
+        titleStackView.addArrangedSubview(descriptionLabel)
 
-        primaryTitleLabel.setContentCompressionResistancePriority(.init(1000), for: .horizontal)
-        primaryDescriptionLabel.setContentCompressionResistancePriority(.init(999), for: .horizontal)
-        secondaryTitleLabel.setContentCompressionResistancePriority(.init(998), for: .horizontal)
+        detailStackView.addArrangedSubview(secondaryImageView)
+        detailStackView.addArrangedSubview(secondaryLabel)
     }
 
     private func setUpTimerButton() {
@@ -125,5 +144,27 @@ class FeedCellHeaderView: UIView {
             $0.top == $0.superview!.top + 16
             $0.trailing == $0.superview!.trailing - 16
         }
+    }
+
+    private func activatePostLayout() {
+        constrain(primaryImageBackingView, replace: imageSizeConstraints) {
+            $0.width == 40
+            $0.height == 40
+        }
+        primaryImageBackingView.layer.cornerRadius = 20
+
+        detailStackView.isHidden = false
+        layoutIfNeeded()
+    }
+
+    private func activateBasicLayout() {
+        constrain(primaryImageBackingView, replace: imageSizeConstraints) {
+            $0.width == 24
+            $0.height == 24
+        }
+        primaryImageBackingView.layer.cornerRadius = 12
+
+        detailStackView.isHidden = true
+        layoutIfNeeded()
     }
 }

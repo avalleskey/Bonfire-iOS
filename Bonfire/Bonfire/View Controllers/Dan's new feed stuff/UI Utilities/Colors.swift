@@ -20,4 +20,5 @@ extension UIColor {
     static var suggestedTop: UIColor { UIColor(displayP3Red: 0.85, green: 0.21, blue: 1.00, alpha: 1.00) }
     static var suggestedBottom: UIColor { UIColor(displayP3Red: 0.48, green: 0.21, blue: 1.00, alpha: 1.00) }
     static var contentGray: UIColor { UIColor(displayP3Red: 240 / 255, green: 240 / 255, blue: 242 / 255, alpha: 1.0) }
+    static var secondaryGray: UIColor { UIColor(displayP3Red: 142 / 255, green: 142 / 255, blue: 147 / 255, alpha: 1.0) }
 }

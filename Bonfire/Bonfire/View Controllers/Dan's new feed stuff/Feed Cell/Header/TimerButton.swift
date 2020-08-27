@@ -72,7 +72,7 @@ class TimerButton: UIControl {
         }
 
         if hours > 2 {
-            color = UIColor(hex: "8E8E93")!
+            color = .secondaryGray
         } else if hours > 0 {
             color = .systemOrange
         } else {

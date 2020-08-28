@@ -18,8 +18,8 @@ class FeedCellActionView: UIView {
                 primaryActionButton.image = UIImage(named: "PostLikeIcon")
 
                 secondaryActionButton.isHidden = false
-                secondaryActionButton.title = "Reply"
-                secondaryActionButton.image = UIImage(named: "PostReplyIcon")
+                secondaryActionButton.title = "Message"
+                secondaryActionButton.image = UIImage(named: "PostChatIcon")
             case .statusUpdate:
                 primaryActionButton.title = "Like"
                 primaryActionButton.image = UIImage(named: "PostLikeIcon")

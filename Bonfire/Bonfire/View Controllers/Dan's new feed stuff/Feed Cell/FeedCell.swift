@@ -25,7 +25,7 @@ class FeedCell: UITableViewCell {
             case .post:
                 insertContent(PostContentView(post: post))
                 actionView.isHidden = false
-                replyView.isHidden = post.replies.isEmpty
+                replyView.isHidden = false
             case .statusUpdate:
                 if let status = post.people.first?.status {
                     insertContent(StatusContentView(status: status))

@@ -6,18 +6,19 @@
 //  Copyright © 2020 Ingenious. All rights reserved.
 //
 
+import BFCore
 import UIKit
 import Cartography
 
 class PostContentView: UIView {
 
-    private var post: DummyPost
+    private var post: Post
 
     private var stackView = UIStackView(axis: .vertical, spacing: 12)
     private let postLabel = UILabel(size: 18, weight: .medium, multiline: true)
     private let attachmentContainerView = UIView(height: 200, cornerRadius: 14)
 
-    init(post: DummyPost) {
+    init(post: Post) {
         self.post = post
         super.init(frame: .zero)
         setUpStackView()
@@ -36,13 +37,13 @@ class PostContentView: UIView {
         stackView.addArrangedSubview(postLabel)
         stackView.addArrangedSubview(attachmentContainerView)
 
-        if let message = post.message {
-            postLabel.text = message
+        if let message = post.attributes.message {
+            postLabel.text = String(htmlEncodedString: message)
         } else {
             postLabel.isHidden = true
         }
 
-        if post.attachments.isEmpty {
+        if post.attributes.attachments == nil {
             attachmentContainerView.isHidden = true
         } else {
             arrangeAttachments()
@@ -55,10 +56,13 @@ class PostContentView: UIView {
     }
 
     private func arrangeAttachments() {
-        if post.attachments.count <= 2 {
+        guard let media = post.attributes.attachments?.media else { return }
+
+        if media.count <= 2 {
             let stackView = UIStackView(axis: .horizontal, distribution: .fillEqually, spacing: 4)
-            for image in post.attachments {
-                let imageView = UIImageView(image: image, contentMode: .scaleAspectFill)
+            for item in media {
+                let imageView = UIImageView(contentMode: .scaleAspectFill)
+                imageView.kf.setImage(with: item.attributes.hostedVersions.full?.url)
                 imageView.clipsToBounds = true
                 stackView.addArrangedSubview(imageView)
             }
@@ -74,10 +78,11 @@ class PostContentView: UIView {
 
             horizontalStackView.addArrangedSubview(firstVerticalStackView)
             horizontalStackView.addArrangedSubview(secondVerticalStackView)
-            for image in post.attachments.enumerated() {
-                let imageView = UIImageView(image: image.element, contentMode: .scaleAspectFill)
+            for item in media.enumerated() {
+                let imageView = UIImageView(contentMode: .scaleAspectFill)
+                imageView.kf.setImage(with: item.element.attributes.hostedVersions.full?.url)
                 imageView.clipsToBounds = true
-                if image.offset % 2 == 0 {
+                if item.offset % 2 == 0 {
                     secondVerticalStackView.addArrangedSubview(imageView)
                 } else {
                     firstVerticalStackView.addArrangedSubview(imageView)

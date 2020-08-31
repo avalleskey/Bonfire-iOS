@@ -6,42 +6,47 @@
 //  Copyright © 2020 Ingenious. All rights reserved.
 //
 
+import BFCore
 import UIKit
 import Cartography
 
 class FeedCell: UITableViewCell {
 
-    var post: DummyPost! {
+    var post: Post! {
         didSet {
             headerView.post = post
             actionView.post = post
-            replyView.replies = post.replies
+            insertContent(PostContentView(post: post))
 
-            switch post.type {
-            case .liveRightNow:
-                insertContent(LiveContentView(camps: post.camps))
-                actionView.isHidden = true
-                replyView.isHidden = true
-            case .post:
-                insertContent(PostContentView(post: post))
-                actionView.isHidden = false
-                replyView.isHidden = false
-            case .statusUpdate:
-                if let status = post.people.first?.status {
-                    insertContent(StatusContentView(status: status))
-                    actionView.isHidden = false
-                }
-                replyView.isHidden = true
-            case .suggestion:
-                if let friend = post.people.first {
-                    insertContent(SuggestionContentView(suggestion: friend))
-                    actionView.isHidden = false
-                } else if let camp = post.camps.first {
-                    insertContent(SuggestionContentView(suggestion: camp))
-                    actionView.isHidden = false
-                }
-                replyView.isHidden = true
-            }
+//            headerView.post = post
+//            actionView.post = post
+//            replyView.replies = post.replies
+//
+//            switch post.type {
+//            case .liveRightNow:
+//                insertContent(LiveContentView(camps: post.camps))
+//                actionView.isHidden = true
+//                replyView.isHidden = true
+//            case .post:
+//                insertContent(PostContentView(post: post))
+//                actionView.isHidden = false
+//                replyView.isHidden = false
+//            case .statusUpdate:
+//                if let status = post.people.first?.status {
+//                    insertContent(StatusContentView(status: status))
+//                    actionView.isHidden = false
+//                }
+//                replyView.isHidden = true
+//            case .suggestion:
+//                if let friend = post.people.first {
+//                    insertContent(SuggestionContentView(suggestion: friend))
+//                    actionView.isHidden = false
+//                } else if let camp = post.camps.first {
+//                    insertContent(SuggestionContentView(suggestion: camp))
+//                    actionView.isHidden = false
+//                }
+//                replyView.isHidden = true
+//            }
         }
     }
 
@@ -77,7 +82,7 @@ class FeedCell: UITableViewCell {
             $0.top == $0.superview!.top + 4
             $0.leading == $0.superview!.leading + 8
             $0.trailing == $0.superview!.trailing - 8
-            $0.bottom == $0.superview!.bottom - 4
+            $0.bottom == $0.superview!.bottom - 4 ~ .init(rawValue: 999)
         }
     }
 

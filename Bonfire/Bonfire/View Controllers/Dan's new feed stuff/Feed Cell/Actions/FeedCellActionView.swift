@@ -6,42 +6,52 @@
 //  Copyright © 2020 Ingenious. All rights reserved.
 //
 
+import BFCore
 import UIKit
 import Cartography
 
 class FeedCellActionView: UIView {
-    var post: DummyPost! {
+    var post: Post! {
         didSet {
-            switch post.type {
-            case .post:
-                primaryActionButton.title = "Like"
-                primaryActionButton.image = UIImage(named: "PostLikeIcon")
+            primaryActionButton.title = "Like"
+            primaryActionButton.image = UIImage(named: "PostLikeIcon")
+            secondaryActionButton.isHidden = false
+            secondaryActionButton.title = "Message"
+            secondaryActionButton.image = UIImage(named: "PostChatIcon")
+            primaryActionButton.color = post.attributes.creator.attributes.uiColor ?? .systemBlue
+            secondaryActionButton.color = post.attributes.creator.attributes.uiColor ?? .systemBlue
+            detailsButton.tintColor = post.attributes.creator.attributes.uiColor
 
-                secondaryActionButton.isHidden = false
-                secondaryActionButton.title = "Message"
-                secondaryActionButton.image = UIImage(named: "PostChatIcon")
-            case .statusUpdate:
-                primaryActionButton.title = "Like"
-                primaryActionButton.image = UIImage(named: "PostLikeIcon")
-
-                secondaryActionButton.isHidden = false
-                secondaryActionButton.title = "Message"
-                secondaryActionButton.image = UIImage(named: "PostChatIcon")
-            case .suggestion:
-                if post.people.isEmpty {
-                    primaryActionButton.title = "Join Camp"
-                    primaryActionButton.image = UIImage(named: "PostAddFriendIcon")
-                } else {
-                    primaryActionButton.title = "Add Friend"
-                    primaryActionButton.image = UIImage(named: "PostAddFriendIcon")
-                }
-
-                secondaryActionButton.isHidden = false
-                secondaryActionButton.title = "Ignore"
-                secondaryActionButton.image = UIImage(named: "PostIgnoreIcon")
-            default:
-                break
-            }
+//            switch post.type {
+//            case .post:
+//                primaryActionButton.title = "Like"
+//                primaryActionButton.image = UIImage(named: "PostLikeIcon")
+//
+//                secondaryActionButton.isHidden = false
+//                secondaryActionButton.title = "Message"
+//                secondaryActionButton.image = UIImage(named: "PostChatIcon")
+//            case .statusUpdate:
+//                primaryActionButton.title = "Like"
+//                primaryActionButton.image = UIImage(named: "PostLikeIcon")
+//
+//                secondaryActionButton.isHidden = false
+//                secondaryActionButton.title = "Message"
+//                secondaryActionButton.image = UIImage(named: "PostChatIcon")
+//            case .suggestion:
+//                if post.people.isEmpty {
+//                    primaryActionButton.title = "Join Camp"
+//                    primaryActionButton.image = UIImage(named: "PostAddFriendIcon")
+//                } else {
+//                    primaryActionButton.title = "Add Friend"
+//                    primaryActionButton.image = UIImage(named: "PostAddFriendIcon")
+//                }
+//
+//                secondaryActionButton.isHidden = false
+//                secondaryActionButton.title = "Ignore"
+//                secondaryActionButton.image = UIImage(named: "PostIgnoreIcon")
+//            default:
+//                break
+//            }
         }
     }
 

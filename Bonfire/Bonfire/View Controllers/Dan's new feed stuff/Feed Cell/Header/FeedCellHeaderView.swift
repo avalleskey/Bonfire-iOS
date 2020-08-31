@@ -6,69 +6,81 @@
 //  Copyright © 2020 Ingenious. All rights reserved.
 //
 
+import BFCore
 import UIKit
 import Cartography
 
 class FeedCellHeaderView: UIView {
-    var post: DummyPost! {
+    var post: Post! {
         didSet {
-            switch post.type {
-            case .liveRightNow:
-                activateBasicLayout()
-                DispatchQueue.main.async {
-                    self.primaryImageBackingView.applyGradient(colors: [.liveTop, .liveBottom], startPoint: CGPoint(x: 0.5, y: 0), endPoint: CGPoint(x: 0.5, y: 1))
-                }
-                primaryImageView.image = UIImage(named: "PostLiveIcon")
-                titleLabel.text = "Live Right Now"
+            let creator = post.attributes.creator
+            let camp = post.attributes.postedIn
+            activatePostLayout()
+            primaryImageView.kf.setImage(with: creator.attributes.media?.avatar?.full?.url)
+            titleLabel.text = creator.attributes.display_name
+            secondaryImageView.kf.setImage(with: camp?.attributes.media?.avatar?.full?.url)
+            secondaryLabel.text = camp?.attributes.title
+            descriptionLabel.isHidden = true
+            titleLabel.textColor = creator.attributes.uiColor
 
-                descriptionLabel.isHidden = true
-                titleLabel.textColor = .label
 
-            case .post:
-                guard let creator = post.people.first else { break }
-                guard let camp = post.camps.first else { break }
-                activatePostLayout()
-                primaryImageView.image = creator.image
-                titleLabel.text = creator.name
-                secondaryImageView.image = camp.image
-                secondaryLabel.text = camp.name
-                descriptionLabel.isHidden = true
-                titleLabel.textColor = creator.color
+//            switch post.type {
+//            case .liveRightNow:
+//                activateBasicLayout()
+//                DispatchQueue.main.async {
+//                    self.primaryImageBackingView.applyGradient(colors: [.liveTop, .liveBottom], startPoint: CGPoint(x: 0.5, y: 0), endPoint: CGPoint(x: 0.5, y: 1))
+//                }
+//                primaryImageView.image = UIImage(named: "PostLiveIcon")
+//                titleLabel.text = "Live Right Now"
+//
+//                descriptionLabel.isHidden = true
+//                titleLabel.textColor = .label
+//
+//            case .post:
+//                guard let creator = post.people.first else { break }
+//                guard let camp = post.camps.first else { break }
+//                activatePostLayout()
+//                primaryImageView.image = creator.image
+//                titleLabel.text = creator.name
+//                secondaryImageView.image = camp.image
+//                secondaryLabel.text = camp.name
+//                descriptionLabel.isHidden = true
+//                titleLabel.textColor = creator.color
+//
+//            case .statusUpdate:
+//                guard let creator = post.people.first else { break }
+//                activateBasicLayout()
+//                primaryImageView.image = creator.image
+//                titleLabel.text = creator.name
+//                descriptionLabel.text = "updated their status"
+//
+//                descriptionLabel.isHidden = false
+//                titleLabel.textColor = creator.color
+//
+//            case .suggestion:
+//                activateBasicLayout()
+//                DispatchQueue.main.async {
+//                    self.primaryImageBackingView.applyGradient(colors: [.suggestedTop, .suggestedBottom], startPoint: CGPoint(x: 0.5, y: 0), endPoint: CGPoint(x: 0.5, y: 1))
+//                }
+//                primaryImageView.image = UIImage(named: "PostSuggestionIcon")
+//                titleLabel.text = post.people.isEmpty ? "Suggested Camp" : "Suggested Friend"
+//
+//                descriptionLabel.isHidden = true
+//                titleLabel.textColor = .label
+//            }
 
-            case .statusUpdate:
-                guard let creator = post.people.first else { break }
-                activateBasicLayout()
-                primaryImageView.image = creator.image
-                titleLabel.text = creator.name
-                descriptionLabel.text = "updated their status"
-
-                descriptionLabel.isHidden = false
-                titleLabel.textColor = creator.color
-
-            case .suggestion:
-                activateBasicLayout()
-                DispatchQueue.main.async {
-                    self.primaryImageBackingView.applyGradient(colors: [.suggestedTop, .suggestedBottom], startPoint: CGPoint(x: 0.5, y: 0), endPoint: CGPoint(x: 0.5, y: 1))
-                }
-                primaryImageView.image = UIImage(named: "PostSuggestionIcon")
-                titleLabel.text = post.people.isEmpty ? "Suggested Camp" : "Suggested Friend"
-
-                descriptionLabel.isHidden = true
-                titleLabel.textColor = .label
-            }
-
-            if let expiry = post.expiry {
-                timerButton.isHidden = false
-                timerButton.expiryDate = expiry
-                constrain(verticalStackView, timerButton, replace: timerConstraints) {
-                    $0.trailing <= $1.leading - 16
-                }
-            } else {
+//            if let expiry = post.expiry {
+//                timerButton.isHidden = false
+//                timerButton.expiryDate = expiry
+//                constrain(verticalStackView, timerButton, replace: timerConstraints) {
+//                    $0.trailing <= $1.leading - 16
+//                }
+//            } else {
                 timerButton.isHidden = true
-                constrain(titleStackView, replace: timerConstraints) {
+                constrain(verticalStackView, replace: timerConstraints) {
                     $0.trailing <= $0.superview!.trailing - 16
                 }
-            }
+//            }
         }
     }
 

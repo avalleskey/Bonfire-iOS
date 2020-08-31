@@ -62,7 +62,7 @@ public final class APIClient {
 
             if let httpResp = response as? HTTPURLResponse {
                 let code = httpResp.statusCode
-                print("[HTTP]", code, String(data: data ?? Data(), encoding: .utf8) ?? "--")
+                //print("[HTTP]", code, String(data: data ?? Data(), encoding: .utf8) ?? "--")
 
                 if code == 401 && retryCount < 3 {
                     KeychainVault.accessToken = nil

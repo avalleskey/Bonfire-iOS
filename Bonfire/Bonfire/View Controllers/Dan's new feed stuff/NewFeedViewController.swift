@@ -6,14 +6,16 @@
 //  Copyright © 2020 Ingenious. All rights reserved.
 //
 
+import BFCore
 import UIKit
 import Cartography
 
 final class NewFeedViewController: UIViewController {
 
     private let tableView: UITableView = .make(cellReuseIdentifier: FeedCell.reuseIdentifier, cellClass: FeedCell.self)
-    private var dataSource: UITableViewDiffableDataSource<Int, DummyPost>!
-    private let posts = DummyPost.testData
+    private var dataSource: UITableViewDiffableDataSource<Int, Post>!
+    private var posts: [Post] = []
+    private let controller = StreamController()
 
     init() {
         super.init(nibName: nil, bundle: nil)
@@ -34,7 +36,7 @@ final class NewFeedViewController: UIViewController {
         navigationItem.title = Constants.TabBar.homeDefaultText
 
         setUpTableView()
-        updateDataSource()
+        refreshData()
     }
 
     private func setUpTableView() {
@@ -44,8 +46,17 @@ final class NewFeedViewController: UIViewController {
         }
     }
 
+    private func refreshData() {
+        controller.getStream { posts in
+            DispatchQueue.main.async {
+                self.posts = posts
+                self.updateDataSource(skipAnimation: true)
+            }
+        }
+    }
+
     private func updateDataSource(skipAnimation: Bool = false) {
-        var snapshot = NSDiffableDataSourceSnapshot<Int, DummyPost>()
+        var snapshot = NSDiffableDataSourceSnapshot<Int, Post>()
         snapshot.appendSections([0])
         snapshot.appendItems(posts)
         dataSource.apply(snapshot, animatingDifferences: !skipAnimation)

@@ -20,7 +20,6 @@ final class StreamController: StreamControllerProtocol {
             case .success(let response):
                 completion(response.data.compactMap { $0.attributes.posts }.reduce([], +))
             case .failure(let error):
-                break
             }
         }
     }

@@ -8,7 +8,15 @@
 
 import Foundation
 
-public struct Post: BFResource {
+public struct Post: BFResource, Hashable {
+    public static func == (lhs: Post, rhs: Post) -> Bool {
+        lhs.id == rhs.id
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+
     public let id: String?
 
     public let type: BFResourceType

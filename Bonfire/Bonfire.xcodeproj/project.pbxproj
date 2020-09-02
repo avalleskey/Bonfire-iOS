@@ -171,6 +171,7 @@
 		65024B4F24FE9CE300311ECE /* TestViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65024B4E24FE9CE300311ECE /* TestViewController.swift */; };
 		65024B5124FEB1C000311ECE /* NavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65024B5024FEB1C000311ECE /* NavigationView.swift */; };
 		65024B5324FEE02F00311ECE /* NavigationButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65024B5224FEE02F00311ECE /* NavigationButton.swift */; };
+		65024B552500410500311ECE /* EmptyStateMessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65024B542500410500311ECE /* EmptyStateMessageView.swift */; };
 		6547932E24F016C9003A008A /* FeedCellHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6547932D24F016C9003A008A /* FeedCellHeaderView.swift */; };
 		65A169A524F45463005F80CB /* BorderedAvatarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A169A424F45463005F80CB /* BorderedAvatarView.swift */; };
 		65C2730E24F4078B00ADA995 /* LiveContentCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65C2730D24F4078B00ADA995 /* LiveContentCell.swift */; };
@@ -447,6 +448,7 @@
 		65024B4E24FE9CE300311ECE /* TestViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestViewController.swift; sourceTree = "<group>"; };
 		65024B5024FEB1C000311ECE /* NavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationView.swift; sourceTree = "<group>"; };
 		65024B5224FEE02F00311ECE /* NavigationButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationButton.swift; sourceTree = "<group>"; };
+		65024B542500410500311ECE /* EmptyStateMessageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateMessageView.swift; sourceTree = "<group>"; };
 		6547932D24F016C9003A008A /* FeedCellHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedCellHeaderView.swift; sourceTree = "<group>"; };
 		65A169A424F45463005F80CB /* BorderedAvatarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BorderedAvatarView.swift; sourceTree = "<group>"; };
 		65C2730D24F4078B00ADA995 /* LiveContentCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveContentCell.swift; sourceTree = "<group>"; };
@@ -1235,6 +1237,7 @@
 			children = (
 				65E42E7124EDB3FF00354393 /* DummyPost.swift */,
 				65E42E6124ED985800354393 /* NewFeedViewController.swift */,
+				65024B542500410500311ECE /* EmptyStateMessageView.swift */,
 				65E42E7324EDC17500354393 /* Feed Cell */,
 				65E42E7024EDB37300354393 /* UI Utilities */,
 			);
@@ -1646,6 +1649,7 @@
 				1AF92AD724C9F81400D253AC /* KeyboardSubscriber.swift in Sources */,
 				1A15AB5E24B3B1F1007722A4 /* BFReplyTextField.swift in Sources */,
 				1A212A0C24BC86C500A0DCD3 /* BFFormItem.swift in Sources */,
+				65024B552500410500311ECE /* EmptyStateMessageView.swift in Sources */,
 				1A3ED13924D38E52001DA453 /* CampHeaderView.swift in Sources */,
 				65E42E6B24EDB08D00354393 /* IntrinsicallySizedScrollView.swift in Sources */,
 				1A315F9A24E18EFD00C8AC6C /* CampsTableHeaderViewController.swift in Sources */,

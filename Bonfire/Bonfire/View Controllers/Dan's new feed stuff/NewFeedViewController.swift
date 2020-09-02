@@ -12,7 +12,8 @@ import Cartography
 
 final class NewFeedViewController: UIViewController {
 
-    private let tableView: UITableView = .make(cellReuseIdentifier: FeedCell.reuseIdentifier, cellClass: FeedCell.self)
+    private let navigationView = NavigationView(color: .systemBackground, leftButtonType: .status(emoji: "🥳"), rightButtonType: .bell, titleImage: .dummyAvatar)
+    private let tableView: UITableView = .make(cellReuseIdentifier: FeedCell.reuseIdentifier, cellClass: FeedCell.self, topOffset: NavigationView.coreHeight)
     private var dataSource: UITableViewDiffableDataSource<Int, Post>!
     private var posts: [Post] = []
     private let controller = StreamController()
@@ -22,6 +23,7 @@ final class NewFeedViewController: UIViewController {
         dataSource = UITableViewDiffableDataSource(tableView: tableView, cellProvider: { tableView, indexPath, post -> UITableViewCell? in
             guard let cell = tableView.dequeueReusableCell(withIdentifier: FeedCell.reuseIdentifier, for: indexPath) as? FeedCell else { return nil }
             cell.post = post
+            cell.delegate = self
             return cell
         })
     }
@@ -32,17 +34,29 @@ final class NewFeedViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .systemPink
-        navigationItem.title = Constants.TabBar.homeDefaultText
-
         setUpTableView()
+        setUpNavigationView()
         refreshData()
+    }
+
+    private func setUpNavigationView() {
+        view.addSubview(navigationView)
+        constrain(navigationView) {
+            navigationView.topConstraint = $0.top == $0.superview!.top
+            $0.leading == $0.superview!.leading
+            $0.trailing == $0.superview!.trailing
+        }
+
+        navigationView.managingScrollView = tableView
     }
 
     private func setUpTableView() {
         view.addSubview(tableView)
         constrain(tableView) {
-            $0.edges == $0.superview!.edges
+            $0.top == $0.superview!.safeAreaLayoutGuide.top
+            $0.leading == $0.superview!.leading
+            $0.trailing == $0.superview!.trailing
+            $0.bottom == $0.superview!.bottom
         }
     }
 
@@ -60,5 +74,12 @@ final class NewFeedViewController: UIViewController {
         snapshot.appendSections([0])
         snapshot.appendItems(posts)
         dataSource.apply(snapshot, animatingDifferences: !skipAnimation)
+    }
+}
+
+extension NewFeedViewController: FeedCellDelegate {
+    func performAction() {
+        let testViewController = TestViewController()
+        navigationController?.pushViewController(testViewController, animated: true)
     }
 }

@@ -13,6 +13,7 @@ import UIKit
 final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
+    var popRecognizer: InteractivePopRecognizer?
 
     func scene(
         _ scene: UIScene, willConnectTo session: UISceneSession,
@@ -25,30 +26,22 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         let tabVC = BFTabBarController()
 
-//        let forYouVC = HomeViewController()
-//        let forYouNavVC = BFNavigationController(rootViewController: forYouVC)
-//        forYouVC.tabBarItem = HomeViewController.defaultTabBarItem
         let newFeedViewController = NewFeedViewController()
-        let feedNavigationController = BFNavigationController(rootViewController: newFeedViewController)
+        let feedNavigationController = UINavigationController(rootViewController: newFeedViewController)
+        popRecognizer = InteractivePopRecognizer(controller: feedNavigationController)
+        feedNavigationController.interactivePopGestureRecognizer?.delegate = popRecognizer
+        feedNavigationController.isNavigationBarHidden = true
         newFeedViewController.tabBarItem = HomeViewController.defaultTabBarItem
 
         let campsVC = CampsViewController()
         let campsNavVC = BFNavigationController(rootViewController: campsVC)
         campsVC.tabBarItem = CampsViewController.defaultTabBarItem
-
-        let createPostVC = CreatePostViewController()
-        createPostVC.tabBarItem = CreatePostViewController.defaultTabBarItem
         
         let friendsVC = MessagesViewController()
         let friendsNavVC = BFNavigationController(rootViewController: friendsVC)
         friendsVC.tabBarItem = MessagesViewController.defaultTabBarItem
 
-        let notificationsVC = NotificationsViewController()
-        let notificationsNavVC = BFNavigationController(rootViewController: notificationsVC)
-        notificationsVC.tabBarItem = NotificationsViewController.defaultTabBarItem
-
-        tabVC.setViewControllers(
-            [feedNavigationController, campsNavVC, createPostVC, friendsNavVC, notificationsNavVC], animated: false)
+        tabVC.setViewControllers([campsNavVC, feedNavigationController, friendsNavVC], animated: false)
 
         tabVC.selectedViewController = feedNavigationController
 

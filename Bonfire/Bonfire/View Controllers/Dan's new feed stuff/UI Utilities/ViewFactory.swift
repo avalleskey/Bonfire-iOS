@@ -316,7 +316,10 @@ extension UITableView {
         tableView.register(cellClass, forCellReuseIdentifier: cellReuseIdentifier)
         tableView.allowsSelection = allowsSelection
         tableView.tableFooterView = UIView()
-        if topOffset > 0 { tableView.tableHeaderView = UIView(frame: CGRect(x: 0, y: 0, width: 100, height: topOffset)) }
+        if topOffset > 0 {
+            tableView.tableHeaderView = UIView(frame: CGRect(x: 0, y: 0, width: 100, height: topOffset))
+            tableView.scrollIndicatorInsets = UIEdgeInsets(top: topOffset, left: 0, bottom: 0, right: 0)
+        }
 
         tableView.keyboardDismissMode = .onDrag
         tableView.separatorStyle = showSeparators ? .singleLine : .none

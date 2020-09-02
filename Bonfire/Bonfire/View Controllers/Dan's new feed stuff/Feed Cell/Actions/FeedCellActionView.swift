@@ -10,7 +10,14 @@ import BFCore
 import UIKit
 import Cartography
 
+protocol FeedCellActionDelegate: AnyObject {
+    func performAction()
+}
+
 class FeedCellActionView: UIView {
+
+    weak var delegate: FeedCellActionDelegate?
+
     var post: Post! {
         didSet {
             primaryActionButton.title = "Like"
@@ -80,6 +87,8 @@ class FeedCellActionView: UIView {
 
         actionStackView.addArrangedSubview(primaryActionButton)
         actionStackView.addArrangedSubview(secondaryActionButton)
+
+        primaryActionButton.addTarget(self, action: #selector(primaryActionButtonTapped), for: .touchUpInside)
     }
 
     private func setUpDetailsButton() {
@@ -88,5 +97,9 @@ class FeedCellActionView: UIView {
             $0.trailing == $0.superview!.trailing - 14
             $0.bottom == $0.superview!.bottom - 16
         }
+    }
+
+    @objc private func primaryActionButtonTapped() {
+        delegate?.performAction()
     }
 }

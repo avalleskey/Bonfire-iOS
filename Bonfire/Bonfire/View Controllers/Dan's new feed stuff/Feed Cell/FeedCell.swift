@@ -10,7 +10,13 @@ import BFCore
 import UIKit
 import Cartography
 
+protocol FeedCellDelegate: AnyObject {
+    func performAction()
+}
+
 class FeedCell: UITableViewCell {
+
+    weak var delegate: FeedCellDelegate?
 
     var post: Post! {
         didSet {
@@ -96,6 +102,8 @@ class FeedCell: UITableViewCell {
         stackView.addArrangedSubview(contentContainerView)
         stackView.addArrangedSubview(actionView)
         stackView.addArrangedSubview(replyView)
+
+        actionView.delegate = self
     }
 
     private func insertContent(_ view: UIView) {
@@ -111,5 +119,11 @@ class FeedCell: UITableViewCell {
 
     override func prepareForReuse() {
         replyView.prepareForReuse()
+    }
+}
+
+extension FeedCell: FeedCellActionDelegate {
+    func performAction() {
+        delegate?.performAction()
     }
 }

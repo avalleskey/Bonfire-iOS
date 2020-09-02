@@ -42,13 +42,6 @@ final class BFTabBarController: UITabBarController {
 
         delegate = self
     }
-
-    override func viewDidLayoutSubviews() {
-        super.viewWillLayoutSubviews()
-        //        custom tab bar height
-        //        tabBar.frame.size.height = 58
-        //        tabBar.frame.origin.y = view.frame.height - 58
-    }
 }
 
 extension BFTabBarController: UITabBarControllerDelegate {
@@ -57,7 +50,7 @@ extension BFTabBarController: UITabBarControllerDelegate {
     ) -> Bool {
         let child = (viewController as? UINavigationController)?.topViewController
 
-        if !(child is HomeViewController) {
+        if !(child is NewFeedViewController) {
             if KeychainVault.accessToken == nil {
                 let authController = GetStartedViewController()
                 let authNavcontroller = GetStartedNavigationController(
@@ -65,12 +58,6 @@ extension BFTabBarController: UITabBarControllerDelegate {
                 self.present(authNavcontroller, animated: true)
                 return false
             }
-        }
-        
-        if viewController is CreatePostViewController {
-            let createPostVC = CreatePostViewController()
-            self.present(createPostVC, animated: true)
-            return false
         }
 
         return true

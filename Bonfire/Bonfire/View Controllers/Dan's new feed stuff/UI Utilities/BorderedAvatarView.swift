@@ -36,7 +36,7 @@ class BorderedAvatarView: UIView {
         constrain(imageView) {
             $0.edges == inset($0.superview!.edges, borderWidth.rawValue)
         }
-        imageView.layer.borderWidth = 0.5
+        imageView.layer.borderWidth = (1 / UIScreen.main.scale)
         imageView.layer.borderColor = UIColor.black.withAlphaComponent(0.1).cgColor
         imageView.clipsToBounds = true
     }

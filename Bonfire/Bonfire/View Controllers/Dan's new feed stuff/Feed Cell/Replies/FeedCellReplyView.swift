@@ -21,7 +21,7 @@ class FeedCellReplyView: UIView {
 
     private let stackView = UIStackView(axis: .vertical)
     private let createReplyView = UIView()
-    private let avatarImageView = UIImageView(width: 24, height: 24, cornerRadius: 12, contentMode: .scaleAspectFill)
+    private let avatarImageView = UIImageView(width: 32, height: 32, cornerRadius: 16, contentMode: .scaleAspectFill)
     private let addReplyLabel = UILabel(size: 16, weight: .medium, color: .tertiaryLabel, multiline: false, text: "Add a reply...")
 
     init() {

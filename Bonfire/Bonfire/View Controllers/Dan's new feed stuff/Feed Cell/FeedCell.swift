@@ -56,7 +56,7 @@ class FeedCell: UITableViewCell {
         }
     }
 
-    private var containerView = UIView(backgroundColor: Constants.Color.systemBackground, cornerRadius: 10)
+    private var containerView = UIView(backgroundColor: Constants.Color.systemBackground, cornerRadius: 16)
     private var stackView = UIStackView(axis: .vertical)
     private var headerView = FeedCellHeaderView()
     private var contentContainerView = UIView()
@@ -76,19 +76,19 @@ class FeedCell: UITableViewCell {
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        containerView.applyShadow(intensity: .sketch(color: .black, alpha: 0.04, x: 0, y: 1, blur: 3, spread: 0))
+        containerView.applyShadow(intensity: .sketch(color: .black, alpha: 0.03, x: 0, y: 1, blur: 3, spread: 0))
         containerView.layer.cornerCurve = .continuous
         containerView.layer.borderWidth = 1
-        containerView.layer.borderColor = UIColor.black.withAlphaComponent(0.02).cgColor
+        containerView.layer.borderColor = UIColor.black.withAlphaComponent(0.05).cgColor
     }
 
     private func setUpContainerView() {
         contentView.addSubview(containerView)
         constrain(containerView) {
-            $0.top == $0.superview!.top + 4
-            $0.leading == $0.superview!.leading + 8
-            $0.trailing == $0.superview!.trailing - 8
-            $0.bottom == $0.superview!.bottom - 4 ~ .init(rawValue: 999)
+            $0.top == $0.superview!.top + 6
+            $0.leading == $0.superview!.leading + 12
+            $0.trailing == $0.superview!.trailing - 12
+            $0.bottom == $0.superview!.bottom - 6 ~ .init(rawValue: 999)
         }
     }
 

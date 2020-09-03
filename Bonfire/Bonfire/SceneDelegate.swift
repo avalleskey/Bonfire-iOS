@@ -41,7 +41,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let friendsNavVC = BFNavigationController(rootViewController: friendsVC)
         friendsVC.tabBarItem = MessagesViewController.defaultTabBarItem
 
-        tabVC.setViewControllers([campsNavVC, feedNavigationController, friendsNavVC], animated: false)
+        tabVC.setViewControllers([feedNavigationController, friendsNavVC, campsNavVC], animated: false)
 
         tabVC.selectedViewController = feedNavigationController
 

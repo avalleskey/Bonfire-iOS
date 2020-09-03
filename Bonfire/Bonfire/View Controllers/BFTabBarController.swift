@@ -28,15 +28,12 @@ final class BFTabBarController: UITabBarController {
         tabBar.isTranslucent = false
         tabBar.barTintColor = Constants.Color.tabBar
         tabBar.backgroundImage = UIImage()
-        tabBar.shadowImage = UIImage(named: "TabBarShadow")
+        tabBar.shadowImage = UIImage() //UIImage(named: "TabBarShadow")
         tabBar.tintColor = Constants.Color.primary
-        tabBar.unselectedItemTintColor = Constants.Color.secondary
-
-        let tabBarItemFont = UIFont.systemFont(ofSize: 12, weight: .bold).rounded()
-        let appearance = UITabBarItem.appearance()
-        let attributes = [NSAttributedString.Key.font: tabBarItemFont]
-        appearance.setTitleTextAttributes(attributes, for: .normal)
-        appearance.titlePositionAdjustment = .init(horizontal: 0, vertical: -5)
+        tabBar.unselectedItemTintColor = Constants.Color.secondary.withAlphaComponent(0.5)
+        tabBar.itemWidth = 80
+        tabBar.itemPositioning = .centered
+        tabBar.itemSpacing = 2
 
         hero.isEnabled = false
 

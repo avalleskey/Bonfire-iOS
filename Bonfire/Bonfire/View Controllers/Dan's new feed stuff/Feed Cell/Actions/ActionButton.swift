@@ -47,7 +47,7 @@ class ActionButton: UIControl {
                 }
 
                 delay(0.05) {
-                    self.animateBorderColor(toColor: UIColor.black.withAlphaComponent(0.06), duration: 0.1)
+                    self.animateBorderColor(toColor: Constants.Color.primary.withAlphaComponent(0.04), duration: 0.1)
                     UIView.animate(withDuration: 0.1) { self.backgroundColor = .systemBackground }
                 }
                 UIView.animateKeyframes(withDuration: 0.25, delay: 0.0, options: [.allowUserInteraction, .calculationModeCubic, .beginFromCurrentState], animations: {
@@ -60,7 +60,7 @@ class ActionButton: UIControl {
                     }
                 }, completion: nil)
             case .cancelled:
-                animateBorderColor(toColor: UIColor.black.withAlphaComponent(0.06), duration: 0.1)
+                animateBorderColor(toColor: Constants.Color.primary.withAlphaComponent(0.04), duration: 0.1)
                 UIView.animate(withDuration: 0.1) { self.backgroundColor = .systemBackground }
                 UIView.animate(withDuration: 0.25, delay: 0.0, usingSpringWithDamping: 1.0, initialSpringVelocity: 0.0, options: .allowUserInteraction, animations: {
                     self.transform = .identity
@@ -123,7 +123,7 @@ class ActionButton: UIControl {
         layer.cornerRadius = 18.0
         layer.cornerCurve = .continuous
         layer.borderWidth = 2.0
-        layer.borderColor = UIColor.black.withAlphaComponent(0.06).cgColor
+        layer.borderColor = Constants.Color.primary.withAlphaComponent(0.04).cgColor
     }
 
     private func setUpContent() {

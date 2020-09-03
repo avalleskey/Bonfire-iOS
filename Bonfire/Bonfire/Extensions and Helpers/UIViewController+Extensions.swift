@@ -16,9 +16,8 @@ extension UIViewController {
 
             switch view {
             case let scrollView as UIScrollView:
-                if scrollView.scrollsToTop == true {
-                    scrollView.setContentOffset(
-                        CGPoint(x: 0.0, y: -scrollView.contentInset.top), animated: true)
+                if scrollView.scrollsToTop {
+                    scrollView.setContentOffset(CGPoint(x: 0.0, y: -scrollView.contentInset.top), animated: true)
                     return
                 }
             default:
@@ -31,5 +30,11 @@ extension UIViewController {
         }
 
         scrollToTop(view: self.view)
+
+        if let navigationController = self as? UINavigationController {
+            (navigationController.topViewController as? Navigating)?.navigationView.showNavigationView()
+        } else {
+            (self as? Navigating)?.navigationView.showNavigationView()
+        }
     }
 }

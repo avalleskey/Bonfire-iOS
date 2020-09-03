@@ -10,9 +10,9 @@ import BFCore
 import UIKit
 import Cartography
 
-final class NewFeedViewController: UIViewController {
+final class NewFeedViewController: UIViewController, Navigating {
 
-    private let navigationView = NavigationView(color: .systemBackground, leftButtonType: .status(emoji: "🥳"), rightButtonType: .bell, titleImage: .dummyAvatar)
+    let navigationView = NavigationView(color: .systemBackground, leftButtonType: .status(emoji: "🥳"), rightButtonType: .bell, titleImage: .dummyAvatar)
     private let tableView: UITableView = .make(cellReuseIdentifier: FeedCell.reuseIdentifier, cellClass: FeedCell.self, topOffset: NavigationView.coreHeight)
     private let loadingIndicator = UIActivityIndicatorView(style: .large, isAnimating: true, hidesWhenStopped: true)
     private let emptyStateMessageView = EmptyStateMessageView(title: "Nothing to show", subtitle: "Start by joining some camps!")

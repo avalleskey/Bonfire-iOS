@@ -9,6 +9,10 @@
 import UIKit
 import Cartography
 
+protocol Navigating {
+    var navigationView: NavigationView { get }
+}
+
 class NavigationView: UIView {
 
     static let coreHeight: CGFloat = 64
@@ -35,6 +39,7 @@ class NavigationView: UIView {
 
     private var scrollViewIsDecelerating = false
     private var scrollViewIsScrollingToTop = false
+    private var navigationViewIsAnimating = false
     private var startingDragOffset: CGFloat = 0
 
     var topConstraint: NSLayoutConstraint?
@@ -139,7 +144,7 @@ extension NavigationView: UIScrollViewDelegate {
         let shadowPercentage = Float(scrollView.contentOffset.y / Self.coreHeight)
         layer.shadowOpacity = min(shadowPercentage * 0.08, 0.08)
 
-        guard !scrollViewIsDecelerating, !scrollViewIsScrollingToTop, let topConstraint = topConstraint else { return }
+        guard !scrollViewIsDecelerating, !scrollViewIsScrollingToTop, !navigationViewIsAnimating, let topConstraint = topConstraint else { return }
 
         let dragTranslation = startingDragOffset - scrollView.contentOffset.y
         if topConstraint.constant > -Self.coreHeight {
@@ -188,19 +193,25 @@ extension NavigationView: UIScrollViewDelegate {
         scrollViewIsScrollingToTop = false
     }
 
-    private func showNavigationView() {
+    func showNavigationView() {
+        navigationViewIsAnimating = true
         UIView.animate(withDuration: 0.3, delay: 0.0, usingSpringWithDamping: 1.0, initialSpringVelocity: 0.0, options: .allowUserInteraction, animations: {
             self.setTopConstraint(constant: 0)
             self.superview?.layoutIfNeeded()
-        }, completion: nil)
+        }, completion: { _ in
+            self.navigationViewIsAnimating = false
+        })
 
     }
 
-    private func hideNavigationView() {
+    func hideNavigationView() {
+        navigationViewIsAnimating = true
         UIView.animate(withDuration: 0.3, delay: 0.0, usingSpringWithDamping: 1.0, initialSpringVelocity: 0.0, options: .allowUserInteraction, animations: {
             self.setTopConstraint(constant: -Self.coreHeight)
             self.superview?.layoutIfNeeded()
-        }, completion: nil)
+        }, completion: { _ in
+            self.navigationViewIsAnimating = false
+        })
     }
 
     private func setTopConstraint(constant: CGFloat) {

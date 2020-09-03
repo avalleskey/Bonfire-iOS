@@ -11,11 +11,11 @@ import Cartography
 
 class NavigationView: UIView {
 
-    static let coreHeight: CGFloat = 72
+    static let coreHeight: CGFloat = 64
 
     private let leftButton = NavigationButton()
     private let rightButton = NavigationButton()
-    private let centerButton = UIButton(width: 48, height: 48, cornerRadius: 24, systemButton: false)
+    private let centerButton = UIButton(width: 44, height: 44, cornerRadius: 22, systemButton: false)
 
     private let titleStackView = UIStackView(axis: .vertical, alignment: .center)
     private let titleLabel = UILabel(size: 18, weight: .bold, multiline: false)
@@ -62,8 +62,8 @@ class NavigationView: UIView {
         addSubview(leftButton)
         constrain(leftButton) {
             $0.leading == $0.superview!.leading + 16
-            $0.top == $0.superview!.safeAreaLayoutGuide.top + 14
-            $0.bottom == $0.superview!.bottom - 14 ~ .init(999)
+            $0.top == $0.superview!.safeAreaLayoutGuide.top + 10
+            $0.bottom == $0.superview!.bottom - 10 ~ .init(999)
         }
 
         if let type = type {
@@ -94,8 +94,8 @@ class NavigationView: UIView {
         addSubview(rightButton)
         constrain(rightButton) {
             $0.trailing == $0.superview!.trailing - 16
-            $0.top == $0.superview!.safeAreaLayoutGuide.top + 14
-            $0.bottom == $0.superview!.bottom - 14 ~ .init(999)
+            $0.top == $0.superview!.safeAreaLayoutGuide.top + 10
+            $0.bottom == $0.superview!.bottom - 10 ~ .init(999)
         }
 
         if let type = type {

@@ -8,7 +8,15 @@
 
 import Foundation
 
-public struct Camp: Codable {
+public struct Camp: Codable, Hashable {
+    public static func == (lhs: Camp, rhs: Camp) -> Bool {
+        lhs.id == rhs.id
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+
     public let id: String
     public let attributes: Attributes
 

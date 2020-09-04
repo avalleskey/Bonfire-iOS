@@ -10,10 +10,9 @@ import BFCore
 import UIKit
 import Cartography
 
-final class NewFeedViewController: UIViewController, Navigating {
+final class NewFeedViewController: BaseViewController {
 
-    let navigationView = NavigationView(color: .systemBackground, leftButtonType: .status(emoji: "🥳"), rightButtonType: .bell, titleImage: .dummyAvatar)
-    private let tableView: UITableView = .make(cellReuseIdentifier: FeedCell.reuseIdentifier, cellClass: FeedCell.self, topOffset: NavigationView.coreHeight)
+    private let tableView: UITableView = .make(cellReuseIdentifier: FeedCell.reuseIdentifier, cellClass: FeedCell.self, topOffset: NavigationBar.coreHeight)
     private let loadingIndicator = UIActivityIndicatorView(style: .large, isAnimating: true, hidesWhenStopped: true)
     private let emptyStateMessageView = EmptyStateMessageView(title: "Nothing to show", subtitle: "Start by joining some camps!")
     private var dataSource: UITableViewDiffableDataSource<Int, Post>!
@@ -21,7 +20,7 @@ final class NewFeedViewController: UIViewController, Navigating {
     private let controller = StreamController()
 
     init() {
-        super.init(nibName: nil, bundle: nil)
+        super.init(navigationBar: NavigationBar(color: .systemBackground, leftButtonType: .status(emoji: "🥳"), rightButtonType: .bell, titleImage: .dummyAvatar), scrollView: tableView)
         dataSource = UITableViewDiffableDataSource(tableView: tableView, cellProvider: { tableView, indexPath, post -> UITableViewCell? in
             guard let cell = tableView.dequeueReusableCell(withIdentifier: FeedCell.reuseIdentifier, for: indexPath) as? FeedCell else { return nil }
             cell.post = post
@@ -38,7 +37,6 @@ final class NewFeedViewController: UIViewController, Navigating {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
         setUpTableView()
-        setUpNavigationView()
         setUpLoadingIndicator()
         setUpEmptyStateMessageView()
         refreshData()
@@ -56,22 +54,11 @@ final class NewFeedViewController: UIViewController, Navigating {
         tableView.alpha = 0
     }
 
-    private func setUpNavigationView() {
-        view.addSubview(navigationView)
-        constrain(navigationView) {
-            navigationView.topConstraint = $0.top == $0.superview!.top
-            $0.leading == $0.superview!.leading
-            $0.trailing == $0.superview!.trailing
-        }
-
-        navigationView.managingScrollView = tableView
-    }
-
     private func setUpLoadingIndicator() {
         view.addSubview(loadingIndicator)
         constrain(loadingIndicator) {
             $0.centerX == $0.superview!.centerX
-            $0.centerY == $0.superview!.centerY + (NavigationView.coreHeight / 2)
+            $0.centerY == $0.superview!.centerY + (NavigationBar.coreHeight / 2)
         }
     }
 
@@ -81,7 +68,7 @@ final class NewFeedViewController: UIViewController, Navigating {
             $0.centerX == $0.superview!.centerX
             $0.leading >= $0.superview!.leading + 16
             $0.trailing <= $0.superview!.trailing - 16
-            $0.centerY == $0.superview!.centerY + (NavigationView.coreHeight / 2)
+            $0.centerY == $0.superview!.centerY + (NavigationBar.coreHeight / 2)
         }
 
         emptyStateMessageView.alpha = 0

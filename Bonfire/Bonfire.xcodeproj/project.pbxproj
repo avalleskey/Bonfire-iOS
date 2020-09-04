@@ -169,11 +169,14 @@
 		1AFFB1C6249D514900E67E89 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AFFB1C5249D514900E67E89 /* Constants.swift */; };
 		65024B4D24FE9B2900311ECE /* InteractivePopRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65024B4C24FE9B2900311ECE /* InteractivePopRecognizer.swift */; };
 		65024B4F24FE9CE300311ECE /* TestViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65024B4E24FE9CE300311ECE /* TestViewController.swift */; };
-		65024B5124FEB1C000311ECE /* NavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65024B5024FEB1C000311ECE /* NavigationView.swift */; };
+		65024B5124FEB1C000311ECE /* NavigationBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65024B5024FEB1C000311ECE /* NavigationBar.swift */; };
 		65024B5324FEE02F00311ECE /* NavigationButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65024B5224FEE02F00311ECE /* NavigationButton.swift */; };
 		65024B552500410500311ECE /* EmptyStateMessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65024B542500410500311ECE /* EmptyStateMessageView.swift */; };
+		6503CFA82502A89D00047303 /* BaseViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6503CFA72502A89D00047303 /* BaseViewController.swift */; };
 		6547932E24F016C9003A008A /* FeedCellHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6547932D24F016C9003A008A /* FeedCellHeaderView.swift */; };
 		65A169A524F45463005F80CB /* BorderedAvatarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A169A424F45463005F80CB /* BorderedAvatarView.swift */; };
+		65A89F22250155D800F67732 /* NewCampsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A89F21250155D800F67732 /* NewCampsViewController.swift */; };
+		65A89F242501563D00F67732 /* CampCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A89F232501563D00F67732 /* CampCell.swift */; };
 		65C2730E24F4078B00ADA995 /* LiveContentCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65C2730D24F4078B00ADA995 /* LiveContentCell.swift */; };
 		65C2731024F40D3500ADA995 /* Cells.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65C2730F24F40D3500ADA995 /* Cells.swift */; };
 		65C2731224F4295300ADA995 /* Gradients.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65C2731124F4295300ADA995 /* Gradients.swift */; };
@@ -446,11 +449,14 @@
 		1AFFB1C5249D514900E67E89 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		65024B4C24FE9B2900311ECE /* InteractivePopRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InteractivePopRecognizer.swift; sourceTree = "<group>"; };
 		65024B4E24FE9CE300311ECE /* TestViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestViewController.swift; sourceTree = "<group>"; };
-		65024B5024FEB1C000311ECE /* NavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationView.swift; sourceTree = "<group>"; };
+		65024B5024FEB1C000311ECE /* NavigationBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationBar.swift; sourceTree = "<group>"; };
 		65024B5224FEE02F00311ECE /* NavigationButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationButton.swift; sourceTree = "<group>"; };
 		65024B542500410500311ECE /* EmptyStateMessageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateMessageView.swift; sourceTree = "<group>"; };
+		6503CFA72502A89D00047303 /* BaseViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseViewController.swift; sourceTree = "<group>"; };
 		6547932D24F016C9003A008A /* FeedCellHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedCellHeaderView.swift; sourceTree = "<group>"; };
 		65A169A424F45463005F80CB /* BorderedAvatarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BorderedAvatarView.swift; sourceTree = "<group>"; };
+		65A89F21250155D800F67732 /* NewCampsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewCampsViewController.swift; sourceTree = "<group>"; };
+		65A89F232501563D00F67732 /* CampCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampCell.swift; sourceTree = "<group>"; };
 		65C2730D24F4078B00ADA995 /* LiveContentCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveContentCell.swift; sourceTree = "<group>"; };
 		65C2730F24F40D3500ADA995 /* Cells.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cells.swift; sourceTree = "<group>"; };
 		65C2731124F4295300ADA995 /* Gradients.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Gradients.swift; sourceTree = "<group>"; };
@@ -1240,6 +1246,9 @@
 				65024B542500410500311ECE /* EmptyStateMessageView.swift */,
 				65E42E7324EDC17500354393 /* Feed Cell */,
 				65E42E7024EDB37300354393 /* UI Utilities */,
+				65A89F21250155D800F67732 /* NewCampsViewController.swift */,
+				65A89F232501563D00F67732 /* CampCell.swift */,
+				6503CFA72502A89D00047303 /* BaseViewController.swift */,
 			);
 			path = "Dan's new feed stuff";
 			sourceTree = "<group>";
@@ -1258,7 +1267,7 @@
 				65E42E6E24EDB0EF00354393 /* IntrinsicallySizedCollectionView.swift */,
 				65024B4C24FE9B2900311ECE /* InteractivePopRecognizer.swift */,
 				65024B4E24FE9CE300311ECE /* TestViewController.swift */,
-				65024B5024FEB1C000311ECE /* NavigationView.swift */,
+				65024B5024FEB1C000311ECE /* NavigationBar.swift */,
 				65024B5224FEE02F00311ECE /* NavigationButton.swift */,
 			);
 			path = "UI Utilities";
@@ -1621,6 +1630,7 @@
 				1AF92AD324C73E8D00D253AC /* BFColorPickerButton.swift in Sources */,
 				1AA86BC624D1C563009BFE07 /* BFPostCell.swift in Sources */,
 				1A844702249C8652002813CB /* HomeViewController.swift in Sources */,
+				65A89F22250155D800F67732 /* NewCampsViewController.swift in Sources */,
 				1A24430E24A0D83E0039BAAB /* BFFeedTableViewController.swift in Sources */,
 				1A3ED13224D37EC5001DA453 /* ProfileSummaryPageViewController.swift in Sources */,
 				1AA410D724D9F1650083363B /* BFModalPresentationController.swift in Sources */,
@@ -1642,7 +1652,7 @@
 				1A3ED13724D38D20001DA453 /* CampViewController.swift in Sources */,
 				1A0CB45E24C71CFB00BD2A50 /* BFSignUpData.swift in Sources */,
 				1A0CB46024C71F7500BD2A50 /* BFFormDatePickerView.swift in Sources */,
-				65024B5124FEB1C000311ECE /* NavigationView.swift in Sources */,
+				65024B5124FEB1C000311ECE /* NavigationBar.swift in Sources */,
 				65E42E6F24EDB0EF00354393 /* IntrinsicallySizedCollectionView.swift in Sources */,
 				65D05BFD24F082AB00E314DB /* StatusContentView.swift in Sources */,
 				65C3E29C24F6DED50033D164 /* FeedCellReplyView.swift in Sources */,
@@ -1651,6 +1661,7 @@
 				1A212A0C24BC86C500A0DCD3 /* BFFormItem.swift in Sources */,
 				65024B552500410500311ECE /* EmptyStateMessageView.swift in Sources */,
 				1A3ED13924D38E52001DA453 /* CampHeaderView.swift in Sources */,
+				65A89F242501563D00F67732 /* CampCell.swift in Sources */,
 				65E42E6B24EDB08D00354393 /* IntrinsicallySizedScrollView.swift in Sources */,
 				1A315F9A24E18EFD00C8AC6C /* CampsTableHeaderViewController.swift in Sources */,
 				1A92C78124D181450015E993 /* ProfileViewController.swift in Sources */,
@@ -1704,6 +1715,7 @@
 				1A7854D8249FBBBA00BA1589 /* CampController.swift in Sources */,
 				1A24431124A0DAFE0039BAAB /* PostHeaderCell.swift in Sources */,
 				65E42E7224EDB3FF00354393 /* DummyPost.swift in Sources */,
+				6503CFA82502A89D00047303 /* BaseViewController.swift in Sources */,
 				1A3ED14024D38FE6001DA453 /* CampMemberCell.swift in Sources */,
 				65E42E6924EDAB6900354393 /* Shadows.swift in Sources */,
 				1A315FA824E32DF100C8AC6C /* Pinnable.swift in Sources */,

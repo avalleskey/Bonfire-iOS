@@ -1,5 +1,5 @@
 //
-//  NavigationView.swift
+//  NavigationBar.swift
 //  Bonfire
 //
 //  Created by Daniel Gauthier on 2020-09-01.
@@ -9,11 +9,19 @@
 import UIKit
 import Cartography
 
-protocol Navigating {
-    var navigationView: NavigationView { get }
+protocol NavigationBarScrollHandling: UIScrollViewDelegate {
+    var navigationBar: NavigationBar { get }
+
+    func scrollViewDidScroll(_ scrollView: UIScrollView)
+    func scrollViewWillBeginDecelerating(_ scrollView: UIScrollView)
+    func scrollViewWillBeginDragging(_ scrollView: UIScrollView)
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool)
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView)
+    func scrollViewShouldScrollToTop(_ scrollView: UIScrollView) -> Bool
+    func scrollViewDidScrollToTop(_ scrollView: UIScrollView)
 }
 
-class NavigationView: UIView {
+class NavigationBar: UIView {
 
     static let coreHeight: CGFloat = 64
 
@@ -32,10 +40,6 @@ class NavigationView: UIView {
     var leftButtonAction = {}
     var rightButtonAction = {}
     var centerButtonAction = {}
-
-    weak var managingScrollView: UIScrollView? {
-        didSet { managingScrollView?.delegate = self }
-    }
 
     private var scrollViewIsDecelerating = false
     private var scrollViewIsScrollingToTop = false
@@ -136,9 +140,9 @@ class NavigationView: UIView {
 
         titleStackView.isHidden = titleLabel.isHidden && subtitleLabel.isHidden
     }
-}
 
-extension NavigationView: UIScrollViewDelegate {
+    // MARK: - Scroll handling methods
+
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
 
         let shadowPercentage = Float(scrollView.contentOffset.y / Self.coreHeight)
@@ -155,9 +159,9 @@ extension NavigationView: UIScrollViewDelegate {
     func scrollViewWillBeginDecelerating(_ scrollView: UIScrollView) {
         scrollViewIsDecelerating = true
         if scrollView.panGestureRecognizer.velocity(in: scrollView).y < 0 {
-            hideNavigationView()
+            hideNavigationBar()
         } else {
-            showNavigationView()
+            showNavigationBar()
         }
     }
 
@@ -171,9 +175,9 @@ extension NavigationView: UIScrollViewDelegate {
         if !decelerate, let topConstraint = topConstraint {
             if topConstraint.constant < 0 && topConstraint.constant > -Self.coreHeight {
                 if scrollView.contentOffset.y > Self.coreHeight {
-                    hideNavigationView()
+                    hideNavigationBar()
                 } else {
-                    showNavigationView()
+                    showNavigationBar()
                 }
             }
         }
@@ -185,7 +189,7 @@ extension NavigationView: UIScrollViewDelegate {
 
     func scrollViewShouldScrollToTop(_ scrollView: UIScrollView) -> Bool {
         scrollViewIsScrollingToTop = true
-        showNavigationView()
+        showNavigationBar()
         return true
     }
 
@@ -193,7 +197,7 @@ extension NavigationView: UIScrollViewDelegate {
         scrollViewIsScrollingToTop = false
     }
 
-    func showNavigationView() {
+    func showNavigationBar() {
         navigationViewIsAnimating = true
         UIView.animate(withDuration: 0.3, delay: 0.0, usingSpringWithDamping: 1.0, initialSpringVelocity: 0.0, options: .allowUserInteraction, animations: {
             self.setTopConstraint(constant: 0)
@@ -204,7 +208,7 @@ extension NavigationView: UIScrollViewDelegate {
 
     }
 
-    func hideNavigationView() {
+    func hideNavigationBar() {
         navigationViewIsAnimating = true
         UIView.animate(withDuration: 0.3, delay: 0.0, usingSpringWithDamping: 1.0, initialSpringVelocity: 0.0, options: .allowUserInteraction, animations: {
             self.setTopConstraint(constant: -Self.coreHeight)

@@ -32,9 +32,9 @@ extension UIViewController {
         scrollToTop(view: self.view)
 
         if let navigationController = self as? UINavigationController {
-            (navigationController.topViewController as? Navigating)?.navigationView.showNavigationView()
+            (navigationController.topViewController as? NavigationBarScrollHandling)?.navigationBar.showNavigationBar()
         } else {
-            (self as? Navigating)?.navigationView.showNavigationView()
+            (self as? NavigationBarScrollHandling)?.navigationBar.showNavigationBar()
         }
     }
 }

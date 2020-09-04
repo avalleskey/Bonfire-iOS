@@ -33,8 +33,11 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         feedNavigationController.isNavigationBarHidden = true
         newFeedViewController.tabBarItem = HomeViewController.defaultTabBarItem
 
-        let campsVC = CampsViewController()
+        let campsVC = NewCampsViewController()
         let campsNavVC = BFNavigationController(rootViewController: campsVC)
+        popRecognizer = InteractivePopRecognizer(controller: campsNavVC)
+        campsNavVC.interactivePopGestureRecognizer?.delegate = popRecognizer
+        campsNavVC.isNavigationBarHidden = true
         campsVC.tabBarItem = CampsViewController.defaultTabBarItem
         
         let friendsVC = MessagesViewController()

@@ -14,7 +14,7 @@ class CampCell: UITableViewCell {
 
     var camp: Camp! {
         didSet {
-            campImageView.kf.setImage(with: camp.attributes.media?.avatar?.full?.url)
+            borderedAvatarView.imageURL = camp.attributes.media?.avatar?.full?.url
             titleLabel.text = camp.attributes.title
             let color = UIColor(hex: camp.attributes.color)!
             onlineLabel.textColor = color
@@ -29,7 +29,39 @@ class CampCell: UITableViewCell {
         }
     }
 
-    private let campImageView = UIImageView(width: 48, height: 48, cornerRadius: 24, contentMode: .scaleAspectFill)
+    // TODO: this is a temporary type used to test various ways a camp can be presented.
+    // This should ultimately be driven by some combination of cloud data and client-side logic.
+    enum DisplayType: CaseIterable {
+        case newFires
+        case liveChat
+        case creator
+        case onlineCount
+    }
+
+    var displayType: DisplayType = .onlineCount {
+        didSet {
+            switch displayType {
+            case .onlineCount:
+                borderedAvatarView.liveType = nil
+                borderedAvatarView.liveBorderWidth = .none
+                borderedAvatarView.interiorBorderWidth = .none
+            case .newFires:
+                borderedAvatarView.liveType = nil
+                borderedAvatarView.liveBorderWidth = .none
+                borderedAvatarView.interiorBorderWidth = .none
+            case .creator:
+                borderedAvatarView.liveType = nil
+                borderedAvatarView.liveBorderWidth = .none
+                borderedAvatarView.interiorBorderWidth = .none
+            case .liveChat:
+                borderedAvatarView.liveType = .chat
+                borderedAvatarView.liveBorderWidth = .thin
+                borderedAvatarView.interiorBorderWidth = .thin
+            }
+        }
+    }
+
+    private let borderedAvatarView = BorderedAvatarView()
     private let titleLabel = UILabel(size: 17, weight: .bold, color: .label)
     private let onlineDotView = UIView(backgroundColor: .onlineGreen, height: 11, width: 11, cornerRadius: 5.5)
     private let onlineLabel = UILabel(size: 15, weight: .heavy, color: .onlineGreen, multiline: false, text: "\(Int.random(in: 1...15000)) online")
@@ -48,7 +80,7 @@ class CampCell: UITableViewCell {
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
 
-        setUpCampImageView()
+        setUpBorderedAvatarView()
         setUpMemberSwitch()
         setUpShareButton()
         setUpText()
@@ -63,12 +95,14 @@ class CampCell: UITableViewCell {
         super.setSelected(selected, animated: animated)
     }
 
-    private func setUpCampImageView() {
-        contentView.addSubview(campImageView)
-        constrain(campImageView) {
+    private func setUpBorderedAvatarView() {
+        contentView.addSubview(borderedAvatarView)
+        constrain(borderedAvatarView) {
+            $0.width == 48
+            $0.height == 48
             $0.leading == $0.superview!.leading + 12
             $0.top == $0.superview!.top + 12
-            $0.bottom == $0.superview!.bottom - 12
+            $0.bottom == $0.superview!.bottom - 12 ~ .init(999)
         }
     }
 
@@ -116,7 +150,7 @@ class CampCell: UITableViewCell {
         }
 
         contentView.addSubview(containerView)
-        constrain(containerView, campImageView) {
+        constrain(containerView, borderedAvatarView) {
             $0.leading == $1.trailing + 12
             $0.centerY == $1.centerY
         }

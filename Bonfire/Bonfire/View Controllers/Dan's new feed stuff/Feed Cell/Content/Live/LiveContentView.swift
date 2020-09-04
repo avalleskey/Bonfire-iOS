@@ -40,8 +40,8 @@ class LiveContentView: UIView {
         collectionView.backgroundColor = .clear
         addSubview(collectionView)
         constrain(collectionView) {
-            $0.height == 104
-            $0.edges == $0.superview!.edges
+            $0.height == 106
+            $0.edges == $0.superview!.edges ~ .init(999)
         }
     }
 
@@ -55,7 +55,7 @@ class LiveContentView: UIView {
 
 extension LiveContentView: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        CGSize(width: 80, height: 80)
+        CGSize(width: 82, height: 82)
     }
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {

@@ -14,7 +14,7 @@ class SuggestionContentView: UIView {
     private var suggestion: Suggestable
 
     private let containerView = UIView(backgroundColor: UIColor.systemTeal, height: 170, cornerRadius: 14)
-    private let borderedAvatarView = BorderedAvatarView(displayShadow: true, borderWidth: .thick)
+    private let borderedAvatarView = BorderedAvatarView(interiorBorderWidth: .thick, displayShadow: true)
     private let nameLabel = UILabel(size: 20, weight: .bold, color: .white, alignment: .center, multiline: false)
     private let detailLabel = UILabel(size: 14, weight: .bold, color: .white, alignment: .center, multiline: false)
 
@@ -45,9 +45,9 @@ class SuggestionContentView: UIView {
         containerView.addSubview(borderedAvatarView)
         constrain(borderedAvatarView) {
             $0.centerX == $0.superview!.centerX
-            $0.top == $0.superview!.top + 24
-            $0.width == 72
-            $0.height == 72
+            $0.top == $0.superview!.top + 28
+            $0.width == 64
+            $0.height == 64
         }
 
         borderedAvatarView.image = suggestion.image
@@ -57,7 +57,7 @@ class SuggestionContentView: UIView {
         containerView.addSubview(nameLabel)
         constrain(nameLabel, borderedAvatarView) {
             $0.centerX == $0.superview!.centerX
-            $0.top == $1.bottom + 5
+            $0.top == $1.bottom + 10
         }
 
         nameLabel.text = suggestion.name

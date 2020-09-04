@@ -106,9 +106,11 @@ extension NewCampsViewController: UITableViewDataSource {
         if indexPath.section == 0 {
             cell.camp = featuredCamps[indexPath.row]
             cell.isFeaturedCamp = true
+            cell.displayType = .onlineCount
         } else {
             cell.camp = otherCamps[indexPath.row]
             cell.isFeaturedCamp = false
+            cell.displayType = CampCell.DisplayType.allCases.randomElement()!
         }
 
         return cell

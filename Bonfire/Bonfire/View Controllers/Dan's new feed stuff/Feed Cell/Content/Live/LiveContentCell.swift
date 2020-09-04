@@ -16,31 +16,27 @@ class LiveContentCell: UICollectionViewCell {
             layoutIfNeeded()
             switch camp.liveType {
             case .audio:
-                backingView.applyGradient(colors: [.liveAudioTop, .liveAudioBottom], startPoint: CGPoint(x: 0, y: 0), endPoint: CGPoint(x: 1, y: 1))
                 liveTypeLabel.text = "🎙"
             case .video:
-                backingView.applyGradient(colors: [.liveVideoTop, .liveVideoBottom], startPoint: CGPoint(x: 0, y: 0), endPoint: CGPoint(x: 1, y: 1))
                 liveTypeLabel.text = "📹"
             case .chat:
-                backingView.applyGradient(colors: [.liveChatTop, .liveChatBottom], startPoint: CGPoint(x: 0, y: 0), endPoint: CGPoint(x: 1, y: 1))
                 liveTypeLabel.text = "💬"
             default:
                 break
             }
 
+            borderedAvatarView.liveType = camp.liveType
             borderedAvatarView.image = camp.image
         }
     }
 
-    private var backingView = UIView(height: 80, width: 80, cornerRadius: 40)
-    private var borderedAvatarView = BorderedAvatarView()
+    private var borderedAvatarView = BorderedAvatarView(interiorBorderWidth: .thin, liveBorderWidth: .thick)
     private var liveTypeView = UIView(backgroundColor: .systemBackground, height: 28, width: 28, cornerRadius: 14)
     private var liveTypeLabel = UILabel(size: 12, weight: .regular, alignment: .center, multiline: false)
 
     override init(frame: CGRect) {
         super.init(frame: .zero)
 
-        setUpBackingView()
         setUpBorderedAvatarView()
         setUpLiveTypeView()
     }
@@ -49,20 +45,12 @@ class LiveContentCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
 
-    private func setUpBackingView() {
-        contentView.addSubview(backingView)
-        constrain(backingView) {
-            $0.edges == $0.superview!.edges
-        }
-        backingView.layer.masksToBounds = true
-    }
-
     private func setUpBorderedAvatarView() {
         contentView.addSubview(borderedAvatarView)
         constrain(borderedAvatarView) {
-            $0.width == 72
-            $0.height == 72
-            $0.center == $0.superview!.center
+            $0.width == 68
+            $0.height == 68
+            $0.edges == inset($0.superview!.edges, 7)
         }
     }
 

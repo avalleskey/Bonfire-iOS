@@ -44,6 +44,17 @@ struct DummyPost: Hashable {
             case audio
             case video
             case chat
+
+            var gradientColors: [UIColor] {
+                switch self {
+                case .audio:
+                    return [.liveAudioTop, .liveAudioBottom]
+                case .video:
+                    return [.liveVideoTop, .liveVideoBottom]
+                case .chat:
+                    return [.liveChatTop, .liveChatBottom]
+                }
+            }
         }
 
         var name: String

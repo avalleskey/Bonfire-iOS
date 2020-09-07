@@ -96,7 +96,7 @@ class CampCell: UITableViewCell {
     private let emojiLabel = UILabel(size: 10, weight: .bold, multiline: false, text: "💬")
     private let detailLabel = UILabel(size: 15, weight: .bold, multiline: false)
     private let detailBackingView = UIView(backgroundColor: .label)
-    private let detailStackView = UIStackView(axis: .horizontal, alignment: .center, spacing: 4)
+    private let detailStackView = UIStackView(axis: .horizontal, alignment: .center, spacing: 6)
 
     private let memberSwitch: UISwitch = {
         let memberSwitch = UISwitch()
@@ -186,6 +186,8 @@ class CampCell: UITableViewCell {
         constrain(detailLabel) {
             $0.edges == $0.superview!.edges
         }
+
+        detailStackView.setCustomSpacing(3, after: emojiLabel)
 
         containerView.clipsToBounds = true
         contentView.addSubview(containerView)

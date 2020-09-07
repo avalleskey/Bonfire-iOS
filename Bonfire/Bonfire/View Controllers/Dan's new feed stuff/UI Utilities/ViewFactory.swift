@@ -304,12 +304,12 @@ extension UIScrollView {
 }
 
 extension UITableView {
-    static func make(backgroundColor: UIColor = Constants.Color.systemBackground, cellReuseIdentifier: String, cellClass: AnyClass = UITableViewCell.self, intrinsicallySized: Bool = false, allowsSelection: Bool = false, showSeparators: Bool = false, topOffset: CGFloat = 0) -> UITableView {
+    static func make(backgroundColor: UIColor = Constants.Color.systemBackground, cellReuseIdentifier: String, cellClass: AnyClass = UITableViewCell.self, intrinsicallySized: Bool = false, allowsSelection: Bool = false, showSeparators: Bool = false, topOffset: CGFloat = 0, style: UITableView.Style = .plain) -> UITableView {
         let tableView: UITableView
         if intrinsicallySized {
             tableView = IntrinsicallySizedTableView()
         } else {
-            tableView = UITableView()
+            tableView = UITableView(frame: .zero, style: style)
         }
 
         tableView.translatesAutoresizingMaskIntoConstraints = false

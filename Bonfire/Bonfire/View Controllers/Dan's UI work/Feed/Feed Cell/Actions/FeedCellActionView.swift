@@ -29,6 +29,10 @@ class FeedCellActionView: UIView {
             secondaryActionButton.color = post.attributes.creator.attributes.uiColor ?? .systemBlue
             detailsButton.tintColor = post.attributes.creator.attributes.uiColor
 
+            // TODO: The commented out code below worked with the DummyPost type.
+            // There is work left to be done here to get other post types (live right now, suggestion, status update)
+            // working with real data from the backend, but the UI should all be here and ready to plug into.
+
 //            switch post.type {
 //            case .post:
 //                primaryActionButton.title = "Like"

@@ -1,5 +1,5 @@
 //
-//  NewCampsViewController.swift
+//  CampsViewController.swift
 //  Bonfire
 //
 //  Created by Daniel Gauthier on 2020-09-03.
@@ -10,7 +10,7 @@ import BFCore
 import Cartography
 import UIKit
 
-class NewCampsViewController: BaseViewController {
+class CampsViewController: BaseViewController {
 
     private let tableView: UITableView = .make(cellReuseIdentifier: CampCell.reuseIdentifier, cellClass: CampCell.self, allowsSelection: true, topOffset: NavigationBar.coreHeight, style: .grouped)
     private let loadingIndicator = UIActivityIndicatorView(style: .large, isAnimating: true, hidesWhenStopped: true)
@@ -90,7 +90,7 @@ class NewCampsViewController: BaseViewController {
     }
 }
 
-extension NewCampsViewController: UITableViewDataSource {
+extension CampsViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         if section == 0 {
             return featuredCamps.count
@@ -124,7 +124,7 @@ extension NewCampsViewController: UITableViewDataSource {
     }
 }
 
-extension NewCampsViewController: UITableViewDelegate {
+extension CampsViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         guard section == 1 else { return nil }
         let view = UIView()

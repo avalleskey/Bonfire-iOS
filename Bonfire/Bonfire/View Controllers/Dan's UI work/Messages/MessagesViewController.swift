@@ -1,5 +1,5 @@
 //
-//  NewMessagesViewController.swift
+//  MessagesViewController.swift
 //  Bonfire
 //
 //  Created by Daniel Gauthier on 2020-09-08.
@@ -10,7 +10,7 @@ import BFCore
 import Cartography
 import UIKit
 
-class NewMessagesViewController: BaseViewController {
+class MessagesViewController: BaseViewController {
 
     private let tableView: UITableView = .make(cellReuseIdentifier: ConversationCell.reuseIdentifier, cellClass: ConversationCell.self, allowsSelection: true, topOffset: NavigationBar.coreHeight, style: .grouped)
     private let loadingIndicator = UIActivityIndicatorView(style: .large, isAnimating: true, hidesWhenStopped: true)
@@ -105,7 +105,7 @@ class NewMessagesViewController: BaseViewController {
     }
 }
 
-extension NewMessagesViewController: UITableViewDataSource {
+extension MessagesViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         if featuredUsers.count > 0 {
             return otherUsers.count + 1
@@ -140,7 +140,7 @@ extension NewMessagesViewController: UITableViewDataSource {
     }
 }
 
-extension NewMessagesViewController: UITableViewDelegate {
+extension MessagesViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         print("select")
     }

@@ -15,7 +15,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
     var feedPopRecognizer: InteractivePopRecognizer?
     var campsPopRecognizer: InteractivePopRecognizer?
-    var friendsPopRecognizer: InteractivePopRecognizer?
+    var messagesPopRecognizer: InteractivePopRecognizer?
 
     func scene(
         _ scene: UIScene, willConnectTo session: UISceneSession,
@@ -28,28 +28,28 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         let tabVC = BFTabBarController()
 
-        let newFeedViewController = NewFeedViewController()
-        let feedNavigationController = UINavigationController(rootViewController: newFeedViewController)
+        let feedViewController = FeedViewController()
+        let feedNavigationController = UINavigationController(rootViewController: feedViewController)
         feedPopRecognizer = InteractivePopRecognizer(controller: feedNavigationController)
         feedNavigationController.interactivePopGestureRecognizer?.delegate = feedPopRecognizer
         feedNavigationController.isNavigationBarHidden = true
-        newFeedViewController.tabBarItem = HomeViewController.defaultTabBarItem
+        feedViewController.tabBarItem = UITabBarItem(title: "", image: Constants.TabBar.homeDefaultImage, tag: 1)
 
-        let campsVC = NewCampsViewController()
-        let campsNavVC = BFNavigationController(rootViewController: campsVC)
-        campsPopRecognizer = InteractivePopRecognizer(controller: campsNavVC)
-        campsNavVC.interactivePopGestureRecognizer?.delegate = campsPopRecognizer
-        campsNavVC.isNavigationBarHidden = true
-        campsVC.tabBarItem = CampsViewController.defaultTabBarItem
-        
-        let friendsVC = NewMessagesViewController()
-        let friendsNavVC = BFNavigationController(rootViewController: friendsVC)
-        friendsPopRecognizer = InteractivePopRecognizer(controller: friendsNavVC)
-        friendsNavVC.interactivePopGestureRecognizer?.delegate = friendsPopRecognizer
-        friendsNavVC.isNavigationBarHidden = true
-        friendsVC.tabBarItem = MessagesViewController.defaultTabBarItem
+        let messagesViewController = MessagesViewController()
+        let messagesNavigationController = UINavigationController(rootViewController: messagesViewController)
+        messagesPopRecognizer = InteractivePopRecognizer(controller: messagesNavigationController)
+        messagesNavigationController.interactivePopGestureRecognizer?.delegate = messagesPopRecognizer
+        messagesNavigationController.isNavigationBarHidden = true
+        messagesNavigationController.tabBarItem = UITabBarItem(title: "", image: Constants.TabBar.friendsDefaultImage, tag: 2)
 
-        tabVC.setViewControllers([feedNavigationController, friendsNavVC, campsNavVC], animated: false)
+        let campsViewController = CampsViewController()
+        let campsNavigationController = UINavigationController(rootViewController: campsViewController)
+        campsPopRecognizer = InteractivePopRecognizer(controller: campsNavigationController)
+        campsNavigationController.interactivePopGestureRecognizer?.delegate = campsPopRecognizer
+        campsNavigationController.isNavigationBarHidden = true
+        campsNavigationController.tabBarItem = UITabBarItem(title: "", image: Constants.TabBar.campsDefaultImage, tag: 3)
+
+        tabVC.setViewControllers([feedNavigationController, messagesNavigationController, campsNavigationController], animated: false)
 
         tabVC.selectedViewController = feedNavigationController
 

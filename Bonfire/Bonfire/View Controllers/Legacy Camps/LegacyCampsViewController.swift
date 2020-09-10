@@ -1,5 +1,5 @@
 //
-//  MessagesViewController.swift
+//  CampsViewController.swift
 //  Bonfire
 //
 //  Created by James Dale on 20/6/20.
@@ -9,13 +9,13 @@
 import Foundation
 import UIKit
 
-final class MessagesViewController: UIViewController {
+final class LegacyCampsViewController: UIViewController {
 
     static var defaultTabBarItem: UITabBarItem {
         UITabBarItem(
             title: "",
-            image: Constants.TabBar.friendsDefaultImage,
-            tag: 0)
+            image: Constants.TabBar.campsDefaultImage,
+            tag: 2)
     }
 
     private let activityIndicator: UIActivityIndicatorView = {
@@ -23,17 +23,17 @@ final class MessagesViewController: UIViewController {
         indicator.color = Constants.Color.secondary
         return indicator
     }()
-    private let friendsTableView = MessagesTableViewController()
-    private let controller = UserController()
+    private let campsTableView = CampsTableViewController()
+    private let controller = CampController()
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        navigationItem.title = Constants.TabBar.messagesDefaultText
+        navigationItem.title = Constants.TabBar.campsDefaultText
 
         if #available(iOS 13.0, *) { view.backgroundColor = .systemBackground }
 
-        view.addSubview(friendsTableView.view)
+        view.addSubview(campsTableView.view)
         view.addSubview(activityIndicator)
 
         let searchController = BFSearchController(searchResultsController: nil)
@@ -49,35 +49,20 @@ final class MessagesViewController: UIViewController {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-
         refresh()
     }
 
     private func refresh() {
-        if self.friendsTableView.friends.count == 0 {
+        if self.campsTableView.camps.count == 0 {
             activityIndicator.startAnimating()
         }
 
-        controller.getFriends { (result) in
+        controller.getCamps { (camps) in
             DispatchQueue.main.async {
                 self.activityIndicator.stopAnimating()
-                switch result {
-                case .success(let friends):
-                    self.friendsTableView.friends = friends
-                    self.friendsTableView.pinned = Array(friends.prefix(3))
-                    self.friendsTableView.tableView.reloadData()
-                case .failure(let error):
-                    switch BFAppError.from(error: error) {
-                    case .unauthenticated:
-                        let authController = GetStartedViewController()
-                        let authNavcontroller = GetStartedNavigationController(
-                            rootViewController: authController)
-                        self.present(authNavcontroller, animated: true)
-                    default:
-                        print(error)
-                    }
-
-                }
+                self.campsTableView.camps = camps
+                self.campsTableView.pinned = Array(camps.prefix(3))
+                self.campsTableView.tableView.reloadData()
             }
         }
     }
@@ -86,18 +71,18 @@ final class MessagesViewController: UIViewController {
         super.updateViewConstraints()
 
         activityIndicator.translatesAutoresizingMaskIntoConstraints = false
-        friendsTableView.view.translatesAutoresizingMaskIntoConstraints = false
+        campsTableView.view.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
             activityIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             activityIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor),
 
-            friendsTableView.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            friendsTableView.view.bottomAnchor.constraint(
+            campsTableView.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            campsTableView.view.bottomAnchor.constraint(
                 equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            friendsTableView.view.leadingAnchor.constraint(
+            campsTableView.view.leadingAnchor.constraint(
                 equalTo: view.safeAreaLayoutGuide.leadingAnchor),
-            friendsTableView.view.trailingAnchor.constraint(
+            campsTableView.view.trailingAnchor.constraint(
                 equalTo: view.safeAreaLayoutGuide.trailingAnchor),
         ])
     }

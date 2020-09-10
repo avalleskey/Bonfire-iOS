@@ -24,8 +24,10 @@ class FeedCell: UITableViewCell {
             actionView.post = post
             insertContent(PostContentView(post: post))
 
-//            headerView.post = post
-//            actionView.post = post
+            // TODO: The commented out code below worked with the DummyPost type.
+            // There is work left to be done here to get these other post types (live right now, suggestion, status update)
+            // working with real data from the backend, but the UI should all be here and ready to plug into.
+
 //            replyView.replies = post.replies
 //
 //            switch post.type {

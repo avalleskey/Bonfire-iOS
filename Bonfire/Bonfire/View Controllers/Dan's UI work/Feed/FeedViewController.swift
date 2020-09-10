@@ -1,5 +1,5 @@
 //
-//  NewFeedViewController.swift
+//  FeedViewController.swift
 //  Bonfire
 //
 //  Created by Daniel Gauthier on 2020-08-19.
@@ -10,7 +10,7 @@ import BFCore
 import UIKit
 import Cartography
 
-final class NewFeedViewController: BaseViewController {
+final class FeedViewController: BaseViewController {
 
     private let tableView: UITableView = .make(cellReuseIdentifier: FeedCell.reuseIdentifier, cellClass: FeedCell.self, topOffset: NavigationBar.coreHeight)
     private let loadingIndicator = UIActivityIndicatorView(style: .large, isAnimating: true, hidesWhenStopped: true)
@@ -99,7 +99,7 @@ final class NewFeedViewController: BaseViewController {
     }
 }
 
-extension NewFeedViewController: FeedCellDelegate {
+extension FeedViewController: FeedCellDelegate {
     func performAction() {
         let testViewController = TestViewController()
         navigationController?.pushViewController(testViewController, animated: true)

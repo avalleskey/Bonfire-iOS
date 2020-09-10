@@ -47,7 +47,7 @@ extension BFTabBarController: UITabBarControllerDelegate {
     ) -> Bool {
         let child = (viewController as? UINavigationController)?.topViewController
 
-        if !(child is NewFeedViewController) {
+        if !(child is FeedViewController) {
             if KeychainVault.accessToken == nil {
                 let authController = GetStartedViewController()
                 let authNavcontroller = GetStartedNavigationController(

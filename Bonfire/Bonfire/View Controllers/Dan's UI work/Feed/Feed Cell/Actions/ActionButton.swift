@@ -35,11 +35,10 @@ class ActionButton: UIControl {
             switch touchState {
             case .down:
                 if hapticsEnabled { hapticGenerator.prepare() }
-                //animateBorderColor(toColor: self.color, duration: 0.1)
                 layer.borderColor = self.color.withAlphaComponent(0.5).cgColor
                 backgroundColor = self.color.withAlphaComponent(0.05)
                 UIView.animate(withDuration: 0.3, delay: 0.0, usingSpringWithDamping: 1.0, initialSpringVelocity: 0.0, options: .allowUserInteraction, animations: {
-                    self.transform = CGAffineTransform.init(scaleX: 1.0 - self.bounceIntensity.rawValue / 50.0, y: 1.0 - self.bounceIntensity.rawValue / 50.0)//.rotated(by: CGFloat.random(in: -0.05...0.05))
+                    self.transform = CGAffineTransform.init(scaleX: 1.0 - self.bounceIntensity.rawValue / 50.0, y: 1.0 - self.bounceIntensity.rawValue / 50.0)
                 }, completion: nil)
             case .up:
                 if hapticsEnabled {

@@ -191,12 +191,11 @@ class CampCell: UITableViewCell {
 
         containerView.clipsToBounds = true
         contentView.addSubview(containerView)
-        constrain(containerView, borderedAvatarView) {
+        constrain(containerView, borderedAvatarView, memberSwitch) {
             $0.leading == $1.trailing + 12
             $0.centerY == $1.centerY
+            $0.trailing == $2.leading - 12
         }
-
-        constrain(containerView, memberSwitch) { $0.trailing == $1.leading - 12 }
     }
 
     private func setUpSeparatorView() {

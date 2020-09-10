@@ -12,7 +12,7 @@ import UIKit
 
 class NewCampsViewController: BaseViewController {
 
-    private let tableView: UITableView = .make(cellReuseIdentifier: CampCell.reuseIdentifier, cellClass: CampCell.self, allowsSelection: true, topOffset: NavigationBar.coreHeight)
+    private let tableView: UITableView = .make(cellReuseIdentifier: CampCell.reuseIdentifier, cellClass: CampCell.self, allowsSelection: true, topOffset: NavigationBar.coreHeight, style: .grouped)
     private let loadingIndicator = UIActivityIndicatorView(style: .large, isAnimating: true, hidesWhenStopped: true)
     private let emptyStateMessageView = EmptyStateMessageView(title: "No Camps yet", subtitle: "Start one by tapping + below!")
     private var featuredCamps: [Camp] = []
@@ -103,6 +103,7 @@ extension NewCampsViewController: UITableViewDataSource {
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: CampCell.reuseIdentifier, for: indexPath) as! CampCell
+
         if indexPath.section == 0 {
             cell.camp = featuredCamps[indexPath.row]
             cell.isFeaturedCamp = true
@@ -110,7 +111,13 @@ extension NewCampsViewController: UITableViewDataSource {
         } else {
             cell.camp = otherCamps[indexPath.row]
             cell.isFeaturedCamp = false
-            cell.displayType = CampCell.DisplayType.allCases.randomElement()!
+            switch indexPath.row % 4 {
+            case 0: cell.displayType = .creator
+            case 1: cell.displayType = .liveChat
+            case 2: cell.displayType = .newFires
+            case 3: cell.displayType = .onlineCount
+            default: break
+            }
         }
 
         return cell
@@ -132,7 +139,7 @@ extension NewCampsViewController: UITableViewDelegate {
     }
 
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        section == 1 ? 60 : 0
+        section == 1 ? 48 : 0
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {

@@ -29,10 +29,23 @@ struct DummyPost: Hashable {
             var emoji: String?
             var text: String?
         }
+
+        struct Message {
+            var text: String
+            var isRead: Bool
+            var isOwnMessage: Bool
+            var date: Date
+        }
+
         var name: String
         var image: UIImage
         var color: UIColor = UIColor(hex: "00BEFF")!
         var status: Status?
+        var isVerified = false
+        var isTyping = false
+        var lastMessage: Message? = nil
+        var favoriteLevel: Int = 0
+        var isSuggested: Bool = false
 
         var suggestionDetail: String? {
             (status?.emoji ?? "") + " " + (status?.text ?? "")

@@ -158,7 +158,7 @@ class NavigationBar: UIView {
 
     func scrollViewWillBeginDecelerating(_ scrollView: UIScrollView) {
         scrollViewIsDecelerating = true
-        if scrollView.panGestureRecognizer.velocity(in: scrollView).y < 0 {
+        if scrollView.panGestureRecognizer.velocity(in: scrollView).y < 0 && scrollView.contentSize.height > scrollView.frame.height {
             hideNavigationBar()
         } else {
             showNavigationBar()

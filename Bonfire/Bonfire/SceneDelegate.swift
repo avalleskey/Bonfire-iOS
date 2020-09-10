@@ -13,7 +13,9 @@ import UIKit
 final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
-    var popRecognizer: InteractivePopRecognizer?
+    var feedPopRecognizer: InteractivePopRecognizer?
+    var campsPopRecognizer: InteractivePopRecognizer?
+    var friendsPopRecognizer: InteractivePopRecognizer?
 
     func scene(
         _ scene: UIScene, willConnectTo session: UISceneSession,
@@ -28,20 +30,23 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         let newFeedViewController = NewFeedViewController()
         let feedNavigationController = UINavigationController(rootViewController: newFeedViewController)
-        popRecognizer = InteractivePopRecognizer(controller: feedNavigationController)
-        feedNavigationController.interactivePopGestureRecognizer?.delegate = popRecognizer
+        feedPopRecognizer = InteractivePopRecognizer(controller: feedNavigationController)
+        feedNavigationController.interactivePopGestureRecognizer?.delegate = feedPopRecognizer
         feedNavigationController.isNavigationBarHidden = true
         newFeedViewController.tabBarItem = HomeViewController.defaultTabBarItem
 
         let campsVC = NewCampsViewController()
         let campsNavVC = BFNavigationController(rootViewController: campsVC)
-        popRecognizer = InteractivePopRecognizer(controller: campsNavVC)
-        campsNavVC.interactivePopGestureRecognizer?.delegate = popRecognizer
+        campsPopRecognizer = InteractivePopRecognizer(controller: campsNavVC)
+        campsNavVC.interactivePopGestureRecognizer?.delegate = campsPopRecognizer
         campsNavVC.isNavigationBarHidden = true
         campsVC.tabBarItem = CampsViewController.defaultTabBarItem
         
-        let friendsVC = MessagesViewController()
+        let friendsVC = NewMessagesViewController()
         let friendsNavVC = BFNavigationController(rootViewController: friendsVC)
+        friendsPopRecognizer = InteractivePopRecognizer(controller: friendsNavVC)
+        friendsNavVC.interactivePopGestureRecognizer?.delegate = friendsPopRecognizer
+        friendsNavVC.isNavigationBarHidden = true
         friendsVC.tabBarItem = MessagesViewController.defaultTabBarItem
 
         tabVC.setViewControllers([feedNavigationController, friendsNavVC, campsNavVC], animated: false)

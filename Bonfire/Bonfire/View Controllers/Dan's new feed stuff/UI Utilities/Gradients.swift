@@ -23,4 +23,12 @@ extension UIView {
         layer.insertSublayer(gradient, at: 0)
         layer.masksToBounds = true
     }
+
+    func removeGradient() {
+        layer.sublayers?.forEach {
+            if $0 is CAGradientLayer {
+                $0.removeFromSuperlayer()
+            }
+        }
+    }
 }

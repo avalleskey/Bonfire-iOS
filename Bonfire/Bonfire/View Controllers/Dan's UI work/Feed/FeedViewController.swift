@@ -89,7 +89,7 @@ final class FeedViewController: BaseViewController {
 extension FeedViewController: FeedCellDelegate {
     func performAction() {
         let testViewController = TestViewController()
-        navigationController?.pushViewController(testViewController, animated: true)
+        present(testViewController, customPresentationType: .sheet(), tapToDismiss: true)
     }
 }
 

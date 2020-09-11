@@ -93,6 +93,7 @@ class FeedCellActionView: UIView {
         actionStackView.addArrangedSubview(secondaryActionButton)
 
         primaryActionButton.addTarget(self, action: #selector(primaryActionButtonTapped), for: .touchUpInside)
+        secondaryActionButton.addTarget(self, action: #selector(secondaryActionButtonTapped), for: .touchUpInside)
     }
 
     private func setUpDetailsButton() {
@@ -104,6 +105,10 @@ class FeedCellActionView: UIView {
     }
 
     @objc private func primaryActionButtonTapped() {
+        delegate?.performAction()
+    }
+
+    @objc private func secondaryActionButtonTapped() {
         delegate?.performAction()
     }
 }

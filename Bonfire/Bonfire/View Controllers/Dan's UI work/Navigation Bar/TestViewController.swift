@@ -9,9 +9,10 @@
 import UIKit
 import Cartography
 
-class TestViewController: UIViewController {
+class TestViewController: UIViewController, CustomPresentable {
+    var transitionManager: UIViewControllerTransitioningDelegate?
 
-    private let button = UIButton(contentColor: .systemBlue, title: "Back", textFormat: (16, .bold), height: 36, systemButton: true)
+    private let button = UIButton(contentColor: .systemBlue, title: "Dismiss", textFormat: (16, .bold), height: 36, systemButton: true)
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -27,6 +28,6 @@ class TestViewController: UIViewController {
     }
 
     @objc private func backButtonTapped() {
-        navigationController?.popViewController(animated: true)
+        dismiss(animated: true)
     }
 }

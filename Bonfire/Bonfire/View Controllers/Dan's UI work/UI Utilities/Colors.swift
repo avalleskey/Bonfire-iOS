@@ -28,4 +28,5 @@ extension UIColor {
     static var text: UIColor { UIColor(displayP3Red: 28 / 255, green: 28 / 255, blue: 30 / 255, alpha: 1.0) }
     static var secondaryText: UIColor { UIColor(displayP3Red: 142 / 255, green: 142 / 255, blue: 147 / 255, alpha: 1.0) }
     static var tertiaryText: UIColor { UIColor(displayP3Red: 28 / 255, green: 28 / 255, blue: 30 / 255, alpha: 0.25) }
+    static var fade: UIColor { UIColor.black.withAlphaComponent(0.2) }
 }

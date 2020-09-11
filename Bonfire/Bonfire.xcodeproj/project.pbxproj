@@ -181,6 +181,14 @@
 		6582113F25096B9100721614 /* QuickAccessUserCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6582113E25096B9100721614 /* QuickAccessUserCell.swift */; };
 		65821141250A888300721614 /* SuggestionBadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65821140250A888300721614 /* SuggestionBadgeView.swift */; };
 		65A169A524F45463005F80CB /* BorderedAvatarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A169A424F45463005F80CB /* BorderedAvatarView.swift */; };
+		65A33022250BFB97001A485A /* CustomPresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A33021250BFB97001A485A /* CustomPresentable.swift */; };
+		65A33025250BFD35001A485A /* InteractionControlling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A33024250BFD35001A485A /* InteractionControlling.swift */; };
+		65A33027250BFE6A001A485A /* SheetPresentationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A33026250BFE6A001A485A /* SheetPresentationController.swift */; };
+		65A33029250C033A001A485A /* SheetTransitionAnimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A33028250C033A001A485A /* SheetTransitionAnimator.swift */; };
+		65A3302B250C03A2001A485A /* CustomTransitionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A3302A250C03A2001A485A /* CustomTransitionManager.swift */; };
+		65A3302D250C045E001A485A /* SheetInteractionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A3302C250C045E001A485A /* SheetInteractionController.swift */; };
+		65A3302F250C04C9001A485A /* OneWayPanGestureRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A3302E250C04C9001A485A /* OneWayPanGestureRecognizer.swift */; };
+		65A33031250C0714001A485A /* UIViewController+Transitions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A33030250C0714001A485A /* UIViewController+Transitions.swift */; };
 		65A89F22250155D800F67732 /* CampsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A89F21250155D800F67732 /* CampsViewController.swift */; };
 		65A89F242501563D00F67732 /* CampCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A89F232501563D00F67732 /* CampCell.swift */; };
 		65C2730E24F4078B00ADA995 /* LiveContentCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65C2730D24F4078B00ADA995 /* LiveContentCell.swift */; };
@@ -466,6 +474,14 @@
 		6582113E25096B9100721614 /* QuickAccessUserCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickAccessUserCell.swift; sourceTree = "<group>"; };
 		65821140250A888300721614 /* SuggestionBadgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuggestionBadgeView.swift; sourceTree = "<group>"; };
 		65A169A424F45463005F80CB /* BorderedAvatarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BorderedAvatarView.swift; sourceTree = "<group>"; };
+		65A33021250BFB97001A485A /* CustomPresentable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomPresentable.swift; sourceTree = "<group>"; };
+		65A33024250BFD35001A485A /* InteractionControlling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InteractionControlling.swift; sourceTree = "<group>"; };
+		65A33026250BFE6A001A485A /* SheetPresentationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SheetPresentationController.swift; sourceTree = "<group>"; };
+		65A33028250C033A001A485A /* SheetTransitionAnimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SheetTransitionAnimator.swift; sourceTree = "<group>"; };
+		65A3302A250C03A2001A485A /* CustomTransitionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTransitionManager.swift; sourceTree = "<group>"; };
+		65A3302C250C045E001A485A /* SheetInteractionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SheetInteractionController.swift; sourceTree = "<group>"; };
+		65A3302E250C04C9001A485A /* OneWayPanGestureRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OneWayPanGestureRecognizer.swift; sourceTree = "<group>"; };
+		65A33030250C0714001A485A /* UIViewController+Transitions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIViewController+Transitions.swift"; sourceTree = "<group>"; };
 		65A89F21250155D800F67732 /* CampsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampsViewController.swift; sourceTree = "<group>"; };
 		65A89F232501563D00F67732 /* CampCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampCell.swift; sourceTree = "<group>"; };
 		65C2730D24F4078B00ADA995 /* LiveContentCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveContentCell.swift; sourceTree = "<group>"; };
@@ -1251,6 +1267,28 @@
 			path = "Navigation Bar";
 			sourceTree = "<group>";
 		};
+		65A33023250BFBA4001A485A /* Transitions */ = {
+			isa = PBXGroup;
+			children = (
+				65A33021250BFB97001A485A /* CustomPresentable.swift */,
+				65A33024250BFD35001A485A /* InteractionControlling.swift */,
+				65A3302A250C03A2001A485A /* CustomTransitionManager.swift */,
+				65A33030250C0714001A485A /* UIViewController+Transitions.swift */,
+				65A33032250C1097001A485A /* Sheet */,
+			);
+			path = Transitions;
+			sourceTree = "<group>";
+		};
+		65A33032250C1097001A485A /* Sheet */ = {
+			isa = PBXGroup;
+			children = (
+				65A33026250BFE6A001A485A /* SheetPresentationController.swift */,
+				65A33028250C033A001A485A /* SheetTransitionAnimator.swift */,
+				65A3302C250C045E001A485A /* SheetInteractionController.swift */,
+			);
+			path = Sheet;
+			sourceTree = "<group>";
+		};
 		65C2730C24F4076500ADA995 /* Live */ = {
 			isa = PBXGroup;
 			children = (
@@ -1309,6 +1347,7 @@
 				65821146250AC66600721614 /* Navigation Bar */,
 				65821145250AC62700721614 /* Reusable views */,
 				65E42E7024EDB37300354393 /* UI Utilities */,
+				65A33023250BFBA4001A485A /* Transitions */,
 			);
 			path = "Dan's UI work";
 			sourceTree = "<group>";
@@ -1324,6 +1363,7 @@
 				65E42E6A24EDB08D00354393 /* IntrinsicallySizedScrollView.swift */,
 				65E42E6C24EDB0AD00354393 /* IntrinsicallySizedTableView.swift */,
 				65E42E6E24EDB0EF00354393 /* IntrinsicallySizedCollectionView.swift */,
+				65A3302E250C04C9001A485A /* OneWayPanGestureRecognizer.swift */,
 			);
 			path = "UI Utilities";
 			sourceTree = "<group>";
@@ -1662,6 +1702,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D943EEDD24CB6DFB00C30F8B /* NotificationTableViewCell.swift in Sources */,
+				65A33029250C033A001A485A /* SheetTransitionAnimator.swift in Sources */,
 				1A6C8F8324C5E16500CD7A3E /* BFTextField.swift in Sources */,
 				1A0CB46424C7230D00BD2A50 /* BFFormColorPickerView.swift in Sources */,
 				1A844744249D4C78002813CB /* LegacyCampsViewController.swift in Sources */,
@@ -1676,6 +1717,7 @@
 				1AF7FCEC24A2700B003FCF9F /* BFSegmentedControlButton.swift in Sources */,
 				1AA410D924D9F7AC0083363B /* BFModalAnimator.swift in Sources */,
 				1A212A1124BC87B000A0DCD3 /* BFSignInForm.swift in Sources */,
+				65A3302F250C04C9001A485A /* OneWayPanGestureRecognizer.swift in Sources */,
 				D943EEEC24CB945600C30F8B /* RoundedView.swift in Sources */,
 				1AA410D224D9C0350083363B /* PostViewController.swift in Sources */,
 				1A31605724E5493800C8AC6C /* UserActivityType+Extensions.swift in Sources */,
@@ -1687,6 +1729,7 @@
 				1A844702249C8652002813CB /* HomeViewController.swift in Sources */,
 				65A89F22250155D800F67732 /* CampsViewController.swift in Sources */,
 				1A24430E24A0D83E0039BAAB /* BFFeedTableViewController.swift in Sources */,
+				65A3302B250C03A2001A485A /* CustomTransitionManager.swift in Sources */,
 				1A3ED13224D37EC5001DA453 /* ProfileSummaryPageViewController.swift in Sources */,
 				1AA410D724D9F1650083363B /* BFModalPresentationController.swift in Sources */,
 				1A24431324A0DB750039BAAB /* PostActionsCell.swift in Sources */,
@@ -1738,7 +1781,9 @@
 				1A847D3924B1B65800530614 /* PostImageAttachmentCell.swift in Sources */,
 				1AB875EF24EE9827008BEF84 /* SettingsViewController.swift in Sources */,
 				1A6859BD249F632A008DB6BC /* MessagesTableViewController.swift in Sources */,
+				65A33025250BFD35001A485A /* InteractionControlling.swift in Sources */,
 				1ABF83C724DA0050007E2E8B /* BFModalNavigationController.swift in Sources */,
+				65A33027250BFE6A001A485A /* SheetPresentationController.swift in Sources */,
 				65E42E6524EDA6BC00354393 /* FeedCell.swift in Sources */,
 				1A3ED12C24D37D5C001DA453 /* ProfileHeaderView.swift in Sources */,
 				65D05BFB24F0825300E314DB /* PostContentView.swift in Sources */,
@@ -1747,6 +1792,7 @@
 				65D05BEE24F04D7F00E314DB /* TimerButton.swift in Sources */,
 				65821141250A888300721614 /* SuggestionBadgeView.swift in Sources */,
 				1A7854DB249FBBC500BA1589 /* CampControllerProtocol.swift in Sources */,
+				65A33022250BFB97001A485A /* CustomPresentable.swift in Sources */,
 				65A169A524F45463005F80CB /* BorderedAvatarView.swift in Sources */,
 				65D05BF124F07C8A00E314DB /* FeedCellActionView.swift in Sources */,
 				65C2731224F4295300ADA995 /* Gradients.swift in Sources */,
@@ -1792,8 +1838,10 @@
 				1AA86BD024D1E585009BFE07 /* PostPostAttachmentCell.swift in Sources */,
 				1A212A0E24BC86F800A0DCD3 /* BFFormItemType.swift in Sources */,
 				1A315FAD24E33E7300C8AC6C /* SearchViewController.swift in Sources */,
+				65A3302D250C045E001A485A /* SheetInteractionController.swift in Sources */,
 				65C3E29F24F6DF270033D164 /* ReplyCell.swift in Sources */,
 				D9872AB824C0D76A0048622F /* BFPillButton.swift in Sources */,
+				65A33031250C0714001A485A /* UIViewController+Transitions.swift in Sources */,
 				1A94DED3249FB49B00AB0200 /* CampsTableViewCell.swift in Sources */,
 				65D05BF924F0821500E314DB /* SuggestionContentView.swift in Sources */,
 				1AFFB1C6249D514900E67E89 /* Constants.swift in Sources */,

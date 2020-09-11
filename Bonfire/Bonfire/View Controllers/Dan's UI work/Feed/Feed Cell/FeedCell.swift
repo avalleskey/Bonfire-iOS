@@ -23,8 +23,6 @@ class FeedCell: UITableViewCell {
             headerView.post = post
             actionView.post = post
             insertContent(PostContentView(post: post))
-            setNeedsLayout()
-            layoutIfNeeded()
 
             // TODO: The commented out code below worked with the DummyPost type.
             // There is work left to be done here to get these other post types (live right now, suggestion, status update)

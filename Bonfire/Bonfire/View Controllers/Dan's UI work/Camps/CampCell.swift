@@ -68,7 +68,7 @@ class CampCell: UITableViewCell {
                 emojiLabel.isHidden = true
                 newDotView.isHidden = true
                 detailBackingView.removeGradient()
-                detailBackingView.backgroundColor = .secondaryGray
+                detailBackingView.backgroundColor = .secondaryText
             case .liveChat:
                 borderedAvatarView.liveType = .chat
                 borderedAvatarView.liveBorderWidth = .thin
@@ -91,11 +91,11 @@ class CampCell: UITableViewCell {
     }
 
     private let borderedAvatarView = BorderedAvatarView()
-    private let titleLabel = UILabel(size: 17, weight: .bold, color: .label)
+    private let titleLabel = UILabel(size: 17, weight: .bold, color: .text)
     private let newDotView = UIView(backgroundColor: .onlineGreen, height: 11, width: 11, cornerRadius: 5.5)
     private let emojiLabel = UILabel(size: 10, weight: .bold, multiline: false, text: "💬")
     private let detailLabel = UILabel(size: 15, weight: .bold, multiline: false)
-    private let detailBackingView = UIView(backgroundColor: .label)
+    private let detailBackingView = UIView(backgroundColor: .text)
     private let detailStackView = UIStackView(axis: .horizontal, alignment: .center, spacing: 6)
 
     private let memberSwitch: UISwitch = {
@@ -105,7 +105,7 @@ class CampCell: UITableViewCell {
         return memberSwitch
     }()
 
-    private let shareButton = UIButton(image: UIImage(named: "ShareIcon"), contentColor: .label, backgroundColor: UIColor(hex: "1C1C1E")!.withAlphaComponent(0.03), width: 36, height: 36, cornerRadius: 18, systemButton: true)
+    private let shareButton = UIButton(image: UIImage(named: "ShareIcon"), contentColor: .text, backgroundColor: UIColor(hex: "1C1C1E")!.withAlphaComponent(0.03), width: 36, height: 36, cornerRadius: 18, systemButton: true)
 
     private let separatorView = UIView(backgroundColor: .separatorGray, height: 1 / UIScreen.main.scale)
 

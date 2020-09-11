@@ -50,7 +50,7 @@ class PostContentView: UIView {
         }
 
         attachmentContainerView.clipsToBounds = true
-        attachmentContainerView.layer.cornerCurve = .continuous
+        if #available(iOS 13.0, *) { attachmentContainerView.layer.cornerCurve = .continuous }
 
         postLabel.setContentCompressionResistancePriority(.required, for: .vertical)
     }
@@ -95,7 +95,5 @@ class PostContentView: UIView {
                 }
             }
         }
-
-        attachmentContainerView.layer.cornerCurve = .continuous
     }
 }

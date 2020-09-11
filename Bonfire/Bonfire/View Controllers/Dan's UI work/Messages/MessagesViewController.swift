@@ -13,14 +13,14 @@ import UIKit
 class MessagesViewController: BaseViewController {
 
     private let tableView: UITableView = .make(cellReuseIdentifier: ConversationCell.reuseIdentifier, cellClass: ConversationCell.self, allowsSelection: true, topOffset: NavigationBar.coreHeight, style: .grouped)
-    private let loadingIndicator = UIActivityIndicatorView(style: .large, isAnimating: true, hidesWhenStopped: true)
+    private let loadingIndicator = UIActivityIndicatorView(style: .whiteLarge, color: .secondaryText, isAnimating: true, hidesWhenStopped: true)
     private let emptyStateMessageView = EmptyStateMessageView(title: "No messages yet")
     private var featuredUsers: [DummyPost.User] = []
     private var otherUsers: [DummyPost.User] = []
     private let controller = UserController()
 
     init() {
-        super.init(navigationBar: NavigationBar(color: .systemBackground, title: "Messages"), scrollView: tableView)
+        super.init(navigationBar: NavigationBar(color: .background, title: "Messages"), scrollView: tableView)
     }
     
     required init?(coder: NSCoder) {
@@ -29,7 +29,7 @@ class MessagesViewController: BaseViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = .background
         setUpTableView()
         setUpLoadingIndicator()
         setUpEmptyStateMessageView()
@@ -78,19 +78,19 @@ class MessagesViewController: BaseViewController {
         // For now, I'm just hard coding some dummy data to test the UI.
 
         featuredUsers = [
-            .init(name: "Judy", image: .dummyAvatar, color: .systemIndigo, status: .init(emoji: "🤓", text: "Just coding."), isVerified: true, lastMessage: .init(text: "Hi", isRead: true, isOwnMessage: false, date: Date()), isSuggested: true),
-            .init(name: "Edith", image: .dummyAvatar, color: .systemPink, status: .init(emoji: "👋", text: "Hello!"), lastMessage: .init(text: "Hi", isRead: true, isOwnMessage: false, date: Date())),
-            .init(name: "Samuel", image: .dummyAvatar, color: .systemTeal, lastMessage: .init(text: "Hi", isRead: false, isOwnMessage: false, date: Date())),
-            .init(name: "Chandler", image: .dummyAvatar, color: .systemOrange, lastMessage: .init(text: "Hi", isRead: true, isOwnMessage: false, date: Date()), isSuggested: true),
-            .init(name: "Pascal", image: .dummyAvatar, color: .systemYellow, lastMessage: .init(text: "Hi", isRead: false, isOwnMessage: false, date: Date()))
+            .init(name: "Judy", image: .dummyAvatar, color: .liveAudioBottom, status: .init(emoji: "🤓", text: "Just coding."), isVerified: true, lastMessage: .init(text: "Hi", isRead: true, isOwnMessage: false, date: Date()), isSuggested: true),
+            .init(name: "Edith", image: .dummyAvatar, color: .liveAudioTop, status: .init(emoji: "👋", text: "Hello!"), lastMessage: .init(text: "Hi", isRead: true, isOwnMessage: false, date: Date())),
+            .init(name: "Samuel", image: .dummyAvatar, color: .liveBottom, lastMessage: .init(text: "Hi", isRead: false, isOwnMessage: false, date: Date())),
+            .init(name: "Chandler", image: .dummyAvatar, color: .liveTop, lastMessage: .init(text: "Hi", isRead: true, isOwnMessage: false, date: Date()), isSuggested: true),
+            .init(name: "Pascal", image: .dummyAvatar, color: .liveChatTop, lastMessage: .init(text: "Hi", isRead: false, isOwnMessage: false, date: Date()))
         ]
 
         otherUsers = [
-            DummyPost.User(name: "Austin Levy", image: .dummyAvatar, color: .systemIndigo, status: nil, isVerified: true, isTyping: true, lastMessage: nil, favoriteLevel: 3),
-            DummyPost.User(name: "Terrell Green", image: .dummyAvatar, color: .systemPink, status: nil, isVerified: false, isTyping: false, lastMessage: .init(text: "Photo", isRead: false, isOwnMessage: false, date: Date().advanced(by: -60 * 20)), favoriteLevel: 2),
-            DummyPost.User(name: "Shaun Gray", image: .dummyAvatar, color: .systemTeal, status: nil, isVerified: true, isTyping: false, lastMessage: .init(text: "hey man", isRead: false, isOwnMessage: false, date: Date().advanced(by: -60 * 60)), favoriteLevel: 1),
-            DummyPost.User(name: "Amayo", image: .dummyAvatar, color: .systemOrange, status: .init(emoji: "🥳", text: "Ready to party"), isVerified: false, isTyping: false, lastMessage: .init(text: "Hey!", isRead: false, isOwnMessage: true, date: Date().advanced(by: -60 * 60 * 2)), favoriteLevel: 0),
-            DummyPost.User(name: "Lindsay Logan", image: .dummyAvatar, color: .systemYellow, status: .init(emoji: "🙃", text: "Living in the upside-down"), isVerified: true, isTyping: false, lastMessage: DummyPost.User.Message(text: "Okay see you in a few!", isRead: true, isOwnMessage: false, date: Date().advanced(by: -3600 * 24 * 7)), favoriteLevel: 0)
+            DummyPost.User(name: "Austin Levy", image: .dummyAvatar, color: .liveChatBottom, status: nil, isVerified: true, isTyping: true, lastMessage: nil, favoriteLevel: 3),
+            DummyPost.User(name: "Terrell Green", image: .dummyAvatar, color: .liveVideoTop, status: nil, isVerified: false, isTyping: false, lastMessage: .init(text: "Photo", isRead: false, isOwnMessage: false, date: Date().addingTimeInterval(-60 * 20)), favoriteLevel: 2),
+            DummyPost.User(name: "Shaun Gray", image: .dummyAvatar, color: .liveVideoBottom, status: nil, isVerified: true, isTyping: false, lastMessage: .init(text: "hey man", isRead: false, isOwnMessage: false, date: Date().addingTimeInterval(-60 * 60)), favoriteLevel: 1),
+            DummyPost.User(name: "Amayo", image: .dummyAvatar, color: .liveAudioTop, status: .init(emoji: "🥳", text: "Ready to party"), isVerified: false, isTyping: false, lastMessage: .init(text: "Hey!", isRead: false, isOwnMessage: true, date: Date().addingTimeInterval(-60 * 60 * 2)), favoriteLevel: 0),
+            DummyPost.User(name: "Lindsay Logan", image: .dummyAvatar, color: .liveBottom, status: .init(emoji: "🙃", text: "Living in the upside-down"), isVerified: true, isTyping: false, lastMessage: DummyPost.User.Message(text: "Okay see you in a few!", isRead: true, isOwnMessage: false, date: Date().addingTimeInterval(-3600 * 24 * 7)), favoriteLevel: 0)
         ]
 
         tableView.reloadData()

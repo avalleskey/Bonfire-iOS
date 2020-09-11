@@ -44,7 +44,7 @@ enum NavigationButtonType {
 
 class NavigationButton: UIControl {
 
-    var imageView = UIImageView(tintColor: .label)
+    var imageView = UIImageView(tintColor: .text)
     var label = UILabel(size: 24, weight: .bold, alignment: .center, multiline: false)
     var type: NavigationButtonType? {
         didSet {

@@ -12,8 +12,8 @@ import Cartography
 class EmptyStateMessageView: UIView {
 
     private let stackView = UIStackView(axis: .vertical, spacing: 2)
-    private let titleLabel = UILabel(size: 20, weight: .bold, color: .secondaryLabel, alignment: .center)
-    private let subtitleLabel = UILabel(size: 16, weight: .medium, color: .secondaryLabel, alignment: .center)
+    private let titleLabel = UILabel(size: 20, weight: .bold, color: .secondaryText, alignment: .center)
+    private let subtitleLabel = UILabel(size: 16, weight: .medium, color: .secondaryText, alignment: .center)
 
     init(title: String? = nil, subtitle: String? = nil) {
         super.init(frame: .zero)

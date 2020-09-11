@@ -31,7 +31,7 @@ class NavigationBar: UIView {
 
     private let titleStackView = UIStackView(axis: .vertical, alignment: .center)
     private let titleLabel = UILabel(size: 18, weight: .bold, multiline: false)
-    private let subtitleLabel = UILabel(size: 12, weight: .bold, color: .tertiaryLabel, multiline: false)
+    private let subtitleLabel = UILabel(size: 12, weight: .bold, color: .secondaryText, multiline: false)
 
     private var elements: [UIView] {
         [leftButton, rightButton, centerButton, titleStackView]

@@ -38,7 +38,7 @@ class SuggestionContentView: UIView {
         }
 
         containerView.backgroundColor = suggestion.color
-        containerView.layer.cornerCurve = .continuous
+        if #available(iOS 13.0, *) { containerView.layer.cornerCurve = .continuous }
     }
 
     private func setUpBorderedAvatarView() {

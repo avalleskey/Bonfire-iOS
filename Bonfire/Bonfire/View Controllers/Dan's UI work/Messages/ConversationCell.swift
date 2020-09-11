@@ -23,7 +23,7 @@ class ConversationCell: UITableViewCell {
 
             if user.isTyping {
                 detailLabel.text = "Typing..."
-                detailLabel.textColor = .secondaryGray
+                detailLabel.textColor = .secondaryText
                 detailLabel.font = UIFont.systemFont(ofSize: 15, weight: .bold).rounded()
                 newDotView.isHidden = true
                 separatorDotView.isHidden = true
@@ -34,13 +34,13 @@ class ConversationCell: UITableViewCell {
                 timeLabel.text = formattedExpiry(date: lastMessage.date)
                 if lastMessage.isOwnMessage {
                     detailLabel.text = "You: \(lastMessage.text)"
-                    detailLabel.textColor = .secondaryGray
+                    detailLabel.textColor = .secondaryText
                     detailLabel.font = UIFont.systemFont(ofSize: 15, weight: .bold).rounded()
                     newDotView.isHidden = true
                 } else {
                     detailLabel.text = lastMessage.text
                     if lastMessage.isRead {
-                        detailLabel.textColor = .secondaryGray
+                        detailLabel.textColor = .secondaryText
                         detailLabel.font = UIFont.systemFont(ofSize: 15, weight: .bold).rounded()
                         newDotView.isHidden = true
                     } else {
@@ -53,7 +53,7 @@ class ConversationCell: UITableViewCell {
 
             } else {
                 detailLabel.text = "No messages"
-                detailLabel.textColor = .secondaryGray
+                detailLabel.textColor = .secondaryText
                 newDotView.isHidden = true
                 separatorDotView.isHidden = true
                 timeLabel.isHidden = true
@@ -72,8 +72,8 @@ class ConversationCell: UITableViewCell {
     private let userIdentityView = UserIdentityView()
     private let newDotView = UIView(backgroundColor: .onlineGreen, height: 11, width: 11, cornerRadius: 5.5)
     private let detailLabel = UILabel(size: 15, weight: .bold, multiline: false)
-    private let separatorDotView = UIView(backgroundColor: UIColor.secondaryGray.withAlphaComponent(0.5), height: 3, width: 3, cornerRadius: 1.5)
-    private let timeLabel = UILabel(size: 15, weight: .bold, color: .secondaryGray, multiline: false)
+    private let separatorDotView = UIView(backgroundColor: UIColor.secondaryText.withAlphaComponent(0.5), height: 3, width: 3, cornerRadius: 1.5)
+    private let timeLabel = UILabel(size: 15, weight: .bold, color: .secondaryText, multiline: false)
     private let detailStackView = UIStackView(axis: .horizontal, alignment: .center, spacing: 6)
     private let heartLabel = UILabel(size: 17, weight: .regular, multiline: false, text: "❤️")
 

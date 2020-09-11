@@ -23,6 +23,8 @@ class FeedCell: UITableViewCell {
             headerView.post = post
             actionView.post = post
             insertContent(PostContentView(post: post))
+            setNeedsLayout()
+            layoutIfNeeded()
 
             // TODO: The commented out code below worked with the DummyPost type.
             // There is work left to be done here to get these other post types (live right now, suggestion, status update)
@@ -79,7 +81,7 @@ class FeedCell: UITableViewCell {
     override func layoutSubviews() {
         super.layoutSubviews()
         containerView.applyShadow(intensity: .sketch(color: .black, alpha: 0.03, x: 0, y: 1, blur: 3, spread: 0))
-        containerView.layer.cornerCurve = .continuous
+        if #available(iOS 13.0, *) { containerView.layer.cornerCurve = .continuous }
         containerView.layer.borderWidth = 1
         containerView.layer.borderColor = UIColor.black.withAlphaComponent(0.05).cgColor
     }

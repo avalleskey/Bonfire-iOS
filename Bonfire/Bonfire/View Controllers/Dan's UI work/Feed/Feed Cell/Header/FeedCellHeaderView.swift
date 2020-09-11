@@ -93,7 +93,7 @@ class FeedCellHeaderView: UIView {
     private var titleStackView: UIStackView = .init(axis: .horizontal, spacing: 3)
     private var detailStackView: UIStackView = .init(axis: .horizontal, spacing: 4)
     private var titleLabel: UILabel = .init(size: 15, weight: .heavy, multiline: false)
-    private var descriptionLabel: UILabel = .init(size: 14, weight: .semibold, color: .secondaryLabel, multiline: false)
+    private var descriptionLabel: UILabel = .init(size: 14, weight: .semibold, color: .secondaryText, multiline: false)
     private var secondaryImageView: UIImageView = .init(width: 14, height: 14, cornerRadius: 7, contentMode: .scaleAspectFill)
     private var secondaryLabel: UILabel = .init(size: 14, weight: .bold, color: Constants.Color.primary, multiline: false)
 

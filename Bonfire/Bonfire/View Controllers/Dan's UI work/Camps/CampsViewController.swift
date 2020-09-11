@@ -13,14 +13,14 @@ import UIKit
 class CampsViewController: BaseViewController {
 
     private let tableView: UITableView = .make(cellReuseIdentifier: CampCell.reuseIdentifier, cellClass: CampCell.self, allowsSelection: true, topOffset: NavigationBar.coreHeight, style: .grouped)
-    private let loadingIndicator = UIActivityIndicatorView(style: .large, isAnimating: true, hidesWhenStopped: true)
+    private let loadingIndicator = UIActivityIndicatorView(style: .whiteLarge, color: .secondaryText, isAnimating: true, hidesWhenStopped: true)
     private let emptyStateMessageView = EmptyStateMessageView(title: "No Camps yet", subtitle: "Start one by tapping + below!")
     private var featuredCamps: [Camp] = []
     private var otherCamps: [Camp] = []
     private let controller = CampController()
 
     init() {
-        super.init(navigationBar: NavigationBar(color: .systemBackground, title: "Camps"), scrollView: tableView)
+        super.init(navigationBar: NavigationBar(color: .background, title: "Camps"), scrollView: tableView)
     }
 
     required init?(coder: NSCoder) {
@@ -29,7 +29,7 @@ class CampsViewController: BaseViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = .background
         setUpTableView()
         setUpLoadingIndicator()
         setUpEmptyStateMessageView()
@@ -128,7 +128,7 @@ extension CampsViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         guard section == 1 else { return nil }
         let view = UIView()
-        let titleLabel = UILabel(size: 18, weight: .heavy, color: .secondaryGray, multiline: false, text: "Other Camps")
+        let titleLabel = UILabel(size: 18, weight: .heavy, color: .secondaryText, multiline: false, text: "Other Camps")
         view.addSubview(titleLabel)
         constrain(titleLabel) {
             $0.leading == $0.superview!.leading + 12

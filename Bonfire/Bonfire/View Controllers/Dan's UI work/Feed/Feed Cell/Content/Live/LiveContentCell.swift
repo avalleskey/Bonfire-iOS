@@ -31,7 +31,7 @@ class LiveContentCell: UICollectionViewCell {
     }
 
     private var borderedAvatarView = BorderedAvatarView(interiorBorderWidth: .thin, liveBorderWidth: .thick)
-    private var liveTypeView = UIView(backgroundColor: .systemBackground, height: 28, width: 28, cornerRadius: 14)
+    private var liveTypeView = UIView(backgroundColor: .background, height: 28, width: 28, cornerRadius: 14)
     private var liveTypeLabel = UILabel(size: 12, weight: .regular, alignment: .center, multiline: false)
 
     override init(frame: CGRect) {

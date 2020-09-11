@@ -47,7 +47,7 @@ class ActionButton: UIControl {
 
                 delay(0.05) {
                     self.animateBorderColor(toColor: Constants.Color.primary.withAlphaComponent(0.04), duration: 0.1)
-                    UIView.animate(withDuration: 0.1) { self.backgroundColor = .systemBackground }
+                    UIView.animate(withDuration: 0.1) { self.backgroundColor = .background }
                 }
                 UIView.animateKeyframes(withDuration: 0.25, delay: 0.0, options: [.allowUserInteraction, .calculationModeCubic, .beginFromCurrentState], animations: {
                     UIView.addKeyframe(withRelativeStartTime: 0.0, relativeDuration: 0.4) {
@@ -60,7 +60,7 @@ class ActionButton: UIControl {
                 }, completion: nil)
             case .cancelled:
                 animateBorderColor(toColor: Constants.Color.primary.withAlphaComponent(0.04), duration: 0.1)
-                UIView.animate(withDuration: 0.1) { self.backgroundColor = .systemBackground }
+                UIView.animate(withDuration: 0.1) { self.backgroundColor = .background }
                 UIView.animate(withDuration: 0.25, delay: 0.0, usingSpringWithDamping: 1.0, initialSpringVelocity: 0.0, options: .allowUserInteraction, animations: {
                     self.transform = .identity
                 }, completion: nil)
@@ -76,7 +76,7 @@ class ActionButton: UIControl {
     private var dragBounds: CGRect { CGRect(x: touchBounds.origin.x - 24, y: touchBounds.origin.y - 24, width: touchBounds.size.width + 48, height: touchBounds.size.height + 48) }
     private var touchBounds: CGRect { bounds.insetBy(dx: min(-((40 - bounds.width) / 2), 0), dy: min(-((40 - bounds.height) / 2), 0)) }
 
-    var color: UIColor = .label {
+    var color: UIColor = .text {
         didSet {
             label.textColor = color
             imageView.tintColor = color
@@ -98,7 +98,7 @@ class ActionButton: UIControl {
     }
 
 
-    init(title: String? = nil, image: UIImage? = nil, color: UIColor = .label) {
+    init(title: String? = nil, image: UIImage? = nil, color: UIColor = .text) {
         super.init(frame: .zero)
         setUpView()
         setUpContent()
@@ -119,8 +119,8 @@ class ActionButton: UIControl {
             $0.height == 36
             $0.width >= $0.height
         }
-        layer.cornerRadius = 18.0
-        layer.cornerCurve = .continuous
+        layer.cornerRadius = 18
+        if #available(iOS 13.0, *) { layer.cornerCurve = .continuous }
         layer.borderWidth = 2.0
         layer.borderColor = Constants.Color.primary.withAlphaComponent(0.04).cgColor
     }

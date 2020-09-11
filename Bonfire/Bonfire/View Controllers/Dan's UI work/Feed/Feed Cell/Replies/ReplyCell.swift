@@ -14,9 +14,9 @@ class ReplyCell: UIView {
     var reply: DummyPost.Reply
 
     private let avatarImageView = UIImageView(width: 32, height: 32, cornerRadius: 16, contentMode: .scaleAspectFill)
-    private let nameLabel = UILabel(size: 16, weight: .bold, color: .secondaryLabel, multiline: false)
+    private let nameLabel = UILabel(size: 16, weight: .bold, color: .secondaryText, multiline: false)
     private let messageLabel = UILabel(size: 16, weight: .medium, multiline: true)
-    private let likeButton = UIButton(image: UIImage(named: "ReplyLikeIcon"), contentColor: .secondaryGray, width: 36, height: 36, systemButton: true)
+    private let likeButton = UIButton(image: UIImage(named: "ReplyLikeIcon"), contentColor: .secondaryText, width: 36, height: 36, systemButton: true)
 
     init(reply: DummyPost.Reply) {
         self.reply = reply

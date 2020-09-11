@@ -13,20 +13,13 @@ import Cartography
 final class FeedViewController: BaseViewController {
 
     private let tableView: UITableView = .make(cellReuseIdentifier: FeedCell.reuseIdentifier, cellClass: FeedCell.self, topOffset: NavigationBar.coreHeight)
-    private let loadingIndicator = UIActivityIndicatorView(style: .large, isAnimating: true, hidesWhenStopped: true)
+    private let loadingIndicator = UIActivityIndicatorView(style: .whiteLarge, color: .secondaryText, isAnimating: true, hidesWhenStopped: true)
     private let emptyStateMessageView = EmptyStateMessageView(title: "Nothing to show", subtitle: "Start by joining some camps!")
-    private var dataSource: UITableViewDiffableDataSource<Int, Post>!
     private var posts: [Post] = []
     private let controller = StreamController()
 
     init() {
-        super.init(navigationBar: NavigationBar(color: .systemBackground, leftButtonType: .status(emoji: "🥳"), rightButtonType: .bell, titleImage: .dummyAvatar), scrollView: tableView)
-        dataSource = UITableViewDiffableDataSource(tableView: tableView, cellProvider: { tableView, indexPath, post -> UITableViewCell? in
-            guard let cell = tableView.dequeueReusableCell(withIdentifier: FeedCell.reuseIdentifier, for: indexPath) as? FeedCell else { return nil }
-            cell.post = post
-            cell.delegate = self
-            return cell
-        })
+        super.init(navigationBar: NavigationBar(color: .background, leftButtonType: .status(emoji: "🥳"), rightButtonType: .bell, titleImage: .dummyAvatar), scrollView: tableView)
     }
 
     required init?(coder: NSCoder) {
@@ -35,7 +28,7 @@ final class FeedViewController: BaseViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = .background
         setUpTableView()
         setUpLoadingIndicator()
         setUpEmptyStateMessageView()
@@ -52,6 +45,7 @@ final class FeedViewController: BaseViewController {
         }
 
         tableView.alpha = 0
+        tableView.dataSource = self
     }
 
     private func setUpLoadingIndicator() {
@@ -78,7 +72,7 @@ final class FeedViewController: BaseViewController {
         controller.getStream { posts in
             DispatchQueue.main.async {
                 self.posts = posts
-                self.updateDataSource(skipAnimation: true)
+                self.tableView.reloadData()
                 UIView.animate(withDuration: 0.2, animations: {
                     if posts.isEmpty {
                         self.emptyStateMessageView.alpha = 1.0
@@ -90,18 +84,24 @@ final class FeedViewController: BaseViewController {
             }
         }
     }
-
-    private func updateDataSource(skipAnimation: Bool = false) {
-        var snapshot = NSDiffableDataSourceSnapshot<Int, Post>()
-        snapshot.appendSections([0])
-        snapshot.appendItems(posts)
-        dataSource.apply(snapshot, animatingDifferences: !skipAnimation)
-    }
 }
 
 extension FeedViewController: FeedCellDelegate {
     func performAction() {
         let testViewController = TestViewController()
         navigationController?.pushViewController(testViewController, animated: true)
+    }
+}
+
+extension FeedViewController: UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        posts.count
+    }
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: FeedCell.reuseIdentifier, for: indexPath) as! FeedCell
+        cell.post = posts[indexPath.row]
+        cell.delegate = self
+        return cell
     }
 }

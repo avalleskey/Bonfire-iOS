@@ -28,7 +28,7 @@ class TimerButton: UIControl {
         super.init(frame: .zero)
         constrain(self) { $0.height == 24 }
         layer.cornerRadius = 12
-        layer.cornerCurve = .continuous
+        if #available(iOS 13.0, *) { layer.cornerCurve = .continuous }
 
         addSubview(imageView)
         constrain(imageView) {
@@ -72,7 +72,7 @@ class TimerButton: UIControl {
         }
 
         if hours > 2 {
-            color = .secondaryGray
+            color = .secondaryText
         } else if hours > 0 {
             color = .systemOrange
         } else {

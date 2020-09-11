@@ -120,15 +120,15 @@ struct DummyPost: Hashable {
         DummyPost(id: "3", type: .suggestion, expiry: nil, people: [User(name: "Abayo Stevens", image: .dummyAvatar, status: User.Status(emoji: "🥺", text: "feeling loved"))], camps: []),
         DummyPost(id: "7", type: .suggestion, expiry: nil, people: [], camps: [Camp(name: "I should buy a boat", image: .dummyAvatar, color: .systemPink)]),
         DummyPost(id: "2", type: .statusUpdate, expiry: nil, people: [User(name: "Austin Valleskey", image: .dummyAvatar, status: User.Status(emoji: "🥳", text: "ready to party"))], camps: []),
-        DummyPost(id: "4", type: .post, expiry: Date().advanced(by: 200), people: [User.dummyUser], camps: [Camp(name: "Coffee Geeks", image: .dummyAvatar)], message: "We're all different, but there's something kind of fantastic about that, isn't there?", replies: [
+        DummyPost(id: "4", type: .post, expiry: Date().addingTimeInterval(200), people: [User.dummyUser], camps: [Camp(name: "Coffee Geeks", image: .dummyAvatar)], message: "We're all different, but there's something kind of fantastic about that, isn't there?", replies: [
             Reply(id: "1", user: User.dummyUser, message: "This is a reply!"),
             Reply(id: "2", user: User.dummyUser, message: "Here is another slightly longer, more verbose reply.")
         ]),
-        DummyPost(id: "5", type: .post, expiry: Date().advanced(by: 3800), people: [User(name: "Daniel Gauthier", image: .dummyAvatar)], camps: [Camp(name: "Wes Anderson Fans", image: .dummyAvatar)], message: "\"Vámanos, amigos,\" he whispered, and threw the busted leather flintcraw over the loose weave of the saddlecock. And they rode on in the friscalating dusklight.", attachments: [.dummyAvatar], replies: [
+        DummyPost(id: "5", type: .post, expiry: Date().addingTimeInterval(3800), people: [User(name: "Daniel Gauthier", image: .dummyAvatar)], camps: [Camp(name: "Wes Anderson Fans", image: .dummyAvatar)], message: "\"Vámanos, amigos,\" he whispered, and threw the busted leather flintcraw over the loose weave of the saddlecock. And they rode on in the friscalating dusklight.", attachments: [.dummyAvatar], replies: [
             Reply(id: "1", user: User.dummyUser, message: "Why a fox? Why not a horse, or a bald eagle? I'm saying this more as, like, existentialism, you know? Who am I?"),
             Reply(id: "2", user: User.dummyUser, message: "I’m supposed to be juggling 10 bowling pins engulfed in flames over my tail at this point, but you just have to imagine that part.")
         ]),
-        DummyPost(id: "6", type: .post, expiry: Date().advanced(by: 3600 * 4), people: [User.dummyUser], camps: [Camp(name: "Lacroix Lovers", image: .dummyAvatar)], attachments: [.dummyAvatar, .dummyAvatar, .dummyAvatar, .dummyAvatar])
+        DummyPost(id: "6", type: .post, expiry: Date().addingTimeInterval(3600 * 4), people: [User.dummyUser], camps: [Camp(name: "Lacroix Lovers", image: .dummyAvatar)], attachments: [.dummyAvatar, .dummyAvatar, .dummyAvatar, .dummyAvatar])
     ]
 }
 

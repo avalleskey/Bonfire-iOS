@@ -39,8 +39,8 @@ class UserIdentityView: UIView {
     var textColor: TextColor = .standard {
         didSet {
             switch textColor {
-                case .standard: nameLabel.textColor = .label
-                case .light: nameLabel.textColor = .secondaryGray
+                case .standard: nameLabel.textColor = .text
+                case .light: nameLabel.textColor = .secondaryText
                 case .colored: nameLabel.textColor = user.color
             }
         }

@@ -59,13 +59,13 @@ final class BFNavigationController: UINavigationController {
 }
 
 extension BFNavigationController: UINavigationControllerDelegate {
-    func navigationController(
-        _ navigationController: UINavigationController, willShow viewController: UIViewController,
-        animated: Bool
-    ) {
-
-        switch viewController {
-        case is HomeViewController:
+//    func navigationController(
+//        _ navigationController: UINavigationController, willShow viewController: UIViewController,
+//        animated: Bool
+//    ) {
+//
+//        switch viewController {
+//        case is HomeViewController:
 //            let rightIcon = UIImage(named: "ComposeNavIcon")?.withRenderingMode(
 //                UIImage.RenderingMode.alwaysTemplate)
 //            viewController.navigationItem.rightBarButtonItem = .init(
@@ -75,39 +75,39 @@ extension BFNavigationController: UINavigationControllerDelegate {
 //                action: #selector(compose))
 //
 //            viewController.navigationItem.rightBarButtonItem?.tintColor = Constants.Color.primary
-            break
-        case is MessagesViewController:
-            let rightIcon = UIImage(named: "PlusNavIcon")?.withRenderingMode(
-                UIImage.RenderingMode.alwaysTemplate)
-            viewController.navigationItem.rightBarButtonItem = .init(
-                image: rightIcon,
-                style: .plain,
-                target: nil,
-                action: #selector(openAddFriends))
-            viewController.navigationItem.rightBarButtonItem?.tintColor = Constants.Color.primary
-
-        case is CampsViewController:
-            let rightIcon = UIImage(named: "PlusNavIcon")?.withRenderingMode(
-                UIImage.RenderingMode.alwaysTemplate)
-            viewController.navigationItem.rightBarButtonItem = .init(
-                image: rightIcon,
-                style: .plain,
-                target: nil,
-                action: #selector(openAddCamps))
-            viewController.navigationItem.rightBarButtonItem?.tintColor = Constants.Color.primary
-
-        case is ProfileViewController:
-            let rightIcon = UIImage(named: "SettingsNavIcon")?.withRenderingMode(
-                UIImage.RenderingMode.alwaysTemplate)
-            viewController.navigationItem.rightBarButtonItem = .init(
-                image: rightIcon,
-                style: .plain,
-                target: nil,
-                action: #selector(openSettings))
-        default:
-            break
-        }
-    }
+//            break
+//        case is MessagesViewController:
+//            let rightIcon = UIImage(named: "PlusNavIcon")?.withRenderingMode(
+//                UIImage.RenderingMode.alwaysTemplate)
+//            viewController.navigationItem.rightBarButtonItem = .init(
+//                image: rightIcon,
+//                style: .plain,
+//                target: nil,
+//                action: #selector(openAddFriends))
+//            viewController.navigationItem.rightBarButtonItem?.tintColor = Constants.Color.primary
+//
+//        case is CampsViewController:
+//            let rightIcon = UIImage(named: "PlusNavIcon")?.withRenderingMode(
+//                UIImage.RenderingMode.alwaysTemplate)
+//            viewController.navigationItem.rightBarButtonItem = .init(
+//                image: rightIcon,
+//                style: .plain,
+//                target: nil,
+//                action: #selector(openAddCamps))
+//            viewController.navigationItem.rightBarButtonItem?.tintColor = Constants.Color.primary
+//
+//        case is ProfileViewController:
+//            let rightIcon = UIImage(named: "SettingsNavIcon")?.withRenderingMode(
+//                UIImage.RenderingMode.alwaysTemplate)
+//            viewController.navigationItem.rightBarButtonItem = .init(
+//                image: rightIcon,
+//                style: .plain,
+//                target: nil,
+//                action: #selector(openSettings))
+//        default:
+//            break
+//        }
+//    }
 
     @objc private func openNotifications() {
         let notificationsViewController = NotificationsViewController()

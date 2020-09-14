@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import Hero
 import UIKit
 
 final class BFNavigationController: UINavigationController {
@@ -26,7 +25,6 @@ final class BFNavigationController: UINavigationController {
     override init(rootViewController: UIViewController) {
         super.init(rootViewController: rootViewController)
         delegate = self
-        hero.isEnabled = true
 
         navigationBar.barTintColor = Constants.Color.navigationBar
         navigationBar.isTranslucent = false

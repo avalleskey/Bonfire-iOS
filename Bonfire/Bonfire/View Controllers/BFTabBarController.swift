@@ -7,7 +7,6 @@
 //
 
 import BFNetworking
-import Hero
 import UIKit
 
 final class BFTabBarController: UITabBarController {
@@ -34,8 +33,6 @@ final class BFTabBarController: UITabBarController {
         tabBar.itemWidth = 80
         tabBar.itemPositioning = .centered
         tabBar.itemSpacing = 2
-
-        hero.isEnabled = false
 
         delegate = self
     }

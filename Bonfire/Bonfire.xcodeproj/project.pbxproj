@@ -125,7 +125,6 @@
 		1A847D5024B1E4C700530614 /* BFSummaries.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A847D4F24B1E4C700530614 /* BFSummaries.swift */; };
 		1A847D5224B1E4E000530614 /* BFCountSummaries.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A847D5124B1E4E000530614 /* BFCountSummaries.swift */; };
 		1A847D5524B1EDDB00530614 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 1A847D5424B1EDDB00530614 /* Kingfisher */; };
-		1A847D5824B2426200530614 /* Hero in Frameworks */ = {isa = PBXBuildFile; productRef = 1A847D5724B2426200530614 /* Hero */; };
 		1A847D5A24B2432800530614 /* CampDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A847D5924B2432800530614 /* CampDetailViewController.swift */; };
 		1A847D5D24B247C900530614 /* BFViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A847D5C24B247C900530614 /* BFViewController.swift */; };
 		1A8FD29924A4E73D00F9EC5F /* MyCampsResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A8FD29824A4E73D00F9EC5F /* MyCampsResponse.swift */; };
@@ -546,7 +545,6 @@
 				65E42E6024ED97FE00354393 /* Cartography in Frameworks */,
 				1A847D5524B1EDDB00530614 /* Kingfisher in Frameworks */,
 				1A844734249D4B88002813CB /* BFNetworking.framework in Frameworks */,
-				1A847D5824B2426200530614 /* Hero in Frameworks */,
 				1A7854C4249FBA5400BA1589 /* BFCore.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1516,7 +1514,6 @@
 			name = Bonfire;
 			packageProductDependencies = (
 				1A847D5424B1EDDB00530614 /* Kingfisher */,
-				1A847D5724B2426200530614 /* Hero */,
 				65E42E5F24ED97FE00354393 /* Cartography */,
 			);
 			productName = Bonfire;
@@ -1605,7 +1602,6 @@
 			mainGroup = 1A8446F1249C8652002813CB;
 			packageReferences = (
 				1A847D5324B1EDDB00530614 /* XCRemoteSwiftPackageReference "Kingfisher" */,
-				1A847D5624B2426200530614 /* XCRemoteSwiftPackageReference "Hero" */,
 				1A6F958724B8E6AC004A20F4 /* XCRemoteSwiftPackageReference "keychain-swift" */,
 				65E42E5E24ED97FE00354393 /* XCRemoteSwiftPackageReference "Cartography" */,
 			);
@@ -2404,14 +2400,6 @@
 				minimumVersion = 5.14.0;
 			};
 		};
-		1A847D5624B2426200530614 /* XCRemoteSwiftPackageReference "Hero" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/HeroTransitions/Hero.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.5.0;
-			};
-		};
 		65E42E5E24ED97FE00354393 /* XCRemoteSwiftPackageReference "Cartography" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/robb/Cartography.git";
@@ -2432,11 +2420,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 1A847D5324B1EDDB00530614 /* XCRemoteSwiftPackageReference "Kingfisher" */;
 			productName = Kingfisher;
-		};
-		1A847D5724B2426200530614 /* Hero */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 1A847D5624B2426200530614 /* XCRemoteSwiftPackageReference "Hero" */;
-			productName = Hero;
 		};
 		65E42E5F24ED97FE00354393 /* Cartography */ = {
 			isa = XCSwiftPackageProductDependency;

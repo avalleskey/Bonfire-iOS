@@ -14,7 +14,6 @@ final class CampDetailViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         if #available(iOS 13.0, *) { view.backgroundColor = .systemTeal }
-        hero.isEnabled = false
     }
 
 }

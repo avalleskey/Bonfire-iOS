@@ -2,12 +2,12 @@
   "object": {
     "pins": [
       {
-        "package": "Hero",
-        "repositoryURL": "https://github.com/HeroTransitions/Hero.git",
+        "package": "Cartography",
+        "repositoryURL": "https://github.com/robb/Cartography.git",
         "state": {
           "branch": null,
-          "revision": "ae951b89f23485de8a7b95aaa5cead7f78ab1df0",
-          "version": "1.5.0"
+          "revision": "b75197ea134f42b5feafb04b526b37eb1a41034b",
+          "version": "4.0.0"
         }
       },
       {
@@ -24,8 +24,8 @@
         "repositoryURL": "https://github.com/onevcat/Kingfisher.git",
         "state": {
           "branch": null,
-          "revision": "1339ebea9498ef6c3fc75cc195d7163d7c7167f9",
-          "version": "5.14.1"
+          "revision": "175eeb4618b0a6ef4d69a7409b6a74ddd235a093",
+          "version": "5.15.0"
         }
       }
     ]

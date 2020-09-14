@@ -67,8 +67,6 @@ final class CampsTableViewController: UITableViewController {
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let detailView = CampDetailViewController()
-        detailView.hero.isEnabled = true
-        detailView.heroModalAnimationType = .push(direction: .leading)
         detailView.modalPresentationStyle = .fullScreen
 
         present(detailView, animated: true)

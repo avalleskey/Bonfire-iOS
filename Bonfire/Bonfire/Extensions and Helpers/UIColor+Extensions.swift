@@ -18,7 +18,7 @@ extension UIColor {
         (r, g, b, a) = (0, 0, 0, 0)
         self.getRed(&r, green: &g, blue: &b, alpha: &a)
         let lum = 0.2126 * r + 0.7152 * g + 0.0722 * b
-        return lum < 0.50
+        return lum < 0.66
     }
 
     // MARK: - Initialization
@@ -101,6 +101,17 @@ extension UIColor {
             return String(
                 format: "%02lX%02lX%02lX", lroundf(r * 255), lroundf(g * 255), lroundf(b * 255))
         }
+    }
+    
+    var colorComponents: (red: CGFloat, green: CGFloat, blue: CGFloat, alpha: CGFloat)? {
+        guard let components = self.cgColor.components else { return nil }
+
+        return (
+            red: components[0],
+            green: components[1],
+            blue: components[2],
+            alpha: components[3]
+        )
     }
 
 }

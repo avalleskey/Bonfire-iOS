@@ -22,7 +22,8 @@ public struct Camp: Codable, Hashable {
 
     public struct Attributes: Codable {
         public let title: String
-        public let description: String
+        public let description: String?
+        public let identifier: String?
         public let color: String
         public let createdAt: Date?
         public let suspended: Bool

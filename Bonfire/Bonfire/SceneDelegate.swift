@@ -31,21 +31,18 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let feedViewController = FeedViewController()
         let feedNavigationController = UINavigationController(rootViewController: feedViewController)
         feedPopRecognizer = InteractivePopRecognizer(controller: feedNavigationController)
-        feedNavigationController.interactivePopGestureRecognizer?.delegate = feedPopRecognizer
         feedNavigationController.isNavigationBarHidden = true
         feedViewController.tabBarItem = UITabBarItem(title: "", image: Constants.TabBar.homeDefaultImage, tag: 1)
 
-        let messagesViewController = MessagesViewController()
+        let messagesViewController = MessagesListViewController()
         let messagesNavigationController = UINavigationController(rootViewController: messagesViewController)
         messagesPopRecognizer = InteractivePopRecognizer(controller: messagesNavigationController)
-        messagesNavigationController.interactivePopGestureRecognizer?.delegate = messagesPopRecognizer
         messagesNavigationController.isNavigationBarHidden = true
         messagesNavigationController.tabBarItem = UITabBarItem(title: "", image: Constants.TabBar.friendsDefaultImage, tag: 2)
 
         let campsViewController = CampsViewController()
         let campsNavigationController = UINavigationController(rootViewController: campsViewController)
         campsPopRecognizer = InteractivePopRecognizer(controller: campsNavigationController)
-        campsNavigationController.interactivePopGestureRecognizer?.delegate = campsPopRecognizer
         campsNavigationController.isNavigationBarHidden = true
         campsNavigationController.tabBarItem = UITabBarItem(title: "", image: Constants.TabBar.campsDefaultImage, tag: 3)
 

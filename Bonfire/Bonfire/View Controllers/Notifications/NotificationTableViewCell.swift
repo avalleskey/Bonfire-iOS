@@ -235,7 +235,7 @@ final class NotificationTableViewCell: UITableViewCell {
             detailsStackView.topAnchor.constraint(equalTo: profileImageView.topAnchor),
             detailsStackView.heightAnchor.constraint(equalTo: textStackView.heightAnchor),
 
-            previewPostImageContainerView.widthAnchor.constraint(equalToConstant: 44),
+            previewPostImageContainerView.widthAnchor.constraint(equalToConstant: 42),
             previewPostImageContainerView.heightAnchor.constraint(
                 equalTo: profileImageView.heightAnchor),
             previewPostImageView.centerYAnchor.constraint(

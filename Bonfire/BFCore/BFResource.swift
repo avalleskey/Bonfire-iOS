@@ -14,6 +14,8 @@ public enum BFResourceType: String, Codable {
     case section
     case post
     case user_activity
+    case media
+    case link
 }
 
 public protocol BFResource: Codable {

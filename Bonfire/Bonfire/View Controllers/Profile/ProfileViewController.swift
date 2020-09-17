@@ -12,7 +12,6 @@ import UIKit
 final class ProfileViewController: UIViewController {
 
     private let headerView = ProfileHeaderView()
-    private let feedTableView = BFFeedTableViewController()
     private let streams = StreamController()
     private let profiles = ProfileController()
 
@@ -21,18 +20,8 @@ final class ProfileViewController: UIViewController {
 
         navigationItem.title = "Profile"
 
-        addChild(feedTableView)
-        view.addSubview(feedTableView.view)
-        feedTableView.tableView.tableHeaderView = headerView
-
         updateViewConstraints()
     }
-
-    func __tempUpdatePost(post: Post) {
-        feedTableView.posts = [post]
-        feedTableView.tableView.reloadData()
-    }
-
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         navigationController?.interactivePopGestureRecognizer?.delegate = self
@@ -47,17 +36,6 @@ final class ProfileViewController: UIViewController {
         super.updateViewConstraints()
 
         headerView.translatesAutoresizingMaskIntoConstraints = false
-        feedTableView.view.translatesAutoresizingMaskIntoConstraints = false
-
-        NSLayoutConstraint.activate([
-            feedTableView.view.topAnchor.constraint(equalTo: view.topAnchor),
-            feedTableView.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            feedTableView.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            feedTableView.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-
-            headerView.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.8),
-            headerView.widthAnchor.constraint(equalTo: feedTableView.tableView.widthAnchor),
-        ])
     }
 
     func update(user: User) {
@@ -72,8 +50,8 @@ final class ProfileViewController: UIViewController {
     func load(id: String) {
         streams.getStream(user: id) { (posts) in
             DispatchQueue.main.async {
-                self.feedTableView.posts = posts
-                self.feedTableView.tableView.reloadData()
+//                self.feedTableView.posts = posts
+//                self.feedTableView.tableView.reloadData()
                 
             }
         }

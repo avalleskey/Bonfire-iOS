@@ -11,14 +11,16 @@ import BFNetworking
 import Foundation
 
 final class NotificationController: NotificationControllerProtocol {
-    func getNotifications(completion: @escaping (Result<[UserActivity], Error>) -> Void) {
-        let api = APIClient.shared
+    
+    private let api = APIClient.shared
+    
+    func getNotifications(completion: @escaping ([UserActivity]) -> Void) {
         api.send(UserNotificationsRequest()) { (result) in
             switch result {
             case .success(let response):
-                completion(.success(response.data))
+                completion(response.data)
             case .failure(let error):
-                completion(.failure(error))
+                break
             }
         }
     }

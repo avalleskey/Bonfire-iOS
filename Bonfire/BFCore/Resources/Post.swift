@@ -34,9 +34,11 @@ public struct Post: BFResource, Hashable {
 
     public struct Attachments: Codable {
         public let media: [BFMediaAttachment]?
+        public let link: BFLinkAttachment?
     }
 
     public class Attributes: Codable {
+        public let createdAt: String?
         public let message: String?
         public let creator: User
         public let postedIn: Camp?
@@ -45,6 +47,7 @@ public struct Post: BFResource, Hashable {
         public let attachments: Attachments?
 
         enum CodingKeys: String, CodingKey {
+            case createdAt = "created_at"
             case message
             case creator
             case postedIn = "posted_in"

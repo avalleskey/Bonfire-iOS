@@ -6,6 +6,7 @@
 //  Copyright © 2020 Ingenious. All rights reserved.
 //
 
+import BFCore
 import Foundation
 import UIKit
 
@@ -20,15 +21,15 @@ enum AppLink {
     var viewController: UIViewController {
         switch self {
         case .post(let postId):
-            let vc = BFFeedTableViewController()
+            let vc = UIViewController()
             return vc
         case .profile(let profileId):
             let vc = ProfileViewController()
             vc.load(id: profileId)
             return vc
         case .camp(let campId):
-            let vc = CampViewController()
-            return vc
+//            let vc = CampViewController(camp: nil)
+            return TestViewController()
         case .compose:
             let vc = CreatePostViewController()
             return vc

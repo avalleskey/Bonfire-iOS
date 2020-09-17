@@ -10,6 +10,23 @@ import UIKit
 
 // default nav item extensions to come
 extension UIViewController {
+    func topMostViewController() -> UIViewController {
+        
+        if let presented = self.presentedViewController {
+            return presented.topMostViewController()
+        }
+        
+        if let navigation = self as? UINavigationController {
+            return navigation.visibleViewController?.topMostViewController() ?? navigation
+        }
+        
+        if let tab = self as? UITabBarController {
+            return tab.selectedViewController?.topMostViewController() ?? tab
+        }
+        
+        return self
+    }
+    
     func scrollToTop() {
         func scrollToTop(view: UIView?) {
             guard let view = view else { return }

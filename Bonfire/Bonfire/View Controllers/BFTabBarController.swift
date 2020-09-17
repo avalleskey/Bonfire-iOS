@@ -8,9 +8,16 @@
 
 import BFNetworking
 import UIKit
+import Cartography
 
 final class BFTabBarController: UITabBarController {
-
+    
+    private let tabBarBlurredBackgroundView: UIVisualEffectView = {
+        let blurView = UIVisualEffectView(effect: UIBlurEffect(style: .regular))
+        blurView.backgroundColor = Constants.Color.tabBar
+        return blurView
+    }()
+    
     override var selectedViewController: UIViewController? {
         didSet {
             if oldValue == selectedViewController {
@@ -22,12 +29,25 @@ final class BFTabBarController: UITabBarController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        tabBar.backgroundColor = Constants.Color.tabBar
-        tabBar.isTranslucent = false
-        tabBar.barTintColor = Constants.Color.tabBar
+        
+        let separator = UIView(backgroundColor: Constants.Color.tabBarSeparator)
+        tabBar.addSubview(separator)
+        constrain(separator) {
+            $0.width == $0.superview!.width
+            $0.height == (1 / UIScreen.main.scale)
+            $0.bottom == $0.superview!.top
+        }
+        
+        tabBar.insertSubview(tabBarBlurredBackgroundView, at: 0)
+        constrain(tabBarBlurredBackgroundView) {
+            $0.edges == $0.superview!.edges
+        }
+        
+        tabBar.backgroundColor = .clear //Constants.Color.tabBar
+        tabBar.isTranslucent = true
+        tabBar.barTintColor = .clear //Constants.Color.tabBar
         tabBar.backgroundImage = UIImage()
-        tabBar.shadowImage = UIImage() //UIImage(named: "TabBarShadow")
+        tabBar.shadowImage = UIImage()
         tabBar.tintColor = Constants.Color.primary
         tabBar.unselectedItemTintColor = Constants.Color.secondary.withAlphaComponent(0.5)
         tabBar.itemWidth = 80

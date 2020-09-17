@@ -38,16 +38,16 @@ struct Constants {
         }()
 
         static let tabBar: UIColor = {
-            if #available(iOS 13.0, *) {
-                return UIColor { (traits) -> UIColor in
-                    // Return one of two colors depending on light or dark mode
-                    return traits.userInterfaceStyle == .dark
-                        ? UIColor.secondarySystemBackground : UIColor.white
-                }
-            } else {
-                // Same old color used for iOS 12 and earlier
-                return UIColor.white
-            }
+            let light: UIColor = Constants.Color.systemBackground.withAlphaComponent(0.9)
+            let dark: UIColor = Constants.Color.systemBackground.withAlphaComponent(0.8)
+
+            return UIColor.dynamicColor(light: light, dark: dark)
+        }()
+        static let tabBarSeparator: UIColor = {
+            let light: UIColor = UIColor(white: 0, alpha: 0.12)
+            let dark: UIColor = UIColor(white: 1, alpha: 0.16)
+
+            return UIColor.dynamicColor(light: light, dark: dark)
         }()
 
         static let systemBackground: UIColor = {
@@ -111,16 +111,37 @@ struct Constants {
             return UIColor.dynamicColor(light: light, dark: dark)
         }()
 
-        static let textBorder: UIColor = {
+        static let borderColor: UIColor = {
             let light: UIColor = UIColor(white: 0, alpha: 0.08)
             let dark: UIColor = UIColor(white: 1, alpha: 0.16)
 
             return UIColor.dynamicColor(light: light, dark: dark)
         }()
+        
+        static let separatorColor: UIColor = {
+            let light: UIColor = UIColor(red: 238 / 255, green: 238 / 255, blue: 240 / 255, alpha: 1)
+            let dark: UIColor = UIColor(red: 51 / 255, green: 51 / 255, blue: 56 / 255, alpha: 1)
+
+            return UIColor.dynamicColor(light: light, dark: dark)
+        }()
 
         static let cellHighlightedBackground: UIColor = {
-            let light: UIColor = UIColor(white: 0, alpha: 0.08)
-            let dark: UIColor = UIColor(white: 1, alpha: 0.16)
+            let light: UIColor = UIColor(white: 0, alpha: 0.06)
+            let dark: UIColor = UIColor(white: 1, alpha: 0.08)
+
+            return UIColor.dynamicColor(light: light, dark: dark)
+        }()
+        
+        static let textFieldBackground: UIColor = {
+            let light: UIColor = UIColor(red: 240 / 255, green: 240 / 255, blue: 242 / 255, alpha: 1)
+            let dark: UIColor = UIColor(red: 12 / 255, green: 12 / 255, blue: 14 / 255, alpha: 1)
+
+            return UIColor.dynamicColor(light: light, dark: dark)
+        }()
+        
+        static let shadedButtonBackgroundColor: UIColor = {
+            let light: UIColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.03)
+            let dark: UIColor = UIColor(red: 1, green: 1, blue: 1, alpha: 0.12)
 
             return UIColor.dynamicColor(light: light, dark: dark)
         }()

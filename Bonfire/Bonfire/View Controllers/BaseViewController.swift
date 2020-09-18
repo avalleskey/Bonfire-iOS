@@ -17,19 +17,25 @@ import Cartography
  scroll view to BaseViewController on super.init.
  */
 
-class BaseViewController: UIViewController {
-        
+class BaseViewController: UIViewController, CustomPresentable {
     var navigationBar: NavigationBar
     var floatingButton: BFFloatingButton?
+    
+    // CustomPresentable
+    var dismissalHandlingScrollView: UIScrollView?
+    var transitionManager: UIViewControllerTransitioningDelegate?
+    var interactionController: PushInteractionController?
 
-    init(navigationBar: NavigationBar, scrollView: UIScrollView, floatingButton: BFFloatingButton? = nil) {
+    init(navigationBar: NavigationBar, scrollView: UIScrollView?, floatingButton: BFFloatingButton? = nil) {
         self.navigationBar = navigationBar
         self.floatingButton = floatingButton
-        
+        self.dismissalHandlingScrollView = scrollView
         super.init(nibName: nil, bundle: nil)
         
-        scrollView.delegate = self
-        updateTopOffset(scrollView: scrollView)
+        if let scrollView = scrollView {
+            scrollView.delegate = self
+            updateTopOffset(scrollView: scrollView)
+        }
     }
 
     required init?(coder: NSCoder) {
@@ -38,6 +44,14 @@ class BaseViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        // support custom push/pop transitions
+        if let navigationController = self.navigationController {
+            if navigationController.viewControllers.count > 1 {
+                self.interactionController = PushInteractionController(viewController: self)
+            }
+        }
+        
         setUpNavigationBar()
         setUpFloatingButtonIfNeeded()
     }
@@ -55,9 +69,15 @@ class BaseViewController: UIViewController {
 
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        setNeedsStatusBarAppearanceUpdate()
+    }
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-//        showFloatingButtonIfNeeded(animated: !animated)
+        
+        self.navigationController?.delegate = self
     }
 
     private func setUpNavigationBar() {
@@ -117,6 +137,14 @@ class BaseViewController: UIViewController {
         }
         scrollView.scrollIndicatorInsets = UIEdgeInsets(top: navigationBar.height + ((navigationBar.contentViewHeightConstraint?.constant ?? NavigationBar.coreHeight) - NavigationBar.coreHeight), left: 0, bottom: 0, right: 0)
     }
+    
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        let darkBackground = navigationBar.backgroundColor?.isDarkColor ?? false
+        return darkBackground ? .lightContent : .default
+    }
+    override var preferredStatusBarUpdateAnimation: UIStatusBarAnimation {
+        return .fade
+    }
 }
 
 extension BaseViewController: NavigationBarScrollHandling {
@@ -152,5 +180,28 @@ extension BaseViewController: NavigationBarScrollHandling {
 
     func scrollViewDidScrollToTop(_ scrollView: UIScrollView) {
         navigationBar.scrollViewDidScrollToTop(scrollView)
+    }
+}
+
+extension BaseViewController: UINavigationControllerDelegate {
+
+    public func navigationController(_ navigationController: UINavigationController, interactionControllerFor animationController: UIViewControllerAnimatedTransitioning) -> UIViewControllerInteractiveTransitioning? {
+        guard let interactionController = interactionController, interactionController.interactionInProgress else {
+            return nil
+        }
+        return interactionController
+    }
+    public func navigationController(_ navigationController: UINavigationController,
+                              animationControllerFor operation: UINavigationController.Operation,
+                              from fromVC: UIViewController,
+                              to toVC: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+        switch operation {
+        case .push:
+            return PushTransitionAnimator(pushing: true)
+        case .pop:
+            return PushTransitionAnimator(pushing: false)
+        default:
+            return nil
+        }
     }
 }

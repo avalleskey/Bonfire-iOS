@@ -10,14 +10,11 @@ import BFCore
 import UIKit
 import Cartography
 
-final class SetStatusViewController: BaseViewController, CustomPresentable {
-    var transitionManager: UIViewControllerTransitioningDelegate?
-    var dismissalHandlingScrollView: UIScrollView?
-    
+final class SetStatusViewController: BaseViewController {    
     private let tableView: UITableView = .make(cellReuseIdentifier: SetStatusCell.reuseIdentifier, cellClass: SetStatusCell.self, topOffset: NavigationBar.coreHeight)
     private let controller = SetStatusController()
 
-    init() {
+    init() {        
         super.init(navigationBar: NavigationBar(color: Constants.Color.systemBackground, title: "My Status", hideOnScroll: false, showPullTab: true), scrollView: tableView)
     }
     
@@ -42,8 +39,6 @@ final class SetStatusViewController: BaseViewController, CustomPresentable {
 
         tableView.dataSource = self
         tableView.delegate = self
-        
-        dismissalHandlingScrollView = tableView
     }
 
 }

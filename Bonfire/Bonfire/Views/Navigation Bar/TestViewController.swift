@@ -10,6 +10,7 @@ import UIKit
 import Cartography
 
 class TestViewController: UIViewController, CustomPresentable {
+    var interactionController: PushInteractionController?
     var transitionManager: UIViewControllerTransitioningDelegate?
 
     private let button = UIButton(contentColor: .systemBlue, title: "Dismiss", textFormat: (16, .bold), height: 36, systemButton: true)

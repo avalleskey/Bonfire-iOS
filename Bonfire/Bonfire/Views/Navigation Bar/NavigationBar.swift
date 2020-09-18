@@ -36,7 +36,7 @@ class NavigationBar: UIView {
     private let rightButton = NavigationButton()
     private let centerButton = UIButton(width: 44, height: 44, cornerRadius: 22, systemButton: false)
 
-    private let titleStackView = UIStackView(axis: .vertical, alignment: .center)
+    private let titleStackView = UIStackView(axis: .vertical, alignment: .center, spacing: 2)
     private let titleLabel = UILabel(size: 20, weight: .heavy, multiline: false)
     private let subtitleLabel = UILabel(size: 12, weight: .bold, color: Constants.Color.secondary, multiline: false)
 
@@ -237,6 +237,9 @@ class NavigationBar: UIView {
         }
 
         titleStackView.isHidden = titleLabel.isHidden && subtitleLabel.isHidden
+        
+        let tapRecognizer = UITapGestureRecognizer(target: self, action: #selector(centerButtonTapped))
+        titleStackView.addGestureRecognizer(tapRecognizer)
     }
 
     // MARK: - Scroll handling methods

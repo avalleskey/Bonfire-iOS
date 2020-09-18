@@ -18,49 +18,75 @@ class FeedCellActionView: UIView {
 
     weak var delegate: FeedCellActionDelegate?
 
-    var post: Post! {
+    var type: FeedCellType! {
         didSet {
-            primaryActionButton.title = "Like"
-            primaryActionButton.image = UIImage(named: "PostLikeIcon")
-            secondaryActionButton.isHidden = false
-            secondaryActionButton.title = "Message"
-            secondaryActionButton.image = UIImage(named: "PostChatIcon")
-            primaryActionButton.color = post.attributes.creator.attributes.uiColor ?? .systemBlue
-            secondaryActionButton.color = post.attributes.creator.attributes.uiColor ?? .systemBlue
+            switch type {
+                case .post(let post):
+                    primaryActionButton.selectable = true
+                    primaryActionButton.title = "Like"
+                    primaryActionButton.selectedTitle = "Liked!"
+                    primaryActionButton.image = UIImage(named: "PostLikeIcon")
+                    primaryActionButton.setSelected(true)
+                    secondaryActionButton.isHidden = false
+                    secondaryActionButton.title = "Message"
+                    secondaryActionButton.image = UIImage(named: "PostChatIcon")
+                    primaryActionButton.color = post.attributes.creator.attributes.uiColor ?? .systemBlue
+                    secondaryActionButton.color = post.attributes.creator.attributes.uiColor ?? .systemBlue
+                case .statusUpdate:
+                    primaryActionButton.selectable = true
+                    primaryActionButton.title = "Like"
+                    primaryActionButton.selectedTitle = "Liked!"
+                    primaryActionButton.image = UIImage(named: "PostLikeIcon")
 
+                    secondaryActionButton.isHidden = false
+                    secondaryActionButton.title = "Message"
+                    secondaryActionButton.image = UIImage(named: "PostChatIcon")
+                case .suggestion:
+//                    if post.people.isEmpty {
+//                        primaryActionButton.title = "Join Camp"
+//                        primaryActionButton.image = UIImage(named: "PostAddFriendIcon")
+//                    } else {
+//                        primaryActionButton.title = "Add Friend"
+//                        primaryActionButton.image = UIImage(named: "PostAddFriendIcon")
+//                    }
+
+                    secondaryActionButton.isHidden = false
+                    secondaryActionButton.title = "Ignore"
+                    secondaryActionButton.image = UIImage(named: "PostIgnoreIcon")
+                default:
+                    break
+            }
+            
             // TODO: The commented out code below worked with the DummyPost type.
-            // There is work left to be done here to get other post types (live right now, suggestion, status update)
+            // There is work left to be done here to get these other post types (live right now, suggestion, status update)
             // working with real data from the backend, but the UI should all be here and ready to plug into.
 
+//            replyView.replies = post.replies
+//
 //            switch post.type {
+//            case .liveRightNow:
+//                insertContent(LiveContentView(camps: post.camps))
+//                actionView.isHidden = true
+//                replyView.isHidden = true
 //            case .post:
-//                primaryActionButton.title = "Like"
-//                primaryActionButton.image = UIImage(named: "PostLikeIcon")
-//
-//                secondaryActionButton.isHidden = false
-//                secondaryActionButton.title = "Message"
-//                secondaryActionButton.image = UIImage(named: "PostChatIcon")
+//                insertContent(PostContentView(post: post))
+//                actionView.isHidden = false
+//                replyView.isHidden = false
 //            case .statusUpdate:
-//                primaryActionButton.title = "Like"
-//                primaryActionButton.image = UIImage(named: "PostLikeIcon")
-//
-//                secondaryActionButton.isHidden = false
-//                secondaryActionButton.title = "Message"
-//                secondaryActionButton.image = UIImage(named: "PostChatIcon")
-//            case .suggestion:
-//                if post.people.isEmpty {
-//                    primaryActionButton.title = "Join Camp"
-//                    primaryActionButton.image = UIImage(named: "PostAddFriendIcon")
-//                } else {
-//                    primaryActionButton.title = "Add Friend"
-//                    primaryActionButton.image = UIImage(named: "PostAddFriendIcon")
+//                if let status = post.people.first?.status {
+//                    insertContent(StatusContentView(status: status))
+//                    actionView.isHidden = false
 //                }
-//
-//                secondaryActionButton.isHidden = false
-//                secondaryActionButton.title = "Ignore"
-//                secondaryActionButton.image = UIImage(named: "PostIgnoreIcon")
-//            default:
-//                break
+//                replyView.isHidden = true
+//            case .suggestion:
+//                if let friend = post.people.first {
+//                    insertContent(SuggestionContentView(suggestion: friend))
+//                    actionView.isHidden = false
+//                } else if let camp = post.camps.first {
+//                    insertContent(SuggestionContentView(suggestion: camp))
+//                    actionView.isHidden = false
+//                }
+//                replyView.isHidden = true
 //            }
         }
     }

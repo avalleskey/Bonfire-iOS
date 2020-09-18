@@ -1,14 +1,14 @@
 //
-//  PresentInteractionController.swift
+//  PushInteractionController.swift
 //  Bonfire
 //
-//  Created by Daniel Gauthier on 2020-09-11.
+//  Created by Austin Valleskey on 9/17/20.
 //  Copyright © 2020 Ingenious. All rights reserved.
 //
 
 import UIKit
 
-class PresentInteractionController: NSObject, InteractionControlling {
+class PushInteractionController: NSObject, InteractionControlling {
     private(set) var interactionInProgress = false
     private var interactionIsFinishing = false
     private weak var viewController: CustomPresentable!
@@ -17,7 +17,10 @@ class PresentInteractionController: NSObject, InteractionControlling {
     private var interactionDistance: CGFloat = 0
     private var interruptedTranslation: CGFloat = 0
     private var presentedFrame: CGRect?
+    private var presentingFrame: CGRect?
     private var cancellationAnimator: UIViewPropertyAnimator?
+    
+    lazy var fadeView = UIView(backgroundColor: .fade, alpha: 0.0)
 
     // MARK: - Setup
     init(viewController: CustomPresentable) {
@@ -28,6 +31,8 @@ class PresentInteractionController: NSObject, InteractionControlling {
         if let scrollView = viewController.dismissalHandlingScrollView {
             resolveScrollViewGestures(scrollView)
         }
+        
+        print("here we go. just set up a interaction controller for this view: \(viewController)")
     }
 
     private func prepareGestureRecognizer(in view: UIView) {
@@ -47,8 +52,8 @@ class PresentInteractionController: NSObject, InteractionControlling {
     // MARK: - Gesture handling
     @objc func handleGesture(_ gestureRecognizer: OneWayPanGestureRecognizer) {
         guard let superview = gestureRecognizer.view?.superview, !interactionIsFinishing else { return }
-        let translation = gestureRecognizer.translation(in: superview).y
-        let velocity = gestureRecognizer.velocity(in: superview).y
+        let translation = gestureRecognizer.translation(in: superview).x
+        let velocity = gestureRecognizer.velocity(in: superview).x
 
         switch gestureRecognizer.state {
         case .began: gestureBegan()
@@ -64,12 +69,13 @@ class PresentInteractionController: NSObject, InteractionControlling {
         cancellationAnimator?.stopAnimation(true)
 
         if let presentedFrame = presentedFrame {
-            interruptedTranslation = viewController.view.frame.minY - presentedFrame.minY
+            interruptedTranslation = viewController.view.frame.minX - presentedFrame.minX
         }
 
         if !interactionInProgress {
             interactionInProgress = true
-            viewController.dismiss(animated: true)
+            viewController.prepareViewControllerForPush()
+            viewController.navigationController?.popViewController(animated: true)
         }
     }
 
@@ -100,34 +106,61 @@ class PresentInteractionController: NSObject, InteractionControlling {
 
     // MARK: - Transition controlling
     func startInteractiveTransition(_ transitionContext: UIViewControllerContextTransitioning) {
-        guard let presentedViewController = transitionContext.viewController(forKey: .from) else { return }
-        presentedFrame = transitionContext.finalFrame(for: presentedViewController)
+        guard
+            let presentingViewController = transitionContext.viewController(forKey: .to),
+            let presentedViewController = transitionContext.viewController(forKey: .from)
+        else { return }
+        
+        let containerView = transitionContext.containerView
+        
+        containerView.insertSubview(presentingViewController.view, belowSubview: presentedViewController.view)
+        containerView.insertSubview(fadeView, belowSubview: presentedViewController.view)
+        
+        presentedFrame = transitionContext.containerView.bounds
+        presentingFrame = CGRect(x: transitionContext.containerView.bounds.width * PushTransition.Constants.BottomView.xTranslationMultiplier, y: transitionContext.containerView.bounds.minY, width: presentingViewController.view.frame.size.width, height: presentingViewController.view.frame.size.height)
+        
+        fadeView.frame = containerView.frame
+        
         self.transitionContext = transitionContext
-        interactionDistance = transitionContext.containerView.bounds.height - presentedFrame!.minY
+        interactionDistance = transitionContext.containerView.bounds.width - presentedViewController.view.frame.minX
+        
+        print("interactionDistance: \(interactionDistance)")
     }
 
     func update(progress: CGFloat) {
-        guard let transitionContext = transitionContext, let presentedFrame = presentedFrame, let presentedViewController = transitionContext.viewController(forKey: .from) else { return }
+        guard
+            let transitionContext = transitionContext,
+            let presentedFrame = presentedFrame,
+            let presentingFrame = presentingFrame,
+            let presentingViewController = transitionContext.viewController(forKey: .to),
+            let presentedViewController = transitionContext.viewController(forKey: .from)
+        else { return }
+        
         transitionContext.updateInteractiveTransition(progress)
-        presentedViewController.view.frame = CGRect(x: presentedFrame.minX, y: presentedFrame.minY + interactionDistance * progress, width: presentedFrame.width, height: presentedFrame.height)
+        
+        presentedViewController.view.frame = CGRect(x: presentedFrame.minX + interactionDistance * progress, y: presentedFrame.minY, width: presentedFrame.width, height: presentedFrame.height)
+        presentingViewController.view.frame = CGRect(x: presentingFrame.minX - (interactionDistance * PushTransition.Constants.BottomView.xTranslationMultiplier) * progress, y: presentedFrame.minY, width: presentedFrame.width, height: presentedFrame.height)
 
-        if let presentationController = presentedViewController.presentationController as? PresentPresentationController {
-            presentationController.fadeView.alpha = 1.0 - progress
-        }
+        fadeView.alpha = 1.0 - progress
     }
 
     func cancel(initialSpringVelocity: CGFloat) {
-        guard let transitionContext = transitionContext, let presentedFrame = presentedFrame, let presentedViewController = transitionContext.viewController(forKey: .from) else { return }
+        guard
+            let transitionContext = transitionContext,
+            let presentedFrame = presentedFrame,
+            let presentingFrame = presentingFrame,
+            let presentingViewController = transitionContext.viewController(forKey: .to),
+            let presentedViewController = transitionContext.viewController(forKey: .from)
+        else { return }
 
-        let timingParameters = UISpringTimingParameters(dampingRatio: 0.8, initialVelocity: CGVector(dx: 0, dy: initialSpringVelocity))
-        cancellationAnimator = UIViewPropertyAnimator(duration: 0.5, timingParameters: timingParameters)
+        let timingParameters = UISpringTimingParameters(dampingRatio: PushTransition.Constants.popDamping, initialVelocity: CGVector(dx: 0, dy: initialSpringVelocity))
+        cancellationAnimator = UIViewPropertyAnimator(duration: PushTransition.Constants.popDuration, timingParameters: timingParameters)
 
         cancellationAnimator?.addAnimations {
+            presentingViewController.view.frame = presentingFrame
             presentedViewController.view.frame = presentedFrame
 
-            if let presentationController = presentedViewController.presentationController as? PresentPresentationController {
-                presentationController.fadeView.alpha = 1.0
-            }
+            self.fadeView.alpha = 1.0
         }
 
         cancellationAnimator?.addCompletion { _ in
@@ -135,32 +168,41 @@ class PresentInteractionController: NSObject, InteractionControlling {
             transitionContext.completeTransition(false)
             self.interactionInProgress = false
             self.enableOtherTouches()
+            
+            presentingViewController.view.removeFromSuperview()
+            self.fadeView.removeFromSuperview()
         }
 
         cancellationAnimator?.startAnimation()
     }
 
     func finish(initialSpringVelocity: CGFloat) {
-        guard let transitionContext = transitionContext, let presentedFrame = presentedFrame, let presentedViewController = transitionContext.viewController(forKey: .from) else { return }
-        let dismissedFrame = CGRect(x: presentedFrame.minX, y: transitionContext.containerView.bounds.height, width: presentedFrame.width, height: presentedFrame.height)
+        guard
+            let transitionContext = transitionContext,
+            let presentedFrame = presentedFrame,
+            let presentingViewController = transitionContext.viewController(forKey: .to),
+            let presentedViewController = transitionContext.viewController(forKey: .from)
+        else { return }
+        
+        let dismissedFrame = CGRect(x: transitionContext.containerView.bounds.width, y: presentedFrame.minY, width: presentedFrame.width, height: presentedFrame.height)
 
         interactionIsFinishing = true
 
-        let timingParameters = UISpringTimingParameters(dampingRatio: 0.8, initialVelocity: CGVector(dx: 0, dy: initialSpringVelocity))
-        let finishAnimator = UIViewPropertyAnimator(duration: 0.5, timingParameters: timingParameters)
+        let timingParameters = UISpringTimingParameters(dampingRatio: PushTransition.Constants.popDamping, initialVelocity: CGVector(dx: 0, dy: initialSpringVelocity))
+        let finishAnimator = UIViewPropertyAnimator(duration: PushTransition.Constants.popDuration, timingParameters: timingParameters)
 
         finishAnimator.addAnimations {
+            presentingViewController.view.frame = presentedFrame
             presentedViewController.view.frame = dismissedFrame
 
-            if let presentationController = presentedViewController.presentationController as? PresentPresentationController {
-                presentationController.fadeView.alpha = 0.0
-            }
+            self.fadeView.alpha = 0.0
         }
 
         finishAnimator.addCompletion { _ in
             transitionContext.finishInteractiveTransition()
             transitionContext.completeTransition(true)
             self.interactionInProgress = false
+            self.fadeView.removeFromSuperview()
         }
 
         finishAnimator.startAnimation()
@@ -188,10 +230,10 @@ class PresentInteractionController: NSObject, InteractionControlling {
 // This func enables the following behaviour:
 // If the scroll view is scrolled to the top, and a swipe gesture is detected, activate dismissal swipe gesture.
 // If scroll view isn't at the top, and a swipe gesture is detected, activate scroll view swipe gesture.
-extension PresentInteractionController: UIGestureRecognizerDelegate {
+extension PushInteractionController: UIGestureRecognizerDelegate {
     func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
         if let scrollView = viewController.dismissalHandlingScrollView {
-            return scrollView.contentOffset.y <= 0
+            return scrollView.contentOffset.x <= 0
         }
         return true
     }

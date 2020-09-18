@@ -179,10 +179,9 @@ extension CampsViewController: UITableViewDelegate {
 extension CampsViewController: BFFloatingButtonDelegate {
     func floatingButtonTapped() {
         let options = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-        options.view.tintColor = Constants.Color.primary
 
         let joinCamp = UIAlertAction(
-            title: "🏕 Join Camp", style: .default,
+            title: "Join Camp 🏕", style: .default,
             handler: { (action) in
                 let joinCampAlert = UIAlertController(title: "🏕 Join with Camptag", message: "Ask someone who's in the Camp for their #Camptag to join!", preferredStyle: .alert)
 
@@ -207,7 +206,7 @@ extension CampsViewController: BFFloatingButtonDelegate {
         options.addAction(joinCamp)
 
         let createCamp = UIAlertAction(
-            title: "✏️ Create Camp", style: .default,
+            title: "Create Camp ➕", style: .default,
             handler: { (action) in
                 
             })

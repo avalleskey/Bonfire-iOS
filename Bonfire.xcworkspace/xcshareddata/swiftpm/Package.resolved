@@ -74,6 +74,15 @@
         }
       },
       {
+        "package": "LTMorphingLabel",
+        "repositoryURL": "https://github.com/lexrus/LTMorphingLabel",
+        "state": {
+          "branch": null,
+          "revision": "c5471a42692c5f62e129e321dd2d7a25de405a48",
+          "version": "0.8.1"
+        }
+      },
+      {
         "package": "MarkdownGenerator",
         "repositoryURL": "https://github.com/eneko/MarkdownGenerator.git",
         "state": {
@@ -98,6 +107,15 @@
           "branch": null,
           "revision": "bf90dc69fa0792894b08a0b74cf34029694ae486",
           "version": "0.13.0"
+        }
+      },
+      {
+        "package": "PullUpController",
+        "repositoryURL": "https://github.com/MarioIannotta/PullUpController",
+        "state": {
+          "branch": null,
+          "revision": "6192b4745a4423e8fd2dc0a4eb8d34ca247a5163",
+          "version": "0.8.0"
         }
       },
       {

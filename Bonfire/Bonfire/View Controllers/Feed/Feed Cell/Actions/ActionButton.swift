@@ -8,6 +8,7 @@
 
 import UIKit
 import Cartography
+import LTMorphingLabel
 
 class ActionButton: UIControl {
 
@@ -25,6 +26,7 @@ class ActionButton: UIControl {
 
     var bounceIntensity: BounceIntensity = .low
     var hapticsEnabled: Bool = true
+    var selectable: Bool = false
 
     private let hapticGenerator = UISelectionFeedbackGenerator()
 
@@ -35,8 +37,13 @@ class ActionButton: UIControl {
             switch touchState {
             case .down:
                 if hapticsEnabled { hapticGenerator.prepare() }
-                layer.borderColor = self.color.withAlphaComponent(0.5).cgColor
-                backgroundColor = self.color.withAlphaComponent(0.05)
+                
+                if !isSelected {
+                    layer.borderColor = self.color.withAlphaComponent(0.5).cgColor
+                    backgroundColor = self.color.withAlphaComponent(0.05)
+                }
+                
+                
                 UIView.animate(withDuration: 0.3, delay: 0.0, usingSpringWithDamping: 1.0, initialSpringVelocity: 0.0, options: .allowUserInteraction, animations: {
                     self.transform = CGAffineTransform.init(scaleX: 1.0 - self.bounceIntensity.rawValue / 50.0, y: 1.0 - self.bounceIntensity.rawValue / 50.0)
                 }, completion: nil)
@@ -45,9 +52,13 @@ class ActionButton: UIControl {
                     hapticGenerator.selectionChanged()
                 }
 
-                delay(0.05) {
-                    self.animateBorderColor(toColor: Constants.Color.primary.withAlphaComponent(0.04), duration: 0.1)
-                    UIView.animate(withDuration: 0.1) { self.backgroundColor = .background }
+                if selectable {
+                    self.setSelected(!isSelected, animated: true)
+                } else {
+                    delay(0.05) {
+                        self.animateBorderColor(toColor: Constants.Color.primary.withAlphaComponent(0.04), duration: 0.1)
+                        UIView.animate(withDuration: 0.1) { self.backgroundColor = .background }
+                    }
                 }
                 UIView.animateKeyframes(withDuration: 0.25, delay: 0.0, options: [.allowUserInteraction, .calculationModeCubic, .beginFromCurrentState], animations: {
                     UIView.addKeyframe(withRelativeStartTime: 0.0, relativeDuration: 0.4) {
@@ -69,7 +80,7 @@ class ActionButton: UIControl {
     }
 
     private let stackView = UIStackView(axis: .horizontal, alignment: .center, spacing: 4)
-    private let label = UILabel(size: 14, weight: .bold)
+    private let label = LTMorphingLabel(size: 14, weight: .bold)
     private var imageView = UIImageView(width: 15, height: 15, contentMode: .center)
 
     private var homeBounds: CGRect!
@@ -78,17 +89,17 @@ class ActionButton: UIControl {
 
     var color: UIColor = .text {
         didSet {
-            label.textColor = color
-            imageView.tintColor = color
+            buttonStateUpdated()
         }
     }
 
     var title: String? = nil {
         didSet {
-            label.isHidden = title == nil
-            label.text = title
+            buttonStateUpdated()
         }
     }
+    
+    var selectedTitle: String? = nil
 
     var image: UIImage? = nil {
         didSet {
@@ -97,6 +108,46 @@ class ActionButton: UIControl {
         }
     }
 
+    override var isSelected: Bool {
+        didSet {
+            print("isSelected? \(isSelected ? "YES" : "NO")")
+            buttonStateUpdated()
+        }
+    }
+    func setSelected(_ selected: Bool, animated: Bool = false) {
+        UIView.animate(withDuration: (animated ? 0.3 : 0), delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0.5, options: .allowUserInteraction) {
+            self.isSelected = selected
+        } completion: { finished in
+            
+        }
+
+        if selected {
+            self.animateBorderColor(toColor: .clear, duration: (animated ? 0.3 : 0))
+        } else {
+            self.animateBorderColor(toColor: Constants.Color.primary.withAlphaComponent(0.04), duration: (animated ? 0.3 : 0))
+        }
+    }
+    
+    private func buttonStateUpdated() {
+        if isSelected {
+            if selectedTitle != nil && selectedTitle != title {
+                label.morphingEnabled = true
+            }
+            label.text = selectedTitle ?? title
+            backgroundColor = color
+            
+            let foreground = color.isDarkColor ? UIColor.white : UIColor.black
+            label.textColor = foreground
+            imageView.tintColor = foreground
+        } else {
+            label.morphingEnabled = false
+            label.text = title
+            backgroundColor = .clear
+            label.textColor = color
+            imageView.tintColor = color
+        }
+        label.isHidden = label.text == nil
+    }
 
     init(title: String? = nil, image: UIImage? = nil, color: UIColor = .text) {
         super.init(frame: .zero)
@@ -136,6 +187,9 @@ class ActionButton: UIControl {
         stackView.addArrangedSubview(label)
 
         label.numberOfLines = 1
+        label.morphingEffect = .scale
+        label.morphingDuration = 0.3
+        label.morphingEnabled = false
     }
 
     override func beginTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {

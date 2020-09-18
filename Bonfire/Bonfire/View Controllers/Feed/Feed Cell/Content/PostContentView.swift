@@ -38,6 +38,12 @@ class PostContentView: UIView {
         if let message = post.attributes.message {
             postLabel.isHidden = message.count == 0
             postLabel.text = String(htmlEncodedString: message)
+            
+            if message.containsOnlyEmoji && message.count <= 3 {
+                postLabel.font = UIFont.systemFont(ofSize: 48)
+            } else {
+                postLabel.font = UIFont.systemFont(ofSize: 18, weight: .medium)
+            }
         } else {
             postLabel.isHidden = true
         }
@@ -84,7 +90,7 @@ class PostContentView: UIView {
                     linkStackView.addArrangedSubview(imageView)
                     constrain(imageView) {
                         $0.width == $0.superview!.width
-                        $0.height == 128
+                        $0.height == 140
                     }
                 }
             }

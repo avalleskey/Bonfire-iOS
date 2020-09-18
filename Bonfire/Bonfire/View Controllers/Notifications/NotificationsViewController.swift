@@ -10,10 +10,7 @@ import BFCore
 import UIKit
 import Cartography
 
-final class NotificationsViewController: BaseViewController, CustomPresentable {
-    var transitionManager: UIViewControllerTransitioningDelegate?
-    var dismissalHandlingScrollView: UIScrollView?
-    
+final class NotificationsViewController: BaseViewController {    
     private let tableView: UITableView = .make(cellReuseIdentifier: NotificationTableViewCell.reuseIdentifier, cellClass: NotificationTableViewCell.self, topOffset: NavigationBar.coreHeight)
     private let loadingIndicator = UIActivityIndicatorView(style: .whiteLarge, color: .secondaryText, isAnimating: true, hidesWhenStopped: true)
     private let emptyStateMessageView = EmptyStateMessageView(title: "No Notifications")
@@ -23,14 +20,11 @@ final class NotificationsViewController: BaseViewController, CustomPresentable {
     init() {
         super.init(navigationBar: NavigationBar(color: Constants.Color.systemBackground, rightButtonType: .more, title: "Notifications", hideOnScroll: false, showPullTab: true), scrollView: tableView)
         
-        dismissalHandlingScrollView = tableView
-                
         navigationBar.rightButtonAction = {
             let token: String = UserDefaults.standard.string(forKey: "DeviceToken") ?? ""
 
             let alert = UIAlertController(title: "APNS Token", message: token, preferredStyle: .actionSheet)
             alert.modalPresentationStyle = .popover
-            alert.view.tintColor = Constants.Color.primary
 
             let copyAction = UIAlertAction(
                 title: "Copy Token", style: .default,

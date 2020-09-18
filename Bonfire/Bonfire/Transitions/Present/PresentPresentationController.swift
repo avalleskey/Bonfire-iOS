@@ -57,7 +57,7 @@ class PresentPresentationController: UIPresentationController {
 
     override func containerViewWillLayoutSubviews() {
         presentedView?.frame = frameOfPresentedViewInContainerView
-        presentedView?.layer.cornerRadius = 39
+        presentedView?.layer.cornerRadius = UIDevice.current.hasNotch ? UIDevice.current.cornerRadius : 16
         presentedView?.layer.masksToBounds = true
         if #available(iOS 13.0, *) {
             presentedView?.layer.cornerCurve = .continuous

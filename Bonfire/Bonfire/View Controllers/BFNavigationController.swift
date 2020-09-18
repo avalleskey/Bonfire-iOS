@@ -123,7 +123,6 @@ extension BFNavigationController: UINavigationControllerDelegate {
     }
     @objc func openAddCamps() {
         let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-        alert.view.tintColor = Constants.Color.primary
 
         let createCampAction = UIAlertAction(
             title: "Create Camp", style: .default,

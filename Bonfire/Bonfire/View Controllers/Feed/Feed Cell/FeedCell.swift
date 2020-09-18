@@ -16,26 +16,60 @@ protocol FeedCellDelegate: AnyObject {
     func replyButtonTapped()
 }
 
+enum FeedCellType {
+    case post(post: Post)
+    case liveRightNow
+    case statusUpdate
+    case suggestion
+}
+
 class FeedCell: UITableViewCell {
 
     weak var delegate: FeedCellDelegate?
-
-    var post: Post! {
+    
+    var type: FeedCellType! {
         didSet {
-            headerView.post = post
-            actionView.post = post
-            insertContent(PostContentView(post: post))
+            actionView.type = type
             
-            var archived: Bool = true
-            if let createdAt = post.attributes.createdAt {
-                let expiry: Date = (expiryFormatter.date(from: createdAt)?.addingTimeInterval(60 * 60 * 24))!
-                let secondsLeft = Int(expiry.timeIntervalSince(Date()))
-                archived = secondsLeft < 0
+            switch type {
+                case .post(let post):
+                    headerView.isHidden = false
+                    replyView.isHidden = false
+                    headerView.post = post
+                    actionView.isHidden = false
+                    
+                    var archived: Bool = true
+                    if let createdAt = post.attributes.createdAt {
+                        let expiry: Date = (expiryFormatter.date(from: createdAt)?.addingTimeInterval(60 * 60 * 24))!
+                        let secondsLeft = Int(expiry.timeIntervalSince(Date()))
+                        archived = secondsLeft < 0
+                    }
+                    contentContainerView.alpha = archived ? 0.75 : 1
+                    replyView.isHidden = archived
+                    
+                    insertContent(PostContentView(post: post))
+                case .liveRightNow:
+                    headerView.isHidden = true
+                    replyView.isHidden = true
+                    actionView.isHidden = true
+                    
+                    insertContent(LiveContentView(camps: []))
+                case .statusUpdate:
+                    headerView.isHidden = true
+                    replyView.isHidden = true
+                    actionView.isHidden = false
+                    
+                    insertContent(LiveContentView(camps: []))
+                case .suggestion:
+                    headerView.isHidden = true
+                    replyView.isHidden = true
+                    actionView.isHidden = false
+                    
+                    insertContent(LiveContentView(camps: []))
+                case .none:
+                    break
             }
             
-            contentContainerView.alpha = archived ? 0.75 : 1
-            replyView.isHidden = archived
-
             // TODO: The commented out code below worked with the DummyPost type.
             // There is work left to be done here to get these other post types (live right now, suggestion, status update)
             // working with real data from the backend, but the UI should all be here and ready to plug into.

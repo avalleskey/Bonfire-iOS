@@ -19,12 +19,21 @@ class BFShadedButton: UIButton {
     var tint: UIColor = Constants.Color.primary {
         didSet {
             tintColor = tint
-                        
-            let light: UIColor = tint.withAlphaComponent(0.03)
-            let light_highlight: UIColor = tint.withAlphaComponent(0.06)
+                 
+            var lightTint = tint
+            var darkTint = tint
+            if #available(iOS 13.0, *) {
+                lightTint = tint.resolvedColor(with: UITraitCollection(userInterfaceStyle: .light))
+                darkTint = tint.resolvedColor(with: UITraitCollection(userInterfaceStyle: .dark))
+            }
             
-            let dark: UIColor = tint.withAlphaComponent(0.12)
-            let dark_highlight: UIColor = tint.withAlphaComponent(0.24)
+            let lightTintAlpha: CGFloat = lightTint.isDarkColor ? 0.05 : 0.12
+            let light: UIColor = lightTint.withAlphaComponent(lightTintAlpha)
+            let light_highlight: UIColor = lightTint.withAlphaComponent(lightTintAlpha * 2)
+            
+            let darkTintAlpha: CGFloat = darkTint.isDarkColor ? 0.05 : 0.12
+            let dark: UIColor = darkTint.withAlphaComponent(darkTintAlpha)
+            let dark_highlight: UIColor = darkTint.withAlphaComponent(darkTintAlpha * 2)
 
             color = UIColor.dynamicColor(light: light, dark: dark)
             highlightColor = UIColor.dynamicColor(light: light_highlight, dark: dark_highlight)
@@ -52,8 +61,6 @@ class BFShadedButton: UIButton {
         super.init(frame: .zero)
 
         adjustsImageWhenHighlighted = false
-        backgroundColor = Constants.Color.shadedButtonBackgroundColor
-        tintColor = Constants.Color.primary
 
         addTarget(
             self,
@@ -67,6 +74,10 @@ class BFShadedButton: UIButton {
             self,
             action: #selector(animateUp),
             for: [.touchDragExit, .touchCancel, .touchUpInside, .touchUpOutside])
+        
+        defer {
+            tint = Constants.Color.primary
+        }
     }
     init(tint: UIColor = Constants.Color.primary) {
         defer { self.tint = tint }

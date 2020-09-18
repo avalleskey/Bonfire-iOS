@@ -1,8 +1,8 @@
 //
-//  CampViewController.swift
+//  FeedViewController.swift
 //  Bonfire
 //
-//  Created by James Dale on 31/7/20.
+//  Created by Daniel Gauthier on 2020-08-19.
 //  Copyright © 2020 Ingenious. All rights reserved.
 //
 
@@ -10,52 +10,22 @@ import BFCore
 import UIKit
 import Cartography
 
-final class CampViewController: BaseViewController {
-    var camp: Camp! {
-        didSet {
-            campUpdated()
-        }
-    }
-    
+final class MessageViewController: BaseViewController {
     private let tableView: UITableView = .make(cellReuseIdentifier: "Cell", cellClass: UITableViewCell.self, topOffset: NavigationBar.coreHeight)
     private let loadingIndicator = UIActivityIndicatorView(style: .whiteLarge, color: .secondaryText, isAnimating: true, hidesWhenStopped: true)
-    private let emptyStateMessageView = EmptyStateMessageView(title: "CampViewController")
+    private let emptyStateMessageView = EmptyStateMessageView(title: "MessageViewController")
     private var posts: [Post] = []
-    private let controller = CampController()
+    private let controller = StreamController()
 
-    init(camp: Camp) {
-        self.camp = camp
-        super.init(navigationBar: NavigationBar(color: Constants.Color.systemBackground, leftButtonType: .back, rightButtonType: .more), scrollView: tableView)
+    init() {
+        super.init(navigationBar: NavigationBar(color: Constants.Color.systemBackground, leftButtonType: .back, rightButtonType: .custom(image: .dummyAvatar), title: "Display Name", subtitle: "👀 User's Status"), scrollView: tableView)
         
         navigationBar.leftButtonAction = {
             self.navigationController?.popViewController(animated: true)
         }
-        navigationBar.rightButtonAction = {
-            self.dismiss(animated: true, completion: nil)
+        navigationBar.centerButtonAction = {
+            // open their profile
         }
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        view.backgroundColor = Constants.Color.systemBackground
-        setUpTableView()
-        setUpEmptyStateMessageView()
-        refreshData()
-        campUpdated()
-    }
-    
-    private func campUpdated() {
-        tableView.reloadData()
-        
-        view.backgroundColor = UIColor(hex: camp.attributes.color) ?? Constants.Color.secondary
-        tableView.backgroundColor = UIColor(hex: camp.attributes.color) ?? Constants.Color.secondary
-        
-        navigationBar.color = UIColor(hex: camp.attributes.color) ?? Constants.Color.secondary
-                
         navigationBar.rightButtonAction = {
             let options = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
             options.view.tintColor = Constants.Color.brand
@@ -84,8 +54,18 @@ final class CampViewController: BaseViewController {
             options.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
             self.present(options, animated: true, completion: nil)
         }
-        
-        setNeedsStatusBarAppearanceUpdate()
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = Constants.Color.systemBackground
+        setUpTableView()
+        setUpEmptyStateMessageView()
+        refreshData()
     }
 
     private func setUpTableView() {
@@ -97,7 +77,7 @@ final class CampViewController: BaseViewController {
             $0.bottom == $0.superview!.bottom
         }
 
-        tableView.alpha = 1
+        tableView.alpha = 0
         tableView.dataSource = self
     }
 
@@ -110,7 +90,7 @@ final class CampViewController: BaseViewController {
             $0.centerY == $0.superview!.centerY + (NavigationBar.coreHeight / 2)
         }
 
-        emptyStateMessageView.alpha = 0
+//        emptyStateMessageView.alpha = 0
     }
 
     private func refreshData() {
@@ -131,26 +111,13 @@ final class CampViewController: BaseViewController {
     }
 }
 
-extension CampViewController: UITableViewDataSource {
+extension MessageViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        3
+        0
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
-        
-        cell.backgroundColor = .clear
-        switch indexPath.row {
-            case 0:
-                cell.textLabel?.text = String("Camp: \(camp.id)")
-            case 1:
-                cell.textLabel?.text = String("Title: \(camp.attributes.title)")
-            case 2:
-                cell.textLabel?.text = String("Description: \(camp.attributes.description)")
-            default:
-                break
-        }
-        
         return cell
     }
 }

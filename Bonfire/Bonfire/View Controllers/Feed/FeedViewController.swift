@@ -27,9 +27,13 @@ final class FeedViewController: BaseViewController {
             let setStatusViewController = SetStatusViewController()
             self.present(setStatusViewController, customPresentationType: .sheet(customHeight: 668), tapToDismiss: true)
         }
+        navigationBar.centerButtonAction = {
+            let profileViewController = ProfileViewController()
+            self.navigationController?.pushViewController(profileViewController, animated: true)
+        }
         navigationBar.rightButtonAction = {
             let notificationsViewController = NotificationsViewController()
-            self.present(notificationsViewController, customPresentationType: .sheet())
+            self.present(notificationsViewController, customPresentationType: .sheet(), tapToDismiss: true)
         }
     }
 
@@ -109,24 +113,30 @@ extension FeedViewController: BFFloatingButtonDelegate {
 extension FeedViewController: FeedCellDelegate {
     func moreButtonTapped() {
         let options = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-        options.view.tintColor = Constants.Color.primary
 
         let report = UIAlertAction(
-            title: "✋ Report", style: .destructive,
+            title: "Report ✋", style: .destructive,
             handler: { (action) in
                 
             })
         options.addAction(report)
+        
+        let mute = UIAlertAction(
+            title: "Mute 🔕", style: .default,
+            handler: { (action) in
+                
+            })
+        options.addAction(mute)
 
         let copyLink = UIAlertAction(
-            title: "🔗 Copy Link", style: .default,
+            title: "Copy Link 🔗", style: .default,
             handler: { (action) in
                 
             })
         options.addAction(copyLink)
         
         let shareTo = UIAlertAction(
-            title: "📣 Share to...", style: .default,
+            title: "Share to... 📣", style: .default,
             handler: { (action) in
                 
             })
@@ -144,15 +154,29 @@ extension FeedViewController: FeedCellDelegate {
 }
 
 extension FeedViewController: UITableViewDataSource {
+    func numberOfSections(in tableView: UITableView) -> Int {
+        1
+    }
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        posts.count
+        switch section {
+            case 0:
+                return posts.count
+            default:
+                return 0
+        }
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: FeedCell.reuseIdentifier, for: indexPath) as! FeedCell
-        cell.post = posts[indexPath.row]
-        cell.delegate = self
-        cell.separatorView.isHidden = indexPath.row == posts.count - 1
+        if indexPath.section == 0 {
+            let cell = tableView.dequeueReusableCell(withIdentifier: FeedCell.reuseIdentifier, for: indexPath) as! FeedCell
+            cell.type = .post(post: posts[indexPath.row])
+            cell.delegate = self
+            cell.separatorView.isHidden = indexPath.row == posts.count - 1
+            return cell
+        }
+        
+        let cell = tableView.dequeueReusableCell(withIdentifier: "BlankCell", for: indexPath)
         return cell
     }
 }

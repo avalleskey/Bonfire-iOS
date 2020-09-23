@@ -10,7 +10,7 @@ import Cartography
 import UIKit
 
 class PresentPresentationController: UIPresentationController {
-    lazy var fadeView = UIView(backgroundColor: .fade, alpha: 0.0)
+    lazy var fadeView = UIView(backgroundColor: .darkFade, alpha: 0.0)
 
     override init(presentedViewController: UIViewController, presenting presentingViewController: UIViewController?) {
         super.init(presentedViewController: presentedViewController, presenting: presentingViewController)
@@ -68,6 +68,11 @@ class PresentPresentationController: UIPresentationController {
     override var frameOfPresentedViewInContainerView: CGRect {
         guard let containerView = containerView else { return .zero }
 
-        return containerView.bounds
+        let top: CGFloat = UIApplication.shared.keyWindow?.safeAreaInsets.top ?? 0
+        var rect = containerView.bounds
+        rect.size.height -= top
+        rect.origin.y = top
+        
+        return rect
     }
 }

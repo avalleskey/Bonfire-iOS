@@ -36,7 +36,7 @@ class NavigationBar: UIView {
     private let rightButton = NavigationButton()
     private let centerButton = UIButton(width: 44, height: 44, cornerRadius: 22, systemButton: false)
 
-    private let titleStackView = UIStackView(axis: .vertical, alignment: .center, spacing: 2)
+    let titleStackView = UIStackView(axis: .vertical, alignment: .center, spacing: 2)
     private let titleLabel = UILabel(size: 20, weight: .heavy, multiline: false)
     private let subtitleLabel = UILabel(size: 12, weight: .bold, color: Constants.Color.secondary, multiline: false)
 
@@ -50,14 +50,14 @@ class NavigationBar: UIView {
     var rightButtonAction = {}
     var centerButtonAction = {}
     
-    var color: UIColor = Constants.Color.systemBackground {
+    var color: UIColor = Constants.Color.navigationBar {
         didSet {
             backgroundColor = color
             
             print("color: #\(color.toHex() ?? "")")
             
             var foreground: UIColor
-            if color == Constants.Color.systemBackground {
+            if color == Constants.Color.navigationBar || color == Constants.Color.groupedBackground {
                 foreground = Constants.Color.primary
             } else {
                 let darkBackground = color.isDarkColor
@@ -68,6 +68,22 @@ class NavigationBar: UIView {
             
             leftButton.tint = foreground
             rightButton.tint = foreground
+            
+            titleLabel.textColor = foreground
+            subtitleLabel.textColor = foreground
+        }
+    }
+    
+    var title: String! {
+        didSet {
+            titleLabel.text = title
+            updateTitleStackView()
+        }
+    }
+    var subtitle: String! {
+        didSet {
+            subtitleLabel.text = subtitle
+            updateTitleStackView()
         }
     }
 
@@ -82,6 +98,8 @@ class NavigationBar: UIView {
     init(color: UIColor, leftButtonType: NavigationButtonType? = nil, rightButtonType: NavigationButtonType? = nil, titleImage: UIImage? = nil, title: String? = nil, subtitle: String? = nil, hideOnScroll: Bool? = true, showPullTab: Bool? = false) {
         defer {
             self.color = color
+            self.title = title
+            self.subtitle = subtitle
         }
         super.init(frame: .zero)
 
@@ -95,7 +113,7 @@ class NavigationBar: UIView {
         setUpLeftButton(type: leftButtonType)
         setUpCenterButton(image: titleImage)
         setUpRightButton(type: rightButtonType)
-        setUpTitleStackView(title: title, subtitle: subtitle)
+        setUpTitleStackView()
     }
 
     required init?(coder: NSCoder) {
@@ -212,7 +230,8 @@ class NavigationBar: UIView {
         rightButtonAction()
     }
 
-    private func setUpTitleStackView(title: String?, subtitle: String?) {
+    private func setUpTitleStackView() {
+        titleStackView.isHidden = true
         contentView.addSubview(titleStackView)
 
         constrain(titleStackView, centerButton, leftButton, rightButton) {
@@ -222,24 +241,17 @@ class NavigationBar: UIView {
         }
 
         titleStackView.addArrangedSubview(titleLabel)
+        
+        subtitleLabel.alpha = 0.7
         titleStackView.addArrangedSubview(subtitleLabel)
-
-        if let title = title {
-            titleLabel.text = title
-        } else {
-            titleLabel.isHidden = true
-        }
-
-        if let subtitle = subtitle {
-            subtitleLabel.text = subtitle
-        } else {
-            subtitleLabel.isHidden = true
-        }
-
-        titleStackView.isHidden = titleLabel.isHidden && subtitleLabel.isHidden
         
         let tapRecognizer = UITapGestureRecognizer(target: self, action: #selector(centerButtonTapped))
         titleStackView.addGestureRecognizer(tapRecognizer)
+    }
+    private func updateTitleStackView() {
+        titleLabel.isHidden = titleLabel.text?.count == 0
+        subtitleLabel.isHidden = subtitleLabel.text?.count == 0
+        titleStackView.isHidden = titleLabel.isHidden && subtitleLabel.isHidden
     }
 
     // MARK: - Scroll handling methods
@@ -250,8 +262,6 @@ class NavigationBar: UIView {
         
         if !hideOnScroll { return }
         
-        print("offset y: \(scrollView.contentOffset.y)")
-
         guard !navigationViewIsAnimating, let topConstraint = topConstraint else { return }
         
         let dragTranslation = startingDragOffset - scrollView.contentOffset.y
@@ -263,7 +273,6 @@ class NavigationBar: UIView {
         if scrollView.contentOffset.y < 0 {
             self.contentViewHeightConstraint?.constant = NavigationBar.coreHeight + max(-scrollView.contentOffset.y, 0)
             self.superview?.layoutIfNeeded()
-            print("constant == \(max(-scrollView.contentOffset.y, 0))")
         }
     }
 

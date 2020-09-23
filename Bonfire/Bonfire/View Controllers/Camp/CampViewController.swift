@@ -10,69 +10,29 @@ import BFCore
 import UIKit
 import Cartography
 
-final class CampViewController: BaseViewController {
-    var camp: Camp! {
+final class CampViewController: SplitViewController<CampHeaderView, CampSheetViewController> {
+    
+    private let camps = CampController()
+    
+    var camp: Camp? {
         didSet {
-            campUpdated()
+            DispatchQueue.main.async {
+                self.campUpdated()
+            }
         }
     }
-    
-    private let tableView: UITableView = .make(cellReuseIdentifier: "Cell", cellClass: UITableViewCell.self, topOffset: NavigationBar.coreHeight)
-    private let loadingIndicator = UIActivityIndicatorView(style: .whiteLarge, color: .secondaryText, isAnimating: true, hidesWhenStopped: true)
-    private let emptyStateMessageView = EmptyStateMessageView(title: "CampViewController")
-    private var posts: [Post] = []
-    private let controller = CampController()
 
-    init(camp: Camp) {
+    init(camp: Camp?) {
         self.camp = camp
-        super.init(navigationBar: NavigationBar(color: Constants.Color.systemBackground, leftButtonType: .back, rightButtonType: .more), scrollView: tableView)
+        super.init(headerView: CampHeaderView(), sheetViewController: CampSheetViewController(campId: camp?.id ?? camp?.attributes.identifier ?? ""), navigationBar: NavigationBar(color: Constants.Color.navigationBar, leftButtonType: .back, rightButtonType: .more, title: "", subtitle: ""), scrollView: nil, floatingButton: BFFloatingButton(icon: UIImage(named: "ComposeIcon"), background: .color(camp?.attributes.uiColor)))
+        
+        floatingButton?.delegate = self
         
         navigationBar.leftButtonAction = {
             self.navigationController?.popViewController(animated: true)
         }
         navigationBar.rightButtonAction = {
-            self.dismiss(animated: true, completion: nil)
-        }
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        view.backgroundColor = Constants.Color.systemBackground
-        setUpTableView()
-        setUpEmptyStateMessageView()
-        refreshData()
-        campUpdated()
-    }
-    
-    private func campUpdated() {
-        tableView.reloadData()
-        
-        view.backgroundColor = UIColor(hex: camp.attributes.color) ?? Constants.Color.secondary
-        tableView.backgroundColor = UIColor(hex: camp.attributes.color) ?? Constants.Color.secondary
-        
-        navigationBar.color = UIColor(hex: camp.attributes.color) ?? Constants.Color.secondary
-                
-        navigationBar.rightButtonAction = {
             let options = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-            options.view.tintColor = Constants.Color.brand
-
-            let viewProfile = UIAlertAction(
-                title: "View Profile 👤", style: .default,
-                handler: { (action) in
-                    
-                })
-            options.addAction(viewProfile)
-            
-            let leave = UIAlertAction(
-                title: "Leave ✌️", style: .default,
-                handler: { (action) in
-                    
-                })
-            options.addAction(leave)
             
             let report = UIAlertAction(
                 title: "Report ✋", style: .destructive,
@@ -84,73 +44,107 @@ final class CampViewController: BaseViewController {
             options.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
             self.present(options, animated: true, completion: nil)
         }
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
         
-        setNeedsStatusBarAppearanceUpdate()
+        updateWithColor(camp?.attributes.color, animated: false)
     }
+    
+    override func setUpHeaderView() {
+        super.setUpHeaderView()
+        headerView.camp = camp
+        headerView.delegate = self
+    }
+    
+    override func setUpSheet() {
+        super.setUpSheet()
+        
+        sheetViewController.tableView.contentInset.bottom = 64 + (12 * 2)
+        
+        sheetViewController.navigationBar.rightButtonAction = {
+            var message: String?
+            if let displayName = self.camp?.attributes.title {
+                message = "When there are new fires in \(displayName), notify me"
+            }
+            let options = UIAlertController(title: nil, message: message, preferredStyle: .actionSheet)
 
-    private func setUpTableView() {
-        view.addSubview(tableView)
-        constrain(tableView) {
-            $0.top == $0.superview!.safeAreaLayoutGuide.top
-            $0.leading == $0.superview!.leading
-            $0.trailing == $0.superview!.trailing
-            $0.bottom == $0.superview!.bottom
+            let checkString = " ✓"
+            let viewProfile = UIAlertAction(
+                title: "Always\(false ? checkString : "")", style: .default,
+                handler: { (action) in
+                    
+                })
+            options.addAction(viewProfile)
+            
+            let leave = UIAlertAction(
+                title: "Sometimes\(true ? checkString : "")", style: .default,
+                handler: { (action) in
+                    
+                })
+            options.addAction(leave)
+            
+            let report = UIAlertAction(
+                title: "Never\(false ? checkString : "")", style: .default,
+                handler: { (action) in
+                    
+                })
+            options.addAction(report)
+
+            options.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+            self.present(options, animated: true, completion: nil)
         }
-
-        tableView.alpha = 1
-        tableView.dataSource = self
     }
-
-    private func setUpEmptyStateMessageView() {
-        view.addSubview(emptyStateMessageView)
-        constrain(emptyStateMessageView) {
-            $0.centerX == $0.superview!.centerX
-            $0.leading >= $0.superview!.leading + 16
-            $0.trailing <= $0.superview!.trailing - 16
-            $0.centerY == $0.superview!.centerY + (NavigationBar.coreHeight / 2)
+    
+    override func loadData() {
+        if let campId = camp?.id {
+            self.camps.getCamp(campId: campId) { camp in
+                DispatchQueue.main.async {
+                    self.camp = camp
+                }
+            }
         }
-
-        emptyStateMessageView.alpha = 0
     }
-
-    private func refreshData() {
-//        controller.getStream { posts in
-//            DispatchQueue.main.async {
-//                self.posts = posts
-//                self.tableView.reloadData()
-//                UIView.animate(withDuration: 0.2, animations: {
-//                    if posts.isEmpty {
-//                        self.emptyStateMessageView.alpha = 1.0
-//                    } else {
-//                        self.tableView.alpha = 1.0
-//                    }
-//                    self.loadingIndicator.alpha = 0.0
-//                }, completion: nil)
-//            }
-//        }
+    
+    private func campUpdated() {
+        headerView.camp = camp
+        updateWithColor(camp?.attributes.color, animated: true)
+        navigationBar.title = camp?.attributes.title ?? nil
+        if let memberCount = camp?.attributes.summaries?.counts?.members {
+            navigationBar.subtitle = "\(memberCount) camper\(memberCount != 1 ? "s" : "")"
+        }
+        
+        if sheetState == .collapsed {
+            self.sheetTopConstraint?.constant = self.collapsedHeight
+            
+            UIView.animate(
+                withDuration: 0.4,
+                delay: 0,
+                usingSpringWithDamping: 0.9,
+                initialSpringVelocity: 3,
+                options: [.curveEaseInOut],
+                animations: {
+                    self.view.layoutIfNeeded()
+                })
+        }
     }
 }
 
-extension CampViewController: UITableViewDataSource {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        3
+extension CampViewController: BFFloatingButtonDelegate {
+    func floatingButtonTapped() {
+        let composeViewController = ComposeViewController()
+        self.present(composeViewController, customPresentationType: .present)
     }
+}
 
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
-        
-        cell.backgroundColor = .clear
-        switch indexPath.row {
-            case 0:
-                cell.textLabel?.text = String("Camp: \(camp.id)")
-            case 1:
-                cell.textLabel?.text = String("Title: \(camp.attributes.title)")
-            case 2:
-                cell.textLabel?.text = String("Description: \(camp.attributes.description)")
-            default:
-                break
-        }
-        
-        return cell
+extension CampViewController: CampHeaderViewDelegate {
+    func openCampMembers(camp: Camp) {
+        let campMembersViewController = CampMembersViewController(camp: camp)
+        self.navigationController?.pushViewController(campMembersViewController, animated: true)
     }
 }

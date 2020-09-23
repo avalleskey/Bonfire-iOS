@@ -25,27 +25,18 @@ struct Constants {
 
     struct Color {
         static let navigationBar: UIColor = {
-            if #available(iOS 13.0, *) {
-                return UIColor { (traits) -> UIColor in
-                    // Return one of two colors depending on light or dark mode
-                    return traits.userInterfaceStyle == .dark
-                        ? UIColor.systemBackground : UIColor.white
-                }
-            } else {
-                // Same old color used for iOS 12 and earlier
-                return UIColor.white
-            }
+            return systemBackground
         }()
 
         static let tabBar: UIColor = {
-            let light: UIColor = Constants.Color.systemBackground.withAlphaComponent(0.9)
-            let dark: UIColor = Constants.Color.systemBackground.withAlphaComponent(0.8)
+            let light: UIColor = UIColor(red: 1, green: 1, blue: 1, alpha: 1.00).withAlphaComponent(0.8)
+            let dark: UIColor = UIColor(red: 0.08, green: 0.08, blue: 0.1, alpha: 1.00).withAlphaComponent(0.7)
 
             return UIColor.dynamicColor(light: light, dark: dark)
         }()
         static let tabBarSeparator: UIColor = {
             let light: UIColor = UIColor(white: 0, alpha: 0.12)
-            let dark: UIColor = UIColor(white: 1, alpha: 0.16)
+            let dark: UIColor = UIColor(white: 1, alpha: 0)
 
             return UIColor.dynamicColor(light: light, dark: dark)
         }()
@@ -59,11 +50,10 @@ struct Constants {
         }()
 
         static let groupedBackground: UIColor = {
-            if #available(iOS 13.0, *) {
-                return UIColor.systemGroupedBackground
-            } else {
-                return UIColor(red: 0.95, green: 0.95, blue: 0.96, alpha: 1.00)
-            }
+            let light: UIColor = UIColor(red: 0.95, green: 0.95, blue: 0.96, alpha: 1.00)
+            let dark: UIColor = UIColor(red: 0.02, green: 0.02, blue: 0.03, alpha: 1.00)
+
+            return UIColor.dynamicColor(light: light, dark: dark)
         }()
 
         static let primary: UIColor = {
@@ -89,20 +79,14 @@ struct Constants {
             return UIColor(red: 99 / 255, green: 99 / 255, blue: 102 / 255, alpha: 1)
         }()
 
-        static let pillBackground: UIColor = {
-            if #available(iOS 13.0, *) {
-                return UIColor { (traits) -> UIColor in
-                    // Return one of two colors depending on light or dark mode
-                    return traits.userInterfaceStyle == .dark
-                        ? UIColor.secondarySystemBackground : UIColor.white
-                }
-            } else {
-                // Same old color used for iOS 12 and earlier
-                return UIColor.white
-            }
+        static let postBackground: UIColor = {
+            let light: UIColor = UIColor(red: 1, green: 1, blue: 1, alpha: 1.00)
+            let dark: UIColor = UIColor(red: 0.06, green: 0.06, blue: 0.08, alpha: 1.00)
+
+            return UIColor.dynamicColor(light: light, dark: dark)
         }()
 
-        static let brand = UIColor(named: "BrandColor")
+        static let brand = UIColor(named: "BrandColor")!
 
         static let secondaryFill: UIColor = {
             let light: UIColor = UIColor(red: 0.97, green: 0.97, blue: 0.98, alpha: 1.00)

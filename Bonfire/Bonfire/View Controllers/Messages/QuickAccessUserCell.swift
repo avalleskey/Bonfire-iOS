@@ -54,7 +54,7 @@ class QuickAccessUserCell: UICollectionViewCell {
     private let imageView = UIImageView(width: 96, height: 96, cornerRadius: 48, contentMode: .scaleAspectFill)
     private let suggestionBadgeView = SuggestionBadgeView()
     private let newDotView = UIView(height: 11, width: 11, cornerRadius: 5.5)
-    private let userIdentityView = UserIdentityView(font: UIFont.systemFont(ofSize: 13, weight: .bold).rounded(), shouldDisplayVerificationBadge: false)
+    private let userIdentityView = DummyUserIdentityView(font: UIFont.systemFont(ofSize: 13, weight: .bold).rounded(), shouldDisplayVerificationBadge: false)
     private let stackView = UIStackView(axis: .horizontal, alignment: .center, spacing: 4)
 
     override init(frame: CGRect) {

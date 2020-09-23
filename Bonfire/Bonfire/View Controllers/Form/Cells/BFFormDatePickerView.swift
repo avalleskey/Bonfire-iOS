@@ -22,7 +22,7 @@ final class BFFormDatePickerView<FormData: BFFormData>: UIViewController, BFForm
 
     let datePickerContainerView: UIView = {
         let view = UIView()
-        view.backgroundColor = Constants.Color.pillBackground
+        view.backgroundColor = Constants.Color.postBackground
 
         view.layer.shadowColor = UIColor.black.cgColor
         view.layer.shadowOpacity = 0.12

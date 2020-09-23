@@ -10,7 +10,7 @@ import BFCore
 import UIKit
 
 extension User.Attributes {
-    var uiColor: UIColor? {
-        UIColor(hex: color)
+    var uiColor: UIColor {
+        UIColor(hex: color) ?? Constants.Color.secondary
     }
 }

@@ -13,7 +13,7 @@ final class BFTextField: UITextField {
     init() {
         super.init(frame: .zero)
 
-        backgroundColor = Constants.Color.pillBackground
+        backgroundColor = Constants.Color.postBackground
         textColor = Constants.Color.primary
         font = UIFont.systemFont(ofSize: 20, weight: .semibold).rounded()
 

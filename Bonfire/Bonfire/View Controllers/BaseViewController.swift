@@ -45,13 +45,6 @@ class BaseViewController: UIViewController, CustomPresentable {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // support custom push/pop transitions
-        if let navigationController = self.navigationController {
-            if navigationController.viewControllers.count > 1 {
-                self.interactionController = PushInteractionController(viewController: self)
-            }
-        }
-        
         setUpNavigationBar()
         setUpFloatingButtonIfNeeded()
     }
@@ -67,6 +60,18 @@ class BaseViewController: UIViewController, CustomPresentable {
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
 
+    }
+    
+    override func didMove(toParent parent: UIViewController?) {
+        super.didMove(toParent: parent)
+        
+        // support custom push/pop transitions
+        if let navigationController = self.navigationController {
+            if navigationController.viewControllers.count > 1 {
+                self.interactionController = PushInteractionController(viewController: self)
+                self.navigationController?.delegate = self
+            }
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {

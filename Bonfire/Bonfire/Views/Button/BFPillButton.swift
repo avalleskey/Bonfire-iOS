@@ -29,7 +29,7 @@ final class BFPillButton: BFBouncyButton {
             addTarget(target, action: action, for: .touchUpInside)
         }
 
-        backgroundColor = Constants.Color.pillBackground
+        backgroundColor = Constants.Color.postBackground
         setTitleColor(Constants.Color.primary, for: .normal)
         tintColor = Constants.Color.primary
         contentEdgeInsets = .init(top: 0, left: 16, bottom: 0, right: 16)

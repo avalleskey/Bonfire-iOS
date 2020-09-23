@@ -22,16 +22,25 @@ class FeedCellActionView: UIView {
         didSet {
             switch type {
                 case .post(let post):
+                    let expired: Bool = post.isExpired
+                    let creator = post.attributes.creator ?? User()
+                    
                     primaryActionButton.selectable = true
                     primaryActionButton.title = "Like"
                     primaryActionButton.selectedTitle = "Liked!"
                     primaryActionButton.image = UIImage(named: "PostLikeIcon")
-                    primaryActionButton.setSelected(true)
+                    
+                    if let voteCreatedAt = post.attributes.context?.post?.vote?.createdAt {
+                        primaryActionButton.setSelected(voteCreatedAt.count > 0)
+                    } else {
+                        primaryActionButton.setSelected(false)
+                    }
+                    
                     secondaryActionButton.isHidden = false
                     secondaryActionButton.title = "Message"
                     secondaryActionButton.image = UIImage(named: "PostChatIcon")
-                    primaryActionButton.color = post.attributes.creator.attributes.uiColor ?? .systemBlue
-                    secondaryActionButton.color = post.attributes.creator.attributes.uiColor ?? .systemBlue
+                    primaryActionButton.color = expired ? Constants.Color.secondary : creator.attributes.uiColor
+                    secondaryActionButton.color = expired ? Constants.Color.secondary : creator.attributes.uiColor
                 case .statusUpdate:
                     primaryActionButton.selectable = true
                     primaryActionButton.title = "Like"
@@ -91,8 +100,8 @@ class FeedCellActionView: UIView {
         }
     }
 
-    private var primaryActionButton = ActionButton(title: "Test", image: UIImage(named: "PostChatIcon"), color: .liveAudioTop)
-    private var secondaryActionButton = ActionButton(title: "Test", image: UIImage(named: "PostChatIcon"), color: .liveAudioTop)
+    private var primaryActionButton = FeedCellActionButton(title: "Test", image: UIImage(named: "PostChatIcon"), color: .liveAudioTop)
+    private var secondaryActionButton = FeedCellActionButton(title: "Test", image: UIImage(named: "PostChatIcon"), color: .liveAudioTop)
     private var actionStackView = UIStackView(axis: .horizontal, spacing: 8)
 
     init() {

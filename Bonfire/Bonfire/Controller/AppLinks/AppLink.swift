@@ -24,12 +24,11 @@ enum AppLink {
             let vc = UIViewController()
             return vc
         case .profile(let profileId):
-            let vc = ProfileViewController()
-            vc.load(id: profileId)
+            let vc = ProfileViewController(user: User(id: profileId))
             return vc
         case .camp(let campId):
-//            let vc = CampViewController(camp: nil)
-            return TestViewController()
+            let vc = CampViewController(camp: Camp(id: campId))
+            return vc
         case .compose:
             let vc = CreatePostViewController()
             return vc

@@ -97,7 +97,7 @@ final class GetStartedViewController: UIViewController {
         let imageView = UIImageView()
         imageView.image = UIImage(named: "GetStartedLogo")
         imageView.contentMode = .center
-        imageView.backgroundColor = Constants.Color.pillBackground
+        imageView.backgroundColor = Constants.Color.postBackground
         imageView.layer.shadowColor = UIColor.black.cgColor
         imageView.layer.shadowOpacity = 0.12
         imageView.layer.shadowOffset = .init(width: 0, height: 2)

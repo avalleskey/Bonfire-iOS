@@ -13,9 +13,6 @@ import UIKit
 final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
-    var feedPopRecognizer: InteractivePopRecognizer?
-    var campsPopRecognizer: InteractivePopRecognizer?
-    var messagesPopRecognizer: InteractivePopRecognizer?
 
     func scene(
         _ scene: UIScene, willConnectTo session: UISceneSession,
@@ -30,19 +27,16 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         let feedViewController = FeedViewController()
         let feedNavigationController = UINavigationController(rootViewController: feedViewController)
-        feedPopRecognizer = InteractivePopRecognizer(controller: feedNavigationController)
         feedNavigationController.isNavigationBarHidden = true
         feedViewController.tabBarItem = UITabBarItem(title: "", image: Constants.TabBar.homeDefaultImage, tag: 1)
 
         let messagesViewController = MessagesListViewController()
         let messagesNavigationController = UINavigationController(rootViewController: messagesViewController)
-        messagesPopRecognizer = InteractivePopRecognizer(controller: messagesNavigationController)
         messagesNavigationController.isNavigationBarHidden = true
         messagesNavigationController.tabBarItem = UITabBarItem(title: "", image: Constants.TabBar.friendsDefaultImage, tag: 2)
 
         let campsViewController = CampsViewController()
         let campsNavigationController = UINavigationController(rootViewController: campsViewController)
-        campsPopRecognizer = InteractivePopRecognizer(controller: campsNavigationController)
         campsNavigationController.isNavigationBarHidden = true
         campsNavigationController.tabBarItem = UITabBarItem(title: "", image: Constants.TabBar.campsDefaultImage, tag: 3)
 
@@ -54,7 +48,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window.rootViewController = tabVC
         window.makeKeyAndVisible()
 
-        window.tintColor = Constants.Color.brand
+//        window.tintColor = Constants.Color.brand
         self.window = window
         
         if let url = connectionOptions.urlContexts.first?.url {

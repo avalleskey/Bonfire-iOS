@@ -10,18 +10,23 @@ import UIKit
 import Cartography
 
 enum NavigationButtonType: Equatable {
+    case back
+    case close
     case status(emoji: String)
     case search
     case add
     case compose
     case bell
-    case back
     case more
     case settings
     case custom(image: UIImage)
 
     var image: UIImage? {
         switch self {
+        case .back:
+            return UIImage(named: "LeftNavIcon")
+        case .close:
+            return UIImage(named: "CloseNavIcon")
         case .search:
             return UIImage(named: "SearchNavIcon")
         case .add:
@@ -30,8 +35,6 @@ enum NavigationButtonType: Equatable {
             return UIImage(named: "ComposeNavIcon")
         case .bell:
             return UIImage(named: "BellNavIcon")
-        case .back:
-            return UIImage(named: "LeftNavIcon")
         case .more:
             return UIImage(named: "MoreNavIcon")
         case .settings:

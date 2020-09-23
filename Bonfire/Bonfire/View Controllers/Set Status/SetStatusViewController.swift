@@ -15,7 +15,7 @@ final class SetStatusViewController: BaseViewController {
     private let controller = SetStatusController()
 
     init() {        
-        super.init(navigationBar: NavigationBar(color: Constants.Color.systemBackground, title: "My Status", hideOnScroll: false, showPullTab: true), scrollView: tableView)
+        super.init(navigationBar: NavigationBar(color: Constants.Color.navigationBar, title: "My Status", hideOnScroll: false, showPullTab: true), scrollView: tableView)
     }
     
     required init?(coder: NSCoder) {

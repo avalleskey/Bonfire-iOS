@@ -27,10 +27,6 @@ class PushInteractionController: NSObject, InteractionControlling {
         self.viewController = viewController
         super.init()
         prepareGestureRecognizer(in: viewController.view)
-
-        if let scrollView = viewController.dismissalHandlingScrollView {
-            resolveScrollViewGestures(scrollView)
-        }
         
         print("here we go. just set up a interaction controller for this view: \(viewController)")
     }
@@ -38,28 +34,21 @@ class PushInteractionController: NSObject, InteractionControlling {
     private func prepareGestureRecognizer(in view: UIView) {
         let gesture = OneWayPanGestureRecognizer(target: self, action: #selector(handleGesture(_:)))
         gesture.direction = .right
+        gesture.delegate = self
         view.addGestureRecognizer(gesture)
-    }
-
-    private func resolveScrollViewGestures(_ scrollView: UIScrollView) {
-        let scrollGestureRecognizer = OneWayPanGestureRecognizer(target: self, action: #selector(handleGesture(_:)))
-        scrollGestureRecognizer.delegate = self
-
-        scrollView.addGestureRecognizer(scrollGestureRecognizer)
-        scrollView.panGestureRecognizer.require(toFail: scrollGestureRecognizer)
     }
 
     // MARK: - Gesture handling
     @objc func handleGesture(_ gestureRecognizer: OneWayPanGestureRecognizer) {
         guard let superview = gestureRecognizer.view?.superview, !interactionIsFinishing else { return }
         let translation = gestureRecognizer.translation(in: superview).x
-        let velocity = gestureRecognizer.velocity(in: superview).x
+        let velocityX = gestureRecognizer.velocity(in: superview).x
 
         switch gestureRecognizer.state {
         case .began: gestureBegan()
-        case .changed: gestureChanged(translation: translation + interruptedTranslation, velocity: velocity)
-        case .cancelled: gestureCancelled(translation: translation + interruptedTranslation, velocity: velocity)
-        case .ended: gestureEnded(translation: translation + interruptedTranslation, velocity: velocity)
+        case .changed: gestureChanged(translation: translation + interruptedTranslation, velocity: velocityX)
+        case .cancelled: gestureCancelled(translation: translation + interruptedTranslation, velocity: velocityX)
+        case .ended: gestureEnded(translation: translation + interruptedTranslation, velocity: velocityX)
         default: break
         }
     }
@@ -232,9 +221,10 @@ class PushInteractionController: NSObject, InteractionControlling {
 // If scroll view isn't at the top, and a swipe gesture is detected, activate scroll view swipe gesture.
 extension PushInteractionController: UIGestureRecognizerDelegate {
     func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
-        if let scrollView = viewController.dismissalHandlingScrollView {
-            return scrollView.contentOffset.x <= 0
-        }
-        return true
+        let velocity = (gestureRecognizer as! UIPanGestureRecognizer).velocity(in: gestureRecognizer.view)
+        print("velocityX: \(velocity.x)")
+        print("velocityY: \(velocity.y)")
+        
+        return velocity.x > abs(velocity.y)
     }
 }

@@ -42,7 +42,7 @@ class OneWayPanGestureRecognizer: UIPanGestureRecognizer {
         let prevPoint: CGPoint = touch.previousLocation(in: view)
         moveX += Int(prevPoint.x - nowPoint.x)
         moveY += Int(prevPoint.y - nowPoint.y)
-
+        
         if !gestureIsConfirmed {
             if direction == .left || direction == .right {
                 if moveX == 0 {

@@ -6,6 +6,7 @@
 //  Copyright © 2020 Ingenious. All rights reserved.
 //
 
+import BFCore
 import Cartography
 import UIKit
 
@@ -17,21 +18,21 @@ class UserIdentityView: UIView {
         case colored
     }
 
-    var user: DummyPost.User! {
+    var user: User! {
         didSet {
-            nameLabel.text = user.name
+            nameLabel.text = String(htmlEncodedString: user.attributes.displayName)
 
-            if let emoji = user.status?.emoji {
+            if let emoji = user.attributes.statusEmoji {
                 statusEmojiLabel.isHidden = false
                 statusEmojiLabel.text = emoji
             } else {
                 statusEmojiLabel.isHidden = true
             }
 
-            verifiedImageView.isHidden = !user.isVerified || !shouldDisplayVerificationBadge
+            verifiedImageView.isHidden = !(user.attributes.verified ?? false) || !shouldDisplayVerificationBadge
 
             if textColor == .colored {
-                nameLabel.textColor = user.color
+                nameLabel.textColor = user.attributes.uiColor
             }
         }
     }
@@ -41,7 +42,7 @@ class UserIdentityView: UIView {
             switch textColor {
                 case .standard: nameLabel.textColor = Constants.Color.primary
                 case .light: nameLabel.textColor = Constants.Color.secondary
-                case .colored: nameLabel.textColor = user.color
+                case .colored: nameLabel.textColor = user.attributes.uiColor
             }
         }
     }

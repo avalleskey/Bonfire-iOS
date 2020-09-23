@@ -12,6 +12,8 @@ import Cartography
 
 protocol FeedCellHeaderViewDelegate: AnyObject {
     func moreButtonTapped()
+    func openUser(user: User)
+    func openCamp(camp: Camp)
 }
 
 class FeedCellHeaderView: UIView {
@@ -20,16 +22,19 @@ class FeedCellHeaderView: UIView {
     
     var post: Post! {
         didSet {
-            let creator = post.attributes.creator
-            let camp = post.attributes.postedIn
+            let creator = post.attributes.creator ?? User()
+            let camp = post.attributes.postedIn ?? Camp()
+            let expired: Bool = post.isExpired
+            
             activatePostLayout()
             primaryImageView.kf.setImage(with: creator.attributes.media?.avatar?.full?.url)
-            titleLabel.text = creator.attributes.display_name
-            secondaryImageView.kf.setImage(with: camp?.attributes.media?.avatar?.full?.url)
-            secondaryLabel.text = camp?.attributes.title
+            titleLabel.text = String(htmlEncodedString: creator.attributes.displayName)
+            secondaryImageView.kf.setImage(with: camp.attributes.media?.avatar?.full?.url)
+            secondaryLabel.text = camp.attributes.title
             descriptionLabel.isHidden = true
-            titleLabel.textColor = creator.attributes.uiColor
-            moreButton.tintColor = post.attributes.creator.attributes.uiColor
+            titleLabel.textColor = expired ? Constants.Color.secondary : creator.attributes.uiColor
+            secondaryLabel.textColor = expired ? Constants.Color.secondary : Constants.Color.primary
+            moreButton.tintColor = expired ? Constants.Color.secondary : creator.attributes.uiColor
 
             // TODO: The commented out code below worked with the DummyPost type.
             // There is work left to be done here to get other post types (live right now, suggestion, status update)
@@ -123,7 +128,8 @@ class FeedCellHeaderView: UIView {
 
         setUpPrimaryImageView()
         setUpStackView()
-        setupButtons()
+        setUpButtons()
+        setUpTapRecognizers()
     }
 
     required init?(coder: NSCoder) {
@@ -142,10 +148,11 @@ class FeedCellHeaderView: UIView {
             $0.bottom == $0.superview!.bottom - 12
         }
 
-        constrain(primaryImageBackingView, replace: imageSizeConstraints) {
-            $0.width == 40
-            $0.height == 40
+        constrain(primaryImageBackingView) {
+            $0.width == 42
+            $0.height == 42
         }
+        primaryImageBackingView.layer.cornerRadius = 21
     }
 
     private func setUpStackView() {
@@ -169,7 +176,7 @@ class FeedCellHeaderView: UIView {
         detailStackView.addArrangedSubview(secondaryLabel)
     }
 
-    private func setupButtons() {
+    private func setUpButtons() {
         addSubview(timerButton)
         addSubview(moreButton)
         
@@ -184,28 +191,36 @@ class FeedCellHeaderView: UIView {
         moreButton.addTarget(self, action: #selector(moreButtonTapped), for: .touchUpInside)
     }
     
+    private func setUpTapRecognizers() {
+        let tapRecognizer = UITapGestureRecognizer(target: self, action: #selector(openCreator))
+        primaryImageBackingView.addGestureRecognizer(tapRecognizer)
+        
+        let tapToOpenProfile: UITapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(openCreator))
+        titleStackView.addGestureRecognizer(tapToOpenProfile)
+        
+        let tapToOpenCamp: UITapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(openCamp))
+        detailStackView.addGestureRecognizer(tapToOpenCamp)
+    }
+    
     @objc private func moreButtonTapped() {
         delegate?.moreButtonTapped()
     }
+    @objc private func openCreator() {
+        if let creator = post.attributes.creator {
+            delegate?.openUser(user: creator)
+        }
+    }
+    @objc private func openCamp() {
+        guard let camp = post.attributes.postedIn else { return }
+        delegate?.openCamp(camp: camp)
+    }
 
     private func activatePostLayout() {
-        constrain(primaryImageBackingView, replace: imageSizeConstraints) {
-            $0.width == 42
-            $0.height == 42
-        }
-        primaryImageBackingView.layer.cornerRadius = 21
-
         detailStackView.isHidden = false
         layoutIfNeeded()
     }
 
     private func activateBasicLayout() {
-        constrain(primaryImageBackingView, replace: imageSizeConstraints) {
-            $0.width == 24
-            $0.height == 24
-        }
-        primaryImageBackingView.layer.cornerRadius = 12
-
         detailStackView.isHidden = true
         layoutIfNeeded()
     }

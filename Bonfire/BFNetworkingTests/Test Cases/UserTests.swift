@@ -30,7 +30,7 @@ final class UserProfileTests: BFNetworkingTestCase {
     }
 
     func testStream() throws {
-        apiTest(client: client, request: UserStreamRequest())
+        apiTest(client: client, request: UserStreamRequest(type: .me))
     }
 
     func testFriends() throws {

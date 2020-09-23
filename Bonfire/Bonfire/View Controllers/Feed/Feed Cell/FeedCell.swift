@@ -13,6 +13,8 @@ import Cartography
 protocol FeedCellDelegate: AnyObject {
     func moreButtonTapped()
     func performAction()
+    func openUser(user: User)
+    func openCamp(camp: Camp)
     func replyButtonTapped()
 }
 
@@ -21,6 +23,11 @@ enum FeedCellType {
     case liveRightNow
     case statusUpdate
     case suggestion
+}
+
+enum FeedCellStyle {
+    case normal
+    case rounded
 }
 
 class FeedCell: UITableViewCell {
@@ -38,14 +45,9 @@ class FeedCell: UITableViewCell {
                     headerView.post = post
                     actionView.isHidden = false
                     
-                    var archived: Bool = true
-                    if let createdAt = post.attributes.createdAt {
-                        let expiry: Date = (expiryFormatter.date(from: createdAt)?.addingTimeInterval(60 * 60 * 24))!
-                        let secondsLeft = Int(expiry.timeIntervalSince(Date()))
-                        archived = secondsLeft < 0
-                    }
-                    contentContainerView.alpha = archived ? 0.75 : 1
-                    replyView.isHidden = archived
+                    let expired: Bool = post.isExpired
+                    contentContainerView.alpha = expired ? 0.8 : 1
+                    replyView.isHidden = expired
                     
                     insertContent(PostContentView(post: post))
                 case .liveRightNow:
@@ -103,28 +105,48 @@ class FeedCell: UITableViewCell {
 //            }
         }
     }
+    
+    var style: FeedCellStyle! {
+        didSet {
+            switch style {
+                case .normal:
+                    containerView.layer.cornerRadius = 0
+                    containerView.layer.shadowOpacity = 0
+                    containerViewWidthConstraint?.constant = 0
+                    containerViewSeparatorConstraint?.constant = -2
+                case .rounded:
+                    containerViewWidthConstraint?.constant = -24
+                    containerView.layer.cornerRadius = 10
+                    if #available(iOS 13.0, *) {
+                        containerView.layer.cornerCurve = .continuous
+                    }
+                    containerView.applyShadow(intensity: .sketch(color: .black, alpha: 0.08, x: 0, y: 1, blur: 3, spread: 0))
+                    containerViewSeparatorConstraint?.constant = -12
+                case .none:
+                    break
+            }
+            containerView.layoutIfNeeded()
+        }
+    }
 
-    private var containerView = UIView(backgroundColor: Constants.Color.systemBackground, cornerRadius: 0)
+    private var containerView = UIView(backgroundColor: Constants.Color.postBackground, cornerRadius: 0)
     private var stackView = UIStackView(axis: .vertical)
     private var headerView = FeedCellHeaderView()
     private var contentContainerView = UIView()
     private var actionView = FeedCellActionView()
     private var replyView = FeedCellReplyView()
-    
-    private let expiryFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.locale = Locale.current
-        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
-        return formatter
-    }()
-    
-    let separatorView = UIView(backgroundColor: Constants.Color.separatorColor.withAlphaComponent(0.5), height: 4)
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         
+        backgroundColor = Constants.Color.groupedBackground
+        contentView.backgroundColor = backgroundColor
         setUpContainerView()
         setUpContentViews()
+        
+        defer {
+            self.style = .normal
+        }
     }
 
     required init?(coder: NSCoder) {
@@ -133,19 +155,17 @@ class FeedCell: UITableViewCell {
 
     override func layoutSubviews() {
         super.layoutSubviews()
-//        containerView.applyShadow(intensity: .sketch(color: .black, alpha: 0.03, x: 0, y: 1, blur: 3, spread: 0))
-        if #available(iOS 13.0, *) { containerView.layer.cornerCurve = .continuous }
-//        containerView.layer.borderWidth = 1
-//        containerView.layer.borderColor = UIColor.black.withAlphaComponent(0.05).cgColor
     }
 
+    var containerViewWidthConstraint: NSLayoutConstraint?
+    var containerViewSeparatorConstraint: NSLayoutConstraint?
     private func setUpContainerView() {
         contentView.addSubview(containerView)
         constrain(containerView) {
             $0.top == $0.superview!.top
-            $0.leading == $0.superview!.leading
-            $0.trailing == $0.superview!.trailing
-            $0.bottom == $0.superview!.bottom ~ .init(rawValue: 999)
+            $0.centerX == $0.superview!.centerX
+            containerViewSeparatorConstraint = ($0.bottom == $0.superview!.bottom ~ .init(rawValue: 999))
+            containerViewWidthConstraint = ($0.width == $0.superview!.width)
         }
     }
 
@@ -159,13 +179,12 @@ class FeedCell: UITableViewCell {
         stackView.addArrangedSubview(contentContainerView)
         stackView.addArrangedSubview(actionView)
         stackView.addArrangedSubview(replyView)
-        stackView.addArrangedSubview(separatorView)
 
         headerView.delegate = self
         actionView.delegate = self
         replyView.delegate = self
     }
-
+    
     private func insertContent(_ view: UIView) {
         contentContainerView.subviews.forEach {
             $0.removeFromSuperview()
@@ -183,6 +202,12 @@ class FeedCell: UITableViewCell {
 }
 
 extension FeedCell: FeedCellHeaderViewDelegate {
+    func openUser(user: User) {
+        delegate?.openUser(user: user)
+    }
+    func openCamp(camp: Camp) {
+        delegate?.openCamp(camp: camp)
+    }
     func moreButtonTapped() {
         delegate?.moreButtonTapped()
     }

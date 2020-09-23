@@ -20,7 +20,7 @@ class MessagesListViewController: BaseViewController {
     private let controller = UserController()
 
     init() {
-        super.init(navigationBar: NavigationBar(color: Constants.Color.systemBackground, title: "Messages"), scrollView: tableView, floatingButton: BFFloatingButton(icon: UIImage(named: "NewMessageIcon")))
+        super.init(navigationBar: NavigationBar(color: Constants.Color.navigationBar, title: "Messages"), scrollView: tableView, floatingButton: BFFloatingButton(icon: UIImage(named: "NewMessageIcon")))
         
         floatingButton?.delegate = self
     }
@@ -86,7 +86,7 @@ class MessagesListViewController: BaseViewController {
             .init(name: "Judy", image: .dummyAvatar, color: .liveAudioBottom, status: .init(emoji: "🤓", text: "Just coding."), isVerified: true, lastMessage: .init(text: "Hi", isRead: true, isOwnMessage: false, date: Date()), isSuggested: true),
             .init(name: "Edith", image: .dummyAvatar, color: .liveAudioTop, status: .init(emoji: "👋", text: "Hello!"), lastMessage: .init(text: "Hi", isRead: true, isOwnMessage: false, date: Date())),
             .init(name: "Samuel", image: .dummyAvatar, color: .liveBottom, lastMessage: .init(text: "Hi", isRead: false, isOwnMessage: false, date: Date())),
-            .init(name: "Chandler", image: .dummyAvatar, color: .liveTop, lastMessage: .init(text: "Hi", isRead: true, isOwnMessage: false, date: Date()), isSuggested: true),
+            .init(name: "Chandler", image: .dummyAvatar, color: .liveTop, lastMessage: .init(text: "Hi", isRead: true, isOwnMessage: false, date: Date()), isSuggested: false),
             .init(name: "Pascal", image: .dummyAvatar, color: .liveChatTop, lastMessage: .init(text: "Hi", isRead: false, isOwnMessage: false, date: Date()))
         ]
 

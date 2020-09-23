@@ -21,6 +21,7 @@ final class ProfileController: ProfileControllerProtocol {
             case .success(let response):
                 completion(response.data)
             case .failure(let error):
+                print(error)
                 break
             }
         }
@@ -32,6 +33,7 @@ final class ProfileController: ProfileControllerProtocol {
             case .success(let response):
                 completion(response.data)
             case .failure(let error):
+                print(error)
                 break
             }
         }

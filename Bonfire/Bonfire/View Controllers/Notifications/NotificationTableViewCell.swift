@@ -216,7 +216,7 @@ final class NotificationTableViewCell: UITableViewCell {
                 equalTo: contentView.leadingAnchor,
                 constant: 12),
             profileImageView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 12),
-            profileImageView.widthAnchor.constraint(equalToConstant: 64),
+            profileImageView.widthAnchor.constraint(equalToConstant: 52),
             profileImageView.heightAnchor.constraint(equalTo: profileImageView.widthAnchor),
 
             typeImageView.trailingAnchor.constraint(

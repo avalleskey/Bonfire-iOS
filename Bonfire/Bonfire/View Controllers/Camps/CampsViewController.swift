@@ -20,7 +20,7 @@ class CampsViewController: BaseViewController {
     private let controller = CampController()
 
     init() {
-        super.init(navigationBar: NavigationBar(color: Constants.Color.systemBackground, title: "Camps"), scrollView: tableView, floatingButton: BFFloatingButton(icon: UIImage(named: "AddCampIcon")))
+        super.init(navigationBar: NavigationBar(color: Constants.Color.navigationBar, title: "Camps"), scrollView: tableView, floatingButton: BFFloatingButton(icon: UIImage(named: "AddCampIcon")))
         
         navigationBar.leftButtonAction = {
             self.navigationController?.popViewController(animated: true)

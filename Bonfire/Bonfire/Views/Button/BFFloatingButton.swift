@@ -13,6 +13,11 @@ protocol BFFloatingButtonDelegate: AnyObject {
     func floatingButtonTapped()
 }
 
+enum BFFloatingButtonBackground {
+    case color(_ color: UIColor? = Constants.Color.secondary)
+    case image(_ image: UIImage? = UIImage())
+}
+
 class BFFloatingButton: UIControl {
 
     weak var delegate: BFFloatingButtonDelegate?
@@ -79,8 +84,6 @@ class BFFloatingButton: UIControl {
     
     var color: UIColor? = nil {
         didSet {
-            backgroundImageView.isHidden = color != nil
-//            backgroundShadowImageView.isHidden = color != nil
             backgroundColor = color
         }
     }
@@ -91,30 +94,32 @@ class BFFloatingButton: UIControl {
             iconImageView.image = icon
         }
     }
-
-    var backgroundImage: UIImage? = nil {
+    
+    var background: BFFloatingButtonBackground? {
         didSet {
-            if backgroundImage != oldValue {
-                backgroundImageView.image = backgroundImage
-                
-                if backgroundImage != nil {
-                    color = nil
-                    
-                    backgroundImageViewShadowImageView.image = backgroundImage
-                }
+            switch background {
+                case .color(let color):
+                    backgroundColor = color
+                    backgroundImageView.isHidden = true
+                    backgroundImageView.image = nil
+                case .image(let image):
+                    backgroundColor = .clear
+                    backgroundImageView.isHidden = false
+                    backgroundImageView.image = image
+                case .none:
+                    break
             }
         }
     }
 
-    init(icon: UIImage? = nil, backgroundImage: UIImage? = UIImage(named: "FloatingButtonGradientBackground"), color: UIColor? = nil) {
+    init(icon: UIImage? = nil, background: BFFloatingButtonBackground? = .image(UIImage(named: "FloatingButtonGradientBackground"))) {
         super.init(frame: .zero)
         setUpView()
         setUpContent()
 
         defer {
             self.icon = icon
-            self.color = color
-            self.backgroundImage = backgroundImage
+            self.background = background
         }
     }
 
@@ -125,6 +130,8 @@ class BFFloatingButton: UIControl {
     private func setUpView() {
         layer.masksToBounds = false
         tintColor = .white
+        
+        applyShadow(intensity: .sketch(color: .black, alpha: 0.12, x: 0, y: 2, blur: 6, spread: 0))
     }
 
     private func setUpContent() {

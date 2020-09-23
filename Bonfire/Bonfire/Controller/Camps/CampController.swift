@@ -13,13 +13,38 @@ import Foundation
 final class CampController: CampControllerProtocol {
 
     private let api = APIClient.shared
-
+    
+    func getCamp(campId: String, completion: @escaping (Camp) -> Void) {
+        api.send(CampRequest(campId: campId)) { (result) in
+            switch result {
+            case .success(let response):
+                completion(response.data)
+            case .failure(let error):
+                print(error)
+                break
+            }
+        }
+    }
+    
+    func getCampMembers(campId: String, completion: @escaping ([User]) -> Void) {
+        api.send(CampMembersRequest(campId: campId)) { (result) in
+            switch result {
+            case .success(let response):
+                completion(response.data)
+            case .failure(let error):
+                print(error)
+                break
+            }
+        }
+    }
+    
     func getCamps(completion: @escaping ([Camp]) -> Void) {
         api.send(MyCampsRequest()) { (result) in
             switch result {
             case .success(let response):
                 completion(response.data)
-            case .failure(_):
+            case .failure(let error):
+                print(error)
                 break
             }
         }

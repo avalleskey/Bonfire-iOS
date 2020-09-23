@@ -20,17 +20,31 @@ final class StreamController: StreamControllerProtocol {
             case .success(let response):
                 completion(response.data.compactMap { $0.attributes.posts }.reduce([], +))
             case .failure(let error):
+                print(error)
                 break
             }
         }
     }
 
-    func getStream(user: String, completion: @escaping ([Post]) -> Void) {
-        api.send(UserStreamRequest(type: .otherUser(user))) { (result) in
+    func getStream(userId: String, completion: @escaping ([Post]) -> Void) {
+        api.send(UserStreamRequest(type: .otherUser(userId))) { (result) in
             switch result {
             case .success(let response):
                 completion(response.data.compactMap { $0.attributes.posts }.reduce([], +))
             case .failure(let error):
+                print(error)
+                break
+            }
+        }
+    }
+    
+    func getStream(campId: String, completion: @escaping ([Post]) -> Void) {
+        api.send(CampStreamRequest(campId: campId)) { (result) in
+            switch result {
+            case .success(let response):
+                completion(response.data.compactMap { $0.attributes.posts }.reduce([], +))
+            case .failure(let error):
+                print(error)
                 break
             }
         }

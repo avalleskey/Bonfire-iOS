@@ -77,6 +77,9 @@ extension PushTransitionAnimator: UIViewControllerAnimatedTransitioning {
         
         containerView.insertSubview(presentingViewController.view, belowSubview: presentedViewController.view)
         containerView.insertSubview(fadeView, belowSubview: presentedViewController.view)
+        
+        // styling presentedViewController
+        presentedViewController.prepareViewControllerForPush()
                 
         let presentedFrame = containerView.bounds
         let dismissedFrame = CGRect(x: presentedFrame.size.width, y: presentedFrame.minY, width: presentedFrame.width, height: presentedFrame.height)
@@ -85,6 +88,8 @@ extension PushTransitionAnimator: UIViewControllerAnimatedTransitioning {
         fadeView.frame = containerView.frame
         // this layout pass ensures that any intrinsic subview sizes are accurate before the presented view's frame is calculated
         presentingViewController.view.layoutSubviews()
+        
+        self.fadeView.alpha = 1
 
         let animator = UIViewPropertyAnimator(duration: transitionDuration(using: transitionContext), dampingRatio: PushTransition.Constants.popDamping) {
             self.fadeView.alpha = 0

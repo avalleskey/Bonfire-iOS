@@ -11,6 +11,7 @@ import Foundation
 public enum BFResourceType: String, Codable {
     case camp
     case user
+    case bot
     case section
     case post
     case user_activity

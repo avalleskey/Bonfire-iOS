@@ -51,8 +51,8 @@
         "repositoryURL": "https://github.com/onevcat/Kingfisher.git",
         "state": {
           "branch": null,
-          "revision": "175eeb4618b0a6ef4d69a7409b6a74ddd235a093",
-          "version": "5.15.0"
+          "revision": "ffc614446cab6ae106619606698d642c23ed25be",
+          "version": "5.15.3"
         }
       },
       {
@@ -71,15 +71,6 @@
           "branch": null,
           "revision": "53c3ecca5abe8cf46697e33901ee774236d94cce",
           "version": "0.2.3"
-        }
-      },
-      {
-        "package": "LTMorphingLabel",
-        "repositoryURL": "https://github.com/lexrus/LTMorphingLabel",
-        "state": {
-          "branch": null,
-          "revision": "c5471a42692c5f62e129e321dd2d7a25de405a48",
-          "version": "0.8.1"
         }
       },
       {
@@ -107,15 +98,6 @@
           "branch": null,
           "revision": "bf90dc69fa0792894b08a0b74cf34029694ae486",
           "version": "0.13.0"
-        }
-      },
-      {
-        "package": "PullUpController",
-        "repositoryURL": "https://github.com/MarioIannotta/PullUpController",
-        "state": {
-          "branch": null,
-          "revision": "6192b4745a4423e8fd2dc0a4eb8d34ca247a5163",
-          "version": "0.8.0"
         }
       },
       {
@@ -177,8 +159,8 @@
         "repositoryURL": "https://github.com/nicklockwood/SwiftFormat",
         "state": {
           "branch": null,
-          "revision": "0d61559303ec3c9d3485cbdfeaf5d6def3dc928b",
-          "version": "0.46.2"
+          "revision": "337d787cae2ac7c53f3574c107d12c557002a883",
+          "version": "0.46.3"
         }
       },
       {

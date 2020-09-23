@@ -18,7 +18,7 @@ final class NotificationsViewController: BaseViewController {
     private let controller = NotificationController()
 
     init() {
-        super.init(navigationBar: NavigationBar(color: Constants.Color.systemBackground, rightButtonType: .more, title: "Notifications", hideOnScroll: false, showPullTab: true), scrollView: tableView)
+        super.init(navigationBar: NavigationBar(color: Constants.Color.navigationBar, rightButtonType: .more, title: "Notifications", hideOnScroll: false, showPullTab: true), scrollView: tableView)
         
         navigationBar.rightButtonAction = {
             let token: String = UserDefaults.standard.string(forKey: "DeviceToken") ?? ""

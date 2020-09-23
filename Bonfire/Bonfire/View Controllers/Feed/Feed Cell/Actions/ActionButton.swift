@@ -8,9 +8,8 @@
 
 import UIKit
 import Cartography
-import LTMorphingLabel
 
-class ActionButton: UIControl {
+class FeedCellActionButton: UIControl {
 
     private enum TouchState {
         case down
@@ -80,7 +79,7 @@ class ActionButton: UIControl {
     }
 
     private let stackView = UIStackView(axis: .horizontal, alignment: .center, spacing: 4)
-    private let label = LTMorphingLabel(size: 14, weight: .bold)
+    private let label = UILabel(size: 14, weight: .bold)
     private var imageView = UIImageView(width: 15, height: 15, contentMode: .center)
 
     private var homeBounds: CGRect!
@@ -130,9 +129,6 @@ class ActionButton: UIControl {
     
     private func buttonStateUpdated() {
         if isSelected {
-            if selectedTitle != nil && selectedTitle != title {
-                label.morphingEnabled = true
-            }
             label.text = selectedTitle ?? title
             backgroundColor = color
             
@@ -140,7 +136,6 @@ class ActionButton: UIControl {
             label.textColor = foreground
             imageView.tintColor = foreground
         } else {
-            label.morphingEnabled = false
             label.text = title
             backgroundColor = .clear
             label.textColor = color
@@ -187,9 +182,6 @@ class ActionButton: UIControl {
         stackView.addArrangedSubview(label)
 
         label.numberOfLines = 1
-        label.morphingEffect = .scale
-        label.morphingDuration = 0.3
-        label.morphingEnabled = false
     }
 
     override func beginTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {

@@ -19,7 +19,7 @@ final class FeedViewController: BaseViewController {
     private let controller = StreamController()
 
     init() {
-        super.init(navigationBar: NavigationBar(color: Constants.Color.systemBackground, leftButtonType: .status(emoji: "🥳"), rightButtonType: .bell, titleImage: .dummyAvatar), scrollView: tableView, floatingButton: BFFloatingButton(icon: UIImage(named: "ComposeIcon")))
+        super.init(navigationBar: NavigationBar(color: Constants.Color.navigationBar, leftButtonType: .status(emoji: "🥳"), rightButtonType: .bell, titleImage: .dummyAvatar), scrollView: tableView, floatingButton: BFFloatingButton(icon: UIImage(named: "ComposeIcon")))
         
         floatingButton?.delegate = self
         
@@ -28,7 +28,7 @@ final class FeedViewController: BaseViewController {
             self.present(setStatusViewController, customPresentationType: .sheet(customHeight: 668), tapToDismiss: true)
         }
         navigationBar.centerButtonAction = {
-            let profileViewController = ProfileViewController()
+            let profileViewController = ProfileViewController(user: User(username: "austin"))
             self.navigationController?.pushViewController(profileViewController, animated: true)
         }
         navigationBar.rightButtonAction = {
@@ -88,8 +88,9 @@ final class FeedViewController: BaseViewController {
             DispatchQueue.main.async {
                 self.posts = posts
                 self.tableView.reloadData()
-                self.tableView.transform = CGAffineTransform(translationX: 0, y: 12)
-                UIView.animate(withDuration: 0.2, animations: {
+                self.tableView.transform = CGAffineTransform(translationX: 0, y: 24)
+                
+                UIView.animate(withDuration: 0.6, delay: 0.0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.5, options: .allowUserInteraction, animations: {
                     if posts.isEmpty {
                         self.emptyStateMessageView.alpha = 1.0
                     } else {
@@ -106,7 +107,8 @@ final class FeedViewController: BaseViewController {
 
 extension FeedViewController: BFFloatingButtonDelegate {
     func floatingButtonTapped() {
-        print("open compose")
+        let composeViewController = ComposeViewController()
+        self.present(composeViewController, customPresentationType: .present)
     }
 }
 
@@ -145,6 +147,14 @@ extension FeedViewController: FeedCellDelegate {
         options.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
         present(options, animated: true, completion: nil)
     }
+    func openUser(user: User) {
+        let vc = ProfileViewController(user: user)
+        self.navigationController?.pushViewController(vc, animated: true)
+    }
+    func openCamp(camp: Camp) {
+        let vc = CampViewController(camp: camp)
+        self.navigationController?.pushViewController(vc, animated: true)
+    }
     func performAction() {
         
     }
@@ -172,7 +182,7 @@ extension FeedViewController: UITableViewDataSource {
             let cell = tableView.dequeueReusableCell(withIdentifier: FeedCell.reuseIdentifier, for: indexPath) as! FeedCell
             cell.type = .post(post: posts[indexPath.row])
             cell.delegate = self
-            cell.separatorView.isHidden = indexPath.row == posts.count - 1
+//            cell.separatorView.isHidden = indexPath.row == posts.count - 1
             return cell
         }
         

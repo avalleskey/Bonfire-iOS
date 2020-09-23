@@ -69,7 +69,7 @@ class ConversationCell: UITableViewCell {
     }
 
     private let borderedAvatarView = BorderedAvatarView()
-    private let userIdentityView = UserIdentityView()
+    private let userIdentityView = DummyUserIdentityView()
     private let newDotView = UIView(backgroundColor: .onlineGreen, height: 11, width: 11, cornerRadius: 5.5)
     private let detailLabel = UILabel(size: 15, weight: .bold, multiline: false)
     private let separatorDotView = UIView(backgroundColor: UIColor.secondaryText.withAlphaComponent(0.5), height: 3, width: 3, cornerRadius: 1.5)

@@ -18,7 +18,7 @@ final class MessageViewController: BaseViewController {
     private let controller = StreamController()
 
     init() {
-        super.init(navigationBar: NavigationBar(color: Constants.Color.systemBackground, leftButtonType: .back, rightButtonType: .custom(image: .dummyAvatar), title: "Display Name", subtitle: "👀 User's Status"), scrollView: tableView)
+        super.init(navigationBar: NavigationBar(color: Constants.Color.navigationBar, leftButtonType: .back, rightButtonType: .custom(image: .dummyAvatar), title: "Display Name", subtitle: "👀 User's Status"), scrollView: tableView)
         
         navigationBar.leftButtonAction = {
             self.navigationController?.popViewController(animated: true)
@@ -28,7 +28,6 @@ final class MessageViewController: BaseViewController {
         }
         navigationBar.rightButtonAction = {
             let options = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-            options.view.tintColor = Constants.Color.brand
 
             let viewProfile = UIAlertAction(
                 title: "View Profile 👤", style: .default,
